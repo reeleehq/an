@@ -274,7 +274,9 @@ def ground_truth(
                 "fall": kk.fall,
                 "brake": kk.brake,
                 "impact_xy": list(projector.analytic(e.t_impact)[obj.impact_keypoint]),
-                "frames": _frame_evidence(e, frames, stroke, (bounds[k], bounds[k + 1])),
+                "frames": _frame_evidence(
+                    e, frames, stroke, (bounds[k], bounds[k + 1])
+                ),
             }
         )
 
@@ -325,7 +327,12 @@ def keypoint_lines(
                 "width": width,
                 "height": height,
                 "keypoints": [
-                    {"object": o, "name": n, "x": round(x, digits), "y": round(y, digits)}
+                    {
+                        "object": o,
+                        "name": n,
+                        "x": round(x, digits),
+                        "y": round(y, digits),
+                    }
                     for o, points in f["keypoints"].items()
                     for n, (x, y) in points.items()
                 ],

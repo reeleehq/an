@@ -180,7 +180,9 @@ class FrameClock:
         for name in ("jitter_sd", "report_noise_sd"):
             value = getattr(self, name)
             if not (math.isfinite(value) and value >= 0):
-                raise FrameClockError(f"{name} must be a finite number >= 0; got {value!r}")
+                raise FrameClockError(
+                    f"{name} must be a finite number >= 0; got {value!r}"
+                )
         if self.jitter_sd > self.max_jitter / 2.0:
             raise FrameClockError(
                 f"jitter_sd={self.jitter_sd!r} s cannot be honoured: frames must "
@@ -292,7 +294,9 @@ class FrameClock:
 
         rng = np.random.default_rng([self.seed, 0])
         cap = self.max_jitter
-        return [float(v) for v in np.clip(rng.normal(0.0, self.jitter_sd, n), -cap, cap)]
+        return [
+            float(v) for v in np.clip(rng.normal(0.0, self.jitter_sd, n), -cap, cap)
+        ]
 
     def _report_noise(self, n: int) -> list[float]:
         if self.report_noise_sd == 0.0:
@@ -301,4 +305,7 @@ class FrameClock:
 
         rng = np.random.default_rng([self.seed, 1])
         cap = MAX_REPORT_NOISE_FRACTION / self.fps
-        return [float(v) for v in np.clip(rng.normal(0.0, self.report_noise_sd, n), -cap, cap)]
+        return [
+            float(v)
+            for v in np.clip(rng.normal(0.0, self.report_noise_sd, n), -cap, cap)
+        ]

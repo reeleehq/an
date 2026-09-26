@@ -128,7 +128,14 @@ def _prop_art(ref: str, svg: str, *, anchor: tuple[float, float]) -> PropArt:
     desc = PropDescriptor(
         name=ref,
         view_box=(0, 0, int(SCENE_PX_PER_VIEW_BOX), int(SCENE_PX_PER_VIEW_BOX)),
-        slots=[Slot(name=DFLT_PROP_SLOT, bone=DFLT_PROP_BONE, draw_order=0, attachment="body")],
+        slots=[
+            Slot(
+                name=DFLT_PROP_SLOT,
+                bone=DFLT_PROP_BONE,
+                draw_order=0,
+                attachment="body",
+            )
+        ],
         skins={"default": Skin(slots={DFLT_PROP_SLOT: {"body": body}})},
         metadata={"generated_by": "an.impacts"},
     )
@@ -144,7 +151,9 @@ def _svg(width: float, height: float, shape: str) -> str:
 
 def _slab(width: float, height: float, color: str) -> PropArt:
     """A flat surface whose TOP edge sits at the entity's origin."""
-    svg = _svg(width, height, f'<rect width="{width:g}" height="{height:g}" fill="{color}"/>')
+    svg = _svg(
+        width, height, f'<rect width="{width:g}" height="{height:g}" fill="{color}"/>'
+    )
     return _prop_art("impact-surface", svg, anchor=(0.5, 0.0))
 
 
@@ -209,7 +218,9 @@ def ball(
     ``bottom`` (its contact point).
     """
     d = 2.0 * radius
-    svg = _svg(d, d, f'<circle cx="{radius:g}" cy="{radius:g}" r="{radius:g}" fill="{color}"/>')
+    svg = _svg(
+        d, d, f'<circle cx="{radius:g}" cy="{radius:g}" r="{radius:g}" fill="{color}"/>'
+    )
     art = _prop_art("impact-ball", svg, anchor=(0.5, 0.5))
     contact_y = floor_y - radius
     return ImpactObject(

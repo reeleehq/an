@@ -220,9 +220,13 @@ def perform(
     import numpy as np
 
     if beats < 1 or subdivision < 1:
-        raise PerformanceError(f"need beats >= 1, subdivision >= 1; got {beats}, {subdivision}")
+        raise PerformanceError(
+            f"need beats >= 1, subdivision >= 1; got {beats}, {subdivision}"
+        )
     if not pattern or any(not 0.0 <= float(a) <= 1.0 for a in pattern):
-        raise PerformanceError(f"pattern values must lie in [0, 1]; got {list(pattern)}")
+        raise PerformanceError(
+            f"pattern values must lie in [0, 1]; got {list(pattern)}"
+        )
     if not any(pattern):
         raise PerformanceError("pattern has no hits (all zeros)")
     if lead_in < 0:

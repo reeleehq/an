@@ -177,7 +177,9 @@ def build_stroke(
     if not events:
         raise StrokeError("a stroke needs at least one impact")
     if min(rise, fall) <= 0 or brake <= 0:
-        raise StrokeError(f"rise, fall and brake must be > 0; got {rise}, {fall}, {brake}")
+        raise StrokeError(
+            f"rise, fall and brake must be > 0; got {rise}, {fall}, {brake}"
+        )
     times = [e.t_impact for e in events]
     if any(b <= a for a, b in zip(times, times[1:])):
         raise StrokeError("impact times must strictly increase")
@@ -221,7 +223,9 @@ def build_stroke(
     # and eases to the first apex during it; without room, it opens at the apex.
     if rest_height != events[0].amplitude and segments[0].easing == "linear":
         first = segments[0]
-        segments[0] = StrokeSegment(first.t0, first.t1, rest_height, first.h1, "ease_in_out")
+        segments[0] = StrokeSegment(
+            first.t0, first.t1, rest_height, first.h1, "ease_in_out"
+        )
     for k, event in enumerate(events):
         if k + 1 < len(events):
             nxt = events[k + 1]
@@ -229,7 +233,9 @@ def build_stroke(
             top = rise_from(event.t_impact, longest=half, to=nxt.amplitude)
             fall_into(nxt, from_t=top, apex=nxt.amplitude)
         else:
-            top = rise_from(event.t_impact, longest=duration - event.t_impact, to=rest_height)
+            top = rise_from(
+                event.t_impact, longest=duration - event.t_impact, to=rest_height
+            )
             add(top, duration, rest_height, rest_height, "linear")
     _check_tiling(segments, duration)
     return Stroke(kind, duration, tuple(segments), tuple(kinematics))

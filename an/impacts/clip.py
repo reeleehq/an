@@ -57,7 +57,12 @@ from an.impacts.stroke import (
     Stroke,
     build_stroke,
 )
-from an.impacts.truth import TruthMismatch, ground_truth, keypoint_lines, trajectory_rows
+from an.impacts.truth import (
+    TruthMismatch,
+    ground_truth,
+    keypoint_lines,
+    trajectory_rows,
+)
 from an.ir.compose import delay, parallel, sequence, tween
 from an.ir.schema import AssetRef, Meta, Resolution, SceneIR, Shot, StagePlacement
 
@@ -92,9 +97,20 @@ CLIP_FILES: dict[str, str] = {
 }
 
 _FLOAT_FIELDS = (
-    "lead_in", "tail", "jitter_sd", "jitter_rho", "jitter_bias", "rise", "fall",
-    "brake", "fps", "exposure", "timestamp_jitter_sd", "timestamp_noise_sd",
-    "phase", "trajectory_hz",
+    "lead_in",
+    "tail",
+    "jitter_sd",
+    "jitter_rho",
+    "jitter_bias",
+    "rise",
+    "fall",
+    "brake",
+    "fps",
+    "exposure",
+    "timestamp_jitter_sd",
+    "timestamp_noise_sd",
+    "phase",
+    "trajectory_hz",
 )
 _INT_FIELDS = ("beats", "subdivision", "width", "height", "seed")
 
@@ -179,7 +195,9 @@ class ImpactClipSpec:
             object.__setattr__(self, "tempo", tempo_map(self.tempo).points)
         object.__setattr__(self, "pattern", tuple(float(a) for a in self.pattern))
         if not self.trajectory_hz > 0:
-            raise ImpactSpecError(f"trajectory_hz must be > 0; got {self.trajectory_hz!r}")
+            raise ImpactSpecError(
+                f"trajectory_hz must be > 0; got {self.trajectory_hz!r}"
+            )
         # At least a frame either side of the performance, or the first rise and
         # the last impact have no frame to show them.
         for name in ("lead_in", "tail"):
@@ -240,7 +258,9 @@ class ImpactClipSpec:
 
 def _seed(seed: int, stream: str) -> int:
     """An independent, deterministic sub-seed per stream."""
-    return int.from_bytes(hashlib.sha256(f"{seed}:{_SEED_STREAMS[stream]}".encode()).digest()[:4], "big")
+    return int.from_bytes(
+        hashlib.sha256(f"{seed}:{_SEED_STREAMS[stream]}".encode()).digest()[:4], "big"
+    )
 
 
 @dataclass(frozen=True)
@@ -275,7 +295,9 @@ def plan_impact_clip(spec: ImpactClipSpec) -> ImpactPlan:
         subdivision=spec.subdivision,
         pattern=spec.pattern,
         lead_in=spec.lead_in,
-        humanizer=gaussian_humanizer(spec.jitter_sd, rho=spec.jitter_rho, bias=spec.jitter_bias),
+        humanizer=gaussian_humanizer(
+            spec.jitter_sd, rho=spec.jitter_rho, bias=spec.jitter_bias
+        ),
         seed=_seed(spec.seed, "performance"),
     )
     # Not rounded: rounding can land the end BELOW the last impact.
@@ -290,12 +312,16 @@ def plan_impact_clip(spec: ImpactClipSpec) -> ImpactPlan:
     )
     obj = impact_object(spec.object)
     frames = spec.clock().frames(duration)
-    show_surface = spec.kind == "surface" if spec.show_surface is None else spec.show_surface
+    show_surface = (
+        spec.kind == "surface" if spec.show_surface is None else spec.show_surface
+    )
     scene = _scene(spec, obj, stroke, show_surface=show_surface)
     return ImpactPlan(spec, events, obj, stroke, frames, scene)
 
 
-def _scene(spec: ImpactClipSpec, obj: ImpactObject, stroke: Stroke, *, show_surface: bool) -> SceneIR:
+def _scene(
+    spec: ImpactClipSpec, obj: ImpactObject, stroke: Stroke, *, show_surface: bool
+) -> SceneIR:
     """The clip as an ordinary `an` scene: props placed on stage, one tween per segment.
 
     Each tween is placed by a ``delay`` of exactly its start time, rather than
@@ -306,12 +332,21 @@ def _scene(spec: ImpactClipSpec, obj: ImpactObject, stroke: Stroke, *, show_surf
     if show_surface and obj.surface_art is not None:
         entities.append(
             AssetRef(
-                kind="prop", id=_SURFACE_ID, store="props", ref=obj.surface_art.ref,
+                kind="prop",
+                id=_SURFACE_ID,
+                store="props",
+                ref=obj.surface_art.ref,
                 stage=StagePlacement(at=obj.surface_at),
             )
         )
     entities.append(
-        AssetRef(kind="prop", id=obj.name, store="props", ref=obj.art.ref, stage=StagePlacement(at=obj.at))
+        AssetRef(
+            kind="prop",
+            id=obj.name,
+            store="props",
+            ref=obj.art.ref,
+            stage=StagePlacement(at=obj.at),
+        )
     )
     # One tween per (segment, channel): every channel is affine in h, so each
     # eased tween is the same easing of h, and a multi-channel object (a
@@ -396,7 +431,11 @@ def write_impact_clip(
             strict_assets=True,
         )
         header = {
-            "generator": {"package": "an", "version": _package_version(), "module": __name__},
+            "generator": {
+                "package": "an",
+                "version": _package_version(),
+                "module": __name__,
+            },
             "spec": spec.to_dict(),
             "clock": spec.clock().to_dict(),
             "tempo": tempo_map(spec.tempo).to_dict(),
@@ -438,7 +477,9 @@ def write_impact_clip(
     )
     buf = io.StringIO()
     csv.writer(buf, lineterminator="\n").writerows(
-        trajectory_rows(scene=compiled, obj=plan.obj, stroke=plan.stroke, hz=spec.trajectory_hz)
+        trajectory_rows(
+            scene=compiled, obj=plan.obj, stroke=plan.stroke, hz=spec.trajectory_hz
+        )
     )
     (target / CLIP_FILES["trajectory"]).write_text(buf.getvalue(), encoding="utf-8")
     return target
@@ -480,7 +521,9 @@ def _render(plan: ImpactPlan, mall: dict, tmp: Path, compiled: Any) -> Path:
             "changed what it compiles); the video and the sidecar would disagree"
         )
     if result.provenance.get("frame_samples") != [list(f.samples) for f in plan.frames]:
-        raise TruthMismatch("the renderer did not capture the instants the truth records")
+        raise TruthMismatch(
+            "the renderer did not capture the instants the truth records"
+        )
     return result.mp4_path
 
 
@@ -519,10 +562,17 @@ def impact_set_specs(
     """
     return [
         replace(
-            base, object=o, kind=k, fps=float(f), exposure=float(e),
-            timestamp_jitter_sd=float(j), seed=int(s),
+            base,
+            object=o,
+            kind=k,
+            fps=float(f),
+            exposure=float(e),
+            timestamp_jitter_sd=float(j),
+            seed=int(s),
         )
-        for o, k, f, e, j, s in product(objects, kinds, fps, exposures, timestamp_jitter_sds, seeds)
+        for o, k, f, e, j, s in product(
+            objects, kinds, fps, exposures, timestamp_jitter_sds, seeds
+        )
     ]
 
 

@@ -907,7 +907,12 @@ def _build_impacts(work: Path) -> Path:
     from an.impacts import ImpactClipSpec, write_impact_clip
 
     spec = ImpactClipSpec(
-        beats=8, tempo=110, pattern=(1.0, 0.6), jitter_sd=0.012, fps=DEMO_FPS, exposure=0.5
+        beats=8,
+        tempo=110,
+        pattern=(1.0, 0.6),
+        jitter_sd=0.012,
+        fps=DEMO_FPS,
+        exposure=0.5,
     )
     return write_impact_clip(spec, work, clip_dir="clip") / "clip.mp4"
 

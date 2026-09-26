@@ -212,15 +212,24 @@ Structured animations of a stick or a ball striking a surface — or striking *t
 from an.impacts import ImpactClipSpec, write_impact_clip, write_impact_set
 
 spec = ImpactClipSpec(
-    object="stick", kind="air",                  # or "ball" / "surface"
-    tempo=[(0, 90), (16, 120)], beats=16,        # an accelerando; or a single bpm
-    pattern=(1, 0.5, 0.8, 0.5),                  # per-step stroke height, 0 = rest
-    jitter_sd=0.012, jitter_rho=0.3,             # human timing, seconds (default 8 ms; 0 = metronome)
-    fps=30, exposure=0.5, timestamp_jitter_sd=0.002,  # the camera
+    object="stick",
+    kind="air",  # or "ball" / "surface"
+    tempo=[(0, 90), (16, 120)],
+    beats=16,  # an accelerando; or a single bpm
+    pattern=(1, 0.5, 0.8, 0.5),  # per-step stroke height, 0 = rest
+    jitter_sd=0.012,
+    jitter_rho=0.3,  # human timing, seconds (default 8 ms; 0 = metronome)
+    fps=30,
+    exposure=0.5,
+    timestamp_jitter_sd=0.002,  # the camera
 )
-clip_dir = write_impact_clip(spec, "~/clips")          # clip.mp4, truth.json, keypoints.ndjson, trajectory.csv, scene.json
-write_impact_clip(spec, "~/clips", render=False)       # truth + keypoints only: no browser needed
-write_impact_set("~/clips/set")                         # 24 clips sharing one performance
+clip_dir = write_impact_clip(
+    spec, "~/clips"
+)  # clip.mp4, truth.json, keypoints.ndjson, trajectory.csv, scene.json
+write_impact_clip(
+    spec, "~/clips", render=False
+)  # truth + keypoints only: no browser needed
+write_impact_set("~/clips/set")  # 24 clips sharing one performance
 ```
 
 The clips are ordinary `an` scenes (two props, one tween per stroke segment), and the ground truth is read back from the same compiled document the renderer draws — `write_impact_clip` refuses to write a sidecar whose keypoints disagree with the analytic motion at any captured instant, or whose document is not the one the renderer staged. With an open shutter, a frame's keypoints are the average over its exposure (what the blurred frame shows), with the mid-exposure position recorded beside them. The `truth.json` schema is documented in `an/impacts/truth.py`. The camera model is `an.frame_clock.FrameClock`, which reaches the renderer through `RenderContext.frame_samples`: several instants averaged per frame are an open shutter, instants off the `i / fps` grid are capture jitter, and a render without it is byte-identical to before.
