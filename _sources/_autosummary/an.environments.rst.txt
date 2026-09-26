@@ -1,0 +1,20 @@
+an.environments
+===============
+
+.. automodule:: an.environments
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      ENVIRONMENT_DOCUMENT_KIND
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      EnvironmentDescriptor
+      Plane
+      PlaneArt
+   

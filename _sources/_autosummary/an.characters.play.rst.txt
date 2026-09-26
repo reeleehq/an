@@ -1,0 +1,45 @@
+an.characters.play
+==================
+
+.. automodule:: an.characters.play
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      BONE_TRACK_PROPERTIES
+      RIG_SCALED_PROPERTIES
+      ROOT_BONE
+      HEAD_BONE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      active_skin
+      art_exists_for
+      drawn_attachment
+      play_problems
+      primary_slot_per_bone
+      resolve_play
+      sampled_deviations
+      sine_sample_times
+      slot_node_path
+      slot_parent
+      suppressed_slots
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BoneTrack
+      ResolvedPlay
+      SlotTrack
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      PlayResolutionError
+   

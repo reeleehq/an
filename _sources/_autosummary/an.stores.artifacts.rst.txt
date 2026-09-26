@@ -1,0 +1,16 @@
+an.stores.artifacts
+===================
+
+.. automodule:: an.stores.artifacts
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AudioArtifactStore
+      OutputStore
+      PreviewArtifactStore
+      ShotArtifactStore
+      VisemeArtifactStore
+   

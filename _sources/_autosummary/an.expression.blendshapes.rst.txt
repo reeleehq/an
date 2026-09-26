@@ -1,0 +1,12 @@
+an.expression.blendshapes
+=========================
+
+.. automodule:: an.expression.blendshapes
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      from_blendshapes
+   

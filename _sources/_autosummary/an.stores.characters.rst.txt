@@ -1,0 +1,12 @@
+an.stores.characters
+====================
+
+.. automodule:: an.stores.characters
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CharactersStore
+   

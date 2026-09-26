@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.bench.mutations.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.bench.mutations.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.bench.mutations &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../_static/documentation_options.js?v=8520101b"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.bench.mutations';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.bench.palette" href="an.bench.palette.html" />
+    <link rel="prev" title="an.bench.mutants" href="an.bench.mutants.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.87" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_lipsync.html">an.audio.offline_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.base.html">an.base</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="an.bench.html">an.bench</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.imageio.html">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.licenses.html">an.characters.licenses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.validate.html">an.characters.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.binding.html">an.expression.binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.objects.html">an.impacts.objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.performance.html">an.impacts.performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.stroke.html">an.impacts.stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.truth.html">an.impacts.truth</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.bench.html" class="nav-link">an.bench</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.bench.mutations</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.bench.mutations">
+<span id="an-bench-mutations"></span><h1>an.bench.mutations<a class="headerlink" href="#module-an.bench.mutations" title="Link to this heading">#</a></h1>
+<p>The levers: deliberate, declared changes through seams the shipped code already has.</p>
+<p>This is the other half of the instrument. <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span></code> records numbers; these
+change the pipeline on purpose so a test can check the numbers move the way the
+registry declared <strong>in advance</strong>. A metric that never moves under any lever is
+decoration, and the only way to know which is which is to pull one.</p>
+<p><strong>Two of the three are degradations and the third is an improvement</strong>, and that
+asymmetry is the point rather than an untidiness. <code class="docutils literal notranslate"><span class="pre">high_crf</span></code> and
+<code class="docutils literal notranslate"><span class="pre">disabled_aa</span></code> make the picture worse; <code class="docutils literal notranslate"><span class="pre">supersample</span></code> makes it better. A panel
+that has only ever been shown things getting worse cannot tell an improvement
+from a regression — run as a plain commit-to-commit diff, a k=2 supersample
+reports <strong>2 false regressions</strong> (<code class="docutils literal notranslate"><span class="pre">off_palette_pixel_fraction</span></code> rises as blends
+multiply, <code class="docutils literal notranslate"><span class="pre">min_ssim_win8_vs_golden</span></code> falls away from the golden) and **7
+unearned improvements** (every family C/D/E/G metric whose mask derives from the
+source frames: gates live inside <code class="docutils literal notranslate"><span class="pre">Prediction</span></code>, which exists only per declared
+mutation, so with <code class="docutils literal notranslate"><span class="pre">mutation=None</span></code> no gate is consulted and a softer source
+shrinks each mask to its easiest members). Declared as a lever, none of that
+happens. So what a lever has to be is <strong>declared in advance</strong>, not bad — and the
+word “degradations” in the old first line was quietly making the stronger, false
+claim (an#56).</p>
+<p><strong>Two of the three levers have no production knob, and that is deliberate.</strong>
+The third, <code class="docutils literal notranslate"><span class="pre">supersample</span></code>, has had one since an#58 (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--supersample</span>
+<span class="pre">N</span></code>) and the lever now FORCES the product’s own parameter rather than carrying
+a second copy of the resolve — a lever that reproduces the code it examines is
+examining itself. The inverse also exists: <code class="docutils literal notranslate"><span class="pre">step_hz</span></code> (an#89) is a product
+knob with <strong>no lever</strong>, on measurement — a per-frame instrument cannot judge a
+temporal choice (the <code class="code docutils literal notranslate"><span class="pre">an-dev-bench</span></code> skill’s table has the numbers). Each lever
+reaches an existing seam from the outside:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">high_crf</span></code> rebinds <code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.render.DETERMINISTIC_X264_ARGS</span></code>.
+<code class="docutils literal notranslate"><span class="pre">_ffmpeg_mux</span></code> reads that name as a module global at call time, so the
+rebinding reaches the delivered encode. It does <strong>not</strong> reach
+<code class="docutils literal notranslate"><span class="pre">an.bench.imageio.lossless_encode_command</span></code>, which bound the tuple at import
+— and that is exactly right: the lossless reference must stay lossless, or
+every encode-side metric would be measured against a moving target and the
+lever would produce beautiful numbers about nothing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">disabled_aa</span></code> copies the staged runtime, flips PixiJS’s <code class="docutils literal notranslate"><span class="pre">antialias</span></code> in the
+copy, and rebinds <code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.render.runtime_dir</span></code>. The shipped
+<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> is never written to.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">supersample</span></code> reaches the SAME runtime seam — <code class="docutils literal notranslate"><span class="pre">resolution:</span> <span class="pre">k,</span>
+<span class="pre">autoDensity:</span> <span class="pre">false</span></code> in the Pixi application options — and then a second one
+it cannot do without: it rebinds
+<code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.render._capture_frames</span></code> so the k-times PNGs are
+block-mean-resolved back to the declared size <strong>in the frame stage</strong>, before
+ffmpeg or the metrics or the golden gate read them. That is not tidiness. A
+lever must measure what the product will produce, and everything downstream
+reads the declared resolution off the STAGED SCENE, never off the files.</p></li>
+</ul>
+<p>A knob in the product is a cost each of the other two levers avoids: it has to
+be documented, defended, and kept from being switched on by accident — which is
+why supersampling is opt-in and off is free.</p>
+<p><strong>Each lever verifies that it applied.</strong> A lever that silently failed to take
+produces a run in which nothing moved — which reads exactly like an instrument
+that cannot see it, and sends the reader to fix the wrong thing. So
+<code class="docutils literal notranslate"><span class="pre">verify_applied</span></code> is part of the declaration rather than a courtesy, and the
+two levers verify it in different places for a structural reason: the encode
+argv is recorded in the ledger row, and the runtime is not (the runtime is the
+code under test, not a comparability key — see
+<code class="xref py py-data docutils literal notranslate"><span class="pre">an.bench.registry.MUTATION_TOUCHES</span></code>).</p>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.mutations.HIGH_CRF" title="an.bench.mutations.HIGH_CRF"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HIGH_CRF</span></code></a></p></td>
+<td><p>measured on the CRF ladder, 40 gives C x8.4, D x8.0 and F -42% on <code class="code docutils literal notranslate"><span class="pre">single_character</span></code> — large, unambiguous, and still a rate a human might plausibly ship.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.mutations.AA_ON" title="an.bench.mutations.AA_ON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AA_ON</span></code></a></p></td>
+<td><p>The exact text the AA lever flips, and where.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.mutations.SUPERSAMPLE_K" title="an.bench.mutations.SUPERSAMPLE_K"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPERSAMPLE_K</span></code></a></p></td>
+<td><p>The supersample lever's factor, read at call time so a test can move it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.mutations.APP_OPEN" title="an.bench.mutations.APP_OPEN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">APP_OPEN</span></code></a></p></td>
+<td><p>The exact text the supersample lever anchors to, and what it inserts.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.mutations.STAGING_IGNORE" title="an.bench.mutations.STAGING_IGNORE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGING_IGNORE</span></code></a></p></td>
+<td><p>Excluded from the staged copy so the staged tree is a pure function of the shipped source and the patch — which is what lets <code class="code docutils literal notranslate"><span class="pre">_verify_supersample</span></code> RECOMPUTE the digest it expects instead of settling for &quot;not the shipped one&quot;.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.mutations.LEVERS" title="an.bench.mutations.LEVERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LEVERS</span></code></a></p></td>
+<td><p>The levers, keyed by the mutation name the registry declares.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.mutations.mutated_row" title="an.bench.mutations.mutated_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mutated_row</span></code></a>(name, **run_kwargs)</p></td>
+<td><p>Render the corpus with one lever pulled, and prove the lever took.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.mutations.Lever" title="an.bench.mutations.Lever"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Lever</span></code></a>(name, side, what, why, apply[, verify_row])</p></td>
+<td><p>One deliberate, declared change to the pipeline, with the evidence that it took.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.mutations.MutationError" title="an.bench.mutations.MutationError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MutationError</span></code></a></p></td>
+<td><p>A lever could not be applied, or applied and left no trace.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.bench.mutations.AA_ON">
+<span class="sig-prename descclassname"><span class="pre">an.bench.mutations.</span></span><span class="sig-name descname"><span class="pre">AA_ON</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'antialias:</span> <span class="pre">true'</span></span><a class="headerlink" href="#an.bench.mutations.AA_ON" title="Link to this definition">#</a></dt>
+<dd><p>The exact text the AA lever flips, and where. Pinned as a literal so a
+rename in <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code> fails here — loudly, at the lever — rather than
+producing a “mutation” that changes nothing.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.bench.mutations.APP_OPEN">
+<span class="sig-prename descclassname"><span class="pre">an.bench.mutations.</span></span><span class="sig-name descname"><span class="pre">APP_OPEN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'const</span> <span class="pre">resolution</span> <span class="pre">=</span> <span class="pre">Math.max(1,</span> <span class="pre">(NS.anSupersample</span> <span class="pre">|</span> <span class="pre">0)</span> <span class="pre">||</span> <span class="pre">1);'</span></span><a class="headerlink" href="#an.bench.mutations.APP_OPEN" title="Link to this definition">#</a></dt>
+<dd><p>The exact text the supersample lever anchors to, and what it inserts. Pinned
+for the same reason <code class="code docutils literal notranslate"><span class="pre">AA_ON</span></code> is: a reformat of the Pixi options object must
+fail here rather than produce a “mutation” that renders at 1x and then reads
+as an instrument that cannot see a supersample. <code class="code docutils literal notranslate"><span class="pre">app</span> <span class="pre">=</span> <span class="pre">new</span> <span class="pre">PIXI.Application({</span></code>
+and NOT <code class="code docutils literal notranslate"><span class="pre">new</span> <span class="pre">PIXI.Application(</span></code>: the shorter form occurs twice in
+<code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code> — the second is inside a comment — and a two-hit anchor would
+patch prose.</p>
+<p><strong>`autoDensity: false` is load-bearing and is the whole plumbing finding.</strong>
+With it <code class="code docutils literal notranslate"><span class="pre">true</span></code>, Pixi sets the canvas CSS size to the LOGICAL size and
+Chromium composites the k-times backbuffer down before the screenshot — a
+blind browser downscale with no filter choice and no record of having
+happened, i.e. the <code class="code docutils literal notranslate"><span class="pre">device_scale_factor</span></code> failure wearing the name that most
+suggests it is the right one. Measured on <code class="code docutils literal notranslate"><span class="pre">aa_probe</span></code>, declared 320x240:
+neither key -&gt; 320x240 PNGs; <code class="code docutils literal notranslate"><span class="pre">resolution:</span> <span class="pre">2,</span> <span class="pre">autoDensity:</span> <span class="pre">false</span></code> -&gt; 640x480;
+<code class="code docutils literal notranslate"><span class="pre">resolution:</span> <span class="pre">2,</span> <span class="pre">autoDensity:</span> <span class="pre">true</span></code> -&gt; 320x240. Neither key is in the shipped
+options today, so the engine default <code class="code docutils literal notranslate"><span class="pre">RESOLUTION:</span> <span class="pre">1</span></code> applies silently and
+both have to be introduced.
+Since an#58 the product owns <code class="code docutils literal notranslate"><span class="pre">resolution</span></code> / <code class="code docutils literal notranslate"><span class="pre">autoDensity:</span> <span class="pre">false</span></code> and reads
+the factor from an injected global, so the lever **overrides the line that
+reads it** rather than writing a second copy of the product’s Pixi options.
+A lever that reproduces the code it is examining is examining itself.</p>
+<p>Injecting the global does NOT work and the reason is worth keeping: the
+product sets <code class="code docutils literal notranslate"><span class="pre">window.anSupersample</span></code> from <code class="code docutils literal notranslate"><span class="pre">ctx.supersample</span></code> immediately before
+<code class="code docutils literal notranslate"><span class="pre">anLoadScene</span></code>, so it would overwrite whatever the lever put there. Caught by
+an#54’s shape guard — 160x120 frames against a 320x240 declaration — which is
+what that guard is for.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.bench.mutations.HIGH_CRF">
+<span class="sig-prename descclassname"><span class="pre">an.bench.mutations.</span></span><span class="sig-name descname"><span class="pre">HIGH_CRF</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'40'</span></span><a class="headerlink" href="#an.bench.mutations.HIGH_CRF" title="Link to this definition">#</a></dt>
+<dd><p>measured on the CRF
+ladder, 40 gives C x8.4, D x8.0 and F -42% on <code class="code docutils literal notranslate"><span class="pre">single_character</span></code> — large,
+unambiguous, and still a rate a human might plausibly ship. 51 is
+pathological, and a lever nobody would ever pull by accident is a weaker
+proxy for the regressions this instrument exists to catch.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The CRF the encoder lever raises to. 40 rather than 51</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.bench.mutations.LEVERS">
+<span class="sig-prename descclassname"><span class="pre">an.bench.mutations.</span></span><span class="sig-name descname"><span class="pre">LEVERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#an.bench.mutations.Lever" title="an.bench.mutations.Lever"><span class="pre">Lever</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'disabled_aa':</span> <span class="pre">Lever(name='disabled_aa',</span> <span class="pre">side='render',</span> <span class="pre">what='build</span> <span class="pre">the</span> <span class="pre">PixiJS</span> <span class="pre">application</span> <span class="pre">with</span> <span class="pre">multisampling</span> <span class="pre">off',</span> <span class="pre">why='moves</span> <span class="pre">the</span> <span class="pre">render-side</span> <span class="pre">families</span> <span class="pre">and</span> <span class="pre">fires</span> <span class="pre">the</span> <span class="pre">golden</span> <span class="pre">tripwire.</span> <span class="pre">Its</span> <span class="pre">effect</span> <span class="pre">is</span> <span class="pre">scene-dependent</span> <span class="pre">by</span> <span class="pre">measurement,</span> <span class="pre">not</span> <span class="pre">by</span> <span class="pre">accident:</span> <span class="pre">MSAA</span> <span class="pre">applies</span> <span class="pre">to</span> <span class="pre">WebGL</span> <span class="pre">geometry,</span> <span class="pre">so</span> <span class="pre">an</span> <span class="pre">SVG</span> <span class="pre">sprite</span> <span class="pre">is</span> <span class="pre">nearly</span> <span class="pre">blind</span> <span class="pre">to</span> <span class="pre">it</span> <span class="pre">(96</span> <span class="pre">differing</span> <span class="pre">pixels</span> <span class="pre">of</span> <span class="pre">12.4M)</span> <span class="pre">and</span> <span class="pre">axis-aligned</span> <span class="pre">`drawRect`</span> <span class="pre">edges</span> <span class="pre">are</span> <span class="pre">bit-identical</span> <span class="pre">with</span> <span class="pre">it</span> <span class="pre">on</span> <span class="pre">or</span> <span class="pre">off.</span> <span class="pre">`aa_probe`</span> <span class="pre">exists</span> <span class="pre">so</span> <span class="pre">the</span> <span class="pre">corpus</span> <span class="pre">contains</span> <span class="pre">edges</span> <span class="pre">this</span> <span class="pre">lever</span> <span class="pre">can</span> <span class="pre">actually</span> <span class="pre">change.',</span> <span class="pre">apply=&lt;function</span> <span class="pre">_disabled_aa&gt;,</span> <span class="pre">verify_row=&lt;function</span> <span class="pre">_verify_disabled_aa&gt;),</span> <span class="pre">'high_crf':</span> <span class="pre">Lever(name='high_crf',</span> <span class="pre">side='encode',</span> <span class="pre">what='raise</span> <span class="pre">the</span> <span class="pre">delivered</span> <span class="pre">encode</span> <span class="pre">from</span> <span class="pre">the</span> <span class="pre">pinned</span> <span class="pre">CRF</span> <span class="pre">to</span> <span class="pre">40',</span> <span class="pre">why='moves</span> <span class="pre">only</span> <span class="pre">post-encode</span> <span class="pre">metrics.</span> <span class="pre">The</span> <span class="pre">golden</span> <span class="pre">corpus</span> <span class="pre">is</span> <span class="pre">upstream</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">encoder,</span> <span class="pre">so</span> <span class="pre">family</span> <span class="pre">B</span> <span class="pre">cannot</span> <span class="pre">see</span> <span class="pre">this</span> <span class="pre">by</span> <span class="pre">construction</span> <span class="pre">—</span> <span class="pre">which</span> <span class="pre">is</span> <span class="pre">the</span> <span class="pre">reason</span> <span class="pre">two</span> <span class="pre">disjoint</span> <span class="pre">levers</span> <span class="pre">are</span> <span class="pre">mandatory.',</span> <span class="pre">apply=&lt;function</span> <span class="pre">_high_crf&gt;,</span> <span class="pre">verify_row=&lt;function</span> <span class="pre">_verify_high_crf&gt;),</span> <span class="pre">'supersample':</span> <span class="pre">Lever(name='supersample',</span> <span class="pre">side='render',</span> <span class="pre">what='build</span> <span class="pre">the</span> <span class="pre">PixiJS</span> <span class="pre">application</span> <span class="pre">at</span> <span class="pre">resolution</span> <span class="pre">2</span> <span class="pre">with</span> <span class="pre">`autoDensity:</span> <span class="pre">false`,</span> <span class="pre">and</span> <span class="pre">resolve</span> <span class="pre">the</span> <span class="pre">frames</span> <span class="pre">back</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">declared</span> <span class="pre">size</span> <span class="pre">with</span> <span class="pre">an</span> <span class="pre">exact</span> <span class="pre">2x2</span> <span class="pre">block</span> <span class="pre">mean</span> <span class="pre">before</span> <span class="pre">anything</span> <span class="pre">reads</span> <span class="pre">them',</span> <span class="pre">why=&quot;the</span> <span class="pre">instrument's</span> <span class="pre">exam</span> <span class="pre">against</span> <span class="pre">a</span> <span class="pre">change</span> <span class="pre">somebody</span> <span class="pre">WANTS</span> <span class="pre">to</span> <span class="pre">ship</span> <span class="pre">(an#56).</span> <span class="pre">Run</span> <span class="pre">instead</span> <span class="pre">as</span> <span class="pre">a</span> <span class="pre">plain</span> <span class="pre">commit-to-commit</span> <span class="pre">diff,</span> <span class="pre">`_verdict_by_optimum`</span> <span class="pre">reports</span> <span class="pre">it</span> <span class="pre">as</span> <span class="pre">2</span> <span class="pre">false</span> <span class="pre">regressions</span> <span class="pre">and</span> <span class="pre">7</span> <span class="pre">unearned</span> <span class="pre">improvements,</span> <span class="pre">plus</span> <span class="pre">7</span> <span class="pre">unscored</span> <span class="pre">`changed`s</span> <span class="pre">including</span> <span class="pre">the</span> <span class="pre">metric</span> <span class="pre">the</span> <span class="pre">wave's</span> <span class="pre">done-when</span> <span class="pre">names</span> <span class="pre">—</span> <span class="pre">a</span> <span class="pre">table</span> <span class="pre">that</span> <span class="pre">looks</span> <span class="pre">like</span> <span class="pre">evidence</span> <span class="pre">and</span> <span class="pre">is</span> <span class="pre">not.</span> <span class="pre">Its</span> <span class="pre">effect</span> <span class="pre">is</span> <span class="pre">scene-dependent</span> <span class="pre">BY</span> <span class="pre">MEASUREMENT</span> <span class="pre">and</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">exact</span> <span class="pre">inverse</span> <span class="pre">of</span> <span class="pre">`disabled_aa`:</span> <span class="pre">+2.6%</span> <span class="pre">to</span> <span class="pre">+8.0%</span> <span class="pre">edge</span> <span class="pre">width</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">five</span> <span class="pre">procedural</span> <span class="pre">scenes</span> <span class="pre">and</span> <span class="pre">-34.8%</span> <span class="pre">on</span> <span class="pre">`promote_demo`.</span> <span class="pre">The</span> <span class="pre">two</span> <span class="pre">render</span> <span class="pre">levers</span> <span class="pre">therefore</span> <span class="pre">reach</span> <span class="pre">complementary</span> <span class="pre">scenes,</span> <span class="pre">which</span> <span class="pre">strengthens</span> <span class="pre">the</span> <span class="pre">harness</span> <span class="pre">rather</span> <span class="pre">than</span> <span class="pre">diluting</span> <span class="pre">it.&quot;,</span> <span class="pre">apply=&lt;function</span> <span class="pre">_supersample&gt;,</span> <span class="pre">verify_row=&lt;function</span> <span class="pre">_verify_supersample&gt;)}</span></span><a class="headerlink" href="#an.bench.mutations.LEVERS" title="Link to this definition">#</a></dt>
+<dd><p>The levers, keyed by the mutation name the registry declares. At least one
+per SIDE is mandatory and the two sides are <strong>disjoint on purpose</strong>: an
+encoder lever cannot touch a golden-frame metric, because the corpus sits
+UPSTREAM of the encoder. So requiring three families from a CRF change alone
+would fail for a reason that has nothing to do with the instrument being
+blind — and that failure would be misdiagnosed as the harness being wrong.</p>
+<p>The two RENDER levers are not redundant: measured, they reach complementary
+scenes. <code class="code docutils literal notranslate"><span class="pre">disabled_aa</span></code> is nearly blind to the descriptor path (96 differing
+pixels of 12.4M on <code class="code docutils literal notranslate"><span class="pre">promote_demo</span></code>, because MSAA applies to WebGL geometry and
+an SVG sprite is a pre-rasterised texture); <code class="code docutils literal notranslate"><span class="pre">supersample</span></code> hits that same
+scene hardest of all six (-34.8% edge width, because the sprite rasterises AT
+2x rather than being stretched up from a 1x texture).</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.bench.mutations.Lever">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.mutations.</span></span><span class="sig-name descname"><span class="pre">Lever</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">what</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">why</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verify_row</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/mutations.html#Lever"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.mutations.Lever" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>One deliberate, declared change to the pipeline, with the evidence that it took.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.bench.mutations.Lever.verify_row">
+<span class="sig-name descname"><span class="pre">verify_row</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.bench.mutations.Lever.verify_row" title="Link to this definition">#</a></dt>
+<dd><p>Given the ledger row the mutated run produced, raise unless the lever’s
+fingerprint is in it. <code class="docutils literal notranslate"><span class="pre">None</span></code> when the row cannot carry one — see the
+module docstring.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.bench.mutations.MutationError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.mutations.</span></span><span class="sig-name descname"><span class="pre">MutationError</span></span><a class="reference internal" href="../_modules/an/bench/mutations.html#MutationError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.mutations.MutationError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>A lever could not be applied, or applied and left no trace.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.bench.mutations.STAGING_IGNORE">
+<span class="sig-prename descclassname"><span class="pre">an.bench.mutations.</span></span><span class="sig-name descname"><span class="pre">STAGING_IGNORE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('__pycache__',)</span></span><a class="headerlink" href="#an.bench.mutations.STAGING_IGNORE" title="Link to this definition">#</a></dt>
+<dd><p>Excluded from the staged copy so the staged tree is a pure function of the
+shipped source and the patch — which is what lets <code class="code docutils literal notranslate"><span class="pre">_verify_supersample</span></code>
+RECOMPUTE the digest it expects instead of settling for “not the shipped
+one”. <code class="code docutils literal notranslate"><span class="pre">runtime_sha256()</span></code> walks whatever <code class="code docutils literal notranslate"><span class="pre">render.runtime_dir()</span></code> returns, so
+with this excluded on the staging side and on the recompute side, the two
+hash byte-identical file sets.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.bench.mutations.SUPERSAMPLE_K">
+<span class="sig-prename descclassname"><span class="pre">an.bench.mutations.</span></span><span class="sig-name descname"><span class="pre">SUPERSAMPLE_K</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.bench.mutations.SUPERSAMPLE_K" title="Link to this definition">#</a></dt>
+<dd><p>The supersample lever’s factor, read at call time so a test can move it. 2
+rather than 3, deliberately and with the residual on the record: research §3
+renders each corpus scene at rising k and lets <code class="code docutils literal notranslate"><span class="pre">edge_transition_width</span></code>
+converge, and k=3 reaches that ceiling on every scene that has one while k=2
+falls 43% short on <code class="code docutils literal notranslate"><span class="pre">saturated_outline</span></code> and 33% short on <code class="code docutils literal notranslate"><span class="pre">graded_field</span></code>
+(0.09-0.17 px). It is 2 because **the lever must be the change the product
+will ship** — an#58 ships k=2 — and a lever measuring a factor nobody will
+run is a beautiful number about nothing. Cost, read off 1080p because the
+corpus cannot inform it: 0.126 s/f at k=1, 0.319 at k=2 (2.54x), 0.640 at k=3.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.mutations.mutated_row">
+<span class="sig-prename descclassname"><span class="pre">an.bench.mutations.</span></span><span class="sig-name descname"><span class="pre">mutated_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">run_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/mutations.html#mutated_row"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.mutations.mutated_row" title="Link to this definition">#</a></dt>
+<dd><p>Render the corpus with one lever pulled, and prove the lever took.</p>
+<p>Deliberately returns a row rather than a comparison: what to do with it is
+<a class="reference internal" href="an.bench.compare.html#module-an.bench.compare" title="an.bench.compare"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.bench.compare</span></code></a>’s job, and keeping the two apart is what lets the
+criterion be evaluated against a row written months ago.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.bench.mutants.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.bench.mutants</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.bench.palette.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.bench.palette</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.AA_ON"><code class="docutils literal notranslate"><span class="pre">AA_ON</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.APP_OPEN"><code class="docutils literal notranslate"><span class="pre">APP_OPEN</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.HIGH_CRF"><code class="docutils literal notranslate"><span class="pre">HIGH_CRF</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.LEVERS"><code class="docutils literal notranslate"><span class="pre">LEVERS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.Lever"><code class="docutils literal notranslate"><span class="pre">Lever</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.Lever.verify_row"><code class="docutils literal notranslate"><span class="pre">Lever.verify_row</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.MutationError"><code class="docutils literal notranslate"><span class="pre">MutationError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.STAGING_IGNORE"><code class="docutils literal notranslate"><span class="pre">STAGING_IGNORE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.SUPERSAMPLE_K"><code class="docutils literal notranslate"><span class="pre">SUPERSAMPLE_K</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.mutations.mutated_row"><code class="docutils literal notranslate"><span class="pre">mutated_row()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.bench.mutations.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

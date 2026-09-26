@@ -1,4 +1,0 @@
-an.stores._common
-=================
-.. automodule:: an.stores._common
-   :members:

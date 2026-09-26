@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.bench.imageio.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.bench.imageio.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.bench.imageio &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../_static/documentation_options.js?v=8520101b"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.bench.imageio';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.bench.ledger" href="an.bench.ledger.html" />
+    <link rel="prev" title="an.bench.golden" href="an.bench.golden.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.87" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_lipsync.html">an.audio.offline_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.base.html">an.base</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="an.bench.html">an.bench</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutations.html">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.licenses.html">an.characters.licenses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.validate.html">an.characters.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.binding.html">an.expression.binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.objects.html">an.impacts.objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.performance.html">an.impacts.performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.stroke.html">an.impacts.stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.truth.html">an.impacts.truth</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.bench.html" class="nav-link">an.bench</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.bench.imageio</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.bench.imageio">
+<span id="an-bench-imageio"></span><h1>an.bench.imageio<a class="headerlink" href="#module-an.bench.imageio" title="Link to this heading">#</a></h1>
+<p>The pinned ffmpeg decodes, and the lossless leg every encode-side metric
+is measured against.</p>
+<p>**The reference is the lossless encode, not the PNGs — and that is a
+correction, made because CI caught the alternative.** The obvious design reads
+the source frames back with an explicit conversion
+(<code class="code docutils literal notranslate"><span class="pre">-vf</span> <span class="pre">scale=out_range=tv:out_color_matrix=bt709</span> <span class="pre">-pix_fmt</span> <span class="pre">yuv444p</span></code>) and compares
+the delivered mp4 against that. Measured against a mathematically lossless
+(<code class="code docutils literal notranslate"><span class="pre">-qp</span> <span class="pre">0</span></code>) encode of the same frames, that conversion agrees <strong>exactly</strong> on
+ffmpeg 8.1 (luma residual 0.0000, max 0) and <strong>does not</strong> on the Linux runner’s
+older build (0.6290, max 5). A floor of 0.63 is 42% of <code class="code docutils literal notranslate"><span class="pre">coded_luma_edge_error</span></code>’s
+whole crf23 value, so on that build every encode-side luma number would have
+been measuring a colour-conversion disagreement and reporting it as encoder
+damage.</p>
+<p>The fix is not a tolerance. It is to stop having a second conversion at all:
+<code class="code docutils literal notranslate"><span class="pre">-qp</span> <span class="pre">0</span></code> is lossless, so **the qp0 decode’s luma plane IS the plane libx264
+received**, on every build, by definition. Referencing the metrics to it
+removes the assumption instead of widening it, and it costs nothing extra —
+<code class="code docutils literal notranslate"><span class="pre">encode_ringing_excess</span></code> already needed that leg.</p>
+<p>**That “IS” is a claim about the leg’s INPUT FORMAT as much as its rate
+control**, and the leg pinned <code class="code docutils literal notranslate"><span class="pre">-pix_fmt</span> <span class="pre">yuv420p</span></code> until an#72. Against a 4:4:4
+delivery the reference was therefore a <em>different colour pipeline</em> from the file
+it referenced, and every metric measured against it carried the whole 4:2:0
+conversion this leg exists to cancel — as a term that does not cancel and does
+vary by build.</p>
+<p>The leg now takes its format from the <strong>delivered file itself</strong>
+(<code class="code docutils literal notranslate"><span class="pre">delivered_pix_fmt</span></code>, threaded in by <code class="code docutils literal notranslate"><span class="pre">run.lossless_reference</span></code>). Probing rather
+than re-deriving is the load-bearing part: <strong>two</strong> seams set the delivered
+format — <code class="code docutils literal notranslate"><span class="pre">RenderContext.pix_fmt</span></code>, which <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--pix-fmt</span></code> uses and which the
+mux resolves FIRST, and the <code class="code docutils literal notranslate"><span class="pre">DEFAULT_PIX_FMT</span></code> module global, which is only its
+fallback. A leg that consults either one covers only that one, and an#72’s first
+fix consulted the global — so it silently re-pinned on the seam a user can
+actually reach, with every guard green.</p>
+<p>(No <code class="code docutils literal notranslate"><span class="pre">pix_fmt</span></code> lever exists: <code class="code docutils literal notranslate"><span class="pre">MUTATIONS</span></code> is <code class="code docutils literal notranslate"><span class="pre">high_crf</span></code>/<code class="code docutils literal notranslate"><span class="pre">disabled_aa</span></code>/<code class="code docutils literal notranslate"><span class="pre">supersample</span></code>
+and <code class="code docutils literal notranslate"><span class="pre">_check_registered</span></code> enforces it at import. The global’s seam is kept for a
+lever that has never been registered — see <code class="code docutils literal notranslate"><span class="pre">an-dev-bench</span></code>’s <code class="code docutils literal notranslate"><span class="pre">pix_fmt</span></code> row for why
+— and outside the product it is driven only by tests. So “the lever rebinds it”
+is a statement about a seam’s purpose, not about anything that runs.)</p>
+<p>Note which metrics the mismatch reached: <code class="code docutils literal notranslate"><span class="pre">flat_field_deviation</span></code>,
+<code class="code docutils literal notranslate"><span class="pre">flat_field_p99_dev</span></code> and <code class="code docutils literal notranslate"><span class="pre">encode_flicker_on_held_pixels</span></code> reduce over RGB, so
+chroma reaches them, while the luma-domain metrics never moved —
+<code class="code docutils literal notranslate"><span class="pre">coded_luma_edge_error</span></code> and <code class="code docutils literal notranslate"><span class="pre">encode_ringing_excess</span></code> are identical to the last
+digit between a 4:2:0 and a 4:4:4 leg on all ten corpus scenes.</p>
+<p>Two things this does NOT change:</p>
+<ul class="simple">
+<li><p><strong>The chroma metric still references the direct RGB-&gt;444 conversion</strong>, because
+its subject <em>is</em> the 4:2:0 subsampling that happens during the conversion —
+which is exactly the term this leg cancels, so a lossless-referenced version
+is blind to it whatever format the leg is encoded in. (With a tracking leg
+and a 4:4:4 delivery, both legs are 4:4:4 and the subsampling does not exist
+to be measured; tracking makes the panel honest, not sighted.) It does <strong>not</strong>
+read ~0, though, and that half of the old wording was wrong: measured
+2026-08-29 on four scenes, mean <a href="#id1"><span class="problematic" id="id2">|dCr|</span></a> over the edge mask reads 1.71 / 1.90 /
+2.24 / 2.50 against the shipped metric’s 7.19 / 9.29 / 8.04 / 2.93, because it
+measures chroma <em>quantiser</em> damage instead (an#72).</p></li>
+<li><p>**The PNG conversion is still performed and its distance from the encoder’s
+input is still recorded** (<code class="code docutils literal notranslate"><span class="pre">png_to_encoder_input_luma</span></code>), because that number
+is exactly the build-dependence that was hiding inside a hard equality. It is
+provenance now, not a gate.</p></li>
+</ul>
+<p><strong>an#148 names what the build-dependence WAS, and both legs now pin it.</strong> The
+varying term was never this PNG leg — it was the <em>encoder’s</em> conversion:
+<code class="code docutils literal notranslate"><span class="pre">-colorspace</span> <span class="pre">bt709</span></code> sets the auto-inserted RGB-&gt;YUV matrix on ffmpeg 8/9 and
+reaches only the VUI on ffmpeg 6.1, so on 6.1 libx264 received BT.601 planes
+while the delivered file was tagged BT.709 (pure red at Y=81, against BT.709’s
+62.6). <code class="code docutils literal notranslate"><span class="pre">lossless_encode_command</span></code> therefore carries <code class="code docutils literal notranslate"><span class="pre">-vf</span> <span class="pre">BT709_SCALE_FILTER</span></code>, the
+same filter the delivered mux now passes: a lossless leg that converts
+differently from the file it references is not “the plane libx264 received” on
+any build where the two disagree, whatever its rate control. Keeping the two
+spellings identical is why <code class="code docutils literal notranslate"><span class="pre">SOURCE_SCALE_FILTER</span></code> is <em>bound</em> to
+<code class="code docutils literal notranslate"><span class="pre">an.base.BT709_SCALE_FILTER</span></code> rather than restating it.</p>
+<p><code class="code docutils literal notranslate"><span class="pre">-map</span> <span class="pre">0:v:0</span> <span class="pre">-fps_mode</span> <span class="pre">passthrough</span></code> on every mp4 decode: the delivered file
+carries an AAC track, and implicit frame-rate conversion would silently re-time
+the sequence that every encode-side metric pairs frame-for-frame.</p>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.imageio.SOURCE_SCALE_FILTER" title="an.bench.imageio.SOURCE_SCALE_FILTER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SOURCE_SCALE_FILTER</span></code></a></p></td>
+<td><p>without it the encode-side metrics measure a colour-space conversion.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.imageio.YUV_PIX_FMT" title="an.bench.imageio.YUV_PIX_FMT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">YUV_PIX_FMT</span></code></a></p></td>
+<td><p>4 for both legs of every encode-side metric — never <code class="code docutils literal notranslate"><span class="pre">rgb24</span></code> for the edge metrics, whose defect was clipping precisely at the saturated fills sitting against black outlines that flat 2D art is made of.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.imageio.decoded_rgb" title="an.bench.imageio.decoded_rgb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decoded_rgb</span></code></a>(mp4, *, height, width)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">H,</span> <span class="pre">W,</span> <span class="pre">3)</span></code> uint8 of the delivered mp4.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.imageio.decoded_rgb_command" title="an.bench.imageio.decoded_rgb_command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decoded_rgb_command</span></code></a>(mp4)</p></td>
+<td><p>Decode the delivered mp4 to raw RGB.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.imageio.decoded_yuv" title="an.bench.imageio.decoded_yuv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decoded_yuv</span></code></a>(mp4, *, height, width)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">3,</span> <span class="pre">H,</span> <span class="pre">W)</span></code> uint8 planar YUV of the delivered mp4.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.imageio.decoded_yuv_command" title="an.bench.imageio.decoded_yuv_command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decoded_yuv_command</span></code></a>(mp4)</p></td>
+<td><p>Decode the delivered mp4 to planar YUV.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.imageio.delivered_pix_fmt" title="an.bench.imageio.delivered_pix_fmt"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delivered_pix_fmt</span></code></a>(mp4)</p></td>
+<td><p>The pixel format <code class="docutils literal notranslate"><span class="pre">mp4</span></code> is actually encoded in, from the file itself.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.imageio.lossless_encode_command" title="an.bench.imageio.lossless_encode_command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lossless_encode_command</span></code></a>(frames_dir, fps, out, *)</p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">-qp</span> <span class="pre">0</span></code> with otherwise identical flags, for <code class="code docutils literal notranslate"><span class="pre">encode_ringing_excess</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.imageio.run_raw" title="an.bench.imageio.run_raw"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_raw</span></code></a>(cmd)</p></td>
+<td><p>Run an ffmpeg command and return its raw stdout, or raise with the stderr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.imageio.source_rgb" title="an.bench.imageio.source_rgb"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_rgb</span></code></a>(frames_dir, *, height, width, frames)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">H,</span> <span class="pre">W,</span> <span class="pre">3)</span></code> uint8 of the pre-encode PNGs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.imageio.source_rgb_command" title="an.bench.imageio.source_rgb_command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_rgb_command</span></code></a>(frames_dir)</p></td>
+<td><p>Decode the pre-encode PNG sequence to raw RGB.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.imageio.source_yuv" title="an.bench.imageio.source_yuv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_yuv</span></code></a>(frames_dir, *, height, width, frames)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">3,</span> <span class="pre">H,</span> <span class="pre">W)</span></code> uint8 planar YUV of the pre-encode PNGs, range-pinned.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.imageio.source_yuv_command" title="an.bench.imageio.source_yuv_command"><code class="xref py py-obj docutils literal notranslate"><span class="pre">source_yuv_command</span></code></a>(frames_dir)</p></td>
+<td><p>Decode the pre-encode PNG sequence to planar YUV, <strong>range- and matrix-pinned</strong>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.imageio.video_stream_bytes" title="an.bench.imageio.video_stream_bytes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">video_stream_bytes</span></code></a>(mp4)</p></td>
+<td><p>Sum of the video stream's packet sizes — the AAC track excluded.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.imageio.BenchDecodeError" title="an.bench.imageio.BenchDecodeError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BenchDecodeError</span></code></a></p></td>
+<td><p>ffmpeg could not read something the bench needs.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.bench.imageio.BenchDecodeError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">BenchDecodeError</span></span><a class="reference internal" href="../_modules/an/bench/imageio.html#BenchDecodeError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.BenchDecodeError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>ffmpeg could not read something the bench needs.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.bench.imageio.SOURCE_SCALE_FILTER">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">SOURCE_SCALE_FILTER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'scale=out_range=tv:out_color_matrix=bt709'</span></span><a class="headerlink" href="#an.bench.imageio.SOURCE_SCALE_FILTER" title="Link to this definition">#</a></dt>
+<dd><p>without it
+the encode-side metrics measure a colour-space conversion.</p>
+<p><strong>Bound to the product’s own filter, not restated</strong> (an#148). It used to be a
+second copy of the same string, which was harmless only while the delivered
+encode had no <code class="code docutils literal notranslate"><span class="pre">-vf</span></code> of its own to disagree with. Now that it has one, two
+copies is one edit away from the PNG leg and the encoder converting
+differently — which is exactly the term the encode-side metrics cannot see
+and would report as encoder damage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The pinned conversion applied to the PNG leg. Never remove it</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.bench.imageio.YUV_PIX_FMT">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">YUV_PIX_FMT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'yuv444p'</span></span><a class="headerlink" href="#an.bench.imageio.YUV_PIX_FMT" title="Link to this definition">#</a></dt>
+<dd><p>4 for both legs of every encode-side metric — never <code class="code docutils literal notranslate"><span class="pre">rgb24</span></code> for
+the edge metrics, whose defect was clipping precisely at the saturated fills
+sitting against black outlines that flat 2D art is made of.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Planar 4</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>4</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.decoded_rgb">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">decoded_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mp4</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#decoded_rgb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.decoded_rgb" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">H,</span> <span class="pre">W,</span> <span class="pre">3)</span></code> uint8 of the delivered mp4.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frames=None</span></code>: the run deliberately tolerates the encoder emitting a
+different count from the source leg and records it as
+<code class="docutils literal notranslate"><span class="pre">frame_count_disagreement</span></code>, so an equality here would turn a recorded
+disagreement into a crash. See <code class="xref py py-func docutils literal notranslate"><span class="pre">_reshape()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.decoded_rgb_command">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">decoded_rgb_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mp4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#decoded_rgb_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.decoded_rgb_command" title="Link to this definition">#</a></dt>
+<dd><p>Decode the delivered mp4 to raw RGB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.decoded_yuv">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">decoded_yuv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mp4</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#decoded_yuv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.decoded_yuv" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">3,</span> <span class="pre">H,</span> <span class="pre">W)</span></code> uint8 planar YUV of the delivered mp4. <code class="docutils literal notranslate"><span class="pre">frames=None</span></code> — see <a class="reference internal" href="#an.bench.imageio.decoded_rgb" title="an.bench.imageio.decoded_rgb"><code class="xref py py-func docutils literal notranslate"><span class="pre">decoded_rgb()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.decoded_yuv_command">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">decoded_yuv_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mp4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#decoded_yuv_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.decoded_yuv_command" title="Link to this definition">#</a></dt>
+<dd><p>Decode the delivered mp4 to planar YUV.</p>
+<p>No <code class="docutils literal notranslate"><span class="pre">scale</span></code> filter here, deliberately: the file carries BT.709 tags
+(an#34) so ffmpeg already decodes it in the space the source leg is pinned
+to. Adding one would convert twice.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.delivered_pix_fmt">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">delivered_pix_fmt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mp4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#delivered_pix_fmt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.delivered_pix_fmt" title="Link to this definition">#</a></dt>
+<dd><p>The pixel format <code class="docutils literal notranslate"><span class="pre">mp4</span></code> is actually encoded in, from the file itself.</p>
+<p>The delivered encode resolves its format from <code class="docutils literal notranslate"><span class="pre">RenderContext.pix_fmt</span></code>
+<strong>or</strong> the module global (<code class="code docutils literal notranslate"><span class="pre">render._check_pix_fmt</span></code>), and only the file knows
+which won — so the lossless leg cannot re-derive it and be sure of matching.
+Re-deriving is what an#72’s first fix did, and it covered the bench lever’s
+seam (which rebinds the global) while missing the product’s own
+(<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--pix-fmt</span></code>, which sets the context and never touches it).</p>
+<p>Probed, not remembered: this is the one source of truth that no future seam
+can route around.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.lossless_encode_command">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">lossless_encode_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pix_fmt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#lossless_encode_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.lossless_encode_command" title="Link to this definition">#</a></dt>
+<dd><p><code class="code docutils literal notranslate"><span class="pre">-qp</span> <span class="pre">0</span></code> with otherwise identical flags, for <code class="code docutils literal notranslate"><span class="pre">encode_ringing_excess</span></code>.</p>
+<p>Identical to the delivered encode except for the rate control, so the
+difference of the two overshoot means cancels the source-hardness term —
+which is the whole reason <code class="code docutils literal notranslate"><span class="pre">encode_ringing_excess</span></code> replaced raw overshoot.</p>
+<p><strong>Pinned in its ENCODER SETTINGS, tracking in its INPUT FORMAT</strong> — and the
+asymmetry is the correction an#72 turned on. Two module globals reach this
+command and they must be reached differently:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">DETERMINISTIC_X264_ARGS</span></code> is bound at IMPORT, above, so a lever that
+rebinds it (<code class="docutils literal notranslate"><span class="pre">high_crf</span></code>) cannot move the reference. The reference has to
+stay lossless, or every encode-side metric is measured against a moving
+target and the lever produces beautiful numbers about nothing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pix_fmt</span></code> is resolved at CALL time through the product’s own
+<code class="xref py py-func docutils literal notranslate"><span class="pre">_check_pix_fmt()</span></code>. The bench passes the</p>
+<blockquote>
+<div><p>format <strong>probed off the delivered mp4</strong> (<a class="reference internal" href="#an.bench.imageio.delivered_pix_fmt" title="an.bench.imageio.delivered_pix_fmt"><code class="xref py py-func docutils literal notranslate"><span class="pre">delivered_pix_fmt()</span></code></a>);
+<code class="docutils literal notranslate"><span class="pre">None</span></code> falls back to <code class="docutils literal notranslate"><span class="pre">DEFAULT_PIX_FMT</span></code>, which is right for a caller
+with no delivered file to match and wrong for one that has it.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>The difference is not a preference. <code class="docutils literal notranslate"><span class="pre">-pix_fmt</span></code> is not an encoder setting:
+it names <strong>what libx264 receives</strong>, and being what libx264 received is this
+leg’s entire purpose (see the module docstring). Pinning it does not keep
+the reference lossless — it makes the reference a *different colour
+pipeline* from the delivered file, so every metric measured against it
+silently acquires the whole 4:2:0 conversion the reference exists to
+cancel. Measured on the corpus at 4:4:4: family E
+(<code class="docutils literal notranslate"><span class="pre">encode_flicker_on_held_pixels</span></code>) changes SIGN on three of ten scenes
+between a pinned leg and a tracking one — from as-declared to contrary in
+every case — and family D (<code class="docutils literal notranslate"><span class="pre">flat_field_deviation</span></code>) moves by up to 24.8
+percentage points. The affected metrics are exactly the RGB-domain ones,
+which reduce over three channels so chroma reaches them; the luma-domain
+metrics were never affected — <code class="docutils literal notranslate"><span class="pre">coded_luma_edge_error</span></code> and
+<code class="docutils literal notranslate"><span class="pre">encode_ringing_excess</span></code> are identical to the last digit between a 4:2:0
+and a 4:4:4 leg on all ten scenes.</p>
+<p>A default (4:2:0) render is byte-identical to before this change, so no
+committed ledger row is invalidated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.run_raw">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">run_raw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#run_raw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.run_raw" title="Link to this definition">#</a></dt>
+<dd><p>Run an ffmpeg command and return its raw stdout, or raise with the stderr.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.source_rgb">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">source_rgb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#source_rgb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.source_rgb" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">H,</span> <span class="pre">W,</span> <span class="pre">3)</span></code> uint8 of the pre-encode PNGs.</p>
+<p><code class="docutils literal notranslate"><span class="pre">frames</span></code> is how many PNGs are on disk — the caller counted them — and it
+is required rather than derived, so the decode cannot silently return a
+different number of them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.source_rgb_command">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">source_rgb_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#source_rgb_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.source_rgb_command" title="Link to this definition">#</a></dt>
+<dd><p>Decode the pre-encode PNG sequence to raw RGB.</p>
+<p>RGB is correct here and only here: the two metrics that use it
+(<code class="code docutils literal notranslate"><span class="pre">flat_field_deviation</span></code>, <code class="code docutils literal notranslate"><span class="pre">encode_flicker_on_held_pixels</span></code>) are masked to the
+flat interior and to held pixels, both off-edge by construction, so the
+clipping that ruins the edge metrics cannot reach them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.source_yuv">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">source_yuv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#source_yuv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.source_yuv" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(N,</span> <span class="pre">3,</span> <span class="pre">H,</span> <span class="pre">W)</span></code> uint8 planar YUV of the pre-encode PNGs, range-pinned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.source_yuv_command">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">source_yuv_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#source_yuv_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.source_yuv_command" title="Link to this definition">#</a></dt>
+<dd><p>Decode the pre-encode PNG sequence to planar YUV, <strong>range- and matrix-pinned</strong>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.imageio.video_stream_bytes">
+<span class="sig-prename descclassname"><span class="pre">an.bench.imageio.</span></span><span class="sig-name descname"><span class="pre">video_stream_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mp4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/imageio.html#video_stream_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.imageio.video_stream_bytes" title="Link to this definition">#</a></dt>
+<dd><p>Sum of the video stream’s packet sizes — the AAC track excluded.</p>
+<p><code class="docutils literal notranslate"><span class="pre">file_bytes</span></code> includes the audio track, which the renderer always emits
+(silent if there is no dialogue), so it varies with the audio cache’s state.
+This one does not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.bench.golden.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.bench.golden</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.bench.ledger.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.bench.ledger</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.BenchDecodeError"><code class="docutils literal notranslate"><span class="pre">BenchDecodeError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.SOURCE_SCALE_FILTER"><code class="docutils literal notranslate"><span class="pre">SOURCE_SCALE_FILTER</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.YUV_PIX_FMT"><code class="docutils literal notranslate"><span class="pre">YUV_PIX_FMT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.decoded_rgb"><code class="docutils literal notranslate"><span class="pre">decoded_rgb()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.decoded_rgb_command"><code class="docutils literal notranslate"><span class="pre">decoded_rgb_command()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.decoded_yuv"><code class="docutils literal notranslate"><span class="pre">decoded_yuv()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.decoded_yuv_command"><code class="docutils literal notranslate"><span class="pre">decoded_yuv_command()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.delivered_pix_fmt"><code class="docutils literal notranslate"><span class="pre">delivered_pix_fmt()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.lossless_encode_command"><code class="docutils literal notranslate"><span class="pre">lossless_encode_command()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.run_raw"><code class="docutils literal notranslate"><span class="pre">run_raw()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.source_rgb"><code class="docutils literal notranslate"><span class="pre">source_rgb()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.source_rgb_command"><code class="docutils literal notranslate"><span class="pre">source_rgb_command()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.source_yuv"><code class="docutils literal notranslate"><span class="pre">source_yuv()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.source_yuv_command"><code class="docutils literal notranslate"><span class="pre">source_yuv_command()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.imageio.video_stream_bytes"><code class="docutils literal notranslate"><span class="pre">video_stream_bytes()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.bench.imageio.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

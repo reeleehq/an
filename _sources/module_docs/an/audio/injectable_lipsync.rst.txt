@@ -1,4 +1,0 @@
-an.audio.injectable_lipsync
-===========================
-.. automodule:: an.audio.injectable_lipsync
-   :members:

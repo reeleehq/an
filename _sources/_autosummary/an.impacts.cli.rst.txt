@@ -1,0 +1,13 @@
+an.impacts.cli
+==============
+
+.. automodule:: an.impacts.cli
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      clip
+      clip_set
+   

@@ -1,4 +1,0 @@
-an.verify
-=========
-.. automodule:: an.verify
-   :members:

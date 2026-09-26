@@ -1,0 +1,33 @@
+an.frame\_clock
+===============
+
+.. automodule:: an.frame_clock
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_EXPOSURE_SAMPLES
+      MAX_JITTER_FRACTION
+      MAX_REPORT_NOISE_FRACTION
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      frame_count
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CapturedFrame
+      FrameClock
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      FrameClockError
+   

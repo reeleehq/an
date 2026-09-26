@@ -1,4 +1,0 @@
-an.audio.pipeline
-=================
-.. automodule:: an.audio.pipeline
-   :members:

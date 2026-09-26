@@ -1,0 +1,35 @@
+an.impacts.performance
+======================
+
+.. automodule:: an.impacts.performance
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_LEAD_IN
+      MAX_OFFSET_FRACTION
+      Humanizer
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      gaussian_humanizer
+      perform
+      tempo_map
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ImpactEvent
+      TempoMap
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      PerformanceError
+   

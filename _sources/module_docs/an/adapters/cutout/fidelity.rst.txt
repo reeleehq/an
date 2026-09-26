@@ -1,4 +1,0 @@
-an.adapters.cutout.fidelity
-===========================
-.. automodule:: an.adapters.cutout.fidelity
-   :members:

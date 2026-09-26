@@ -1,0 +1,56 @@
+an.ir
+=====
+
+.. automodule:: an.ir
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      set_
+      tween
+      play
+      expression
+      sequence
+      parallel
+      delay
+      loop
+      flatten
+      validate_schema
+      validate_semantic
+      migrate
+      register_migration
+      register_kind
+      kind_of
+      markdown_to_ir
+      ir_to_markdown
+      sync
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SceneIR
+      Meta
+      AssetRef
+      Shot
+      Dialogue
+      Camera
+      Resolution
+      FlatAction
+      ValidationReport
+      ValidationFinding
+      DocumentKind
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   assets
+   camera
+   compose
+   schema
+   validate

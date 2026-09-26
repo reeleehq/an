@@ -1,4 +1,0 @@
-an.characters.factory
-=====================
-.. automodule:: an.characters.factory
-   :members:

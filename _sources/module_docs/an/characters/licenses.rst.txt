@@ -1,4 +1,0 @@
-an.characters.licenses
-======================
-.. automodule:: an.characters.licenses
-   :members:

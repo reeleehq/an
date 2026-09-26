@@ -1,0 +1,12 @@
+an.audio.offline\_tts
+=====================
+
+.. automodule:: an.audio.offline_tts
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      OfflineTTS
+   

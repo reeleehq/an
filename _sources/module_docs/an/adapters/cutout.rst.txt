@@ -1,4 +1,0 @@
-an.adapters.cutout
-==================
-.. automodule:: an.adapters.cutout
-   :members:

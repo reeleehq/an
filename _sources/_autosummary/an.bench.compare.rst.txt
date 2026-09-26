@@ -1,0 +1,37 @@
+an.bench.compare
+================
+
+.. automodule:: an.bench.compare
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SUPPORTED_SCHEMA_VERSIONS
+      SCENE_KEYS
+      MASK_PARAM_PATHS
+      RENDER_ENV_PATHS
+      ENCODE_ENV_PATHS
+      COMMON_ENV_PATHS
+      DECLARATION_KEYS
+      REQUIRED_FAMILIES
+      CROSS_CHECKED_FIELDS
+      SCORING_FIELDS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compare
+      direction_of
+      format_comparison
+      latest_rows
+      load_row
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ComparisonError
+   

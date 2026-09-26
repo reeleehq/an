@@ -1,0 +1,12 @@
+an.stores.props
+===============
+
+.. automodule:: an.stores.props
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PropsStore
+   

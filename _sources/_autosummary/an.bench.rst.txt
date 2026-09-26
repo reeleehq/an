@@ -1,0 +1,68 @@
+an.bench
+========
+
+.. automodule:: an.bench
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      bless_scene
+      compare_scene
+      decode_png
+      encode_png
+      frame_key
+      pixels_sha256
+      png_dimensions
+      read_png
+      read_png_dimensions
+      write_png
+      build_ledger
+      build_scene_block
+      witnesses
+      run_bench
+      format_panel
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      MetricSpec
+      Prediction
+      Value
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      GoldenError
+      PngFormatError
+      RegistryError
+      LedgerSchemaError
+      BenchError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   capture
+   compare
+   contract
+   corpus
+   environment
+   golden
+   imageio
+   ledger
+   masks
+   metrics
+   mutants
+   mutations
+   palette
+   paths
+   png
+   registry
+   run
+   stage

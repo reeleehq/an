@@ -1,0 +1,23 @@
+an.characters.validate
+======================
+
+.. automodule:: an.characters.validate
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PROHIBITED_ELEMENTS
+      DRAWABLE_ELEMENTS
+      BLOCKING
+      ADVISORY
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      format_report
+      render_contract
+      validate_character
+   

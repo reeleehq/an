@@ -1,4 +1,0 @@
-an.ir.assets
-============
-.. automodule:: an.ir.assets
-   :members:

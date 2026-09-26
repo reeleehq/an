@@ -1,4 +1,0 @@
-an.audio.whisper_lipsync
-========================
-.. automodule:: an.audio.whisper_lipsync
-   :members:

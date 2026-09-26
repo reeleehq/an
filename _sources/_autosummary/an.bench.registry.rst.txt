@@ -1,0 +1,31 @@
+an.bench.registry
+=================
+
+.. automodule:: an.bench.registry
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      MUTATIONS
+      REFERENCE_NOTE
+      FAMILY_SIDE
+      METRICS
+      TRIPWIRES
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      MetricSpec
+      Optimum
+      Prediction
+      Touch
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      RegistryError
+   

@@ -1,0 +1,36 @@
+an.bench.corpus
+===============
+
+.. automodule:: an.bench.corpus
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SHOT_DIR_GLOB
+      BENCH_RENDER_KWARGS
+      CORPUS_DIRNAME
+      DFLT_FIXTURES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      assert_render_path
+      iter_shot_dirs
+      staged_scene
+      visual_kinds
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Fixture
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CorpusError
+   

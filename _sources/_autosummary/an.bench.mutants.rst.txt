@@ -1,0 +1,41 @@
+an.bench.mutants
+================
+
+.. automodule:: an.bench.mutants
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PYTEST_ARGS
+      RESTORE_ON_SIGNALS
+      INTERRUPTED_EXIT_CODE
+      SWEEP_COPY_IGNORE
+      MUTANTS
+      RESTORE_TMP_SUFFIX
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      check_sites
+      format_results
+      restore_on_termination
+      run_mutants
+      sweep_tree
+      verdict_of
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Mutant
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MutantError
+      MutantRunInterrupted
+   

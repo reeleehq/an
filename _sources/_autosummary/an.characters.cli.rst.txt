@@ -1,0 +1,19 @@
+an.characters.cli
+=================
+
+.. automodule:: an.characters.cli
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_gaze
+      contract
+      mouths
+      new
+      preview
+      record
+      silhouette
+      validate
+   

@@ -1,4 +1,0 @@
-an.bench.capture
-================
-.. automodule:: an.bench.capture
-   :members:

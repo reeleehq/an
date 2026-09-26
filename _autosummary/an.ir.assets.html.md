@@ -1,0 +1,101 @@
+# an.ir.assets
+
+Where a third-party asset came from, and what its licence obliges.
+
+`an` composes work it did not create — avatar art from a generator, stock images,
+fonts, commissioned SVG — into a video its user ships. A licence defect is the
+only failure in this package that reaches *backwards* through completed work: a
+video shipped with an unattributed CC BY asset cannot be un-shipped, whereas
+every rendering bug can be fixed forward.
+
+Until now there was nowhere to record any of it. The character descriptor’s
+`metadata` dict carried a comment saying it *could* hold a licence; nothing ever
+put one there.
+
+### Why the field names look borrowed
+
+They are. The rights fields are spelled exactly as `illustration.ImageResult`
+spells them — `license`, `license_url`, `attribution`, `source_page_url`,
+`author`, `author_url`, `cacheable`, `provider`, `id`, `url` — because
+`illustration` is the federation’s image-retrieval package and its results are
+the most likely thing to become an `AssetSource`. Identical names mean the
+adapter is a dict copy rather than a rename table, and a rename table is where a
+field quietly stops being carried.
+
+`tests/` pins this literally. That is the precedent `artful` already set for
+shared vocabulary across packages that must not depend on each other.
+
+Two fields are `an`’s own, because `ImageResult` has no equivalent:
+
+- `sha256` — the digest of the bytes as they entered the project. A licence
+  attached to a URL is a licence attached to whatever that URL serves *today*;
+  attached to a digest, it stays attached to the thing that was actually used.
+- `cost_usd` — what acquiring it cost, if anything. **\`None\` means unknown, never
+  free.** That is the federation’s rule for costs and it matters here for the
+  same reason it matters in a plan: a `0.0` that means “we did not check” reads
+  as “this was free” to every consumer downstream.
+
+### The long-term home
+
+This is a local definition of something three packages need — `illustration`
+retrieves third-party images, `an` composes them, `reelee` ships the result — and
+that is the signature of a missing federation primitive rather than three missing
+local fields. It is proposed upstream as `lacing.Artifact.rights` (lacing#34).
+`Artifact` is frozen and holds real deployed data, so that change needs a
+registered migration and a coordinated release; until it lands, this mirror is
+what keeps `an` from shipping unattributed work in the meantime.
+
+### Module Attributes
+
+| [`ATTRIBUTION_REQUIRING_LICENSES`](#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES)   | Licence codes that oblige the *user of the output* to credit someone.   |
+|-----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+
+### Functions
+
+| [`requires_attribution`](#an.ir.assets.requires_attribution)(source)   | Whether shipping this asset obliges the user to credit someone.   |
+|---------------------------------------------------------------------------------|-------------------------------------------------------------------|
+
+### Classes
+
+| [`AssetSource`](#an.ir.assets.AssetSource)(\*\*data)   | Provenance and rights for one third-party asset.   |
+|--------------------------------------------------------------------------|----------------------------------------------------|
+
+### an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'by', 'by-sa', 'cc-by', 'cc-by-4.0', 'cc-by-nc', 'cc-by-nd', 'cc-by-sa', 'cc-by-sa-4.0'})*
+
+Licence codes that oblige the *user of the output* to credit someone.
+
+Matched case-insensitively against the licence code. Deliberately a small,
+explicit set rather than a pattern: “does this oblige me” is a question with
+a legal answer, and a regex that guesses is worse than a list that admits what
+it does not know. An unrecognised licence is reported as UNKNOWN, which is
+not the same as “no obligation”.
+
+### *class* an.ir.assets.AssetSource(\*\*data)
+
+Bases: `BaseModel`
+
+Provenance and rights for one third-party asset.
+
+```pycon
+>>> s = AssetSource(provider="dicebear", id="lorelei/amy", license="cc0-1.0")
+>>> requires_attribution(s)
+False
+>>> s = AssetSource(provider="dicebear", id="adventurer/amy", license="cc-by-4.0")
+>>> requires_attribution(s)
+True
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.assets.requires_attribution(source)
+
+Whether shipping this asset obliges the user to credit someone.
+
+Returns `None` for an unrecognised or absent licence: “we do not know” is a
+distinct answer from “no”, and collapsing them is how an obligation gets
+silently dropped.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

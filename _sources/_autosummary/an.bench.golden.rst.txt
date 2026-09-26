@@ -1,0 +1,43 @@
+an.bench.golden
+===============
+
+.. automodule:: an.bench.golden
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      BLESS_MANIFEST_TEMPLATE
+      REQUIRED_GOLDEN_FRAMES
+      GATE_UNDECLARED
+      RETIRED_GATES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      bless_scene
+      chromium_build_of
+      compare_scene
+      frame_index_for
+      frame_key
+      frame_png_path
+      iter_committed
+      load_manifest
+      manifest_path
+      pixels_sha256
+      resolve_frames
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FrameRef
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      GoldenError
+   

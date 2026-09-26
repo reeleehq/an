@@ -1,0 +1,19 @@
+an.adapters.cutout.channel
+==========================
+
+.. automodule:: an.adapters.cutout.channel
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      evaluate
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Channel
+      Keyframe
+   

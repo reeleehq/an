@@ -1,0 +1,13 @@
+an.audio.injectable\_lipsync
+============================
+
+.. automodule:: an.audio.injectable_lipsync
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      StaticWordTimings
+      WordTimingsLipSync
+   

@@ -1,0 +1,22 @@
+an.characters.factory
+=====================
+
+.. automodule:: an.characters.factory
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      EYE_CANVAS
+      GAZE_PARTS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_gaze
+      declare_mouth_variants
+      gaze_travel_for
+      new_character
+   

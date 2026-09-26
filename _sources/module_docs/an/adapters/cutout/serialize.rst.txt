@@ -1,4 +1,0 @@
-an.adapters.cutout.serialize
-============================
-.. automodule:: an.adapters.cutout.serialize
-   :members:

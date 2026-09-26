@@ -1,4 +1,0 @@
-an.stores.artifacts
-===================
-.. automodule:: an.stores.artifacts
-   :members:

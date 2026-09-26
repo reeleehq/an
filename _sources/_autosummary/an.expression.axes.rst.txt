@@ -1,0 +1,29 @@
+an.expression.axes
+==================
+
+.. automodule:: an.expression.axes
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      AXES
+      MOUTH_FORM_AXIS
+      INTENSITY_AXIS
+      LID_WIDE_ABOVE
+      LID_KEY_WIDE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      clamp_axes
+      lid_key
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Axis
+   

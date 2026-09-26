@@ -1,0 +1,15 @@
+an.characters.idle
+==================
+
+.. automodule:: an.characters.idle
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      blink_animation
+      breath_animation
+      evaluate_track
+      random_blink_schedule
+   

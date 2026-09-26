@@ -1,0 +1,36 @@
+an.adapters.cutout.render
+=========================
+
+.. automodule:: an.adapters.cutout.render
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_ASSET_LOAD_TIMEOUT_MS
+      DETERMINISTIC_CHROMIUM_ARGS
+      DEFAULT_PIX_FMT
+      SUPPORTED_PIX_FMTS
+      ASSET_LOAD_TIMEOUT_MARKER
+      ASSET_SRC_PREFIX_TO_STORE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      effective_step_hz
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CutoutRenderer
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CutoutAssetWarning
+      CutoutRenderError
+   

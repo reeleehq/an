@@ -1,0 +1,21 @@
+an.audio.providers
+==================
+
+.. automodule:: an.audio.providers
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_LANGUAGE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      known_lipsync_names
+      known_tts_names
+      make_lipsync
+      make_tts
+   

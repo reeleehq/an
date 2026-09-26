@@ -1,0 +1,30 @@
+an.bench.paths
+==============
+
+.. automodule:: an.bench.paths
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      LEDGER_DIRNAME
+      GOLDEN_DIRNAME
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      git_state
+      golden_dir
+      golden_path
+      ledger_dir
+      ledger_path
+      repo_root
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      BenchLayoutError
+   

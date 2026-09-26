@@ -1,4 +1,0 @@
-an.preview
-==========
-.. automodule:: an.preview
-   :members:

@@ -1,0 +1,57 @@
+an.audio
+========
+
+.. automodule:: an.audio
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      word_timings_to_visemes
+      default_tts
+      default_lipsync
+      produce_audio_for_dialogue
+      produce_audio_for_scene
+      make_tts
+      make_lipsync
+      known_tts_names
+      known_lipsync_names
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      TTSProvider
+      AudioClip
+      VoiceMeta
+      LipSyncProvider
+      Viseme
+      VisemeTrack
+      WordTimingProvider
+      OfflineTTS
+      OfflineLipSync
+      ElevenLabsTTS
+      MacSayTTS
+      RhubarbLipSync
+      WhisperLipSync
+      StaticWordTimings
+      WordTimingsLipSync
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   elevenlabs_tts
+   injectable_lipsync
+   lipsync
+   mac_say_tts
+   offline_lipsync
+   offline_tts
+   pipeline
+   providers
+   rhubarb_lipsync
+   tts
+   whisper_lipsync

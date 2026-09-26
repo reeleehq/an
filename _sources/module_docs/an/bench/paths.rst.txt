@@ -1,4 +1,0 @@
-an.bench.paths
-==============
-.. automodule:: an.bench.paths
-   :members:

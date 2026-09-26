@@ -1,0 +1,12 @@
+an.stores.decisions
+===================
+
+.. automodule:: an.stores.decisions
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      DecisionLogStore
+   

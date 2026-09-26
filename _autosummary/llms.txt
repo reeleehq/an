@@ -1,0 +1,126 @@
+# an
+
+> AI-driven structured animation in Python: scene.md to rendered video.
+
+
+## Pages in this subsection
+
+- [an](an.html.md): an — AI-driven structured animation.
+- [an.adapters](an.adapters.html.md): Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).
+- [an.adapters.cutout](an.adapters.cutout.html.md): Cutout-style 2D animation backend.
+- [an.adapters.cutout.channel](an.adapters.cutout.channel.html.md): Channel: keyframes for a single (target, property) pair, evaluated at time t.
+- [an.adapters.cutout.clip](an.adapters.cutout.clip.html.md): Clip: a named bundle of channels with a duration and loop mode.
+- [an.adapters.cutout.coarticulate](an.adapters.cutout.coarticulate.html.md): Co-articulation for a swap mouth: the passes between a provider’s raw viseme
+- [an.adapters.cutout.compile](an.adapters.cutout.compile.html.md): Compile a top-level &#96;Shot&#96; (renderer=”cutout”) into a &#96;CutoutSceneJSON&#96;.
+- [an.adapters.cutout.easing](an.adapters.cutout.easing.html.md): Easing functions for keyframe interpolation.
+- [an.adapters.cutout.fidelity](an.adapters.cutout.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
+- [an.adapters.cutout.gaze](an.adapters.cutout.gaze.html.md): Ambient saccades for a cutout rig’s pupils: a seeded generator (an#99, epic #9 Wave 6).
+- [an.adapters.cutout.render](an.adapters.cutout.render.html.md): Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.
+- [an.adapters.cutout.runtime_files](an.adapters.cutout.runtime_files.html.md): Locate the bundled cutout JS runtime files.
+- [an.adapters.cutout.serialize](an.adapters.cutout.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
+- [an.adapters.cutout.shutter](an.adapters.cutout.shutter.html.md): The temporal half of the frame stage: average several instants into one frame.
+- [an.adapters.cutout.supersample](an.adapters.cutout.supersample.html.md): Render bigger, then resolve back exactly — the supersample knob’s two halves.
+- [an.adapters.cutout.timeline](an.adapters.cutout.timeline.html.md): Timeline: tracks of placed clips with absolute times and blend ramps.
+- [an.adapters.manim_adapter](an.adapters.manim_adapter.html.md): ManimRenderer — generate a minimal Manim scene + invoke &#96;manim&#96; as subprocess.
+- [an.adapters.remotion_adapter](an.adapters.remotion_adapter.html.md): RemotionRenderer — invoke &#96;npx remotion render&#96; against a generated TSX project.
+- [an.adapters.whiteboard](an.adapters.whiteboard.html.md): WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.
+- [an.audio](an.audio.html.md): Audio pipeline — TTS and lip-sync providers + orchestration.
+- [an.audio.elevenlabs_tts](an.audio.elevenlabs_tts.html.md): ElevenLabsTTS — real speech via the ElevenLabs API. Requires ELEVEN_API_KEY.
+- [an.audio.injectable_lipsync](an.audio.injectable_lipsync.html.md): Lip-sync provider that consumes pre-computed word timings.
+- [an.audio.lipsync](an.audio.lipsync.html.md): Lip-sync provider protocol + viseme dataclasses.
+- [an.audio.mac_say_tts](an.audio.mac_say_tts.html.md): MacSayTTS — audible offline speech via macOS’s built-in &#96;say&#96; command.
+- [an.audio.offline_lipsync](an.audio.offline_lipsync.html.md): OfflineLipSync — deterministic transcript → viseme track. No network, no binary.
+- [an.audio.offline_tts](an.audio.offline_tts.html.md): OfflineTTS — produces silent audio of plausible duration. No network, no keys.
+- [an.audio.pipeline](an.audio.pipeline.html.md): Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.
+- [an.audio.providers](an.audio.providers.html.md): Provider factory: name → concrete TTS/LipSync provider instance.
+- [an.audio.rhubarb_lipsync](an.audio.rhubarb_lipsync.html.md): RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.
+- [an.audio.tts](an.audio.tts.html.md): TTS provider protocol + supporting dataclasses.
+- [an.audio.whisper_lipsync](an.audio.whisper_lipsync.html.md): WhisperLipSync — faster-whisper word timestamps → viseme keyframes.
+- [an.base](an.base.html.md): Core types, constants, and re-exports for an.
+- [an.bench](an.bench.html.md): &#96;an bench&#96; — render a fixed corpus, compute a metrics panel, write one ledger row.
+- [an.bench.capture](an.bench.capture.html.md): Render one corpus fixture into a throwaway copy, and hand back its artifacts.
+- [an.bench.compare](an.bench.compare.html.md): &#96;an bench --compare&#96;: read two ledger rows, and &#42;&#42;refuse when they are not comparable&#42;&#42;.
+- [an.bench.contract](an.bench.contract.html.md): &#96;scene_contract_sha256&#96;: the fact that decides whether two rows are comparable.
+- [an.bench.corpus](an.bench.corpus.html.md): The bench corpus: which projects are measured, and what each must actually render.
+- [an.bench.environment](an.bench.environment.html.md): The environment tuple — the fields that decide whether two rows may be compared.
+- [an.bench.golden](an.bench.golden.html.md): The golden gate: committed frames, compared on &#42;&#42;decoded pixels&#42;&#42;.
+- [an.bench.imageio](an.bench.imageio.html.md): The pinned ffmpeg decodes, and the lossless leg every encode-side metric
+- [an.bench.ledger](an.bench.ledger.html.md): The ledger: three blocks that must never be mixed, and the guards that keep them apart.
+- [an.bench.masks](an.bench.masks.html.md): Every mask the panel is computed over, and the recorded operator for each.
+- [an.bench.metrics](an.bench.metrics.html.md): The metric panel: pure numpy, no I/O, no subprocess.
+- [an.bench.mutants](an.bench.mutants.html.md): The guard mutants: “I mutation-tested it” as a runnable artifact, not a claim.
+- [an.bench.mutations](an.bench.mutations.html.md): The levers: deliberate, declared changes through seams the shipped code already has.
+- [an.bench.palette](an.bench.palette.html.md): Derive the set of colours a compiled shot declared — never hand-pin it.
+- [an.bench.paths](an.bench.paths.html.md): Where the bench reads its corpus from and writes its ledger to.
+- [an.bench.png](an.bench.png.html.md): A filter-0 PNG writer and a full-filter reader — numpy and stdlib only.
+- [an.bench.registry](an.bench.registry.html.md): The metric declaration table — what each number is, and which way it should move.
+- [an.bench.run](an.bench.run.html.md): &#96;run_bench&#96;: render the corpus, compute the panel, write one ledger row.
+- [an.bench.stage](an.bench.stage.html.md): Measuring a pan: does the stage move as planes, or as one rigid image?
+- [an.characters](an.characters.html.md): Character art system: Spine-shaped descriptor + SVG sidecars.
+- [an.characters.cli](an.characters.cli.html.md): User-facing character CLI subcommands.
+- [an.characters.dicebear](an.characters.dicebear.html.md): DiceBear HTTP API client + best-effort post-processing.
+- [an.characters.factory](an.characters.factory.html.md): High-level entry points: build and inspect a character.
+- [an.characters.idle](an.characters.idle.html.md): Idle animation factories: breath, blink, weight-shift.
+- [an.characters.licenses](an.characters.licenses.html.md): DiceBear per-style licences, as data.
+- [an.characters.mouth_set](an.characters.mouth_set.html.md): Generate the 9-shape default mouth set as parametric SVGs.
+- [an.characters.play](an.characters.play.html.md): Resolve a &#96;play&#96; against a character descriptor — the renderer-free half (an#7).
+- [an.characters.record](an.characters.record.html.md): Record a character’s preview HTML to an mp4.
+- [an.characters.schema](an.characters.schema.html.md): Character descriptor schema (Spine-shaped, Pydantic v2).
+- [an.characters.silhouette](an.characters.silhouette.html.md): Silhouette rendering and comparison for the silhouette test.
+- [an.characters.svg_utils](an.characters.svg_utils.html.md): SVG manipulation: namespace-aware DOM helpers using stdlib &#96;xml.etree&#96;.
+- [an.characters.validate](an.characters.validate.html.md): Whether an art package is one the compiler can actually render.
+- [an.conftest](an.conftest.html.md): Collection rules for the package’s own doctests.
+- [an.credits](an.credits.html.md): What a rendered video owes, and to whom.
+- [an.data](an.data.html.md): Bundled non-Python resources (cutout JS runtime, etc.).
+- [an.data.cutout_runtime](an.data.cutout_runtime.html.md): Cutout JS runtime — see README.md in this directory.
+- [an.determinism](an.determinism.html.md): The determinism perimeter: what must stay true for a render to be reproducible.
+- [an.environments](an.environments.html.md): Environments: a stage made of planes, at declared depths.
+- [an.expression](an.expression.html.md): Facial expression for the cutout face (an#98, epic #9 Wave 6).
+- [an.expression.axes](an.expression.axes.html.md): The facial expression axes: what a cutout face can be asked to do (an#98).
+- [an.expression.binding](an.expression.binding.html.md): How the axes reach a character: the binding and the mouth-set resolver (an#98).
+- [an.expression.blendshapes](an.expression.blendshapes.html.md): The 52-coefficient blendshape vocabulary, as an import/export mapping (an#98).
+- [an.expression.presets](an.expression.presets.html.md): Expression presets: our art direction on the axes (an#98).
+- [an.expression.provider](an.expression.provider.html.md): The expression provider: authored leaves + dialogue sugar → per-axis curves (an#98).
+- [an.frame_clock](an.frame_clock.html.md): The frame clock: WHEN each output frame samples scene time.
+- [an.impacts](an.impacts.html.md): Synthetic impact clips with exact ground truth, for scoring sub-frame timing.
+- [an.impacts.cli](an.impacts.cli.html.md): &#96;an impacts ...&#96; — the impact harness from the shell.
+- [an.impacts.clip](an.impacts.clip.html.md): One impact clip, end to end: spec -&gt; scene -&gt; ground truth -&gt; (video) -&gt; files.
+- [an.impacts.objects](an.impacts.objects.html.md): The things that strike: a stick and a ball, as ordinary &#96;an&#96; props.
+- [an.impacts.performance](an.impacts.performance.html.md): The performance: a tempo grid, and when each impact was intended and executed.
+- [an.impacts.stroke](an.impacts.stroke.html.md): The stroke: impact events -&gt; one continuous height curve &#96;h(t)&#96;.
+- [an.impacts.truth](an.impacts.truth.html.md): Ground truth: what was intended, what was executed, and what each frame shows.
+- [an.ir](an.ir.html.md): Scene IR — the single source of truth for a scene.
+- [an.ir.assets](an.ir.assets.html.md): Where a third-party asset came from, and what its licence obliges.
+- [an.ir.camera](an.ir.camera.html.md): Camera semantics: the named moves, and the one resolver that expands them.
+- [an.ir.compose](an.ir.compose.html.md): Composition combinators for authoring action trees, plus a flattener.
+- [an.ir.schema](an.ir.schema.html.md): Pydantic v2 models for the Scene IR.
+- [an.ir.validate](an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
+- [an.iterate](an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
+- [an.live_api](an.live_api.html.md): The one switch that says “yes, this run may spend money”.
+- [an.orchestrate](an.orchestrate.html.md): Orchestrator: validate → audio → render → verify.
+- [an.preview](an.preview.html.md): Live preview server: render a project’s current scene in a browser, reloading on edit.
+- [an.project](an.project.html.md): Project init/load/save — the on-disk anatomy of an an project.
+- [an.props](an.props.html.md): Props: a rig whose art is not a person.
+- [an.render](an.render.html.md): Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.
+- [an.stores](an.stores.html.md): Project mall: a dict of dol-backed &#96;MutableMapping&#96; stores.
+- [an.stores.artifacts](an.stores.artifacts.html.md): Artifact stores — derived, regeneratable products of the pipeline.
+- [an.stores.characters](an.stores.characters.html.md): Characters store — descriptor + sidecar folder per character.
+- [an.stores.decisions](an.stores.decisions.html.md): Decision log — append-only JSONL of agent decisions and user approvals.
+- [an.stores.environments](an.stores.environments.html.md): Environments store — backgrounds, set pieces, and prop bundles.
+- [an.stores.props](an.stores.props.html.md): Props store — descriptor + sidecar folder per prop.
+- [an.stores.scenes](an.stores.scenes.html.md): Scenes store — wraps the project’s &#96;scene.md&#96; + &#96;ir/scene.json&#96; pair.
+- [an.stores.styles](an.stores.styles.html.md): Styles store — visual style presets (color palette, line weight, fonts).
+- [an.stores.voices](an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
+- [an.styles](an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.
+- [an.tools](an.tools.html.md): User-facing utility functions, plus the SSOT list for CLI dispatch.
+- [an.util](an.util.html.md): Internal helpers: file I/O, hashing, time arithmetic, light path utilities.
+- [an.verify](an.verify.html.md): Verification protocol — same interface for human, lint, vision-LM, MoVer.
+- [an.verify.human](an.verify.human.html.md): HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.
+- [an.verify.layout](an.verify.layout.html.md): LayoutLintVerifier — cheap pre-render checks on the IR.
+- [an.verify.media](an.verify.media.html.md): Media verification helpers — audio + frame quality checks for rendered mp4s.
+- [an.verify.media_quality](an.verify.media_quality.html.md): MediaQualityVerifier — post-render quality checks on the actual mp4.
+- [an.verify.vision](an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
+
+## Optional
+
+- [Top-level llms.txt](../llms.txt): Complete documentation index.

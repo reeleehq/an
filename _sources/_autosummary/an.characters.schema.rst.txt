@@ -1,0 +1,39 @@
+an.characters.schema
+====================
+
+.. automodule:: an.characters.schema
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CHARACTER_DOCUMENT_KIND
+      MOUTH_SHAPES
+      DEFAULT_VISEME_MAP
+      VISEME_CHANNEL
+      EYELID_CHANNEL
+      DEFAULT_EYELID_MAP
+      REQUIRED_PARTS
+      DEFAULT_VIEW_BOX
+      FACE_OFFSETS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      bones_from_pivots
+      default_asset_sets
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AnimationTrack
+      Attachment
+      Bone
+      CharacterDescriptor
+      IdleAnimation
+      Skin
+      Slot
+   

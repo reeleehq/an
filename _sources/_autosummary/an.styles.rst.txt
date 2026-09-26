@@ -1,0 +1,25 @@
+an.styles
+=========
+
+.. automodule:: an.styles
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      REACHABLE_ROLES
+      UNREACHABLE_ROLES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      resolve_palette
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      StylePack
+   

@@ -1,0 +1,18 @@
+an.adapters.manim\_adapter
+==========================
+
+.. automodule:: an.adapters.manim_adapter
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ManimRenderer
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ManimRenderError
+   

@@ -1,0 +1,34 @@
+an.adapters.cutout.coarticulate
+===============================
+
+.. automodule:: an.adapters.cutout.coarticulate
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DOMINANCE
+      DEFAULT_DOMINANCE
+      WEAK_BELOW
+      DEFAULT_LEAD_S
+      DEFAULT_DECAY_S
+      DEFAULT_MIN_HOLD_S
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      coarticulate
+      condense
+      decay
+      lead
+      merge_duplicates
+      suppress_weak
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Cue
+   

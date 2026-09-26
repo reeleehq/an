@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.base.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.base.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.base &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../_static/documentation_options.js?v=8520101b"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.base';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.bench" href="an.bench.html" />
+    <link rel="prev" title="an.audio.whisper_lipsync" href="an.audio.whisper_lipsync.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.87" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_lipsync.html">an.audio.offline_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">an.base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.bench.html">an.bench</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.imageio.html">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutations.html">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.licenses.html">an.characters.licenses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.validate.html">an.characters.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.binding.html">an.expression.binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.objects.html">an.impacts.objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.performance.html">an.impacts.performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.stroke.html">an.impacts.stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.truth.html">an.impacts.truth</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.base</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.base">
+<span id="an-base"></span><h1>an.base<a class="headerlink" href="#module-an.base" title="Link to this heading">#</a></h1>
+<p>Core types, constants, and re-exports for an.</p>
+<p>This module is the <em>type vocabulary</em> shared across the package: schema versions,
+default render parameters, easing presets, type aliases for paths and time. Heavy
+data classes (the Pydantic IR models, the Renderer/Verifier protocols) live in
+their own subpackages and are re-exported from <code class="code docutils literal notranslate"><span class="pre">an</span></code> itself.</p>
+<p>Keep this module small and dependency-light. Everything here should import in a
+fraction of a second so the CLI is snappy.</p>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.SCHEMA_VERSION" title="an.base.SCHEMA_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCHEMA_VERSION</span></code></a></p></td>
+<td><p>Current Scene IR schema version.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.COMPATIBLE_VERSION" title="an.base.COMPATIBLE_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COMPATIBLE_VERSION</span></code></a></p></td>
+<td><p>Minimum Scene IR version this code can still read without migration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.DEFAULT_SUPERSAMPLE" title="an.base.DEFAULT_SUPERSAMPLE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_SUPERSAMPLE</span></code></a></p></td>
+<td><p>Render at this many times the declared resolution, then resolve back with an exact block mean.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.MP4_FASTSTART_ARGS" title="an.base.MP4_FASTSTART_ARGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MP4_FASTSTART_ARGS</span></code></a></p></td>
+<td><p>Put the mp4's <code class="code docutils literal notranslate"><span class="pre">moov</span></code> atom in front of <code class="code docutils literal notranslate"><span class="pre">mdat</span></code>, so a player can start before the file has finished downloading.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.BT709_SCALE_FILTER" title="an.base.BT709_SCALE_FILTER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BT709_SCALE_FILTER</span></code></a></p></td>
+<td><p>The RGB-&gt;YUV conversion <code class="code docutils literal notranslate"><span class="pre">an</span></code> performs, stated EXPLICITLY rather than left to the encoder flags to imply.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.EASING_PRESETS" title="an.base.EASING_PRESETS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EASING_PRESETS</span></code></a></p></td>
+<td><p>Named easing presets.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.COLOUR_PROPERTY" title="an.base.COLOUR_PROPERTY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">COLOUR_PROPERTY</span></code></a></p></td>
+<td><p>The property names the cutout runtime animates NUMERICALLY.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS" title="an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/</span></code> would read as a path segment and <code class="docutils literal notranslate"><span class="pre">::</span></code> is the runtime's pose-key separator.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.AUTHORABLE_PROPERTIES" title="an.base.AUTHORABLE_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AUTHORABLE_PROPERTIES</span></code></a></p></td>
+<td><p>a compiled transform channel, or the authored colour spelling the compiler expands.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.PathStr" title="an.base.PathStr"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PathStr</span></code></a></p></td>
+<td><p>Slash-delimited node path, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;charlie/head/mouth&quot;</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.Seconds" title="an.base.Seconds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Seconds</span></code></a></p></td>
+<td><p>Time in seconds.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.EasingSpec" title="an.base.EasingSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EasingSpec</span></code></a></p></td>
+<td><p>Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.RendererName" title="an.base.RendererName"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RendererName</span></code></a></p></td>
+<td><p>Which renderer draws a shot.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.base.SUPPORTED_RENDERERS" title="an.base.SUPPORTED_RENDERERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_RENDERERS</span></code></a></p></td>
+<td><p>The same vocabulary as <a class="reference internal" href="#an.base.RendererName" title="an.base.RendererName"><code class="xref py py-data docutils literal notranslate"><span class="pre">RendererName</span></code></a>, as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.base.swap_set_name_problem" title="an.base.swap_set_name_problem"><code class="xref py py-obj docutils literal notranslate"><span class="pre">swap_set_name_problem</span></code></a>(name)</p></td>
+<td><p>Why <code class="docutils literal notranslate"><span class="pre">name</span></code> cannot be a swap-set name, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if it can.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.AUTHORABLE_PROPERTIES">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">AUTHORABLE_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.base.AUTHORABLE_PROPERTIES" title="Link to this definition">#</a></dt>
+<dd><p>a compiled transform channel, or the authored
+colour spelling the compiler expands. Validate checks against this, and the
+compiler’s rest table against <code class="code docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> — the difference between
+the two sets is exactly <code class="code docutils literal notranslate"><span class="pre">tint</span></code>, and a test pins that rather than trusting it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>What a set/tween may name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.BT709_SCALE_FILTER">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">BT709_SCALE_FILTER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'scale=out_range=tv:out_color_matrix=bt709'</span></span><a class="headerlink" href="#an.base.BT709_SCALE_FILTER" title="Link to this definition">#</a></dt>
+<dd><p>The RGB-&gt;YUV conversion <code class="code docutils literal notranslate"><span class="pre">an</span></code> performs, stated EXPLICITLY rather than left to
+the encoder flags to imply.</p>
+<p>an#34 pinned <code class="code docutils literal notranslate"><span class="pre">-colorspace</span> <span class="pre">bt709</span></code> and measured that it does not merely <em>tag</em>
+the file: it sets the matrix of the auto-inserted conversion, so the encoded
+planes themselves change. That measurement was made on ffmpeg 8/9 and **is
+not a universal ffmpeg fact** (an#148). Measured on the product’s own
+<code class="code docutils literal notranslate"><span class="pre">_ffmpeg_mux</span></code> with flat known-colour frames, decoded as raw <code class="code docutils literal notranslate"><span class="pre">yuv420p</span></code> (planes
+verbatim, no conversion on read), against the analytic limited-range values:</p>
+<div class="line-block">
+<div class="line">build | pure red decodes to Y | BT.601 says | BT.709 says |</div>
+</div>
+<p><a href="#id1"><span class="problematic" id="id2">|---|</span></a>—<a href="#id3"><span class="problematic" id="id4">|---|</span></a>—|
+| ffmpeg 9.0.1 | 63 | 81.5 | 62.6 |
+| ffmpeg 6.1.6 | 81 | 81.5 | 62.6 |</p>
+<p>Over five colours and all three planes, the worst disagreement is 0.44 from
+BT.709 and 28.45 from BT.601 on ffmpeg 9 – and 0.48 from BT.601 against
+27.63 from BT.709 on ffmpeg 6.1.6, which is the CI runner’s apt build. Both
+files are <em>tagged</em> <code class="code docutils literal notranslate"><span class="pre">color_space=bt709</span> <span class="pre">color_primaries=bt709</span>
+<span class="pre">color_transfer=bt709</span> <span class="pre">color_range=tv</span></code>. So on 6.1 an#34’s re-baseline was
+metadata only: <code class="code docutils literal notranslate"><span class="pre">an</span></code> shipped BT.601 planes wearing a BT.709 label, and a
+conforming player undoes a conversion that was never applied.</p>
+<p>This filter removes the build-dependence by naming the conversion instead of
+inferring it. It is BYTE-IDENTICAL to today’s output on ffmpeg 9.0.1
+(measured: same mp4 sha256 on real corpus frames), so it re-baselines nothing
+where the flags already worked, and it moves ffmpeg 6.1.6’s output onto the
+same conversion (its residual against an analytic BT.709 reference drops from
+luma mean 0.788 to 0.205 – ffmpeg 9’s own number to three decimals).</p>
+<p>**The committed ledger rows were captured on ffmpeg 8.1, which is not on this
+machine, so the byte-identity above was not re-measured there.** That those
+rows are equally unaffected rests on an#34’s own measurement — that on 8.x
+<code class="code docutils literal notranslate"><span class="pre">-colorspace</span> <span class="pre">bt709</span></code> already set the auto-inserted conversion, so this filter
+names what that build was doing anyway. It is a sound inference from a
+recorded measurement, not a second observation; treat it as such if an 8.x
+build ever contradicts a row.</p>
+<p>Here, and not beside one of the ffmpeg calls, for the same reason
+<code class="code docutils literal notranslate"><span class="pre">MP4_FASTSTART_ARGS</span></code> is: <strong>three commands must agree on it</strong>, and they are in
+two packages. The delivered mux (<code class="code docutils literal notranslate"><span class="pre">_ffmpeg_mux</span></code>), the bench’s lossless
+reference leg and the bench’s PNG decode leg all perform this conversion, and
+the lossless leg’s entire contract is “these ARE the planes libx264
+received”. Pin one and not the others and every encode-side metric silently
+measures a colour-space disagreement instead of encoder damage – the failure
+<code class="code docutils literal notranslate"><span class="pre">an/bench/imageio.py</span></code>’s module docstring records CI catching once already.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.COLOUR_PROPERTY">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">COLOUR_PROPERTY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'tint'</span></span><a class="headerlink" href="#an.base.COLOUR_PROPERTY" title="Link to this definition">#</a></dt>
+<dd><p>The property names the cutout runtime animates NUMERICALLY. Any other
+property on a set/tween names a swap SET declared by the target entity’s
+descriptor (an#87). This is the SSOT the three consumers share so the IR
+validator, the character validator and the compiler cannot drift: the
+compiler derives its rest-value table from <code class="docutils literal notranslate"><span class="pre">TransformJSON</span></code> and a test
+asserts that derivation equals this set. Lives here because <code class="docutils literal notranslate"><span class="pre">an.base</span></code> is
+the one module all three layers may import.
+The colour multiply as an AUTHOR spells it. Not in
+<code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> because nothing downstream of the compiler ever
+sees it — <code class="code docutils literal notranslate"><span class="pre">_expand_tint_actions</span></code> rewrites each leaf into the three numeric
+components before the swap-set dispatch, which would otherwise read it as an
+asset-set name (an#62).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.COMPATIBLE_VERSION">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">COMPATIBLE_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0.3.0'</span></span><a class="headerlink" href="#an.base.COMPATIBLE_VERSION" title="Link to this definition">#</a></dt>
+<dd><p>Minimum Scene IR version this code can still read without migration.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.DEFAULT_SUPERSAMPLE">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_SUPERSAMPLE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.base.DEFAULT_SUPERSAMPLE" title="Link to this definition">#</a></dt>
+<dd><p>Render at this many times the declared resolution, then resolve back with an
+exact block mean. <strong>1 is off, and off is free</strong>: the un-supersampled path
+keeps Chromium’s own PNG bytes and pays nothing.</p>
+<p>Here rather than in <code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.supersample</span></code>, where the rest of the
+mechanism lives, because <code class="code docutils literal notranslate"><span class="pre">an/adapters/_base.py</span></code> needs it for
+<code class="code docutils literal notranslate"><span class="pre">RenderContext</span></code>’s default and importing the cutout package from there is a
+real cycle (<code class="code docutils literal notranslate"><span class="pre">_base</span></code> -&gt; <code class="code docutils literal notranslate"><span class="pre">cutout</span></code> -&gt; <code class="code docutils literal notranslate"><span class="pre">render</span></code> -&gt; <code class="code docutils literal notranslate"><span class="pre">_base</span></code>), not a hypothetical
+one. <code class="code docutils literal notranslate"><span class="pre">an/base.py</span></code> imports nothing from <code class="code docutils literal notranslate"><span class="pre">an</span></code>.</p>
+<p>The default stays 1 deliberately. Supersampling ships OPT-IN with its A/B
+committed (an#58, discussion #52), per the standing rule that a default
+chosen by taste ships opt-in and the flip is its own one-line change.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.EASING_PRESETS">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">EASING_PRESETS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('linear',</span> <span class="pre">'ease',</span> <span class="pre">'ease_in',</span> <span class="pre">'ease_out',</span> <span class="pre">'ease_in_out',</span> <span class="pre">'step')</span></span><a class="headerlink" href="#an.base.EASING_PRESETS" title="Link to this definition">#</a></dt>
+<dd><p>Named easing presets. Renderers should accept these and the cubic-Bézier
+4-tuple form <code class="code docutils literal notranslate"><span class="pre">[cx1,</span> <span class="pre">cy1,</span> <span class="pre">cx2,</span> <span class="pre">cy2]</span></code>. Names follow the GSAP / CSS convention.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.EasingSpec">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">EasingSpec</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.TypeAlias" title="(in Python v3.14)"><span class="pre">TypeAlias</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">str</span> <span class="pre">|</span> <span class="pre">tuple[float,</span> <span class="pre">float,</span> <span class="pre">float,</span> <span class="pre">float]</span> <span class="pre">|</span> <span class="pre">list[float]</span></span><a class="headerlink" href="#an.base.EasingSpec" title="Link to this definition">#</a></dt>
+<dd><p>Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.MP4_FASTSTART_ARGS">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">MP4_FASTSTART_ARGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('-movflags',</span> <span class="pre">'+faststart')</span></span><a class="headerlink" href="#an.base.MP4_FASTSTART_ARGS" title="Link to this definition">#</a></dt>
+<dd><p>Put the mp4’s <code class="code docutils literal notranslate"><span class="pre">moov</span></code> atom in front of <code class="code docutils literal notranslate"><span class="pre">mdat</span></code>, so a player can start before
+the file has finished downloading.</p>
+<p>Here, and not beside one of the ffmpeg calls, because **three separate
+commands build the one file a user receives** – the frame mux
+(<code class="code docutils literal notranslate"><span class="pre">_ffmpeg_mux</span></code>), the audio mux (<code class="code docutils literal notranslate"><span class="pre">_ffmpeg_add_audio</span></code>) and the concat
+(<code class="code docutils literal notranslate"><span class="pre">_ffmpeg_concat</span></code>) – and each of the last two re-lays the container with
+<code class="code docutils literal notranslate"><span class="pre">-c</span> <span class="pre">copy</span></code>, which writes <code class="code docutils literal notranslate"><span class="pre">moov</span></code> LAST. The flag was on the first of those
+alone, which reads as done and delivers nothing: it applied only to
+<code class="code docutils literal notranslate"><span class="pre">silent.mp4</span></code>, a per-shot intermediate that is never handed to anyone.
+Measured on a local example render (these mp4s are gitignored build
+products; <code class="code docutils literal notranslate"><span class="pre">git</span> <span class="pre">ls-files</span></code> tracks exactly one, and it is moov-last too):
+<code class="code docutils literal notranslate"><span class="pre">.an/render_work/shot_s1/silent.mp4</span></code> is <code class="code docutils literal notranslate"><span class="pre">ftyp</span> <span class="pre">moov</span> <span class="pre">free</span> <span class="pre">mdat</span></code>, while the
+per-shot mp4, <code class="code docutils literal notranslate"><span class="pre">artifacts/shots/*.mp4</span></code> and <code class="code docutils literal notranslate"><span class="pre">output/main.mp4</span></code> are all
+<code class="code docutils literal notranslate"><span class="pre">ftyp</span> <span class="pre">free</span> <span class="pre">mdat</span> <span class="pre">moov</span></code>. Single-shot and multi-shot alike; an#57’s
+“single-shot ones keep it” is wrong, because the <code class="code docutils literal notranslate"><span class="pre">shutil.copy</span></code> branch
+copies a file that already lost it.</p>
+<p>Deliberately NOT part of <code class="code docutils literal notranslate"><span class="pre">DETERMINISTIC_X264_ARGS</span></code>. That tuple is an
+<code class="code docutils literal notranslate"><span class="pre">ENCODE_ENV_PATHS</span></code> comparability key (an/bench/compare.py:98), and this flag
+moves no number the panel reads: with <code class="code docutils literal notranslate"><span class="pre">-c</span> <span class="pre">copy</span></code> it is a container rewrite,
+not a re-encode. Verified on ffmpeg 8.1 – elementary-stream sha256
+identical, video/audio packet totals identical, file size identical,
+decoded YUV sha256 identical, wall time unchanged.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.base.PathStr">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">PathStr</span></span><a class="headerlink" href="#an.base.PathStr" title="Link to this definition">#</a></dt>
+<dd><p>Slash-delimited node path, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;charlie/head/mouth&quot;</span></code>.</p>
+<p>The example matters: an unknown target now RAISES rather than being skipped,
+and the long-standing <code class="docutils literal notranslate"><span class="pre">&quot;charlie/torso/left_arm&quot;</span></code> illustration names a node
+no rig actually builds — the cutout rigs are flat, so arms are siblings of
+the torso, not children of it.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.RendererName">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">RendererName</span></span><a class="headerlink" href="#an.base.RendererName" title="Link to this definition">#</a></dt>
+<dd><p>Which renderer draws a shot. The orchestrator uses this to pick an adapter.</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘cutout’, ‘manim’, ‘motion_graphics’, ‘whiteboard’]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.SCHEMA_VERSION">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">SCHEMA_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'0.3.0'</span></span><a class="headerlink" href="#an.base.SCHEMA_VERSION" title="Link to this definition">#</a></dt>
+<dd><p>Current Scene IR schema version. Bump on additive changes; on breaking
+changes, also bump COMPATIBLE_VERSION and add a migration in <code class="code docutils literal notranslate"><span class="pre">ir.migrate</span></code>.
+0.2.0 renamed <code class="code docutils literal notranslate"><span class="pre">Shot.style</span></code> -&gt; <code class="code docutils literal notranslate"><span class="pre">Shot.renderer</span></code> and <code class="code docutils literal notranslate"><span class="pre">Meta.default_style</span></code> -&gt;
+<code class="code docutils literal notranslate"><span class="pre">Meta.default_renderer</span></code>, and retired <code class="code docutils literal notranslate"><span class="pre">AssetRef(kind=&quot;style&quot;)</span></code> (an#106).
+0.3.0 removed <code class="code docutils literal notranslate"><span class="pre">Camera.position</span></code> / <code class="code docutils literal notranslate"><span class="pre">.target</span></code> / <code class="code docutils literal notranslate"><span class="pre">.focal_length</span></code>, which
+described a 3D camera this package never had, and gave <code class="code docutils literal notranslate"><span class="pre">Camera</span></code> a <code class="code docutils literal notranslate"><span class="pre">keys</span></code>
+list so it can translate (an#109).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.SUPPORTED_RENDERERS">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_RENDERERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('cutout',</span> <span class="pre">'manim',</span> <span class="pre">'motion_graphics',</span> <span class="pre">'whiteboard')</span></span><a class="headerlink" href="#an.base.SUPPORTED_RENDERERS" title="Link to this definition">#</a></dt>
+<dd><p>The same vocabulary as <a class="reference internal" href="#an.base.RendererName" title="an.base.RendererName"><code class="xref py py-data docutils literal notranslate"><span class="pre">RendererName</span></code></a>, as a runtime tuple — DERIVED
+from it, because a hand-typed second copy is a second SSOT that drifts on
+the day a renderer is added and nothing fails.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('/',</span> <span class="pre">'::')</span></span><a class="headerlink" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">/</span></code> would read
+as a path segment and <code class="docutils literal notranslate"><span class="pre">::</span></code> is the runtime’s pose-key separator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Characters within which a swap-set name is not addressable</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.base.Seconds">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">Seconds</span></span><a class="headerlink" href="#an.base.Seconds" title="Link to this definition">#</a></dt>
+<dd><p>Time in seconds. Floats at the IR boundary; rational time is used internally
+only inside the audio pipeline where drift matters.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.base.swap_set_name_problem">
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">swap_set_name_problem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/base.html#swap_set_name_problem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.base.swap_set_name_problem" title="Link to this definition">#</a></dt>
+<dd><p>Why <code class="docutils literal notranslate"><span class="pre">name</span></code> cannot be a swap-set name, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if it can.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">swap_set_name_problem</span><span class="p">(</span><span class="s2">"hands"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swap_set_name_problem</span><span class="p">(</span><span class="s2">"alpha"</span><span class="p">)</span>
+<span class="go">"'alpha' is a transform property; the runtime's static switch would shadow the set"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">swap_set_name_problem</span><span class="p">(</span><span class="s2">"a::b"</span><span class="p">)</span>
+<span class="go">"'a::b' contains '::', which is reserved"</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.audio.whisper_lipsync.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.audio.whisper_lipsync</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.bench.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.bench</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.AUTHORABLE_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">AUTHORABLE_PROPERTIES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.BT709_SCALE_FILTER"><code class="docutils literal notranslate"><span class="pre">BT709_SCALE_FILTER</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.COLOUR_PROPERTY"><code class="docutils literal notranslate"><span class="pre">COLOUR_PROPERTY</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.COMPATIBLE_VERSION"><code class="docutils literal notranslate"><span class="pre">COMPATIBLE_VERSION</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.DEFAULT_SUPERSAMPLE"><code class="docutils literal notranslate"><span class="pre">DEFAULT_SUPERSAMPLE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.EASING_PRESETS"><code class="docutils literal notranslate"><span class="pre">EASING_PRESETS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.EasingSpec"><code class="docutils literal notranslate"><span class="pre">EasingSpec</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.MP4_FASTSTART_ARGS"><code class="docutils literal notranslate"><span class="pre">MP4_FASTSTART_ARGS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.PathStr"><code class="docutils literal notranslate"><span class="pre">PathStr</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.RendererName"><code class="docutils literal notranslate"><span class="pre">RendererName</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.SCHEMA_VERSION"><code class="docutils literal notranslate"><span class="pre">SCHEMA_VERSION</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.SUPPORTED_RENDERERS"><code class="docutils literal notranslate"><span class="pre">SUPPORTED_RENDERERS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS"><code class="docutils literal notranslate"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.Seconds"><code class="docutils literal notranslate"><span class="pre">Seconds</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.base.swap_set_name_problem"><code class="docutils literal notranslate"><span class="pre">swap_set_name_problem()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.base.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.bench.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.bench.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.bench &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../_static/documentation_options.js?v=8520101b"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.bench';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.bench.capture" href="an.bench.capture.html" />
+    <link rel="prev" title="an.base" href="an.base.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.87" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_lipsync.html">an.audio.offline_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.base.html">an.base</a></li>
+<li class="toctree-l2 current active has-children"><a aria-current="page" class="current reference internal" href="#">an.bench</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.imageio.html">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutations.html">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.licenses.html">an.characters.licenses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.validate.html">an.characters.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.binding.html">an.expression.binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.objects.html">an.impacts.objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.performance.html">an.impacts.performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.stroke.html">an.impacts.stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.truth.html">an.impacts.truth</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.bench</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.bench">
+<span id="an-bench"></span><h1>an.bench<a class="headerlink" href="#module-an.bench" title="Link to this heading">#</a></h1>
+<p><code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span></code> — render a fixed corpus, compute a metrics panel, write one ledger row.</p>
+<p>The instrument Wave 2 exists to build. Its job is not to say whether the
+animation is good; it is to make a **deliberate degradation move a number in a
+direction declared in advance**, so that a future regression is caught by
+something other than someone noticing.</p>
+<p>Three things about the panel that are easy to assume wrongly:</p>
+<ul class="simple">
+<li><p><strong>It is not the epic’s metric list.</strong> All twelve originally-proposed metrics
+were refuted; every one here is a corrected form. <code class="docutils literal notranslate"><span class="pre">mean</span> <span class="pre">adjacent-frame</span>
+<span class="pre">SSIM</span></code> in particular is <em>out</em> — it moves the wrong way (0.958 at crf18 -&gt;
+0.977 at crf51, because a crushed video is smoother), so shipping it would
+put a number in the ledger that rewards the degradation the gate exists to
+catch.</p></li>
+<li><p>**Render-side and encode-side metrics are blind to each other’s mutations by
+construction**, and are labelled so nothing mixes them. Render-side rows
+compare across any machine; encode-side rows are machine-scoped.</p></li>
+<li><p><strong>The vision judge is deliberately not here.</strong> Not because its input is
+nondeterministic — over frozen frames it is perfectly reproducible — but
+because a cassetted judge is a <em>constant</em>, invariant to the code under test,
+so it can never move under a deliberate degradation.</p></li>
+</ul>
+<p>Entry points: <a class="reference internal" href="an.bench.run.html#an.bench.run.run_bench" title="an.bench.run.run_bench"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.bench.run.run_bench()</span></code></a>, and <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span></code> on the CLI.</p>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.bless_scene" title="an.bench.bless_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bless_scene</span></code></a>(capture, *, times, ...[, ...])</p></td>
+<td><p>Write one scene's golden frames and its bless record.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.compare_scene" title="an.bench.compare_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compare_scene</span></code></a>(capture, *, times, chromium_build)</p></td>
+<td><p>Compare today's render against the committed goldens for one scene.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.decode_png" title="an.bench.decode_png"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decode_png</span></code></a>(data)</p></td>
+<td><p>Decode an 8-bit truecolour PNG to <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">C)</span></code> uint8, <code class="docutils literal notranslate"><span class="pre">C</span></code> in <code class="docutils literal notranslate"><span class="pre">{3,</span> <span class="pre">4}</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.encode_png" title="an.bench.encode_png"><code class="xref py py-obj docutils literal notranslate"><span class="pre">encode_png</span></code></a>(rgb, *[, level])</p></td>
+<td><p>Encode <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">3)</span></code> uint8 as an 8-bit truecolour PNG, every row filter 0.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.frame_key" title="an.bench.frame_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_key</span></code></a>(index)</p></td>
+<td><p>The filename stem for a frame, zero-padded so a directory listing sorts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.pixels_sha256" title="an.bench.pixels_sha256"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pixels_sha256</span></code></a>(rgb)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sha256</span></code> over the decoded pixels — <strong>shape and dtype included</strong>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.png_dimensions" title="an.bench.png_dimensions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">png_dimensions</span></code></a>(data)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code> from a PNG's IHDR, without decoding a single pixel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.read_png" title="an.bench.read_png"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_png</span></code></a>(path)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">3)</span></code> uint8 for a PNG on disk, alpha dropped only if opaque.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.read_png_dimensions" title="an.bench.read_png_dimensions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_png_dimensions</span></code></a>(path)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code> for a PNG on disk, reading only its header.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.write_png" title="an.bench.write_png"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_png</span></code></a>(path, rgb, *[, level])</p></td>
+<td><p>Write <code class="docutils literal notranslate"><span class="pre">rgb</span></code> as a filter-0 PNG and <strong>verify the round trip</strong> before returning.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.build_ledger" title="an.bench.build_ledger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_ledger</span></code></a>(*, provenance, scenes)</p></td>
+<td><p>The whole row.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.build_scene_block" title="an.bench.build_scene_block"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_scene_block</span></code></a>(*, provenance, metrics, ...)</p></td>
+<td><p>Assemble one scene's three blocks, refusing anything unreadable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.witnesses" title="an.bench.witnesses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">witnesses</span></code></a>(ledger_scene, mutation)</p></td>
+<td><p>Which metrics would count for <code class="docutils literal notranslate"><span class="pre">mutation</span></code>, grouped by family.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.run_bench" title="an.bench.run_bench"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_bench</span></code></a>(*[, scenes, out, keep_render, ...])</p></td>
+<td><p>Render the corpus, compute the panel, and (by default) write the row.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.format_panel" title="an.bench.format_panel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_panel</span></code></a>(ledger)</p></td>
+<td><p>A human-readable digest of a row — the thing <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span></code> prints.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.MetricSpec" title="an.bench.MetricSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MetricSpec</span></code></a>(key, family, unit, optimum, ...)</p></td>
+<td><p>One row of the panel.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.Prediction" title="an.bench.Prediction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Prediction</span></code></a>(expect[, counts, gate, reason, ...])</p></td>
+<td><p>What one metric is expected to do under one mutation, declared in advance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.Value" title="an.bench.Value"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Value</span></code></a>(value[, state, gate, detail, extra])</p></td>
+<td><p>One measured (or deliberately absent) number.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.GoldenError" title="an.bench.GoldenError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GoldenError</span></code></a></p></td>
+<td><p>A bless was refused, or a committed golden is unusable.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.PngFormatError" title="an.bench.PngFormatError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PngFormatError</span></code></a></p></td>
+<td><p>A PNG this module deliberately does not decode, or a malformed one.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.RegistryError" title="an.bench.RegistryError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RegistryError</span></code></a></p></td>
+<td><p>A metric declaration violates one of the table's invariants.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.LedgerSchemaError" title="an.bench.LedgerSchemaError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LedgerSchemaError</span></code></a></p></td>
+<td><p>A ledger row violates an invariant that would make it misreadable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.BenchError" title="an.bench.BenchError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BenchError</span></code></a></p></td>
+<td><p>The bench could not produce a row it would be honest to file.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.bench.BenchError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">BenchError</span></span><a class="reference internal" href="../_modules/an/bench/run.html#BenchError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.BenchError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>The bench could not produce a row it would be honest to file.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.bench.GoldenError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">GoldenError</span></span><a class="reference internal" href="../_modules/an/bench/golden.html#GoldenError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.GoldenError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>A bless was refused, or a committed golden is unusable.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.bench.LedgerSchemaError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">LedgerSchemaError</span></span><a class="reference internal" href="../_modules/an/bench/ledger.html#LedgerSchemaError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.LedgerSchemaError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>A ledger row violates an invariant that would make it misreadable.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.bench.MetricSpec">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">MetricSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">family</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sentence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">role</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">provisional</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unreviewed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tripwire</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/registry.html#MetricSpec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.MetricSpec" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>One row of the panel.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.bench.MetricSpec.requires">
+<span class="sig-name descname"><span class="pre">requires</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.bench.MetricSpec.requires" title="Link to this definition">#</a></dt>
+<dd><p>What a scene must HAVE for this row to exist at all, or <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> when the
+row applies to every scene (an#111).</p>
+<p>The render-side panel rule is “nothing may be null on a real capture,
+because a null render-side row is a blind panel”. That rule assumes
+every metric could have been measured. <code class="code docutils literal notranslate"><span class="pre">stage_min_plane_ratio_gap</span></code>
+could not: a displacement ratio needs two planes moving at different
+depths, and <code class="code docutils literal notranslate"><span class="pre">single_character</span></code> has no planes at all — so its null is
+structural, not a gap in the instrument.</p>
+<p>Declared rather than hardcoded in the test, so the panel rule keeps
+naming its own exceptions instead of a test file carrying a list the
+registry does not know about.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.bench.PngFormatError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">PngFormatError</span></span><a class="reference internal" href="../_modules/an/bench/png.html#PngFormatError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.PngFormatError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>A PNG this module deliberately does not decode, or a malformed one.</p>
+<p>Typed and specific on purpose: the alternative to refusing is returning a
+plausible array, and a golden gate that compares a plausible array is worse
+than one that does not run.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.bench.Prediction">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">Prediction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/registry.html#Prediction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.Prediction" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What one metric is expected to do under one mutation, declared in advance.</p>
+<p><code class="docutils literal notranslate"><span class="pre">expect=None</span></code> means <strong>gated</strong>: the number is uninterpretable rather than
+good or bad, and <code class="docutils literal notranslate"><span class="pre">gate</span></code> says why. It is not “no change”.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.bench.RegistryError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">RegistryError</span></span><a class="reference internal" href="../_modules/an/bench/registry.html#RegistryError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.RegistryError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>A metric declaration violates one of the table’s invariants.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.bench.Value">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">Value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'measured'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/ledger.html#Value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.Value" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>One measured (or deliberately absent) number.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.bless_scene">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">bless_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capture</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chromium_build</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">git</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene_contract_sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">golden_note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/golden.html#bless_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.bless_scene" title="Link to this definition">#</a></dt>
+<dd><p>Write one scene’s golden frames and its bless record. Refuses, loudly.</p>
+<p>Every refusal here is a case where writing the file would produce a gate
+that cannot fail:</p>
+<ul class="simple">
+<li><p><strong>no reason</strong> — a re-bless with no recorded reason is the same failure as
+a silently widened threshold, which is the named failure mode this whole
+wave exists to prevent;</p></li>
+<li><p><strong>fewer than two frames</strong> — one frame cannot notice a scene that renders
+its first instant correctly and then stops;</p></li>
+<li><p><strong>a pixel-identical pair</strong> — measured on <code class="docutils literal notranslate"><span class="pre">promote_demo</span></code>: frame 0 and the
+<code class="docutils literal notranslate"><span class="pre">duration/2</span></code> frame differ by exactly zero pixels, so the obvious choice
+blesses one picture twice and the second golden tests nothing;</p></li>
+<li><p><strong>an unknown Chromium build</strong> — the path keys on it, so without it the
+frames would be written under a name no future run could look up.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.build_ledger">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">build_ledger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">provenance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/ledger.html#build_ledger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.build_ledger" title="Link to this definition">#</a></dt>
+<dd><p>The whole row.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.build_scene_block">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">build_scene_block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">provenance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tripwires</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/ledger.html#build_scene_block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.build_scene_block" title="Link to this definition">#</a></dt>
+<dd><p>Assemble one scene’s three blocks, refusing anything unreadable.</p>
+<p>Completeness is enforced in both directions. A metric the registry declares
+but the row omits is a silently narrower panel; a metric the row carries
+but the registry does not declare has no family, no side and no predicted
+direction, so nothing downstream can count it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.compare_scene">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">compare_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capture</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">times</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chromium_build</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/golden.html#compare_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.compare_scene" title="Link to this definition">#</a></dt>
+<dd><p>Compare today’s render against the committed goldens for one scene.</p>
+<p>Returns a dict with <code class="docutils literal notranslate"><span class="pre">state</span></code> in <code class="docutils literal notranslate"><span class="pre">{&quot;measured&quot;,</span> <span class="pre">&quot;gated&quot;,</span> <span class="pre">&quot;unavailable&quot;}</span></code>,
+the reduced numbers the ledger carries, and a per-frame record for
+provenance. The reduction is <strong>worst frame wins</strong>: <code class="docutils literal notranslate"><span class="pre">identical</span></code> is the
+conjunction and <code class="docutils literal notranslate"><span class="pre">min_ssim_win8</span></code> is the minimum, because a maximum or a
+mean lets one clean frame hide a broken one, and this metric’s own name is
+“the worst small window”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.decode_png">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">decode_png</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/png.html#decode_png"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.decode_png" title="Link to this definition">#</a></dt>
+<dd><p>Decode an 8-bit truecolour PNG to <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">C)</span></code> uint8, <code class="docutils literal notranslate"><span class="pre">C</span></code> in <code class="docutils literal notranslate"><span class="pre">{3,</span> <span class="pre">4}</span></code>.</p>
+<p>Refuses — rather than approximates — 16-bit, palette, greyscale and
+interlaced images, naming what it found.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]]],</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">decode_png</span><span class="p">(</span><span class="n">encode_png</span><span class="p">(</span><span class="n">a</span><span class="p">)),</span> <span class="n">a</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.encode_png">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">encode_png</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rgb</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/png.html#encode_png"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.encode_png" title="Link to this definition">#</a></dt>
+<dd><p>Encode <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">3)</span></code> uint8 as an 8-bit truecolour PNG, every row filter 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">encode_png</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span><span class="p">[:</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="n">PNG_SIGNATURE</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">decode_png</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(2, 3, 3)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.format_panel">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">format_panel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ledger</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/run.html#format_panel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.format_panel" title="Link to this definition">#</a></dt>
+<dd><p>A human-readable digest of a row — the thing <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span></code> prints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.frame_key">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">frame_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/golden.html#frame_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.frame_key" title="Link to this definition">#</a></dt>
+<dd><p>The filename stem for a frame, zero-padded so a directory listing sorts.</p>
+<p>Keyed on the frame <strong>index</strong>, not the pinned time: the index is what names
+the picture. A change to <code class="docutils literal notranslate"><span class="pre">fps</span></code> moves the index, which changes the path,
+which makes the golden absent and therefore <em>gated</em> — loud, and pointing at
+the right cause.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frame_key</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="go">'f0007'</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.pixels_sha256">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">pixels_sha256</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rgb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/golden.html#pixels_sha256"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.pixels_sha256" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">sha256</span></code> over the decoded pixels — <strong>shape and dtype included</strong>.</p>
+<p>Never over file bytes, for the reason in the module docstring. And never
+over the raw buffer alone either: <code class="docutils literal notranslate"><span class="pre">tobytes()</span></code> carries no shape, so a
+320x240 frame and a 240x320 one holding the same bytes hash identically,
+and issue #38’s literal “the criterion is <code class="docutils literal notranslate"><span class="pre">sha256(decoded</span> <span class="pre">RGB</span> <span class="pre">array)</span></code>”
+would report PASS on a transposed frame. Both orientations are live in this
+corpus. <a class="reference internal" href="an.bench.metrics.html#an.bench.metrics.golden_comparison" title="an.bench.metrics.golden_comparison"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.bench.metrics.golden_comparison()</span></code></a> catches it separately via
+its <code class="docutils literal notranslate"><span class="pre">shape_mismatch</span></code> branch; this makes the digest agree with the gate
+rather than quietly disagreeing with it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">24</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pixels_sha256</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">==</span> <span class="n">pixels_sha256</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.png_dimensions">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">png_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/png.html#png_dimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.png_dimensions" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code> from a PNG’s IHDR, without decoding a single pixel.</p>
+<p>Width first, matching the PNG header itself — and deliberately the opposite
+order from <a class="reference internal" href="#an.bench.read_png" title="an.bench.read_png"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_png()</span></code></a>, which returns <code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">C)</span></code> like every other
+array here. Getting it backwards produces a square-looking check that
+passes on square frames only, so the order is asserted in the tests.</p>
+<p>Cheap on purpose. The bench reads this for <strong>every</strong> frame on disk rather
+than sampling one, because the failure it exists to catch — a render whose
+frame size changed partway through — is exactly the one sampling misses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">png_dimensions</span><span class="p">(</span><span class="n">encode_png</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">240</span><span class="p">,</span> <span class="mi">320</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)))</span>
+<span class="go">(320, 240)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.read_png">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">read_png</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/png.html#read_png"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.read_png" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(H,</span> <span class="pre">W,</span> <span class="pre">3)</span></code> uint8 for a PNG on disk, alpha dropped only if opaque.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.read_png_dimensions">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">read_png_dimensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/png.html#read_png_dimensions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.read_png_dimensions" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code> for a PNG on disk, reading only its header.</p>
+<p>A 1080p frame is megabytes and its declared size is in the first 24 of
+them. Reading only those is what makes checking every frame of every shot
+free rather than a second full decode of the corpus.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.run_bench">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">run_bench</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">scenes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bless</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">golden_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lossless_scratch_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/run.html#run_bench"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.run_bench" title="Link to this definition">#</a></dt>
+<dd><p>Render the corpus, compute the panel, and (by default) write the row.</p>
+<p><code class="docutils literal notranslate"><span class="pre">bless</span></code> is the <strong>reason</strong> a re-bless is being made, and passing it is what
+turns the run into a bless. One argument rather than a <code class="docutils literal notranslate"><span class="pre">--bless</span></code> flag plus
+a <code class="docutils literal notranslate"><span class="pre">--reason</span></code> string, so “blessed with no recorded reason” — the failure
+this rule exists to prevent — is not expressible.</p>
+<p><code class="docutils literal notranslate"><span class="pre">lossless_scratch_root</span></code> is forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">_lossless_scratch_dir()</span></code> for
+every scene (an#143) — a caller may point it at a shared parent to prove
+that two concurrent lossless-leg encodes still get distinct scratch
+directories under it; production code has no reason to pass it.</p>
+<p><code class="docutils literal notranslate"><span class="pre">golden_root</span></code> redirects where goldens are read and written, and it exists
+because without it a test of the bless path has no choice but to overwrite
+the committed corpus. That is not hypothetical: the first version of an#38’s
+bless test did exactly that, replacing a real bless record’s reason with the
+test’s own.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.witnesses">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">witnesses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ledger_scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/ledger.html#witnesses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.witnesses" title="Link to this definition">#</a></dt>
+<dd><p>Which metrics would count for <code class="docutils literal notranslate"><span class="pre">mutation</span></code>, grouped by family.</p>
+<p>Reads the row rather than the registry, so an#41’s criterion is evaluated
+against what was actually written down.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">witnesses</span><span class="p">({</span><span class="s2">"metrics"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"m"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"family"</span><span class="p">:</span> <span class="s2">"A"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">"under_mutation"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"high_crf"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"counts"</span><span class="p">:</span> <span class="kc">True</span><span class="p">}}}}},</span> <span class="s2">"high_crf"</span><span class="p">)</span>
+<span class="go">{'A': ['m']}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.write_png">
+<span class="sig-prename descclassname"><span class="pre">an.bench.</span></span><span class="sig-name descname"><span class="pre">write_png</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rgb</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/png.html#write_png"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.write_png" title="Link to this definition">#</a></dt>
+<dd><p>Write <code class="docutils literal notranslate"><span class="pre">rgb</span></code> as a filter-0 PNG and <strong>verify the round trip</strong> before returning.</p>
+<p>The verification is not defensive noise: it is the only thing standing
+between a bug in this module’s own encoder and a committed golden that
+silently disagrees with the frame it was blessed from. Research §3 asks for
+exactly this — “assert the round trip at bless time against the in-memory
+screenshot pixels, so a bug in <code class="code docutils literal notranslate"><span class="pre">an</span></code>’s own encoder cannot hide”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Modules</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.capture.html#module-an.bench.capture" title="an.bench.capture"><code class="xref py py-obj docutils literal notranslate"><span class="pre">capture</span></code></a></p></td>
+<td><p>Render one corpus fixture into a throwaway copy, and hand back its artifacts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.compare.html#module-an.bench.compare" title="an.bench.compare"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compare</span></code></a></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span> <span class="pre">--compare</span></code>: read two ledger rows, and <strong>refuse when they are not comparable</strong>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.contract.html#module-an.bench.contract" title="an.bench.contract"><code class="xref py py-obj docutils literal notranslate"><span class="pre">contract</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene_contract_sha256</span></code>: the fact that decides whether two rows are comparable.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.corpus.html#module-an.bench.corpus" title="an.bench.corpus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">corpus</span></code></a></p></td>
+<td><p>The bench corpus: which projects are measured, and what each must actually render.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.environment.html#module-an.bench.environment" title="an.bench.environment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environment</span></code></a></p></td>
+<td><p>The environment tuple — the fields that decide whether two rows may be compared.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.golden.html#module-an.bench.golden" title="an.bench.golden"><code class="xref py py-obj docutils literal notranslate"><span class="pre">golden</span></code></a></p></td>
+<td><p>The golden gate: committed frames, compared on <strong>decoded pixels</strong>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.imageio.html#module-an.bench.imageio" title="an.bench.imageio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imageio</span></code></a></p></td>
+<td><p>The pinned ffmpeg decodes, and the lossless leg every encode-side metric is measured against.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.ledger.html#module-an.bench.ledger" title="an.bench.ledger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ledger</span></code></a></p></td>
+<td><p>The ledger: three blocks that must never be mixed, and the guards that keep them apart.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.masks.html#module-an.bench.masks" title="an.bench.masks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">masks</span></code></a></p></td>
+<td><p>Every mask the panel is computed over, and the recorded operator for each.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.metrics.html#module-an.bench.metrics" title="an.bench.metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics</span></code></a></p></td>
+<td><p>The metric panel: pure numpy, no I/O, no subprocess.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.mutants.html#module-an.bench.mutants" title="an.bench.mutants"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mutants</span></code></a></p></td>
+<td><p>The guard mutants: &quot;I mutation-tested it&quot; as a runnable artifact, not a claim.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.mutations.html#module-an.bench.mutations" title="an.bench.mutations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mutations</span></code></a></p></td>
+<td><p>The levers: deliberate, declared changes through seams the shipped code already has.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.palette.html#module-an.bench.palette" title="an.bench.palette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">palette</span></code></a></p></td>
+<td><p>Derive the set of colours a compiled shot declared — never hand-pin it.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.paths.html#module-an.bench.paths" title="an.bench.paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths</span></code></a></p></td>
+<td><p>Where the bench reads its corpus from and writes its ledger to.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.png.html#module-an.bench.png" title="an.bench.png"><code class="xref py py-obj docutils literal notranslate"><span class="pre">png</span></code></a></p></td>
+<td><p>A filter-0 PNG writer and a full-filter reader — numpy and stdlib only.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.registry.html#module-an.bench.registry" title="an.bench.registry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registry</span></code></a></p></td>
+<td><p>The metric declaration table — what each number is, and which way it should move.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.run.html#module-an.bench.run" title="an.bench.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a></p></td>
+<td><p><code class="code docutils literal notranslate"><span class="pre">run_bench</span></code>: render the corpus, compute the panel, write one ledger row.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.stage.html#module-an.bench.stage" title="an.bench.stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage</span></code></a></p></td>
+<td><p>Measuring a pan: does the stage move as planes, or as one rigid image?</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.base.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.base</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.bench.capture.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.bench.capture</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.BenchError"><code class="docutils literal notranslate"><span class="pre">BenchError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.GoldenError"><code class="docutils literal notranslate"><span class="pre">GoldenError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.LedgerSchemaError"><code class="docutils literal notranslate"><span class="pre">LedgerSchemaError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.MetricSpec"><code class="docutils literal notranslate"><span class="pre">MetricSpec</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.MetricSpec.requires"><code class="docutils literal notranslate"><span class="pre">MetricSpec.requires</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.PngFormatError"><code class="docutils literal notranslate"><span class="pre">PngFormatError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.Prediction"><code class="docutils literal notranslate"><span class="pre">Prediction</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.RegistryError"><code class="docutils literal notranslate"><span class="pre">RegistryError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.Value"><code class="docutils literal notranslate"><span class="pre">Value</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.bless_scene"><code class="docutils literal notranslate"><span class="pre">bless_scene()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.build_ledger"><code class="docutils literal notranslate"><span class="pre">build_ledger()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.build_scene_block"><code class="docutils literal notranslate"><span class="pre">build_scene_block()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.compare_scene"><code class="docutils literal notranslate"><span class="pre">compare_scene()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.decode_png"><code class="docutils literal notranslate"><span class="pre">decode_png()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.encode_png"><code class="docutils literal notranslate"><span class="pre">encode_png()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.format_panel"><code class="docutils literal notranslate"><span class="pre">format_panel()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.frame_key"><code class="docutils literal notranslate"><span class="pre">frame_key()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.pixels_sha256"><code class="docutils literal notranslate"><span class="pre">pixels_sha256()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.png_dimensions"><code class="docutils literal notranslate"><span class="pre">png_dimensions()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.read_png"><code class="docutils literal notranslate"><span class="pre">read_png()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.read_png_dimensions"><code class="docutils literal notranslate"><span class="pre">read_png_dimensions()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.run_bench"><code class="docutils literal notranslate"><span class="pre">run_bench()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.witnesses"><code class="docutils literal notranslate"><span class="pre">witnesses()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.write_png"><code class="docutils literal notranslate"><span class="pre">write_png()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.bench.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

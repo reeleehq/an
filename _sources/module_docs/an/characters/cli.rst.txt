@@ -1,4 +1,0 @@
-an.characters.cli
-=================
-.. automodule:: an.characters.cli
-   :members:

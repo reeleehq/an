@@ -1,4 +1,0 @@
-an.audio.offline_lipsync
-========================
-.. automodule:: an.audio.offline_lipsync
-   :members:

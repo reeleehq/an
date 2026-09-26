@@ -1,4 +1,0 @@
-an.bench.palette
-================
-.. automodule:: an.bench.palette
-   :members:

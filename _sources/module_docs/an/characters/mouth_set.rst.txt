@@ -1,4 +1,0 @@
-an.characters.mouth_set
-=======================
-.. automodule:: an.characters.mouth_set
-   :members:

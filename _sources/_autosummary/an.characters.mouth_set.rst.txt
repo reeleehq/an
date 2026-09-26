@@ -1,0 +1,21 @@
+an.characters.mouth\_set
+========================
+
+.. automodule:: an.characters.mouth_set
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_MOUTH_VIEWBOX
+      DEFAULT_MOUTH_VARIANTS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      generate_default_mouths
+      mouth_attachment_name
+      write_default_mouths
+   

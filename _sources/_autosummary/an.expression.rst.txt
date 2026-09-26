@@ -1,0 +1,54 @@
+an.expression
+=============
+
+.. automodule:: an.expression
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      binding_for
+      clamp_axes
+      declared_mouth_variants
+      default_binding
+      expression_problems
+      expression_spans
+      from_blendshapes
+      known_presets
+      lid_key
+      mouth_form_of
+      preset_axes
+      resolve_mouth_set
+      variant_set_name
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Axis
+      AxisCurve
+      ChannelBinding
+      DefaultExpressionProvider
+      ExpressionProvider
+      ExpressionSpan
+      Preset
+      SetBinding
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ExpressionResolutionError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   axes
+   binding
+   blendshapes
+   presets
+   provider

@@ -1,0 +1,28 @@
+an.expression.provider
+======================
+
+.. automodule:: an.expression.provider
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DIALOGUE_EMOTION_BLEND_S
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      expression_spans
+      flatten_expressions
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AxisCurve
+      DefaultExpressionProvider
+      ExpressionProvider
+      ExpressionSpan
+   

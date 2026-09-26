@@ -1,0 +1,26 @@
+an.iterate
+==========
+
+.. automodule:: an.iterate
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      iterate
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      IterateResponse
+      IterateResult
+      Patch
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      IterateError
+   

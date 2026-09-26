@@ -1,0 +1,35 @@
+an.verify.vision
+================
+
+.. automodule:: an.verify.vision
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      FAILURE_SEVERITY
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      judge_envelope
+      judge_frames
+      judge_key
+      judge_legibility
+      legibility_prompt
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      VisionLMVerifier
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CassetteMiss
+      VisionJudgeError
+   

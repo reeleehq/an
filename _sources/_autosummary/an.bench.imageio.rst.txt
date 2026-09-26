@@ -1,0 +1,36 @@
+an.bench.imageio
+================
+
+.. automodule:: an.bench.imageio
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SOURCE_SCALE_FILTER
+      YUV_PIX_FMT
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      decoded_rgb
+      decoded_rgb_command
+      decoded_yuv
+      decoded_yuv_command
+      delivered_pix_fmt
+      lossless_encode_command
+      run_raw
+      source_rgb
+      source_rgb_command
+      source_yuv
+      source_yuv_command
+      video_stream_bytes
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      BenchDecodeError
+   

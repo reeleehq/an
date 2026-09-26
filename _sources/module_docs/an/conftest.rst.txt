@@ -1,4 +1,0 @@
-an.conftest
-===========
-.. automodule:: an.conftest
-   :members:

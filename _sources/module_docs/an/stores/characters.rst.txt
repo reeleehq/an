@@ -1,4 +1,0 @@
-an.stores.characters
-====================
-.. automodule:: an.stores.characters
-   :members:

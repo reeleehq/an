@@ -1,4 +1,0 @@
-an.bench.run
-============
-.. automodule:: an.bench.run
-   :members:

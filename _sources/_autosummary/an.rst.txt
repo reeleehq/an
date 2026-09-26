@@ -1,0 +1,75 @@
+﻿an
+==
+
+.. automodule:: an
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      set_
+      tween
+      play
+      sequence
+      parallel
+      delay
+      loop
+      flatten
+      validate_schema
+      validate_semantic
+      markdown_to_ir
+      ir_to_markdown
+      init
+      load
+      save
+      build_project_mall
+      check_requirements
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SceneIR
+      Meta
+      AssetRef
+      Shot
+      Dialogue
+      Camera
+      Resolution
+      FlatAction
+      Project
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   adapters
+   audio
+   base
+   bench
+   characters
+   conftest
+   credits
+   data
+   determinism
+   environments
+   expression
+   frame_clock
+   genre
+   impacts
+   ir
+   iterate
+   live_api
+   orchestrate
+   preview
+   project
+   props
+   render
+   stores
+   styles
+   tools
+   util
+   verify

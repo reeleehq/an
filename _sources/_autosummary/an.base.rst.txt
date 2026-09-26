@@ -1,0 +1,31 @@
+an.base
+=======
+
+.. automodule:: an.base
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SCHEMA_VERSION
+      COMPATIBLE_VERSION
+      DEFAULT_SUPERSAMPLE
+      MP4_FASTSTART_ARGS
+      BT709_SCALE_FILTER
+      EASING_PRESETS
+      COLOUR_PROPERTY
+      SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS
+      AUTHORABLE_PROPERTIES
+      PathStr
+      Seconds
+      EasingSpec
+      RendererName
+      SUPPORTED_RENDERERS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      swap_set_name_problem
+   

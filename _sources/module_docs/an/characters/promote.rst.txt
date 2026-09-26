@@ -1,4 +1,0 @@
-an.characters.promote
-=====================
-.. automodule:: an.characters.promote
-   :members:

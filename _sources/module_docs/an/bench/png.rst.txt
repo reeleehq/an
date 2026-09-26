@@ -1,4 +1,0 @@
-an.bench.png
-============
-.. automodule:: an.bench.png
-   :members:

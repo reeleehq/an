@@ -1,0 +1,17 @@
+an.characters.svg\_utils
+========================
+
+.. automodule:: an.characters.svg_utils
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      extract_part
+      extract_pivots
+      normalize_svg
+      promote_inkscape_labels_to_ids
+      raster_size
+      write_svg
+   

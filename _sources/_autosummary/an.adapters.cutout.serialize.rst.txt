@@ -1,0 +1,32 @@
+an.adapters.cutout.serialize
+============================
+
+.. automodule:: an.adapters.cutout.serialize
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      from_dict
+      to_dict
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AnimationClipJSON
+      AssetJSON
+      AssetResolutionJSON
+      AssetsJSON
+      ChannelJSON
+      CutoutSceneJSON
+      CutoutSceneMetaJSON
+      KeyframeJSON
+      NodeJSON
+      PlacedClipJSON
+      TimelineJSON
+      TrackJSON
+      TransformJSON
+      VisualJSON
+   

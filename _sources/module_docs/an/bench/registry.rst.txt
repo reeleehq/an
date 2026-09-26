@@ -1,4 +1,0 @@
-an.bench.registry
-=================
-.. automodule:: an.bench.registry
-   :members:

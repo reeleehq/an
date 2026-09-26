@@ -1,4 +1,0 @@
-an.characters.record
-====================
-.. automodule:: an.characters.record
-   :members:

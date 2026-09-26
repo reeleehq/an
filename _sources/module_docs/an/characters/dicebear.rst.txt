@@ -1,4 +1,0 @@
-an.characters.dicebear
-======================
-.. automodule:: an.characters.dicebear
-   :members:

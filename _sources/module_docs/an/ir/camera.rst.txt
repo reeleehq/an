@@ -1,4 +1,0 @@
-an.ir.camera
-============
-.. automodule:: an.ir.camera
-   :members:

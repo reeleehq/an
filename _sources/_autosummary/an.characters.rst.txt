@@ -1,0 +1,58 @@
+an.characters
+=============
+
+.. automodule:: an.characters
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      normalize_svg
+      extract_part
+      extract_pivots
+      write_svg
+      promote_inkscape_labels_to_ids
+      generate_default_mouths
+      write_default_mouths
+      breath_animation
+      blink_animation
+      render_silhouette
+      compare_silhouettes
+      fetch_dicebear
+      new_character
+      validate_character
+      promote
+      record_character
+      record_preview_to_mp4
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CharacterDescriptor
+      Bone
+      Slot
+      Attachment
+      Skin
+      IdleAnimation
+      AnimationTrack
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   cli
+   dicebear
+   factory
+   idle
+   licenses
+   mouth_set
+   play
+   record
+   schema
+   silhouette
+   svg_utils
+   validate

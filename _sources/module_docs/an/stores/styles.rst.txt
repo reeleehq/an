@@ -1,4 +1,0 @@
-an.stores.styles
-================
-.. automodule:: an.stores.styles
-   :members:

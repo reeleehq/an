@@ -1,4 +1,0 @@
-an.bench.ledger
-===============
-.. automodule:: an.bench.ledger
-   :members:

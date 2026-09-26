@@ -1,0 +1,37 @@
+an.impacts.clip
+===============
+
+.. automodule:: an.impacts.clip
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_TAIL
+      DEFAULT_JITTER_SD
+      DEFAULT_TRAJECTORY_HZ
+      BENCHMARK_SPEC
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      impact_set_specs
+      plan_impact_clip
+      write_impact_clip
+      write_impact_set
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ImpactClipSpec
+      ImpactPlan
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ImpactSpecError
+   

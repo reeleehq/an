@@ -1,0 +1,36 @@
+an.adapters
+===========
+
+.. automodule:: an.adapters
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      register_renderer
+      get_renderer
+      list_renderers
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Renderer
+      RendererRegistry
+      RenderContext
+      RenderResult
+      ManimRenderer
+      RemotionRenderer
+      WhiteboardRenderer
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   cutout
+   manim_adapter
+   remotion_adapter
+   whiteboard

@@ -1,0 +1,28 @@
+an.bench.stage
+==============
+
+.. automodule:: an.bench.stage
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      measure_pan_json
+      plane_centroids
+      measure_pan_pixels
+      min_ratio_gap
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PlaneTrack
+      PanMeasurement
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      RotatingCamera
+   

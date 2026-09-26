@@ -1,0 +1,26 @@
+an.adapters.cutout.clip
+=======================
+
+.. automodule:: an.adapters.cutout.clip
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      Pose
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      evaluate
+      merge_poses
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Clip
+      LoopMode
+   

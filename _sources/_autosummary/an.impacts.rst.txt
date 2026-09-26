@@ -1,0 +1,54 @@
+an.impacts
+==========
+
+.. automodule:: an.impacts
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      ball
+      build_stroke
+      gaussian_humanizer
+      impact_object
+      impact_set_specs
+      perform
+      plan_impact_clip
+      stick
+      tempo_map
+      write_impact_clip
+      write_impact_set
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CapturedFrame
+      FrameClock
+      ImpactClipSpec
+      ImpactEvent
+      ImpactObject
+      ImpactPlan
+      Stroke
+      StrokeSegment
+      TempoMap
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      TruthMismatch
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   cli
+   clip
+   objects
+   performance
+   stroke
+   truth

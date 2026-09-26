@@ -1,4 +1,0 @@
-an.audio.mac_say_tts
-====================
-.. automodule:: an.audio.mac_say_tts
-   :members:

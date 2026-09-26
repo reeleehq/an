@@ -1,0 +1,12 @@
+an.stores.voices
+================
+
+.. automodule:: an.stores.voices
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      VoicesStore
+   

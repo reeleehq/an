@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.characters.schema.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.characters.schema.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.characters.schema &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../_static/documentation_options.js?v=8520101b"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.characters.schema';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.characters.silhouette" href="an.characters.silhouette.html" />
+    <link rel="prev" title="an.characters.record" href="an.characters.record.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.87" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_lipsync.html">an.audio.offline_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.base.html">an.base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.bench.html">an.bench</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.imageio.html">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutations.html">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.licenses.html">an.characters.licenses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.characters.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.validate.html">an.characters.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.binding.html">an.expression.binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.objects.html">an.impacts.objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.performance.html">an.impacts.performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.stroke.html">an.impacts.stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.truth.html">an.impacts.truth</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.characters.html" class="nav-link">an.characters</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.characters.schema</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.characters.schema">
+<span id="an-characters-schema"></span><h1>an.characters.schema<a class="headerlink" href="#module-an.characters.schema" title="Link to this heading">#</a></h1>
+<p>Character descriptor schema (Spine-shaped, Pydantic v2).</p>
+<p>A character on disk lives at:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>characters/&lt;name&gt;/
+    &lt;name&gt;.svg              # optional canonical layered SVG
+    character.json          # CharacterDescriptor as JSON
+    parts/
+        head.svg
+        torso.svg
+        arm_l.svg, arm_r.svg
+        leg_l.svg, leg_r.svg
+        eye_l_open.svg, eye_l_closed.svg, eye_r_open.svg, eye_r_closed.svg
+        brow_l.svg, brow_r.svg
+        mouth/mouth_a.svg … mouth_h.svg, mouth_x.svg
+</pre></div>
+</div>
+<p>The descriptor borrows Spine’s separation of concerns:</p>
+<ul class="simple">
+<li><p><strong>bones</strong> — where things attach. Local transforms relative to a parent.</p></li>
+<li><p><strong>slots</strong> — what is drawn at each bone (one attachment active at a time).</p></li>
+<li><p><strong>skins</strong> — for each slot, the named attachments and their SVG paths.</p></li>
+<li><p><strong>asset_sets</strong> — <code class="docutils literal notranslate"><span class="pre">{channel:</span> <span class="pre">{key:</span> <span class="pre">attachment_name}}</span></code>. What a swap key
+<em>selects</em>, layered over <code class="docutils literal notranslate"><span class="pre">skins</span></code>, which says what art <em>exists</em>. The
+<code class="docutils literal notranslate"><span class="pre">viseme</span></code> channel is Rhubarb’s shape letter → an attachment on the <code class="docutils literal notranslate"><span class="pre">mouth</span></code>
+slot. (Replaced <code class="docutils literal notranslate"><span class="pre">viseme_map</span></code> in schema 0.2.0.)</p></li>
+<li><p><strong>animations</strong> — built-in idle loops (breath, blink) keyed by name.</p></li>
+</ul>
+<p>A slot’s name <strong>is</strong> its scene-graph node name, which is why the face slots read
+<code class="docutils literal notranslate"><span class="pre">left_eye</span></code> rather than <code class="docutils literal notranslate"><span class="pre">eye_l</span></code>; attachment names are a separate, per-slot
+namespace — file-derived for single-attachment slots, and shared key-like names
+(<code class="docutils literal notranslate"><span class="pre">open</span></code>/<code class="docutils literal notranslate"><span class="pre">closed</span></code> on both eye slots, 0.3.0) where one swap set must drive
+several slots.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">char</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"maya"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">char</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">[</span><span class="s2">"viseme"</span><span class="p">][</span><span class="s2">"A"</span><span class="p">]</span>
+<span class="go">'mouth_a'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">char</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">[</span><span class="s2">"viseme"</span><span class="p">][</span><span class="s2">"X"</span><span class="p">]</span>
+<span class="go">'mouth_x'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">char</span><span class="o">.</span><span class="n">view_box</span>
+<span class="go">(0, 0, 1024, 1024)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">char</span><span class="o">.</span><span class="n">skins</span><span class="p">[</span><span class="s2">"default"</span><span class="p">]</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">keys</span><span class="p">())[:</span><span class="mi">3</span><span class="p">]</span>
+<span class="go">['arm_l', 'arm_r', 'head']</span>
+</pre></div>
+</div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.CHARACTER_DOCUMENT_KIND" title="an.characters.schema.CHARACTER_DOCUMENT_KIND"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHARACTER_DOCUMENT_KIND</span></code></a></p></td>
+<td><p>The descriptor is a schema-versioned document in its own right, with its own version field.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.MOUTH_SHAPES" title="an.characters.schema.MOUTH_SHAPES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MOUTH_SHAPES</span></code></a></p></td>
+<td><p>Rhubarb mouth shapes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.DEFAULT_VISEME_MAP" title="an.characters.schema.DEFAULT_VISEME_MAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_VISEME_MAP</span></code></a></p></td>
+<td><p>Default Rhubarb-letter → mouth-attachment-name mapping.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.VISEME_CHANNEL" title="an.characters.schema.VISEME_CHANNEL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VISEME_CHANNEL</span></code></a></p></td>
+<td><p>The swap channel lip-sync drives.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.EYELID_CHANNEL" title="an.characters.schema.EYELID_CHANNEL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EYELID_CHANNEL</span></code></a></p></td>
+<td><p>The swap channel blinks drive.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.DEFAULT_EYELID_MAP" title="an.characters.schema.DEFAULT_EYELID_MAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_EYELID_MAP</span></code></a></p></td>
+<td><p>Default eyelid-state → attachment-name mapping, shared by both eye slots.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.REQUIRED_PARTS" title="an.characters.schema.REQUIRED_PARTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REQUIRED_PARTS</span></code></a></p></td>
+<td><p>Required body parts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.DEFAULT_VIEW_BOX" title="an.characters.schema.DEFAULT_VIEW_BOX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_VIEW_BOX</span></code></a></p></td>
+<td><p>1024x1024 with feet near y≈980.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.FACE_OFFSETS" title="an.characters.schema.FACE_OFFSETS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FACE_OFFSETS</span></code></a></p></td>
+<td><p>Where each face part sits relative to the <code class="docutils literal notranslate"><span class="pre">head</span></code> bone, in view_box units.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.bones_from_pivots" title="an.characters.schema.bones_from_pivots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bones_from_pivots</span></code></a>(pivots, *[, bones])</p></td>
+<td><p>Re-place a bone rig onto an illustrator's own joint coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.default_asset_sets" title="an.characters.schema.default_asset_sets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_asset_sets</span></code></a>()</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{channel:</span> <span class="pre">{key:</span> <span class="pre">attachment_name}}</span></code> for a freshly-built character.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.AnimationTrack" title="an.characters.schema.AnimationTrack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AnimationTrack</span></code></a>(**data)</p></td>
+<td><p>A single channel inside an idle animation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.Attachment" title="an.characters.schema.Attachment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Attachment</span></code></a>(**data)</p></td>
+<td><p>A drawable: an SVG path + anchor point (in 0..1 per-axis units).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.Bone" title="an.characters.schema.Bone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Bone</span></code></a>(**data)</p></td>
+<td><p>A skeleton joint with a local transform relative to its parent.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.CharacterDescriptor" title="an.characters.schema.CharacterDescriptor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code></a>(**data)</p></td>
+<td><p>The on-disk character schema.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.IdleAnimation" title="an.characters.schema.IdleAnimation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IdleAnimation</span></code></a>(**data)</p></td>
+<td><p>A named idle loop (e.g., breath, blink).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.Skin" title="an.characters.schema.Skin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Skin</span></code></a>(**data)</p></td>
+<td><p>A named outfit/variant: maps slot → {attachment_name → Attachment}.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.Slot" title="an.characters.schema.Slot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Slot</span></code></a>(**data)</p></td>
+<td><p>A draw-order slot bound to a bone, displaying one attachment at a time.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="an.characters.schema.AnimationTrack">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">AnimationTrack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#AnimationTrack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.AnimationTrack" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CharModel</span></code></p>
+<p>A single channel inside an idle animation.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">target</span></code> is a path-string per the architecture pillar:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bone:&lt;name&gt;.&lt;prop&gt;</span></code> for bone transforms (<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">rotation_deg</span></code>,
+<code class="docutils literal notranslate"><span class="pre">scale_x</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_y</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">slot:&lt;name&gt;.attachment</span></code> for swap animations (eyes blinking, mouth visemes).</p></li>
+</ul>
+<p>For <code class="docutils literal notranslate"><span class="pre">type=&quot;sine&quot;</span></code>: <code class="docutils literal notranslate"><span class="pre">amplitude</span></code> is the peak deviation; <code class="docutils literal notranslate"><span class="pre">phase</span></code> is in
+cycles (0..1). For <code class="docutils literal notranslate"><span class="pre">type=&quot;step&quot;</span></code> / <code class="docutils literal notranslate"><span class="pre">type=&quot;linear&quot;</span></code>: <code class="docutils literal notranslate"><span class="pre">frames</span></code> is a
+list of <code class="docutils literal notranslate"><span class="pre">[time_s,</span> <span class="pre">value]</span></code> pairs evaluated in order.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">AnimationTrack</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"bone:torso.y"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">"sine"</span><span class="p">,</span> <span class="n">amplitude</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">amplitude</span>
+<span class="go">2.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.AnimationTrack.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.characters.schema.AnimationTrack.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.characters.schema.Attachment">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">Attachment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#Attachment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.Attachment" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CharModel</span></code></p>
+<p>A drawable: an SVG path + anchor point (in 0..1 per-axis units).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Attachment</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">"parts/head.svg"</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">anchor</span>
+<span class="go">(0.5, 0.78)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Attachment.anchor">
+<span class="sig-name descname"><span class="pre">anchor</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.characters.schema.Attachment.anchor" title="Link to this definition">#</a></dt>
+<dd><p>Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Attachment.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.characters.schema.Attachment.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Attachment.width">
+<span class="sig-name descname"><span class="pre">width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.Attachment.width" title="Link to this definition">#</a></dt>
+<dd><p>Optional explicit bounding box override in the part’s local viewBox.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Attachment.x">
+<span class="sig-name descname"><span class="pre">x</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.characters.schema.Attachment.x" title="Link to this definition">#</a></dt>
+<dd><p>Offset from the slot’s bone, in view_box units.</p>
+<p><strong>This is where a part’s position lives</strong>, and it is the reference data
+model’s answer, not an invention: DragonBones puts it in
+<code class="docutils literal notranslate"><span class="pre">display.transform</span></code>, Spine in the region attachment’s <code class="docutils literal notranslate"><span class="pre">{x,</span> <span class="pre">y}</span></code>, and
+in both the <em>slot</em> carries no transform at all. It is what lets five face
+parts share one <code class="docutils literal notranslate"><span class="pre">head</span></code> bone and still land in different places — before
+this field they all stacked on the bone, because the descriptor had no
+way to say otherwise and the compiler used hardcoded literals instead.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.characters.schema.Bone">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">Bone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#Bone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.Bone" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CharModel</span></code></p>
+<p>A skeleton joint with a local transform relative to its parent.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"head"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mi">260</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"neck"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">parent</span>
+<span class="go">'torso'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Bone.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.characters.schema.Bone.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Bone.pivot">
+<span class="sig-name descname"><span class="pre">pivot</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.Bone.pivot" title="Link to this definition">#</a></dt>
+<dd><p>Optional pivot name — must match a circle in the SVG <code class="docutils literal notranslate"><span class="pre">skeleton</span></code> group.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.CHARACTER_DOCUMENT_KIND">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">CHARACTER_DOCUMENT_KIND</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.html#an.ir.DocumentKind" title="an.ir.migrate.DocumentKind"><span class="pre">DocumentKind</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DocumentKind(name='CharacterDescriptor',</span> <span class="pre">version_field='schema_version',</span> <span class="pre">current_version='0.3.0')</span></span><a class="headerlink" href="#an.characters.schema.CHARACTER_DOCUMENT_KIND" title="Link to this definition">#</a></dt>
+<dd><p>The descriptor is a schema-versioned document in its own right, with its own
+version field. Registered here rather than in <a class="reference internal" href="an.ir.html#an.ir.migrate" title="an.ir.migrate"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.ir.migrate</span></code></a> because
+this module already imports from <a class="reference internal" href="an.ir.assets.html#module-an.ir.assets" title="an.ir.assets"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.ir.assets</span></code></a> — registering from the
+other direction would close an import cycle, and because the package that
+owns a schema is the one that knows its version field.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">CharacterDescriptor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#CharacterDescriptor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.CharacterDescriptor" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CharModel</span></code></p>
+<p>The on-disk character schema. Saved as <code class="docutils literal notranslate"><span class="pre">character.json</span></code>.</p>
+<p>The descriptor is the SSOT for a character’s identity, body part inventory,
+pivot geometry, viseme map, and built-in idle behaviors. Binary art lives
+as SVG sidecars referenced by <code class="docutils literal notranslate"><span class="pre">Attachment.path</span></code> (relative to the
+descriptor file).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"maya"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">schema_version</span> <span class="o">==</span> <span class="n">CHARACTER_SCHEMA_VERSION</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># all 9 mouths are wired into the default skin</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">skins</span><span class="p">[</span><span class="s2">"default"</span><span class="p">]</span><span class="o">.</span><span class="n">slots</span><span class="p">[</span><span class="s2">"mouth"</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="s1">'mouth_a'</span><span class="p">,</span> <span class="s1">'mouth_b'</span><span class="p">,</span> <span class="s1">'mouth_c'</span><span class="p">,</span> <span class="s1">'mouth_d'</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s1">'mouth_e'</span><span class="p">,</span> <span class="s1">'mouth_f'</span><span class="p">,</span> <span class="s1">'mouth_g'</span><span class="p">,</span> <span class="s1">'mouth_h'</span><span class="p">,</span> <span class="s1">'mouth_x'</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">]</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># round-trip</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">raw</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.asset_sets">
+<span class="sig-name descname"><span class="pre">asset_sets</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.asset_sets" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{channel:</span> <span class="pre">{key:</span> <span class="pre">attachment_name}}</span></code> — what a swap key SELECTS, layered
+over <code class="docutils literal notranslate"><span class="pre">skins</span></code>, which is the SSOT for what art EXISTS. The indirection is
+deliberate: a channel key is not an attachment name. Today’s viseme map
+happens to be one-to-one (9 keys, 9 attachments), but real mouth charts
+are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
+two namespaces makes the first shared drawing a schema change instead of
+a data change. Replaces <code class="docutils literal notranslate"><span class="pre">viseme_map</span></code> (schema 0.2.0).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.expression_binding">
+<span class="sig-name descname"><span class="pre">expression_binding</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.expression_binding" title="Link to this definition">#</a></dt>
+<dd><p>How expression axes reach this rig (an#98), as a list of binding dicts —
+<code class="docutils literal notranslate"><span class="pre">{&quot;axis&quot;,</span> <span class="pre">&quot;slot&quot;,</span> <span class="pre">&quot;property&quot;,</span> <span class="pre">&quot;gain&quot;[,</span> <span class="pre">&quot;rig_scaled&quot;]}</span></code> for a transform
+channel, <code class="docutils literal notranslate"><span class="pre">{&quot;axis&quot;,</span> <span class="pre">&quot;slot&quot;,</span> <span class="pre">&quot;set_family&quot;}</span></code> for a swap set. <code class="docutils literal notranslate"><span class="pre">None</span></code> means
+the default binding derived from the slots the rig has
+(<a class="reference internal" href="an.expression.binding.html#an.expression.binding.default_binding" title="an.expression.binding.default_binding"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.expression.binding.default_binding()</span></code></a>). Additive: no schema bump,
+and a pre-Wave-6 descriptor reads back unchanged.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.face_overlay">
+<span class="sig-name descname"><span class="pre">face_overlay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.face_overlay" title="Link to this definition">#</a></dt>
+<dd><p>Whether this character’s face is drawn as separate overlay parts
+(eyes, brows, mouth as their own slots — the default) or baked into the
+head art (DiceBear / external avatars). <code class="docutils literal notranslate"><span class="pre">False</span></code> suppresses the face
+overlay slots at rig build AND the viseme/emotion channels at dialogue
+compile — a baked face has no overlay mouth to drive.</p>
+<p>This is a <strong>declared fact</strong>, replacing the old vendor-name check on
+<code class="docutils literal notranslate"><span class="pre">metadata.art_provenance</span></code> (an#87): provenance says where art came
+from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
+from the provenance string once, and <code class="docutils literal notranslate"><span class="pre">art_provenance</span></code> reverts to pure
+provenance/licensing metadata.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.gaze_travel">
+<span class="sig-name descname"><span class="pre">gaze_travel</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.gaze_travel" title="Link to this definition">#</a></dt>
+<dd><p>How far a pupil may travel from its rest, in view-box units per axis
+(an#99): the sclera’s clearance minus the pupil’s radius, written by
+<code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">add-gaze</span></code> from the parts it synthesized. <code class="docutils literal notranslate"><span class="pre">None</span></code> = the
+rig has no pupil layer (gaze is a no-op on it) or uses the default
+travel. The travel maps the gaze axes’ unit circle onto the sclera’s
+inner ellipse; the compiler clamps the summed (x, y) to 0.95 of that
+circle, which keeps the whole pupil disc inside the white at every
+angle (a per-axis box pokes out at the diagonal) — no runtime mask.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.metadata" title="Link to this definition">#</a></dt>
+<dd><p>Free-form metadata (dicebear style/seed, etc.). Schema-evolution
+friendly: anything an external tool wants to record can land here.</p>
+<p>This comment used to say “art license, etc.” — an invitation nothing ever
+took up. Rights live in <code class="docutils literal notranslate"><span class="pre">source</span></code> now, typed, so they can be found.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.model_post_init">
+<span class="sig-name descname"><span class="pre">model_post_init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_CharacterDescriptor__context</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#CharacterDescriptor.model_post_init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.model_post_init" title="Link to this definition">#</a></dt>
+<dd><p>Override this method to perform additional initialization after <code class="code docutils literal notranslate"><span class="pre">__init__</span></code> and <code class="code docutils literal notranslate"><span class="pre">model_construct</span></code>.
+This is useful if you want to do some validation that requires the entire model to be initialized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.source">
+<span class="sig-name descname"><span class="pre">source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><span class="pre">AssetSource</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.source" title="Link to this definition">#</a></dt>
+<dd><p>Where this character’s art came from, and what its licence obliges.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> means “we made this” — not “unknown”. Anything acquired should
+carry one, because a licence defect is the only failure that reaches
+BACKWARDS through completed work: a video shipped with an unattributed
+CC BY asset cannot be un-shipped.</p>
+<p>Field names match <code class="docutils literal notranslate"><span class="pre">illustration.ImageResult</span></code> exactly, so an adapter is a
+dict copy rather than a rename table — and a rename table is where a field
+quietly stops being carried. Pinned by test.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.source_svg">
+<span class="sig-name descname"><span class="pre">source_svg</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.source_svg" title="Link to this definition">#</a></dt>
+<dd><p>Optional source SVG (relative path) that the parts/ folder was
+extracted from. Useful for re-slicing.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.voice_ref">
+<span class="sig-name descname"><span class="pre">voice_ref</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.voice_ref" title="Link to this definition">#</a></dt>
+<dd><p>Voice-store id or path used by the audio pipeline. Optional; the scene
+can override per shot.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.DEFAULT_EYELID_MAP">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_EYELID_MAP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'CLOSED':</span> <span class="pre">'closed',</span> <span class="pre">'OPEN':</span> <span class="pre">'open'}</span></span><a class="headerlink" href="#an.characters.schema.DEFAULT_EYELID_MAP" title="Link to this definition">#</a></dt>
+<dd><p>Default eyelid-state → attachment-name mapping, shared by both eye slots.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.DEFAULT_VIEW_BOX">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_VIEW_BOX</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0,</span> <span class="pre">0,</span> <span class="pre">1024,</span> <span class="pre">1024)</span></span><a class="headerlink" href="#an.characters.schema.DEFAULT_VIEW_BOX" title="Link to this definition">#</a></dt>
+<dd><p>1024x1024 with feet near y≈980. All parts
+inherit this viewBox at export so PixiJS can use the SVG’s intrinsic
+viewBox without a calibration step.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Canonical character viewBox</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.DEFAULT_VISEME_MAP">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_VISEME_MAP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'A':</span> <span class="pre">'mouth_a',</span> <span class="pre">'B':</span> <span class="pre">'mouth_b',</span> <span class="pre">'C':</span> <span class="pre">'mouth_c',</span> <span class="pre">'D':</span> <span class="pre">'mouth_d',</span> <span class="pre">'E':</span> <span class="pre">'mouth_e',</span> <span class="pre">'F':</span> <span class="pre">'mouth_f',</span> <span class="pre">'G':</span> <span class="pre">'mouth_g',</span> <span class="pre">'H':</span> <span class="pre">'mouth_h',</span> <span class="pre">'X':</span> <span class="pre">'mouth_x'}</span></span><a class="headerlink" href="#an.characters.schema.DEFAULT_VISEME_MAP" title="Link to this definition">#</a></dt>
+<dd><p>Default Rhubarb-letter → mouth-attachment-name mapping. Uppercase keys
+because Rhubarb emits A-X; lowercase attachment names by convention.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.EYELID_CHANNEL">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">EYELID_CHANNEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'eyelid'</span></span><a class="headerlink" href="#an.characters.schema.EYELID_CHANNEL" title="Link to this definition">#</a></dt>
+<dd><p>The swap channel blinks drive. One set serves BOTH eye slots because the
+eye slots share per-slot attachment names (<code class="code docutils literal notranslate"><span class="pre">open</span></code> / <code class="code docutils literal notranslate"><span class="pre">closed</span></code>) — the 0.3.0
+migration renamed them from the file-derived <code class="code docutils literal notranslate"><span class="pre">eye_l_open</span></code> spelling for
+exactly this: a set’s keys are looked up per slot, so slots that a single
+channel must drive together need attachment names in common.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.FACE_OFFSETS">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">FACE_OFFSETS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'left_brow':</span> <span class="pre">(-41.6,</span> <span class="pre">-53.4),</span> <span class="pre">'left_eye':</span> <span class="pre">(-41.6,</span> <span class="pre">-17.8),</span> <span class="pre">'mouth':</span> <span class="pre">(0.0,</span> <span class="pre">41.6),</span> <span class="pre">'right_brow':</span> <span class="pre">(41.6,</span> <span class="pre">-53.4),</span> <span class="pre">'right_eye':</span> <span class="pre">(41.6,</span> <span class="pre">-17.8)}</span></span><a class="headerlink" href="#an.characters.schema.FACE_OFFSETS" title="Link to this definition">#</a></dt>
+<dd><p>Where each face part sits relative to the <code class="docutils literal notranslate"><span class="pre">head</span></code> bone, in view_box units.</p>
+<p>All five share one bone, so without a per-attachment offset they stack on it.
+These are the compiler’s four deleted hardcoded pairs converted at
+k = 345/1024 — i.e. the same picture, now expressed where an illustrator can
+change it.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.characters.schema.IdleAnimation">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">IdleAnimation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#IdleAnimation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.IdleAnimation" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CharModel</span></code></p>
+<p>A named idle loop (e.g., breath, blink).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">IdleAnimation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"idle_breath"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">loop</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.IdleAnimation.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.characters.schema.IdleAnimation.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.MOUTH_SHAPES">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">MOUTH_SHAPES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('a',</span> <span class="pre">'b',</span> <span class="pre">'c',</span> <span class="pre">'d',</span> <span class="pre">'e',</span> <span class="pre">'f',</span> <span class="pre">'g',</span> <span class="pre">'h',</span> <span class="pre">'x')</span></span><a class="headerlink" href="#an.characters.schema.MOUTH_SHAPES" title="Link to this definition">#</a></dt>
+<dd><p>Rhubarb mouth shapes. A-F are mandatory in Rhubarb’s basic set; G/H/X
+are emitted when <code class="docutils literal notranslate"><span class="pre">--extendedShapes</span> <span class="pre">GHX</span></code> is on (Rhubarb’s default).
+We always ship all 9 so the renderer never has to fall back.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.REQUIRED_PARTS">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">REQUIRED_PARTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('head',</span> <span class="pre">'torso',</span> <span class="pre">'arm_l',</span> <span class="pre">'arm_r',</span> <span class="pre">'leg_l',</span> <span class="pre">'leg_r',</span> <span class="pre">'eye_l_open',</span> <span class="pre">'eye_l_closed',</span> <span class="pre">'eye_r_open',</span> <span class="pre">'eye_r_closed',</span> <span class="pre">'brow_l',</span> <span class="pre">'brow_r')</span></span><a class="headerlink" href="#an.characters.schema.REQUIRED_PARTS" title="Link to this definition">#</a></dt>
+<dd><p>Required body parts. A character missing any of these can’t be rendered
+as a full puppet; <code class="docutils literal notranslate"><span class="pre">validate_character</span></code> flags the gap.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.characters.schema.Skin">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">Skin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#Skin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.Skin" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CharModel</span></code></p>
+<p>A named outfit/variant: maps slot → {attachment_name → Attachment}.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">skin</span> <span class="o">=</span> <span class="n">Skin</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"default"</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="p">{</span><span class="s2">"mouth"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"mouth_a"</span><span class="p">:</span> <span class="n">Attachment</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">"parts/mouth/mouth_a.svg"</span><span class="p">)}})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="p">[</span><span class="s2">"mouth"</span><span class="p">][</span><span class="s2">"mouth_a"</span><span class="p">]</span><span class="o">.</span><span class="n">path</span>
+<span class="go">'parts/mouth/mouth_a.svg'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Skin.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.characters.schema.Skin.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.characters.schema.Slot">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">Slot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#Slot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.Slot" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CharModel</span></code></p>
+<p>A draw-order slot bound to a bone, displaying one attachment at a time.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">Slot</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"mouth"</span><span class="p">,</span> <span class="n">bone</span><span class="o">=</span><span class="s2">"head"</span><span class="p">,</span> <span class="n">draw_order</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">attachment</span><span class="o">=</span><span class="s2">"mouth_x"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span><span class="o">.</span><span class="n">attachment</span>
+<span class="go">'mouth_x'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Slot.attachment">
+<span class="sig-name descname"><span class="pre">attachment</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.Slot.attachment" title="Link to this definition">#</a></dt>
+<dd><p>Default attachment name; the active attachment can change at runtime
+via animation tracks targeting <code class="docutils literal notranslate"><span class="pre">slot:&lt;name&gt;.attachment</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Slot.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.characters.schema.Slot.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.VISEME_CHANNEL">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">VISEME_CHANNEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'viseme'</span></span><a class="headerlink" href="#an.characters.schema.VISEME_CHANNEL" title="Link to this definition">#</a></dt>
+<dd><p>The swap channel lip-sync drives. <code class="code docutils literal notranslate"><span class="pre">viseme</span></code> is a conventional set name, not
+a special case in control flow (an#87): the compiler projects EVERY
+<code class="code docutils literal notranslate"><span class="pre">asset_sets</span></code> channel onto the slots whose attachments its keys name, and
+the runtime applies any projected channel the same way.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.schema.bones_from_pivots">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">bones_from_pivots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pivots</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bones</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#bones_from_pivots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.bones_from_pivots" title="Link to this definition">#</a></dt>
+<dd><p>Re-place a bone rig onto an illustrator’s own joint coordinates.</p>
+<p>Each <a class="reference internal" href="#an.characters.schema.Bone" title="an.characters.schema.Bone"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bone</span></code></a> already declares the joint it stands for
+(<code class="docutils literal notranslate"><span class="pre">head</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">neck</span></code>, <code class="docutils literal notranslate"><span class="pre">arm_l</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">shoulder_l</span></code>, …), and
+<a class="reference internal" href="an.characters.svg_utils.html#an.characters.svg_utils.extract_pivots" title="an.characters.svg_utils.extract_pivots"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_pivots()</span></code></a> already returns those joints
+as <code class="docutils literal notranslate"><span class="pre">{name:</span> <span class="pre">(cx,</span> <span class="pre">cy)}</span></code>. Nothing connected the two: <code class="code docutils literal notranslate"><span class="pre">promote</span></code> computed the
+pivots and stored <strong>only their names</strong>, so the coordinates an artist drew
+were discarded and every character got the generic rig (an#75).</p>
+<p>Bones a drawing has no joint for keep their default placement, so a partial
+skeleton improves a rig rather than breaking it.</p>
+<p>Positions are stored parent-relative, so an absolute joint is converted
+against its parent’s resolved absolute position — and parents are resolved
+first, which is why this walks in declaration order rather than by index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type">list[Bone]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bones</span> <span class="o">=</span> <span class="n">bones_from_pivots</span><span class="p">({</span><span class="s2">"neck"</span><span class="p">:</span> <span class="p">(</span><span class="mf">500.0</span><span class="p">,</span> <span class="mf">300.0</span><span class="p">),</span> <span class="s2">"root"</span><span class="p">:</span> <span class="p">(</span><span class="mf">500.0</span><span class="p">,</span> <span class="mf">900.0</span><span class="p">)})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">head</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bones</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"head"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bones</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"root"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">root</span><span class="o">.</span><span class="n">y</span>
+<span class="go">(500.0, 900.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">torso</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bones</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"torso"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">torso</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">root</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>          <span class="c1"># absolute, back to the neck</span>
+<span class="go">300</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.schema.default_asset_sets">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">default_asset_sets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#default_asset_sets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.default_asset_sets" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{channel:</span> <span class="pre">{key:</span> <span class="pre">attachment_name}}</span></code> for a freshly-built character.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.characters.record.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.characters.record</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.characters.silhouette.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.characters.silhouette</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.AnimationTrack"><code class="docutils literal notranslate"><span class="pre">AnimationTrack</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.AnimationTrack.model_config"><code class="docutils literal notranslate"><span class="pre">AnimationTrack.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment"><code class="docutils literal notranslate"><span class="pre">Attachment</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment.anchor"><code class="docutils literal notranslate"><span class="pre">Attachment.anchor</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment.model_config"><code class="docutils literal notranslate"><span class="pre">Attachment.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment.width"><code class="docutils literal notranslate"><span class="pre">Attachment.width</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment.x"><code class="docutils literal notranslate"><span class="pre">Attachment.x</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Bone"><code class="docutils literal notranslate"><span class="pre">Bone</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Bone.model_config"><code class="docutils literal notranslate"><span class="pre">Bone.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Bone.pivot"><code class="docutils literal notranslate"><span class="pre">Bone.pivot</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CHARACTER_DOCUMENT_KIND"><code class="docutils literal notranslate"><span class="pre">CHARACTER_DOCUMENT_KIND</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.asset_sets"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.asset_sets</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.expression_binding"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.expression_binding</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.face_overlay"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.face_overlay</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.gaze_travel"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.gaze_travel</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.metadata"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.metadata</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.model_config"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.model_post_init"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.model_post_init()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.source"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.source_svg"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source_svg</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.voice_ref"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.voice_ref</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.DEFAULT_EYELID_MAP"><code class="docutils literal notranslate"><span class="pre">DEFAULT_EYELID_MAP</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.DEFAULT_VIEW_BOX"><code class="docutils literal notranslate"><span class="pre">DEFAULT_VIEW_BOX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.DEFAULT_VISEME_MAP"><code class="docutils literal notranslate"><span class="pre">DEFAULT_VISEME_MAP</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.EYELID_CHANNEL"><code class="docutils literal notranslate"><span class="pre">EYELID_CHANNEL</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.FACE_OFFSETS"><code class="docutils literal notranslate"><span class="pre">FACE_OFFSETS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.IdleAnimation"><code class="docutils literal notranslate"><span class="pre">IdleAnimation</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.IdleAnimation.model_config"><code class="docutils literal notranslate"><span class="pre">IdleAnimation.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.MOUTH_SHAPES"><code class="docutils literal notranslate"><span class="pre">MOUTH_SHAPES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.REQUIRED_PARTS"><code class="docutils literal notranslate"><span class="pre">REQUIRED_PARTS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Skin"><code class="docutils literal notranslate"><span class="pre">Skin</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Skin.model_config"><code class="docutils literal notranslate"><span class="pre">Skin.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Slot"><code class="docutils literal notranslate"><span class="pre">Slot</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Slot.attachment"><code class="docutils literal notranslate"><span class="pre">Slot.attachment</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Slot.model_config"><code class="docutils literal notranslate"><span class="pre">Slot.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.VISEME_CHANNEL"><code class="docutils literal notranslate"><span class="pre">VISEME_CHANNEL</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.bones_from_pivots"><code class="docutils literal notranslate"><span class="pre">bones_from_pivots()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.default_asset_sets"><code class="docutils literal notranslate"><span class="pre">default_asset_sets()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.characters.schema.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

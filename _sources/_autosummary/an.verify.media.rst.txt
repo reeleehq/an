@@ -1,0 +1,23 @@
+an.verify.media
+===============
+
+.. automodule:: an.verify.media
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      audio_volume
+      detect_silence
+      extract_frames
+      ssim
+      ssim_image_files
+      transcribe
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SilenceSpan
+   

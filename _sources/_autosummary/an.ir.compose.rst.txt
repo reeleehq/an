@@ -1,0 +1,27 @@
+an.ir.compose
+=============
+
+.. automodule:: an.ir.compose
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      delay
+      duration_of
+      expression
+      flatten
+      loop
+      parallel
+      play
+      sequence
+      set_
+      tween
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FlatAction
+   

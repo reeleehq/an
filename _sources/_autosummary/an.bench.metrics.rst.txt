@@ -1,0 +1,39 @@
+an.bench.metrics
+================
+
+.. automodule:: an.bench.metrics
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      EDGE_FLAT_TOL
+      EDGE_TRIM
+      FLAT_DEV_TOL
+      FLICKER_DELTA_TOL
+      SSIM_RADIUS
+      BLEND_TOLERANCE
+      LUMA_709
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      classify_off_palette
+      edge_masked_distinct_colours
+      edge_transition_width
+      encode_flicker_on_held_pixels
+      encode_ringing_excess
+      flat_field_deviation
+      frame_distinct_colours
+      golden_comparison
+      luma709
+      luma_u8
+      masked_mean_abs
+      off_palette_pixel_fraction
+      off_palette_top_colours
+      overshoot_mean
+      pack_rgb
+      ssim_map
+   

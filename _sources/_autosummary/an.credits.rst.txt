@@ -1,0 +1,19 @@
+an.credits
+==========
+
+.. automodule:: an.credits
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      collect_credits
+      credits_for_project
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CreditsReport
+   

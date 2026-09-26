@@ -1,0 +1,18 @@
+an.audio.mac\_say\_tts
+======================
+
+.. automodule:: an.audio.mac_say_tts
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      MacSayTTS
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MacSayTTSError
+   

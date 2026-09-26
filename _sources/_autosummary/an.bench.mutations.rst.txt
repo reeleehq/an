@@ -1,0 +1,35 @@
+an.bench.mutations
+==================
+
+.. automodule:: an.bench.mutations
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      HIGH_CRF
+      AA_ON
+      SUPERSAMPLE_K
+      APP_OPEN
+      STAGING_IGNORE
+      LEVERS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      mutated_row
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Lever
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MutationError
+   

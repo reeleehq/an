@@ -1,0 +1,27 @@
+an.audio.lipsync
+================
+
+.. automodule:: an.audio.lipsync
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      WordTiming
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      word_timings_to_visemes
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      LipSyncProvider
+      Viseme
+      VisemeTrack
+      WordTimingProvider
+   

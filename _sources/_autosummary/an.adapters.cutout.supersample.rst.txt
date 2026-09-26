@@ -1,0 +1,26 @@
+an.adapters.cutout.supersample
+==============================
+
+.. automodule:: an.adapters.cutout.supersample
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      NO_SUPERSAMPLE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      block_mean_resolve
+      check_factor
+      resolve_png_bytes
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      SupersampleError
+   

@@ -1,0 +1,34 @@
+an.bench.png
+============
+
+.. automodule:: an.bench.png
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PNG_SIGNATURE
+      DFLT_ZLIB_LEVEL
+      RGB_CHANNELS
+      SUPPORTED_BIT_DEPTH
+      PNG_HEADER_BYTES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      decode_png
+      encode_png
+      png_dimensions
+      read_png
+      read_png_dimensions
+      to_rgb
+      write_png
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      PngFormatError
+   

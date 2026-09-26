@@ -1,0 +1,27 @@
+an.bench.palette
+================
+
+.. automodule:: an.bench.palette
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      RUNTIME_DEFAULT_COLOUR
+      RUNTIME_EYE_COLOURS
+      RUNTIME_MOUTH_COLOURS
+      RUNTIME_EYE_PUPIL_DEFAULT
+      COLOURED_KINDS
+      INERT_COLOUR_KINDS
+      RUNTIME_JS_RELPATH
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      palette_for_scene
+      parse_color
+      runtime_literal_colours
+      svg_colours
+   

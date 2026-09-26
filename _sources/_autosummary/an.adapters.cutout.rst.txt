@@ -1,0 +1,55 @@
+an.adapters.cutout
+==================
+
+.. automodule:: an.adapters.cutout
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compile_shot
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CutoutRenderer
+      CutoutSceneJSON
+      NodeJSON
+      VisualJSON
+      AnimationClipJSON
+      ChannelJSON
+      KeyframeJSON
+      TimelineJSON
+      TrackJSON
+      PlacedClipJSON
+      AssetsJSON
+      AssetJSON
+      AssetResolutionJSON
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CutoutRenderError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   channel
+   clip
+   coarticulate
+   compile
+   easing
+   fidelity
+   gaze
+   render
+   runtime_files
+   serialize
+   shutter
+   supersample
+   timeline

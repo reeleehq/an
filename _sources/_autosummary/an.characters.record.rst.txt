@@ -1,0 +1,19 @@
+an.characters.record
+====================
+
+.. automodule:: an.characters.record
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      record_character
+      record_preview_to_mp4
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      PreviewRecordError
+   

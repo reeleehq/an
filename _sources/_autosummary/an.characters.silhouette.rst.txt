@@ -1,0 +1,13 @@
+an.characters.silhouette
+========================
+
+.. automodule:: an.characters.silhouette
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compare_silhouettes
+      render_silhouette
+   

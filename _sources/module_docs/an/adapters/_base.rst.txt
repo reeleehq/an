@@ -1,4 +1,0 @@
-an.adapters._base
-=================
-.. automodule:: an.adapters._base
-   :members:

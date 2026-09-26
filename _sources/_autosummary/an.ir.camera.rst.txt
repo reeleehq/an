@@ -1,0 +1,25 @@
+an.ir.camera
+============
+
+.. automodule:: an.ir.camera
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PAN_FRACTION
+      CAMERA_MOVES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      camera_keys
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CameraError
+   

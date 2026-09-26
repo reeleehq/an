@@ -1,4 +1,0 @@
-an.adapters.cutout.coarticulate
-===============================
-.. automodule:: an.adapters.cutout.coarticulate
-   :members:

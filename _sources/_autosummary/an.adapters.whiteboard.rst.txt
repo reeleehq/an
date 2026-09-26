@@ -1,0 +1,18 @@
+an.adapters.whiteboard
+======================
+
+.. automodule:: an.adapters.whiteboard
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      WhiteboardRenderer
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      WhiteboardRenderError
+   

@@ -1,0 +1,45 @@
+an.ir.schema
+============
+
+.. automodule:: an.ir.schema
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DFLT_EXPRESSION_BLEND_S
+      Action
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      resolve_step_hz
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AssetRef
+      Camera
+      CameraKey
+      DelayAction
+      Dialogue
+      ExpressionAction
+      LoopAction
+      Meta
+      Narration
+      ParallelAction
+      PlayAction
+      Resolution
+      SceneIR
+      SequenceAction
+      SetAction
+      Shot
+      StagePlacement
+      TweenAction
+      VisemeKeyframe
+      VisemeTrack
+      WordTimingIR
+   

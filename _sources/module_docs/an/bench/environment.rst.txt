@@ -1,4 +1,0 @@
-an.bench.environment
-====================
-.. automodule:: an.bench.environment
-   :members:
