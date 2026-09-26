@@ -36,7 +36,13 @@ class RenderContext:
 
     mall: Mapping[str, MutableMapping]
     work_dir: Path
-    fps: int = DEFAULT_FPS
+    #: Frames per second of the delivered video. May be non-integer — a
+    #: camera's 29.97 — and the capture loop and the mux honour it exactly. The
+    #: COMPILER aligns its frame-sampled curves (gaze saccades, co-articulation,
+    #: descriptor plays, face curves) to the nearest integer grid instead,
+    #: because the compiled document's ``meta.fps`` is an integer; tweens and
+    #: every other keyframe are exact at any rate.
+    fps: int | float = DEFAULT_FPS
     resolution: tuple[int, int] = DEFAULT_RESOLUTION
     #: Refuse to draw a stand-in for a declared asset that the stores do not
     #: supply. Off by default so an asset-less project still renders; on for
@@ -85,6 +91,18 @@ class RenderContext:
     #: per shot: a pack is art direction for a project, and a scene whose shots
     #: disagreed about it would be two scenes.
     style_pack: "StylePack | None" = None
+    #: Per output frame, the scene instants to render and average into it —
+    #: ``None`` is one instant at ``i / fps``, the path every render took before
+    #: this field existed, byte for byte. Several instants per frame are an open
+    #: shutter (motion blur); instants off the ``i / fps`` grid are capture
+    #: jitter. Built by :class:`an.frame_clock.FrameClock`, which is also what
+    #: the impact harness writes into its ground truth, so the render and the
+    #: record of when each frame was taken come from one object.
+    #:
+    #: A `RenderContext` field for `supersample`'s reason: it changes how frames
+    #: are CAPTURED, not what the scene is, so it must not move the compiled
+    #: document. Its length must equal the render's frame count.
+    frame_samples: tuple[tuple[float, ...], ...] | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
 

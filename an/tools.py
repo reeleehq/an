@@ -22,6 +22,7 @@ from an.preview import preview_project as _preview_project
 from an.characters.cli import (
     _dispatch_funcs as _character_dispatch_funcs,
 )
+from an.impacts.cli import _dispatch_funcs as _impacts_dispatch_funcs
 
 
 def init(project_dir: str, name: str | None = None, force: bool = False) -> str:
@@ -532,4 +533,5 @@ _dispatch_funcs = [
 # the CLI looks like ``an character new <name> ...``.
 _dispatch_namespaces: dict[str, list] = {
     "character": _character_dispatch_funcs,
+    "impacts": _impacts_dispatch_funcs,
 }
