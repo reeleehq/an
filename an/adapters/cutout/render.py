@@ -40,6 +40,7 @@ from an.adapters.cutout.supersample import (
 from an.base import BT709_SCALE_FILTER, MP4_FASTSTART_ARGS
 from an.determinism import capture_violations, determinism_enforced
 from an.adapters.cutout.compile import compile_shot
+from an.adapters.cutout.shutter import check_frame_samples, mean_png_bytes
 from an.adapters.cutout.runtime_files import runtime_dir
 from an.adapters.cutout.serialize import to_dict
 from an.ir.schema import Shot, resolve_step_hz
@@ -305,13 +306,19 @@ class CutoutRenderer:
         # minutes, and `check_factor` is microseconds.
         supersample = check_factor(ctx.supersample)
         pix_fmt = _check_pix_fmt(ctx.pix_fmt)
+        total_frames = max(1, int(round(shot.duration * ctx.fps)))
+        frame_samples = check_frame_samples(
+            ctx.frame_samples, total_frames=total_frames, duration=shot.duration
+        )
         from playwright.sync_api import sync_playwright  # local: optional dep
 
         step_hz = effective_step_hz(shot, ctx)
         scene_json = compile_shot(
             shot,
             mall=ctx.mall,
-            fps=ctx.fps,
+            # The document's frame grid is integral; capture and mux keep the
+            # exact rate (see `RenderContext.fps`). Identity for an int rate.
+            fps=int(round(ctx.fps)),
             width=ctx.resolution[0],
             height=ctx.resolution[1],
             strict_assets=ctx.strict_assets,
@@ -393,9 +400,13 @@ class CutoutRenderer:
                 # key. The provenance record on the render result is real.)
                 determinism = _determinism_report(page)
 
-                total_frames = max(1, int(round(shot.duration * ctx.fps)))
                 _capture_frames(
-                    page, total_frames, ctx.fps, job.frames_dir, supersample
+                    page,
+                    total_frames,
+                    ctx.fps,
+                    job.frames_dir,
+                    supersample,
+                    frame_samples=frame_samples,
                 )
             finally:
                 browser.close()
@@ -439,6 +450,14 @@ class CutoutRenderer:
                 # (an#89); None = smooth. Recorded so a stepped render is a
                 # visible provenance fact, not a mystery in the motion.
                 "step_hz": scene_json.meta.step_hz,
+                # Present only when a frame clock was supplied, so an ordinary
+                # render's provenance is unchanged. The instants verbatim: a
+                # blurred or jittered frame is only interpretable beside them.
+                **(
+                    {"frame_samples": [list(f) for f in frame_samples]}
+                    if frame_samples is not None
+                    else {}
+                ),
             },
         )
 
@@ -688,6 +707,8 @@ def _capture_frames(
     fps: int,
     frames_dir: Path,
     supersample: int = NO_SUPERSAMPLE,
+    *,
+    frame_samples: tuple[tuple[float, ...], ...] | None = None,
 ) -> None:
     """Step the JS runtime through ``total_frames`` and screenshot the canvas each time.
 
@@ -705,39 +726,51 @@ def _capture_frames(
 
     At ``supersample == 1`` this is byte-for-byte the old path — Chromium writes
     straight to disk and nothing decodes anything. **Off is free.**
+
+    ``frame_samples`` (see ``RenderContext.frame_samples``) names, per frame,
+    the instants to capture and average — an open shutter, capture jitter, or
+    both. ``None`` is one instant at ``i / fps``, and a frame with one instant
+    takes the path above unchanged, so the knob is free when it is off too.
     """
     for i in range(total_frames):
-        t = i / float(fps)
-        try:
-            page.evaluate("(t) => window.anSetTime(t)", t)
-        except Exception as e:
-            # The runtime now raises on an unknown animated property and on an
-            # animation aimed at a node that does not exist. Those escape
-            # `page.evaluate` as a raw `playwright._impl._errors.Error`, which
-            # says nothing about which frame or which shot — and would trade one
-            # silent discard for a violation of the typed-error convention. The
-            # JS message is the informative part, so it is carried through
-            # verbatim rather than summarised.
-            # Deliberately does not assert WHAT failed: a bare `except
-            # Exception` here also catches a Playwright timeout, a closed
-            # target and a crashed browser, and labelling those "the JS runtime
-            # failed" points the reader at the wrong place. The nested message
-            # says which it was.
-            raise CutoutRenderError(
-                f"frame {i} (t={t:.4f}s) could not be evaluated:\n"
-                f"{type(e).__name__}: {e}"
-            ) from e
-        # Screenshot only the canvas element (no surrounding chrome).
-        canvas = page.locator("#stage")
+        instants = (i / float(fps),) if frame_samples is None else frame_samples[i]
         out_path = frames_dir / (DEFAULT_FRAME_PNG_PATTERN % i)
-        if supersample == NO_SUPERSAMPLE:
-            canvas.screenshot(path=str(out_path), omit_background=False)
-        else:
-            out_path.write_bytes(
-                resolve_png_bytes(
-                    canvas.screenshot(omit_background=False), factor=supersample
-                )
-            )
+        if len(instants) == 1 and supersample == NO_SUPERSAMPLE:
+            _set_time(page, instants[0], frame=i)
+            # Screenshot only the canvas element (no surrounding chrome). Located
+            # AFTER the time is set, as before this loop grew samples: a runtime
+            # throw must surface as the typed frame error, not as whatever the
+            # locator raises first.
+            page.locator("#stage").screenshot(path=str(out_path), omit_background=False)
+            continue
+        shots = []
+        for t in instants:
+            _set_time(page, t, frame=i)
+            shots.append(page.locator("#stage").screenshot(omit_background=False))
+        out_path.write_bytes(mean_png_bytes(shots, factor=supersample))
+
+
+def _set_time(page: Any, t: float, *, frame: int) -> None:
+    """Move the runtime to scene time ``t``, raising a typed, located error."""
+    try:
+        page.evaluate("(t) => window.anSetTime(t)", t)
+    except Exception as e:
+        # The runtime now raises on an unknown animated property and on an
+        # animation aimed at a node that does not exist. Those escape
+        # `page.evaluate` as a raw `playwright._impl._errors.Error`, which
+        # says nothing about which frame or which shot — and would trade one
+        # silent discard for a violation of the typed-error convention. The
+        # JS message is the informative part, so it is carried through
+        # verbatim rather than summarised.
+        # Deliberately does not assert WHAT failed: a bare `except
+        # Exception` here also catches a Playwright timeout, a closed
+        # target and a crashed browser, and labelling those "the JS runtime
+        # failed" points the reader at the wrong place. The nested message
+        # says which it was.
+        raise CutoutRenderError(
+            f"frame {frame} (t={t:.4f}s) could not be evaluated:\n"
+            f"{type(e).__name__}: {e}"
+        ) from e
 
 
 def _ffmpeg_mux(

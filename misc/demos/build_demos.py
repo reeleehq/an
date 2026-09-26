@@ -895,6 +895,23 @@ def _build_lipsync_coarticulation(work: Path) -> Path:
     return out
 
 
+def _build_impacts(work: Path) -> Path:
+    """A stick hitting a table on a tempo grid, filmed by a camera with a shutter.
+
+    Not a scene.md: `an.impacts` writes the scene itself — two props and one
+    tween per stroke segment — and a ground-truth sidecar beside the video
+    (intended grid time, executed impact time, every frame's exposure). The
+    180-degree shutter is `RenderContext.frame_samples`: eight instants per
+    frame, averaged, so the fast downstroke smears the way a real camera's does.
+    """
+    from an.impacts import ImpactClipSpec, write_impact_clip
+
+    spec = ImpactClipSpec(
+        beats=8, tempo=110, pattern=(1.0, 0.6), jitter_sd=0.012, fps=DEMO_FPS, exposure=0.5
+    )
+    return write_impact_clip(spec, work, clip_dir="clip") / "clip.mp4"
+
+
 def _copy_example(rel: str) -> Callable[[Path], Path]:
     def build(work: Path) -> Path:
         src = REPO_ROOT / rel
@@ -1317,6 +1334,23 @@ DEMOS: tuple[Demo, ...] = (
         ),
         how="`python examples/character_gallery/build.py` — `an render --parallel auto`.",
         build=_copy_example("examples/character_gallery/videos/cartoon.mp4"),
+    ),
+    Demo(
+        slug="impacts",
+        title="Synthetic impacts with exact ground truth",
+        shows=(
+            "A stick striking a table on a tempo grid with human timing, filmed at "
+            "24 fps through a 180-degree shutter: the fast downstroke smears. Beside "
+            "the video, `truth.json` keeps three times apart for every hit — the "
+            "intended grid time, the executed impact time in continuous seconds, and "
+            "which frames bracket it — so a sub-frame onset estimator can be scored."
+        ),
+        how=(
+            "`an impacts clip OUT --fps 24 --exposure 0.5 --jitter-sd 0.012` — "
+            "`an.impacts.write_impact_clip`; `--kind air` strikes nothing and turns in "
+            "mid-air instead."
+        ),
+        build=_build_impacts,
     ),
 )
 

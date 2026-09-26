@@ -33,6 +33,10 @@ an character add-gaze maya                                # give an older charac
 an character validate maya                                # check parts, mouth set, pivots
 an character silhouette maya --other bob                  # silhouette test (IoU score)
 an character preview maya --open-browser                  # HTML viewer cycling all 9 visemes
+
+# Synthetic impact clips with exact ground truth (for scoring sub-frame timing)
+an impacts clip out/ --kind air --fps 30 --exposure 0.5 --jitter-sd 0.012
+an impacts clip-set out/set --fps 24,30,60                # objects x kinds x fps x shutter, + index.json
 ```
 
 The defaults run without any API keys: offline TTS produces silent audio of the right length, offline lip-sync deterministically generates viseme tracks. To get real audible speech, set `ELEVEN_API_KEY` and pass `--tts elevenlabs`. For word-aligned mouth shapes, `pip install faster-whisper` and pass `--lipsync whisper`. For free-text editing via `an iterate`, set `ANTHROPIC_API_KEY`.
@@ -172,7 +176,7 @@ The patches are validated against the schema and persisted; affected shots' cach
 | **Lip-sync Protocol** | `OfflineLipSync` (char-distribution), `WhisperLipSync` (word-aligned via faster-whisper), `RhubarbLipSync` (phoneme-aligned), `WordTimingsLipSync` (driven by an injected `WordTimingProvider` — skip transcription entirely when the caller already has authoritative word timings) |
 | **Verifier Protocol** | `LayoutLintVerifier`, `MediaQualityVerifier`, `VisionLMVerifier` (Claude vision), `HumanInTheLoopVerifier` |
 | **Persistence** | dol-backed `MutableMapping`s organized into `build_project_mall(...)` |
-| **CLI** | `typer` dispatch over `an.tools._dispatch_funcs` (init / validate / sync / check / render / iterate / bench) |
+| **CLI** | `typer` dispatch over `an.tools._dispatch_funcs` (init / validate / sync / check / render / iterate / bench) plus the `an character ...` and `an impacts ...` namespaces |
 | **Iterate loop** | `an.iterate` — Anthropic Opus 4.7 + adaptive thinking + structured JSON patches + path-based mutation + cache invalidation |
 
 For a deeper as-built reference (module-by-module map, control flows, key invariants, content-hash caching strategy), see [`misc/docs/architecture_as_built.md`](misc/docs/architecture_as_built.md). The research reports next to it cover the design space the system was built against — they are not current state, and `wave1_verification.md` is (verified fact, with the URLs each licence was read at).
@@ -199,6 +203,27 @@ name strings or instances. Plug in any `WordTimingProvider`
 transcript=)` returning `(text, start, end)` tuples). `muvid` uses
 this hook to feed `lacing` alignment-store timings straight into the
 cutout pipeline.
+
+### Synthetic impact clips (`an.impacts`)
+
+Structured animations of a stick or a ball striking a surface — or striking *the air*, a stroke that turns with nothing to hit — on a known tempo grid, filmed by a camera whose frame rate, shutter and capture jitter you choose. Each clip ships a sidecar that keeps three times apart, which is what makes it useful for scoring estimators that try to recover an impact *between* two frames: the **intended** grid time, the **executed** impact time (grid plus humanisation, in continuous seconds — never snapped to a frame), and **what the frames show** (each frame's exposure interval and sample instants, per-frame keypoints, and which frames bracket each impact).
+
+```python
+from an.impacts import ImpactClipSpec, write_impact_clip, write_impact_set
+
+spec = ImpactClipSpec(
+    object="stick", kind="air",                  # or "ball" / "surface"
+    tempo=[(0, 90), (16, 120)], beats=16,        # an accelerando; or a single bpm
+    pattern=(1, 0.5, 0.8, 0.5),                  # per-step stroke height, 0 = rest
+    jitter_sd=0.012, jitter_rho=0.3,             # human timing, seconds (default 8 ms; 0 = metronome)
+    fps=30, exposure=0.5, timestamp_jitter_sd=0.002,  # the camera
+)
+clip_dir = write_impact_clip(spec, "~/clips")          # clip.mp4, truth.json, keypoints.ndjson, trajectory.csv, scene.json
+write_impact_clip(spec, "~/clips", render=False)       # truth + keypoints only: no browser needed
+write_impact_set("~/clips/set")                         # 24 clips sharing one performance
+```
+
+The clips are ordinary `an` scenes (two props, one tween per stroke segment), and the ground truth is read back from the same compiled document the renderer draws — `write_impact_clip` refuses to write a sidecar whose keypoints disagree with the analytic motion at any captured instant, or whose document is not the one the renderer staged. With an open shutter, a frame's keypoints are the average over its exposure (what the blurred frame shows), with the mid-exposure position recorded beside them. The `truth.json` schema is documented in `an/impacts/truth.py`. The camera model is `an.frame_clock.FrameClock`, which reaches the renderer through `RenderContext.frame_samples`: several instants averaged per frame are an open shutter, instants off the `i / fps` grid are capture jitter, and a render without it is byte-identical to before.
 
 ---
 

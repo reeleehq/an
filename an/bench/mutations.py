@@ -398,7 +398,9 @@ def _supersample() -> Iterator[None]:
     ):
         original = render._capture_frames
 
-        def _capture_then_resolve(page, total_frames, fps, frames_dir, _factor=None):
+        def _capture_then_resolve(
+            page, total_frames, fps, frames_dir, _factor=None, **kwargs
+        ):
             # Forces the PRODUCT's own `supersample` parameter (an#58) rather
             # than resolving separately, so this lever runs the exact path a
             # user gets from `an render --supersample 2` — same function, same
@@ -406,7 +408,10 @@ def _supersample() -> Iterator[None]:
             # cannot pass it through `BENCH_RENDER_KWARGS`: that dict is a
             # comparability key, and a factor in it would refuse every metric in
             # the row rather than measure one.
-            original(page, total_frames, fps, frames_dir, SUPERSAMPLE_K)
+            # `**kwargs` forwarded (`frame_samples`, and whatever the capture
+            # stage grows next) so the lever keeps running the product's path
+            # rather than a frozen copy of its signature.
+            original(page, total_frames, fps, frames_dir, SUPERSAMPLE_K, **kwargs)
 
         render._capture_frames = _capture_then_resolve
         try:

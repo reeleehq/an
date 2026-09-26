@@ -61,6 +61,22 @@ an/
 │                            REACHABLE_ROLES / UNREACHABLE_ROLES, checked against
 │                            the literals read out of runtime.js (an#112)
 ├── preview.py               live-reloading browser preview; compiles WITH the pack
+├── frame_clock.py           FrameClock: WHEN each output frame samples scene time —
+│                            exposure (shutter), capture jitter, phase. Feeds
+│                            RenderContext.frame_samples AND the impact ground truth
+├── impacts/                 synthetic impact clips + exact ground truth (for scoring
+│   │                        sub-frame onset estimators); never imported by __init__
+│   ├── performance.py       TempoMap (piecewise-linear BPM in beats, exact integral),
+│   │                        perform(): t_grid (intended) vs t_impact (executed)
+│   ├── stroke.py            events -> h(t), quadratic easings only; surface = V at
+│   │                        contact, air = braked turning point
+│   ├── objects.py           stick / ball / surface as generated PROPS (k = 1); motion
+│   │                        through StrokeChannels, each AFFINE in h (the contract)
+│   ├── truth.py             keypoints from the COMPILED doc (timeline + screen_position)
+│   │                        at every sample, averaged per frame (what a blurred frame
+│   │                        SHOWS), cross-checked against the analytic stroke; refuses drift
+│   ├── clip.py              ImpactClipSpec -> Scene IR -> truth (+ render) -> files
+│   └── cli.py               `an impacts clip | clip-set`
 ├── genre.py                 genre descriptors
 ├── credits.py               credits rendering
 │
@@ -126,6 +142,9 @@ an/
 │   │   │                    (VisualJSON.asset_sets = per-node swap-set projection, an#87)
 │   │   ├── compile.py       Shot -> CutoutSceneJSON (the bridge); projects asset_sets
 │   │   │                    onto slots, validates authored swaps, sets -> hold channels
+│   │   ├── shutter.py       the TEMPORAL frame-stage resolve: average a frame's
+│   │   │                    sample instants (RenderContext.frame_samples); one
+│   │   │                    instant keeps the old bytes
 │   │   ├── render.py        Playwright headless capture + ffmpeg mux + audio overlay
 │   │   │                    (rasteriser PINNED — `DETERMINISTIC_CHROMIUM_ARGS`, an#31)
 │   │   └── runtime_files.py importlib.resources locator for the bundled JS runtime
@@ -199,6 +218,7 @@ Project.load(dir)
    │              → spin Chromium via Playwright
    │              → load runtime + JSON
    │              → for each frame: anSetTime(t) + screenshot canvas
+   │                (t = i/fps, or each of ctx.frame_samples[i], averaged)
    │              → ffmpeg mux PNG sequence → silent.mp4
    │              → ffmpeg overlay dialogue audio (anullsrc base + adelay+amix per line)
    │              → shot.mp4
@@ -311,6 +331,10 @@ an bench-compare              — two ledger rows in, a verdict or a REFUSAL out
 an bench-mutants              — break each guard on purpose; the named test must go red
    --names A,B
    --quiet
+an impacts clip OUT_DIR       — one synthetic impact clip + ground-truth sidecar
+   --object stick|ball --kind surface|air --tempo 100|0:90,16:120
+   --fps --exposure --timestamp-jitter-sd --jitter-sd --no-render
+an impacts clip-set OUT_DIR   — the product of objects x kinds x fps x shutter, + index.json
 ```
 
 All built via `typer` over the SSOT list `an.tools._dispatch_funcs` — wired
