@@ -143,7 +143,7 @@ def test_a_stroke_refuses_impacts_it_cannot_place():
 
 
 def _jittery(**kw) -> ImpactClipSpec:
-    return ImpactClipSpec(beats=6, jitter_sd=0.013, jitter_rho=0.3, seed=11, **kw)
+    return ImpactClipSpec(**{"beats": 6, "jitter_sd": 0.013, "jitter_rho": 0.3, "seed": 11, **kw})
 
 
 @pytest.mark.parametrize("obj", ["stick", "ball"])
@@ -172,7 +172,7 @@ def test_every_impact_is_a_keyframe_at_its_exact_float(obj, kind, tmp_path):
 def test_the_sidecar_keeps_the_three_times_apart(tmp_path):
     spec = _jittery(kind="air", fps=24, exposure=0.5, timestamp_jitter_sd=0.004)
     clip = write_impact_clip(spec, tmp_path, render=False)
-    truth = json.loads((clip / "truth.json").read_text())
+    truth = json.loads((clip / "truth.json").read_text(encoding="utf-8"))
     assert truth["schema"] == "an.impacts/truth"
     assert not (clip / "clip.mp4").exists() and "video" not in truth["clip"]["files"]
     frames = truth["frames"]
@@ -199,7 +199,7 @@ def test_the_sidecar_keeps_the_three_times_apart(tmp_path):
 @pytest.mark.parametrize("fps", [24, 29.97, 44, 60])
 def test_any_camera_rate_gets_one_frame_record_per_rendered_frame(fps, tmp_path):
     spec = _jittery(fps=fps)
-    truth = json.loads((write_impact_clip(spec, tmp_path, render=False) / "truth.json").read_text())
+    truth = json.loads((write_impact_clip(spec, tmp_path, render=False) / "truth.json").read_text(encoding="utf-8"))
     n = max(1, int(round(truth["clip"]["duration"] * fps)))  # CutoutRenderer's count
     assert truth["clip"]["frame_count"] == len(truth["frames"]) == n
     assert [f["t_nominal"] for f in truth["frames"]] == [i / fps for i in range(n)]
@@ -207,25 +207,29 @@ def test_any_camera_rate_gets_one_frame_record_per_rendered_frame(fps, tmp_path)
 
 def test_the_keypoint_stream_is_thoremin_s_recorder_shape_and_nothing_more(tmp_path):
     clip = write_impact_clip(_jittery(object="ball"), tmp_path, render=False)
-    lines = [json.loads(line) for line in (clip / "keypoints.ndjson").read_text().splitlines()]
-    truth = json.loads((clip / "truth.json").read_text())
+    lines = [json.loads(line) for line in (clip / "keypoints.ndjson").read_text(encoding="utf-8").splitlines()]
+    truth = json.loads((clip / "truth.json").read_text(encoding="utf-8"))
     assert len(lines) == len(truth["frames"])
     for i, line in enumerate(lines):
         assert set(line) == {"tick", "t", "value"}  # no ground truth leaks in
         assert line["tick"] == i
         assert set(line["value"]) == {"width", "height", "keypoints"}
-        assert [k["name"] for k in line["value"]["keypoints"]] == ["center", "bottom"]
+        points = line["value"]["keypoints"]
+        assert [(k["object"], k["name"]) for k in points] == [("ball", "center"), ("ball", "bottom")]
+        for k in points:
+            x, y = truth["frames"][i]["keypoints"]["ball"][k["name"]]
+            assert (k["x"], k["y"]) == pytest.approx((x, y), abs=1e-4)
     assert [ln["t"] for ln in lines] == pytest.approx([f["t_reported"] for f in truth["frames"]])
 
 
 def test_the_trajectory_is_dense_and_touches_contact_at_each_impact(tmp_path):
     spec = _jittery(object="ball", trajectory_hz=2000.0)
     clip = write_impact_clip(spec, tmp_path, render=False)
-    rows = list(csv.reader((clip / "trajectory.csv").open()))
-    assert rows[0] == ["t", "h", "center_x", "center_y", "bottom_x", "bottom_y"]
+    rows = list(csv.reader((clip / "trajectory.csv").open(encoding="utf-8")))
+    assert rows[0] == ["t", "h", "ball.center_x", "ball.center_y", "ball.bottom_x", "ball.bottom_y"]
     body = np.array(rows[1:], dtype=float)
     assert np.diff(body[:, 0]).max() == pytest.approx(1 / 2000.0, abs=1e-9)
-    truth = json.loads((clip / "truth.json").read_text())
+    truth = json.loads((clip / "truth.json").read_text(encoding="utf-8"))
     floor_y = max(e["impact_xy"][1] for e in truth["events"])
     assert body[:, 5].max() <= floor_y + 1e-9  # the bottom never passes the floor
     assert body[:, 5].max() == pytest.approx(floor_y, abs=0.1)
@@ -235,7 +239,7 @@ def test_the_trajectory_is_dense_and_touches_contact_at_each_impact(tmp_path):
 def test_a_clip_regenerates_from_its_own_sidecar(tmp_path):
     spec = _jittery(tempo=((0, 90), (6, 110)), pattern=(1, 0.5))
     first = write_impact_clip(spec, tmp_path / "a", render=False)
-    again = ImpactClipSpec.from_dict(json.loads((first / "truth.json").read_text())["spec"])
+    again = ImpactClipSpec.from_dict(json.loads((first / "truth.json").read_text(encoding="utf-8"))["spec"])
     assert again == spec
     second = write_impact_clip(again, tmp_path / "b", render=False)
     for name in ("truth.json", "keypoints.ndjson", "trajectory.csv", "scene.json"):
@@ -279,11 +283,85 @@ def test_the_truth_refuses_a_document_that_misses_contact(monkeypatch, tmp_path)
         clip_mod.write_impact_clip(_jittery(), tmp_path, render=False)
 
 
+def test_a_blurred_frame_shows_the_average_of_its_samples_not_mid_exposure(tmp_path):
+    """The review's blocker: at a surface contact the path is a V, so a frame
+    whose exposure spans it SHOWS the object above contact — the average of the
+    sampled positions — while the mid-exposure position is at contact."""
+    spec = ImpactClipSpec(object="ball", beats=4, tempo=120, jitter_sd=0.0, exposure=0.5, fps=30,
+                          lead_in=0.5 + 0.25 / 30)  # every impact mid-exposure
+    truth = json.loads((write_impact_clip(spec, tmp_path, render=False) / "truth.json")
+                       .read_text(encoding="utf-8"))
+    plan = plan_impact_clip(spec)
+    ball = plan.obj
+    for f in truth["frames"]:
+        ys = [ball.pose(plan.stroke.h(t))[("ball", "y")] + 180.0 for t in f["samples"]]
+        assert f["keypoints"]["ball"]["center"][1] == pytest.approx(sum(ys) / len(ys), abs=1e-6)
+    gaps = [
+        abs(truth["frames"][e["frames"]["during"]]["keypoints"]["ball"]["center"][1]
+            - truth["frames"][e["frames"]["during"]]["keypoints_mid"]["ball"]["center"][1])
+        for e in truth["events"]
+    ]
+    assert min(gaps) > 2.0, gaps  # the two genuinely differ at contact
+
+
+def test_the_frame_evidence_is_right_by_brute_force(tmp_path):
+    spec = _jittery(fps=24, exposure=0.5, timestamp_jitter_sd=0.002, beats=10)
+    truth = json.loads((write_impact_clip(spec, tmp_path, render=False) / "truth.json")
+                       .read_text(encoding="utf-8"))
+    stroke = plan_impact_clip(spec).stroke
+    frames = truth["frames"]
+    shown = [sum(stroke.h(t) for t in f["samples"]) / len(f["samples"]) for f in frames]
+    times = [e["t_impact"] for e in truth["events"]]
+    for k, e in enumerate(truth["events"]):
+        ev, T = e["frames"], e["t_impact"]
+        before = [f["index"] for f in frames if f["t_close"] <= T]
+        after = [f["index"] for f in frames if f["t_open"] >= T]
+        during = [f["index"] for f in frames if f["t_open"] < T < f["t_close"]]
+        assert ev["before"] == (before[-1] if before else None)
+        assert ev["after"] == (after[0] if after else None)
+        assert ev["during"] == (during[0] if during else None)
+        assert ev["nearest"] == min(frames, key=lambda f: abs(f["t_mid"] - T))["index"]
+        lo = (times[k - 1] + T) / 2 if k else 0.0
+        hi = (T + times[k + 1]) / 2 if k + 1 < len(times) else truth["clip"]["duration"]
+        window = [f["index"] for f in frames if lo <= f["t_mid"] <= hi]
+        assert shown[ev["lowest"]] == min(shown[i] for i in window)
+        assert ev["lowest_error"] == pytest.approx(frames[ev["lowest"]]["t_reported"] - T)
+
+
+def test_equal_specs_name_one_directory():
+    assert ImpactClipSpec(fps=30, tempo=100).clip_id == ImpactClipSpec(fps=30.0, tempo=100.0).clip_id
+    with pytest.raises(ValueError):
+        ImpactClipSpec(tail=0)
+    with pytest.raises(ValueError, match="unknown"):
+        ImpactClipSpec.from_dict({**ImpactClipSpec().to_dict(), "wobble": 1})
+
+
+def test_the_stick_s_rounded_end_meets_the_surface_top_at_contact():
+    from an.impacts.objects import stick
+
+    s = stick()
+    L, r = s.params["length"], s.params["thickness"] / 2
+    (ch,) = s.channels
+    a = ch.contact_value
+    # The cap's centre is r short of the axis end; its lowest point is r below it.
+    lowest_y = s.at[1] + (L - r) * math.sin(a) + r
+    assert lowest_y == pytest.approx(s.surface_at[1])
+    assert s.at[0] + (L - r) * math.cos(a) == pytest.approx(s.surface_at[0])
+
+
+def test_a_truth_only_rewrite_removes_a_stale_video(tmp_path):
+    spec = _jittery()
+    (tmp_path / spec.clip_id).mkdir()
+    (tmp_path / spec.clip_id / "clip.mp4").write_bytes(b"old")
+    clip = write_impact_clip(spec, tmp_path, render=False)
+    assert not (clip / "clip.mp4").exists()
+
+
 def test_a_set_writes_an_index(tmp_path):
     specs = impact_set_specs(base=replace(_jittery(), beats=2), objects=("ball",), fps=(30,), exposures=(0.0,))
     seen = []
     root = write_impact_set(tmp_path, specs, render=False, progress=lambda i, n, d: seen.append((i, n)))
-    index = json.loads((root / "index.json").read_text())
+    index = json.loads((root / "index.json").read_text(encoding="utf-8"))
     assert [c["clip"] for c in index["clips"]] == [s.clip_id for s in specs]
     assert seen == [(1, 2), (2, 2)]
     assert all((root / c["clip"] / "truth.json").exists() for c in index["clips"])
@@ -303,7 +381,7 @@ def test_the_cli_writes_a_truth_only_clip(tmp_path):
                pattern="1,0.5", jitter_sd=0.01, render=False)
     (made,) = tmp_path.iterdir()
     assert str(made) in msg
-    spec = json.loads((made / "truth.json").read_text())["spec"]
+    spec = json.loads((made / "truth.json").read_text(encoding="utf-8"))["spec"]
     assert spec["tempo"] == [[0.0, 90.0], [4.0, 120.0]] and spec["pattern"] == [1.0, 0.5]
 
 
@@ -320,10 +398,14 @@ def _decode(mp4, width, height):
     return np.frombuffer(raw, np.uint8).reshape(-1, height, width, 3).astype(float)
 
 
-def _dark_centroid(frame):
+def _dark_centroid(frame, surface_top):
+    """Darkness-weighted centroid above the surface — no threshold, so a smear's
+    faint edges count in proportion, which is what makes a blurred frame's
+    centroid the average of its sampled positions."""
     lum = frame.mean(axis=2)
     w = np.clip(255.0 - lum, 0, None)
-    w[lum > 120] = 0.0  # the object is near-black; drop background and surface
+    if surface_top is not None:
+        w[int(math.floor(surface_top)):] = 0.0  # the slab; the object never enters it
     ys, xs = np.indices(lum.shape)
     return (w * xs).sum() / w.sum() + 0.5, (w * ys).sum() / w.sum() + 0.5, w
 
@@ -331,34 +413,39 @@ def _dark_centroid(frame):
 @pytest.mark.browser
 @pytest.mark.ffmpeg
 def test_the_rendered_pixels_are_where_the_truth_says(tmp_path):
-    """MUTATION: drop `frame_samples=` from `_render`'s RenderContext, or flip the
-    stick's anchor — the centroids leave the keypoints by pixels, not tenths.
+    """MUTATION: drop `frame_samples=` from `_render`'s RenderContext, flip the
+    stick's anchor, or report the blurred keypoint at mid-exposure — the
+    centroids leave the keypoints by pixels, not tenths.
 
-    Also the averaging path's only behavioural test: an open shutter must SMEAR
-    (more partially-covered pixels in the fastest frames) while its centroid
-    stays on the keypoint at mid-exposure.
+    Surface impacts through an open shutter are in the set on purpose: that is
+    where the frame shows the average of a V-shaped path, not its midpoint.
+    Also the averaging path's only behavioural test: an open shutter must SMEAR.
     """
     base = ImpactClipSpec(beats=3, tempo=120, jitter_sd=0.01, seed=5)
     smear = {}
     for spec in (
         base,
-        replace(base, object="ball", kind="air", exposure=0.5, timestamp_jitter_sd=0.003, fps=29.97),
-        replace(base, object="ball", kind="air"),
+        replace(base, exposure=0.5),
+        replace(base, object="ball", exposure=0.5, timestamp_jitter_sd=0.003, fps=29.97),
+        replace(base, object="ball"),
+        replace(base, object="ball", kind="air", exposure=0.5),
     ):
         clip = write_impact_clip(spec, tmp_path)
-        truth = json.loads((clip / "truth.json").read_text())
+        truth = json.loads((clip / "truth.json").read_text(encoding="utf-8"))
+        (obj,) = truth["objects"]
+        top = obj["surface_xy"][1] if spec.kind == "surface" else None
         frames = _decode(clip / "clip.mp4", spec.width, spec.height)
         assert len(frames) == truth["clip"]["frame_count"]
-        lines = [json.loads(ln) for ln in (clip / "keypoints.ndjson").read_text().splitlines()]
+        lines = [json.loads(ln) for ln in (clip / "keypoints.ndjson").read_text(encoding="utf-8").splitlines()]
         errors, partial = [], []
         for frame, line in zip(frames, lines):
             p = {k["name"]: (k["x"], k["y"]) for k in line["value"]["keypoints"]}
             want = p["center"] if "center" in p else tuple(
                 (a + b) / 2 for a, b in zip(p["pivot"], p["tip"])
             )
-            cx, cy, w = _dark_centroid(frame)
+            cx, cy, w = _dark_centroid(frame, top)
             errors.append(math.hypot(cx - want[0], cy - want[1]))
             partial.append(int(((w > 20) & (w < 200)).sum()))
         assert max(errors) < 1.0, (spec.clip_id, max(errors))
-        smear[spec.exposure] = max(partial)
-    assert smear[0.5] > 2 * smear[0.0], smear
+        smear[(spec.object, spec.kind, spec.exposure)] = max(partial)
+    assert smear[("ball", "surface", 0.5)] > 2 * smear[("ball", "surface", 0.0)], smear

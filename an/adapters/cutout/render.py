@@ -732,19 +732,21 @@ def _capture_frames(
     both. ``None`` is one instant at ``i / fps``, and a frame with one instant
     takes the path above unchanged, so the knob is free when it is off too.
     """
-    canvas = page.locator("#stage")
     for i in range(total_frames):
         instants = (i / float(fps),) if frame_samples is None else frame_samples[i]
         out_path = frames_dir / (DEFAULT_FRAME_PNG_PATTERN % i)
         if len(instants) == 1 and supersample == NO_SUPERSAMPLE:
             _set_time(page, instants[0], frame=i)
-            # Screenshot only the canvas element (no surrounding chrome).
-            canvas.screenshot(path=str(out_path), omit_background=False)
+            # Screenshot only the canvas element (no surrounding chrome). Located
+            # AFTER the time is set, as before this loop grew samples: a runtime
+            # throw must surface as the typed frame error, not as whatever the
+            # locator raises first.
+            page.locator("#stage").screenshot(path=str(out_path), omit_background=False)
             continue
         shots = []
         for t in instants:
             _set_time(page, t, frame=i)
-            shots.append(canvas.screenshot(omit_background=False))
+            shots.append(page.locator("#stage").screenshot(omit_background=False))
         out_path.write_bytes(mean_png_bytes(shots, factor=supersample))
 
 

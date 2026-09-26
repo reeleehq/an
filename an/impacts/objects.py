@@ -19,12 +19,13 @@ space `StagePlacement.at` and the camera use. Rotation is in radians,
 clockwise-positive on screen, as PixiJS applies it.
 
 >>> s = stick()
->>> s.property, s.value(0.0) == s.contact_value
-('rotation', True)
->>> round(s.value(1.0) - s.value(0.0), 6) == -s.stroke_extent
+>>> s.pose(0.0) == {("stick", "rotation"): 0.35}
 True
->>> ball().property
-'y'
+>>> (ch,) = s.channels
+>>> round(ch.value(1.0) - ch.value(0.0), 6) == -ch.stroke_extent
+True
+>>> list(ball().pose(1.0))
+[('ball', 'y')]
 """
 
 from __future__ import annotations
@@ -43,6 +44,7 @@ __all__ = [
     "IMPACT_OBJECTS",
     "ImpactObject",
     "PropArt",
+    "StrokeChannel",
     "ball",
     "impact_object",
     "stick",
@@ -63,27 +65,62 @@ class PropArt:
 
 
 @dataclass(frozen=True, slots=True)
+class StrokeChannel:
+    """One animated property, AFFINE in stroke height ``h``.
+
+    ``value(h) = contact_value - stroke_extent * h``: ``h = 0`` is contact and
+    ``stroke_extent`` is how far a full stroke moves the property away from it
+    (radians, or pixels). Affine is the whole contract — it is what makes an
+    eased tween of the property exactly the same easing of ``h``.
+    """
+
+    target: str
+    property: str
+    contact_value: float
+    stroke_extent: float
+
+    def value(self, h: float) -> float:
+        return self.contact_value - self.stroke_extent * h
+
+    def to_dict(self) -> dict:
+        return {
+            "target": self.target,
+            "property": self.property,
+            "contact_value": self.contact_value,
+            "stroke_extent": self.stroke_extent,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class ImpactObject:
-    """One striking object, its surface, and how the stroke moves it."""
+    """One striking object, its surface, and how the stroke moves it.
+
+    ``channels`` are the properties the stroke drives — one for a stick or a
+    ball, two for a forearm-plus-stick limb (each affine in the SAME ``h``, so
+    the motion stays exact). ``keypoints`` are local points by name; each lives
+    on the node ``keypoint_nodes[name]`` names, the entity itself by default.
+    """
 
     name: str
     art: PropArt
     at: tuple[float, float]
-    property: str
-    contact_value: float
-    #: How far ``h = 1`` moves ``property`` AWAY from contact (radians or px).
-    stroke_extent: float
-    #: Local points in the entity's frame, by name. What a tracker would report.
+    channels: tuple[StrokeChannel, ...]
+    #: Local points by name. What a tracker would report.
     keypoints: Mapping[str, tuple[float, float]]
     #: The keypoint that does the striking (a stick's tip, a ball's bottom).
     impact_keypoint: str
+    keypoint_nodes: Mapping[str, str] = field(default_factory=dict)
     surface_art: PropArt | None = None
+    #: Where the surface's top edge is centred, in scene coordinates.
     surface_at: tuple[float, float] | None = None
     params: Mapping[str, float] = field(default_factory=dict)
 
-    def value(self, h: float) -> float:
-        """The animated property's value at stroke height ``h`` (affine in ``h``)."""
-        return self.contact_value - self.stroke_extent * h
+    def pose(self, h: float) -> dict[tuple[str, str], float]:
+        """``{(node path, property): value}`` at stroke height ``h``."""
+        return {(c.target, c.property): c.value(h) for c in self.channels}
+
+    def keypoint_node(self, name: str) -> str:
+        return self.keypoint_nodes.get(name, self.name)
 
 
 def _prop_art(ref: str, svg: str, *, anchor: tuple[float, float]) -> PropArt:
@@ -126,8 +163,8 @@ def stick(
 
     At contact it points ``contact_angle`` radians below horizontal; a full
     stroke raises it by ``swing`` radians. Keypoints: ``pivot`` and ``tip``
-    (the end of its axis). The surface's top meets the stick's lower edge at
-    the tip.
+    (the end of its axis). The surface's top meets the lowest point of its
+    rounded end.
     """
     radius = thickness / 2.0
     svg = _svg(
@@ -136,17 +173,18 @@ def stick(
         f'<rect width="{length:g}" height="{thickness:g}" rx="{radius:g}" fill="{color}"/>',
     )
     art = _prop_art("impact-stick", svg, anchor=(0.0, 0.5))
-    # The lower edge at the tip, rotated to the contact angle, is the surface top.
+    # The tip is a rounded cap (rx = radius) centred `radius` short of the axis
+    # end, so its LOWEST point is straight below that centre, whatever the
+    # angle. That point, at the contact angle, is where the surface top goes —
+    # measured on a render, the square-corner version left a 2 px gap.
     c, s = math.cos(contact_angle), math.sin(contact_angle)
-    edge_x = pivot[0] + length * c - radius * s
-    edge_y = pivot[1] + length * s + radius * c
+    edge_x = pivot[0] + (length - radius) * c
+    edge_y = pivot[1] + (length - radius) * s + radius
     return ImpactObject(
         name="stick",
         art=art,
         at=pivot,
-        property="rotation",
-        contact_value=contact_angle,
-        stroke_extent=swing,
+        channels=(StrokeChannel("stick", "rotation", contact_angle, swing),),
         keypoints={"pivot": (0.0, 0.0), "tip": (length, 0.0)},
         impact_keypoint="tip",
         surface_art=_slab(*surface_size, surface_color),
@@ -178,9 +216,7 @@ def ball(
         name="ball",
         art=art,
         at=(x, contact_y),
-        property="y",
-        contact_value=contact_y,
-        stroke_extent=drop,
+        channels=(StrokeChannel("ball", "y", contact_y, drop),),
         keypoints={"center": (0.0, 0.0), "bottom": (0.0, radius)},
         impact_keypoint="bottom",
         surface_art=_slab(*surface_size, surface_color),

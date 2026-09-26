@@ -123,16 +123,21 @@ class FrameClock:
     ``samples``: instants integrated per open exposure (midpoint rule);
     ``None`` means 1 when ``exposure == 0`` and
     :data:`DEFAULT_EXPOSURE_SAMPLES` otherwise.
-    ``jitter_sd``: standard deviation, in seconds, of each frame's capture
-    offset from the nominal grid (Gaussian, clamped so frames never overlap —
-    see :data:`MAX_JITTER_FRACTION`).
+    ``jitter_sd``: standard deviation, in seconds, of each frame's CAPTURE
+    offset from the nominal grid — the frame really is taken early or late.
+    Gaussian, clamped at :attr:`max_jitter` so frames never overlap; a
+    ``jitter_sd`` above half that clamp is refused rather than silently
+    shrunk (at ``exposure=1`` there is no room for any).
     ``phase``: seconds added to every capture instant — the camera clock's
-    offset from scene time.
-    ``timestamps``: what :attr:`CapturedFrame.t_reported` carries —
+    sub-frame offset from scene time, in ``(-1/fps, 1/fps)``.
+    ``timestamps``: the base of :attr:`CapturedFrame.t_reported` —
     ``"nominal"`` (``index / fps``, what a naive tick loop or an mp4 reports)
     or ``"actual"`` (``t_open``, what a capture API with real timestamps
     reports).
-    ``seed``: the jitter's random stream.
+    ``report_noise_sd``: Gaussian noise, in seconds, added to the REPORTED
+    timestamp only — regular capture, noisy clock (a browser frame callback).
+    ``seed``: the random streams (capture jitter and report noise are
+    independent draws from it).
 
     Every instant is clipped into ``[0, duration]``, because a render cannot
     sample a scene outside its own timeline; the clipped values are what
@@ -145,6 +150,7 @@ class FrameClock:
     jitter_sd: float = 0.0
     phase: float = 0.0
     timestamps: Timestamps = "nominal"
+    report_noise_sd: float = 0.0
     seed: int = 0
 
     def __post_init__(self) -> None:
@@ -163,8 +169,25 @@ class FrameClock:
                 "shutter has one instant to sample. Set an exposure, or drop "
                 "samples."
             )
-        if not (math.isfinite(self.jitter_sd) and self.jitter_sd >= 0):
-            raise FrameClockError(f"jitter_sd must be >= 0; got {self.jitter_sd!r}")
+        for name in ("jitter_sd", "report_noise_sd"):
+            value = getattr(self, name)
+            if not (math.isfinite(value) and value >= 0):
+                raise FrameClockError(f"{name} must be a finite number >= 0; got {value!r}")
+        if self.jitter_sd > self.max_jitter / 2.0:
+            raise FrameClockError(
+                f"jitter_sd={self.jitter_sd!r} s cannot be honoured: frames must "
+                f"not overlap, which caps a capture offset at {self.max_jitter:.6g} s "
+                f"here (fps={self.fps}, exposure={self.exposure}), and a standard "
+                "deviation above half the cap would be silently shrunk by it. "
+                "Lower jitter_sd or the exposure; for noisy TIMESTAMPS on regular "
+                "capture, use report_noise_sd."
+            )
+        if not (math.isfinite(self.phase) and abs(self.phase) < 1.0 / self.fps):
+            raise FrameClockError(
+                f"phase must be a sub-frame offset in (-1/fps, 1/fps) = "
+                f"(-{1.0 / self.fps:.6g}, {1.0 / self.fps:.6g}); got {self.phase!r}. "
+                "A larger shift is a shift of the scene, not of the camera."
+            )
         if self.timestamps not in ("nominal", "actual"):
             raise FrameClockError(
                 f"timestamps must be 'nominal' or 'actual'; got {self.timestamps!r}"
@@ -193,7 +216,7 @@ class FrameClock:
     def frames(self, duration: float) -> tuple[CapturedFrame, ...]:
         """One :class:`CapturedFrame` per output frame of a ``duration`` render."""
         n = frame_count(duration, self.fps)
-        offsets = self._offsets(n)
+        offsets, noise = self._offsets(n), self._report_noise(n)
         period = 1.0 / self.fps
         open_for = self.exposure * period
         k = self.samples_per_frame
@@ -221,7 +244,8 @@ class FrameClock:
                     t_open=opened,
                     t_close=closed,
                     samples=instants,
-                    t_reported=t_nominal if self.timestamps == "nominal" else opened,
+                    t_reported=(t_nominal if self.timestamps == "nominal" else opened)
+                    + noise[i],
                 )
             )
         return tuple(out)
@@ -233,6 +257,7 @@ class FrameClock:
     def to_dict(self) -> dict:
         d = asdict(self)
         d["samples_per_frame"] = self.samples_per_frame
+        d["max_jitter"] = self.max_jitter
         return d
 
     def _offsets(self, n: int) -> list[float]:
@@ -240,6 +265,14 @@ class FrameClock:
             return [0.0] * n
         import numpy as np
 
-        rng = np.random.default_rng(self.seed)
+        rng = np.random.default_rng([self.seed, 0])
         cap = self.max_jitter
         return [float(v) for v in np.clip(rng.normal(0.0, self.jitter_sd, n), -cap, cap)]
+
+    def _report_noise(self, n: int) -> list[float]:
+        if self.report_noise_sd == 0.0:
+            return [0.0] * n
+        import numpy as np
+
+        rng = np.random.default_rng([self.seed, 1])
+        return [float(v) for v in rng.normal(0.0, self.report_noise_sd, n)]

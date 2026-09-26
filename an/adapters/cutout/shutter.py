@@ -78,7 +78,11 @@ def temporal_mean(frames: Sequence[Any]) -> Any:
     """``k`` equal-shape uint8 frames -> their exact per-pixel mean, uint8.
 
     Rounded half-to-even, the rule `block_mean_resolve` spells out, so the
-    temporal and spatial resolves agree about every tie.
+    temporal and spatial resolves agree about every tie. The mean is of the
+    ENCODED (sRGB) values, as the spatial resolve's is — not of linear light, so
+    a smear's profile is not exactly a physical sensor's. The centroid of what
+    is drawn is still the average of the sampled positions, which is the
+    property the impact ground truth relies on.
 
     >>> import numpy as np
     >>> a, b = np.full((1, 2, 3), 1, np.uint8), np.full((1, 2, 3), 2, np.uint8)

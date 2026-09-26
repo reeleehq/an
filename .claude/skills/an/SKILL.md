@@ -78,7 +78,8 @@ Backends registered: `cutout` (real, with face rig + a compile-time FACE SOLVER 
 
 - `an impacts clip OUT --kind air --fps 30 --exposure 0.5 --jitter-sd 0.012 [--tempo 0:90,16:120] [--no-render]`; `an impacts clip-set OUT --fps 24,30,60` for a benchmark set with `index.json`.
 - Python: `write_impact_clip(ImpactClipSpec(...), out_dir, render=True)`; `plan_impact_clip(spec)` for the events/stroke/frames without I/O. `render=False` needs no browser.
-- The camera is `an.frame_clock.FrameClock` (fps, exposure, samples, jitter_sd, phase, timestamps), reaching the renderer as `RenderContext.frame_samples` — usable for motion blur on any render.
+- The camera is `an.frame_clock.FrameClock` (fps, exposure, samples, jitter_sd = when frames are taken, report_noise_sd = noise on the reported timestamp, phase, timestamps), reaching the renderer as `RenderContext.frame_samples` — usable for motion blur on any render. With an open shutter a frame's keypoints are the AVERAGE over its exposure; `keypoints_mid` is the mid-exposure position.
+- Schema: the `an/impacts/truth.py` module docstring.
 - Write rendered sets OUTSIDE any repo (e.g. `~/.local/share/<project>/synthetic/`); they are data.
 
 ## When to consult docs

@@ -25,7 +25,7 @@ Quick start::
 
 Or from the shell: ``an impacts clip OUT_DIR`` / ``an impacts clip-set OUT_DIR``.
 
->>> plan = plan_impact_clip(ImpactClipSpec(kind="air", beats=2, tempo=60))
+>>> plan = plan_impact_clip(ImpactClipSpec(kind="air", beats=2, tempo=60, jitter_sd=0))
 >>> [(e.t_grid, e.t_impact) for e in plan.events]
 [(0.5, 0.5), (1.5, 1.5)]
 """

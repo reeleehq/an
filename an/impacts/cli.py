@@ -12,8 +12,12 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from an.impacts.performance import DEFAULT_LEAD_IN
+
 from an.impacts.clip import (
     BENCHMARK_SPEC,
+    DEFAULT_JITTER_SD,
+    DEFAULT_TAIL,
     ImpactClipSpec,
     impact_set_specs,
     write_impact_clip,
@@ -48,11 +52,17 @@ def clip(
     beats: int = 16,
     subdivision: int = 1,
     pattern: str = "1",
-    jitter_sd: float = 0.0,
+    lead_in: float = DEFAULT_LEAD_IN,
+    tail: float = DEFAULT_TAIL,
+    jitter_sd: float = DEFAULT_JITTER_SD,
     jitter_rho: float = 0.0,
+    jitter_bias: float = 0.0,
     fps: float = 30.0,
     exposure: float = 0.0,
+    exposure_samples: int = 0,
     timestamp_jitter_sd: float = 0.0,
+    timestamp_noise_sd: float = 0.0,
+    phase: float = 0.0,
     timestamps: str = "nominal",
     width: int = 640,
     height: int = 360,
@@ -68,11 +78,17 @@ def clip(
     beats: number of beats
     subdivision: grid steps per beat
     pattern: per-step stroke heights, cycled; 0 is a rest, e.g. 1,0.5,0.8,0.5
-    jitter_sd: humanisation, seconds (standard deviation of the timing offset)
+    lead_in: seconds before the first beat
+    tail: seconds after the last beat
+    jitter_sd: humanisation, seconds (standard deviation of the timing offset; 0 = metronome)
     jitter_rho: correlation of consecutive offsets (0 = independent)
+    jitter_bias: constant lead (negative) or lag (positive), seconds
     fps: frame rate (need not be an integer)
     exposure: fraction of the frame period the shutter is open (0.5 = 180 degrees)
-    timestamp_jitter_sd: seconds of capture-instant jitter per frame
+    exposure_samples: instants averaged per open exposure (0 = automatic)
+    timestamp_jitter_sd: seconds of jitter in WHEN each frame is captured
+    timestamp_noise_sd: seconds of noise on the REPORTED timestamp only
+    phase: sub-frame offset of the camera clock, seconds
     timestamps: what keypoints.ndjson reports as t: nominal or actual
     width: frame width in pixels
     height: frame height in pixels
@@ -86,11 +102,17 @@ def clip(
         beats=beats,
         subdivision=subdivision,
         pattern=_floats(pattern),
+        lead_in=lead_in,
+        tail=tail,
         jitter_sd=jitter_sd,
         jitter_rho=jitter_rho,
+        jitter_bias=jitter_bias,
         fps=fps,
         exposure=exposure,
+        exposure_samples=exposure_samples or None,
         timestamp_jitter_sd=timestamp_jitter_sd,
+        timestamp_noise_sd=timestamp_noise_sd,
+        phase=phase,
         timestamps=timestamps,
         width=width,
         height=height,

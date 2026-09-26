@@ -70,9 +70,11 @@ an/
 │   │                        perform(): t_grid (intended) vs t_impact (executed)
 │   ├── stroke.py            events -> h(t), quadratic easings only; surface = V at
 │   │                        contact, air = braked turning point
-│   ├── objects.py           stick / ball / surface as generated PROPS (k = 1)
-│   ├── truth.py             keypoints from the COMPILED doc (timeline + screen_position),
-│   │                        cross-checked against the analytic stroke; refuses drift
+│   ├── objects.py           stick / ball / surface as generated PROPS (k = 1); motion
+│   │                        through StrokeChannels, each AFFINE in h (the contract)
+│   ├── truth.py             keypoints from the COMPILED doc (timeline + screen_position)
+│   │                        at every sample, averaged per frame (what a blurred frame
+│   │                        SHOWS), cross-checked against the analytic stroke; refuses drift
 │   ├── clip.py              ImpactClipSpec -> Scene IR -> truth (+ render) -> files
 │   └── cli.py               `an impacts clip | clip-set`
 ├── genre.py                 genre descriptors

@@ -50,14 +50,35 @@ def test_an_open_shutter_integrates_midpoints_of_the_exposure():
     assert f.t_mid == pytest.approx(sum(f.samples) / 4)
 
 
-def test_jitter_is_clamped_so_frames_never_overlap_or_reorder():
-    clock = FrameClock(fps=30, exposure=0.5, jitter_sd=1.0, seed=3)  # absurd sd
-    frames = clock.frames(5.0)
+def test_jitter_at_its_limit_never_overlaps_or_reorders_frames():
+    base = FrameClock(fps=30, exposure=0.5)
+    clock = FrameClock(fps=30, exposure=0.5, jitter_sd=base.max_jitter / 2, seed=3)
+    frames = clock.frames(20.0)
     for a, b in zip(frames, frames[1:]):
         assert a.t_close <= b.t_open
     offsets = [f.t_open - f.t_nominal for f in frames[1:-1]]
     assert max(abs(o) for o in offsets) <= clock.max_jitter + 1e-12
-    assert any(abs(o) > 0 for o in offsets)
+    assert np.std(offsets) == pytest.approx(clock.jitter_sd, rel=0.15)
+
+
+def test_a_jitter_the_clamp_would_shrink_is_refused_not_honoured_silently():
+    with pytest.raises(FrameClockError, match="cannot be honoured"):
+        FrameClock(fps=30, exposure=0.9, jitter_sd=0.004)
+    with pytest.raises(FrameClockError, match="cannot be honoured"):
+        FrameClock(fps=30, exposure=1.0, jitter_sd=1e-6)  # no room at all
+
+
+def test_report_noise_moves_the_timestamp_and_nothing_else():
+    clean = FrameClock(fps=30, seed=4).frames(2.0)
+    noisy = FrameClock(fps=30, seed=4, report_noise_sd=0.003).frames(2.0)
+    assert [f.samples for f in noisy] == [f.samples for f in clean]
+    diffs = np.array([n.t_reported - c.t_reported for n, c in zip(noisy, clean)])
+    assert diffs.std() == pytest.approx(0.003, rel=0.3) and (diffs != 0).all()
+
+
+def test_phase_offsets_every_instant_by_a_sub_frame_amount():
+    frames = FrameClock(fps=30, phase=0.01).frames(1.0)
+    assert [f.t_open for f in frames[:-1]] == pytest.approx([i / 30 + 0.01 for i in range(29)])
 
 
 def test_jitter_is_seeded_and_timestamps_report_what_was_asked():
@@ -86,6 +107,9 @@ def test_every_instant_is_inside_the_timeline():
         {"samples": 0},
         {"samples": 4},  # an instantaneous shutter has one instant
         {"jitter_sd": -1},
+        {"report_noise_sd": math.nan},
+        {"phase": 1 / 30},  # a whole frame is a scene shift, not a camera phase
+        {"phase": math.nan},
         {"timestamps": "wallclock"},
     ],
 )

@@ -217,7 +217,8 @@ def build_stroke(
         return top
 
     fall_into(events[0], from_t=0.0, apex=events[0].amplitude)
-    # The clip opens at rest height; ease to the first apex during the hold.
+    # With room for a hold before the first fall, the clip opens at rest height
+    # and eases to the first apex during it; without room, it opens at the apex.
     if rest_height != events[0].amplitude and segments[0].easing == "linear":
         first = segments[0]
         segments[0] = StrokeSegment(first.t0, first.t1, rest_height, first.h1, "ease_in_out")

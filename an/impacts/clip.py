@@ -14,14 +14,17 @@ the video (optional — the truth and keypoints need no browser), and writes:
 ``keypoints.ndjson`` per-frame 2D keypoints at each frame's reported time —
                     observations only, in thoremin's recorder shape
 ``trajectory.csv``  the continuous trajectory at ``trajectory_hz``
-``scene.json``      the `an` Scene IR that was rendered
+``scene.json``      the `an` Scene IR that was rendered (the camera — rate,
+                    shutter, jitter — lives in ``truth.json``'s ``clock``)
 ==================  ==========================================================
 
 >>> plan = plan_impact_clip(ImpactClipSpec(beats=4, tempo=120))
->>> [round(e.t_impact, 3) for e in plan.events]
+>>> [e.t_grid for e in plan.events]                        # intended
 [0.5, 1.0, 1.5, 2.0]
->>> plan.duration, len(plan.frames)
-(2.5, 75)
+>>> [round(e.t_impact - e.t_grid, 3) for e in plan.events]  # executed: humanised
+[0.003, 0.013, -0.005, 0.006]
+>>> len(plan.frames)
+75
 """
 
 from __future__ import annotations
@@ -33,7 +36,7 @@ import json
 import shutil
 import tempfile
 from collections.abc import Iterable, Sequence
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import asdict, dataclass, field, fields, replace
 from itertools import product
 from pathlib import Path
 from typing import Any
@@ -54,17 +57,19 @@ from an.impacts.stroke import (
     Stroke,
     build_stroke,
 )
-from an.impacts.truth import ground_truth, keypoint_lines, trajectory_rows
+from an.impacts.truth import TruthMismatch, ground_truth, keypoint_lines, trajectory_rows
 from an.ir.compose import delay, parallel, sequence, tween
 from an.ir.schema import AssetRef, Meta, Resolution, SceneIR, Shot, StagePlacement
 
 __all__ = [
     "BENCHMARK_SPEC",
     "CLIP_FILES",
+    "DEFAULT_JITTER_SD",
     "DEFAULT_TAIL",
     "DEFAULT_TRAJECTORY_HZ",
     "ImpactClipSpec",
     "ImpactPlan",
+    "ImpactSpecError",
     "impact_set_specs",
     "plan_impact_clip",
     "write_impact_clip",
@@ -73,6 +78,8 @@ __all__ = [
 
 #: Seconds after the last grid beat before the clip ends.
 DEFAULT_TAIL: float = 0.5
+#: Default humanisation (seconds, standard deviation). See `ImpactClipSpec`.
+DEFAULT_JITTER_SD: float = 0.008
 #: Samples per second of the dense trajectory in ``trajectory.csv``.
 DEFAULT_TRAJECTORY_HZ: float = 1000.0
 
@@ -83,6 +90,18 @@ CLIP_FILES: dict[str, str] = {
     "trajectory": "trajectory.csv",
     "scene": "scene.json",
 }
+
+_FLOAT_FIELDS = (
+    "lead_in", "tail", "jitter_sd", "jitter_rho", "jitter_bias", "rise", "fall",
+    "brake", "fps", "exposure", "timestamp_jitter_sd", "timestamp_noise_sd",
+    "phase", "trajectory_hz",
+)
+_INT_FIELDS = ("beats", "subdivision", "width", "height", "seed")
+
+
+class ImpactSpecError(ValueError):
+    """A clip spec that cannot describe a clip."""
+
 
 _SHOT_ID = "impacts"
 _SURFACE_ID = "surface"
@@ -97,14 +116,19 @@ class ImpactClipSpec:
     change), ``beats``, ``subdivision``, ``pattern`` (per-step stroke heights,
     ``0`` = rest), ``lead_in``, ``tail``, and the humanisation ``jitter_sd`` /
     ``jitter_rho`` / ``jitter_bias`` (seconds; see
-    :func:`an.impacts.performance.gaussian_humanizer`).
+    :func:`an.impacts.performance.gaussian_humanizer`). Humanised by default
+    (``jitter_sd`` = :data:`DEFAULT_JITTER_SD`): on a perfect grid every impact
+    of a round tempo lands exactly on a frame at common rates, which is the one
+    case a sub-frame estimator cannot be scored on. Set it to 0 for a metronome.
 
     Motion: ``object`` (``"stick"`` or ``"ball"``), ``kind`` (``"surface"`` or
     ``"air"``), the stroke timings ``rise`` / ``fall`` / ``brake``, and
     ``show_surface`` (``None``: drawn for surface impacts only).
 
     Camera (:class:`an.frame_clock.FrameClock`): ``fps``, ``exposure``,
-    ``exposure_samples``, ``timestamp_jitter_sd``, ``phase``, ``timestamps``.
+    ``exposure_samples``, ``timestamp_jitter_sd`` (when frames are really
+    taken), ``timestamp_noise_sd`` (noise on the reported timestamp only),
+    ``phase``, ``timestamps``.
 
     ``seed`` drives two independent streams — the performance's and the
     camera's — so clips that differ only in camera settings share the exact same
@@ -119,7 +143,7 @@ class ImpactClipSpec:
     pattern: tuple[float, ...] = (1.0,)
     lead_in: float = DEFAULT_LEAD_IN
     tail: float = DEFAULT_TAIL
-    jitter_sd: float = 0.0
+    jitter_sd: float = DEFAULT_JITTER_SD
     jitter_rho: float = 0.0
     jitter_bias: float = 0.0
     rise: float = DEFAULT_RISE
@@ -130,6 +154,7 @@ class ImpactClipSpec:
     exposure: float = 0.0
     exposure_samples: int | None = None
     timestamp_jitter_sd: float = 0.0
+    timestamp_noise_sd: float = 0.0
     phase: float = 0.0
     timestamps: str = "nominal"
     width: int = 640
@@ -138,11 +163,21 @@ class ImpactClipSpec:
     seed: int = 0
 
     def __post_init__(self) -> None:
-        # Normalise sequences to tuples so the spec is hashable and its JSON
-        # form is canonical, whichever sequence type the caller used.
-        if not isinstance(self.tempo, (int, float)):
+        # Canonical types, so two equal specs have one JSON form and one
+        # clip_id: `fps=30` and `fps=30.0` compare equal, and must not name two
+        # directories.
+        for name in _FLOAT_FIELDS:
+            object.__setattr__(self, name, float(getattr(self, name)))
+        for name in _INT_FIELDS:
+            object.__setattr__(self, name, int(getattr(self, name)))
+        if isinstance(self.tempo, (int, float)):
+            object.__setattr__(self, "tempo", float(self.tempo))
+        else:
             object.__setattr__(self, "tempo", tempo_map(self.tempo).points)
         object.__setattr__(self, "pattern", tuple(float(a) for a in self.pattern))
+        for name in ("lead_in", "tail", "trajectory_hz"):
+            if not getattr(self, name) > 0:
+                raise ImpactSpecError(f"{name} must be > 0; got {getattr(self, name)!r}")
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
@@ -153,7 +188,15 @@ class ImpactClipSpec:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "ImpactClipSpec":
+        """The inverse of :meth:`to_dict`. Refuses fields it does not know —
+        dropping one would regenerate a different clip under the same spec."""
         d = dict(d)
+        unknown = set(d) - {f.name for f in fields(cls)}
+        if unknown:
+            raise ImpactSpecError(
+                f"spec fields {sorted(unknown)} are unknown to this version of an "
+                "(written by a newer one?); upgrade an to regenerate this clip"
+            )
         if isinstance(d.get("tempo"), list):
             d["tempo"] = tuple(tuple(p) for p in d["tempo"])
         return cls(**d)
@@ -180,6 +223,7 @@ class ImpactClipSpec:
             jitter_sd=self.timestamp_jitter_sd,
             phase=self.phase,
             timestamps=self.timestamps,  # type: ignore[arg-type]
+            report_noise_sd=self.timestamp_noise_sd,
             seed=_seed(self.seed, "clock"),
         )
 
@@ -224,8 +268,8 @@ def plan_impact_clip(spec: ImpactClipSpec) -> ImpactPlan:
         humanizer=gaussian_humanizer(spec.jitter_sd, rho=spec.jitter_rho, bias=spec.jitter_bias),
         seed=_seed(spec.seed, "performance"),
     )
-    last = max(max(e.t_grid, e.t_impact) for e in events)
-    duration = round(last + spec.tail, 9)
+    # Not rounded: rounding can land the end BELOW the last impact.
+    duration = max(max(e.t_grid, e.t_impact) for e in events) + spec.tail
     stroke = build_stroke(
         events,
         kind=spec.kind,  # type: ignore[arg-type]
@@ -259,19 +303,23 @@ def _scene(spec: ImpactClipSpec, obj: ImpactObject, stroke: Stroke, *, show_surf
     entities.append(
         AssetRef(kind="prop", id=obj.name, store="props", ref=obj.art.ref, stage=StagePlacement(at=obj.at))
     )
+    # One tween per (segment, channel): every channel is affine in h, so each
+    # eased tween is the same easing of h, and a multi-channel object (a
+    # forearm plus a stick) stays exact.
     moves = [
         sequence(
             delay(seg.t0),
             tween(
-                obj.name,
-                obj.property,
-                obj.value(seg.h1),
+                channel.target,
+                channel.property,
+                channel.value(seg.h1),
                 seg.t1 - seg.t0,
-                from_=obj.value(seg.h0),
+                from_=channel.value(seg.h0),
                 easing=seg.easing,
             ),
         )
         for seg in stroke.segments
+        for channel in obj.channels
     ]
     shot = Shot(
         id=_SHOT_ID,
@@ -354,7 +402,7 @@ def write_impact_clip(
                 },
             },
         }
-        truth, per_frame = ground_truth(
+        truth = ground_truth(
             scene=compiled,
             obj=plan.obj,
             stroke=plan.stroke,
@@ -362,16 +410,21 @@ def write_impact_clip(
             frames=plan.frames,
             header=header,
         )
-        # Created only once the truth has passed its checks, so a refused clip
-        # leaves nothing behind that looks like a clip.
+        video = _render(plan, mall, Path(tmp), compiled) if render else None
+        # Nothing is written until the truth has passed every check and the
+        # video (if any) exists, so a refused or failed clip leaves nothing
+        # behind that looks like a clip.
         target.mkdir(parents=True, exist_ok=True)
-        if render:
-            _render(plan, mall, Path(tmp), target / CLIP_FILES["video"])
+        stale = target / CLIP_FILES["video"]
+        if video is not None:
+            shutil.copyfile(video, stale)
+        elif stale.exists():
+            stale.unlink()  # a truth saying `rendered: false` beside an old video
     _write_json(target / CLIP_FILES["truth"], truth)
     _write_json(target / CLIP_FILES["scene"], plan.scene.model_dump(mode="json"))
-    lines = keypoint_lines(plan.frames, per_frame, width=spec.width, height=spec.height)
     (target / CLIP_FILES["keypoints"]).write_text(
-        "".join(json.dumps(line) + "\n" for line in lines), encoding="utf-8"
+        "".join(json.dumps(line) + "\n" for line in keypoint_lines(truth)),
+        encoding="utf-8",
     )
     buf = io.StringIO()
     csv.writer(buf, lineterminator="\n").writerows(
@@ -381,9 +434,18 @@ def write_impact_clip(
     return target
 
 
-def _render(plan: ImpactPlan, mall: dict, tmp: Path, mp4: Path) -> None:
+def _render(plan: ImpactPlan, mall: dict, tmp: Path, compiled: Any) -> Path:
+    """Render the shot; refuse if the renderer drew a different document.
+
+    `CutoutRenderer` compiles the shot itself, from arguments it rebuilds out of
+    the `RenderContext`. Today that is the same document the truth was read
+    from; if a renderer default ever changes (stepped timing switched on, say),
+    the video would change and the truth would not — so the document the
+    renderer STAGED is compared with the truth's, and a difference raises.
+    """
     from an.adapters._base import RenderContext
     from an.adapters.cutout.render import CutoutRenderer
+    from an.adapters.cutout.serialize import to_dict
 
     spec = plan.spec
     # An integral rate goes in as an int, so the mux argv is the ordinary one.
@@ -399,7 +461,16 @@ def _render(plan: ImpactPlan, mall: dict, tmp: Path, mp4: Path) -> None:
             frame_samples=tuple(f.samples for f in plan.frames),
         ),
     )
-    shutil.copyfile(result.mp4_path, mp4)
+    staged = result.mp4_path.parent / "runtime" / "scene.json"
+    drawn = json.loads(staged.read_text(encoding="utf-8"))
+    if drawn != json.loads(json.dumps(to_dict(compiled), sort_keys=True)):
+        raise TruthMismatch(
+            f"the renderer staged a different document ({staged}) from the one the "
+            "ground truth was read from; the video and the sidecar would disagree"
+        )
+    if result.provenance.get("frame_samples") != [list(f.samples) for f in plan.frames]:
+        raise TruthMismatch("the renderer did not capture the instants the truth records")
+    return result.mp4_path
 
 
 def _write_json(path: Path, doc: Any) -> None:
