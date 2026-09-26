@@ -357,6 +357,53 @@ def test_a_truth_only_rewrite_removes_a_stale_video(tmp_path):
     assert not (clip / "clip.mp4").exists()
 
 
+def test_a_two_channel_object_with_a_child_node_keypoint_stays_exact(monkeypatch, tmp_path):
+    """The seam a forearm-plus-stick limb uses: several channels, each affine in
+    the same h, and a keypoint on a node below the entity. The truth's own
+    cross-check (compiled vs analytic, at every sample) is the assertion that
+    matters — it raises if the multi-channel tweens drift from the stroke."""
+    from an.impacts.objects import IMPACT_OBJECTS, StrokeChannel, ball
+
+    def diagonal_ball():
+        b = ball()
+        return replace(
+            b,
+            channels=(*b.channels, StrokeChannel("ball", "x", 0.0, 60.0)),
+            keypoint_nodes={"center": "ball/body"},
+        )
+
+    monkeypatch.setitem(IMPACT_OBJECTS, "diagonal", diagonal_ball)
+    spec = _jittery(object="diagonal", exposure=0.5)
+    truth = json.loads((write_impact_clip(spec, tmp_path, render=False) / "truth.json")
+                       .read_text(encoding="utf-8"))
+    (obj,) = truth["objects"]
+    assert [(c["target"], c["property"]) for c in obj["stroke"]["channels"]] == [
+        ("ball", "y"), ("ball", "x")
+    ]
+    xs = [f["keypoints"]["ball"]["center"][0] for f in truth["frames"]]
+    assert max(xs) - min(xs) > 50  # the second channel really moves it
+    for e in truth["events"]:
+        assert e["impact_xy"][0] == pytest.approx(320.0)  # x is at contact too
+
+
+def test_noisy_report_timestamps_never_run_backwards():
+    from an.frame_clock import FrameClock, FrameClockError
+
+    clock = FrameClock(fps=30, report_noise_sd=0.004, seed=9)
+    reported = [f.t_reported for f in clock.frames(30.0)]
+    assert all(b > a for a, b in zip(reported, reported[1:]))
+    with pytest.raises(FrameClockError, match="keep increasing"):
+        FrameClock(fps=30, report_noise_sd=0.02)
+
+
+def test_a_spec_refuses_what_it_would_otherwise_bend():
+    with pytest.raises(ValueError, match="whole number"):
+        ImpactClipSpec(beats=2.7)
+    with pytest.raises(ValueError, match="frame period"):
+        ImpactClipSpec(tail=1e-12)
+    assert ImpactClipSpec(beats=4.0).beats == 4
+
+
 def test_a_set_writes_an_index(tmp_path):
     specs = impact_set_specs(base=replace(_jittery(), beats=2), objects=("ball",), fps=(30,), exposures=(0.0,))
     seen = []

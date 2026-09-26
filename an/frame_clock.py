@@ -49,6 +49,7 @@ from typing import Literal
 __all__ = [
     "DEFAULT_EXPOSURE_SAMPLES",
     "MAX_JITTER_FRACTION",
+    "MAX_REPORT_NOISE_FRACTION",
     "CapturedFrame",
     "FrameClock",
     "FrameClockError",
@@ -66,6 +67,10 @@ DEFAULT_EXPOSURE_SAMPLES: int = 8
 #: two neighbouring frames can each move toward the other by the full clamp and
 #: still not overlap: the clock never reorders frames, whatever ``jitter_sd`` is.
 MAX_JITTER_FRACTION: float = 0.49
+
+#: Report noise is clamped to this fraction of the frame period, each side, so
+#: two neighbouring reported timestamps can never cross on a regular grid.
+MAX_REPORT_NOISE_FRACTION: float = 0.24
 
 Timestamps = Literal["nominal", "actual"]
 
@@ -136,6 +141,9 @@ class FrameClock:
     reports).
     ``report_noise_sd``: Gaussian noise, in seconds, added to the REPORTED
     timestamp only — regular capture, noisy clock (a browser frame callback).
+    Clamped at :data:`MAX_REPORT_NOISE_FRACTION` of a frame period, with the
+    same refuse-rather-than-shrink rule as ``jitter_sd``, and reported
+    timestamps must still increase: a real frame clock never runs backwards.
     ``seed``: the random streams (capture jitter and report noise are
     independent draws from it).
 
@@ -181,6 +189,13 @@ class FrameClock:
                 "deviation above half the cap would be silently shrunk by it. "
                 "Lower jitter_sd or the exposure; for noisy TIMESTAMPS on regular "
                 "capture, use report_noise_sd."
+            )
+        if self.report_noise_sd > MAX_REPORT_NOISE_FRACTION / (2.0 * self.fps):
+            raise FrameClockError(
+                f"report_noise_sd={self.report_noise_sd!r} s cannot be honoured: "
+                f"reported timestamps must keep increasing, which caps the noise at "
+                f"{MAX_REPORT_NOISE_FRACTION / self.fps:.6g} s at {self.fps} fps, and a "
+                "standard deviation above half the cap would be silently shrunk by it."
             )
         if not (math.isfinite(self.phase) and abs(self.phase) < 1.0 / self.fps):
             raise FrameClockError(
@@ -248,6 +263,16 @@ class FrameClock:
                     + noise[i],
                 )
             )
+        reported = [f.t_reported for f in out]
+        if any(b <= a for a, b in zip(reported, reported[1:])):
+            # Reachable only with `timestamps="actual"`, capture jitter AND report
+            # noise together: jittered capture can bring two frames within less
+            # than the noise's reach of each other.
+            raise FrameClockError(
+                "reported timestamps would run backwards: with timestamps='actual', "
+                "capture jitter and report noise combine past what a monotone clock "
+                "allows. Lower jitter_sd or report_noise_sd."
+            )
         return tuple(out)
 
     def sample_times(self, duration: float) -> tuple[tuple[float, ...], ...]:
@@ -275,4 +300,5 @@ class FrameClock:
         import numpy as np
 
         rng = np.random.default_rng([self.seed, 1])
-        return [float(v) for v in rng.normal(0.0, self.report_noise_sd, n)]
+        cap = MAX_REPORT_NOISE_FRACTION / self.fps
+        return [float(v) for v in np.clip(rng.normal(0.0, self.report_noise_sd, n), -cap, cap)]

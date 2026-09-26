@@ -169,15 +169,25 @@ class ImpactClipSpec:
         for name in _FLOAT_FIELDS:
             object.__setattr__(self, name, float(getattr(self, name)))
         for name in _INT_FIELDS:
-            object.__setattr__(self, name, int(getattr(self, name)))
+            value = getattr(self, name)
+            if float(value) != int(value):
+                raise ImpactSpecError(f"{name} must be a whole number; got {value!r}")
+            object.__setattr__(self, name, int(value))
         if isinstance(self.tempo, (int, float)):
             object.__setattr__(self, "tempo", float(self.tempo))
         else:
             object.__setattr__(self, "tempo", tempo_map(self.tempo).points)
         object.__setattr__(self, "pattern", tuple(float(a) for a in self.pattern))
-        for name in ("lead_in", "tail", "trajectory_hz"):
-            if not getattr(self, name) > 0:
-                raise ImpactSpecError(f"{name} must be > 0; got {getattr(self, name)!r}")
+        if not self.trajectory_hz > 0:
+            raise ImpactSpecError(f"trajectory_hz must be > 0; got {self.trajectory_hz!r}")
+        # At least a frame either side of the performance, or the first rise and
+        # the last impact have no frame to show them.
+        for name in ("lead_in", "tail"):
+            if not getattr(self, name) >= 1.0 / self.fps:
+                raise ImpactSpecError(
+                    f"{name} must be at least one frame period (1/{self.fps:g} s); "
+                    f"got {getattr(self, name)!r}"
+                )
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
@@ -465,8 +475,9 @@ def _render(plan: ImpactPlan, mall: dict, tmp: Path, compiled: Any) -> Path:
     drawn = json.loads(staged.read_text(encoding="utf-8"))
     if drawn != json.loads(json.dumps(to_dict(compiled), sort_keys=True)):
         raise TruthMismatch(
-            f"the renderer staged a different document ({staged}) from the one the "
-            "ground truth was read from; the video and the sidecar would disagree"
+            "the renderer staged a different document from the one the ground truth "
+            "was read from (a renderer default — stepped timing, a style pack — "
+            "changed what it compiles); the video and the sidecar would disagree"
         )
     if result.provenance.get("frame_samples") != [list(f.samples) for f in plan.frames]:
         raise TruthMismatch("the renderer did not capture the instants the truth records")
