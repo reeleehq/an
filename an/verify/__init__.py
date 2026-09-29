@@ -10,6 +10,7 @@ from an.verify.layout import LayoutLintVerifier
 from an.verify.human import HumanInTheLoopVerifier
 from an.verify.media_quality import MediaQualityVerifier
 from an.verify.vision import VisionLMVerifier
+from an.verify.style import StyleLintVerifier
 
 __all__ = [
     "Verifier",
@@ -20,4 +21,5 @@ __all__ = [
     "HumanInTheLoopVerifier",
     "MediaQualityVerifier",
     "VisionLMVerifier",
+    "StyleLintVerifier",
 ]
