@@ -595,7 +595,9 @@ def _sized_to_height(svg: str, height: float) -> str:
     if len(view_box) != 4:  # keep the drawing's own units when resized
         tag = tag.replace("<svg", f'<svg viewBox="0 0 {w:g} {h:g}"', 1)
     closer = "/>" if tag.endswith("/>") else ">"
-    tag = f'{tag[: -len(closer)].rstrip()} width="{width:g}" height="{height:g}"{closer}'
+    tag = (
+        f'{tag[: -len(closer)].rstrip()} width="{width:g}" height="{height:g}"{closer}'
+    )
     return svg[: match.start()] + tag + svg[match.end() :]
 
 
