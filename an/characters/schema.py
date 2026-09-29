@@ -438,7 +438,7 @@ def _character_0_1_0_to_0_2_0(doc: dict[str, Any]) -> dict[str, Any]:
         slots = skin.get("slots") if isinstance(skin, dict) else None
         if not isinstance(slots, dict):
             continue
-        for slot_name, offset in FACE_OFFSETS.items():
+        for slot_name, offset in _FACE_OFFSETS_0_2_0.items():
             for attachment in (slots.get(slot_name) or {}).values():
                 if not isinstance(attachment, dict):
                     continue
@@ -591,6 +591,18 @@ def _default_bones() -> list[Bone]:
     ]
 
 
+#: The face offsets the 0.1.0 -> 0.2.0 migration seeds, FROZEN. A migration
+#: states what a document meant when it was written, so it may never read a
+#: default that later moves: an#168 corrected :data:`FACE_OFFSETS`, and a live
+#: read here silently re-laid-out every migrated rig in the bench corpus.
+_FACE_OFFSETS_0_2_0: dict[str, tuple[float, float]] = {
+    "left_eye": (-41.6, -17.8),
+    "right_eye": (41.6, -17.8),
+    "left_brow": (-41.6, -53.4),
+    "right_brow": (41.6, -53.4),
+    "mouth": (0.0, 41.6),
+}
+
 #: How far above the ``head`` bone (the neck) the head art's centre sits when
 #: the head is :data:`REFERENCE_HEAD_HEIGHT` tall and hangs at :data:`HEAD_ANCHOR`.
 _HEAD_CENTRE_ABOVE_NECK: float = (HEAD_ANCHOR[1] - 0.5) * REFERENCE_HEAD_HEIGHT
@@ -606,13 +618,7 @@ _HEAD_CENTRE_ABOVE_NECK: float = (HEAD_ANCHOR[1] - 0.5) * REFERENCE_HEAD_HEIGHT
 #: the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).
 FACE_OFFSETS: dict[str, tuple[float, float]] = {
     name: (x, round(y - _HEAD_CENTRE_ABOVE_NECK, 1))
-    for name, (x, y) in {
-        "left_eye": (-41.6, -17.8),
-        "right_eye": (41.6, -17.8),
-        "left_brow": (-41.6, -53.4),
-        "right_brow": (41.6, -53.4),
-        "mouth": (0.0, 41.6),
-    }.items()
+    for name, (x, y) in _FACE_OFFSETS_0_2_0.items()
 }
 
 

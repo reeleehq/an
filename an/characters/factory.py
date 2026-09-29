@@ -558,22 +558,41 @@ def _palette_for_seed(seed: str) -> tuple[str, str, str]:
     return palettes[idx]
 
 
-_SVG_OPEN_TAG = re.compile(r"<svg\b[^>]*>", re.S)
-_SIZE_ATTR = re.compile(r"\s(width|height)\s*=\s*(\"[^\"]*\"|'[^']*')")
+#: Everything XML allows before the root element: prolog, doctype, comments,
+#: processing instructions, whitespace.
+_SVG_PREAMBLE = re.compile(r"(?:\s|<\?.*?\?>|<!--.*?-->|<!DOCTYPE[^>]*>)*", re.S)
+#: The root's start tag, with `>` allowed inside quoted attribute values.
+_SVG_OPEN_TAG = re.compile(r"""<svg\b(?:[^>"']|"[^"]*"|'[^']*')*>""")
+_SIZE_ATTR = re.compile(r"""\s(width|height)\s*=\s*("[^"]*"|'[^']*')""")
 
 
 def _sized_to_height(svg: str, height: float) -> str:
     """``svg`` with its root ``width``/``height`` set so it rasterises ``height``
     tall at its own aspect ratio. Only the root tag's attributes change.
 
+    The aspect is the viewBox's — what the browser draws — and the declared
+    size is used only when there is no viewBox (a ``%`` size then has no
+    meaning and is refused by :func:`raster_size`).
+
     >>> _sized_to_height('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"/>', 100)
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40" width="200" height="100"/>'
+    >>> _sized_to_height('<?xml version="1.0"?><!-- <svg> --><svg xmlns="http://www.w3.org/2000/svg" '
+    ...                  'viewBox="0 0 10 10" width="100%" data-t="a>b"/>', 5)
+    '<?xml version="1.0"?><!-- <svg> --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" data-t="a>b" width="5" height="5"/>'
     """
-    w, h = raster_size(svg)
+    root = ET.fromstring(svg.encode("utf-8"))
+    view_box = (root.get("viewBox") or "").replace(",", " ").split()
+    if len(view_box) == 4:
+        w, h = float(view_box[2]), float(view_box[3])
+    else:
+        w, h = raster_size(svg)
     width = round(height * w / h, 3)
-    match = _SVG_OPEN_TAG.search(svg)
+    at = _SVG_PREAMBLE.match(svg).end()
+    match = _SVG_OPEN_TAG.match(svg, at)
+    if match is None:
+        raise ValueError("the avatar SVG's root element is not <svg>")
     tag = _SIZE_ATTR.sub("", match.group(0))
-    if "viewBox" not in tag:  # keep the drawing's own units when resized
+    if len(view_box) != 4:  # keep the drawing's own units when resized
         tag = tag.replace("<svg", f'<svg viewBox="0 0 {w:g} {h:g}"', 1)
     closer = "/>" if tag.endswith("/>") else ">"
     tag = f'{tag[: -len(closer)].rstrip()} width="{width:g}" height="{height:g}"{closer}'
