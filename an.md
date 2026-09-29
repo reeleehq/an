@@ -1,4 +1,4 @@
-> built 2026-09-29 19:39 UTC from 4c6702f (main) · an 0.1.91. Details: build_info.json
+> built 2026-09-29 19:53 UTC from faa99d2 (main) · an 0.1.92. Details: build_info.json
 
 # index.html.md
 
@@ -5138,7 +5138,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'rect', 'ellipse', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'eye', 'rect', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -18156,6 +18156,7 @@ Verification protocol — same interface for human, lint, vision-LM, MoVer.
 | [`HumanInTheLoopVerifier`](_autosummary/an.verify.html.md#an.verify.HumanInTheLoopVerifier)(\*[, prompt])            | Open the mp4, prompt the user to approve.      |
 | [`MediaQualityVerifier`](_autosummary/an.verify.html.md#an.verify.MediaQualityVerifier)(\*[, max_db_floor, ...])   | Post-render quality checks.                    |
 | [`VisionLMVerifier`](_autosummary/an.verify.html.md#an.verify.VisionLMVerifier)(\*[, model, frame_count, ...]) | Claude vision Verifier (skip-if-missing-deps). |
+| [`StyleLintVerifier`](_autosummary/an.verify.html.md#an.verify.StyleLintVerifier)(spec_or_targets, \*[, ...])   | Compare a render to a style spec's `targets`.  |
 
 ### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None)
 
@@ -18183,6 +18184,17 @@ Cheap IR-only verifier. Implements `Verifier`.
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Post-render quality checks. Implements `Verifier`.
+
+### *class* an.verify.StyleLintVerifier(spec_or_targets, , miss_severity='warning')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Compare a render to a style spec’s `targets`. Implements `Verifier`.
+
+Shot boundaries come from the IR (every shot boundary is a hard cut in an
+`an` render), so `cuts_per_min` and `mean_shot_s` are exact rather
+than detected. Pre-render (`render is None`) it reports `info` and
+passes: it has nothing to measure yet.
 
 ### *class* an.verify.VerificationReport(passed=True, findings=<factory>)
 
@@ -18219,12 +18231,13 @@ object, differing only in what the store returns.
 
 ### Modules
 
-| [`human`](_autosummary/an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.       |
-|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`layout`](_autosummary/an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                      |
-| [`media`](_autosummary/an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s. |
-| [`media_quality`](_autosummary/an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.         |
-| [`vision`](_autosummary/an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues. |
+| [`human`](_autosummary/an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                               |
+|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
+| [`layout`](_autosummary/an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                              |
+| [`media`](_autosummary/an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                         |
+| [`media_quality`](_autosummary/an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                                 |
+| [`style`](_autosummary/an.verify.style.html.md#module-an.verify.style)                 | Style lint: measure a render's cadence, cut rate and palette, and compare them to a style's targets. |
+| [`vision`](_autosummary/an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                         |
 
 
 # _autosummary/an.verify.human.html.md
@@ -18415,6 +18428,200 @@ proceeds; the orchestrator can decide whether to surface or block.
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Post-render quality checks. Implements `Verifier`.
+
+
+# _autosummary/an.verify.style.html.md
+
+# an.verify.style
+
+Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
+
+“Make it in the style of X” is only checkable if X is a set of numbers. The
+cut-out styles research (`misc/docs/cutout_styles_research.md`) measured six
+styles with one fixed set of statistics; this module is that measurement,
+ported, so an agent can render, measure the same statistics on its own output,
+and adjust. The style specs that carry the `targets` live with the downstream
+skill (`.claude/skills/an-style/styles/*.yaml`).
+
+**The estimators are the research’s estimators, on purpose.** Every threshold
+below is the one the six styles were measured with, including the ones that are
+crude (a noise floor at the 10th percentile of frame differences, a cut as a
+colour-histogram jump). A better estimator would measure a different quantity
+from the one the targets were calibrated on, and a render would then pass or
+miss for a reason nobody measured. Change an estimator only together with
+re-measuring the targets.
+
+What is measured (see [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) for the vocabulary a spec’s `targets`
+may use):
+
+- **Holds and cadence.** A frame “changes” when its mean absolute grey
+  difference from the previous frame exceeds `max(0.25, 2.5 × p10)`, where
+  p10 is the clip’s own 10th-percentile difference (compression noise, capped
+  at 1.0 — see `NOISE_FLOOR_CAP`). From
+  that: the share of frames identical to the previous one, pose changes per
+  second, and the histogram of gaps between successive changes (one frame = on
+  ones, two = on twos, three or more = threes and holds, gaps above 12 frames
+  ignored as holds rather than cadence).
+- **Cuts and shot length.** For an `an` render the cuts are KNOWN — every shot
+  boundary in the IR is a hard cut, because shots are concatenated — so the
+  verifier takes them from the IR. Without an IR (any mp4), a cut is a frame
+  whose 8×8×8 colour-histogram L1 distance exceeds 0.6 and whose mean
+  difference exceeds 8; dissolves and morphs are missed, so on such footage the
+  count is a floor.
+- **Palette.** Mean HSV saturation, the share of dark pixels (every channel
+  below 60, an outline proxy), and the coverage of the 16 most common colours
+  after 4-bit quantisation (flatness), all on every 15th frame.
+
+Not ported, deliberately: the research also measured global camera motion
+(`cv2.phaseCorrelate`) and a k-means palette. Both need OpenCV or
+scikit-learn, and this module adds no dependency — numpy and the ffmpeg binary
+are already what `an.verify.media` uses.
+
+A pure function over frames — [`measure_style()`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style) — is the core, so it is
+testable without ffmpeg:
+
+```pycon
+>>> import numpy as np
+>>> still = np.zeros((4, 8, 8, 3), np.uint8)
+>>> frames = np.concatenate([still, still + 200, still + 200, still])  # 16 frames, changes at 4 and 12
+>>> m = measure_style(frames, fps=4.0, shot_durations=[4.0])
+>>> m.identical_frame_share, m.pose_changes_per_s
+(0.867, 0.5)
+```
+
+A target is a `[low, high]` range; a miss is a warning naming the knob that
+moves it:
+
+```pycon
+>>> findings = check_targets(m, {"identical_frame_share": [0.2, 0.5]})
+>>> findings[0].severity, findings[0].ir_path
+('warning', '<style>/identical_frame_share')
+>>> check_targets(m, {"identical_frame_share": [0.5, 0.9]})
+[]
+```
+
+A target nothing measures is refused, not ignored — a spec that silently checks
+less than it says is worse than one that fails to load:
+
+```pycon
+>>> check_targets(m, {"camera_shake": [0, 1]})
+Traceback (most recent call last):
+...
+ValueError: unknown style target 'camera_shake'; measurable targets are [...]
+```
+
+### Module Attributes
+
+| [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS)   | every key a spec's `targets` may use, and what it is.   |
+|------------------------------------------------------------|---------------------------------------------------------|
+
+### Functions
+
+| [`measure_style`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style)(frames, \*, fps[, shot_durations])   | Measure the [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.   |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| [`measure_video`](_autosummary/an.verify.style.html.md#an.verify.style.measure_video)(mp4, \*[, shot_durations, ...])      | Decode `mp4` at the research's scale and [`measure_style()`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style) it.          |
+| [`check_targets`](_autosummary/an.verify.style.html.md#an.verify.style.check_targets)(metrics, targets, \*[, ...])         | One `Finding` per target the metrics miss; `[]` when all hit.                                                          |
+| [`load_style_spec`](_autosummary/an.verify.style.html.md#an.verify.style.load_style_spec)(spec)                              | A style spec as a dict: a mapping is passed through, a path is read as YAML.                                           |
+| [`style_lint`](_autosummary/an.verify.style.html.md#an.verify.style.style_lint)(mp4, spec_or_targets, \*[, ...])        | Measure `mp4` and compare it to a style spec's `targets`.                                                              |
+
+### Classes
+
+| [`StyleMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.StyleMetrics)(fps, frames, duration_s, ...)    | The statistics [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) names, measured on one clip.   |
+|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| [`StyleLintResult`](_autosummary/an.verify.style.html.md#an.verify.style.StyleLintResult)(metrics, report)              | What one lint run measured, and what it found.                                                         |
+| [`StyleLintVerifier`](_autosummary/an.verify.style.html.md#an.verify.style.StyleLintVerifier)(spec_or_targets, \*[, ...]) | Compare a render to a style spec's `targets`.                                                          |
+
+### an.verify.style.METRICS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'cuts_per_min': 'hard cuts per minute', 'dark_pixel_share': 'share of pixels with every channel below 60', 'identical_frame_share': 'share of frames identical to the previous one (holds)', 'max_hold_frames': 'longest run of identical frames', 'mean_saturation': 'mean HSV saturation, 0..1', 'mean_shot_s': 'mean shot length in seconds', 'one_frame_interval_share': 'share of change gaps of one frame (on ones)', 'pose_changes_per_s': 'changed frames per second', 'three_plus_interval_share': 'share of change gaps of three to twelve frames', 'top16_colour_coverage': 'coverage of the 16 commonest 4-bit colours (flatness)', 'two_frame_interval_share': 'share of change gaps of two frames (on twos)'}*
+
+every key a spec’s `targets` may use, and what it is.
+
+* **Type:**
+  The target vocabulary
+
+### *class* an.verify.style.StyleLintResult(metrics, report)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What one lint run measured, and what it found.
+
+### *class* an.verify.style.StyleLintVerifier(spec_or_targets, , miss_severity='warning')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Compare a render to a style spec’s `targets`. Implements `Verifier`.
+
+Shot boundaries come from the IR (every shot boundary is a hard cut in an
+`an` render), so `cuts_per_min` and `mean_shot_s` are exact rather
+than detected. Pre-render (`render is None`) it reports `info` and
+passes: it has nothing to measure yet.
+
+### *class* an.verify.style.StyleMetrics(fps, frames, duration_s, identical_frame_share, pose_changes_per_s, one_frame_interval_share, two_frame_interval_share, three_plus_interval_share, max_hold_frames, cuts, cuts_per_min, mean_shot_s, mean_saturation, dark_pixel_share, top16_colour_coverage, cut_source, change_threshold)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The statistics [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) names, measured on one clip.
+
+#### cut_source *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+`"shots"` (a shot list, exact) or `"pixels"`.
+
+* **Type:**
+  Where the cuts came from
+
+### an.verify.style.check_targets(metrics, targets, , miss_severity='warning')
+
+One `Finding` per target the metrics miss; `[]` when all hit.
+
+Raises `ValueError` for a target [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) does not name, or a range
+that is not `[low, high]` with `low <= high`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Finding`](_autosummary/an.verify.html.md#an.verify.Finding)]
+
+### an.verify.style.load_style_spec(spec)
+
+A style spec as a dict: a mapping is passed through, a path is read as YAML.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.verify.style.measure_style(frames, , fps, shot_durations=None)
+
+Measure the [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.
+
+`shot_durations` (seconds, in order) gives the cuts exactly; without it the
+pixel cut detector is used. Ratios are rounded to three decimals.
+
+* **Return type:**
+  [`StyleMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.StyleMetrics)
+
+```pycon
+>>> import numpy as np
+>>> f = np.zeros((6, 4, 4, 3), np.uint8)
+>>> f[1::2] = 255                       # a change on every frame
+>>> m = measure_style(f, fps=6.0, shot_durations=[1.0])
+>>> m.identical_frame_share, m.one_frame_interval_share, m.cuts
+(0.0, 1.0, 0)
+```
+
+### an.verify.style.measure_video(mp4, , shot_durations=None, width=320, height=180)
+
+Decode `mp4` at the research’s scale and [`measure_style()`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style) it.
+
+* **Return type:**
+  [`StyleMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.StyleMetrics)
+
+### an.verify.style.style_lint(mp4, spec_or_targets, , shot_durations=None, miss_severity='warning')
+
+Measure `mp4` and compare it to a style spec’s `targets`.
+
+A decode or probe failure is reported at
+[`an.verify.vision.FAILURE_SEVERITY`](_autosummary/an.verify.vision.html.md#an.verify.vision.FAILURE_SEVERITY), never as `info` — a lint that
+could not run must not read as a clean one. A malformed spec raises: that is
+the caller’s error, not the video’s.
+
+* **Return type:**
+  [`StyleLintResult`](_autosummary/an.verify.style.html.md#an.verify.style.StyleLintResult)
 
 
 # _autosummary/an.verify.vision.html.md
@@ -18611,20 +18818,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-29 19:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/4c6702ff4609de6042e7b5a9d44fefa1027c813d"><code>4c6702f</code></a> on branch <code>main</code>, for **an 0.1.91** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-29 19:53 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/faa99d2114d7a4d908729bc9b5d371df6270b0cb"><code>faa99d2</code></a> on branch <code>main</code>, for **an 0.1.92** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.91) is ahead of the latest release on PyPI (0.1.90): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/4c6702ff4609de6042e7b5a9d44fefa1027c813d"><code>4c6702ff4609de6042e7b5a9d44fefa1027c813d</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/faa99d2114d7a4d908729bc9b5d371df6270b0cb"><code>faa99d2114d7a4d908729bc9b5d371df6270b0cb</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.91</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.92</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -18633,9 +18838,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36620462772">36620462772</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36622024057">36622024057</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>d358b038085d9ec0c88dba020bbf47ce32e966eb</code> (in the history of the built commit) |
+| Event commit | <code>86fdf0b09b4b432514859fcc58d67ca009d50951</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -18660,13 +18865,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.90/">0.1.90</a>, older than the documented version (0.1.91).
+Latest release: <a href="https://pypi.org/project/an/0.1.92/">0.1.92</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 4c6702ff4609de6042e7b5a9d44fefa1027c813d
+git checkout faa99d2114d7a4d908729bc9b5d371df6270b0cb
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
@@ -18771,6 +18976,12 @@ Source: [`.claude/skills/an-dev-swap-channels`](https://github.com/thorwhalen/an
 Use when the user is starting a new an scene and needs help dialogically developing a scene specification — clarifying questions about characters, dialogue, art style, voices, pacing, and camera. Triggers on “let’s design a scene”, “I want to make a video about…”, “help me sketch a cartoon”, or any open-ended creative request handed to an.
 
 Source: [`.claude/skills/an-spec`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-spec).
+
+### `an-style`
+
+Use when the user wants a script or scene made “in the style of” a named cut-out animation look — South Park, OverSimplified, Kurzgesagt, Terry Gilliam / Monty Python, Lotte Reiniger silhouettes, Yuri Norstein / Hedgehog in the Fog — or asks what a style needs, how expensive it is, or whether a render looks like the style. Triggers on “in the style of”, “make it look like South Park”, “OverSimplified-style”, “Kurzgesagt look”, “silhouette film”, “Monty Python cut-outs”, “does this match the style”, “style lint”. Applies a style spec to an `an` scene, renders, measures the render against the spec’s targets, and adjusts.
+
+Source: [`.claude/skills/an-style`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-style).
 
 ## Instruction files
 

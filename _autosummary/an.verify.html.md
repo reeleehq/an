@@ -12,6 +12,7 @@ Verification protocol — same interface for human, lint, vision-LM, MoVer.
 | [`HumanInTheLoopVerifier`](#an.verify.HumanInTheLoopVerifier)(\*[, prompt])            | Open the mp4, prompt the user to approve.      |
 | [`MediaQualityVerifier`](#an.verify.MediaQualityVerifier)(\*[, max_db_floor, ...])   | Post-render quality checks.                    |
 | [`VisionLMVerifier`](#an.verify.VisionLMVerifier)(\*[, model, frame_count, ...]) | Claude vision Verifier (skip-if-missing-deps). |
+| [`StyleLintVerifier`](#an.verify.StyleLintVerifier)(spec_or_targets, \*[, ...])   | Compare a render to a style spec's `targets`.  |
 
 ### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None)
 
@@ -39,6 +40,17 @@ Cheap IR-only verifier. Implements `Verifier`.
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Post-render quality checks. Implements `Verifier`.
+
+### *class* an.verify.StyleLintVerifier(spec_or_targets, , miss_severity='warning')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Compare a render to a style spec’s `targets`. Implements `Verifier`.
+
+Shot boundaries come from the IR (every shot boundary is a hard cut in an
+`an` render), so `cuts_per_min` and `mean_shot_s` are exact rather
+than detected. Pre-render (`render is None`) it reports `info` and
+passes: it has nothing to measure yet.
 
 ### *class* an.verify.VerificationReport(passed=True, findings=<factory>)
 
@@ -75,9 +87,10 @@ object, differing only in what the store returns.
 
 ### Modules
 
-| [`human`](an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.       |
-|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`layout`](an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                      |
-| [`media`](an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s. |
-| [`media_quality`](an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.         |
-| [`vision`](an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues. |
+| [`human`](an.verify.human.html.md#module-an.verify.human)                 | HumanInTheLoopVerifier — opens the rendered mp4 and asks for approval.                               |
+|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
+| [`layout`](an.verify.layout.html.md#module-an.verify.layout)               | LayoutLintVerifier — cheap pre-render checks on the IR.                                              |
+| [`media`](an.verify.media.html.md#module-an.verify.media)                 | Media verification helpers — audio + frame quality checks for rendered mp4s.                         |
+| [`media_quality`](an.verify.media_quality.html.md#module-an.verify.media_quality) | MediaQualityVerifier — post-render quality checks on the actual mp4.                                 |
+| [`style`](an.verify.style.html.md#module-an.verify.style)                 | Style lint: measure a render's cadence, cut rate and palette, and compare them to a style's targets. |
+| [`vision`](an.verify.vision.html.md#module-an.verify.vision)               | VisionLMVerifier — Claude vision looks at sampled frames and reports issues.                         |

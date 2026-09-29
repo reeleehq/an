@@ -122,6 +122,7 @@
 - [an.verify.layout](an.verify.layout.html.md): LayoutLintVerifier — cheap pre-render checks on the IR.
 - [an.verify.media](an.verify.media.html.md): Media verification helpers — audio + frame quality checks for rendered mp4s.
 - [an.verify.media_quality](an.verify.media_quality.html.md): MediaQualityVerifier — post-render quality checks on the actual mp4.
+- [an.verify.style](an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 
 ## Optional

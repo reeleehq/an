@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=8e1ed48b"></script>
+    <script src="../_static/documentation_options.js?v=b9e65ee1"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.util" href="an.util.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.91" />
+  <meta name="docsearch:version" content="0.1.92" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -438,6 +438,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.style.html">an.verify.style</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
 </ul>
 </details></li>
@@ -533,6 +534,9 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.VisionLMVerifier" title="an.verify.VisionLMVerifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisionLMVerifier</span></code></a>(*[, model, frame_count, ...])</p></td>
 <td><p>Claude vision Verifier (skip-if-missing-deps).</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.StyleLintVerifier" title="an.verify.StyleLintVerifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StyleLintVerifier</span></code></a>(spec_or_targets, *[, ...])</p></td>
+<td><p>Compare a render to a style spec's <code class="docutils literal notranslate"><span class="pre">targets</span></code>.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -568,6 +572,19 @@ the IR — e.g. <code class="docutils literal notranslate"><span class="pre">&qu
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.verify.</span></span><span class="sig-name descname"><span class="pre">MediaQualityVerifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_db_floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-75.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dialogue_silence_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frozen_ssim_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.999</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_sample_fps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/media_quality.html#MediaQualityVerifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.MediaQualityVerifier" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Post-render quality checks. Implements <code class="docutils literal notranslate"><span class="pre">Verifier</span></code>.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.verify.StyleLintVerifier">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.verify.</span></span><span class="sig-name descname"><span class="pre">StyleLintVerifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec_or_targets</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">miss_severity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'warning'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/style.html#StyleLintVerifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.StyleLintVerifier" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Compare a render to a style spec’s <code class="docutils literal notranslate"><span class="pre">targets</span></code>. Implements <code class="docutils literal notranslate"><span class="pre">Verifier</span></code>.</p>
+<p>Shot boundaries come from the IR (every shot boundary is a hard cut in an
+<code class="docutils literal notranslate"><span class="pre">an</span></code> render), so <code class="docutils literal notranslate"><span class="pre">cuts_per_min</span></code> and <code class="docutils literal notranslate"><span class="pre">mean_shot_s</span></code> are exact rather
+than detected. Pre-render (<code class="docutils literal notranslate"><span class="pre">render</span> <span class="pre">is</span> <span class="pre">None</span></code>) it reports <code class="docutils literal notranslate"><span class="pre">info</span></code> and
+passes: it has nothing to measure yet.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -633,7 +650,10 @@ object, differing only in what the store returns.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.verify.media_quality.html#module-an.verify.media_quality" title="an.verify.media_quality"><code class="xref py py-obj docutils literal notranslate"><span class="pre">media_quality</span></code></a></p></td>
 <td><p>MediaQualityVerifier — post-render quality checks on the actual mp4.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.verify.vision.html#module-an.verify.vision" title="an.verify.vision"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vision</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.verify.style.html#module-an.verify.style" title="an.verify.style"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style</span></code></a></p></td>
+<td><p>Style lint: measure a render's cadence, cut rate and palette, and compare them to a style's targets.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.verify.vision.html#module-an.verify.vision" title="an.verify.vision"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vision</span></code></a></p></td>
 <td><p>VisionLMVerifier — Claude vision looks at sampled frames and reports issues.</p></td>
 </tr>
 </tbody>
@@ -692,6 +712,7 @@ object, differing only in what the store returns.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.HumanInTheLoopVerifier"><code class="docutils literal notranslate"><span class="pre">HumanInTheLoopVerifier</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.LayoutLintVerifier"><code class="docutils literal notranslate"><span class="pre">LayoutLintVerifier</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.MediaQualityVerifier"><code class="docutils literal notranslate"><span class="pre">MediaQualityVerifier</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.StyleLintVerifier"><code class="docutils literal notranslate"><span class="pre">StyleLintVerifier</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.VerificationReport"><code class="docutils literal notranslate"><span class="pre">VerificationReport</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.Verifier"><code class="docutils literal notranslate"><span class="pre">Verifier</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.Verifier.verify"><code class="docutils literal notranslate"><span class="pre">Verifier.verify()</span></code></a></li>

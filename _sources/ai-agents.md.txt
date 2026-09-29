@@ -95,6 +95,12 @@ Use when the user is starting a new an scene and needs help dialogically develop
 
 Source: [`.claude/skills/an-spec`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-spec).
 
+### `an-style`
+
+Use when the user wants a script or scene made "in the style of" a named cut-out animation look — South Park, OverSimplified, Kurzgesagt, Terry Gilliam / Monty Python, Lotte Reiniger silhouettes, Yuri Norstein / Hedgehog in the Fog — or asks what a style needs, how expensive it is, or whether a render looks like the style. Triggers on "in the style of", "make it look like South Park", "OverSimplified-style", "Kurzgesagt look", "silhouette film", "Monty Python cut-outs", "does this match the style", "style lint". Applies a style spec to an `an` scene, renders, measures the render against the spec's targets, and adjusts.
+
+Source: [`.claude/skills/an-style`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-style).
+
 
 ## Instruction files
 

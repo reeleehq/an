@@ -1,0 +1,30 @@
+an.verify.style
+===============
+
+.. automodule:: an.verify.style
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      METRICS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      measure_style
+      measure_video
+      check_targets
+      load_style_spec
+      style_lint
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      StyleMetrics
+      StyleLintResult
+      StyleLintVerifier
+   

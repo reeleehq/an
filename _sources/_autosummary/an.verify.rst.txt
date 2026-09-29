@@ -15,6 +15,7 @@ an.verify
       HumanInTheLoopVerifier
       MediaQualityVerifier
       VisionLMVerifier
+      StyleLintVerifier
    
 .. rubric:: Modules
 
@@ -26,4 +27,5 @@ an.verify
    layout
    media
    media_quality
+   style
    vision
