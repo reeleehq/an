@@ -1,0 +1,48 @@
+# OverSimplified-style history explainer. See the header of south_park.yaml for how to read this file.
+style: oversimplified
+title: OverSimplified (stick-figure history explainer)
+cost_class: low_to_medium
+cost_note: stick figures are cheap; sets, props, maps and crowds are many
+
+live:
+  meta:
+    fps: 30
+    # no step_hz: motion is bursts on ones between holds (91% one-frame change gaps),
+    # and step_hz would resample every tween onto one grid
+  style_pack:
+    name: oversimplified
+    roles:
+      sky: "#a7b1b9"         # measured grey
+      ground: "#cda469"      # measured tan
+  environment:
+    preset: default
+  camera:
+    default: hold
+    allowed: [hold, push_in, pan_left, pan_right]   # push-ins on still prints, pans over maps
+  easing: [ease_out, linear]
+  tween_duration_s: [0.13, 0.4]   # 4-12 frames, then a hold: burst-and-hold
+  motion_presets: [pop_in, slide_in, slide_out, shake]   # an.motion
+  shots:
+    mean_s: 6.0              # measured, median 4.7, n=10
+    range_s: [2, 12]
+  characters:
+    generate: offline
+    mouth_variants: [happy, sad]
+
+targets:
+  identical_frame_share: [0.55, 0.65]    # measured 0.59
+  one_frame_interval_share: [0.85, 0.95] # measured 0.91
+  cuts_per_min: [8, 10]                  # measured 9.0
+
+guidance:
+  construction: blocky body, stick limbs, oversized head; brows and mouth only, no nose or ears
+  identity: costume colour, hat, sash tell figures apart
+  crowds: dozens of identical figures; no instancing macro ships, so repeat entities by hand
+  structure: [narrated_map, dramatization, date_card]
+  narration: one narrator voices every character, third person
+  palette_accents: {brick: "#ba5f31", sage: "#67796a", card_bg: "#040404"}   # not StylePack roles
+  maps: red and blue territory fills that cross-fade; no map layer ships
+  text: date cards (bold white sans on black, 1.5-2.5 s), top-of-frame bullet captions, small speech text; no text node ships
+  motion_vocabulary_unmapped: [fall, freeze_frame, bait_and_switch]   # no preset
+  sound: a Creative Commons music bed and dense SFX; `an` renders dialogue audio only
+  transitions: hard cuts plus gag interrupts

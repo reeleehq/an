@@ -1041,6 +1041,139 @@ def _build_motion_presets(work: Path) -> Path:
     save(project)
     return _render(work)
 
+#: The style spec the style demo applies, read from the downstream skill so the
+#: demo and the spec cannot disagree about what "South Park-style" means here.
+STYLE_SPEC_PATH = REPO_ROOT / ".claude" / "skills" / "an-style" / "styles" / "south_park.yaml"
+
+
+def _build_south_park_style(work: Path) -> Path:
+    """A four-line script made "in the style of South Park" from the style spec,
+    then measured against the spec's targets by the style lint.
+
+    Everything the spec calls `live` is applied from the file — fps, `step_hz`,
+    the StylePack, the environment preset, the camera, the easing, the tween
+    lengths — and nothing from its `guidance` (paper-gap shadow, pitch-shifted
+    voice, location cards), because `an` does not have those yet. Its moves
+    are hand-written tweens; it predates `an.motion`. The lint's
+    numbers are printed and written beside the clip as
+    `south-park-style.style_lint.json`.
+    """
+    import yaml
+
+    from an.styles import StylePack
+    from an.verify.style import style_lint
+
+    spec = yaml.safe_load(STYLE_SPEC_PATH.read_text(encoding="utf-8"))
+    live = spec["live"]
+    meta = live["meta"]
+    w, h = DEMO_RESOLUTION
+    pack = StylePack(**live["style_pack"])
+    (work / "assets" / "styles").mkdir(parents=True, exist_ok=True)
+    (work / "assets" / "styles" / f"{pack.name}.json").write_text(
+        json.dumps(json.loads(pack.model_dump_json()), indent=2), encoding="utf-8"
+    )
+    hop = min(live["tween_duration_s"])  # short and linear: jerky, no overshoot
+    easing = live["easing"][0]
+
+    def entities(*placed):
+        rows = [
+            "- kind: environment\n  id: set\n  store: environments\n"
+            f"  ref: {live['environment']['preset']}\n"
+        ] + [
+            f"- kind: character\n  id: {n}\n  store: characters\n  ref: {n}\n"
+            f"  stage:\n    at: [{x}, {y}]\n    scale: {k}\n"
+            for n, x, y, k in placed
+        ]
+        return "```yaml entities\n" + "".join(rows) + "```\n"
+
+    def tween(target, prop, to, at, *, frm=None):
+        f = f"  from: {frm}\n" if frm is not None else ""
+        return (
+            f"- kind: tween\n  target: {target}\n  property: {prop}\n{f}  to: {to}\n"
+            f"  duration: {hop}\n  easing: {easing}\n  start: {round(at, 3)}\n"
+        )
+
+    def hop_on(target, at):
+        return tween(target, "y", -18, at) + tween(target, "y", 0, at + hop, frm=-18)
+
+    def gesture(target, start, end, *, beat=0.25, amp=0.35):
+        """The speaker's arm and head move while they talk, then HOLD — body
+        tweens stepped on twos by the spec's `step_hz`, mouths on ones."""
+        out, t, sign = [], start, 1
+        while t + beat <= end:
+            out.append(tween(f"{target}/arm_r", "rotation", sign * amp, t))
+            out.append(tween(f"{target}/head", "rotation", sign * amp / 4, t))
+            t, sign = t + beat, -sign
+        out.append(tween(f"{target}/arm_r", "rotation", 0, t))
+        out.append(tween(f"{target}/head", "rotation", 0, t))
+        return "".join(out)
+
+    def shot(sid, placed, lines, actions):
+        return (
+            f"## Shot {sid} (cutout)\n\n```yaml shot\nduration: 4.0\ncamera:\n"
+            f"  move: {live['camera']['default']}\n```\n\n{entities(*placed)}\n"
+            f"```yaml actions\n{actions}```\n\n```dialogue\n{lines}```\n"
+        )
+
+    md = (
+        _scene(
+            f"""
+            # In the style of South Park
+
+            ```yaml meta
+            title: "In the style of South Park"
+            author: an
+            duration: 8.0
+            fps: {meta['fps']}
+            step_hz: {meta['step_hz']}
+            style_pack: {meta['style_pack']}
+            resolution:
+              width: {w}
+              height: {h}
+            default_renderer: cutout
+            ```
+            """
+        )
+        + "\n"
+        + shot(  # the two-shot
+            "s1",
+            [("gus", -110, 100, 1.4), ("dot", 110, 100, 1.4)],
+            "gus [surprised]: Dude, they're serving meatloaf again.\n"
+            "dot [angry]: Oh, come on!\n",
+            gesture("gus", 0.2, 2.2) + hop_on("dot", 2.4) + gesture("dot", 2.8, 3.8),
+        )
+        + "\n"
+        + shot(  # the single close
+            "s2",
+            [("gus", 0, 175, 2.0)],
+            "gus [thinking]: I'm gonna go talk to the lunch lady.\n",
+            gesture("gus", 0.2, 3.6),
+        )
+    )
+    project = _project(work, scene_md=md, characters=("gus", "dot"))
+    mp4 = _render(project)
+    result = style_lint(mp4, STYLE_SPEC_PATH, shot_durations=[4.0, 4.0])
+    for f in result.report.findings:
+        print(f"    [{f.severity}] {f.description}")
+    report = work.parents[1] / "south-park-style.style_lint.json"
+    report.write_text(
+        json.dumps(
+            {
+                "spec": spec["style"],
+                "targets": spec["targets"],
+                "metrics": result.metrics.as_dict() if result.metrics else None,
+                "findings": [
+                    {"severity": f.severity, "description": f.description,
+                     "suggested_fix": f.suggested_fix}
+                    for f in result.report.findings
+                ],
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    return mp4
+
 
 def _copy_example(rel: str) -> Callable[[Path], Path]:
     def build(work: Path) -> Path:
@@ -1500,6 +1633,26 @@ DEMOS: tuple[Demo, ...] = (
             "fractions of arc length."
         ),
         build=_build_path_arrow,
+    ),
+    Demo(
+        slug="south-park-style",
+        title="A script in the style of South Park, measured",
+        shows=(
+            "Four lines of script made 'in the style of South Park' by applying a "
+            "style spec: 24 fps with tweens on twos (`step_hz: 12`), a StylePack "
+            "for the set's colours, a locked camera, short linear hops, 4 s shots. "
+            "The render is then measured by the style lint against the spec's "
+            "targets (identical-frame share, cuts per minute, mean shot length), "
+            "and the numbers are written beside the clip. What the spec lists as "
+            "guidance (paper-gap shadow, pitch-raised voices, location cards) is "
+            "NOT applied: `an` does not have it yet."
+        ),
+        how=(
+            "The `an-style` skill and `.claude/skills/an-style/styles/south_park.yaml`; "
+            "then `python -m an.verify.style out.mp4 south_park.yaml` "
+            "(`an.verify.style.StyleLintVerifier`)."
+        ),
+        build=_build_south_park_style,
     ),
     Demo(
         slug="impacts",

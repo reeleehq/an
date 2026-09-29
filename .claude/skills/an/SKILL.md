@@ -96,6 +96,8 @@ All parameters are keyword-only with module-constant defaults (`DFLT_*`); `an.mo
 5. **Run `an render <dir>`** for the offline default, or `an render <dir> --tts elevenlabs --lipsync whisper` for real speech with word-aligned visemes (best quality without external binaries).
 6. For iterative tweaks, prefer **`an iterate <dir> "<plain-English change>"`** over hand-editing scene.md — it's the spec's signature loop. Cache invalidation is automatic; the next `an render` regenerates only the affected shots.
 
+**"In the style of X"** (South Park, OverSimplified, Kurzgesagt, Gilliam, Reiniger, Norstein): use the **`an-style`** skill — a style spec per look (live settings, measured targets, and what `an` cannot do yet), and `an.verify.style` (`StyleLintVerifier`) to measure the render against the targets.
+
 ## When the user wants controlled test footage (impacts, timing ground truth)
 
 `an.impacts` generates structured clips of a stick or ball striking a surface, or striking the air (a braked stroke with no contact), on a known tempo grid — with a sidecar keeping the **intended** grid time (`t_grid`), the **executed** impact time (`t_impact`, continuous seconds) and **what each frame shows** (exposure interval, sample instants, keypoints) apart. Use it when someone wants to test whether events can be recovered beyond the frame rate; do not hand-author such scenes.

@@ -1,0 +1,53 @@
+# South Park-style cut-out (a digital emulation of construction-paper cut-out).
+# Read with the an-style skill. `live` keys map onto shipped `an` features and are
+# checked against the code by tests/test_style_specs.py; `targets` are what
+# `an.verify.style` measures; `guidance` is NOT wired to anything in `an` today.
+# Numbers: misc/docs/cutout_styles_research.md (one 30 s dialogue scene, measured).
+style: south_park
+title: South Park (construction-paper cut-out, digital)
+cost_class: low
+cost_note: rigid shape characters, a locked camera and flat sets; `an character new --offline` characters are close to the look
+
+live:
+  meta:                      # the ```yaml meta``` block
+    fps: 24                  # 24p source
+    step_hz: 12              # on twos at 24 fps; body tweens hold every other frame
+    style_pack: south_park
+  style_pack:                # save as assets/styles/south_park.json; reaches environment presets and procedural rigs only
+    name: south_park
+    roles:
+      sky: "#c0c6c7"         # measured backdrop grey
+      ground: "#987a43"      # measured ochre
+  environment:
+    preset: indoor           # flat set; `park` for exteriors
+  camera:
+    default: hold            # measured: median global shift 0.11 px, 3% of steps above 1 px
+    allowed: [hold, push_in] # a push-in is rare, slow, 2 s or more
+  easing: [linear, step]     # short 3-6 frame moves, never an overshoot ("intentionally jerky")
+  tween_duration_s: [0.12, 0.25]
+  motion_presets: [waddle, hop, nod, slide_in, slide_out]   # an.motion; waddle walk, hop-turn, head snap, slides
+  shots:
+    mean_s: 4.2              # measured, n=7
+    range_s: [1.5, 9]
+  characters:
+    generate: offline        # `an character new <name> --offline`
+    mouth_variants: [happy, sad]
+
+targets:
+  identical_frame_share: [0.55, 0.70]   # measured 0.64
+  cuts_per_min: [10, 14]                # measured 12.4
+  mean_shot_s: [3, 5.5]                 # measured 4.2
+
+guidance:                    # not in `an` yet: apply by hand where you can, otherwise tell the user it was omitted
+  construction: head, torso and limbs are single rigid pieces; no elbow or knee bends
+  eyes: two white ovals with pupil dots; brows appear when worried or angry; a half-lid per shot
+  views: front and three-quarter heads as a swap set (`asset_sets`), turned by a hard swap
+  coverage: [two_shot, single_close, over_shoulder]
+  motion_vocabulary_unmapped: [whole_piece_rotate]   # no preset: a short rotation tween on the entity
+  paper_gap_shadow: an offset, darkened duplicate of each part (about 3 px at 1080p); no surface treatment ships
+  outline: near-black #231316 about 3 px at 1080p; not a StylePack role
+  paper_grain: a static low-alpha texture plane; no grain ships
+  voice: pitch raised (about 4 semitones is an estimate); `an` has no voice-effect chain
+  sound: sparse stingers, crisp hard cuts; `an` renders dialogue audio only
+  text: occasional location cards; `an` has no text node
+  transitions: hard cuts only, which is what `an` does between shots
