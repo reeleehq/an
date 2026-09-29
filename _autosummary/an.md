@@ -482,6 +482,7 @@ always passes it).
 | [`ir`](an.ir.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                     |
 | [`iterate`](an.iterate.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.         |
 | [`live_api`](an.live_api.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                              |
+| [`motion`](an.motion.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.              |
 | [`orchestrate`](an.orchestrate.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                      |
 | [`paths`](an.paths.md#module-an.paths)               | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                |
 | [`preview`](an.preview.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit. |

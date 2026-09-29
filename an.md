@@ -1,4 +1,4 @@
-> built 2026-09-29 18:40 UTC from e533593 (main) · an 0.1.90. Details: build_info.json
+> built 2026-09-29 19:39 UTC from 4c6702f (main) · an 0.1.91. Details: build_info.json
 
 # index.html.md
 
@@ -5138,7 +5138,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'rect', 'eye', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'rect', 'ellipse', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -13218,6 +13218,7 @@ always passes it).
 | [`ir`](_autosummary/an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                     |
 | [`iterate`](_autosummary/an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.         |
 | [`live_api`](_autosummary/an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                              |
+| [`motion`](_autosummary/an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.              |
 | [`orchestrate`](_autosummary/an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                      |
 | [`paths`](_autosummary/an.paths.html.md#module-an.paths)               | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                |
 | [`preview`](_autosummary/an.preview.html.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit. |
@@ -16331,6 +16332,281 @@ False
 ```
 
 
+# _autosummary/an.motion.html.md
+
+# an.motion
+
+Motion presets: a named vocabulary of cut-out moves, as authoring macros.
+
+`pop_in`, `hop`, `shake`, `nod`, `point`, `slide_in`, `slide_out`,
+`squash_stretch` and `waddle` each EXPAND to ordinary `tween` actions on
+transform properties, composed with [`sequence()`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence) and
+[`parallel()`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel). Nothing downstream learns a preset exists: the
+flat timeline, `an validate`, the verifiers and the renderer see the same
+tweens an author could have written by hand, so no IR field, no runtime
+change, and no compiled document that does not use a preset moves by a byte.
+
+```pycon
+>>> from an.ir.compose import flatten, sequence
+>>> leaves = _tweens(sequence(pop_in("charlie"), hop("charlie"), nod("charlie")))
+>>> [(f.action.target, f.action.property) for f in leaves][:3]
+[('charlie', 'scale_x'), ('charlie', 'scale_y'), ('charlie', 'y')]
+>>> round(leaves[-1].end, 3)
+1.45
+```
+
+**Targets.** Whole-body moves target the entity container (`"charlie"`) —
+the node a descriptor’s `bone:root` track animates too. Part moves name the
+part: `nod` rotates `<entity>/head` (the head is a direct child of the
+entity on both the procedural and the descriptor rig), and `point` takes
+the ARM node itself, because the two rigs name it differently — the
+procedural rig’s `right_arm` stands on the viewer’s right, a descriptor
+rig’s `arm_r` on the viewer’s left. The rigs are flat (arms are siblings of
+the torso), and a target the built scene does not carry makes the render
+raise (the runtime refuses an unknown node, naming the known ones);
+[`rest_pose()`](_autosummary/an.motion.html.md#an.motion.rest_pose) raises for it up front, before any browser starts.
+
+**Landing.** Every preset ends each property it moves with a `set` at the
+value it ends on, so the move lands exactly whatever the frame rate or
+`step_hz` (a tween ending between two frames otherwise leaves the property
+where the last sampled frame had it). The `set` holds until the next tween
+on that property.
+
+**Rest.** A tween’s value is ABSOLUTE, and every preset writes its `from`
+explicitly so presets chain without a jump. Each preset therefore needs the
+target node’s rest value for the properties it moves; `rest=None` means the
+identity pose (`x = y = rotation = 0`, `scale = 1`), which is right for
+every rotation, and for `y`/`scale` of any entity without a `stage`
+placement — but an entity’s `x` is laid out across the shot (`-110` and
+`110` for two characters), so a move on `x` (`shake`, `slide_in`,
+`slide_out`, `waddle(travel=...)`) in a shot with more than one character
+wants `rest=rest_pose(shot, "charlie")`, which reads the value off the
+compiler’s own scene builder rather than restating its layout.
+
+**scene.md.** A preset is a composition tree, and `scene.md` round-trips
+only leaves with a `start`. [`as_leaves()`](_autosummary/an.motion.html.md#an.motion.as_leaves) converts a preset into exactly
+those, for a scene that must survive a `scene.md` edit; a `play` of a
+preset NAME from `scene.md` is not wired (the `play` resolver reads a
+character descriptor’s own animations only).
+
+### Module Attributes
+
+| [`OVERSHOOT`](_autosummary/an.motion.html.md#an.motion.OVERSHOOT)     | A cubic-Bézier that overshoots its target by about 10% and settles back (CSS "easeOutBack").   |
+|----------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| [`IDENTITY_POSE`](_autosummary/an.motion.html.md#an.motion.IDENTITY_POSE) | `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.                                       |
+| [`PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS)       | Every preset by name — the one list the skill, the demo and a future `play` fallback read.     |
+
+### Functions
+
+| [`as_leaves`](_autosummary/an.motion.html.md#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.             |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`hop`](_autosummary/an.motion.html.md#an.motion.hop)(target, \*[, height, duration, rest])        | Jump up by `height` scene pixels and land back where it started.         |
+| [`nod`](_autosummary/an.motion.html.md#an.motion.nod)(target, \*[, part, angle, duration, ...])    | Dip the head `count` times (a rotation of `<target>/<part>`).            |
+| [`point`](_autosummary/an.motion.html.md#an.motion.point)(target, \*[, angle, raise_duration, ...])  | Swing an arm out to point, hold it, and lower it again.                  |
+| [`pop_in`](_autosummary/an.motion.html.md#an.motion.pop_in)(target, \*[, duration, easing, rest])     | Grow from nothing to full size, overshooting and settling (an entrance). |
+| [`rest_pose`](_autosummary/an.motion.html.md#an.motion.rest_pose)(shot, target, \*[, mall])              | The rest values of `target`'s node as the compiler builds `shot`.        |
+| [`shake`](_autosummary/an.motion.html.md#an.motion.shake)(target, \*[, amplitude, duration, ...])    | Tremble side to side `cycles` times and come back to rest (on `x`).      |
+| [`slide_in`](_autosummary/an.motion.html.md#an.motion.slide_in)(target, \*[, from_side, distance, ...]) | Whip in from `distance` pixels off to one side, overshoot, and settle.   |
+| [`slide_out`](_autosummary/an.motion.html.md#an.motion.slide_out)(target, \*[, to_side, distance, ...])  | Exit `distance` pixels off to one side, accelerating (an exit).          |
+| [`squash_stretch`](_autosummary/an.motion.html.md#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.         |
+| [`waddle`](_autosummary/an.motion.html.md#an.motion.waddle)(target, \*[, steps, step_duration, ...])  | A walk cycle for a rig with no legs to animate: rock and bob per step.   |
+
+### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
+
+`x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.
+
+### an.motion.OVERSHOOT *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.34, 1.56, 0.64, 1.0)*
+
+A cubic-Bézier that overshoots its target by about 10% and settles back
+(CSS “easeOutBack”). The compiler and both evaluators take any 4-point
+Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
+
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'waddle': <function waddle>}*
+
+Every preset by name — the one list the skill, the demo and a future
+`play` fallback read.
+
+### an.motion.as_leaves(action, , start=0.0)
+
+`action` as top-level leaves that `scene.md` can round-trip.
+
+The markdown writer keeps a leaf and the `sequence(delay(start), leaf)`
+wrapper the parser produces for a `start:` key, and drops composition
+trees from `scene.md`. This flattens a preset (or any tree) into exactly
+those, with the same absolute times.
+
+A `set` keeps its absolute time in `at` instead of a wrapper.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]]
+
+```pycon
+>>> leaves = as_leaves(hop("charlie"), start=1.0)
+>>> [type(a).__name__ for a in leaves]
+['SequenceAction', 'SequenceAction', 'SetAction']
+>>> [round(f.start, 3) for a in leaves for f in flatten(a)]  # each from 0
+[1.0, 1.25, 1.5]
+```
+
+### an.motion.hop(target, , height=40.0, duration=0.5, rest=None)
+
+Jump up by `height` scene pixels and land back where it started.
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.from_value, f.action.to_value) for f in _tweens(hop("charlie", height=30))]
+[(0.0, -30.0), (-30.0, 0.0)]
+```
+
+### an.motion.nod(target, , part='head', angle=0.18, duration=0.5, count=2, rest=None)
+
+Dip the head `count` times (a rotation of `<target>/<part>`).
+
+In a front-facing 2D cut-out a nod reads as a small head rotation about
+its pivot; `rest` is the HEAD’s rest, not the entity’s.
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.target, round(f.action.to_value, 2)) for f in _tweens(nod("charlie", count=1))]
+[('charlie/head', 0.18), ('charlie/head', 0.0)]
+```
+
+### an.motion.point(target, , angle=-1.3, raise_duration=0.25, hold=0.6, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
+
+Swing an arm out to point, hold it, and lower it again.
+
+`target` is the ARM node — `"charlie/right_arm"` on the procedural
+rig, `"maya/arm_r"` on a descriptor rig (and there, since that arm hangs
+on the viewer’s left, pass a positive `angle` to point outward).
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.start, f.action.to_value) for f in _tweens(point("charlie/right_arm", hold=0.5))]
+[(0.0, -1.3), (0.75, 0.0)]
+```
+
+### an.motion.pop_in(target, , duration=0.45, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
+
+Grow from nothing to full size, overshooting and settling (an entrance).
+
+Scales the target from 0 to its rest scale. Before the preset starts the
+target shows at its rest pose: to keep it hidden until it pops, start the
+preset at the target’s first frame (or hold `scale_x`/`scale_y` at 0
+with a `set` before it).
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.property, f.action.from_value, f.action.to_value)
+...  for f in _tweens(pop_in("charlie"))]
+[('scale_x', 0.0, 1.0), ('scale_y', 0.0, 1.0)]
+```
+
+### an.motion.rest_pose(shot, target, , mall=None)
+
+The rest values of `target`’s node as the compiler builds `shot`.
+
+Compiles the shot’s STAGE — its entities, without actions, dialogue or
+camera — through the cutout compiler’s own scene builder, so the layout
+(`-110`/`110` for two characters), a `stage` placement and a stage
+scale are read, never restated. Pass the same `mall` you render with:
+a descriptor rig is built from its character store.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> from an.ir.schema import AssetRef
+>>> two = Shot(id="s", entities=[
+...     AssetRef(kind="character", id=n, store="characters", ref=n) for n in ("a", "b")])
+>>> rest_pose(two, "a")["x"], rest_pose(two, "b")["x"]
+(-110.0, 110.0)
+>>> rest_pose(two, "a/head")["y"]
+-55.0
+```
+
+### an.motion.shake(target, , amplitude=8.0, duration=0.4, cycles=3, rest=None)
+
+Tremble side to side `cycles` times and come back to rest (on `x`).
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [f.action.to_value for f in _tweens(shake("charlie", amplitude=5, cycles=2))]
+[5.0, -5.0, 5.0, -5.0, 0.0]
+>>> [f.action.to_value for f in _tweens(shake("charlie", cycles=1, rest={"x": -110}))]
+[-102.0, -118.0, -110.0]
+```
+
+### an.motion.slide_in(target, , from_side='left', distance=600.0, duration=0.35, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
+
+Whip in from `distance` pixels off to one side, overshoot, and settle.
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_in("charlie", distance=400))]
+[(-400.0, 0.0)]
+```
+
+### an.motion.slide_out(target, , to_side='right', distance=600.0, duration=0.35, easing='ease_in', rest=None)
+
+Exit `distance` pixels off to one side, accelerating (an exit).
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_out("charlie", to_side="left"))]
+[(0.0, -600.0)]
+```
+
+### an.motion.squash_stretch(target, , amount=0.2, duration=0.36, rest=None)
+
+Squash (wide and short), stretch (narrow and tall), then settle.
+
+Scales about the target’s own origin (for the procedural rig, the torso’s
+centre). Volume is roughly kept: one axis grows by what the other loses.
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
+...   if f.action.property == p] for p in ("scale_x", "scale_y")]
+[[1.2, 0.9, 1.0], [0.8, 1.1, 1.0]]
+```
+
+### an.motion.waddle(target, , steps=4, step_duration=0.3, angle=0.1, lift=6.0, travel=0.0, rest=None)
+
+A walk cycle for a rig with no legs to animate: rock and bob per step.
+
+Each step rocks the body to alternate sides by `angle` and bobs it up by
+`lift`; `angle=0` is a plain bob. `travel` (scene px, signed)
+carries the body sideways over the whole walk — the one `x` move here,
+so it is the one that needs `rest` in a multi-character shot.
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> w = _tweens(waddle("charlie", steps=2, travel=100))
+>>> sorted({f.action.property for f in w})
+['rotation', 'x', 'y']
+>>> max(f.end for f in w)
+0.6
+```
+
+
 # _autosummary/an.orchestrate.html.md
 
 # an.orchestrate
@@ -18335,18 +18611,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-29 18:40 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/e533593b9edd80fd35827bc4e2b67be655448d28"><code>e533593</code></a> on branch <code>main</code>, for **an 0.1.90** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-29 19:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/4c6702ff4609de6042e7b5a9d44fefa1027c813d"><code>4c6702f</code></a> on branch <code>main</code>, for **an 0.1.91** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.91) is ahead of the latest release on PyPI (0.1.90): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/e533593b9edd80fd35827bc4e2b67be655448d28"><code>e533593b9edd80fd35827bc4e2b67be655448d28</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/4c6702ff4609de6042e7b5a9d44fefa1027c813d"><code>4c6702ff4609de6042e7b5a9d44fefa1027c813d</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.90</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.91</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -18355,9 +18633,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36613387218">36613387218</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36620462772">36620462772</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>31f40eff9f4f0555174acf2712e4fe0ec049882c</code> (in the history of the built commit) |
+| Event commit | <code>d358b038085d9ec0c88dba020bbf47ce32e966eb</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -18382,13 +18660,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.90/">0.1.90</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.90/">0.1.90</a>, older than the documented version (0.1.91).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout e533593b9edd80fd35827bc4e2b67be655448d28
+git checkout 4c6702ff4609de6042e7b5a9d44fefa1027c813d
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

@@ -98,6 +98,7 @@
 - [an.ir.validate](an.ir.validate.html.md): Schema and semantic validation for SceneIR documents.
 - [an.iterate](an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
 - [an.live_api](an.live_api.html.md): The one switch that says “yes, this run may spend money”.
+- [an.motion](an.motion.html.md): Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 - [an.orchestrate](an.orchestrate.html.md): Orchestrator: validate → audio → render → verify.
 - [an.paths](an.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
 - [an.preview](an.preview.html.md): Live preview server: render a project’s current scene in a browser, reloading on edit.

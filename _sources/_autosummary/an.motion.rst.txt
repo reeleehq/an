@@ -1,0 +1,30 @@
+an.motion
+=========
+
+.. automodule:: an.motion
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      OVERSHOOT
+      IDENTITY_POSE
+      PRESETS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      as_leaves
+      hop
+      nod
+      point
+      pop_in
+      rest_pose
+      shake
+      slide_in
+      slide_out
+      squash_stretch
+      waddle
+   

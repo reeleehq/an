@@ -63,6 +63,7 @@
    ir
    iterate
    live_api
+   motion
    orchestrate
    paths
    preview

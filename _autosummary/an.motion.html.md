@@ -1,0 +1,271 @@
+# an.motion
+
+Motion presets: a named vocabulary of cut-out moves, as authoring macros.
+
+`pop_in`, `hop`, `shake`, `nod`, `point`, `slide_in`, `slide_out`,
+`squash_stretch` and `waddle` each EXPAND to ordinary `tween` actions on
+transform properties, composed with [`sequence()`](an.ir.compose.html.md#an.ir.compose.sequence) and
+[`parallel()`](an.ir.compose.html.md#an.ir.compose.parallel). Nothing downstream learns a preset exists: the
+flat timeline, `an validate`, the verifiers and the renderer see the same
+tweens an author could have written by hand, so no IR field, no runtime
+change, and no compiled document that does not use a preset moves by a byte.
+
+```pycon
+>>> from an.ir.compose import flatten, sequence
+>>> leaves = _tweens(sequence(pop_in("charlie"), hop("charlie"), nod("charlie")))
+>>> [(f.action.target, f.action.property) for f in leaves][:3]
+[('charlie', 'scale_x'), ('charlie', 'scale_y'), ('charlie', 'y')]
+>>> round(leaves[-1].end, 3)
+1.45
+```
+
+**Targets.** Whole-body moves target the entity container (`"charlie"`) —
+the node a descriptor’s `bone:root` track animates too. Part moves name the
+part: `nod` rotates `<entity>/head` (the head is a direct child of the
+entity on both the procedural and the descriptor rig), and `point` takes
+the ARM node itself, because the two rigs name it differently — the
+procedural rig’s `right_arm` stands on the viewer’s right, a descriptor
+rig’s `arm_r` on the viewer’s left. The rigs are flat (arms are siblings of
+the torso), and a target the built scene does not carry makes the render
+raise (the runtime refuses an unknown node, naming the known ones);
+[`rest_pose()`](#an.motion.rest_pose) raises for it up front, before any browser starts.
+
+**Landing.** Every preset ends each property it moves with a `set` at the
+value it ends on, so the move lands exactly whatever the frame rate or
+`step_hz` (a tween ending between two frames otherwise leaves the property
+where the last sampled frame had it). The `set` holds until the next tween
+on that property.
+
+**Rest.** A tween’s value is ABSOLUTE, and every preset writes its `from`
+explicitly so presets chain without a jump. Each preset therefore needs the
+target node’s rest value for the properties it moves; `rest=None` means the
+identity pose (`x = y = rotation = 0`, `scale = 1`), which is right for
+every rotation, and for `y`/`scale` of any entity without a `stage`
+placement — but an entity’s `x` is laid out across the shot (`-110` and
+`110` for two characters), so a move on `x` (`shake`, `slide_in`,
+`slide_out`, `waddle(travel=...)`) in a shot with more than one character
+wants `rest=rest_pose(shot, "charlie")`, which reads the value off the
+compiler’s own scene builder rather than restating its layout.
+
+**scene.md.** A preset is a composition tree, and `scene.md` round-trips
+only leaves with a `start`. [`as_leaves()`](#an.motion.as_leaves) converts a preset into exactly
+those, for a scene that must survive a `scene.md` edit; a `play` of a
+preset NAME from `scene.md` is not wired (the `play` resolver reads a
+character descriptor’s own animations only).
+
+### Module Attributes
+
+| [`OVERSHOOT`](#an.motion.OVERSHOOT)     | A cubic-Bézier that overshoots its target by about 10% and settles back (CSS "easeOutBack").   |
+|----------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| [`IDENTITY_POSE`](#an.motion.IDENTITY_POSE) | `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.                                       |
+| [`PRESETS`](#an.motion.PRESETS)       | Every preset by name — the one list the skill, the demo and a future `play` fallback read.     |
+
+### Functions
+
+| [`as_leaves`](#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.             |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`hop`](#an.motion.hop)(target, \*[, height, duration, rest])        | Jump up by `height` scene pixels and land back where it started.         |
+| [`nod`](#an.motion.nod)(target, \*[, part, angle, duration, ...])    | Dip the head `count` times (a rotation of `<target>/<part>`).            |
+| [`point`](#an.motion.point)(target, \*[, angle, raise_duration, ...])  | Swing an arm out to point, hold it, and lower it again.                  |
+| [`pop_in`](#an.motion.pop_in)(target, \*[, duration, easing, rest])     | Grow from nothing to full size, overshooting and settling (an entrance). |
+| [`rest_pose`](#an.motion.rest_pose)(shot, target, \*[, mall])              | The rest values of `target`'s node as the compiler builds `shot`.        |
+| [`shake`](#an.motion.shake)(target, \*[, amplitude, duration, ...])    | Tremble side to side `cycles` times and come back to rest (on `x`).      |
+| [`slide_in`](#an.motion.slide_in)(target, \*[, from_side, distance, ...]) | Whip in from `distance` pixels off to one side, overshoot, and settle.   |
+| [`slide_out`](#an.motion.slide_out)(target, \*[, to_side, distance, ...])  | Exit `distance` pixels off to one side, accelerating (an exit).          |
+| [`squash_stretch`](#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.         |
+| [`waddle`](#an.motion.waddle)(target, \*[, steps, step_duration, ...])  | A walk cycle for a rig with no legs to animate: rock and bob per step.   |
+
+### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
+
+`x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.
+
+### an.motion.OVERSHOOT *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.34, 1.56, 0.64, 1.0)*
+
+A cubic-Bézier that overshoots its target by about 10% and settles back
+(CSS “easeOutBack”). The compiler and both evaluators take any 4-point
+Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
+
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'waddle': <function waddle>}*
+
+Every preset by name — the one list the skill, the demo and a future
+`play` fallback read.
+
+### an.motion.as_leaves(action, , start=0.0)
+
+`action` as top-level leaves that `scene.md` can round-trip.
+
+The markdown writer keeps a leaf and the `sequence(delay(start), leaf)`
+wrapper the parser produces for a `start:` key, and drops composition
+trees from `scene.md`. This flattens a preset (or any tree) into exactly
+those, with the same absolute times.
+
+A `set` keeps its absolute time in `at` instead of a wrapper.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]]
+
+```pycon
+>>> leaves = as_leaves(hop("charlie"), start=1.0)
+>>> [type(a).__name__ for a in leaves]
+['SequenceAction', 'SequenceAction', 'SetAction']
+>>> [round(f.start, 3) for a in leaves for f in flatten(a)]  # each from 0
+[1.0, 1.25, 1.5]
+```
+
+### an.motion.hop(target, , height=40.0, duration=0.5, rest=None)
+
+Jump up by `height` scene pixels and land back where it started.
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.from_value, f.action.to_value) for f in _tweens(hop("charlie", height=30))]
+[(0.0, -30.0), (-30.0, 0.0)]
+```
+
+### an.motion.nod(target, , part='head', angle=0.18, duration=0.5, count=2, rest=None)
+
+Dip the head `count` times (a rotation of `<target>/<part>`).
+
+In a front-facing 2D cut-out a nod reads as a small head rotation about
+its pivot; `rest` is the HEAD’s rest, not the entity’s.
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.target, round(f.action.to_value, 2)) for f in _tweens(nod("charlie", count=1))]
+[('charlie/head', 0.18), ('charlie/head', 0.0)]
+```
+
+### an.motion.point(target, , angle=-1.3, raise_duration=0.25, hold=0.6, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
+
+Swing an arm out to point, hold it, and lower it again.
+
+`target` is the ARM node — `"charlie/right_arm"` on the procedural
+rig, `"maya/arm_r"` on a descriptor rig (and there, since that arm hangs
+on the viewer’s left, pass a positive `angle` to point outward).
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.start, f.action.to_value) for f in _tweens(point("charlie/right_arm", hold=0.5))]
+[(0.0, -1.3), (0.75, 0.0)]
+```
+
+### an.motion.pop_in(target, , duration=0.45, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
+
+Grow from nothing to full size, overshooting and settling (an entrance).
+
+Scales the target from 0 to its rest scale. Before the preset starts the
+target shows at its rest pose: to keep it hidden until it pops, start the
+preset at the target’s first frame (or hold `scale_x`/`scale_y` at 0
+with a `set` before it).
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.property, f.action.from_value, f.action.to_value)
+...  for f in _tweens(pop_in("charlie"))]
+[('scale_x', 0.0, 1.0), ('scale_y', 0.0, 1.0)]
+```
+
+### an.motion.rest_pose(shot, target, , mall=None)
+
+The rest values of `target`’s node as the compiler builds `shot`.
+
+Compiles the shot’s STAGE — its entities, without actions, dialogue or
+camera — through the cutout compiler’s own scene builder, so the layout
+(`-110`/`110` for two characters), a `stage` placement and a stage
+scale are read, never restated. Pass the same `mall` you render with:
+a descriptor rig is built from its character store.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> from an.ir.schema import AssetRef
+>>> two = Shot(id="s", entities=[
+...     AssetRef(kind="character", id=n, store="characters", ref=n) for n in ("a", "b")])
+>>> rest_pose(two, "a")["x"], rest_pose(two, "b")["x"]
+(-110.0, 110.0)
+>>> rest_pose(two, "a/head")["y"]
+-55.0
+```
+
+### an.motion.shake(target, , amplitude=8.0, duration=0.4, cycles=3, rest=None)
+
+Tremble side to side `cycles` times and come back to rest (on `x`).
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [f.action.to_value for f in _tweens(shake("charlie", amplitude=5, cycles=2))]
+[5.0, -5.0, 5.0, -5.0, 0.0]
+>>> [f.action.to_value for f in _tweens(shake("charlie", cycles=1, rest={"x": -110}))]
+[-102.0, -118.0, -110.0]
+```
+
+### an.motion.slide_in(target, , from_side='left', distance=600.0, duration=0.35, easing=(0.34, 1.56, 0.64, 1.0), rest=None)
+
+Whip in from `distance` pixels off to one side, overshoot, and settle.
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_in("charlie", distance=400))]
+[(-400.0, 0.0)]
+```
+
+### an.motion.slide_out(target, , to_side='right', distance=600.0, duration=0.35, easing='ease_in', rest=None)
+
+Exit `distance` pixels off to one side, accelerating (an exit).
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_out("charlie", to_side="left"))]
+[(0.0, -600.0)]
+```
+
+### an.motion.squash_stretch(target, , amount=0.2, duration=0.36, rest=None)
+
+Squash (wide and short), stretch (narrow and tall), then settle.
+
+Scales about the target’s own origin (for the procedural rig, the torso’s
+centre). Volume is roughly kept: one axis grows by what the other loses.
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
+...   if f.action.property == p] for p in ("scale_x", "scale_y")]
+[[1.2, 0.9, 1.0], [0.8, 1.1, 1.0]]
+```
+
+### an.motion.waddle(target, , steps=4, step_duration=0.3, angle=0.1, lift=6.0, travel=0.0, rest=None)
+
+A walk cycle for a rig with no legs to animate: rock and bob per step.
+
+Each step rocks the body to alternate sides by `angle` and bobs it up by
+`lift`; `angle=0` is a plain bob. `travel` (scene px, signed)
+carries the body sideways over the whole walk — the one `x` move here,
+so it is the one that needs `rest` in a multi-character shot.
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> w = _tweens(waddle("charlie", steps=2, travel=100))
+>>> sorted({f.action.property for f in w})
+['rotation', 'x', 'y']
+>>> max(f.end for f in w)
+0.6
+```
