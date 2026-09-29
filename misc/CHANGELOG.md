@@ -3,6 +3,9 @@
 AI-maintained record of substantive changes to the an codebase. One entry per
 day per chunk of work; keep entries terse.
 
+## 2026-09-30
+- **`an.bench.paths.repo_root`'s doctest no longer asserts the checkout folder is named `an`**, which failed the doctest lane in every git worktree; it now checks the file it resolves to exists.
+
 ## 2026-09-29
 - **Cut-out styles: research, style specs, a style lint and the `an-style` skill.** `misc/docs/cutout_styles_research.md` (six styles, measured cadence/cut/palette statistics, ranked gaps); `.claude/skills/an-style/` with one spec per style (`live` settings checked against the code by `tests/test_style_specs.py`, measured `targets`, and `guidance` for what `an` cannot do yet); `an.verify.style` ports the measurement with numpy + ffmpeg (`StyleLintVerifier`, `python -m an.verify.style VIDEO SPEC`); the `south-park-style` demo applies a spec to a four-line script and lints it.
 - **Docs: `CLAUDE.md` trimmed to the orientation layer** (an#156). The capability table now lives only in `misc/docs/architecture_as_built.md` §0; gaps, the full never-do list, the CI perimeter, wave-record and skill notes moved to the new `misc/docs/sharp_edges.md`. §10 of the as-built doc re-verified against the code; added §13 "Related packages" (`shaping`, `tituli`).

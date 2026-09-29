@@ -36,8 +36,11 @@ def repo_root() -> Path:
     corpus lives under ``examples/``, which is not packaged, so the first
     symptom would be a missing-fixture error three frames deep.
 
-    >>> repo_root().name
-    'an'
+    The checkout's folder name is not asserted: a git worktree or a clone
+    under another name is still a source checkout.
+
+    >>> (repo_root() / "an" / "bench" / "paths.py").is_file()
+    True
     """
     root = Path(__file__).resolve().parents[2]
     missing = [m for m in _REPO_MARKERS if not (root / m).is_dir()]
