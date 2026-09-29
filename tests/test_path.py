@@ -196,20 +196,26 @@ def _runtime_pieces(*markers: str) -> str:
 
 
 @requires_node
-def test_the_runtime_geometry_equals_the_python_spec_exactly():
+def test_the_runtime_geometry_equals_the_python_spec_exactly(tmp_path):
     """Behavioural parity over a battery, not a textual diff: the runtime's own
     `pathGeometry` is lifted out of `runtime.js` and executed under node.
-    EXACT equality — both sides use only IEEE + - * / sqrt, in one order."""
+    EXACT equality — both sides use only IEEE + - * / sqrt, in one order.
+
+    The battery goes through a FILE, not the `-e` script: inlined, the command
+    line exceeds Windows' 32 767-character limit (WinError 206)."""
     cases = _battery()
+    cases_file = tmp_path / "cases.json"
+    cases_file.write_text(json.dumps(cases), encoding="utf-8")
     script = "\n".join(
         [
             _runtime_pieces(*_GEOMETRY_FUNCS),
-            f"const cases = {json.dumps(cases)};",
+            "const cases = JSON.parse(require('fs').readFileSync("
+            "process.argv[1], 'utf8'));",
             "console.log(JSON.stringify(cases.map(c => "
             "pathGeometry(c.pts, c.ts, c.te, c.hl, c.hw))));",
         ]
     )
-    js = node_json(script)
+    js = node_json(script, str(cases_file))
     for case, got in zip(cases, js):
         want = path_geometry(
             [tuple(p) for p in case["pts"]],
