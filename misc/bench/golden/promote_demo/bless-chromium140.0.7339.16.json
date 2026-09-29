@@ -1,43 +1,43 @@
 {
-  "blessed_at": "2026-08-24T16:06:35Z",
+  "blessed_at": "2026-09-29T20:11:43Z",
   "chromium_build": "140.0.7339.16",
   "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
   "fps": 24,
   "frames": [
     {
-      "bytes": 5920,
+      "bytes": 5900,
       "file": "f0000-chromium140.0.7339.16.png",
       "frame_key": "f0000",
       "index": 0,
       "local_index": 0,
-      "sha256": "4996bce1718ae92dbccc49688398029cb5538db2a485eb6afe22f52763b13f50",
+      "sha256": "c8ea2e646f845514145e0c13478b81c1b298fc949d4383484d873537e8e189d5",
       "shot_id": "s1",
       "time": 0.0
     },
     {
-      "bytes": 5561,
+      "bytes": 5536,
       "file": "f0070-chromium140.0.7339.16.png",
       "frame_key": "f0070",
       "index": 70,
       "local_index": 70,
-      "sha256": "952242d9080651fec54b5f3d9f28acde1d26226935a8adacf5c31ecf8ee23578",
+      "sha256": "09f79a9b6ae042d43a2f038935996e5174c6131e1510fe1324f2fc3b62587f06",
       "shot_id": "s1",
       "time": 2.9167
     }
   ],
   "git": {
-    "branch": "wave5-blinks",
+    "branch": "fix/168-offline-rig-layout",
     "dirty": true,
-    "sha": "da5db60614e7294423fc3e3957fb4395aae83362"
+    "sha": "096e52acd2fce1ad59070124a45155f8bca258d2"
   },
-  "reason": "an#88: blinks are compiled channels; promote_demo f0070 now shows maya's closed-eye art (eyelid swap) where the runtime squashed the open eye \u2014 the one golden the move changes (single_character's compiled squash is byte-identical)",
+  "reason": "an#168: the default FACE_OFFSETS were head-centre offsets against a neck bone; promote seeds them, so maya's eyes, brows and mouth move ~80 view-box units up onto her face (the mouth was at her chin line)",
   "removed": [],
   "resolution": [
     480,
     360
   ],
   "scene": "promote_demo",
-  "scene_contract_sha256": "d0f6ea42daf7a5f5b7df6738f7cf22b8175518c651c27069a775dde3141e4870",
+  "scene_contract_sha256": "71f9ec520d446927e398501a4a6ffb300cac0b773264ee92d11a2fb891813380",
   "shot_ids": [
     "s1"
   ],
