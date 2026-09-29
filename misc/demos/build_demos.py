@@ -515,6 +515,87 @@ def _build_multiplane(work: Path) -> Path:
     return _render(_project(work, scene_md=md, characters=("maya",)))
 
 
+def _build_path_arrow(work: Path) -> Path:
+    """An invasion arrow drawing itself across a map while the camera pans.
+
+    The map is a multiplane stage (distant sea at `depth = 0.3`, the land at
+    the character plane) and the arrow is a `PathDescriptor` prop: one chained
+    cubic Bézier, trimmed from 0 to 1 by an ordinary tween. The arrowhead rides
+    the moving tip and turns with the curve (an#160).
+    """
+    import json
+
+    from an.environments import EnvironmentDescriptor, Plane, PlaneArt
+    from an.paths import PathDescriptor
+
+    def fill(name, color, depth, offset, size):
+        return Plane(
+            name=name,
+            art=PlaneArt(kind="fill", color=color),
+            depth=depth,
+            offset=offset,
+            size=size,
+        )
+
+    env = EnvironmentDescriptor(
+        name="map",
+        planes=[
+            Plane(name="sea", art=PlaneArt(kind="fill", color="#9cc7e4"), depth=0.0),
+            *(
+                fill(f"swell{i}", "#b7d7ee", 0.3, (x, y), (70.0, 6.0))
+                for i, (x, y) in enumerate(
+                    [(-200, -100), (-40, 105), (120, -110), (300, 100), (470, -60)]
+                )
+            ),
+            fill("west", "#d9c79a", 1.0, (-115.0, 10.0), (170.0, 170.0)),
+            fill("east", "#c9d69a", 1.0, (235.0, 0.0), (200.0, 180.0)),
+        ],
+    )
+    d = work / "assets" / "environments" / "map"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "meta.json").write_text(
+        json.dumps(json.loads(env.model_dump_json()), indent=2), encoding="utf-8"
+    )
+    arrow = PathDescriptor(
+        name="invasion",
+        curve="cubic",
+        points=[
+            (-170.0, 40.0),
+            (-110.0, -80.0),
+            (-10.0, -80.0),
+            (40.0, -5.0),
+            (90.0, 70.0),
+            (200.0, 80.0),
+            (260.0, -40.0),
+        ],
+        color="#b3261e",
+        width=6.0,
+        arrowhead=True,
+        trim_end=0.0,
+    )
+    d = work / "assets" / "props" / "invasion"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "prop.json").write_text(
+        json.dumps(json.loads(arrow.model_dump_json()), indent=2), encoding="utf-8"
+    )
+    md = (
+        _meta("An arrow draws itself across a map", 3.0)
+        + "\n"
+        + _shot("s1", 3.0, camera="pan_right")
+        + "\n```yaml entities\n"
+        "- kind: environment\n  id: map\n  store: environments\n  ref: map\n"
+        "- kind: prop\n  id: invasion\n  store: props\n  ref: invasion\n"
+        "```\n"
+        "\n```yaml actions\n"
+        "- kind: tween\n  target: invasion\n  property: trim_end\n"
+        "  from: 0.0\n  to: 1.0\n  start: 0.3\n  duration: 2.4\n"
+        "  easing: ease_in_out\n"
+        "```\n"
+    )
+    (work / "scene.md").write_text(md, encoding="utf-8")
+    return _render(work)
+
+
 def _declare_placeholder_rig(project: Path, entity_ref: str) -> None:
     """Declare the built-in procedural rig, so it is a choice not a fallback.
 
@@ -1339,6 +1420,25 @@ DEMOS: tuple[Demo, ...] = (
         ),
         how="`python examples/character_gallery/build.py` — `an render --parallel auto`.",
         build=_copy_example("examples/character_gallery/videos/cartoon.mp4"),
+    ),
+    Demo(
+        slug="path-arrow",
+        title="A path that draws itself, arrowhead first",
+        shows=(
+            "An invasion arrow — one chained cubic Bézier — draws itself across a "
+            "two-depth map while the camera pans: the far sea swells lag, the land "
+            "and the arrow move together. The arrowhead sits on the moving tip and "
+            "turns with the curve, and grows in over the first few frames instead "
+            "of popping (an#160)."
+        ),
+        how=(
+            "A `PathDescriptor` in the props store (`points`, `curve: cubic`, "
+            "`arrowhead: true`, `trim_end: 0`), placed as `kind: prop`; then "
+            "`{kind: tween, target: invasion, property: trim_end, from: 0, "
+            "to: 1}` in `yaml actions`. `trim_start`/`trim_end` are ordinary numeric properties, "
+            "fractions of arc length."
+        ),
+        build=_build_path_arrow,
     ),
     Demo(
         slug="impacts",

@@ -197,6 +197,60 @@ def _rig_document(entity, stores: Mapping[str, Any]) -> dict | None:
     return None
 
 
+def _path_document_problem(entity, store) -> "str | None | bool":
+    """For a prop entity: ``False`` when its document is not a path at all,
+    ``None`` when it is a valid path, else the reason it is not (an#160)."""
+    try:
+        doc = store[entity.ref]
+    except (KeyError, TypeError):
+        return False
+    if not isinstance(doc, dict) or doc.get("kind") != "PathDescriptor":
+        return False
+    from an.paths import resolve_path  # the compiler's own resolver
+
+    try:
+        resolve_path(doc, entity.overrides)
+    except ValueError as err:
+        return (
+            f"path {entity.ref!r} (with this entity's overrides) is not a valid "
+            f"PathDescriptor — rendering this shot raises: {err}"
+        )
+    return None
+
+
+def _check_trim_targets(
+    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
+) -> None:
+    """``trim_start``/``trim_end`` may only target a stroked path's node — the
+    entity itself — which the compiler enforces too (an#160). Runs only when
+    the props store was supplied: without it nothing says which props are
+    paths."""
+    from an.base import TRIM_PROPERTIES
+
+    props = stores.get("props")
+    if props is None:
+        return
+    path_ids = {
+        e.id
+        for e in shot.entities
+        if e.kind == "prop" and _path_document_problem(e, props) is not False
+    }
+    for k, action in enumerate(shot.actions):
+        for flat in flatten(action):
+            prop = getattr(flat.action, "property", None)
+            if prop not in TRIM_PROPERTIES:
+                continue
+            target = getattr(flat.action, "target", "") or ""
+            if target not in path_ids:
+                report.add(
+                    "error",
+                    f"{path}/actions/{k}",
+                    f"{prop!r} targets {target!r}, which is not a stroked path "
+                    f"(paths in this shot: {sorted(path_ids) or 'none'}) — "
+                    "compiling this shot raises.",
+                )
+
+
 def _check_swap_references(
     shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
 ) -> None:
@@ -733,6 +787,7 @@ def validate_semantic(
 
         _check_renderable(shot, path, report, stores=rig_stores)
         _check_swap_references(shot, path, report, rig_stores)
+        _check_trim_targets(shot, path, report, rig_stores)
 
         # Entity references resolve?
         for j, entity in enumerate(shot.entities):
@@ -753,6 +808,14 @@ def validate_semantic(
                         f"{path}/entities/{j}",
                         f"character ref {entity.ref!r} not in characters store",
                     )
+                continue
+            # A stroked path (an#160) is a prop whose document is a
+            # `PathDescriptor`; it is checked by the same resolver the
+            # compiler builds it with, overrides merged, so the verdicts agree.
+            path_problem = _path_document_problem(entity, store)
+            if path_problem is not False:
+                if path_problem:
+                    report.add("error", f"{path}/entities/{j}", path_problem)
                 continue
             # A prop has NO placeholder rig — the placeholder IS a humanoid, so
             # falling back would draw a person where the prop should be — which

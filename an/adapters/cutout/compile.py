@@ -40,7 +40,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-from an.base import TRANSFORM_PROPERTIES, swap_set_name_problem
+from an.base import TRANSFORM_PROPERTIES, TRIM_PROPERTIES, swap_set_name_problem
+from an.adapters.cutout.path import flatten_curve
 from an.adapters.cutout.coarticulate import coarticulate
 from an.expression.axes import LID_KEY_CLOSED, LID_KEY_OPEN, lid_key
 from an.expression.binding import (
@@ -92,6 +93,7 @@ from an.adapters.cutout.serialize import (
     TrackJSON,
     TransformJSON,
     VisualJSON,
+    PathJSON,
 )
 from an.characters.schema import (
     CHARACTER_DOCUMENT_KIND,
@@ -114,6 +116,7 @@ from an.environments import (
     Plane,
 )
 from an.props import PROP_DOCUMENT_KIND, PropDescriptor
+from an.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
 from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette
 
 
@@ -373,6 +376,11 @@ def _property_rest_values() -> dict[str, float]:
     # would render every untweened rig black.
     for component in TINT_COMPONENTS:
         rest[component] = 1.0
+    # `trim_start`/`trim_end` (an#160) are the same kind of exception: channel
+    # properties of a PATH node's visual, not node rest state. The rest is the
+    # fully drawn path, so a draw-on names its `from_value` (0).
+    rest["trim_start"] = 0.0
+    rest["trim_end"] = 1.0
     return rest
 
 
@@ -511,6 +519,9 @@ class _SwapVocabulary:
     node_transforms: dict[str, TransformJSON] = field(default_factory=dict)
     #: entity id → k, the view_box → scene-pixel factor its rig was built with.
     entity_scale: dict[str, float] = field(default_factory=dict)
+    #: Node paths whose visual is a stroked path — the only nodes a
+    #: `trim_start`/`trim_end` channel may target (an#160).
+    path_nodes: frozenset[str] = frozenset()
 
     def swap_capable_paths(self, entity_id: str, set_name: str) -> list[str]:
         """Node paths under ``entity_id`` that can apply ``set_name``."""
@@ -545,12 +556,15 @@ def _swap_vocabulary(
     node_sets: dict[str, dict[str, dict[str, str]]] = {}
     node_asset_ids: dict[str, str | None] = {}
     node_transforms: dict[str, TransformJSON] = {}
+    path_nodes: set[str] = set()
 
     def walk(node: NodeJSON, prefix: str) -> None:
         path = f"{prefix}/{node.name}" if prefix else node.name
         if prefix or node.name != "root":
             node_transforms[path] = node.transform
             v = node.visual
+            if v is not None and v.kind == "path":
+                path_nodes.add(path)
             if v is not None and v.asset_sets:
                 node_sets[path] = v.asset_sets
                 node_asset_ids[path] = v.asset_id
@@ -615,6 +629,7 @@ def _swap_vocabulary(
         art_exists=art_exists,
         node_transforms=node_transforms,
         entity_scale=entity_scale,
+        path_nodes=frozenset(path_nodes),
     )
 
 
@@ -1443,10 +1458,13 @@ def _build_prop_subtree(
                 meta = value
         except KeyError:
             meta = {}
+    if meta.get("kind") == PATH_DOCUMENT_KIND.name:
+        return _build_path_subtree(entity, meta, resolutions=resolutions)
     if meta.get("kind") != PROP_DOCUMENT_KIND.name:
         raise CutoutCompileError(
             f"prop {entity.id!r} refers to {entity.ref!r} in the "
-            f"{entity.store!r} store, which is not a PropDescriptor"
+            f"{entity.store!r} store, which is not a PropDescriptor or a "
+            "PathDescriptor"
             + (
                 " (the store has no such entry)"
                 if not meta
@@ -1475,6 +1493,62 @@ def _build_prop_subtree(
         art_prefix=PROP_ART_PREFIX,
         descriptor_model=PropDescriptor,
         document_kind=PROP_DOCUMENT_KIND,
+    )
+
+
+def _build_path_subtree(
+    entity: AssetRef,
+    document: Mapping[str, Any],
+    *,
+    resolutions: list[AssetResolutionJSON],
+) -> NodeJSON:
+    """One node whose visual is a stroked path (an#160).
+
+    The entity's ``overrides`` are merged over the stored document and the
+    result validated strictly (:func:`an.paths.resolve_path` — the same call
+    `an validate` makes). Cubic Béziers are flattened HERE, so the runtime
+    draws one geometry kind; what it draws from the result is specified by
+    :func:`an.adapters.cutout.path.path_geometry`.
+
+    The node is the entity itself, so ``route:trim_end`` and ``route:x``
+    address the same thing an author thinks of as "the arrow".
+    """
+    try:
+        desc = resolve_path(document, entity.overrides)
+    except ValueError as err:  # pydantic.ValidationError is a ValueError
+        raise CutoutCompileError(
+            f"path {entity.id!r} ({entity.store!r}/{entity.ref!r}, with its "
+            f"overrides) is not a valid PathDescriptor: {err}"
+        ) from err
+    resolutions.append(
+        AssetResolutionJSON(
+            id=entity.id,
+            kind="prop",
+            store=entity.store,
+            ref=entity.ref,
+            resolved="path",
+        )
+    )
+    points = flatten_curve(
+        desc.points, curve=desc.curve, samples=desc.samples_per_segment
+    )
+    return NodeJSON(
+        name=entity.id,
+        visual=VisualJSON(
+            kind="path",
+            color=desc.color,
+            path=PathJSON(
+                points=points,
+                stroke_width=desc.width,
+                color=desc.color,
+                cap=desc.cap,
+                join=desc.join,
+                trim_start=desc.trim_start,
+                trim_end=desc.trim_end,
+                head_length=desc.head_length_px if desc.arrowhead else 0.0,
+                head_width=desc.head_width_px if desc.arrowhead else 0.0,
+            ),
+        ),
     )
 
 
@@ -2113,6 +2187,9 @@ def _compile_actions(
     flat_list = _expand_tint_actions(flat_list)
     swap_props = _swap_property_names(flat_list)
     if vocab is not None:
+        for flat in flat_list:
+            _check_trim_target(flat, vocab=vocab)
+    if vocab is not None:
         flat_list = [
             flat
             for flat in flat_list
@@ -2718,6 +2795,27 @@ def _check_swap_action(
         )
         return False
     return True
+
+
+def _check_trim_target(flat: FlatAction, *, vocab: _SwapVocabulary) -> None:
+    """``trim_start``/``trim_end`` only on a path node (an#160).
+
+    They are in the numeric vocabulary so that they tween like ``alpha`` —
+    which also means the swap checks wave them through, so without this a
+    ``trim_end`` on a character would compile and then throw in the browser.
+    """
+    action = flat.action
+    prop = getattr(action, "property", None)
+    if prop not in TRIM_PROPERTIES:
+        return
+    target = action.target
+    if target not in vocab.path_nodes:
+        raise CutoutCompileError(
+            f"action targets {target!r}:{prop!r}, but {prop!r} is a stroked "
+            f"path's trim and {target!r} is not a path node. Path nodes in "
+            f"this shot: {sorted(vocab.path_nodes) or 'none'} — a path is a "
+            "prop whose document kind is 'PathDescriptor'."
+        )
 
 
 def _record_used_swap_fallback(
