@@ -700,3 +700,83 @@ def test_two_concurrent_lossless_leg_encodes_do_not_collide(tmp_path):
         t.join()
 
     assert not errors, f"concurrent lossless-leg encodes collided: {errors}"
+
+
+# ------------------------------------------------- the two legs, on the pixels
+# an#153. The argv pins above compare STRINGS. They cannot see a build where the
+# same argv yields different pixels, which is the class of bug an#148 was: on
+# ffmpeg 6.1 the colour tags do not reach the auto-inserted RGB->YUV conversion,
+# so a leg without its own `-vf` is BT.601 while the delivered file is BT.709.
+
+#: Flat, saturated fields, chosen because BT.601 and BT.709 disagree most on
+#: them (red: ~19 luma codes, ~15 in Cr). On a flat field the crf23 vs qp0
+#: residual is the quantiser's alone, so the two legs can be compared without
+#: bit-equality.
+_PLANE_EQUALITY_FIELDS: tuple[tuple[int, int, int], ...] = (
+    (255, 0, 0),
+    (0, 200, 60),
+    (235, 180, 150),
+    (30, 60, 220),
+)
+
+#: How far, in mean absolute code values per plane, the crf23 delivery may sit
+#: from the qp0 reference on a flat field. Measured well under 1 here; the gap
+#: this test exists to catch is the 15-28 codes between the two matrices.
+_PLANE_EQUALITY_TOLERANCE: float = 3.0
+
+
+@pytest.mark.ffmpeg
+def test_the_lossless_leg_and_the_delivered_mux_decode_to_the_same_planes(tmp_path):
+    """MUTATION: give one command a different matrix (a different ``-colorspace``
+    tag on ffmpeg 8/9, where it is the tag that picks the conversion), or drop
+    ``-vf`` from either command on a build where the tags do not reach the
+    conversion (ffmpeg 6.1).
+
+    Encodes ONE frame set both ways — the delivered `_ffmpeg_mux` and the
+    bench's `lossless_encode_command` — decodes both, and compares the decoded
+    Y, Cb and Cr planes. Not bit-equality (crf23 against qp0): the assertion is
+    that both are on the same matrix, so the residual stays far below the gap
+    between BT.601 and BT.709.
+
+    Measured on ffmpeg 9.0: dropping ``-vf`` from either command, or replacing
+    it with a BT.601 filter, changes no decoded pixel (the ``-colorspace bt709``
+    tag overrides the filter's matrix there), so those mutations are the argv
+    pins' to catch on that build. Tagging one command ``smpte170m`` instead
+    moves red's luma by 18 codes and fails this test. The ``-vf`` mutation is
+    expected to fail it on ffmpeg 6.1 (an#153); that build was not available
+    here.
+    """
+    from an.adapters.cutout.render import _ffmpeg_mux
+    from an.bench.png import write_png
+
+    h, w = 32, 32
+    frames = tmp_path / "frames"
+    frames.mkdir()
+    for i, rgb in enumerate(_PLANE_EQUALITY_FIELDS):
+        write_png(
+            frames / (DEFAULT_FRAME_PNG_PATTERN % i),
+            np.full((h, w, 3), rgb, np.uint8),
+        )
+
+    delivered = tmp_path / "delivered.mp4"
+    _ffmpeg_mux(frames, 24, delivered)
+    leg = tmp_path / "leg.mp4"
+    imageio.run_raw(imageio.lossless_encode_command(frames, 24, leg))
+
+    d = imageio.decoded_yuv(delivered, height=h, width=w).astype(np.int16)
+    r = imageio.decoded_yuv(leg, height=h, width=w).astype(np.int16)
+    assert d.shape == r.shape == (len(_PLANE_EQUALITY_FIELDS), 3, h, w), (
+        f"the legs decoded to different shapes, {d.shape} and {r.shape}; "
+        "a frame-count disagreement makes every comparison below meaningless"
+    )
+    for i, rgb in enumerate(_PLANE_EQUALITY_FIELDS):
+        for plane, name in enumerate("YUV"):
+            gap = float(np.abs(d[i, plane] - r[i, plane]).mean())
+            assert gap <= _PLANE_EQUALITY_TOLERANCE, (
+                f"field {rgb}: the delivered file's {name} plane is {gap:.2f} "
+                f"codes from the lossless leg's (tolerance "
+                f"{_PLANE_EQUALITY_TOLERANCE}). The two legs are not on the same "
+                "RGB->YUV matrix, so every encode-side metric is reporting the "
+                "difference between two colour conversions as encoder damage "
+                "(an#148, an#153)."
+            )
