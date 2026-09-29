@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=b9e65ee1"></script>
+    <script src="../_static/documentation_options.js?v=1d9edaf8"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.palette" href="an.bench.palette.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.92" />
+  <meta name="docsearch:version" content="0.1.93" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -665,13 +665,15 @@ an#40 as that commit’s evidence.</p>
 failure it guards is running the bench against an installed wheel: the
 corpus lives under <code class="docutils literal notranslate"><span class="pre">examples/</span></code>, which is not packaged, so the first
 symptom would be a missing-fixture error three frames deep.</p>
+<p>The checkout’s folder name is not asserted: a git worktree or a clone
+under another name is still a source checkout.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">repo_root</span><span class="p">()</span><span class="o">.</span><span class="n">name</span>
-<span class="go">'an'</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">repo_root</span><span class="p">()</span> <span class="o">/</span> <span class="s2">"an"</span> <span class="o">/</span> <span class="s2">"bench"</span> <span class="o">/</span> <span class="s2">"paths.py"</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </dd></dl>

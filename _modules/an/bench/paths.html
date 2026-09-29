@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=b9e65ee1"></script>
+    <script src="../../../_static/documentation_options.js?v=1d9edaf8"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.92" />
+  <meta name="docsearch:version" content="0.1.93" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -753,8 +753,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    corpus lives under ``examples/``, which is not packaged, so the first</span>
 <span class="sd">    symptom would be a missing-fixture error three frames deep.</span>
 
-<span class="sd">    &gt;&gt;&gt; repo_root().name</span>
-<span class="sd">    'an'</span>
+<span class="sd">    The checkout's folder name is not asserted: a git worktree or a clone</span>
+<span class="sd">    under another name is still a source checkout.</span>
+
+<span class="sd">    &gt;&gt;&gt; (repo_root() / "an" / "bench" / "paths.py").is_file()</span>
+<span class="sd">    True</span>
 <span class="sd">    """</span>
     <span class="n">root</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">_REPO_MARKERS</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">root</span> <span class="o">/</span> <span class="n">m</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>

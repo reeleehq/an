@@ -117,10 +117,13 @@ failure it guards is running the bench against an installed wheel: the
 corpus lives under `examples/`, which is not packaged, so the first
 symptom would be a missing-fixture error three frames deep.
 
+The checkout’s folder name is not asserted: a git worktree or a clone
+under another name is still a source checkout.
+
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 ```pycon
->>> repo_root().name
-'an'
+>>> (repo_root() / "an" / "bench" / "paths.py").is_file()
+True
 ```
