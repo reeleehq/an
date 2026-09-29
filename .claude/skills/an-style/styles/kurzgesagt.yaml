@@ -23,6 +23,7 @@ live:
     allowed: [push_in, pull_out, pan_left, pan_right, tilt_up, tilt_down]
   easing: [ease_in_out, [0.34, 1.56, 0.64, 1.0]]   # the cubic-Bezier overshoots: pop-in with a bounce
   tween_duration_s: [0.4, 2.0]
+  motion_presets: [pop_in, squash_stretch]   # an.motion; pop_in overshoots and settles
   shots:
     mean_s: 7.5              # measured, median 6.3, n=8
     range_s: [3, 12]

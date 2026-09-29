@@ -14,6 +14,7 @@ live:
     allowed: [hold]
   easing: [step, linear]     # "swift, sudden movements are much simpler"
   tween_duration_s: [0.12, 0.32]   # 3-8 frames at 25 fps
+  motion_presets: [pop_in, slide_in, shake]   # an.motion; pop-ups, slides in from the edge
   shots:
     mean_s: 20               # the shot is the gag
     range_s: [8, 30]
@@ -28,7 +29,7 @@ guidance:
   construction: limbs cut from photographs and engravings, joined at pins; lit from above
   sources: public-domain engravings and photographs only; check the licence of every image (an-dev-licensing)
   mouth: a hinged jaw piece (a rotation tween) or a swap set
-  motion_vocabulary: [drop, pop_up, slide_in_from_edge, beheading, morph]
+  motion_vocabulary_unmapped: [drop, beheading, morph]   # no preset
   texture: photographic, many colours; flat fills read wrong
   text: period-type titles and hand-lettered signs; no text node ships
   sound: absurd, dense SFX; `an` renders dialogue audio only

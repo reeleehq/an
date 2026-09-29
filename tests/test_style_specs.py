@@ -17,6 +17,7 @@ from an.adapters.cutout.easing import EASING_FUNCS, apply_easing
 from an.environments import EnvironmentDescriptor
 from an.ir.camera import CAMERA_MOVES
 from an.ir.schema import Meta
+from an.motion import PRESETS
 from an.styles import StylePack
 from an.verify.style import StyleLintVerifier
 
@@ -26,7 +27,7 @@ SPECS = sorted(SPEC_DIR.glob("*.yaml"))
 #: Every key `live` may carry, and nothing else.
 LIVE_KEYS = {
     "meta", "style_pack", "environment", "camera", "easing",
-    "tween_duration_s", "shots", "characters",
+    "tween_duration_s", "shots", "characters", "motion_presets",
 }
 TOP_KEYS = {"style", "title", "cost_class", "cost_note", "live", "targets", "guidance"}
 COST_CLASSES = {"low", "low_to_medium", "medium", "high", "very_high"}
@@ -114,3 +115,7 @@ def test_ranges_and_characters(spec):
 def test_targets_are_measurable(spec):
     v = StyleLintVerifier(spec)  # refuses an unknown target or a bad range
     assert v.targets and v.style == spec["style"]
+
+
+def test_motion_presets_exist(spec):
+    assert set(spec["live"].get("motion_presets", [])) <= set(PRESETS)

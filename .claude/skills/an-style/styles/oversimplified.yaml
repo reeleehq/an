@@ -21,6 +21,7 @@ live:
     allowed: [hold, push_in, pan_left, pan_right]   # push-ins on still prints, pans over maps
   easing: [ease_out, linear]
   tween_duration_s: [0.13, 0.4]   # 4-12 frames, then a hold: burst-and-hold
+  motion_presets: [pop_in, slide_in, slide_out, shake]   # an.motion
   shots:
     mean_s: 6.0              # measured, median 4.7, n=10
     range_s: [2, 12]
@@ -42,6 +43,6 @@ guidance:
   palette_accents: {brick: "#ba5f31", sage: "#67796a", card_bg: "#040404"}   # not StylePack roles
   maps: red and blue territory fills that cross-fade; no map layer ships
   text: date cards (bold white sans on black, 1.5-2.5 s), top-of-frame bullet captions, small speech text; no text node ships
-  motion_vocabulary: [pop_in, slide, shake, fall, freeze_frame, bait_and_switch]
+  motion_vocabulary_unmapped: [fall, freeze_frame, bait_and_switch]   # no preset
   sound: a Creative Commons music bed and dense SFX; `an` renders dialogue audio only
   transitions: hard cuts plus gag interrupts

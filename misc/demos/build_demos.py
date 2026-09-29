@@ -1036,7 +1036,8 @@ def _build_south_park_style(work: Path) -> Path:
     Everything the spec calls `live` is applied from the file — fps, `step_hz`,
     the StylePack, the environment preset, the camera, the easing, the tween
     lengths — and nothing from its `guidance` (paper-gap shadow, pitch-shifted
-    voice, motion presets), because `an` does not have those yet. The lint's
+    voice, location cards), because `an` does not have those yet. Its moves
+    are hand-written tweens; it predates `an.motion`. The lint's
     numbers are printed and written beside the clip as
     `south-park-style.style_lint.json`.
     """
@@ -1626,7 +1627,7 @@ DEMOS: tuple[Demo, ...] = (
             "The render is then measured by the style lint against the spec's "
             "targets (identical-frame share, cuts per minute, mean shot length), "
             "and the numbers are written beside the clip. What the spec lists as "
-            "guidance (paper-gap shadow, pitch-raised voices, motion presets) is "
+            "guidance (paper-gap shadow, pitch-raised voices, location cards) is "
             "NOT applied: `an` does not have it yet."
         ),
         how=(
