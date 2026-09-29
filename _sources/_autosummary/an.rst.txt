@@ -64,6 +64,7 @@
    iterate
    live_api
    orchestrate
+   paths
    preview
    project
    props

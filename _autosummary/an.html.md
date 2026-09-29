@@ -483,6 +483,7 @@ always passes it).
 | [`iterate`](an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.         |
 | [`live_api`](an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                              |
 | [`orchestrate`](an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                      |
+| [`paths`](an.paths.html.md#module-an.paths)               | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                |
 | [`preview`](an.preview.html.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit. |
 | [`project`](an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                         |
 | [`props`](an.props.html.md#module-an.props)               | Props: a rig whose art is not a person.                                                |

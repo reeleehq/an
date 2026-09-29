@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=c94237c0"></script>
+    <script src="../_static/documentation_options.js?v=2a665092"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.runtime_files" href="an.adapters.cutout.runtime_files.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.89" />
+  <meta name="docsearch:version" content="0.1.90" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
@@ -582,19 +583,22 @@ the same change.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.NodeJSON" title="an.adapters.cutout.serialize.NodeJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NodeJSON</span></code></a>(**data)</p></td>
 <td><p>One node in the scene tree.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.PlacedClipJSON" title="an.adapters.cutout.serialize.PlacedClipJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PlacedClipJSON</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.PathJSON" title="an.adapters.cutout.serialize.PathJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PathJSON</span></code></a>(**data)</p></td>
+<td><p>A stroked path's drawing instruction (an#160), carried on a <code class="docutils literal notranslate"><span class="pre">path</span></code> visual.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.PlacedClipJSON" title="an.adapters.cutout.serialize.PlacedClipJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PlacedClipJSON</span></code></a>(**data)</p></td>
 <td><p>An animation placed on a track at a specific time.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.TimelineJSON" title="an.adapters.cutout.serialize.TimelineJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimelineJSON</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.TimelineJSON" title="an.adapters.cutout.serialize.TimelineJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TimelineJSON</span></code></a>(**data)</p></td>
 <td><p>Top-level timeline: total duration + tracks.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.TrackJSON" title="an.adapters.cutout.serialize.TrackJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackJSON</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.TrackJSON" title="an.adapters.cutout.serialize.TrackJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TrackJSON</span></code></a>(**data)</p></td>
 <td><p>A sequence of placed clips with optional target-prefix metadata.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.TransformJSON" title="an.adapters.cutout.serialize.TransformJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformJSON</span></code></a>(**data)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.TransformJSON" title="an.adapters.cutout.serialize.TransformJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformJSON</span></code></a>(**data)</p></td>
 <td><p>Local transform of a scene-graph node (authoring form).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.VisualJSON" title="an.adapters.cutout.serialize.VisualJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisualJSON</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.VisualJSON" title="an.adapters.cutout.serialize.VisualJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisualJSON</span></code></a>(**data)</p></td>
 <td><p>Drawable content attached to a node.</p></td>
 </tr>
 </tbody>
@@ -826,6 +830,27 @@ document when unset (see the wrap serializer below).</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.PathJSON">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.serialize.</span></span><span class="sig-name descname"><span class="pre">PathJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#PathJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.serialize.PathJSON" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
+<p>A stroked path’s drawing instruction (an#160), carried on a <code class="docutils literal notranslate"><span class="pre">path</span></code> visual.</p>
+<p><code class="docutils literal notranslate"><span class="pre">points</span></code> is always a POLYLINE — the compiler flattens cubic Béziers
+(<code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.path.flatten_curve</span></code>), so the runtime knows one geometry.
+<code class="docutils literal notranslate"><span class="pre">trim_start</span></code> / <code class="docutils literal notranslate"><span class="pre">trim_end</span></code> are the values shown before any channel
+touches the node; channels on those two properties move them.
+<code class="docutils literal notranslate"><span class="pre">head_length</span> <span class="pre">==</span> <span class="pre">0</span></code> means no arrowhead. What the runtime draws from this
+is specified by <code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.path.path_geometry</span></code>.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.PathJSON.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.adapters.cutout.serialize.PathJSON.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.serialize.PlacedClipJSON">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.serialize.</span></span><span class="sig-name descname"><span class="pre">PlacedClipJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#PlacedClipJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.serialize.PlacedClipJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
@@ -933,6 +958,12 @@ the compiler emits <code class="docutils literal notranslate"><span class="pre">
 <dt class="sig sig-object py" id="an.adapters.cutout.serialize.VisualJSON.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.adapters.cutout.serialize.VisualJSON.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.VisualJSON.path">
+<span class="sig-name descname"><span class="pre">path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#an.adapters.cutout.serialize.PathJSON" title="an.adapters.cutout.serialize.PathJSON"><span class="pre">PathJSON</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.serialize.VisualJSON.path" title="Link to this definition">#</a></dt>
+<dd><p>The stroke for <code class="docutils literal notranslate"><span class="pre">kind=&quot;path&quot;</span></code> (an#160); <code class="docutils literal notranslate"><span class="pre">None</span></code> on every other visual.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1052,6 +1083,10 @@ the compiler emits <code class="docutils literal notranslate"><span class="pre">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.NodeJSON.model_config"><code class="docutils literal notranslate"><span class="pre">NodeJSON.model_config</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.PathJSON"><code class="docutils literal notranslate"><span class="pre">PathJSON</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.PathJSON.model_config"><code class="docutils literal notranslate"><span class="pre">PathJSON.model_config</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.PlacedClipJSON"><code class="docutils literal notranslate"><span class="pre">PlacedClipJSON</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.PlacedClipJSON.model_config"><code class="docutils literal notranslate"><span class="pre">PlacedClipJSON.model_config</span></code></a></li>
 </ul>
@@ -1071,6 +1106,7 @@ the compiler emits <code class="docutils literal notranslate"><span class="pre">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON"><code class="docutils literal notranslate"><span class="pre">VisualJSON</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.fit"><code class="docutils literal notranslate"><span class="pre">VisualJSON.fit</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.model_config"><code class="docutils literal notranslate"><span class="pre">VisualJSON.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.path"><code class="docutils literal notranslate"><span class="pre">VisualJSON.path</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.from_dict"><code class="docutils literal notranslate"><span class="pre">from_dict()</span></code></a></li>

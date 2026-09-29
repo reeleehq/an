@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=c94237c0"></script>
+    <script src="../../_static/documentation_options.js?v=2a665092"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.89" />
+  <meta name="docsearch:version" content="0.1.90" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -889,8 +889,16 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"tint_g"</span><span class="p">,</span>
         <span class="s2">"tint_b"</span><span class="p">,</span>
         <span class="s2">"alpha"</span><span class="p">,</span>
+        <span class="c1"># an#160. A stroked path's visible span, as fractions of arc length —</span>
+        <span class="c1"># numeric node properties like `alpha`, applied only to a node whose</span>
+        <span class="c1"># visual is a path (the compiler refuses them anywhere else).</span>
+        <span class="s2">"trim_start"</span><span class="p">,</span>
+        <span class="s2">"trim_end"</span><span class="p">,</span>
     <span class="p">}</span>
 <span class="p">)</span>
+
+<span class="c1">#: The two path-only properties inside :data:`TRANSFORM_PROPERTIES` (an#160).</span>
+<span class="n">TRIM_PROPERTIES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"trim_start"</span><span class="p">,</span> <span class="s2">"trim_end"</span><span class="p">})</span>
 
 <span class="c1">#: Characters within which a swap-set name is not addressable: ``/`` would read</span>
 <span class="c1">#: as a path segment and ``::`` is the runtime's pose-key separator.</span>

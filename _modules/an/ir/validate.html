@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=c94237c0"></script>
+    <script src="../../../_static/documentation_options.js?v=2a665092"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.89" />
+  <meta name="docsearch:version" content="0.1.90" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -918,6 +918,67 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="kc">None</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_path_document_problem</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"str | None | bool"</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""For a prop entity: ``False`` when its document is not a path at all,</span>
+<span class="sd">    ``None`` when it is a valid path, else the reason it is not (an#160)."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">]</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"PathDescriptor"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_path</span>  <span class="c1"># the compiler's own resolver</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">resolve_path</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">overrides</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"path </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> (with this entity's overrides) is not a valid "</span>
+            <span class="sa">f</span><span class="s2">"PathDescriptor — rendering this shot raises: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_trim_targets</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``trim_start``/``trim_end`` may only target a stroked path's node — the</span>
+<span class="sd">    entity itself — which the compiler enforces too (an#160).</span>
+
+<span class="sd">    Without the props store nothing says which props are paths, so only the</span>
+<span class="sd">    certain refusals run: a target that is not a PROP entity, or a sub-node,</span>
+<span class="sd">    is never a path, whichever stores were supplied (an#160 review, M1 — a</span>
+<span class="sd">    trim on a character used to be refused as a non-transform property, and</span>
+<span class="sd">    joining the numeric vocabulary must not quietly lose that).</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRIM_PROPERTIES</span>
+
+    <span class="n">props</span> <span class="o">=</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"props"</span><span class="p">)</span>
+    <span class="n">prop_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"prop"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path_ids</span> <span class="o">=</span> <span class="n">prop_ids</span>  <span class="c1"># unknowable without the store: give the benefit</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">path_ids</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">id</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"prop"</span> <span class="ow">and</span> <span class="n">_path_document_problem</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">props</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span>
+        <span class="p">}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>
+            <span class="n">prop</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="s2">"property"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">prop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">TRIM_PROPERTIES</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">target</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span>
+            <span class="k">if</span> <span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path_ids</span><span class="p">:</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="s2">"error"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> targets </span><span class="si">{</span><span class="n">target</span><span class="si">!r}</span><span class="s2">, which is not a stroked path "</span>
+                    <span class="sa">f</span><span class="s2">"(paths in this shot: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">path_ids</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'none'</span><span class="si">}</span><span class="s2">) — "</span>
+                    <span class="s2">"compiling this shot raises."</span><span class="p">,</span>
+                <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_swap_references</span><span class="p">(</span>
     <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1071,7 +1132,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">entity</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
         <span class="n">desc</span> <span class="o">=</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">prop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_PROCEDURAL_SWAP_SETS</span><span class="p">:</span>
+            <span class="c1"># The procedural carve-out is a CHARACTER's drawn mouth; a prop</span>
+            <span class="c1"># with no rig document (a stroked path, an#160) has no swap set at</span>
+            <span class="c1"># all, which is what the compiler says too.</span>
+            <span class="n">is_prop</span> <span class="o">=</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"character"</span>
+            <span class="k">if</span> <span class="n">prop</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_PROCEDURAL_SWAP_SETS</span> <span class="ow">or</span> <span class="n">is_prop</span><span class="p">:</span>
                 <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                     <span class="s2">"error"</span><span class="p">,</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
@@ -1456,6 +1521,7 @@ window.runMermaid = runMermaid;</script>
 
         <span class="n">_check_renderable</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">stores</span><span class="o">=</span><span class="n">rig_stores</span><span class="p">)</span>
         <span class="n">_check_swap_references</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span>
+        <span class="n">_check_trim_targets</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span>
 
         <span class="c1"># Entity references resolve?</span>
         <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
@@ -1476,6 +1542,14 @@ window.runMermaid = runMermaid;</script>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                         <span class="sa">f</span><span class="s2">"character ref </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> not in characters store"</span><span class="p">,</span>
                     <span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="c1"># A stroked path (an#160) is a prop whose document is a</span>
+            <span class="c1"># `PathDescriptor`; it is checked by the same resolver the</span>
+            <span class="c1"># compiler builds it with, overrides merged, so the verdicts agree.</span>
+            <span class="n">path_problem</span> <span class="o">=</span> <span class="n">_path_document_problem</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">path_problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">path_problem</span><span class="p">:</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">path_problem</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="c1"># A prop has NO placeholder rig — the placeholder IS a humanoid, so</span>
             <span class="c1"># falling back would draw a person where the prop should be — which</span>

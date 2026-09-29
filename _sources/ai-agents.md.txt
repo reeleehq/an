@@ -53,6 +53,12 @@ Lip sync in the `an` repo — where co-articulation sits (in the compiler, over 
 
 Source: [`.claude/skills/an-dev-lipsync`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-lipsync).
 
+### `an-dev-path`
+
+Stroked paths in the `an` repo (an#160, epic
+
+Source: [`.claude/skills/an-dev-path`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-path).
+
 ### `an-dev-render-pipeline`
 
 The frame path in the `an` repo, end to end — Pixi rasterisation, Playwright element capture, the PNG stage, the x264 mux, concat and delivery — and what each stage can lose. Use when changing anything that touches a pixel or an encode flag - supersampling, resolution, antialias, `device_scale_factor`, `autoDensity`, downscale filters, `-pix_fmt` / CRF / preset / colour tags, `_capture_frames`, `_ffmpeg_mux`, `_ffmpeg_concat`, `runtime.js`'s PIXI.Application options, or the per-shot mp4 store. Triggers on "supersample", "why is the render soft", "add an encoder flag", "make it render bigger", "downscale", "4:4:4", "faststart", "the frames look wrong", "speed up the render".

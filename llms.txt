@@ -17,6 +17,7 @@
 - [an.adapters.cutout.easing](_autosummary/an.adapters.cutout.easing.html.md): Easing functions for keyframe interpolation.
 - [an.adapters.cutout.fidelity](_autosummary/an.adapters.cutout.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
 - [an.adapters.cutout.gaze](_autosummary/an.adapters.cutout.gaze.html.md): Ambient saccades for a cutout rig’s pupils: a seeded generator (an#99, epic #9 Wave 6).
+- [an.adapters.cutout.path](_autosummary/an.adapters.cutout.path.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
 - [an.adapters.cutout.render](_autosummary/an.adapters.cutout.render.html.md): Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.
 - [an.adapters.cutout.runtime_files](_autosummary/an.adapters.cutout.runtime_files.html.md): Locate the bundled cutout JS runtime files.
 - [an.adapters.cutout.serialize](_autosummary/an.adapters.cutout.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
@@ -100,6 +101,7 @@
 - [an.iterate](_autosummary/an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
 - [an.live_api](_autosummary/an.live_api.html.md): The one switch that says “yes, this run may spend money”.
 - [an.orchestrate](_autosummary/an.orchestrate.html.md): Orchestrator: validate → audio → render → verify.
+- [an.paths](_autosummary/an.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
 - [an.preview](_autosummary/an.preview.html.md): Live preview server: render a project’s current scene in a browser, reloading on edit.
 - [an.project](_autosummary/an.project.html.md): Project init/load/save — the on-disk anatomy of an an project.
 - [an.props](_autosummary/an.props.html.md): Props: a rig whose art is not a person.
@@ -123,7 +125,7 @@
 - [an.verify.media_quality](_autosummary/an.verify.media_quality.html.md): MediaQualityVerifier — post-render quality checks on the actual mp4.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-29 17:49 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-29 18:40 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

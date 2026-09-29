@@ -259,6 +259,10 @@ the compiler emits `"contain"` for every sprite it builds.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### path *: [PathJSON](an.adapters.cutout.serialize.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The stroke for `kind="path"` (an#160); `None` on every other visual.
+
 ### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None)
 
 Compile a single cutout-style `Shot` to its JS-runtime JSON form.
@@ -307,6 +311,7 @@ clothes (an#33).
 | [`easing`](an.adapters.cutout.easing.md#module-an.adapters.cutout.easing)               | Easing functions for keyframe interpolation.                                                                                                    |
 | [`fidelity`](an.adapters.cutout.fidelity.md#module-an.adapters.cutout.fidelity)           | How faithfully a compiled scene reproduces the art it was built from.                                                                           |
 | [`gaze`](an.adapters.cutout.gaze.md#module-an.adapters.cutout.gaze)                   | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                         |
+| [`path`](an.adapters.cutout.path.md#module-an.adapters.cutout.path)                   | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                      |
 | [`render`](an.adapters.cutout.render.md#module-an.adapters.cutout.render)               | Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.                                                                      |
 | [`runtime_files`](an.adapters.cutout.runtime_files.md#module-an.adapters.cutout.runtime_files) | Locate the bundled cutout JS runtime files.                                                                                                     |
 | [`serialize`](an.adapters.cutout.serialize.md#module-an.adapters.cutout.serialize)         | JSON contract between the Python compiler and the (future) JS runtime.                                                                          |

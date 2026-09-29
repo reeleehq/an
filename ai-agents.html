@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="_static/documentation_options.js?v=c94237c0"></script>
+    <script src="_static/documentation_options.js?v=2a665092"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
     <link rel="prev" title="an.verify.vision" href="_autosummary/an.verify.vision.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.89" />
+  <meta name="docsearch:version" content="0.1.90" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -415,6 +415,11 @@ machine-readable copies of this documentation.</p>
 <p>Lip sync in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo — where co-articulation sits (in the compiler, over the provider’s raw track), the pass order (symbolic → lead → decay → a minimum hold that votes by dominance), the condenser that HOLDS and votes instead of dropping, the Rhubarb recognizer rule, word-timing retention and its cache rule, the alignment-model licence trap, and the two standing measurements. Load before touching <code class="docutils literal notranslate"><span class="pre">an/audio/*lipsync*</span></code>, <code class="docutils literal notranslate"><span class="pre">an/audio/pipeline.py</span></code>, <code class="docutils literal notranslate"><span class="pre">_add_viseme_clips</span></code>, <code class="docutils literal notranslate"><span class="pre">_LEGACY_MIN_VISEME_GAP_S</span></code>, <code class="docutils literal notranslate"><span class="pre">an/adapters/cutout/coarticulate.py</span></code>, any viseme test, or a dialogue corpus scene. Triggers on “lip sync”, “viseme”, “Rhubarb”, “whisper”, “word timings”, “co-articulation”, “condenser”, “aligner”.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-lipsync"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-lipsync</span></code></a>.</p>
 </section>
+<section id="an-dev-path">
+<h3><code class="docutils literal notranslate"><span class="pre">an-dev-path</span></code><a class="headerlink" href="#an-dev-path" title="Link to this heading">#</a></h3>
+<p>Stroked paths in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo (an#160, epic</p>
+<p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-path"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-path</span></code></a>.</p>
+</section>
 <section id="an-dev-render-pipeline">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-render-pipeline</span></code><a class="headerlink" href="#an-dev-render-pipeline" title="Link to this heading">#</a></h3>
 <p>The frame path in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo, end to end — Pixi rasterisation, Playwright element capture, the PNG stage, the x264 mux, concat and delivery — and what each stage can lose. Use when changing anything that touches a pixel or an encode flag - supersampling, resolution, antialias, <code class="docutils literal notranslate"><span class="pre">device_scale_factor</span></code>, <code class="docutils literal notranslate"><span class="pre">autoDensity</span></code>, downscale filters, <code class="docutils literal notranslate"><span class="pre">-pix_fmt</span></code> / CRF / preset / colour tags, <code class="docutils literal notranslate"><span class="pre">_capture_frames</span></code>, <code class="docutils literal notranslate"><span class="pre">_ffmpeg_mux</span></code>, <code class="docutils literal notranslate"><span class="pre">_ffmpeg_concat</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code>’s PIXI.Application options, or the per-shot mp4 store. Triggers on “supersample”, “why is the render soft”, “add an encoder flag”, “make it render bigger”, “downscale”, “4:4:4”, “faststart”, “the frames look wrong”, “speed up the render”.</p>
@@ -511,6 +516,7 @@ machine-readable copies of this documentation.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an-dev-expression"><code class="docutils literal notranslate"><span class="pre">an-dev-expression</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an-dev-licensing"><code class="docutils literal notranslate"><span class="pre">an-dev-licensing</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an-dev-lipsync"><code class="docutils literal notranslate"><span class="pre">an-dev-lipsync</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an-dev-path"><code class="docutils literal notranslate"><span class="pre">an-dev-path</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an-dev-render-pipeline"><code class="docutils literal notranslate"><span class="pre">an-dev-render-pipeline</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an-dev-rig-contract"><code class="docutils literal notranslate"><span class="pre">an-dev-rig-contract</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an-dev-runtime-assets"><code class="docutils literal notranslate"><span class="pre">an-dev-runtime-assets</span></code></a></li>

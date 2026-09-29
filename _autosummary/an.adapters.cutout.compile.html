@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=c94237c0"></script>
+    <script src="../_static/documentation_options.js?v=2a665092"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.coarticulate" href="an.adapters.cutout.coarticulate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.89" />
+  <meta name="docsearch:version" content="0.1.90" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -413,6 +413,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
@@ -781,7 +782,7 @@ which is what decides where the staging step copies the art from.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.compile.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.compile.</span></span><span class="sig-name descname"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES" title="Link to this definition">#</a></dt>
 <dd><p>Every property name the JS runtime’s <code class="docutils literal notranslate"><span class="pre">applyProperty</span></code> STATIC switch
 implements — exactly the numeric transform vocabulary (the rest-value SSOT
 above). This is the Python side of the two-evaluator drift gate:

@@ -40,21 +40,22 @@ True
 
 ### Classes
 
-| [`AnimationClipJSON`](#an.adapters.cutout.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                         |
-|--------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`AssetJSON`](#an.adapters.cutout.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                    |
-| [`AssetResolutionJSON`](#an.adapters.cutout.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time. |
-| [`AssetsJSON`](#an.adapters.cutout.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                               |
-| [`ChannelJSON`](#an.adapters.cutout.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                      |
-| [`CutoutSceneJSON`](#an.adapters.cutout.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.            |
-| [`CutoutSceneMetaJSON`](#an.adapters.cutout.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                        |
-| [`KeyframeJSON`](#an.adapters.cutout.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                  |
-| [`NodeJSON`](#an.adapters.cutout.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                               |
-| [`PlacedClipJSON`](#an.adapters.cutout.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                        |
-| [`TimelineJSON`](#an.adapters.cutout.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                              |
-| [`TrackJSON`](#an.adapters.cutout.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.          |
-| [`TransformJSON`](#an.adapters.cutout.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                   |
-| [`VisualJSON`](#an.adapters.cutout.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                      |
+| [`AnimationClipJSON`](#an.adapters.cutout.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                          |
+|--------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [`AssetJSON`](#an.adapters.cutout.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                     |
+| [`AssetResolutionJSON`](#an.adapters.cutout.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time.  |
+| [`AssetsJSON`](#an.adapters.cutout.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                                |
+| [`ChannelJSON`](#an.adapters.cutout.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                       |
+| [`CutoutSceneJSON`](#an.adapters.cutout.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.             |
+| [`CutoutSceneMetaJSON`](#an.adapters.cutout.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                         |
+| [`KeyframeJSON`](#an.adapters.cutout.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                   |
+| [`NodeJSON`](#an.adapters.cutout.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                                |
+| [`PathJSON`](#an.adapters.cutout.serialize.PathJSON)(\*\*data)            | A stroked path's drawing instruction (an#160), carried on a `path` visual. |
+| [`PlacedClipJSON`](#an.adapters.cutout.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                         |
+| [`TimelineJSON`](#an.adapters.cutout.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                               |
+| [`TrackJSON`](#an.adapters.cutout.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.           |
+| [`TransformJSON`](#an.adapters.cutout.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                    |
+| [`VisualJSON`](#an.adapters.cutout.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                       |
 
 ### *class* an.adapters.cutout.serialize.AnimationClipJSON(\*\*data)
 
@@ -222,6 +223,23 @@ One node in the scene tree.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### *class* an.adapters.cutout.serialize.PathJSON(\*\*data)
+
+Bases: `_JSONModel`
+
+A stroked path’s drawing instruction (an#160), carried on a `path` visual.
+
+`points` is always a POLYLINE — the compiler flattens cubic Béziers
+(`an.adapters.cutout.path.flatten_curve`), so the runtime knows one geometry.
+`trim_start` / `trim_end` are the values shown before any channel
+touches the node; channels on those two properties move them.
+`head_length == 0` means no arrowhead. What the runtime draws from this
+is specified by `an.adapters.cutout.path.path_geometry`.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.adapters.cutout.serialize.PlacedClipJSON(\*\*data)
 
 Bases: `_JSONModel`
@@ -314,6 +332,10 @@ the compiler emits `"contain"` for every sprite it builds.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### path *: [PathJSON](#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The stroke for `kind="path"` (an#160); `None` on every other visual.
 
 ### an.adapters.cutout.serialize.from_dict(d)
 

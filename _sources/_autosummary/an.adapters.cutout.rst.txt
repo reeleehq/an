@@ -47,6 +47,7 @@ an.adapters.cutout
    easing
    fidelity
    gaze
+   path
    render
    runtime_files
    serialize

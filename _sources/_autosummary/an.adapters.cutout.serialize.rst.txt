@@ -24,6 +24,7 @@ an.adapters.cutout.serialize
       CutoutSceneMetaJSON
       KeyframeJSON
       NodeJSON
+      PathJSON
       PlacedClipJSON
       TimelineJSON
       TrackJSON

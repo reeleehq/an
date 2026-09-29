@@ -1,4 +1,4 @@
-> built 2026-09-29 17:49 UTC from 472fb25 (main) · an 0.1.89. Details: build_info.json
+> built 2026-09-29 18:40 UTC from e533593 (main) · an 0.1.90. Details: build_info.json
 
 # index.html.md
 
@@ -926,7 +926,7 @@ which is what decides where the staging step copies the art from.
 
 The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.
 
-### an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'x', 'y'})*
+### an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 Every property name the JS runtime’s `applyProperty` STATIC switch
 implements — exactly the numeric transform vocabulary (the rest-value SSOT
@@ -1650,6 +1650,10 @@ the compiler emits `"contain"` for every sprite it builds.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### path *: [PathJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The stroke for `kind="path"` (an#160); `None` on every other visual.
+
 ### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None)
 
 Compile a single cutout-style `Shot` to its JS-runtime JSON form.
@@ -1698,12 +1702,135 @@ clothes (an#33).
 | [`easing`](_autosummary/an.adapters.cutout.easing.html.md#module-an.adapters.cutout.easing)               | Easing functions for keyframe interpolation.                                                                                                    |
 | [`fidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#module-an.adapters.cutout.fidelity)           | How faithfully a compiled scene reproduces the art it was built from.                                                                           |
 | [`gaze`](_autosummary/an.adapters.cutout.gaze.html.md#module-an.adapters.cutout.gaze)                   | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                         |
+| [`path`](_autosummary/an.adapters.cutout.path.html.md#module-an.adapters.cutout.path)                   | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                      |
 | [`render`](_autosummary/an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)               | Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.                                                                      |
 | [`runtime_files`](_autosummary/an.adapters.cutout.runtime_files.html.md#module-an.adapters.cutout.runtime_files) | Locate the bundled cutout JS runtime files.                                                                                                     |
 | [`serialize`](_autosummary/an.adapters.cutout.serialize.html.md#module-an.adapters.cutout.serialize)         | JSON contract between the Python compiler and the (future) JS runtime.                                                                          |
 | [`shutter`](_autosummary/an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)             | The temporal half of the frame stage: average several instants into one frame.                                                                  |
 | [`supersample`](_autosummary/an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)     | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                   |
 | [`timeline`](_autosummary/an.adapters.cutout.timeline.html.md#module-an.adapters.cutout.timeline)           | Timeline: tracks of placed clips with absolute times and blend ramps.                                                                           |
+
+
+# _autosummary/an.adapters.cutout.path.html.md
+
+# an.adapters.cutout.path
+
+Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.
+
+The runtime draws a path (an#160) from three things this module defines:
+
+- **arc length** — cumulative straight-segment lengths over the polyline;
+- **trim** — the visible span `[min(ts, te), max(ts, te)]`, clamped to
+  `[0, 1]`, as fractions of that length;
+- **the arrowhead** — a triangle whose tip is the trimmed end, oriented along
+  the direction of the segment the tip lies on (the *incoming* segment when
+  the tip sits exactly on a vertex).
+
+`tests/test_path.py` lifts the real `runtime.js` functions, runs them under
+node on a shared battery, and compares — behaviourally, like the channel
+evaluator’s parity test. Both sides use the **same operation order** and no
+trigonometry (a direction is a unit vector, never an angle), and every
+operation is IEEE `+ - * / sqrt`, which both languages round exactly — so
+the parity is exact, not within a tolerance.
+
+Cubic Béziers never reach the runtime: [`flatten_curve()`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.flatten_curve) turns them into a
+polyline at compile time, so the wire carries one geometry kind.
+
+```pycon
+>>> g = path_geometry([(0.0, 0.0), (100.0, 0.0)], 0.0, 0.5)
+>>> g["stroke"]
+[(0.0, 0.0), (50.0, 0.0)]
+>>> g["head"] is None
+True
+>>> g = path_geometry([(0.0, 0.0), (100.0, 0.0), (100.0, 100.0)], 0.0, 0.75,
+...                   head_length=20.0, head_width=10.0)
+>>> g["head"]  # tip at (100, 50), pointing DOWN (+y) along the second leg
+[(100.0, 50.0), (95.0, 30.0), (105.0, 30.0)]
+```
+
+### Module Attributes
+
+| [`HEAD_STROKE_INSET`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.HEAD_STROKE_INSET)   | Where the stroke stops under an arrowhead, as a fraction of the head's length back from the tip.   |
+|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+
+### Functions
+
+| [`flatten_curve`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.flatten_curve)(points, \*[, curve, samples])     | The polyline the runtime draws for `points`.                                                             |
+|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| [`cumulative_lengths`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.cumulative_lengths)(points)                      | Arc length at each vertex.                                                                               |
+| [`point_at`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.point_at)(points, cum, s)                        | The point at arc length `s`.                                                                             |
+| [`trim_polyline`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.trim_polyline)(points, cum, a, b)                | The sub-polyline between arc lengths `a < b`: the two cut points and every vertex strictly between them. |
+| [`path_geometry`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.path_geometry)(points, trim_start, trim_end, \*) | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                               |
+
+### an.adapters.cutout.path.HEAD_STROKE_INSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+Where the stroke stops under an arrowhead, as a fraction of the head’s
+length back from the tip. Half-way keeps a butt or round cap inside the
+head for the default proportions, so the stroke never pokes past the tip.
+
+### an.adapters.cutout.path.cumulative_lengths(points)
+
+Arc length at each vertex. Mirror of `runtime.js::pathLengths`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> cumulative_lengths([(0, 0), (3, 4), (3, 10)])
+[0.0, 5.0, 11.0]
+```
+
+### an.adapters.cutout.path.flatten_curve(points, , curve='polyline', samples=24)
+
+The polyline the runtime draws for `points`.
+
+`curve="cubic"` reads `points` as chained cubic Béziers
+(`p0 c1 c2 p1 c1 c2 p2 ...`) and samples each uniformly in its parameter
+at `samples` steps; shared endpoints appear once.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+```pycon
+>>> flatten_curve([(0, 0), (10, 0)])
+[(0.0, 0.0), (10.0, 0.0)]
+>>> pts = flatten_curve([(0, 0), (0, 10), (10, 10), (10, 0)], curve="cubic", samples=2)
+>>> pts
+[(0.0, 0.0), (5.0, 7.5), (10.0, 0.0)]
+```
+
+### an.adapters.cutout.path.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0)
+
+What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.
+
+`head_length > 0` turns the arrowhead on. While the visible length is
+shorter than the head, the head is scaled by `visible / head_length` so
+a draw-on grows it in rather than popping a full-size triangle at frame
+one. The stroke stops [`HEAD_STROKE_INSET`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.HEAD_STROKE_INSET) of the head’s length back
+from the tip, inside the head. Mirror of `runtime.js::pathGeometry`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+```pycon
+>>> path_geometry([(0.0, 0.0), (10.0, 0.0)], 0.3, 0.3)
+{'stroke': [], 'head': None}
+```
+
+### an.adapters.cutout.path.point_at(points, cum, s)
+
+The point at arc length `s`. Mirror of `runtime.js::pathPointAt`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.adapters.cutout.path.trim_polyline(points, cum, a, b)
+
+The sub-polyline between arc lengths `a < b`: the two cut points and
+every vertex strictly between them. Mirror of `runtime.js::pathTrim`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
 
 # _autosummary/an.adapters.cutout.render.html.md
@@ -2049,21 +2176,22 @@ True
 
 ### Classes
 
-| [`AnimationClipJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                         |
-|--------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`AssetJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                    |
-| [`AssetResolutionJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time. |
-| [`AssetsJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                               |
-| [`ChannelJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                      |
-| [`CutoutSceneJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.            |
-| [`CutoutSceneMetaJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                        |
-| [`KeyframeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                  |
-| [`NodeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                               |
-| [`PlacedClipJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                        |
-| [`TimelineJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                              |
-| [`TrackJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.          |
-| [`TransformJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                   |
-| [`VisualJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                      |
+| [`AnimationClipJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                          |
+|--------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [`AssetJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                     |
+| [`AssetResolutionJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time.  |
+| [`AssetsJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                                |
+| [`ChannelJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                       |
+| [`CutoutSceneJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.             |
+| [`CutoutSceneMetaJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                         |
+| [`KeyframeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                   |
+| [`NodeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                                |
+| [`PathJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON)(\*\*data)            | A stroked path's drawing instruction (an#160), carried on a `path` visual. |
+| [`PlacedClipJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                         |
+| [`TimelineJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                               |
+| [`TrackJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.           |
+| [`TransformJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                    |
+| [`VisualJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                       |
 
 ### *class* an.adapters.cutout.serialize.AnimationClipJSON(\*\*data)
 
@@ -2231,6 +2359,23 @@ One node in the scene tree.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### *class* an.adapters.cutout.serialize.PathJSON(\*\*data)
+
+Bases: `_JSONModel`
+
+A stroked path’s drawing instruction (an#160), carried on a `path` visual.
+
+`points` is always a POLYLINE — the compiler flattens cubic Béziers
+(`an.adapters.cutout.path.flatten_curve`), so the runtime knows one geometry.
+`trim_start` / `trim_end` are the values shown before any channel
+touches the node; channels on those two properties move them.
+`head_length == 0` means no arrowhead. What the runtime draws from this
+is specified by `an.adapters.cutout.path.path_geometry`.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.adapters.cutout.serialize.PlacedClipJSON(\*\*data)
 
 Bases: `_JSONModel`
@@ -2323,6 +2468,10 @@ the compiler emits `"contain"` for every sprite it builds.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### path *: [PathJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The stroke for `kind="path"` (an#160); `None` on every other visual.
 
 ### an.adapters.cutout.serialize.from_dict(d)
 
@@ -4126,6 +4275,7 @@ fraction of a second so the CLI is snappy.
 | [`BT709_SCALE_FILTER`](_autosummary/an.base.html.md#an.base.BT709_SCALE_FILTER)                 | The RGB->YUV conversion `an` performs, stated EXPLICITLY rather than left to the encoder flags to imply.                                                                                                                                    |
 | [`EASING_PRESETS`](_autosummary/an.base.html.md#an.base.EASING_PRESETS)                     | Named easing presets.                                                                                                                                                                                                                       |
 | [`COLOUR_PROPERTY`](_autosummary/an.base.html.md#an.base.COLOUR_PROPERTY)                    | The property names the cutout runtime animates NUMERICALLY.                                                                                                                                                                                 |
+| [`TRIM_PROPERTIES`](_autosummary/an.base.html.md#an.base.TRIM_PROPERTIES)                    | The two path-only properties inside `TRANSFORM_PROPERTIES` (an#160).                                                                                                                                                                        |
 | [`SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS`](_autosummary/an.base.html.md#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS) | `/` would read as a path segment and `::` is the runtime's pose-key separator.                                                                                                                                                              |
 | [`AUTHORABLE_PROPERTIES`](_autosummary/an.base.html.md#an.base.AUTHORABLE_PROPERTIES)              | a compiled transform channel, or the authored colour spelling the compiler expands.                                                                                                                                                         |
 | [`PathStr`](_autosummary/an.base.html.md#an.base.PathStr)                            | Slash-delimited node path, e.g. `"charlie/head/mouth"`.                                                                                                                                                                                     |
@@ -4139,7 +4289,7 @@ fraction of a second so the CLI is snappy.
 | [`swap_set_name_problem`](_autosummary/an.base.html.md#an.base.swap_set_name_problem)(name)   | Why `name` cannot be a swap-set name, or `None` if it can.   |
 |--------------------------------------------------------------------------------|--------------------------------------------------------------|
 
-### an.base.AUTHORABLE_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'x', 'y'})*
+### an.base.AUTHORABLE_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 a compiled transform channel, or the authored
 colour spelling the compiler expands. Validate checks against this, and the
@@ -4324,6 +4474,10 @@ as a path segment and `::` is the runtime’s pose-key separator.
 
 Time in seconds. Floats at the IR boundary; rational time is used internally
 only inside the audio pipeline where drift matters.
+
+### an.base.TRIM_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'trim_end', 'trim_start'})*
+
+The two path-only properties inside `TRANSFORM_PROPERTIES` (an#160).
 
 ### an.base.swap_set_name_problem(name)
 
@@ -4984,7 +5138,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'mouth', 'eye', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'rect', 'eye', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -13065,6 +13219,7 @@ always passes it).
 | [`iterate`](_autosummary/an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.         |
 | [`live_api`](_autosummary/an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                              |
 | [`orchestrate`](_autosummary/an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                      |
+| [`paths`](_autosummary/an.paths.html.md#module-an.paths)               | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                |
 | [`preview`](_autosummary/an.preview.html.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit. |
 | [`project`](_autosummary/an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                         |
 | [`props`](_autosummary/an.props.html.md#module-an.props)               | Props: a rig whose art is not a person.                                                |
@@ -16274,6 +16429,163 @@ stack-dumped on the error it should report.
   [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
 
+# _autosummary/an.paths.html.md
+
+# an.paths
+
+Stroked paths: routes, invasion arrows, borders, timelines, connectors.
+
+One drawable covers the whole map-and-infographic motif family (epic #9,
+Wave 9; an#160): a stroke along a polyline or a chain of cubic Béziers, with an
+animatable **trim** — the visible span, as fractions of arc length — and an
+optional **arrowhead** that rides the moving tip, oriented along the path.
+
+```pycon
+>>> arrow = PathDescriptor(
+...     name="route",
+...     points=[(-300.0, 0.0), (0.0, 0.0), (0.0, 200.0)],
+...     arrowhead=True,
+... )
+>>> arrow.kind, arrow.curve, arrow.trim_end
+('PathDescriptor', 'polyline', 1.0)
+>>> arrow.head_length_px, arrow.head_width_px  # defaults scale with the stroke
+(28.0, 24.0)
+```
+
+**Where it lives, and why there.** A path is a prop — a drawable that is not a
+person — so its document sits in the `props` store beside
+[`an.props.PropDescriptor`](_autosummary/an.props.html.md#an.props.PropDescriptor) and a scene names it with an ordinary
+`AssetRef(kind="prop", ...)`. The compiler dispatches on the document’s
+`kind`. That keeps the scene IR unchanged (no field, no migration) and gives
+a path stage placement (`at`, `scale`) and entity ordering for free.
+
+Geometry is often per-shot (the same arrow style, a different route), so an
+entity’s `overrides` are merged over the stored document and the result is
+validated **strictly** — [`resolve_path()`](_autosummary/an.paths.html.md#an.paths.resolve_path) is the one place that happens,
+and both the compiler and `an validate` call it, so their verdicts agree.
+
+**Trim is an ordinary property.** `trim_start` / `trim_end` are numeric
+node properties in `an.base.TRANSFORM_PROPERTIES`, animated by ordinary
+`set`/`tween` actions and flattened to the canonical timeline like
+`alpha`: `tween route trim_end 0 -> 1` is a draw-on. The fields below are
+only the values the path shows before anything animates it.
+
+Why a separate document rather than a `PropDescriptor` field: a
+`PropDescriptor` is a *rig* (bones, slots, skins, swap sets) whose art is
+SVG; a path has none of those, and its colour is decided by the compiler
+(which is what will let a [`an.styles.StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack) reach it), not by art.
+
+### Module Attributes
+
+| [`PATH_DOCUMENT_KIND`](_autosummary/an.paths.html.md#an.paths.PATH_DOCUMENT_KIND)   | Its own versioned document kind, registered from the module that owns the schema — the rule `PropDescriptor` and `CharacterDescriptor` follow.   |
+|-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_STROKE_COLOUR`](_autosummary/an.paths.html.md#an.paths.DFLT_STROKE_COLOUR)   | The stroke colour when the document names none.                                                                                                  |
+
+### Functions
+
+| [`resolve_path`](_autosummary/an.paths.html.md#an.paths.resolve_path)(document[, overrides])   | The path an entity draws: its stored document with `overrides` on top.   |
+|----------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+
+### Classes
+
+| [`PathDescriptor`](_autosummary/an.paths.html.md#an.paths.PathDescriptor)(\*\*data)   | The on-disk path schema, saved as a prop's `prop.json`.   |
+|-----------------------------------------------------------------------------|-----------------------------------------------------------|
+
+### an.paths.DFLT_STROKE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#c0392b'*
+
+The stroke colour when the document names none.
+
+Not yet a `StylePack` role: `an.styles.REACHABLE_ROLES` is a closed set, and
+every role in it is asserted to reach a compiled document from one fixed
+scene (`tests/test_styles.py`). A `stroke` role is a small follow-up, not a
+field that silently does nothing today.
+
+### an.paths.PATH_DOCUMENT_KIND *: [DocumentKind](_autosummary/an.ir.html.md#an.ir.DocumentKind)* *= DocumentKind(name='PathDescriptor', version_field='schema_version', current_version='0.1.0')*
+
+Its own versioned document kind, registered from the module that owns the
+schema — the rule `PropDescriptor` and `CharacterDescriptor` follow.
+
+### *class* an.paths.PathDescriptor(\*\*data)
+
+Bases: `BaseModel`
+
+The on-disk path schema, saved as a prop’s `prop.json`.
+
+`extra="forbid"`, unlike the store documents around it: a path is a
+precise drawing instruction, and a misspelt `trim_ends` that silently
+did nothing is the defect class this package refuses (the `Plane`
+precedent, an#110).
+
+`curve="cubic"` reads `points` as chained cubic Béziers,
+`p0 c1 c2 p1 c1 c2 p2 ...` — `3n + 1` points, the SVG `C` command
+chained:
+
+```pycon
+>>> PathDescriptor(name="s", curve="cubic", points=[(0, 0), (1, 1), (2, 1), (3, 0)]).curve
+'cubic'
+>>> PathDescriptor(name="s", curve="cubic", points=[(0, 0), (1, 1), (3, 0)])
+Traceback (most recent call last):
+...
+pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescriptor
+  Value error, a cubic path takes 3n + 1 points (p0, then c1 c2 p per segment); got 3 [type=value_error, input_value=..., input_type=dict]
+...
+```
+
+#### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+`#rrggbb`.
+
+#### head_length *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Scene pixels; `None` = a multiple of `width`.
+
+#### *property* head_length_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The arrowhead’s length in scene pixels.
+
+#### *property* head_width_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The arrowhead’s base width in scene pixels.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### points *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]*
+
+Scene pixels, relative to the node’s origin (`AssetRef.stage.at`).
+
+#### trim_start *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The visible span before anything animates it, as fractions of arc
+length. `trim_end=0` starts a draw-on hidden, and a trim tween
+with no `from_value` starts from these values (not the global rest).
+
+### an.paths.resolve_path(document, overrides=None)
+
+The path an entity draws: its stored document with `overrides` on top.
+
+Validated strictly after the merge, so an override key the schema does not
+know raises instead of vanishing (an environment override silently drops
+unknown keys; a path’s does not).
+
+* **Return type:**
+  [`PathDescriptor`](_autosummary/an.paths.html.md#an.paths.PathDescriptor)
+
+```pycon
+>>> doc = {"kind": "PathDescriptor", "name": "a", "points": [[0, 0], [10, 0]]}
+>>> resolve_path(doc, {"points": [[0, 0], [0, 50]]}).points
+[(0.0, 0.0), (0.0, 50.0)]
+>>> resolve_path(doc, {"colour": "#000000"})
+Traceback (most recent call last):
+...
+pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescriptor
+colour
+  Extra inputs are not permitted [type=extra_forbidden, input_value='#000000', input_type=str]
+...
+```
+
+
 # _autosummary/an.preview.html.md
 
 # an.preview
@@ -18023,7 +18335,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-29 17:49 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/472fb258b6134e7399b2e944327c4f636dc34758"><code>472fb25</code></a> on branch <code>main</code>, for **an 0.1.89** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-29 18:40 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/e533593b9edd80fd35827bc4e2b67be655448d28"><code>e533593</code></a> on branch <code>main</code>, for **an 0.1.90** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -18032,9 +18344,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/472fb258b6134e7399b2e944327c4f636dc34758"><code>472fb258b6134e7399b2e944327c4f636dc34758</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/e533593b9edd80fd35827bc4e2b67be655448d28"><code>e533593b9edd80fd35827bc4e2b67be655448d28</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.89</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.90</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -18043,9 +18355,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36607278057">36607278057</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36613387218">36613387218</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>1d7af261362bae92dd2ecdeb116615505f86cce4</code> (in the history of the built commit) |
+| Event commit | <code>31f40eff9f4f0555174acf2712e4fe0ec049882c</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -18070,13 +18382,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.89/">0.1.89</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.90/">0.1.90</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 472fb258b6134e7399b2e944327c4f636dc34758
+git checkout e533593b9edd80fd35827bc4e2b67be655448d28
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
@@ -18139,6 +18451,12 @@ Source: [`.claude/skills/an-dev-licensing`](https://github.com/thorwhalen/an/tre
 Lip sync in the `an` repo — where co-articulation sits (in the compiler, over the provider’s raw track), the pass order (symbolic → lead → decay → a minimum hold that votes by dominance), the condenser that HOLDS and votes instead of dropping, the Rhubarb recognizer rule, word-timing retention and its cache rule, the alignment-model licence trap, and the two standing measurements. Load before touching `an/audio/*lipsync*`, `an/audio/pipeline.py`, `_add_viseme_clips`, `_LEGACY_MIN_VISEME_GAP_S`, `an/adapters/cutout/coarticulate.py`, any viseme test, or a dialogue corpus scene. Triggers on “lip sync”, “viseme”, “Rhubarb”, “whisper”, “word timings”, “co-articulation”, “condenser”, “aligner”.
 
 Source: [`.claude/skills/an-dev-lipsync`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-lipsync).
+
+### `an-dev-path`
+
+Stroked paths in the `an` repo (an#160, epic
+
+Source: [`.claude/skills/an-dev-path`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-path).
 
 ### `an-dev-render-pipeline`
 

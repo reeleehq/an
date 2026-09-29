@@ -20,6 +20,7 @@ fraction of a second so the CLI is snappy.
 | [`BT709_SCALE_FILTER`](#an.base.BT709_SCALE_FILTER)                 | The RGB->YUV conversion `an` performs, stated EXPLICITLY rather than left to the encoder flags to imply.                                                                                                                                    |
 | [`EASING_PRESETS`](#an.base.EASING_PRESETS)                     | Named easing presets.                                                                                                                                                                                                                       |
 | [`COLOUR_PROPERTY`](#an.base.COLOUR_PROPERTY)                    | The property names the cutout runtime animates NUMERICALLY.                                                                                                                                                                                 |
+| [`TRIM_PROPERTIES`](#an.base.TRIM_PROPERTIES)                    | The two path-only properties inside `TRANSFORM_PROPERTIES` (an#160).                                                                                                                                                                        |
 | [`SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS`](#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS) | `/` would read as a path segment and `::` is the runtime's pose-key separator.                                                                                                                                                              |
 | [`AUTHORABLE_PROPERTIES`](#an.base.AUTHORABLE_PROPERTIES)              | a compiled transform channel, or the authored colour spelling the compiler expands.                                                                                                                                                         |
 | [`PathStr`](#an.base.PathStr)                            | Slash-delimited node path, e.g. `"charlie/head/mouth"`.                                                                                                                                                                                     |
@@ -33,7 +34,7 @@ fraction of a second so the CLI is snappy.
 | [`swap_set_name_problem`](#an.base.swap_set_name_problem)(name)   | Why `name` cannot be a swap-set name, or `None` if it can.   |
 |--------------------------------------------------------------------------------|--------------------------------------------------------------|
 
-### an.base.AUTHORABLE_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'x', 'y'})*
+### an.base.AUTHORABLE_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 a compiled transform channel, or the authored
 colour spelling the compiler expands. Validate checks against this, and the
@@ -218,6 +219,10 @@ as a path segment and `::` is the runtime’s pose-key separator.
 
 Time in seconds. Floats at the IR boundary; rational time is used internally
 only inside the audio pipeline where drift matters.
+
+### an.base.TRIM_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'trim_end', 'trim_start'})*
+
+The two path-only properties inside `TRANSFORM_PROPERTIES` (an#160).
 
 ### an.base.swap_set_name_problem(name)
 
