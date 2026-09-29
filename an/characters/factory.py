@@ -57,13 +57,16 @@ from an.characters.mouth_set import (
 )
 from an.characters.schema import (
     CharacterDescriptor,
+    LEG_LENGTH,
     MOUTH_SHAPES,
+    REFERENCE_HEAD_HEIGHT,
     REQUIRED_PARTS,
 )
 from an.characters.svg_utils import (
     extract_part,
     extract_pivots,
     normalize_svg,
+    raster_size,
     write_svg,
     SVG_NS,
 )
@@ -555,13 +558,58 @@ def _palette_for_seed(seed: str) -> tuple[str, str, str]:
     return palettes[idx]
 
 
-def _write_head_part(path: Path, avatar_svg: str) -> Path:
-    """Write the avatar SVG verbatim as the head part.
+#: Everything XML allows before the root element: prolog, doctype, comments,
+#: processing instructions, whitespace.
+_SVG_PREAMBLE = re.compile(r"(?:\s|<\?.*?\?>|<!--.*?-->|<!DOCTYPE[^>]*>)*", re.S)
+#: The root's start tag, with `>` allowed inside quoted attribute values.
+_SVG_OPEN_TAG = re.compile(r"""<svg\b(?:[^>"']|"[^"]*"|'[^']*')*>""")
+_SIZE_ATTR = re.compile(r"""\s(width|height)\s*=\s*("[^"]*"|'[^']*')""")
 
-    The avatar's intrinsic viewBox (whether DiceBear's 762×762 or our 80×80
-    fallback) is what Pixi maps to the sprite dimensions at render time, so
-    no rewriting/rescaling is needed.
+
+def _sized_to_height(svg: str, height: float) -> str:
+    """``svg`` with its root ``width``/``height`` set so it rasterises ``height``
+    tall at its own aspect ratio. Only the root tag's attributes change.
+
+    The aspect is the viewBox's — what the browser draws — and the declared
+    size is used only when there is no viewBox (a ``%`` size then has no
+    meaning and is refused by :func:`raster_size`).
+
+    >>> _sized_to_height('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"/>', 100)
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40" width="200" height="100"/>'
+    >>> _sized_to_height('<?xml version="1.0"?><!-- <svg> --><svg xmlns="http://www.w3.org/2000/svg" '
+    ...                  'viewBox="0 0 10 10" width="100%" data-t="a>b"/>', 5)
+    '<?xml version="1.0"?><!-- <svg> --><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" data-t="a>b" width="5" height="5"/>'
     """
+    root = ET.fromstring(svg.encode("utf-8"))
+    view_box = (root.get("viewBox") or "").replace(",", " ").split()
+    if len(view_box) == 4:
+        w, h = float(view_box[2]), float(view_box[3])
+    else:
+        w, h = raster_size(svg)
+    width = round(height * w / h, 3)
+    at = _SVG_PREAMBLE.match(svg).end()
+    match = _SVG_OPEN_TAG.match(svg, at)
+    if match is None:
+        raise ValueError("the avatar SVG's root element is not <svg>")
+    tag = _SIZE_ATTR.sub("", match.group(0))
+    if len(view_box) != 4:  # keep the drawing's own units when resized
+        tag = tag.replace("<svg", f'<svg viewBox="0 0 {w:g} {h:g}"', 1)
+    closer = "/>" if tag.endswith("/>") else ">"
+    tag = f'{tag[: -len(closer)].rstrip()} width="{width:g}" height="{height:g}"{closer}'
+    return svg[: match.start()] + tag + svg[match.end() :]
+
+
+def _write_head_part(path: Path, avatar_svg: str) -> Path:
+    """Write the avatar SVG as the head part, sized to the rig's head.
+
+    The compiler draws a part at its own raster size, in view_box units, so
+    that size IS the head's size on screen. Written verbatim, the fallback's
+    80×80 canvas drew a head a quarter of the size the default face layout
+    (:data:`~an.characters.schema.FACE_OFFSETS`) is drawn for, and a DiceBear
+    762×762 one nearly three times it (an#168). Only the root's
+    ``width``/``height`` change; the drawing and its viewBox are untouched.
+    """
+    avatar_svg = _sized_to_height(avatar_svg, REFERENCE_HEAD_HEIGHT)
     if not avatar_svg.lstrip().startswith("<?xml"):
         avatar_svg = '<?xml version="1.0" encoding="UTF-8"?>\n' + avatar_svg.lstrip()
     path.write_text(avatar_svg, encoding="utf-8")
@@ -601,14 +649,19 @@ def _write_arm_part(path: Path, *, side: str, color: str) -> Path:
 
 
 def _write_leg_part(path: Path, *, side: str, color: str) -> Path:
-    """A 80x256 leg SVG with shoe at the bottom."""
+    """An 80-wide leg SVG with a shoe at the bottom, hip to ground long.
+
+    Its height is the rig's :data:`~an.characters.schema.LEG_LENGTH`, so a leg
+    hung from the hip bone puts the shoe on the ground (an#168).
+    """
+    h = LEG_LENGTH
     svg = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        f'<svg xmlns="{SVG_NS}" viewBox="0 0 80 256" width="80" height="256">'
+        f'<svg xmlns="{SVG_NS}" viewBox="0 0 80 {h:g}" width="80" height="{h:g}">'
         f'<g id="leg_{side}">'
-        f'<rect x="20" y="0" width="40" height="220" rx="6" ry="6" '
+        f'<rect x="20" y="0" width="40" height="{h - 36:g}" rx="6" ry="6" '
         f'fill="{color}"/>'
-        f'<ellipse cx="40" cy="232" rx="32" ry="18" fill="#1a1a1a"/>'
+        f'<ellipse cx="40" cy="{h - 24:g}" rx="32" ry="18" fill="#1a1a1a"/>'
         "</g></svg>"
     )
     path.write_text(svg, encoding="utf-8")
