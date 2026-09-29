@@ -1,4 +1,4 @@
-> built 2026-09-29 19:58 UTC from 1442e28 (main) · an 0.1.93. Details: build_info.json
+> built 2026-09-29 20:28 UTC from e6399bf (main) · an 0.1.94. Details: build_info.json
 
 # index.html.md
 
@@ -5138,7 +5138,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'eye', 'rect', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'eye', 'ellipse', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -10479,16 +10479,19 @@ several slots.
 
 ### Module Attributes
 
-| [`CHARACTER_DOCUMENT_KIND`](_autosummary/an.characters.schema.html.md#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.   |
-|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| [`MOUTH_SHAPES`](_autosummary/an.characters.schema.html.md#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                         |
-| [`DEFAULT_VISEME_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                       |
-| [`VISEME_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                             |
-| [`EYELID_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                |
-| [`DEFAULT_EYELID_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                     |
-| [`REQUIRED_PARTS`](_autosummary/an.characters.schema.html.md#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                          |
-| [`DEFAULT_VIEW_BOX`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                               |
-| [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                     |
+| [`CHARACTER_DOCUMENT_KIND`](_autosummary/an.characters.schema.html.md#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                     |
+|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| [`MOUTH_SHAPES`](_autosummary/an.characters.schema.html.md#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                           |
+| [`DEFAULT_VISEME_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                         |
+| [`VISEME_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                               |
+| [`EYELID_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                  |
+| [`DEFAULT_EYELID_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                       |
+| [`REQUIRED_PARTS`](_autosummary/an.characters.schema.html.md#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                            |
+| [`DEFAULT_VIEW_BOX`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                 |
+| [`LEG_LENGTH`](_autosummary/an.characters.schema.html.md#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                            |
+| [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                         |
+| [`REFERENCE_HEAD_HEIGHT`](_autosummary/an.characters.schema.html.md#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024. |
+| [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                       |
 
 ### Functions
 
@@ -10738,14 +10741,25 @@ migration renamed them from the file-derived `eye_l_open` spelling for
 exactly this: a set’s keys are looked up per slot, so slots that a single
 channel must drive together need attachment names in common.
 
-### an.characters.schema.FACE_OFFSETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'left_brow': (-41.6, -53.4), 'left_eye': (-41.6, -17.8), 'mouth': (0.0, 41.6), 'right_brow': (41.6, -53.4), 'right_eye': (41.6, -17.8)}*
+### an.characters.schema.FACE_OFFSETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'left_brow': (-41.6, -133.2), 'left_eye': (-41.6, -97.6), 'mouth': (0.0, -38.2), 'right_brow': (41.6, -133.2), 'right_eye': (41.6, -97.6)}*
 
 Where each face part sits relative to the `head` bone, in view_box units.
 
 All five share one bone, so without a per-attachment offset they stack on it.
 These are the compiler’s four deleted hardcoded pairs converted at
 k = 345/1024 — i.e. the same picture, now expressed where an illustrator can
-change it.
+change it. Those pairs were relative to the head’s CENTRE (the old compiler
+anchored the head at 0.5); the bone is the NECK, and the head hangs above it
+at [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR), so each pair is lifted by the centre’s height above
+the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).
+
+### an.characters.schema.HEAD_ANCHOR *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 0.78)*
+
+the head hangs above the neck, its lower
+~fifth overlapping the collar.
+
+* **Type:**
+  The head’s anchor on the neck bone
 
 ### *class* an.characters.schema.IdleAnimation(\*\*data)
 
@@ -10763,11 +10777,23 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### an.characters.schema.LEG_LENGTH *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 300.0*
+
+Hip to ground in the default rig, in view_box units. The torso bone (the
+hip) and both leg bones sit this far above the root (the ground contact), so
+a leg drawn this long reaches the ground. The factory draws its legs to it.
+
 ### an.characters.schema.MOUTH_SHAPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x')*
 
 Rhubarb mouth shapes. A-F are mandatory in Rhubarb’s basic set; G/H/X
 are emitted when `--extendedShapes GHX` is on (Rhubarb’s default).
 We always ship all 9 so the renderer never has to fall back.
+
+### an.characters.schema.REFERENCE_HEAD_HEIGHT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 285.0*
+
+The head height the default face layout is drawn for, in view_box units —
+the pre-Wave-4 compiler’s 96 px head at k = 345/1024. The factory writes its
+head art at this height, so [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS) lands on the face.
 
 ### an.characters.schema.REQUIRED_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('head', 'torso', 'arm_l', 'arm_r', 'leg_l', 'leg_r', 'eye_l_open', 'eye_l_closed', 'eye_r_open', 'eye_r_closed', 'brow_l', 'brow_r')*
 
@@ -18821,18 +18847,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-29 19:58 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/1442e289efdffbd924430cf3854ce8c544fc0000"><code>1442e28</code></a> on branch <code>main</code>, for **an 0.1.93** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-29 20:28 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/e6399bf71887ae389210f028486579c63699eed1"><code>e6399bf</code></a> on branch <code>main</code>, for **an 0.1.94** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.94) is ahead of the latest release on PyPI (0.1.93): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/1442e289efdffbd924430cf3854ce8c544fc0000"><code>1442e289efdffbd924430cf3854ce8c544fc0000</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/e6399bf71887ae389210f028486579c63699eed1"><code>e6399bf71887ae389210f028486579c63699eed1</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.93</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.94</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -18841,9 +18869,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36622597926">36622597926</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36626303763">36626303763</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>66e197a89fb548e6c01c6ea8c06ab9a60fc88eae</code> (in the history of the built commit) |
+| Event commit | <code>35f5469db7479724da225462cd593206d97bfb5f</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -18868,13 +18896,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.93/">0.1.93</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.93/">0.1.93</a>, older than the documented version (0.1.94).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 1442e289efdffbd924430cf3854ce8c544fc0000
+git checkout e6399bf71887ae389210f028486579c63699eed1
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

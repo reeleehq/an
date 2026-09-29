@@ -49,16 +49,19 @@ several slots.
 
 ### Module Attributes
 
-| [`CHARACTER_DOCUMENT_KIND`](#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.   |
-|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
-| [`MOUTH_SHAPES`](#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                         |
-| [`DEFAULT_VISEME_MAP`](#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                       |
-| [`VISEME_CHANNEL`](#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                             |
-| [`EYELID_CHANNEL`](#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                |
-| [`DEFAULT_EYELID_MAP`](#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                     |
-| [`REQUIRED_PARTS`](#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                          |
-| [`DEFAULT_VIEW_BOX`](#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                               |
-| [`FACE_OFFSETS`](#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                     |
+| [`CHARACTER_DOCUMENT_KIND`](#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                     |
+|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| [`MOUTH_SHAPES`](#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                           |
+| [`DEFAULT_VISEME_MAP`](#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                         |
+| [`VISEME_CHANNEL`](#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                               |
+| [`EYELID_CHANNEL`](#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                  |
+| [`DEFAULT_EYELID_MAP`](#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                       |
+| [`REQUIRED_PARTS`](#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                            |
+| [`DEFAULT_VIEW_BOX`](#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                 |
+| [`LEG_LENGTH`](#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                            |
+| [`HEAD_ANCHOR`](#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                         |
+| [`REFERENCE_HEAD_HEIGHT`](#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024. |
+| [`FACE_OFFSETS`](#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                       |
 
 ### Functions
 
@@ -308,14 +311,25 @@ migration renamed them from the file-derived `eye_l_open` spelling for
 exactly this: a set’s keys are looked up per slot, so slots that a single
 channel must drive together need attachment names in common.
 
-### an.characters.schema.FACE_OFFSETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'left_brow': (-41.6, -53.4), 'left_eye': (-41.6, -17.8), 'mouth': (0.0, 41.6), 'right_brow': (41.6, -53.4), 'right_eye': (41.6, -17.8)}*
+### an.characters.schema.FACE_OFFSETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]]* *= {'left_brow': (-41.6, -133.2), 'left_eye': (-41.6, -97.6), 'mouth': (0.0, -38.2), 'right_brow': (41.6, -133.2), 'right_eye': (41.6, -97.6)}*
 
 Where each face part sits relative to the `head` bone, in view_box units.
 
 All five share one bone, so without a per-attachment offset they stack on it.
 These are the compiler’s four deleted hardcoded pairs converted at
 k = 345/1024 — i.e. the same picture, now expressed where an illustrator can
-change it.
+change it. Those pairs were relative to the head’s CENTRE (the old compiler
+anchored the head at 0.5); the bone is the NECK, and the head hangs above it
+at [`HEAD_ANCHOR`](#an.characters.schema.HEAD_ANCHOR), so each pair is lifted by the centre’s height above
+the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).
+
+### an.characters.schema.HEAD_ANCHOR *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 0.78)*
+
+the head hangs above the neck, its lower
+~fifth overlapping the collar.
+
+* **Type:**
+  The head’s anchor on the neck bone
 
 ### *class* an.characters.schema.IdleAnimation(\*\*data)
 
@@ -333,11 +347,23 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### an.characters.schema.LEG_LENGTH *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 300.0*
+
+Hip to ground in the default rig, in view_box units. The torso bone (the
+hip) and both leg bones sit this far above the root (the ground contact), so
+a leg drawn this long reaches the ground. The factory draws its legs to it.
+
 ### an.characters.schema.MOUTH_SHAPES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'x')*
 
 Rhubarb mouth shapes. A-F are mandatory in Rhubarb’s basic set; G/H/X
 are emitted when `--extendedShapes GHX` is on (Rhubarb’s default).
 We always ship all 9 so the renderer never has to fall back.
+
+### an.characters.schema.REFERENCE_HEAD_HEIGHT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 285.0*
+
+The head height the default face layout is drawn for, in view_box units —
+the pre-Wave-4 compiler’s 96 px head at k = 345/1024. The factory writes its
+head art at this height, so [`FACE_OFFSETS`](#an.characters.schema.FACE_OFFSETS) lands on the face.
 
 ### an.characters.schema.REQUIRED_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('head', 'torso', 'arm_l', 'arm_r', 'leg_l', 'leg_r', 'eye_l_open', 'eye_l_closed', 'eye_r_open', 'eye_r_closed', 'brow_l', 'brow_r')*
 

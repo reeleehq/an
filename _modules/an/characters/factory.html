@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1d9edaf8"></script>
+    <script src="../../../_static/documentation_options.js?v=d6174a35"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.93" />
+  <meta name="docsearch:version" content="0.1.94" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -769,13 +769,16 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CharacterDescriptor</span><span class="p">,</span>
+    <span class="n">LEG_LENGTH</span><span class="p">,</span>
     <span class="n">MOUTH_SHAPES</span><span class="p">,</span>
+    <span class="n">REFERENCE_HEAD_HEIGHT</span><span class="p">,</span>
     <span class="n">REQUIRED_PARTS</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.svg_utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">extract_part</span><span class="p">,</span>
     <span class="n">extract_pivots</span><span class="p">,</span>
     <span class="n">normalize_svg</span><span class="p">,</span>
+    <span class="n">raster_size</span><span class="p">,</span>
     <span class="n">write_svg</span><span class="p">,</span>
     <span class="n">SVG_NS</span><span class="p">,</span>
 <span class="p">)</span>
@@ -1279,13 +1282,60 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">palettes</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_write_head_part</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">avatar_svg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Write the avatar SVG verbatim as the head part.</span>
+<span class="c1">#: Everything XML allows before the root element: prolog, doctype, comments,</span>
+<span class="c1">#: processing instructions, whitespace.</span>
+<span class="n">_SVG_PREAMBLE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"(?:\s|&lt;\?.*?\?&gt;|&lt;!--.*?--&gt;|&lt;!DOCTYPE[^&gt;]*&gt;)*"</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+<span class="c1">#: The root's start tag, with `&gt;` allowed inside quoted attribute values.</span>
+<span class="n">_SVG_OPEN_TAG</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"""&lt;svg\b(?:[^&gt;"']|"[^"]*"|'[^']*')*&gt;"""</span><span class="p">)</span>
+<span class="n">_SIZE_ATTR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"""\s(width|height)\s*=\s*("[^"]*"|'[^']*')"""</span><span class="p">)</span>
 
-<span class="sd">    The avatar's intrinsic viewBox (whether DiceBear's 762×762 or our 80×80</span>
-<span class="sd">    fallback) is what Pixi maps to the sprite dimensions at render time, so</span>
-<span class="sd">    no rewriting/rescaling is needed.</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sized_to_height</span><span class="p">(</span><span class="n">svg</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``svg`` with its root ``width``/``height`` set so it rasterises ``height``</span>
+<span class="sd">    tall at its own aspect ratio. Only the root tag's attributes change.</span>
+
+<span class="sd">    The aspect is the viewBox's — what the browser draws — and the declared</span>
+<span class="sd">    size is used only when there is no viewBox (a ``%`` size then has no</span>
+<span class="sd">    meaning and is refused by :func:`raster_size`).</span>
+
+<span class="sd">    &gt;&gt;&gt; _sized_to_height('&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40"/&gt;', 100)</span>
+<span class="sd">    '&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40" width="200" height="100"/&gt;'</span>
+<span class="sd">    &gt;&gt;&gt; _sized_to_height('&lt;?xml version="1.0"?&gt;&lt;!-- &lt;svg&gt; --&gt;&lt;svg xmlns="http://www.w3.org/2000/svg" '</span>
+<span class="sd">    ...                  'viewBox="0 0 10 10" width="100%" data-t="a&gt;b"/&gt;', 5)</span>
+<span class="sd">    '&lt;?xml version="1.0"?&gt;&lt;!-- &lt;svg&gt; --&gt;&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" data-t="a&gt;b" width="5" height="5"/&gt;'</span>
 <span class="sd">    """</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">svg</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="n">view_box</span> <span class="o">=</span> <span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"viewBox"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">" "</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">view_box</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">view_box</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">view_box</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">raster_size</span><span class="p">(</span><span class="n">svg</span><span class="p">)</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">height</span> <span class="o">*</span> <span class="n">w</span> <span class="o">/</span> <span class="n">h</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">at</span> <span class="o">=</span> <span class="n">_SVG_PREAMBLE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">svg</span><span class="p">)</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">_SVG_OPEN_TAG</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"the avatar SVG's root element is not &lt;svg&gt;"</span><span class="p">)</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="n">_SIZE_ATTR</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">view_box</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>  <span class="c1"># keep the drawing's own units when resized</span>
+        <span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"&lt;svg"</span><span class="p">,</span> <span class="sa">f</span><span class="s1">'&lt;svg viewBox="0 0 </span><span class="si">{</span><span class="n">w</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">closer</span> <span class="o">=</span> <span class="s2">"/&gt;"</span> <span class="k">if</span> <span class="n">tag</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/&gt;"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">"&gt;"</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">tag</span><span class="p">[:</span><span class="w"> </span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">closer</span><span class="p">)]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="si">}</span><span class="s1"> width="</span><span class="si">{</span><span class="n">width</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">height</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"</span><span class="si">{</span><span class="n">closer</span><span class="si">}</span><span class="s1">'</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">svg</span><span class="p">[:</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">()]</span> <span class="o">+</span> <span class="n">tag</span> <span class="o">+</span> <span class="n">svg</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="p">:]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_head_part</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">avatar_svg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Write the avatar SVG as the head part, sized to the rig's head.</span>
+
+<span class="sd">    The compiler draws a part at its own raster size, in view_box units, so</span>
+<span class="sd">    that size IS the head's size on screen. Written verbatim, the fallback's</span>
+<span class="sd">    80×80 canvas drew a head a quarter of the size the default face layout</span>
+<span class="sd">    (:data:`~an.characters.schema.FACE_OFFSETS`) is drawn for, and a DiceBear</span>
+<span class="sd">    762×762 one nearly three times it (an#168). Only the root's</span>
+<span class="sd">    ``width``/``height`` change; the drawing and its viewBox are untouched.</span>
+<span class="sd">    """</span>
+    <span class="n">avatar_svg</span> <span class="o">=</span> <span class="n">_sized_to_height</span><span class="p">(</span><span class="n">avatar_svg</span><span class="p">,</span> <span class="n">REFERENCE_HEAD_HEIGHT</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">avatar_svg</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"&lt;?xml"</span><span class="p">):</span>
         <span class="n">avatar_svg</span> <span class="o">=</span> <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span><span class="se">\n</span><span class="s1">'</span> <span class="o">+</span> <span class="n">avatar_svg</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
     <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">avatar_svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
@@ -1325,14 +1375,19 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_write_leg_part</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A 80x256 leg SVG with shoe at the bottom."""</span>
+<span class="w">    </span><span class="sd">"""An 80-wide leg SVG with a shoe at the bottom, hip to ground long.</span>
+
+<span class="sd">    Its height is the rig's :data:`~an.characters.schema.LEG_LENGTH`, so a leg</span>
+<span class="sd">    hung from the hip bone puts the shoe on the ground (an#168).</span>
+<span class="sd">    """</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">LEG_LENGTH</span>
     <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span><span class="se">\n</span><span class="s1">'</span>
-        <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 80 256" width="80" height="256"&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 80 </span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" width="80" height="</span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"&gt;'</span>
         <span class="sa">f</span><span class="s1">'&lt;g id="leg_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s1">"&gt;'</span>
-        <span class="sa">f</span><span class="s1">'&lt;rect x="20" y="0" width="40" height="220" rx="6" ry="6" '</span>
+        <span class="sa">f</span><span class="s1">'&lt;rect x="20" y="0" width="40" height="</span><span class="si">{</span><span class="n">h</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">36</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" rx="6" ry="6" '</span>
         <span class="sa">f</span><span class="s1">'fill="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">"/&gt;'</span>
-        <span class="sa">f</span><span class="s1">'&lt;ellipse cx="40" cy="232" rx="32" ry="18" fill="#1a1a1a"/&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;ellipse cx="40" cy="</span><span class="si">{</span><span class="n">h</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">24</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" rx="32" ry="18" fill="#1a1a1a"/&gt;'</span>
         <span class="s2">"&lt;/g&gt;&lt;/svg&gt;"</span>
     <span class="p">)</span>
     <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>

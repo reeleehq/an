@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1d9edaf8"></script>
+    <script src="../../../_static/documentation_options.js?v=d6174a35"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.93" />
+  <meta name="docsearch:version" content="0.1.94" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1177,7 +1177,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">slots</span> <span class="o">=</span> <span class="n">skin</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slots"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">skin</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">slots</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="k">continue</span>
-        <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">FACE_OFFSETS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">_FACE_OFFSETS_0_2_0</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">attachment</span> <span class="ow">in</span> <span class="p">(</span><span class="n">slots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot_name</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attachment</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                     <span class="k">continue</span>
@@ -1291,10 +1291,29 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">doc</span>
 
 
+<span class="c1">#: Hip to ground in the default rig, in view_box units. The torso bone (the</span>
+<span class="c1">#: hip) and both leg bones sit this far above the root (the ground contact), so</span>
+<span class="c1">#: a leg drawn this long reaches the ground. The factory draws its legs to it.</span>
+<span class="n">LEG_LENGTH</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">300.0</span>
+
+<span class="c1">#: The head's anchor on the neck bone: the head hangs above the neck, its lower</span>
+<span class="c1">#: ~fifth overlapping the collar.</span>
+<span class="n">HEAD_ANCHOR</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">)</span>
+
+<span class="c1">#: The head height the default face layout is drawn for, in view_box units —</span>
+<span class="c1">#: the pre-Wave-4 compiler's 96 px head at k = 345/1024. The factory writes its</span>
+<span class="c1">#: head art at this height, so :data:`FACE_OFFSETS` lands on the face.</span>
+<span class="n">REFERENCE_HEAD_HEIGHT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">285.0</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_default_bones</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Bone</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""The 7-bone default rig: root, torso, head, two arms, two legs.</span>
 
 <span class="sd">    Coordinates assume a 1024x1024 viewBox with feet near y≈980.</span>
+
+<span class="sd">    &gt;&gt;&gt; absolute = {b.name: b.y for b in _default_bones()}</span>
+<span class="sd">    &gt;&gt;&gt; absolute["leg_l"] == absolute["torso"]    # legs hang from the hip</span>
+<span class="sd">    True</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="p">[</span>
         <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">980</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"root"</span><span class="p">),</span>
@@ -1302,23 +1321,43 @@ window.runMermaid = runMermaid;</script>
         <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"head"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mi">260</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"neck"</span><span class="p">),</span>
         <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm_l"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">x</span><span class="o">=-</span><span class="mi">90</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mi">240</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"shoulder_l"</span><span class="p">),</span>
         <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm_r"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mi">240</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"shoulder_r"</span><span class="p">),</span>
-        <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"leg_l"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">x</span><span class="o">=-</span><span class="mi">50</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mi">10</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"hip_l"</span><span class="p">),</span>
-        <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"leg_r"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="mi">10</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"hip_r"</span><span class="p">),</span>
+        <span class="c1"># At the HIP, where their pivot names say they are and where the limb</span>
+        <span class="c1"># anchor (top edge) hangs them from. They used to sit at y=-10 — the</span>
+        <span class="c1"># feet — so every default-rigged leg hung BELOW the ground, detached</span>
+        <span class="c1"># from the torso by the whole leg length (an#168).</span>
+        <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"leg_l"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">x</span><span class="o">=-</span><span class="mi">50</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="n">LEG_LENGTH</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"hip_l"</span><span class="p">),</span>
+        <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"leg_r"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="n">LEG_LENGTH</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"hip_r"</span><span class="p">),</span>
     <span class="p">]</span>
 
+
+<span class="c1">#: The face offsets the 0.1.0 -&gt; 0.2.0 migration seeds, FROZEN. A migration</span>
+<span class="c1">#: states what a document meant when it was written, so it may never read a</span>
+<span class="c1">#: default that later moves: an#168 corrected :data:`FACE_OFFSETS`, and a live</span>
+<span class="c1">#: read here silently re-laid-out every migrated rig in the bench corpus.</span>
+<span class="n">_FACE_OFFSETS_0_2_0</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"left_eye"</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">41.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">17.8</span><span class="p">),</span>
+    <span class="s2">"right_eye"</span><span class="p">:</span> <span class="p">(</span><span class="mf">41.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">17.8</span><span class="p">),</span>
+    <span class="s2">"left_brow"</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">41.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">53.4</span><span class="p">),</span>
+    <span class="s2">"right_brow"</span><span class="p">:</span> <span class="p">(</span><span class="mf">41.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">53.4</span><span class="p">),</span>
+    <span class="s2">"mouth"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">41.6</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="c1">#: How far above the ``head`` bone (the neck) the head art's centre sits when</span>
+<span class="c1">#: the head is :data:`REFERENCE_HEAD_HEIGHT` tall and hangs at :data:`HEAD_ANCHOR`.</span>
+<span class="n">_HEAD_CENTRE_ABOVE_NECK</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="p">(</span><span class="n">HEAD_ANCHOR</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">REFERENCE_HEAD_HEIGHT</span>
 
 <span class="c1">#: Where each face part sits relative to the ``head`` bone, in view_box units.</span>
 <span class="c1">#:</span>
 <span class="c1">#: All five share one bone, so without a per-attachment offset they stack on it.</span>
 <span class="c1">#: These are the compiler's four deleted hardcoded pairs converted at</span>
 <span class="c1">#: k = 345/1024 — i.e. the same picture, now expressed where an illustrator can</span>
-<span class="c1">#: change it.</span>
+<span class="c1">#: change it. Those pairs were relative to the head's CENTRE (the old compiler</span>
+<span class="c1">#: anchored the head at 0.5); the bone is the NECK, and the head hangs above it</span>
+<span class="c1">#: at :data:`HEAD_ANCHOR`, so each pair is lifted by the centre's height above</span>
+<span class="c1">#: the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).</span>
 <span class="n">FACE_OFFSETS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"left_eye"</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">41.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">17.8</span><span class="p">),</span>
-    <span class="s2">"right_eye"</span><span class="p">:</span> <span class="p">(</span><span class="mf">41.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">17.8</span><span class="p">),</span>
-    <span class="s2">"left_brow"</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">41.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">53.4</span><span class="p">),</span>
-    <span class="s2">"right_brow"</span><span class="p">:</span> <span class="p">(</span><span class="mf">41.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">53.4</span><span class="p">),</span>
-    <span class="s2">"mouth"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">41.6</span><span class="p">),</span>
+    <span class="n">name</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">_HEAD_CENTRE_ABOVE_NECK</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_FACE_OFFSETS_0_2_0</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
 <span class="p">}</span>
 
 
@@ -1427,7 +1466,7 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># anchors were inert and the torso's read (0.5, 0.0) — which, once the</span>
         <span class="c1"># bone became the hip, drew the body below the waist and over the legs.</span>
         <span class="p">(</span><span class="s2">"torso"</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span>
-        <span class="p">(</span><span class="s2">"head"</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.78</span><span class="p">)),</span>
+        <span class="p">(</span><span class="s2">"head"</span><span class="p">,</span> <span class="n">HEAD_ANCHOR</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">"arm_l"</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
         <span class="p">(</span><span class="s2">"arm_r"</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
         <span class="p">(</span><span class="s2">"leg_l"</span><span class="p">,</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>

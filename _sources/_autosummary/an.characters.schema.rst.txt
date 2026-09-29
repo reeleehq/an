@@ -16,6 +16,9 @@ an.characters.schema
       DEFAULT_EYELID_MAP
       REQUIRED_PARTS
       DEFAULT_VIEW_BOX
+      LEG_LENGTH
+      HEAD_ANCHOR
+      REFERENCE_HEAD_HEIGHT
       FACE_OFFSETS
    
    .. rubric:: Functions

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1d9edaf8"></script>
+    <script src="../_static/documentation_options.js?v=d6174a35"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.record" href="an.characters.record.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.93" />
+  <meta name="docsearch:version" content="0.1.94" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -581,7 +581,16 @@ several slots.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.DEFAULT_VIEW_BOX" title="an.characters.schema.DEFAULT_VIEW_BOX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_VIEW_BOX</span></code></a></p></td>
 <td><p>1024x1024 with feet near y≈980.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.FACE_OFFSETS" title="an.characters.schema.FACE_OFFSETS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FACE_OFFSETS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.LEG_LENGTH" title="an.characters.schema.LEG_LENGTH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LEG_LENGTH</span></code></a></p></td>
+<td><p>Hip to ground in the default rig, in view_box units.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.HEAD_ANCHOR" title="an.characters.schema.HEAD_ANCHOR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HEAD_ANCHOR</span></code></a></p></td>
+<td><p>the head hangs above the neck, its lower ~fifth overlapping the collar.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.REFERENCE_HEAD_HEIGHT" title="an.characters.schema.REFERENCE_HEAD_HEIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REFERENCE_HEAD_HEIGHT</span></code></a></p></td>
+<td><p>The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.FACE_OFFSETS" title="an.characters.schema.FACE_OFFSETS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FACE_OFFSETS</span></code></a></p></td>
 <td><p>Where each face part sits relative to the <code class="docutils literal notranslate"><span class="pre">head</span></code> bone, in view_box units.</p></td>
 </tr>
 </tbody>
@@ -908,12 +917,27 @@ channel must drive together need attachment names in common.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.schema.FACE_OFFSETS">
-<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">FACE_OFFSETS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'left_brow':</span> <span class="pre">(-41.6,</span> <span class="pre">-53.4),</span> <span class="pre">'left_eye':</span> <span class="pre">(-41.6,</span> <span class="pre">-17.8),</span> <span class="pre">'mouth':</span> <span class="pre">(0.0,</span> <span class="pre">41.6),</span> <span class="pre">'right_brow':</span> <span class="pre">(41.6,</span> <span class="pre">-53.4),</span> <span class="pre">'right_eye':</span> <span class="pre">(41.6,</span> <span class="pre">-17.8)}</span></span><a class="headerlink" href="#an.characters.schema.FACE_OFFSETS" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">FACE_OFFSETS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'left_brow':</span> <span class="pre">(-41.6,</span> <span class="pre">-133.2),</span> <span class="pre">'left_eye':</span> <span class="pre">(-41.6,</span> <span class="pre">-97.6),</span> <span class="pre">'mouth':</span> <span class="pre">(0.0,</span> <span class="pre">-38.2),</span> <span class="pre">'right_brow':</span> <span class="pre">(41.6,</span> <span class="pre">-133.2),</span> <span class="pre">'right_eye':</span> <span class="pre">(41.6,</span> <span class="pre">-97.6)}</span></span><a class="headerlink" href="#an.characters.schema.FACE_OFFSETS" title="Link to this definition">#</a></dt>
 <dd><p>Where each face part sits relative to the <code class="docutils literal notranslate"><span class="pre">head</span></code> bone, in view_box units.</p>
 <p>All five share one bone, so without a per-attachment offset they stack on it.
 These are the compiler’s four deleted hardcoded pairs converted at
 k = 345/1024 — i.e. the same picture, now expressed where an illustrator can
-change it.</p>
+change it. Those pairs were relative to the head’s CENTRE (the old compiler
+anchored the head at 0.5); the bone is the NECK, and the head hangs above it
+at <a class="reference internal" href="#an.characters.schema.HEAD_ANCHOR" title="an.characters.schema.HEAD_ANCHOR"><code class="xref py py-data docutils literal notranslate"><span class="pre">HEAD_ANCHOR</span></code></a>, so each pair is lifted by the centre’s height above
+the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.HEAD_ANCHOR">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">HEAD_ANCHOR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.5,</span> <span class="pre">0.78)</span></span><a class="headerlink" href="#an.characters.schema.HEAD_ANCHOR" title="Link to this definition">#</a></dt>
+<dd><p>the head hangs above the neck, its lower
+~fifth overlapping the collar.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The head’s anchor on the neck bone</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -937,11 +961,27 @@ change it.</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.LEG_LENGTH">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">LEG_LENGTH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">300.0</span></span><a class="headerlink" href="#an.characters.schema.LEG_LENGTH" title="Link to this definition">#</a></dt>
+<dd><p>Hip to ground in the default rig, in view_box units. The torso bone (the
+hip) and both leg bones sit this far above the root (the ground contact), so
+a leg drawn this long reaches the ground. The factory draws its legs to it.</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.characters.schema.MOUTH_SHAPES">
 <span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">MOUTH_SHAPES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('a',</span> <span class="pre">'b',</span> <span class="pre">'c',</span> <span class="pre">'d',</span> <span class="pre">'e',</span> <span class="pre">'f',</span> <span class="pre">'g',</span> <span class="pre">'h',</span> <span class="pre">'x')</span></span><a class="headerlink" href="#an.characters.schema.MOUTH_SHAPES" title="Link to this definition">#</a></dt>
 <dd><p>Rhubarb mouth shapes. A-F are mandatory in Rhubarb’s basic set; G/H/X
 are emitted when <code class="docutils literal notranslate"><span class="pre">--extendedShapes</span> <span class="pre">GHX</span></code> is on (Rhubarb’s default).
 We always ship all 9 so the renderer never has to fall back.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.REFERENCE_HEAD_HEIGHT">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">REFERENCE_HEAD_HEIGHT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">285.0</span></span><a class="headerlink" href="#an.characters.schema.REFERENCE_HEAD_HEIGHT" title="Link to this definition">#</a></dt>
+<dd><p>The head height the default face layout is drawn for, in view_box units —
+the pre-Wave-4 compiler’s 96 px head at k = 345/1024. The factory writes its
+head art at this height, so <a class="reference internal" href="#an.characters.schema.FACE_OFFSETS" title="an.characters.schema.FACE_OFFSETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">FACE_OFFSETS</span></code></a> lands on the face.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -1134,11 +1174,14 @@ first, which is why this walks in declaration order rather than by index.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.DEFAULT_VISEME_MAP"><code class="docutils literal notranslate"><span class="pre">DEFAULT_VISEME_MAP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.EYELID_CHANNEL"><code class="docutils literal notranslate"><span class="pre">EYELID_CHANNEL</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.FACE_OFFSETS"><code class="docutils literal notranslate"><span class="pre">FACE_OFFSETS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.HEAD_ANCHOR"><code class="docutils literal notranslate"><span class="pre">HEAD_ANCHOR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.IdleAnimation"><code class="docutils literal notranslate"><span class="pre">IdleAnimation</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.IdleAnimation.model_config"><code class="docutils literal notranslate"><span class="pre">IdleAnimation.model_config</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.LEG_LENGTH"><code class="docutils literal notranslate"><span class="pre">LEG_LENGTH</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.MOUTH_SHAPES"><code class="docutils literal notranslate"><span class="pre">MOUTH_SHAPES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.REFERENCE_HEAD_HEIGHT"><code class="docutils literal notranslate"><span class="pre">REFERENCE_HEAD_HEIGHT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.REQUIRED_PARTS"><code class="docutils literal notranslate"><span class="pre">REQUIRED_PARTS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Skin"><code class="docutils literal notranslate"><span class="pre">Skin</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Skin.model_config"><code class="docutils literal notranslate"><span class="pre">Skin.model_config</span></code></a></li>
