@@ -1,0 +1,62 @@
+# Sharp edges, gaps, standing rules and CI perimeter
+
+Moved out of `CLAUDE.md` (an#156) so the orientation file stays short. `CLAUDE.md` keeps the handful of rules that are genuine invariants and points here for the rest. When you close a gap, delete its line.
+
+## Genuine gaps and sharp edges
+
+Honest list. Don't let it rot either — delete a line when you close it.
+
+- **The Manim adapter is not a compiler.** `_render_script` in `an/adapters/manim_adapter.py` emits a single `Text(title)` title card of the right duration and shells out to `manim -ql`. Nothing in the Shot — entities, actions, dialogue, camera — reaches the generated script. A real shot-to-Manim compiler is unbuilt design work.
+- ~~Nothing ever emits a non-default `loop_mode`~~ — **closed by an#7**: a `play` of a descriptor animation with `loop=True` (or the animation's own `loop`, e.g. `idle_breath`) compiles to a `loop_mode="loop"` clip. `ping_pong` still has no emitter.
+- **DiceBear-sourced characters don't lip-sync.** When a descriptor declares `face_overlay: false` (the 0.3.0 field; the factory sets it for DiceBear avatars, and the migration derives it from the old `art_provenance` vendor check), the compiler suppresses the overlay face slots and the speaker's viseme channel — the face is baked into the head SVG. Audio plays; the mouth doesn't move. DiceBear is a bootstrap path — hand-rig for production dialogue, see `examples/promote_demo/`.
+- **The name-the-emotion cassette is not recorded** (an#98): the judge seam and the strip-freezer pattern exist; a human with a key records it once. Until then the eight presets are proven distinguishable by pixels (`tests/test_expression_goldens.py`), not by a judge.
+- **Multi-scene projects don't exist.** `"main"` is the only supported key in the scenes store.
+- **No browser test runs on an unlabelled PR, and that is a decision rather than an accident** (#22, closed; the reasoning is `misc/docs/adr_ci_verification_perimeter.md`). Rendering tests need Playwright (in the `cutout` extra) and ffmpeg (not on the runner image): measured on Linux, 45 s of tests behind ~34 s of setup, against a ~50 s CI leg. So the lane lives in `.github/workflows/browser-tests.yml` and runs **on demand, or on any PR carrying the `run-browser-tests` label**.
+  - **You can add that label yourself** — `gh api -X POST repos/thorwhalen/an/issues/<N>/labels -f 'labels[]=run-browser-tests'`, **not** `gh pr edit --add-label`, which on these repos prints a projects-classic error, exits 0, and applies nothing — and you should, whenever a PR can change a pixel: the runtime under `an/data/cutout_runtime/`, the cutout compiler or serializer, the render path, the vendored engine, the ffmpeg flags, or the character rig. Nothing else in CI can see any of that.
+  - **Standing rule: never write that a rendering behaviour is "verified in CI".** It is verified on a developer machine, on a labelled PR, or on an on-demand run. Say which.
+  - What the gate is *not* allowed to do: vanish. The previous arrangement put `pytest.importorskip("playwright...")` at module level in eleven files, which does not skip a browser test — it aborts the module import, so its tests are never collected. 472 tests collected with Playwright, 438 without, and **13** of the 34 casualties needed no browser at all (every `an.verify.media` SSIM test among them). Gating is now `@pytest.mark.browser` applied after collection, with a run-summary line reporting how many rendering tests actually ran — an observation, not `total - skipped`, which is a collection-time prediction and was wrong for `-m`, `-k` and `--collect-only`.
+  - **The guard does not make that bug impossible, and must not claim to.** An adversarial review reintroduced it four ways past an earlier draft of the guard (an ffmpeg-keyed module skip, a `collect_ignore`, a class-body probe, markers swapped for hand-rolled skipifs). What holds the line is `tests/test_browser_gate.py::test_collection_does_not_depend_on_the_environment`, which shadows every optional import **and** strips the external binaries from `PATH`, then compares pytest's own node-id sets — a reference outside the guard, so it catches routes nobody enumerated. The AST scanner is a list of known spellings and is the weaker half. All 28 guards are mutation-tested, against 20 mutations including those four routes.
+  - The lane's own `-m` selection is `browser or ffmpeg`, not just `browser` (an#145): a test gated `ffmpeg` but not `browser` was collected and correctly skipped everywhere and then never selected anywhere either, since the default lane's gate skips it and `-m browser` alone deselected it — `test_every_gated_marker_is_selected_by_some_opted_in_lane` fails if any gated marker loses its only lane again.
+
+## What never to do (full list)
+
+- Never edit `ir/scene.json` by hand — edit `scene.md` and run `sync`, or assign through the store (`mall["scenes"]["main"] = scene_ir`, which writes both files and equalizes their mtimes).
+- Never break the md/json mtime equalization in `ScenesStore.__setitem__`. `sync()`'s "newer wins" tolerance band depends on it; without it sync flip-flops on every load and pipeline-injected state (audio refs, viseme tracks) is silently stripped.
+- Never claim a render produced something it didn't. `render_project()` returns the mp4 path; when it fails, surface the renderer's actual error.
+- Never use `pip install <name>` for a local-ecosystem package; this is `pip install -e <path> --no-deps`.
+- Never bump `SCHEMA_VERSION` without registering a migration in `an/ir/migrate.py` — and never register one without a read path that runs it. Scene documents are migrated at exactly one place, `an.ir.sync.scene_from_json_doc` (an#105); before it existed, every `migrate()` call in the tree passed `kind="CharacterDescriptor"` and a registered scene migration was decoration.
+- Never let a verifier report success when it failed to run. `VerificationReport.add` flips `passed` only on `"error"`, so an `info` Finding on a failure path is a clean bill of health. `info` is the *not-configured* severity; a configured-and-broken verifier reports at `an.verify.vision.FAILURE_SEVERITY` or higher (an#39).
+- Never let a cassette miss fall through to a real API call, and never rebase `CassetteMiss` on `Exception` — `except Exception` appears twice on the way out of a `verify()` call, so only a `BaseException` reaches a test asserting that a run did not spend.
+- Never introduce a bare `NotImplementedError` as a placeholder — there are currently zero in `an/`, and stubs carry typed, install-hinting errors instead. Keep it that way.
+
+## CI: what a green tick now covers
+
+- **Linux, both Python legs, and Windows** — all blocking, and Windows now gates
+  the **release** too (`publish` has a `needs` edge on it). Both are deliberate
+  deviations from the generated wads template, removed in #22.
+- **What `continue-on-error: true` actually did**, stated precisely because the
+  first attempt at this line got it wrong: it did **not** make GitHub misreport
+  the job. On every failing run the job conclusion, the step conclusion and the
+  check-run row in the PR checks list all read `failure`. It changed the
+  **roll-up** — the workflow *run* concluded `success`, so the aggregate tick was
+  green and nothing blocked the merge. The signal was non-blocking, not hidden,
+  which is worse in practice because a reviewer reads the aggregate. That is how
+  #21's path-separator bug and an unpinned `read_text()` encoding reached `main`.
+- If `wads populate` ever regenerates `.github/workflows/ci.yml`, re-apply both
+  deviations; the comments there say so, and the upstream knob is i2mint/wads#66.
+- **Not covered by default: anything that renders a pixel.** Add the
+  `run-browser-tests` label to the PR and it is. See the browser-lane entry in
+  *Genuine gaps* above, and `misc/docs/adr_ci_verification_perimeter.md` for why
+  the perimeter is drawn where it is.
+
+## Wave records: what each contradicts
+
+`misc/docs/wave1_verification.md`, `misc/docs/wave2_research.md`, `misc/docs/wave3_research.md`, `misc/docs/wave4_research.md`, `misc/docs/wave5_research.md` and `misc/docs/wave6_research.md` (faces — the authority for Wave 6 work over the epic's brief; its §2 lists thirteen places the brief is stale). The Wave 2 record is the input to `an bench`, the golden corpus, `AN_DETERMINISTIC` and the vision-verifier cassettes — and it **contradicts epic #9 in six places**, each measured. Read it before building any of them; do not re-derive it. The Wave 3 record is the measured lever behind `an-dev-render-pipeline`, and **four of its findings contradict epic #9's Wave 3 brief**; where they disagree it is right, because it was measured and the brief was written before the instrument existed. `misc/docs/wave7_research.md` is Wave 7's design of record (the stage: a translating camera, planes, props, a StylePack) — **built and shipped**, an#105 through an#112, 0.1.59 → 0.1.68; §5 of the `an-dev-stage` skill is the list of what it deliberately left.
+
+## Project skills: what each is for
+
+`.claude/skills/` — `an` (downstream orchestrator), `an-spec` (director interview), `an-dev` (dev-side; read it alongside this file), `an-dev-bench` (the measurement instrument — `an bench`, the metrics ledger, the golden corpus; read it before adding a metric or a corpus scene), `an-dev-render-pipeline` (the frame path end to end — rasterise, capture, PNG stage, mux, concat — with the measured negatives and every encoder flag's reason; read it before changing anything that touches a pixel or an encode flag), `an-dev-expression` (the face vocabulary, the compile-time face solver, emotion × viseme by selection, gaze, the licence boundary — read before touching anything facial), `an-dev-lipsync` (where co-articulation sits, the pass order, the condenser that holds and votes, the Rhubarb recognizer rule, word-timing retention, the alignment-model licence trap), `an-dev-stage` (Wave 7: the camera is `root.pivot` and already exists, parallax as one compile-time factor per plane, the multiplane environment descriptor, props, the StylePack, and the renderer rename — read it before touching `_add_camera_clips`, `_build_environment_subtree` or anything that pans).
+
+## Tests: doctest gate detail
+
+`tests/`. Doctests in module docstrings cover the public API; pytest covers cross-cutting and end-to-end checks. Run `pytest -q` for the suite; `pytest -q --doctest-modules an/` adds the 120 package doctests locally. **CI runs both** — `an` is in `testpaths` and the wads action passes `--doctest-modules` (an#61); before that, `testpaths = ["tests"]` scoped every `>>>` under `an/` out of collection and nothing ran them. Note CI **overrides** `doctest_optionflags` with `-o`, so the ini key must list exactly what CI passes — `tests/test_doctest_gate.py` fails if it drifts. Some tests skip when an optional dependency or API key is absent. **Never write a test count into a doc** — that is precisely the number that goes stale.
