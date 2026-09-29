@@ -78,6 +78,28 @@ class TransformJSON(_JSONModel):
     alpha: float = 1.0
 
 
+class PathJSON(_JSONModel):
+    """A stroked path's drawing instruction (an#160), carried on a ``path`` visual.
+
+    ``points`` is always a POLYLINE — the compiler flattens cubic Béziers
+    (`an.adapters.cutout.path.flatten_curve`), so the runtime knows one geometry.
+    ``trim_start`` / ``trim_end`` are the values shown before any channel
+    touches the node; channels on those two properties move them.
+    ``head_length == 0`` means no arrowhead. What the runtime draws from this
+    is specified by `an.adapters.cutout.path.path_geometry`.
+    """
+
+    points: list[tuple[float, float]]
+    stroke_width: float
+    color: str
+    cap: Literal["round", "butt", "square"] = "round"
+    join: Literal["round", "miter", "bevel"] = "round"
+    trim_start: float = 0.0
+    trim_end: float = 1.0
+    head_length: float = 0.0
+    head_width: float = 0.0
+
+
 class VisualJSON(_JSONModel):
     """Drawable content attached to a node.
 
@@ -98,7 +120,9 @@ class VisualJSON(_JSONModel):
     may leave slack on one axis; that slack is the correct rendering, not a bug.
     """
 
-    kind: Literal["sprite", "rect", "ellipse", "mouth", "eye", "svg_sprite"] = "rect"
+    kind: Literal["sprite", "rect", "ellipse", "mouth", "eye", "svg_sprite", "path"] = (
+        "rect"
+    )
     #: How the art is fitted to ``width``/``height``.
     #:
     #: ``"contain"`` scales uniformly so the art keeps the shape it was drawn
@@ -117,6 +141,22 @@ class VisualJSON(_JSONModel):
     anchor_x: float = 0.5
     anchor_y: float = 0.5
     color: str = "#888888"
+    #: The stroke for ``kind="path"`` (an#160); ``None`` on every other visual.
+    path: PathJSON | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_path(self, handler):
+        """Serialize ``path: null`` out of existence.
+
+        Written in the same commit as the field (the an#112 rule): `to_dict`
+        prunes no `None`s and the bench's scene contract hashes the whole
+        document, so a defaulted `path` on every visual would move every
+        corpus hash for a feature no corpus scene uses.
+        """
+        data = handler(self)
+        if isinstance(data, dict) and data.get("path") is None:
+            data.pop("path", None)
+        return data
 
 
 class NodeJSON(_JSONModel):

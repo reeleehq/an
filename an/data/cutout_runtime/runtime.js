@@ -167,6 +167,9 @@
         if (visualSpec.kind === 'svg_sprite') {
             return makeSvgSprite(visualSpec);
         }
+        if (visualSpec.kind === 'path') {
+            return makePath(visualSpec);
+        }
         // sprite without textures + everything else falls back to a rect.
         return makeRect(visualSpec);
     }
@@ -266,6 +269,158 @@
         g.drawEllipse(0, 0, w / 4, h / 3);
         g.endFill();
         return g;
+    }
+
+    // ------------------------------------------------------------------------
+    // Stroked paths (an#160). The geometry functions below are MIRRORED by
+    // an/adapters/cutout/path.py — that module is the spec, and
+    // tests/test_path.py runs these exact functions under node against it.
+    // Same operation order on both sides and no trigonometry (a direction is
+    // a unit vector), so the parity is exact rather than within a tolerance.
+    // ------------------------------------------------------------------------
+
+    function pathLengths(pts) {
+        const cum = [0];
+        for (let i = 1; i < pts.length; i++) {
+            const dx = pts[i][0] - pts[i - 1][0];
+            const dy = pts[i][1] - pts[i - 1][1];
+            cum.push(cum[i - 1] + Math.sqrt(dx * dx + dy * dy));
+        }
+        return cum;
+    }
+
+    // The first non-degenerate segment whose END reaches s, so a tip exactly
+    // on a vertex belongs to the leg arriving there.
+    function pathSegmentAt(cum, s) {
+        let last = 0;
+        for (let i = 0; i < cum.length - 1; i++) {
+            if (cum[i + 1] > cum[i]) {
+                last = i;
+                if (s <= cum[i + 1]) return i;
+            }
+        }
+        return last;
+    }
+
+    function pathPointAt(pts, cum, s) {
+        const i = pathSegmentAt(cum, s);
+        const span = cum[i + 1] - cum[i];
+        if (!(span > 0)) return [pts[i][0], pts[i][1]];
+        const u = (s - cum[i]) / span;
+        const ax = pts[i][0], ay = pts[i][1];
+        const bx = pts[i + 1][0], by = pts[i + 1][1];
+        return [ax + (bx - ax) * u, ay + (by - ay) * u];
+    }
+
+    function pathTrim(pts, cum, a, b) {
+        const out = [pathPointAt(pts, cum, a)];
+        for (let i = 1; i < pts.length - 1; i++) {
+            if (a < cum[i] && cum[i] < b) out.push([pts[i][0], pts[i][1]]);
+        }
+        out.push(pathPointAt(pts, cum, b));
+        return out;
+    }
+
+    const PATH_HEAD_STROKE_INSET = 0.5;
+
+    function clamp01(v) {
+        return v < 0 ? 0 : (v > 1 ? 1 : v);
+    }
+
+    function pathGeometry(pts, trimStart, trimEnd, headLength, headWidth) {
+        const cum = pathLengths(pts);
+        const total = cum[cum.length - 1];
+        const lo = clamp01(Math.min(trimStart, trimEnd));
+        const hi = clamp01(Math.max(trimStart, trimEnd));
+        const a = lo * total;
+        const b = hi * total;
+        if (!(b > a)) return { stroke: [], head: null };
+        let head = null;
+        let strokeEnd = b;
+        if (headLength > 0) {
+            const visible = b - a;
+            const k = visible < headLength ? visible / headLength : 1.0;
+            const hl = headLength * k;
+            const hw = headWidth * k;
+            const i = pathSegmentAt(cum, b);
+            const dx = pts[i + 1][0] - pts[i][0];
+            const dy = pts[i + 1][1] - pts[i][1];
+            const seg = Math.sqrt(dx * dx + dy * dy);
+            const ux = dx / seg;
+            const uy = dy / seg;
+            const tip = pathPointAt(pts, cum, b);
+            const tx = tip[0], ty = tip[1];
+            const bx = tx - ux * hl;
+            const by = ty - uy * hl;
+            const nx = -uy * (hw / 2);
+            const ny = ux * (hw / 2);
+            head = [[tx, ty], [bx + nx, by + ny], [bx - nx, by - ny]];
+            strokeEnd = b - hl * PATH_HEAD_STROKE_INSET;
+        }
+        const stroke = strokeEnd > a ? pathTrim(pts, cum, a, strokeEnd) : [];
+        return { stroke: stroke, head: head };
+    }
+
+    function drawPath(g) {
+        const st = g._anPath;
+        const spec = st.spec;
+        const geo = pathGeometry(
+            spec.points, st.trim_start, st.trim_end,
+            spec.head_length || 0, spec.head_width || 0
+        );
+        const color = parseColor(spec.color);
+        g.clear();
+        if (geo.stroke.length >= 2) {
+            g.lineStyle({
+                width: spec.stroke_width,
+                color: color,
+                alpha: 1.0,
+                cap: spec.cap || 'round',
+                join: spec.join || 'round',
+            });
+            g.moveTo(geo.stroke[0][0], geo.stroke[0][1]);
+            for (let i = 1; i < geo.stroke.length; i++) {
+                g.lineTo(geo.stroke[i][0], geo.stroke[i][1]);
+            }
+        }
+        if (geo.head) {
+            g.lineStyle(0);
+            g.beginFill(color, 1.0);
+            g.drawPolygon([
+                geo.head[0][0], geo.head[0][1],
+                geo.head[1][0], geo.head[1][1],
+                geo.head[2][0], geo.head[2][1],
+            ]);
+            g.endFill();
+        }
+    }
+
+    function makePath(visualSpec) {
+        const spec = visualSpec.path;
+        if (!spec || !Array.isArray(spec.points) || spec.points.length < 2) {
+            throw new Error('a path visual needs `path.points` with at least two points');
+        }
+        const g = new PIXI.Graphics();
+        g._anPath = {
+            spec: spec,
+            trim_start: spec.trim_start != null ? spec.trim_start : 0,
+            trim_end: spec.trim_end != null ? spec.trim_end : 1,
+        };
+        drawPath(g);
+        return g;
+    }
+
+    function applyTrim(node, prop, value) {
+        const child = (node.children || []).find(c => c._anPath);
+        if (!child) {
+            throw new Error(
+                'property ' + JSON.stringify(prop) + ' on ' + JSON.stringify(node.name) +
+                ': only a stroked path has a trim, and this node draws none.'
+            );
+        }
+        if (child._anPath[prop] === value) return;
+        child._anPath[prop] = value;
+        drawPath(child);
     }
 
     function parseColor(s) {
@@ -484,6 +639,10 @@
             case 'pivot_x': node.pivot.x = value; break;
             case 'pivot_y': node.pivot.y = value; break;
             case 'alpha': node.alpha = value; break;
+            // an#160: a stroked path's visible span. Applied to the node's
+            // path visual and redrawn; loud on a node without one.
+            case 'trim_start':
+            case 'trim_end': applyTrim(node, prop, value); break;
             // an#62. Three numeric channels, not one colour: `evaluate` lerps
             // numbers and SNAPS everything else, and it has a Python twin kept
             // in step by a parity test — so a colour type here would be a third
@@ -527,7 +686,8 @@
                     'unknown animated property ' + JSON.stringify(prop) +
                     ' on ' + JSON.stringify(node.name) + '. The runtime applies: ' +
                     'x, y, rotation, rotation_rad, scale_x, scale_y, skew_x, ' +
-                    'skew_y, pivot_x, pivot_y, alpha, tint_r, tint_g, tint_b ' +
+                    'skew_y, pivot_x, pivot_y, alpha, tint_r, tint_g, tint_b, ' +
+                    'trim_start, trim_end (paths only) ' +
                     '(author `tint` as a #rrggbb string; the compiler expands ' +
                     'it into the three) — plus this node\'s swap ' +
                     'sets: ' + JSON.stringify(Object.keys(sets).sort()) + '.'

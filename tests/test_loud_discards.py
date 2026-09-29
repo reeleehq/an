@@ -455,6 +455,11 @@ def test_the_runtime_raises_on_an_unknown_property():
 #: test asserts in the other direction.
 COMPOSED_ELSEWHERE: frozenset[str] = frozenset({"tint_r", "tint_g", "tint_b"})
 
+#: Runtime properties that land on a node's PATH visual, not on the node
+#: (an#160), so a bare node cannot receive them. Checked where they land by
+#: `tests/test_path.py::test_the_runtime_applies_trim_to_the_path_visual`.
+PATH_ONLY: frozenset[str] = frozenset({"trim_start", "trim_end"})
+
 
 def _apply_property_source() -> str:
     """`applyProperty` plus the helpers it calls, so the snippet is runnable.
@@ -533,7 +538,11 @@ def test_the_runtime_still_applies_every_known_property():
     `case 'x': node.y = value` passed it unnoticed.
     """
     fn = _apply_property_source()
-    props = sorted(_runtime_switch_cases())
+    props = sorted(set(_runtime_switch_cases()) - PATH_ONLY)
+    assert PATH_ONLY <= set(_runtime_switch_cases()), (
+        f"{sorted(PATH_ONLY - set(_runtime_switch_cases()))} is exempted as "
+        "path-only but is no longer a runtime property — delete the exemption"
+    )
     script = "\n".join(
         [
             fn,

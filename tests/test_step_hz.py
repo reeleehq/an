@@ -155,7 +155,23 @@ def test_a_non_positive_fps_is_reported_once_not_as_a_step_hz_riddle():
 @pytest.mark.parametrize("prop", sorted(__import__("an.adapters.cutout.compile", fromlist=["_PROPERTY_REST_VALUES"])._PROPERTY_REST_VALUES))
 def test_every_transform_property_is_stepped_not_just_x(prop):
     """A mutant exempting `alpha` from stepping survived a suite that only ever
-    stepped `x` (an#89 review)."""
+    stepped `x` (an#89 review). `trim_*` (an#160) exist only on a stroked path,
+    so they are stepped on one."""
+    from an.base import TRIM_PROPERTIES
+
+    if prop in TRIM_PROPERTIES:
+        shot = Shot(
+            id="s1",
+            renderer="cutout",
+            duration=2.0,
+            entities=[AssetRef(kind="prop", id="p", store="props", ref="p")],
+            actions=[tween("p", prop, to=0.5, duration=1.0)],
+        )
+        doc = {"kind": "PathDescriptor", "name": "p", "points": [[0, 0], [10, 0]]}
+        scene = compile_shot(shot, mall={"props": {"p": doc}}, step_hz=10.0)
+        kfs = _tween_channel(scene).keyframes
+        assert len(kfs) == 11 and all(k.easing == "step" for k in kfs)
+        return
     shot = _shot([tween("c", prop, to=0.5, duration=1.0)])
     kfs = _tween_channel(_compile(shot, step_hz=10.0)).keyframes
     assert len(kfs) == 11 and all(k.easing == "step" for k in kfs)

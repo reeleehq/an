@@ -177,8 +177,16 @@ TRANSFORM_PROPERTIES: frozenset[str] = frozenset(
         "tint_g",
         "tint_b",
         "alpha",
+        # an#160. A stroked path's visible span, as fractions of arc length —
+        # numeric node properties like `alpha`, applied only to a node whose
+        # visual is a path (the compiler refuses them anywhere else).
+        "trim_start",
+        "trim_end",
     }
 )
+
+#: The two path-only properties inside :data:`TRANSFORM_PROPERTIES` (an#160).
+TRIM_PROPERTIES: frozenset[str] = frozenset({"trim_start", "trim_end"})
 
 #: Characters within which a swap-set name is not addressable: ``/`` would read
 #: as a path segment and ``::`` is the runtime's pose-key separator.
