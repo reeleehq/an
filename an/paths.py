@@ -93,6 +93,7 @@ DFLT_SAMPLES_PER_CUBIC: int = 24
 
 _HEX_COLOUR = re.compile(r"#[0-9a-fA-F]{6}")
 
+
 class PathDescriptor(BaseModel):
     """The on-disk path schema, saved as a prop's ``prop.json``.
 
