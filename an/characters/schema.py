@@ -552,10 +552,29 @@ def _character_0_2_0_to_0_3_0(doc: dict[str, Any]) -> dict[str, Any]:
     return doc
 
 
+#: Hip to ground in the default rig, in view_box units. The torso bone (the
+#: hip) and both leg bones sit this far above the root (the ground contact), so
+#: a leg drawn this long reaches the ground. The factory draws its legs to it.
+LEG_LENGTH: float = 300.0
+
+#: The head's anchor on the neck bone: the head hangs above the neck, its lower
+#: ~fifth overlapping the collar.
+HEAD_ANCHOR: tuple[float, float] = (0.5, 0.78)
+
+#: The head height the default face layout is drawn for, in view_box units —
+#: the pre-Wave-4 compiler's 96 px head at k = 345/1024. The factory writes its
+#: head art at this height, so :data:`FACE_OFFSETS` lands on the face.
+REFERENCE_HEAD_HEIGHT: float = 285.0
+
+
 def _default_bones() -> list[Bone]:
     """The 7-bone default rig: root, torso, head, two arms, two legs.
 
     Coordinates assume a 1024x1024 viewBox with feet near y≈980.
+
+    >>> absolute = {b.name: b.y for b in _default_bones()}
+    >>> absolute["leg_l"] == absolute["torso"]    # legs hang from the hip
+    True
     """
     return [
         Bone(name="root", parent=None, x=512, y=980, pivot="root"),
@@ -563,23 +582,37 @@ def _default_bones() -> list[Bone]:
         Bone(name="head", parent="torso", x=0, y=-260, pivot="neck"),
         Bone(name="arm_l", parent="torso", x=-90, y=-240, pivot="shoulder_l"),
         Bone(name="arm_r", parent="torso", x=90, y=-240, pivot="shoulder_r"),
-        Bone(name="leg_l", parent="root", x=-50, y=-10, pivot="hip_l"),
-        Bone(name="leg_r", parent="root", x=50, y=-10, pivot="hip_r"),
+        # At the HIP, where their pivot names say they are and where the limb
+        # anchor (top edge) hangs them from. They used to sit at y=-10 — the
+        # feet — so every default-rigged leg hung BELOW the ground, detached
+        # from the torso by the whole leg length (an#168).
+        Bone(name="leg_l", parent="root", x=-50, y=-LEG_LENGTH, pivot="hip_l"),
+        Bone(name="leg_r", parent="root", x=50, y=-LEG_LENGTH, pivot="hip_r"),
     ]
 
+
+#: How far above the ``head`` bone (the neck) the head art's centre sits when
+#: the head is :data:`REFERENCE_HEAD_HEIGHT` tall and hangs at :data:`HEAD_ANCHOR`.
+_HEAD_CENTRE_ABOVE_NECK: float = (HEAD_ANCHOR[1] - 0.5) * REFERENCE_HEAD_HEIGHT
 
 #: Where each face part sits relative to the ``head`` bone, in view_box units.
 #:
 #: All five share one bone, so without a per-attachment offset they stack on it.
 #: These are the compiler's four deleted hardcoded pairs converted at
 #: k = 345/1024 — i.e. the same picture, now expressed where an illustrator can
-#: change it.
+#: change it. Those pairs were relative to the head's CENTRE (the old compiler
+#: anchored the head at 0.5); the bone is the NECK, and the head hangs above it
+#: at :data:`HEAD_ANCHOR`, so each pair is lifted by the centre's height above
+#: the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).
 FACE_OFFSETS: dict[str, tuple[float, float]] = {
-    "left_eye": (-41.6, -17.8),
-    "right_eye": (41.6, -17.8),
-    "left_brow": (-41.6, -53.4),
-    "right_brow": (41.6, -53.4),
-    "mouth": (0.0, 41.6),
+    name: (x, round(y - _HEAD_CENTRE_ABOVE_NECK, 1))
+    for name, (x, y) in {
+        "left_eye": (-41.6, -17.8),
+        "right_eye": (41.6, -17.8),
+        "left_brow": (-41.6, -53.4),
+        "right_brow": (41.6, -53.4),
+        "mouth": (0.0, 41.6),
+    }.items()
 }
 
 
@@ -685,7 +718,7 @@ def _default_skin() -> Skin:
         # anchors were inert and the torso's read (0.5, 0.0) — which, once the
         # bone became the hip, drew the body below the waist and over the legs.
         ("torso", (0.5, 1.0)),
-        ("head", (0.5, 0.78)),
+        ("head", HEAD_ANCHOR),
         ("arm_l", (0.5, 0.0)),
         ("arm_r", (0.5, 0.0)),
         ("leg_l", (0.5, 0.0)),
