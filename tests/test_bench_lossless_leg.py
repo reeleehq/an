@@ -727,7 +727,10 @@ _PLANE_EQUALITY_TOLERANCE: float = 3.0
 
 @pytest.mark.ffmpeg
 def test_the_lossless_leg_and_the_delivered_mux_decode_to_the_same_planes(tmp_path):
-    """MUTATION: drop ``-vf`` from either command, or give one a different matrix.
+    """MUTATION: give one command a different matrix (a different ``-colorspace``
+    tag on ffmpeg 8/9, where it is the tag that picks the conversion), or drop
+    ``-vf`` from either command on a build where the tags do not reach the
+    conversion (ffmpeg 6.1).
 
     Encodes ONE frame set both ways — the delivered `_ffmpeg_mux` and the
     bench's `lossless_encode_command` — decodes both, and compares the decoded
@@ -735,10 +738,13 @@ def test_the_lossless_leg_and_the_delivered_mux_decode_to_the_same_planes(tmp_pa
     that both are on the same matrix, so the residual stays far below the gap
     between BT.601 and BT.709.
 
-    A plain drop of ``-vf`` fails this only on a build where the colour tags do
-    not reach the conversion (ffmpeg 6.1); on ffmpeg 8/9 the tags already do it
-    and the mutation changes no pixel, which is what the argv pins are for. A
-    different explicit matrix on one leg fails it on every build.
+    Measured on ffmpeg 9.0: dropping ``-vf`` from either command, or replacing
+    it with a BT.601 filter, changes no decoded pixel (the ``-colorspace bt709``
+    tag overrides the filter's matrix there), so those mutations are the argv
+    pins' to catch on that build. Tagging one command ``smpte170m`` instead
+    moves red's luma by 18 codes and fails this test. The ``-vf`` mutation is
+    expected to fail it on ffmpeg 6.1 (an#153); that build was not available
+    here.
     """
     from an.adapters.cutout.render import _ffmpeg_mux
     from an.bench.png import write_png
