@@ -522,6 +522,11 @@ class _SwapVocabulary:
     #: Node paths whose visual is a stroked path — the only nodes a
     #: `trim_start`/`trim_end` channel may target (an#160).
     path_nodes: frozenset[str] = frozenset()
+    #: path node → {trim property: the value its document starts at}. A trim
+    #: tween with no `from_value` starts HERE, not at the global rest value:
+    #: a document with `trim_end: 0` authored as "tween trim_end to 1" is a
+    #: draw-on, and starting it at 1.0 drew the whole path from frame 0.
+    path_trims: dict[str, dict[str, float]] = field(default_factory=dict)
 
     def swap_capable_paths(self, entity_id: str, set_name: str) -> list[str]:
         """Node paths under ``entity_id`` that can apply ``set_name``."""
@@ -557,6 +562,7 @@ def _swap_vocabulary(
     node_asset_ids: dict[str, str | None] = {}
     node_transforms: dict[str, TransformJSON] = {}
     path_nodes: set[str] = set()
+    path_trims: dict[str, dict[str, float]] = {}
 
     def walk(node: NodeJSON, prefix: str) -> None:
         path = f"{prefix}/{node.name}" if prefix else node.name
@@ -565,6 +571,11 @@ def _swap_vocabulary(
             v = node.visual
             if v is not None and v.kind == "path":
                 path_nodes.add(path)
+                if v.path is not None:
+                    path_trims[path] = {
+                        "trim_start": v.path.trim_start,
+                        "trim_end": v.path.trim_end,
+                    }
             if v is not None and v.asset_sets:
                 node_sets[path] = v.asset_sets
                 node_asset_ids[path] = v.asset_id
@@ -630,6 +641,7 @@ def _swap_vocabulary(
         node_transforms=node_transforms,
         entity_scale=entity_scale,
         path_nodes=frozenset(path_nodes),
+        path_trims=path_trims,
     )
 
 
@@ -2447,11 +2459,11 @@ def _build_anim_for(
     if isinstance(action, PlayAction):
         return _resolve_play(action, anim_id=anim_id, vocab=vocab, fps=fps)
     if isinstance(action, TweenAction):
-        from_value = (
-            action.from_value
-            if action.from_value is not None
-            else _rest_value_for(action.property, action.target)
-        )
+        from_value = action.from_value
+        if from_value is None and vocab is not None:
+            from_value = vocab.path_trims.get(action.target, {}).get(action.property)
+        if from_value is None:
+            from_value = _rest_value_for(action.property, action.target)
         _check_keyframe_value(from_value, target=action.target, prop=action.property)
         _check_keyframe_value(
             action.to_value, target=action.target, prop=action.property

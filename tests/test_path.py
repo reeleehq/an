@@ -395,6 +395,12 @@ def _compiles(shot) -> bool:
             ),
         ),
         (
+            "viseme on a path",
+            lambda: _shot(
+                actions=[SetAction(target="route", property="viseme", value="A")]
+            ),
+        ),
+        (
             "trim on a character",
             lambda: _shot(
                 actions=[SetAction(target="charlie", property="trim_end", value=0.5)],
@@ -408,6 +414,28 @@ def _compiles(shot) -> bool:
 def test_validate_and_compile_reach_the_same_verdict(name, make):
     shot = make()
     assert _validate(shot).passed is _compiles(shot), name
+
+
+def test_trim_on_a_character_is_refused_even_without_the_props_store():
+    """Review M1: before an#160 a trim on a character was refused as a
+    non-transform property; joining the numeric vocabulary must not turn that
+    into a pass for callers who supply only the characters store."""
+    shot = _shot(
+        actions=[SetAction(target="charlie", property="trim_end", value=0.5)],
+        extra=[AssetRef(kind="character", id="charlie", store="characters", ref="c")],
+    )
+    scene = SceneIR(meta=Meta(title="t", duration=1.0), timeline=[shot])
+    assert not validate_semantic(scene, available_characters={}).passed
+    assert not validate_semantic(scene).passed
+
+
+def test_a_trim_tween_with_no_from_starts_at_the_document_s_value():
+    """Review M2: `trim_end: 0` + "tween trim_end to 1" is a draw-on. Starting
+    it at the global rest (1.0) drew the whole path from frame 0, silently."""
+    tween = TweenAction(target="route", property="trim_end", to_value=1.0)
+    scene = _compile(_shot(actions=[tween]), {"trim_end": 0.0})
+    (clip,) = scene.animations.values()
+    assert [k.value for k in clip.channels[0].keyframes] == [0.0, 1.0]
 
 
 # --- byte-identity ------------------------------------------------------------
@@ -434,6 +462,13 @@ def test_the_descriptor_refuses_what_it_cannot_draw():
         PathDescriptor(name="x", points=L_POINTS, trim_end=1.5)
     with pytest.raises(pydantic.ValidationError):
         PathDescriptor(name="x", points=L_POINTS, color="red")
+    # Review L3: set-but-inert fields are refused like unknown ones.
+    with pytest.raises(pydantic.ValidationError, match="arrowhead is false"):
+        PathDescriptor(name="x", points=L_POINTS, head_length=10.0)
+    with pytest.raises(pydantic.ValidationError, match="only applies"):
+        PathDescriptor(name="x", points=L_POINTS, samples_per_segment=8)
+    with pytest.raises(pydantic.ValidationError, match="zero"):
+        PathDescriptor(name="x", points=[(1.0, 1.0), (1.0, 1.0)])
 
 
 # --- pixels -------------------------------------------------------------------

@@ -222,19 +222,26 @@ def _check_trim_targets(
     shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
 ) -> None:
     """``trim_start``/``trim_end`` may only target a stroked path's node — the
-    entity itself — which the compiler enforces too (an#160). Runs only when
-    the props store was supplied: without it nothing says which props are
-    paths."""
+    entity itself — which the compiler enforces too (an#160).
+
+    Without the props store nothing says which props are paths, so only the
+    certain refusals run: a target that is not a PROP entity, or a sub-node,
+    is never a path, whichever stores were supplied (an#160 review, M1 — a
+    trim on a character used to be refused as a non-transform property, and
+    joining the numeric vocabulary must not quietly lose that).
+    """
     from an.base import TRIM_PROPERTIES
 
     props = stores.get("props")
+    prop_ids = {e.id for e in shot.entities if e.kind == "prop"}
     if props is None:
-        return
-    path_ids = {
-        e.id
-        for e in shot.entities
-        if e.kind == "prop" and _path_document_problem(e, props) is not False
-    }
+        path_ids = prop_ids  # unknowable without the store: give the benefit
+    else:
+        path_ids = {
+            e.id
+            for e in shot.entities
+            if e.kind == "prop" and _path_document_problem(e, props) is not False
+        }
     for k, action in enumerate(shot.actions):
         for flat in flatten(action):
             prop = getattr(flat.action, "property", None)
@@ -404,7 +411,11 @@ def _check_swap_references(
         entity = rigs.get(entity_id)
         desc = _rig_document(entity, stores) if entity is not None else None
         if desc is None:
-            if prop not in _PROCEDURAL_SWAP_SETS:
+            # The procedural carve-out is a CHARACTER's drawn mouth; a prop
+            # with no rig document (a stroked path, an#160) has no swap set at
+            # all, which is what the compiler says too.
+            is_prop = entity is not None and entity.kind != "character"
+            if prop not in _PROCEDURAL_SWAP_SETS or is_prop:
                 report.add(
                     "error",
                     f"{path}/actions/{k}",

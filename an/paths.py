@@ -130,7 +130,8 @@ class PathDescriptor(BaseModel):
     cap: Literal["round", "butt", "square"] = "round"
     join: Literal["round", "miter", "bevel"] = "round"
     #: The visible span before anything animates it, as fractions of arc
-    #: length. ``trim_end=0`` starts a draw-on hidden.
+    #: length. ``trim_end=0`` starts a draw-on hidden, and a trim tween
+    #: with no ``from_value`` starts from these values (not the global rest).
     trim_start: float = Field(default=0.0, ge=0.0, le=1.0)
     trim_end: float = Field(default=1.0, ge=0.0, le=1.0)
     arrowhead: bool = False
@@ -161,6 +162,28 @@ class PathDescriptor(BaseModel):
             raise ValueError(
                 "a cubic path takes 3n + 1 points (p0, then c1 c2 p per "
                 f"segment); got {len(self.points)}"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _nothing_set_is_ignored(self) -> "PathDescriptor":
+        """Refuse a field that would silently do nothing — the reason this
+        model is ``extra="forbid"`` applies to set-but-inert fields too."""
+        given = self.model_fields_set
+        if not self.arrowhead and given & {"head_length", "head_width"}:
+            raise ValueError(
+                "head_length/head_width are set but arrowhead is false, so "
+                "they would draw nothing; set `arrowhead: true` or drop them"
+            )
+        if self.curve == "polyline" and "samples_per_segment" in given:
+            raise ValueError(
+                "samples_per_segment only applies to curve='cubic'; a "
+                "polyline is drawn through its points as given"
+            )
+        if all(p == self.points[0] for p in self.points):
+            raise ValueError(
+                "every point of the path is the same point, so it has zero "
+                "length and would draw nothing"
             )
         return self
 
