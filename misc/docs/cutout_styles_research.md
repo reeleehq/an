@@ -23,14 +23,14 @@ Recommendation, in order:
 - `misc/docs/Real Character Art for an — A 2D Cutout Pipeline Upgrade Plan.md` [23] recommends the "South Park / Adventure Time approach" (one dominant tone per part, colour before line) at 300 px character height.
 - `ir discover reports` returned only unrelated reelee/guided reports. There is no in-house report on these six styles.
 
-## What shipped from this (an#STYLE_PR)
+## What shipped from this
 
 - **Style specs, as files, not yet as a document type.** `.claude/skills/an-style/styles/<style>.yaml`, one per style above, each split into `live` (settings that map onto shipped features: `meta.fps`, `meta.step_hz`, `meta.style_pack` with the StylePack's real roles `skin`, `clothing`, `hair`, `leg`, `pupil`, `sky`, `ground`, an environment preset or plane descriptor, camera moves, easings, tween and shot lengths, character generation and `tint`), `targets` (what the lint measures) and `guidance` (everything `an` does not do yet, stated as such). `tests/test_style_specs.py` checks every `live` key against the code. Several colours in the draft blocks (`outline`, `accent_*`, `card_bg`, `highlight`, `silhouette`, `mid`) are not StylePack roles; they moved to `guidance`. A StylePack reaches environment presets and procedural rigs only, not SVG characters.
 - **The style lint.** `an.verify.style` ports the cadence, cut and palette statistics (identical-frame share, pose changes per second, the one/two/three-plus change-interval histogram, longest hold, cuts per minute, mean shot length, mean saturation, dark-pixel share, top-16 colour coverage) with numpy and the ffmpeg binary only; the camera-motion (`phaseCorrelate`) and k-means palette parts were left out because they need OpenCV and scikit-learn. On the six study clips the port reproduces the original script's numbers to three decimals for every cadence and cut statistic (palette statistics within 0.004, because the original sampled pixels at random). One change: the noise floor is capped at 1.0 grey level, because a clip whose every frame changes by the same amount otherwise measures as all holds; the uncapped floor was at most 0.16 on all six clips, so no target moved. `StyleLintVerifier` is a `Verifier`, takes cuts from the IR (exact for an `an` render), and reports a failure to measure above `info`.
 - **The procedure**: the `an-style` skill (script → pick a style → state the cost class → set meta and StylePack → shots to the cut-rate and shot-length targets → characters → render → lint → adjust).
 - **A worked example**: the `south-park-style` demo in `misc/demos/build_demos.py`.
 
-Not built, and ranked below: `StyleSpec` as a versioned document the compiler reads, a sound layer, text, a motion library, surface treatments, transitions.
+Not built, and ranked in section 7 and tracked in [an#163](https://github.com/thorwhalen/an/issues/163): `StyleSpec` as a versioned document the compiler reads, a sound layer, text, a motion library, surface treatments, transitions.
 
 ## 1. Evidence and its limits
 
