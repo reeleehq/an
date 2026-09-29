@@ -25,7 +25,8 @@ import pytest
 from an.adapters.cutout.compile import compile_shot
 from an.adapters.cutout.timeline import evaluate_timeline, timeline_from_scene
 from an.ir.compose import duration_of, flatten, sequence
-from an.ir.schema import AssetRef, Meta, SceneIR, Shot, StagePlacement
+from an.ir.compose import delay, set_
+from an.ir.schema import AssetRef, Meta, SceneIR, SetAction, Shot, StagePlacement, TweenAction
 from an.ir.sync import ir_to_markdown, markdown_to_ir
 from an.motion import (
     IDENTITY_POSE,
@@ -155,6 +156,40 @@ def test_preset_ends_at_rest(name):
         assert value == pytest.approx(IDENTITY_POSE[prop], abs=1e-9), (target, prop)
 
 
+def _landed(scene, *, fps, duration):
+    """What the runtime SHOWS after the last frame: poses sampled at ``i / fps``
+    and HELD (the runtime keeps the last pose it applied), not the pose at the
+    exact clip end, which no frame need land on."""
+    tl = timeline_from_scene(scene)
+    state: dict = {}
+    for i in range(int(duration * fps) + 1):
+        state.update(evaluate_timeline(tl, i / fps))
+    return state
+
+
+@pytest.mark.parametrize("fps,step_hz", [(30, None), (24, None), (30, 10.0), (30, 15.0)])
+@pytest.mark.parametrize("name", sorted(PRESETS))
+def test_preset_lands_on_its_end_value_at_frame_times(name, fps, step_hz):
+    """The review's catch: a 0.36 s squash at 30 fps used to be left at
+    scale 0.96/1.04, and a shake under step_hz 10 stranded 8 px off rest,
+    because the last frame inside the move was not its end. The settling
+    `set` each preset ends with is what lands it."""
+    action = PROCEDURAL_CALLS[name]()
+    ends = {}
+    for f in flatten(action):
+        if isinstance(f.action, TweenAction):
+            key = (f.action.target, f.action.property)
+            if key not in ends or f.end >= ends[key][0]:
+                ends[key] = (f.end, f.action.to_value)
+    shot = _shot([action], duration=duration_of(action) + 0.5)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        scene = compile_shot(shot, fps=fps, step_hz=step_hz)
+    shown = _landed(scene, fps=fps, duration=shot.duration)
+    for key, (_, value) in ends.items():
+        assert shown[key] == pytest.approx(value, abs=1e-9), key
+
+
 def test_hop_reaches_its_apex_mid_move():
     scene = _compile(_shot([hop("charlie", height=30.0, duration=0.6)]))
     assert _pose_at(scene, 0.3)[("charlie", "y")] == pytest.approx(-30.0)
@@ -201,7 +236,8 @@ def test_presets_chain_without_a_jump():
     """Each segment names its `from`, equal to the previous segment's `to`."""
     leaves = flatten(sequence(hop("c"), squash_stretch("c"), waddle("c", steps=2)))
     last: dict[tuple[str, str], float] = {}
-    for f in sorted(leaves, key=lambda f: f.start):
+    tweens = [f for f in leaves if isinstance(f.action, TweenAction)]
+    for f in sorted(tweens, key=lambda f: f.start):
         key = (f.action.target, f.action.property)
         if key in last:
             assert f.action.from_value == pytest.approx(last[key]), key
@@ -209,7 +245,9 @@ def test_presets_chain_without_a_jump():
 
 
 @pytest.mark.parametrize("bad", [lambda: shake("c", cycles=0), lambda: nod("c", count=0),
-                                 lambda: waddle("c", steps=0), lambda: slide_in("c", from_side="up")])
+                                 lambda: waddle("c", steps=0), lambda: slide_in("c", from_side="up"),
+                                 lambda: shake("c", duration=-1.0), lambda: hop("c", duration=0.0),
+                                 lambda: waddle("c", step_duration=0.0), lambda: point("c/a", hold=-1.0)])
 def test_nonsense_parameters_raise(bad):
     with pytest.raises(ValueError):
         bad()
@@ -224,6 +262,15 @@ def test_as_leaves_survives_the_scene_md_round_trip():
     b = _compile(back).model_dump(mode="json")
     assert a["animations"] == b["animations"]
     assert a["timeline"] == b["timeline"]
+
+
+def test_as_leaves_keeps_a_set_at_its_absolute_time():
+    leaves = as_leaves(sequence(delay(1.0), set_("charlie", "alpha", 0.5, at=0.25)), start=0.5)
+    (leaf,) = leaves
+    assert isinstance(leaf, SetAction) and leaf.at == pytest.approx(1.75)
+    scene = SceneIR(meta=Meta(title="t"), timeline=[_shot(leaves)])
+    (back,) = markdown_to_ir(ir_to_markdown(scene)).timeline[0].actions
+    assert back.at == pytest.approx(1.75)
 
 
 def test_a_composition_tree_does_not_survive_scene_md():

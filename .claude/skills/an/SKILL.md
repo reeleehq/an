@@ -63,7 +63,8 @@ All parameters are keyword-only with module-constant defaults (`DFLT_*`); `an.mo
 - **Values are absolute, so a preset needs the node's rest.** `rest=None` is the identity pose — right for rotations, and for `y`/scale of an entity with no `stage` placement. An entity's `x` is laid out (`-110`/`110` for two characters), so a move on `x` in a multi-character shot, or anything on a staged entity, takes `rest=rest_pose(shot, "charlie", mall=mall)`, which reads the value off the compiler's own scene builder. For `nod`/`point`, pass the PART's rest (`rest_pose(shot, "charlie/head")`).
 - **An unknown target makes the render throw** (the runtime refuses an unknown node); `rest_pose` raises for it up front. The rigs are flat and name their arms differently (see `point`).
 - **`scene.md` drops composition trees.** To keep presets through a `scene.md` edit, store `as_leaves(preset, start=t)` — top-level tweens with `start:`, which round-trip. There is no `play` of a preset NAME from `scene.md` yet (`play` resolves descriptor animations only).
-- Presets are ordinary tweens, so `step_hz` steps them — the jerky South Park look is `sequence(...)` plus `step_hz`.
+- **Each preset ends with a `set` pinning every property it moved at its end value.** Frames sample `i / fps` and the runtime holds the last pose applied, so a tween ending between frames would leave the property off by part of its last segment (under `step_hz`, by all of it). The `set` holds until the next tween on that property.
+- Presets are ordinary tweens, so `step_hz` steps them — the jerky South Park look is `sequence(...)` plus `step_hz`. A segment shorter than one step (a default `shake` has 57 ms segments) mostly vanishes under `step_hz` 10–15; lengthen `duration` or lower `cycles` for a stepped shot.
 
 ## Markdown surface
 

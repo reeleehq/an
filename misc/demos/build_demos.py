@@ -999,7 +999,7 @@ def _build_impacts(work: Path) -> Path:
 
 
 def _build_motion_presets(work: Path) -> Path:
-    """Six motion presets in a row from ONE `sequence` of `an.motion` calls.
+    """Seven motion presets in a row from ONE `sequence` of `an.motion` calls.
 
     Authored in Python, then written back through `as_leaves`, so the project's
     `scene.md` carries the expanded tweens (with `start:`) and round-trips.
@@ -1353,7 +1353,7 @@ DEMOS: tuple[Demo, ...] = (
         title="Motion presets: a vocabulary of cut-out moves",
         shows=(
             "A character pops in with an overshoot, hops, nods, points, squashes "
-            "and stretches, shakes, and waddles off to the side — one `sequence` "
+            "and stretches, shakes, and waddles a step to the side — one `sequence` "
             "of `an.motion` calls. Each preset is an authoring macro that expands "
             "to ordinary `tween`s, so the timeline, the validator and the "
             "renderer see nothing new."

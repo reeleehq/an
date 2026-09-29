@@ -9,7 +9,7 @@ tweens an author could have written by hand, so no IR field, no runtime
 change, and no compiled document that does not use a preset moves by a byte.
 
 >>> from an.ir.compose import flatten, sequence
->>> leaves = flatten(sequence(pop_in("charlie"), hop("charlie"), nod("charlie")))
+>>> leaves = _tweens(sequence(pop_in("charlie"), hop("charlie"), nod("charlie")))
 >>> [(f.action.target, f.action.property) for f in leaves][:3]
 [('charlie', 'scale_x'), ('charlie', 'scale_y'), ('charlie', 'y')]
 >>> round(leaves[-1].end, 3)
@@ -25,6 +25,12 @@ rig's ``arm_r`` on the viewer's left. The rigs are flat (arms are siblings of
 the torso), and a target the built scene does not carry makes the render
 raise (the runtime refuses an unknown node, naming the known ones);
 :func:`rest_pose` raises for it up front, before any browser starts.
+
+**Landing.** Every preset ends each property it moves with a ``set`` at the
+value it ends on, so the move lands exactly whatever the frame rate or
+``step_hz`` (a tween ending between two frames otherwise leaves the property
+where the last sampled frame had it). The ``set`` holds until the next tween
+on that property.
 
 **Rest.** A tween's value is ABSOLUTE, and every preset writes its ``from``
 explicitly so presets chain without a jump. Each preset therefore needs the
@@ -51,8 +57,8 @@ from collections.abc import Callable, Mapping
 from typing import Any
 
 from an.base import EasingSpec, PathStr, Seconds
-from an.ir.compose import delay, flatten, parallel, sequence, tween
-from an.ir.schema import Action, SetAction, Shot
+from an.ir.compose import FlatAction, delay, flatten, parallel, sequence, set_, tween
+from an.ir.schema import Action, SetAction, Shot, TweenAction
 
 # -----------------------------------------------------------------------------
 # Easings and defaults
@@ -122,6 +128,31 @@ def _rest(rest: Rest | None, prop: str) -> float:
     return float((rest or {}).get(prop, IDENTITY_POSE[prop]))
 
 
+def _tweens(action: Action) -> list[FlatAction]:
+    """The flattened TWEENS of ``action`` (the settling ``set``s left out)."""
+    return [f for f in flatten(action) if isinstance(f.action, TweenAction)]
+
+
+def _positive(**durations: float) -> None:
+    for name, value in durations.items():
+        if not value > 0:
+            raise ValueError(f"{name} must be positive, got {value!r}")
+
+
+def _settled(target: PathStr, prop: str, value: float, *moves: Action) -> Action:
+    """``moves`` then a ``set`` pinning ``prop`` at ``value`` where they end.
+
+    A frame shows the pose at ``i / fps`` and the runtime HOLDS the last pose it
+    applied, so a tween ending between two frames leaves its property wherever
+    the last sampled frame had it — off rest by a fraction of the final
+    segment, and under ``step_hz`` by the whole of it, since a stepped segment
+    shorter than one grid step holds its ``from`` value to its last instant. A
+    ``set`` holds from the first frame at or after its time until the next
+    tween on the same property, so it lands the move exactly.
+    """
+    return sequence(*moves, set_(target, prop, value))
+
+
 def _through(
     target: PathStr,
     prop: str,
@@ -135,11 +166,14 @@ def _through(
     Every segment names its ``from``, so the chain never depends on what the
     runtime was holding when it started.
     """
-    return sequence(
+    return _settled(
+        target,
+        prop,
+        values[-1],
         *(
             tween(target, prop, to=b, duration=d, from_=a, easing=e)
             for a, b, d, e in zip(values, values[1:], durations, easings)
-        )
+        ),
     )
 
 
@@ -167,12 +201,18 @@ def pop_in(
     with a ``set`` before it).
 
     >>> [(f.action.property, f.action.from_value, f.action.to_value)
-    ...  for f in flatten(pop_in("charlie"))]
+    ...  for f in _tweens(pop_in("charlie"))]
     [('scale_x', 0.0, 1.0), ('scale_y', 0.0, 1.0)]
     """
+    _positive(duration=duration)
     return parallel(
         *(
-            tween(target, p, to=_rest(rest, p), duration=duration, from_=0.0, easing=easing)
+            _settled(
+                target,
+                p,
+                _rest(rest, p),
+                tween(target, p, to=_rest(rest, p), duration=duration, from_=0.0, easing=easing),
+            )
             for p in ("scale_x", "scale_y")
         )
     )
@@ -187,9 +227,10 @@ def hop(
 ) -> Action:
     """Jump up by ``height`` scene pixels and land back where it started.
 
-    >>> [(f.action.from_value, f.action.to_value) for f in flatten(hop("charlie", height=30))]
+    >>> [(f.action.from_value, f.action.to_value) for f in _tweens(hop("charlie", height=30))]
     [(0.0, -30.0), (-30.0, 0.0)]
     """
+    _positive(duration=duration)
     y0 = _rest(rest, "y")
     half = duration / 2
     return _through(
@@ -211,13 +252,14 @@ def shake(
 ) -> Action:
     """Tremble side to side ``cycles`` times and come back to rest (on ``x``).
 
-    >>> [f.action.to_value for f in flatten(shake("charlie", amplitude=5, cycles=2))]
+    >>> [f.action.to_value for f in _tweens(shake("charlie", amplitude=5, cycles=2))]
     [5.0, -5.0, 5.0, -5.0, 0.0]
-    >>> [f.action.to_value for f in flatten(shake("charlie", cycles=1, rest={"x": -110}))]
+    >>> [f.action.to_value for f in _tweens(shake("charlie", cycles=1, rest={"x": -110}))]
     [-102.0, -118.0, -110.0]
     """
     if cycles < 1:
         raise ValueError(f"shake needs at least one cycle, got {cycles}")
+    _positive(duration=duration)
     x0 = _rest(rest, "x")
     values = [x0] + [x0 + amplitude, x0 - amplitude] * cycles + [x0]
     n = len(values) - 1
@@ -244,11 +286,12 @@ def nod(
     In a front-facing 2D cut-out a nod reads as a small head rotation about
     its pivot; ``rest`` is the HEAD's rest, not the entity's.
 
-    >>> [(f.action.target, round(f.action.to_value, 2)) for f in flatten(nod("charlie", count=1))]
+    >>> [(f.action.target, round(f.action.to_value, 2)) for f in _tweens(nod("charlie", count=1))]
     [('charlie/head', 0.18), ('charlie/head', 0.0)]
     """
     if count < 1:
         raise ValueError(f"nod needs a count of at least 1, got {count}")
+    _positive(duration=duration)
     path = f"{target}/{part}" if part else target
     r0 = _rest(rest, "rotation")
     values = [r0] + [r0 + angle, r0] * count
@@ -277,11 +320,17 @@ def point(
     rig, ``"maya/arm_r"`` on a descriptor rig (and there, since that arm hangs
     on the viewer's left, pass a positive ``angle`` to point outward).
 
-    >>> [(f.start, f.action.to_value) for f in flatten(point("charlie/right_arm", hold=0.5))]
+    >>> [(f.start, f.action.to_value) for f in _tweens(point("charlie/right_arm", hold=0.5))]
     [(0.0, -1.3), (0.75, 0.0)]
     """
+    _positive(raise_duration=raise_duration)
+    if hold < 0:
+        raise ValueError(f"hold must not be negative, got {hold!r}")
     r0 = _rest(rest, "rotation")
-    return sequence(
+    return _settled(
+        target,
+        "rotation",
+        r0,
         tween(target, "rotation", to=r0 + angle, duration=raise_duration, from_=r0, easing=easing),
         delay(hold),
         tween(
@@ -315,17 +364,23 @@ def slide_in(
 ) -> Action:
     """Whip in from ``distance`` pixels off to one side, overshoot, and settle.
 
-    >>> [(f.action.from_value, f.action.to_value) for f in flatten(slide_in("charlie", distance=400))]
+    >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_in("charlie", distance=400))]
     [(-400.0, 0.0)]
     """
+    _positive(duration=duration)
     x0 = _rest(rest, "x")
-    return tween(
+    return _settled(
         target,
         "x",
-        to=x0,
-        duration=duration,
-        from_=x0 + _side_sign(from_side) * distance,
-        easing=easing,
+        x0,
+        tween(
+            target,
+            "x",
+            to=x0,
+            duration=duration,
+            from_=x0 + _side_sign(from_side) * distance,
+            easing=easing,
+        ),
     )
 
 
@@ -340,17 +395,17 @@ def slide_out(
 ) -> Action:
     """Exit ``distance`` pixels off to one side, accelerating (an exit).
 
-    >>> [(f.action.from_value, f.action.to_value) for f in flatten(slide_out("charlie", to_side="left"))]
+    >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_out("charlie", to_side="left"))]
     [(0.0, -600.0)]
     """
+    _positive(duration=duration)
     x0 = _rest(rest, "x")
-    return tween(
+    end = x0 + _side_sign(to_side) * distance
+    return _settled(
         target,
         "x",
-        to=x0 + _side_sign(to_side) * distance,
-        duration=duration,
-        from_=x0,
-        easing=easing,
+        end,
+        tween(target, "x", to=end, duration=duration, from_=x0, easing=easing),
     )
 
 
@@ -366,10 +421,11 @@ def squash_stretch(
     Scales about the target's own origin (for the procedural rig, the torso's
     centre). Volume is roughly kept: one axis grows by what the other loses.
 
-    >>> [[round(f.action.to_value, 2) for f in flatten(squash_stretch("c"))
+    >>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
     ...   if f.action.property == p] for p in ("scale_x", "scale_y")]
     [[1.2, 0.9, 1.0], [0.8, 1.1, 1.0]]
     """
+    _positive(duration=duration)
     sx0, sy0 = _rest(rest, "scale_x"), _rest(rest, "scale_y")
     third = duration / 3
     easings = [DFLT_OUT_EASING, DFLT_OSCILLATION_EASING, DFLT_IN_EASING]
@@ -398,7 +454,7 @@ def waddle(
     carries the body sideways over the whole walk — the one ``x`` move here,
     so it is the one that needs ``rest`` in a multi-character shot.
 
-    >>> w = flatten(waddle("charlie", steps=2, travel=100))
+    >>> w = _tweens(waddle("charlie", steps=2, travel=100))
     >>> sorted({f.action.property for f in w})
     ['rotation', 'x', 'y']
     >>> max(f.end for f in w)
@@ -406,6 +462,7 @@ def waddle(
     """
     if steps < 1:
         raise ValueError(f"waddle needs at least one step, got {steps}")
+    _positive(step_duration=step_duration)
     r0, y0 = _rest(rest, "rotation"), _rest(rest, "y")
     half = step_duration / 2
     rock = [r0]
@@ -422,13 +479,18 @@ def waddle(
     if travel:
         x0 = _rest(rest, "x")
         moves.append(
-            tween(
+            _settled(
                 target,
                 "x",
-                to=x0 + travel,
-                duration=steps * step_duration,
-                from_=x0,
-                easing="linear",
+                x0 + travel,
+                tween(
+                    target,
+                    "x",
+                    to=x0 + travel,
+                    duration=steps * step_duration,
+                    from_=x0,
+                    easing="linear",
+                ),
             )
         )
     return parallel(*moves)
@@ -514,14 +576,13 @@ def as_leaves(action: Action, *, start: Seconds = 0.0) -> list[Action]:
     trees from ``scene.md``. This flattens a preset (or any tree) into exactly
     those, with the same absolute times.
 
-    >>> from an.ir.schema import SequenceAction
+    A ``set`` keeps its absolute time in ``at`` instead of a wrapper.
+
     >>> leaves = as_leaves(hop("charlie"), start=1.0)
     >>> [type(a).__name__ for a in leaves]
-    ['SequenceAction', 'SequenceAction']
-    >>> [round(a.children[0].duration, 3) for a in leaves]
-    [1.0, 1.25]
+    ['SequenceAction', 'SequenceAction', 'SetAction']
     >>> [round(f.start, 3) for a in leaves for f in flatten(a)]  # each from 0
-    [1.0, 1.25]
+    [1.0, 1.25, 1.5]
     """
     out: list[Action] = []
     for f in flatten(action, start=start):
