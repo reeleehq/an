@@ -211,7 +211,14 @@ def pop_in(
                 target,
                 p,
                 _rest(rest, p),
-                tween(target, p, to=_rest(rest, p), duration=duration, from_=0.0, easing=easing),
+                tween(
+                    target,
+                    p,
+                    to=_rest(rest, p),
+                    duration=duration,
+                    from_=0.0,
+                    easing=easing,
+                ),
             )
             for p in ("scale_x", "scale_y")
         )
@@ -331,7 +338,14 @@ def point(
         target,
         "rotation",
         r0,
-        tween(target, "rotation", to=r0 + angle, duration=raise_duration, from_=r0, easing=easing),
+        tween(
+            target,
+            "rotation",
+            to=r0 + angle,
+            duration=raise_duration,
+            from_=r0,
+            easing=easing,
+        ),
         delay(hold),
         tween(
             target,
@@ -561,9 +575,7 @@ def rest_pose(
 
     walk(doc.scene, "")
     if target not in found:
-        raise KeyError(
-            f"no node {target!r} in the built scene; built: {sorted(found)}"
-        )
+        raise KeyError(f"no node {target!r} in the built scene; built: {sorted(found)}")
     transform = found[target].transform
     return {p: float(getattr(transform, p)) for p in POSE_PROPERTIES}
 

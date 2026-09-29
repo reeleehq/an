@@ -1005,17 +1005,34 @@ def _build_motion_presets(work: Path) -> Path:
     `scene.md` carries the expanded tweens (with `start:`) and round-trips.
     """
     from an.ir.compose import delay, sequence
-    from an.motion import as_leaves, hop, nod, point, pop_in, shake, squash_stretch, waddle
+    from an.motion import (
+        as_leaves,
+        hop,
+        nod,
+        point,
+        pop_in,
+        shake,
+        squash_stretch,
+        waddle,
+    )
     from an.project import load, save
 
-    md = _meta("Motion presets", 6.0) + "\n" + _shot("s1", 6.0) + "\n" + _entities("maya")
+    md = (
+        _meta("Motion presets", 6.0)
+        + "\n"
+        + _shot("s1", 6.0)
+        + "\n"
+        + _entities("maya")
+    )
     project = load(_project(work, scene_md=md, characters=("maya",)))
     moves = sequence(
         pop_in("maya"),
         delay(0.3),
         hop("maya"),
         nod("maya"),
-        point("maya/arm_r", angle=1.3),  # a descriptor rig's arm_r hangs on the viewer's left
+        point(
+            "maya/arm_r", angle=1.3
+        ),  # a descriptor rig's arm_r hangs on the viewer's left
         squash_stretch("maya"),
         shake("maya"),
         waddle("maya", travel=60.0),
@@ -1359,7 +1376,7 @@ DEMOS: tuple[Demo, ...] = (
             "renderer see nothing new."
         ),
         how=(
-            "`sequence(pop_in(\"maya\"), hop(\"maya\"), nod(\"maya\"), ...)` from "
+            '`sequence(pop_in("maya"), hop("maya"), nod("maya"), ...)` from '
             "`an.motion`, written into the scene with `as_leaves` so `scene.md` "
             "round-trips the expanded tweens."
         ),
