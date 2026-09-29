@@ -998,6 +998,33 @@ def _build_impacts(work: Path) -> Path:
     return write_impact_clip(spec, work, clip_dir="clip") / "clip.mp4"
 
 
+def _build_motion_presets(work: Path) -> Path:
+    """Seven motion presets in a row from ONE `sequence` of `an.motion` calls.
+
+    Authored in Python, then written back through `as_leaves`, so the project's
+    `scene.md` carries the expanded tweens (with `start:`) and round-trips.
+    """
+    from an.ir.compose import delay, sequence
+    from an.motion import as_leaves, hop, nod, point, pop_in, shake, squash_stretch, waddle
+    from an.project import load, save
+
+    md = _meta("Motion presets", 6.0) + "\n" + _shot("s1", 6.0) + "\n" + _entities("maya")
+    project = load(_project(work, scene_md=md, characters=("maya",)))
+    moves = sequence(
+        pop_in("maya"),
+        delay(0.3),
+        hop("maya"),
+        nod("maya"),
+        point("maya/arm_r", angle=1.3),  # a descriptor rig's arm_r hangs on the viewer's left
+        squash_stretch("maya"),
+        shake("maya"),
+        waddle("maya", travel=60.0),
+    )
+    project.scene.timeline[0].actions = as_leaves(moves, start=0.2)
+    save(project)
+    return _render(work)
+
+
 def _copy_example(rel: str) -> Callable[[Path], Path]:
     def build(work: Path) -> Path:
         src = REPO_ROOT / rel
@@ -1320,6 +1347,23 @@ DEMOS: tuple[Demo, ...] = (
         ),
         how="`yaml actions` entries with `start:` → `an.ir.compose` → the flattened timeline.",
         build=_build_composition,
+    ),
+    Demo(
+        slug="motion-presets",
+        title="Motion presets: a vocabulary of cut-out moves",
+        shows=(
+            "A character pops in with an overshoot, hops, nods, points, squashes "
+            "and stretches, shakes, and waddles a step to the side — one `sequence` "
+            "of `an.motion` calls. Each preset is an authoring macro that expands "
+            "to ordinary `tween`s, so the timeline, the validator and the "
+            "renderer see nothing new."
+        ),
+        how=(
+            "`sequence(pop_in(\"maya\"), hop(\"maya\"), nod(\"maya\"), ...)` from "
+            "`an.motion`, written into the scene with `as_leaves` so `scene.md` "
+            "round-trips the expanded tweens."
+        ),
+        build=_build_motion_presets,
     ),
     Demo(
         slug="swap-channels",
