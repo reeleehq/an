@@ -123,7 +123,7 @@
 - [an.verify.media_quality](_autosummary/an.verify.media_quality.html.md): MediaQualityVerifier — post-render quality checks on the actual mp4.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-26 11:58 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-29 17:44 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 
