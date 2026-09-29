@@ -1041,9 +1041,12 @@ def _build_motion_presets(work: Path) -> Path:
     save(project)
     return _render(work)
 
+
 #: The style spec the style demo applies, read from the downstream skill so the
 #: demo and the spec cannot disagree about what "South Park-style" means here.
-STYLE_SPEC_PATH = REPO_ROOT / ".claude" / "skills" / "an-style" / "styles" / "south_park.yaml"
+STYLE_SPEC_PATH = (
+    REPO_ROOT / ".claude" / "skills" / "an-style" / "styles" / "south_park.yaml"
+)
 
 
 def _build_south_park_style(work: Path) -> Path:
@@ -1124,9 +1127,9 @@ def _build_south_park_style(work: Path) -> Path:
             title: "In the style of South Park"
             author: an
             duration: 8.0
-            fps: {meta['fps']}
-            step_hz: {meta['step_hz']}
-            style_pack: {meta['style_pack']}
+            fps: {meta["fps"]}
+            step_hz: {meta["step_hz"]}
+            style_pack: {meta["style_pack"]}
             resolution:
               width: {w}
               height: {h}
@@ -1163,8 +1166,11 @@ def _build_south_park_style(work: Path) -> Path:
                 "targets": spec["targets"],
                 "metrics": result.metrics.as_dict() if result.metrics else None,
                 "findings": [
-                    {"severity": f.severity, "description": f.description,
-                     "suggested_fix": f.suggested_fix}
+                    {
+                        "severity": f.severity,
+                        "description": f.description,
+                        "suggested_fix": f.suggested_fix,
+                    }
                     for f in result.report.findings
                 ],
             },

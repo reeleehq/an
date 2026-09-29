@@ -243,9 +243,7 @@ def _cut_frames_from_pixels(frames: np.ndarray, step_diff: np.ndarray) -> list[i
     bins = 256 >> HISTOGRAM_BITS_DROPPED
     key = (q[..., 0] * bins + q[..., 1]) * bins + q[..., 2]
     per_frame = key.reshape(len(frames), -1)
-    hists = np.stack(
-        [np.bincount(k, minlength=bins**3) / k.size for k in per_frame]
-    )
+    hists = np.stack([np.bincount(k, minlength=bins**3) / k.size for k in per_frame])
     hist_l1 = np.abs(hists[1:] - hists[:-1]).sum(axis=1)
     cuts: list[int] = []
     for i in np.flatnonzero((hist_l1 > CUT_HISTOGRAM_L1) & (step_diff > CUT_MEAN_DIFF)):
@@ -432,20 +430,24 @@ def _run(cmd: list[str]) -> bytes:
 
 
 def _probe_fps(mp4: Path) -> float:
-    out = _run(
-        [
-            "ffprobe",
-            "-v",
-            "error",
-            "-select_streams",
-            "v:0",
-            "-show_entries",
-            "stream=r_frame_rate",
-            "-of",
-            "csv=p=0",
-            str(mp4),
-        ]
-    ).decode("utf-8").strip()
+    out = (
+        _run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-select_streams",
+                "v:0",
+                "-show_entries",
+                "stream=r_frame_rate",
+                "-of",
+                "csv=p=0",
+                str(mp4),
+            ]
+        )
+        .decode("utf-8")
+        .strip()
+    )
     num, _, den = out.partition("/")
     try:
         return float(num) / float(den or 1)
