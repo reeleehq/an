@@ -933,8 +933,10 @@ def add_gaze(
         head_roles = desc.colour_roles.get("parts/head.svg", {})
         lid = _hex_or_none(skin)
         for side in ("l", "r"):
-            desc.colour_roles.pop(f"parts/eye_{side}_open.svg", None)
-            desc.colour_roles.pop(f"parts/eye_{side}_closed.svg", None)
+            # Pop before re-adding, so a second run writes the same key order
+            # (add_gaze is idempotent, byte for byte).
+            for stem in ("eye_{}_open", "eye_{}_closed", "pupil_{}"):
+                desc.colour_roles.pop(f"parts/{stem.format(side)}.svg", None)
             if lid is not None and head_roles.get(lid) == "skin":
                 desc.colour_roles[f"parts/eye_{side}_closed.svg"] = {lid: "skin"}
             desc.colour_roles[f"parts/pupil_{side}.svg"] = {PUPIL_COLOUR: "pupil"}
