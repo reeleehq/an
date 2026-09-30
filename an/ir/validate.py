@@ -1119,7 +1119,9 @@ def validate_semantic(
                         f"voice ref {line.voice_ref!r} not in voices store",
                     )
                 elif line.voice_ref is not None:
-                    _check_voice_effects(report, path, k, line.voice_ref, available_voices)
+                    _check_voice_effects(
+                        report, path, k, line.voice_ref, available_voices
+                    )
 
         for k, line in enumerate(shot.dialogue):
             if not line.text.strip():

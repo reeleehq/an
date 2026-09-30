@@ -64,7 +64,9 @@ def normalize_effects(raw: Mapping[str, Any] | None) -> dict[str, float]:
     if not raw:
         return {}
     if not isinstance(raw, Mapping):
-        raise VoiceEffectError(f"voice `effects` must be a mapping, got {type(raw).__name__}")
+        raise VoiceEffectError(
+            f"voice `effects` must be a mapping, got {type(raw).__name__}"
+        )
     unknown = sorted(set(raw) - set(KNOWN_EFFECTS))
     if unknown:
         raise VoiceEffectError(
@@ -74,7 +76,9 @@ def normalize_effects(raw: Mapping[str, Any] | None) -> dict[str, float]:
     semitones = raw.get("pitch_semitones")
     if semitones is not None:
         if isinstance(semitones, bool) or not isinstance(semitones, (int, float)):
-            raise VoiceEffectError(f"pitch_semitones must be a number, got {semitones!r}")
+            raise VoiceEffectError(
+                f"pitch_semitones must be a number, got {semitones!r}"
+            )
         if abs(semitones) > PITCH_SEMITONES_LIMIT:
             raise VoiceEffectError(
                 f"pitch_semitones {semitones} is outside ±{PITCH_SEMITONES_LIMIT:g} "
@@ -138,12 +142,29 @@ def apply_voice_effects(audio: bytes, effects: Mapping[str, float]) -> bytes:
         out_path = Path(tmp) / "shifted.wav"
         proc = subprocess.run(
             [
-                "ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y",
-                "-i", "pipe:0", "-af", chain,
-                "-map_metadata", "-1", "-fflags", "+bitexact", "-flags:a", "+bitexact",
-                "-c:a", "pcm_s16le", str(out_path),
+                "ffmpeg",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-nostdin",
+                "-y",
+                "-i",
+                "pipe:0",
+                "-af",
+                chain,
+                "-map_metadata",
+                "-1",
+                "-fflags",
+                "+bitexact",
+                "-flags:a",
+                "+bitexact",
+                "-c:a",
+                "pcm_s16le",
+                str(out_path),
             ],
-            input=audio, capture_output=True, check=False,
+            input=audio,
+            capture_output=True,
+            check=False,
         )
         if proc.returncode != 0 or not out_path.exists():
             raise VoiceEffectError(

@@ -126,7 +126,9 @@ def produce_audio_for_scene(
             voice_id = line.voice_ref or voice_default
             effects = voice_effects(mall, voice_id)
             expected_audio_ref = audio_key(line.text, voice_id, tts.name, effects)
-            expected_viseme_ref = viseme_key(expected_audio_ref, lipsync.name, line.text)
+            expected_viseme_ref = viseme_key(
+                expected_audio_ref, lipsync.name, line.text
+            )
             audio_store = mall.get("audio") if mall is not None else None
             viseme_store = mall.get("visemes") if mall is not None else None
             already_done = (
