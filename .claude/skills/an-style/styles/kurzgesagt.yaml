@@ -48,6 +48,6 @@ guidance:
   palette_accents: {highlight: "#daf7ea", orange: "#d96739", sky_blue: "#5c9ec2"}   # not StylePack roles
   glow: an additive gradient sprite; no surface treatment ships
   dolly: depth-aware zoom is the real technique and is not built (an#110 deferred it); a zoom is uniform across planes
-  text: rounded labels with coloured borders, diagrams with drawn-on lines; no text node ships
+  text: labels are text props and drawn-on diagram lines are path props (a `trim_end` tween); the rounded, coloured-border label boxes need SVG prop art
   sound: a calm single narrator (dialogue), the score as `live.sound`'s bed (bring a licensed track), designed SFX as shot `sounds` cues
   transitions: match-moves (object continuity across the cut) and wipes are not built; flashes are `live.transitions.flash`

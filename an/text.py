@@ -57,10 +57,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Mapping
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from an.ir.assets import AssetSource
-from an.ir.migrate import DocumentKind, migrate, register_kind
+from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
 
 __all__ = [
     "TEXT_SCHEMA_VERSION",
@@ -186,6 +193,14 @@ class TextDescriptor(BaseModel):
     anchor: str | None = None
     source: AssetSource | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @model_serializer(mode="wrap")
+    def _dump_what_was_authored(self, handler):
+        """Dump only the fields the author set (plus ``kind``/``schema_version``),
+        so ``model_validate_json(d.model_dump_json())`` always round-trips — the
+        set-but-inert checks read ``model_fields_set``, and a full dump would
+        mark every default as set (:func:`an.ir.migrate.omit_unset`)."""
+        return omit_unset(self, handler(self))
 
     @field_validator("color")
     @classmethod

@@ -131,6 +131,37 @@ def register_kind(kind: DocumentKind) -> DocumentKind:
     return kind
 
 
+#: Keys a document's dump always carries, set or not: what kind it is and which
+#: version wrote it — the two things a reader needs before it can read the rest.
+DOCUMENT_IDENTITY_FIELDS: tuple[str, ...] = ("kind", "schema_version", "version")
+
+
+def omit_unset(model: Any, data: Any) -> Any:
+    """``data`` (a model's serialized dict) minus every field its author did not set.
+
+    For an on-disk document whose validation reads ``model_fields_set`` — a
+    `PathDescriptor` refuses a SET ``gap`` with no ``dash``, and a StylePack's
+    ``stroke`` role reaches only a path whose ``color`` was never set. A full
+    dump writes every default back as if the author had typed it, so the
+    document refused its own output (``model_dump_json()`` then
+    ``model_validate_json()`` raised) and a round trip silently changed which
+    colour a pack could reach. Omitting what was never set makes the dump the
+    document the author wrote, plus its identity (:data:`DOCUMENT_IDENTITY_FIELDS`).
+
+    >>> from pydantic import BaseModel
+    >>> class Doc(BaseModel):
+    ...     kind: str = "Doc"
+    ...     a: int = 1
+    ...     b: int = 2
+    >>> omit_unset(Doc(b=5), Doc(b=5).model_dump())
+    {'kind': 'Doc', 'b': 5}
+    """
+    if not isinstance(data, dict):
+        return data
+    keep = set(model.model_fields_set) | set(DOCUMENT_IDENTITY_FIELDS)
+    return {k: v for k, v in data.items() if k in keep}
+
+
 SCENE_IR: DocumentKind = register_kind(
     DocumentKind("SceneIR", "version", SCHEMA_VERSION)
 )

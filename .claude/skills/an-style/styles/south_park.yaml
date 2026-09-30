@@ -54,4 +54,4 @@ guidance:                    # not in `an` yet: apply by hand where you can, oth
   paper_grain: a static low-alpha texture plane; no grain ships
   voice: pitch raised; see `live.voice`. The amount is an estimate, and a stock-ffmpeg shift (asetrate + atempo) is a cruder shifter than a studio one
   sound: sparse stingers as shot `sounds` cues on the beat they punctuate, no music bed; `an` ships no sound library, so stingers are assets you add with their licence
-  text: occasional location cards; `an` has no text node
+  text: occasional location cards — an overlay text prop (a TextDescriptor on the overlay layer) over the set or a fill plane; the an skill's recipe builds one

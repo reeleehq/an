@@ -75,7 +75,7 @@ import json
 import subprocess
 import sys
 from collections.abc import Mapping, Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -92,7 +92,12 @@ __all__ = [
     "StyleLintResult",
     "StyleLintVerifier",
     "measure_style",
+    "measure_shots",
     "measure_video",
+    "film_shots",
+    "project_of_render",
+    "ShotMetrics",
+    "SHOT_METRICS",
     "check_targets",
     "load_style_spec",
     "style_lint",
@@ -199,6 +204,88 @@ _FIXES: dict[str, tuple[str, str]] = {
     ),
 }
 
+#: The fixes for a style whose spec SETS ``step_hz`` (its ``live.meta``): the
+#: knob is the style's, so no fix may drop it or move it. ``{step_hz}`` is the
+#: spec's value. Only the metrics whose generic fix touches ``step_hz`` differ.
+_FIXES_STEPPED: dict[str, tuple[str, str]] = {
+    "identical_frame_share": (
+        "hold more: check `step_hz: {step_hz}` is set as the style says, then "
+        "shorter tweens with real holds between them and fewer simultaneous moves",
+        "move more while characters talk: gesture beats of 0.2-0.3 s on arms and "
+        "head, closer framing (`stage.scale`), fewer dead holds; keep `step_hz` "
+        "at the style's {step_hz}",
+    ),
+    "pose_changes_per_s": (
+        "add motion: more gesture beats and closer framing; keep `step_hz` at "
+        "the style's {step_hz}",
+        "hold more: fewer simultaneous tweens and longer holds between beats; "
+        "keep `step_hz` at the style's {step_hz}",
+    ),
+    "one_frame_interval_share": (
+        "only unstepped motion changes on ones here (the camera, blinks, mouth "
+        "swaps, `play` clips); a camera move or more talking raises it, and "
+        "`step_hz` stays at the style's {step_hz}",
+        "check `step_hz: {step_hz}` is set as the style says, and move bodies with "
+        "tweens (which it steps) rather than `play` clips or the camera",
+    ),
+    "two_frame_interval_share": (
+        "check `step_hz: {step_hz}` is set as the style says, and move bodies with "
+        "tweens (which it steps) rather than `play` clips or the camera",
+        "more holds between moves, so fewer changes land two frames apart; keep "
+        "`step_hz` at the style's {step_hz}",
+    ),
+    "three_plus_interval_share": (
+        "leave real holds (a few frames) between moves; keep `step_hz` at the "
+        "style's {step_hz}",
+        "fewer, shorter holds between moves; keep `step_hz` at the style's {step_hz}",
+    ),
+}
+
+#: The fixes for a style whose spec leaves ``step_hz`` UNSET: it runs on ones,
+#: so no fix may tell the author to step it.
+_FIXES_UNSTEPPED: dict[str, tuple[str, str]] = {
+    "identical_frame_share": (
+        "hold more: shorter bursts (tweens in the style's range) with real holds "
+        "between them; leave `step_hz` unset, as the style says",
+        "move more: more or longer tweens, gesture bursts while characters talk, "
+        "closer framing; check `step_hz` is unset, as the style says",
+    ),
+    "pose_changes_per_s": (
+        "add motion: more or longer tweens, gesture bursts, closer framing",
+        "hold more: fewer simultaneous tweens, longer holds between bursts",
+    ),
+    "one_frame_interval_share": (
+        "check `step_hz` is unset, as the style says; then short tweens between "
+        "holds, so each burst changes every frame",
+        "more holds between bursts, so some changes land further apart",
+    ),
+    "two_frame_interval_share": (
+        "this style runs on ones, so two-frame gaps come only from very short "
+        "holds; accept the miss rather than stepping the tweens",
+        "check `step_hz` is unset, as the style says",
+    ),
+    "three_plus_interval_share": (
+        "leave longer holds between bursts; `step_hz` stays unset",
+        "fewer, shorter holds between bursts; `step_hz` stays unset",
+    ),
+}
+
+
+def _fix_for(name: str, low: bool, live: Mapping[str, Any] | None) -> str:
+    """The fix to suggest for a miss on ``name``, respecting the style's own
+    ``live`` settings: a spec that sets ``step_hz`` never hears "drop it", and
+    one that leaves it unset never hears "set it". With no ``live`` section (a
+    bare targets mapping) the generic fix is all there is."""
+    table, fmt = _FIXES, {}
+    if live is not None:
+        step_hz = (live.get("meta") or {}).get("step_hz")
+        if step_hz is not None:
+            table, fmt = _FIXES_STEPPED, {"step_hz": step_hz}
+        else:
+            table = _FIXES_UNSTEPPED
+    fix = table.get(name, _FIXES[name])[0 if low else 1]
+    return fix.format(**fmt) if fmt else fix
+
 
 # -----------------------------------------------------------------------------
 # Measurement (pure)
@@ -265,6 +352,52 @@ def _palette_stats(frames: np.ndarray) -> tuple[float, float, float]:
     return float(sat.mean()), dark, float(top)
 
 
+def _r3(x: float) -> float:
+    return round(float(x), 3)
+
+
+def _step_changes(frames: np.ndarray) -> tuple[np.ndarray, np.ndarray, float]:
+    """``(step_diff, changed, threshold)`` over the frame-to-frame steps: the
+    mean absolute grey difference of each step, whether it counts as a change,
+    and the clip's change threshold (see the module docstring)."""
+    grey = frames.astype(np.float32).mean(axis=3)
+    step_diff = np.abs(grey[1:] - grey[:-1]).mean(axis=(1, 2))
+    noise_floor = min(
+        NOISE_FLOOR_CAP, float(np.percentile(step_diff, NOISE_FLOOR_PERCENTILE))
+    )
+    threshold = max(MIN_CHANGE_THRESHOLD, NOISE_FLOOR_MULTIPLIER * noise_floor)
+    return step_diff, step_diff > threshold, threshold
+
+
+def _cadence(changed: np.ndarray, *, cut_steps: set[int], fps: float) -> dict:
+    """The hold and cadence statistics of one run of steps (a clip or a shot).
+
+    Cadence ignores the step INTO a cut: that is an edit, not a pose change.
+    """
+    n_steps = len(changed)
+    idx = [i for i in np.flatnonzero(changed) if i not in cut_steps]
+    gaps = np.diff(idx)
+    gaps = gaps[gaps <= MAX_CADENCE_INTERVAL]
+    total = max(len(gaps), 1)
+    runs, run = [], 1
+    for c in changed:
+        if c:
+            runs.append(run)
+            run = 1
+        else:
+            run += 1
+    runs.append(run)
+    duration = (n_steps + 1) / fps
+    return dict(
+        identical_frame_share=_r3(1 - changed.sum() / max(n_steps, 1)),
+        pose_changes_per_s=_r3(changed.sum() / duration),
+        one_frame_interval_share=_r3((gaps == 1).sum() / total),
+        two_frame_interval_share=_r3((gaps == 2).sum() / total),
+        three_plus_interval_share=_r3((gaps >= 3).sum() / total),
+        max_hold_frames=int(max(runs)),
+    )
+
+
 def measure_style(
     frames: np.ndarray,
     *,
@@ -294,13 +427,7 @@ def measure_style(
     if fps <= 0:
         raise ValueError(f"fps must be positive; got {fps}")
 
-    grey = frames.astype(np.float32).mean(axis=3)
-    step_diff = np.abs(grey[1:] - grey[:-1]).mean(axis=(1, 2))
-    noise_floor = min(
-        NOISE_FLOOR_CAP, float(np.percentile(step_diff, NOISE_FLOOR_PERCENTILE))
-    )
-    threshold = max(MIN_CHANGE_THRESHOLD, NOISE_FLOOR_MULTIPLIER * noise_floor)
-    changed = step_diff > threshold
+    step_diff, changed, threshold = _step_changes(frames)
 
     if shot_durations:
         cuts = _cut_frames_from_shots(shot_durations, fps, n)
@@ -312,34 +439,14 @@ def measure_style(
     bounds = [0, *cuts, n]
     shots = [(b - a) / fps for a, b in zip(bounds[:-1], bounds[1:])]
 
-    # Cadence ignores the step INTO a cut: that is an edit, not a pose change.
-    cut_steps = {c - 1 for c in cuts}
-    idx = [i for i in np.flatnonzero(changed) if i not in cut_steps]
-    gaps = np.diff(idx)
-    gaps = gaps[gaps <= MAX_CADENCE_INTERVAL]
-    total = max(len(gaps), 1)
-
-    runs, run = [], 1
-    for c in changed:
-        if c:
-            runs.append(run)
-            run = 1
-        else:
-            run += 1
-    runs.append(run)
-
+    cadence = _cadence(changed, cut_steps={c - 1 for c in cuts}, fps=fps)
     sat, dark, top16 = _palette_stats(frames)
-    r3 = lambda x: round(float(x), 3)  # noqa: E731
+    r3 = _r3
     return StyleMetrics(
         fps=r3(fps),
         frames=n,
         duration_s=r3(duration),
-        identical_frame_share=r3(1 - changed.sum() / (n - 1)),
-        pose_changes_per_s=r3(changed.sum() / duration),
-        one_frame_interval_share=r3((gaps == 1).sum() / total),
-        two_frame_interval_share=r3((gaps == 2).sum() / total),
-        three_plus_interval_share=r3((gaps >= 3).sum() / total),
-        max_hold_frames=int(max(runs)),
+        **cadence,
         cuts=len(cuts),
         cuts_per_min=r3(len(cuts) / duration * 60),
         mean_shot_s=r3(np.mean(shots)),
@@ -349,6 +456,112 @@ def measure_style(
         cut_source=cut_source,
         change_threshold=r3(threshold),
     )
+
+
+#: The per-shot statistics: the cadence ones, which a single static shot (a date
+#: card, a held map) can swing for the whole clip.
+SHOT_METRICS: tuple[str, ...] = (
+    "identical_frame_share",
+    "pose_changes_per_s",
+    "one_frame_interval_share",
+    "two_frame_interval_share",
+    "three_plus_interval_share",
+    "max_hold_frames",
+)
+
+
+@dataclass(frozen=True, slots=True)
+class ShotMetrics:
+    """The cadence of one shot, measured with the WHOLE clip's change
+    threshold so a shot's numbers add up to the clip's."""
+
+    shot: str
+    start_s: float
+    duration_s: float
+    frames: int
+    identical_frame_share: float
+    pose_changes_per_s: float
+    one_frame_interval_share: float
+    two_frame_interval_share: float
+    three_plus_interval_share: float
+    max_hold_frames: int
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+def measure_shots(
+    frames: np.ndarray,
+    *,
+    fps: float,
+    shot_durations: Sequence[float] | None = None,
+    shot_ids: Sequence[str] | None = None,
+) -> list[ShotMetrics]:
+    """Per-shot cadence (:data:`SHOT_METRICS`) of ``frames``, one row per shot.
+
+    The shots are ``shot_durations`` (seconds, in order) when given, else the
+    pixel cut detector's. The step INTO each shot is the cut, not a pose
+    change, so it belongs to no shot. A one-frame shot has no step of its own
+    and measures as all-identical.
+
+    >>> import numpy as np
+    >>> still = np.zeros((4, 8, 8, 3), np.uint8)
+    >>> moving = np.stack([still[0] + 10 * i for i in range(4)])
+    >>> rows = measure_shots(np.concatenate([still, moving]), fps=4.0,
+    ...                      shot_durations=[1.0, 1.0], shot_ids=["card", "map"])
+    >>> [(r.shot, r.identical_frame_share) for r in rows]
+    [('card', 1.0), ('map', 0.0)]
+    """
+    frames = np.asarray(frames)
+    n = len(frames)
+    _, changed, _ = _step_changes(frames)
+    if shot_durations:
+        cuts = _cut_frames_from_shots(shot_durations, fps, n)
+    else:
+        cuts = _cut_frames_from_pixels(frames, _step_changes(frames)[0])
+    bounds = [0, *cuts, n]
+    ids = list(shot_ids or [])
+    rows = []
+    for k, (a, b) in enumerate(zip(bounds[:-1], bounds[1:])):
+        steps = changed[a : max(a, b - 1)]
+        rows.append(
+            ShotMetrics(
+                shot=ids[k] if k < len(ids) else f"shot{k + 1}",
+                start_s=_r3(a / fps),
+                duration_s=_r3((b - a) / fps),
+                frames=b - a,
+                **_cadence(steps, cut_steps=set(), fps=fps),
+            )
+        )
+    return rows
+
+
+def film_shots(scene: SceneIR) -> list[tuple[str, float]]:
+    """``(shot id, seconds on screen)`` per shot of an ``an`` render, in order.
+
+    What the lint needs to place the cuts exactly. It is the shot durations,
+    except where a dissolve overlaps two shots: the film is that much shorter
+    than their sum (:func:`an.assemble.film_timeline`), and each shot is
+    counted from where its frames start in the film.
+
+    >>> from an.ir.schema import Shot, Transition
+    >>> film_shots(SceneIR(timeline=[
+    ...     Shot(id="a", duration=2.0),
+    ...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))]))
+    [('a', 1.5), ('b', 2.0)]
+    """
+    from an.assemble import film_timeline
+
+    shots = list(scene.timeline)
+    if not shots:
+        return []
+    fps = float(scene.meta.fps)
+    tl = film_timeline(shots, fps=fps)
+    ends = [*tl.starts[1:], tl.total_frames]
+    return [
+        (shot.id, (end - start) / fps)
+        for shot, start, end in zip(shots, tl.starts, ends)
+    ]
 
 
 def _validate_targets(targets: Mapping[str, Sequence[float]]) -> None:
@@ -376,8 +589,19 @@ def check_targets(
     targets: Mapping[str, Sequence[float]],
     *,
     miss_severity: str = "warning",
+    live: Mapping[str, Any] | None = None,
 ) -> list[Finding]:
     """One :class:`Finding` per target the metrics miss; ``[]`` when all hit.
+
+    ``live`` is the style spec's ``live`` section. Given, each suggested fix
+    respects it — a style that sets ``step_hz`` is never told to drop it, one
+    that leaves it unset is never told to set it:
+
+    >>> m = measure_style(np.zeros((8, 4, 4, 3), np.uint8), fps=8.0, shot_durations=[1.0])
+    >>> (f,) = check_targets(m, {"identical_frame_share": [0.5, 0.7]},
+    ...                      live={"meta": {"fps": 24, "step_hz": 12}})
+    >>> "drop `step_hz`" in f.suggested_fix, "keep `step_hz` at the style's 12" in f.suggested_fix
+    (False, True)
 
     Raises ``ValueError`` for a target :data:`METRICS` does not name, or a range
     that is not ``[low, high]`` with ``low <= high``.
@@ -398,7 +622,7 @@ def check_targets(
                     f"{name} = {value} is {'below' if low else 'above'} the "
                     f"style's range [{lo}, {hi}] ({METRICS[name]})"
                 ),
-                suggested_fix=_FIXES[name][0 if low else 1],
+                suggested_fix=_fix_for(name, low, live),
             )
         )
     return findings
@@ -511,12 +735,58 @@ def load_style_spec(spec: str | Path | Mapping[str, Any]) -> dict[str, Any]:
     return data
 
 
-def _targets_of(spec_or_targets: str | Path | Mapping[str, Any]) -> tuple[str, dict]:
-    """``(style name, targets)`` from a spec (path or mapping) or a bare targets mapping."""
+def _spec_parts(
+    spec_or_targets: str | Path | Mapping[str, Any],
+) -> tuple[str, dict, dict | None]:
+    """``(style name, targets, live)`` from a spec (path or mapping) or a bare
+    targets mapping (whose ``live`` is ``None``: nothing to respect)."""
     spec = load_style_spec(spec_or_targets)
     if "targets" in spec:
-        return str(spec.get("style", "")), dict(spec["targets"] or {})
-    return "", spec
+        live = spec.get("live")
+        return (
+            str(spec.get("style", "")),
+            dict(spec["targets"] or {}),
+            dict(live) if isinstance(live, Mapping) else None,
+        )
+    return "", spec, None
+
+
+def _targets_of(spec_or_targets: str | Path | Mapping[str, Any]) -> tuple[str, dict]:
+    """``(style name, targets)`` from a spec (path or mapping) or a bare targets mapping."""
+    style, targets, _ = _spec_parts(spec_or_targets)
+    return style, targets
+
+
+def _load_scene(project_or_scene: str | Path | SceneIR) -> SceneIR:
+    """A scene from a project directory (its ``ir/scene.json``), a ``scene.json``
+    file, or a `SceneIR` passed through."""
+    if isinstance(project_or_scene, SceneIR):
+        return project_or_scene
+    from an.ir.sync import scene_from_json_doc
+
+    path = Path(project_or_scene)
+    if path.is_dir():
+        path = path / PROJECT_SCENE_JSON
+    if not path.is_file():
+        raise StyleLintError(
+            f"no scene at {path}: pass a project directory (with {PROJECT_SCENE_JSON}) "
+            "or a scene.json"
+        )
+    return scene_from_json_doc(json.loads(path.read_text(encoding="utf-8")))
+
+
+#: Where a project keeps its scene, relative to the project directory.
+PROJECT_SCENE_JSON: str = "ir/scene.json"
+
+
+def project_of_render(mp4: str | Path) -> Path | None:
+    """The project directory an ``an`` render sits in — ``<project>/output/x.mp4``
+    beside ``<project>/ir/scene.json`` — or ``None`` for any other video."""
+    mp4 = Path(mp4)
+    candidate = mp4.resolve().parent.parent
+    if mp4.resolve().parent.name == "output" and (candidate / PROJECT_SCENE_JSON).is_file():
+        return candidate
+    return None
 
 
 # -----------------------------------------------------------------------------
@@ -526,10 +796,15 @@ def _targets_of(spec_or_targets: str | Path | Mapping[str, Any]) -> tuple[str, d
 
 @dataclass(slots=True)
 class StyleLintResult:
-    """What one lint run measured, and what it found."""
+    """What one lint run measured, and what it found.
+
+    ``per_shot`` is the cadence of each shot (:class:`ShotMetrics`) — the
+    breakdown that finds which shot is holding a whole clip's share up (a
+    static date card is 90% identical frames on its own)."""
 
     metrics: StyleMetrics | None
     report: VerificationReport
+    per_shot: list[ShotMetrics] = field(default_factory=list)
 
 
 def style_lint(
@@ -537,23 +812,46 @@ def style_lint(
     spec_or_targets: str | Path | Mapping[str, Any],
     *,
     shot_durations: Sequence[float] | None = None,
+    scene: str | Path | SceneIR | None = None,
     miss_severity: str = "warning",
 ) -> StyleLintResult:
     """Measure ``mp4`` and compare it to a style spec's ``targets``.
+
+    The cuts are exact when the shots are known: pass ``scene`` (a project
+    directory, a ``scene.json``, or a `SceneIR`; dissolve overlaps are
+    accounted for) or ``shot_durations``. Without either, cuts are detected
+    from pixels, which misses a cut between two shots on the same backdrop and
+    every dissolve — the lint says so in its report.
+
+    Suggested fixes respect the spec's ``live`` settings (:func:`check_targets`).
 
     A decode or probe failure is reported at
     :data:`an.verify.vision.FAILURE_SEVERITY`, never as ``info`` — a lint that
     could not run must not read as a clean one. A malformed spec raises: that is
     the caller's error, not the video's.
     """
-    style, targets = _targets_of(spec_or_targets)
+    style, targets, live = _spec_parts(spec_or_targets)
     # Validate the spec before touching the video, so a bad spec fails loudly.
     _validate_targets(targets)
+
+    shot_ids: list[str] | None = None
+    if scene is not None and shot_durations is None:
+        shots = film_shots(_load_scene(scene))
+        shot_ids = [sid for sid, _ in shots]
+        shot_durations = [d for _, d in shots]
 
     report = VerificationReport()
     label = f"style {style!r}" if style else "style targets"
     try:
-        metrics = measure_video(mp4, shot_durations=shot_durations)
+        mp4 = Path(mp4)
+        if not mp4.exists():
+            raise StyleLintError(f"no such video: {mp4}")
+        frames = _decode_frames(mp4, width=DECODE_WIDTH, height=DECODE_HEIGHT)
+        fps = _probe_fps(mp4)
+        metrics = measure_style(frames, fps=fps, shot_durations=shot_durations)
+        per_shot = measure_shots(
+            frames, fps=fps, shot_durations=shot_durations, shot_ids=shot_ids
+        )
     except (StyleLintError, ValueError) as e:
         report.add(
             FAILURE_SEVERITY,
@@ -571,6 +869,15 @@ def style_lint(
         f"{metrics.cut_source}): {measured}",
     )
     shot_targets = {"cuts_per_min", "mean_shot_s"} & set(targets)
+    if shot_targets and metrics.cut_source == "pixels":
+        report.add(
+            "info",
+            "<style>/cuts_per_min",
+            f"cuts were detected from pixels ({metrics.cuts} found), which misses "
+            "a cut between two shots on the same backdrop and every dissolve, so "
+            f"{sorted(shot_targets)} may be wrong; pass the project "
+            "(`--project DIR`, or `scene=` in Python) for the authored shot list",
+        )
     if shot_targets and metrics.duration_s < SHORT_CLIP_S:
         report.add(
             "info",
@@ -579,18 +886,19 @@ def style_lint(
             f"cuts_per_min by {60 / metrics.duration_s:.1f}; "
             f"{sorted(shot_targets)} are coarse on a clip this short",
         )
-    for f in check_targets(metrics, targets, miss_severity=miss_severity):
+    for f in check_targets(metrics, targets, miss_severity=miss_severity, live=live):
         report.add(f.severity, f.ir_path, f.description, f.suggested_fix)
-    return StyleLintResult(metrics, report)
+    return StyleLintResult(metrics, report, per_shot)
 
 
 class StyleLintVerifier:
     """Compare a render to a style spec's ``targets``. Implements ``Verifier``.
 
-    Shot boundaries come from the IR (every shot boundary is a hard cut in an
-    ``an`` render), so ``cuts_per_min`` and ``mean_shot_s`` are exact rather
-    than detected. Pre-render (``render is None``) it reports ``info`` and
-    passes: it has nothing to measure yet.
+    Shot boundaries come from the IR (every shot boundary is a cut in an ``an``
+    render, and a dissolve's overlap is accounted for), so ``cuts_per_min`` and
+    ``mean_shot_s`` are exact rather than detected. Pre-render
+    (``render is None``) it reports ``info`` and passes: it has nothing to
+    measure yet.
     """
 
     name: str = "style_lint"
@@ -601,7 +909,7 @@ class StyleLintVerifier:
         *,
         miss_severity: str = "warning",
     ) -> None:
-        self.style, self.targets = _targets_of(spec_or_targets)
+        self.style, self.targets, self.live = _spec_parts(spec_or_targets)
         self.miss_severity = miss_severity
         # Refuse a bad spec at construction, not at the end of a render.
         _validate_targets(self.targets)
@@ -611,33 +919,122 @@ class StyleLintVerifier:
             report = VerificationReport()
             report.add("info", "<style>", "no render result; skipping style lint")
             return report
-        shots = [float(s.duration) for s in ir.timeline] if ir.timeline else None
+        spec: dict[str, Any] = {"style": self.style, "targets": self.targets}
+        if self.live is not None:
+            spec["live"] = self.live
         return style_lint(
             render.mp4_path,
-            {"style": self.style, "targets": self.targets},
-            shot_durations=shots,
+            spec,
+            scene=ir if ir.timeline else None,
             miss_severity=self.miss_severity,
         ).report
 
 
-def _main(argv: Sequence[str]) -> int:
-    """``python -m an.verify.style VIDEO SPEC.yaml`` — print metrics and findings as JSON.
+def _format_text(result: StyleLintResult, targets: Mapping[str, Sequence[float]]) -> str:
+    """The human-readable report: metrics beside targets, findings, per shot."""
+    m = result.metrics
+    out = []
+    if m is not None:
+        out.append(f"{m.duration_s} s at {m.fps} fps, {m.cuts} cut(s) from {m.cut_source}")
+        out.append("")
+        out.append(f"{'metric':28} {'value':>8}  target")
+        for name in METRICS:
+            rng = targets.get(name)
+            value = getattr(m, name)
+            mark = ""
+            if rng is not None:
+                mark = "  ok" if rng[0] <= value <= rng[1] else "  MISS"
+            tgt = f"[{rng[0]}, {rng[1]}]" if rng is not None else ""
+            out.append(f"{name:28} {value!s:>8}  {tgt}{mark}")
+    if result.per_shot:
+        out.append("")
+        out.append("per shot:")
+        cols = ("start_s", "duration_s", *SHOT_METRICS)
+        short = {
+            "identical_frame_share": "identical",
+            "pose_changes_per_s": "changes/s",
+            "one_frame_interval_share": "ones",
+            "two_frame_interval_share": "twos",
+            "three_plus_interval_share": "threes+",
+            "max_hold_frames": "max_hold",
+            "start_s": "start",
+            "duration_s": "dur",
+        }
+        width = max(len(r.shot) for r in result.per_shot)
+        out.append(f"{'shot':{width}} " + " ".join(f"{short[c]:>10}" for c in cols))
+        for r in result.per_shot:
+            out.append(
+                f"{r.shot:{width}} " + " ".join(f"{getattr(r, c)!s:>10}" for c in cols)
+            )
+    notes = [f for f in result.report.findings if f.severity != "info" or f.ir_path != "<style>"]
+    if notes:
+        out.append("")
+        for f in notes:
+            line = f"{f.severity}: {f.description}"
+            if f.suggested_fix:
+                line += f"\n  fix: {f.suggested_fix}"
+            out.append(line)
+    return "\n".join(out)
 
-    Exit status 0 when every target hits, 1 on a miss, 2 when it could not measure.
+
+def _main(argv: Sequence[str]) -> int:
+    """``python -m an.verify.style VIDEO SPEC.yaml [--project DIR] [--json]``.
+
+    Prints the metrics beside the targets, one line per finding with its fix,
+    and the per-shot cadence. The shots come from ``--project`` (a project
+    directory or a ``scene.json``); without it, a video at
+    ``<project>/output/*.mp4`` finds its own project, and anything else falls
+    back to detecting cuts from pixels — with a warning, because that misses
+    cuts. Exit status 0 when every target hits, 1 on a miss, 2 when it could not
+    measure.
     """
-    if len(argv) != 2:
-        print("usage: python -m an.verify.style VIDEO SPEC.yaml", file=sys.stderr)
-        return 2
-    result = style_lint(argv[0], argv[1])
-    print(
-        json.dumps(
-            {
-                "metrics": result.metrics.as_dict() if result.metrics else None,
-                "findings": [asdict(f) for f in result.report.findings],
-            },
-            indent=2,
-        )
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="python -m an.verify.style",
+        description="Measure a render against a style spec's targets.",
     )
+    parser.add_argument("video", help="the rendered mp4")
+    parser.add_argument("spec", help="a style spec YAML (an-style skill: styles/<name>.yaml)")
+    parser.add_argument(
+        "--project",
+        "--scene",
+        dest="project",
+        default=None,
+        help="the project directory (or its ir/scene.json) the video was rendered "
+        "from, for exact cuts; found automatically for <project>/output/*.mp4",
+    )
+    parser.add_argument("--json", action="store_true", help="print JSON instead of text")
+    args = parser.parse_args(list(argv))
+
+    project = args.project or project_of_render(args.video)
+    if project is None:
+        print(
+            "warning: no project given and none found beside the video, so cuts are "
+            "detected from pixels (misses cuts between shots on one backdrop, and "
+            "dissolves); pass --project DIR",
+            file=sys.stderr,
+        )
+    elif args.project is None:
+        print(f"using the shot list of {project}", file=sys.stderr)
+    try:
+        result = style_lint(args.video, args.spec, scene=project)
+    except StyleLintError as e:
+        print(f"error: {e}", file=sys.stderr)
+        return 2
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "metrics": result.metrics.as_dict() if result.metrics else None,
+                    "per_shot": [r.as_dict() for r in result.per_shot],
+                    "findings": [asdict(f) for f in result.report.findings],
+                },
+                indent=2,
+            )
+        )
+    else:
+        print(_format_text(result, _targets_of(args.spec)[1]))
     if result.metrics is None:
         return 2
     return 0 if all(f.severity == "info" for f in result.report.findings) else 1

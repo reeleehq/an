@@ -184,3 +184,98 @@ def test_round_trip_through_an_encoded_mp4(tmp_path):
     assert result.metrics.fps == 24.0 and result.metrics.frames == 48
     assert result.report.passed
     assert [f.severity for f in result.report.findings] == ["info"]
+
+
+# -----------------------------------------------------------------------------
+# Per-shot breakdown, the authored shot list, and the CLI (e2e findings 4 and 5)
+# -----------------------------------------------------------------------------
+
+
+def test_per_shot_cadence_finds_the_static_shot():
+    """The OverSimplified e2e run: a static date card held the whole clip's
+    identical-frame share up, and only a hand-written per-shot script showed it."""
+    from an.verify.style import measure_shots
+
+    card = _solid((4, 4, 4), 24)
+    busy = _moving(24, every=1)
+    rows = measure_shots(
+        np.concatenate([card, busy]),
+        fps=24.0,
+        shot_durations=[1.0, 1.0],
+        shot_ids=["date_card", "map"],
+    )
+    assert [r.shot for r in rows] == ["date_card", "map"]
+    assert rows[0].identical_frame_share == 1.0
+    assert rows[1].identical_frame_share == 0.0
+    assert [r.start_s for r in rows] == [0.0, 1.0]
+
+
+def test_film_shots_take_a_dissolve_out_of_the_shot_it_overlaps():
+    from an.ir.schema import Meta, Transition
+    from an.verify.style import film_shots
+
+    scene = SceneIR(
+        meta=Meta(fps=24),
+        timeline=[
+            Shot(id="a", duration=2.0),
+            Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5)),
+            Shot(id="c", duration=1.0, transition=Transition(kind="fade", duration=0.5)),
+        ],
+    )
+    assert film_shots(scene) == [("a", 1.5), ("b", 2.0), ("c", 1.0)]
+
+
+def test_a_render_finds_its_own_project(tmp_path):
+    from an.verify.style import project_of_render
+
+    (tmp_path / "ir").mkdir()
+    (tmp_path / "ir" / "scene.json").write_text("{}", encoding="utf-8")
+    (tmp_path / "output").mkdir()
+    assert project_of_render(tmp_path / "output" / "main.mp4") == tmp_path.resolve()
+    assert project_of_render(tmp_path / "elsewhere.mp4") is None
+
+
+@pytest.mark.ffmpeg
+def test_the_scene_gives_exact_cuts_where_pixels_find_none(tmp_path):
+    """Two shots on one backdrop: pixels see no cut, the scene knows there is one."""
+    frames = _moving(48, every=2)
+    frames = np.stack([np.kron(f, np.ones((10, 10, 1), np.uint8)) for f in frames])
+    mp4 = _encode(frames, 24, tmp_path / "two_shots.mp4")
+    spec = {"style": "t", "targets": {"cuts_per_min": [20, 40]}}
+
+    by_pixels = style_lint(mp4, spec)
+    assert by_pixels.metrics.cut_source == "pixels" and by_pixels.metrics.cuts == 0
+    assert any("detected from pixels" in f.description for f in by_pixels.report.findings)
+
+    scene = SceneIR(timeline=[Shot(id="s1", duration=1.0), Shot(id="s2", duration=1.0)])
+    scene.meta.fps = 24
+    exact = style_lint(mp4, spec, scene=scene)
+    assert exact.metrics.cut_source == "shots" and exact.metrics.cuts == 1
+    assert [r.shot for r in exact.per_shot] == ["s1", "s2"]
+    assert exact.report.passed
+
+
+def test_running_the_module_does_not_warn_about_sys_modules():
+    """``python -m an.verify.style`` printed a RuntimeWarning, because the
+    package imported the module it was about to run as ``__main__``."""
+    import os
+    import sys
+
+    root = Path(__file__).resolve().parents[1]
+    env = {**os.environ, "PYTHONPATH": str(root)}  # this checkout, not an installed copy
+    proc = subprocess.run(
+        [sys.executable, "-W", "error::RuntimeWarning", "-m", "an.verify.style", "--help"],
+        capture_output=True,
+        text=True,
+        cwd=root,
+        env=env,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "RuntimeWarning" not in proc.stderr
+    assert "--project" in proc.stdout
+
+
+def test_the_verifier_is_still_importable_from_the_package():
+    import an.verify
+
+    assert an.verify.StyleLintVerifier is StyleLintVerifier

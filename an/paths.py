@@ -45,10 +45,17 @@ import math
 import re
 from typing import Any, Literal, Mapping
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from an.ir.assets import AssetSource
-from an.ir.migrate import DocumentKind, migrate, register_kind
+from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
 
 __all__ = [
     "PATH_SCHEMA_VERSION",
@@ -157,6 +164,14 @@ class PathDescriptor(BaseModel):
     source: AssetSource | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
+    @model_serializer(mode="wrap")
+    def _dump_what_was_authored(self, handler):
+        """Dump only the fields the author set (plus ``kind``/``schema_version``),
+        so ``model_validate_json(d.model_dump_json())`` always round-trips — the
+        set-but-inert checks read ``model_fields_set``, and a full dump would
+        mark every default as set (:func:`an.ir.migrate.omit_unset`)."""
+        return omit_unset(self, handler(self))
+
     @field_validator("points")
     @classmethod
     def _finite_points(cls, points):
@@ -184,8 +199,18 @@ class PathDescriptor(BaseModel):
     @model_validator(mode="after")
     def _nothing_set_is_ignored(self) -> "PathDescriptor":
         """Refuse a field that would silently do nothing — the reason this
-        model is ``extra="forbid"`` applies to set-but-inert fields too."""
-        given = self.model_fields_set
+        model is ``extra="forbid"`` applies to set-but-inert fields too.
+
+        A field written out AT its default (``gap: null``, ``dash_offset: 0``)
+        asks for nothing, so it is not refused: a document dumped by another
+        tool, or by this model before it learned to omit unset fields, loads.
+        """
+        fields = type(self).model_fields
+        given = {
+            name
+            for name in self.model_fields_set
+            if getattr(self, name) != fields[name].default
+        }
         if not self.arrowhead and given & {"head_length", "head_width"}:
             raise ValueError(
                 "head_length/head_width are set but arrowhead is false, so "

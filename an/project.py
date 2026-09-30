@@ -66,6 +66,26 @@ class Project:
     scene: SceneIR
 
 
+def _age_the_seed(*paths: Path) -> None:
+    """Date the seed files back past `sync`'s mtime tolerance.
+
+    `sync` treats two files less than ``SYNC_MTIME_TOLERANCE_S`` apart as the
+    same age and rewrites neither. A ``scene.md`` written right after ``an
+    init`` — by a script, or an agent — was therefore ignored: the empty seed
+    ``scene.json`` stayed the scene, and ``an validate`` reported "no shots"
+    for a file full of them. A seed holds nothing worth preferring over any
+    edit, so it is made old enough that the first edit always wins.
+    """
+    import os
+    import time
+
+    from an.ir.sync import SYNC_MTIME_TOLERANCE_S
+
+    then = time.time() - 4 * SYNC_MTIME_TOLERANCE_S
+    for p in paths:
+        os.utime(p, (then, then))
+
+
 def init(
     project_dir: str | Path, *, name: str | None = None, force: bool = False
 ) -> Path:
@@ -100,6 +120,7 @@ def init(
     )
     _write_text(pdir / "scene.md", ir_to_markdown(seed_scene))
     _write_json(pdir / "ir" / "scene.json", json.loads(seed_scene.model_dump_json()))
+    _age_the_seed(pdir / "scene.md", pdir / "ir" / "scene.json")
 
     # Seed an.toml.
     toml_path = pdir / "an.toml"
