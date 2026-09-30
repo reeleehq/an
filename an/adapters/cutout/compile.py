@@ -266,11 +266,13 @@ def _core_roles_left_untagged(
     if pack is None:
         return []
     tagged = {
-        role for roles in (desc_data.get("colour_roles") or {}).values()
+        role
+        for roles in (desc_data.get("colour_roles") or {}).values()
         for role in roles.values()
     }
     return [
-        role for role in _CORE_CHARACTER_ROLES
+        role
+        for role in _CORE_CHARACTER_ROLES
         if role not in tagged and pack.colour_for(role, entity=entity.id) is not None
     ]
 
@@ -1934,9 +1936,7 @@ def _build_character_subtree(
         # An SVG rig's colours live inside its drawings. A pack reaches the
         # ones the descriptor TAGS (`colour_roles`); an untagged rig is
         # recorded so the compiler can say which it could not reach, by name.
-        srcs = _recoloured_texture_srcs(
-            entity, char_meta, characters_store, style_pack
-        )
+        srcs = _recoloured_texture_srcs(entity, char_meta, characters_store, style_pack)
         if srcs is None:
             if skipped is not None:
                 skipped.add(entity.id)

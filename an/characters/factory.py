@@ -268,17 +268,26 @@ def _bones_for(body: BodyBuild, *, head_scale: float = 1.0) -> list[Bone]:
     scale instead of swallowing a stick figure's body.
     """
     sx, sy = body.shoulder
-    neck = body.neck_height + (head_scale - 1.0) * (
-        1.0 - HEAD_ANCHOR[1]
-    ) * REFERENCE_HEAD_HEIGHT
+    neck = (
+        body.neck_height
+        + (head_scale - 1.0) * (1.0 - HEAD_ANCHOR[1]) * REFERENCE_HEAD_HEIGHT
+    )
     return [
         Bone(name="root", parent=None, x=512, y=980, pivot="root"),
         Bone(name="torso", parent="root", x=0, y=-body.leg_length, pivot="hip"),
         Bone(name="head", parent="torso", x=0, y=-round(neck, 3), pivot="neck"),
         Bone(name="arm_l", parent="torso", x=-sx, y=-sy, pivot="shoulder_l"),
         Bone(name="arm_r", parent="torso", x=sx, y=-sy, pivot="shoulder_r"),
-        Bone(name="leg_l", parent="root", x=-body.hip_x, y=-body.leg_length, pivot="hip_l"),
-        Bone(name="leg_r", parent="root", x=body.hip_x, y=-body.leg_length, pivot="hip_r"),
+        Bone(
+            name="leg_l",
+            parent="root",
+            x=-body.hip_x,
+            y=-body.leg_length,
+            pivot="hip_l",
+        ),
+        Bone(
+            name="leg_r", parent="root", x=body.hip_x, y=-body.leg_length, pivot="hip_r"
+        ),
     ]
 
 
@@ -308,7 +317,9 @@ def _resolve_looks(seed: str, palette: Mapping[str, str], *, hat: str) -> _Looks
     skin = palette.get("skin") or _SKIN_TONES[h % len(_SKIN_TONES)]
     hair = palette.get("hair") or _HAIR_TONES[(h >> 16) % len(_HAIR_TONES)]
     _, seed_clothing, seed_accent = _palette_for_seed(seed)
-    acc = palette.get("accessory") or _ACCESSORY_TONES[(h >> 32) % len(_ACCESSORY_TONES)]
+    acc = (
+        palette.get("accessory") or _ACCESSORY_TONES[(h >> 32) % len(_ACCESSORY_TONES)]
+    )
 
     head_skin = distinct_literal(skin, {ink})
     head_hair = distinct_literal(hair, {head_skin})
@@ -321,7 +332,9 @@ def _resolve_looks(seed: str, palette: Mapping[str, str], *, hat: str) -> _Looks
     accent = distinct_literal(palette.get("hair") or seed_accent, {clothing, ink})
     hand = distinct_literal(palette.get("skin") or DFLT_HAND_COLOUR, {clothing, ink})
     return _Looks(
-        head_svg=_fallback_face_svg(seed, skin=head_skin, hair=head_hair, hat=hat, accessory=head_acc),
+        head_svg=_fallback_face_svg(
+            seed, skin=head_skin, hair=head_hair, hat=hat, accessory=head_acc
+        ),
         head_roles=head_roles,
         clothing=clothing,
         accent=accent,

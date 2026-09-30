@@ -1402,35 +1402,77 @@ CHARACTER_CASTS: dict[str, dict] = {
     "south_park": {
         "environment": "indoor",
         "characters": {
-            "stan": dict(build="squat", head_scale=1.3, hat="beanie",
-                         palette={"clothing": "#8b5a3c", "accessory": "#3a55a6",
-                                  "leg": "#3a55a6", "skin": "#fbd9b5"}),
-            "kyle": dict(build="squat", head_scale=1.3, hat="beanie",
-                         palette={"clothing": "#f06a23", "accessory": "#3f9b3a",
-                                  "leg": "#3d8b3d", "skin": "#fbd9b5"}),
+            "stan": dict(
+                build="squat",
+                head_scale=1.3,
+                hat="beanie",
+                palette={
+                    "clothing": "#8b5a3c",
+                    "accessory": "#3a55a6",
+                    "leg": "#3a55a6",
+                    "skin": "#fbd9b5",
+                },
+            ),
+            "kyle": dict(
+                build="squat",
+                head_scale=1.3,
+                hat="beanie",
+                palette={
+                    "clothing": "#f06a23",
+                    "accessory": "#3f9b3a",
+                    "leg": "#3d8b3d",
+                    "skin": "#fbd9b5",
+                },
+            ),
         },
-        "lines": ("stan [surprised]: Dude, the vending machine ate my money.",
-                  "kyle [angry]: Oh, come on!"),
+        "lines": (
+            "stan [surprised]: Dude, the vending machine ate my money.",
+            "kyle [angry]: Oh, come on!",
+        ),
     },
     "oversimplified": {
         "environment": "default",
         "characters": {
-            "napoleon": dict(build="stick", head_scale=1.7, hat="bicorne", sash=True,
-                             palette={"clothing": "#2b3a67", "accessory": "#c0392b",
-                                      "leg": "#e8e4d8", "skin": "#f6d7b0"}),
-            "wellington": dict(build="stick", head_scale=1.7, hat="bicorne",
-                               palette={"clothing": "#b3262e", "accessory": "#1f1f1f",
-                                        "leg": "#e8e4d8", "skin": "#f6d7b0"}),
+            "napoleon": dict(
+                build="stick",
+                head_scale=1.7,
+                hat="bicorne",
+                sash=True,
+                palette={
+                    "clothing": "#2b3a67",
+                    "accessory": "#c0392b",
+                    "leg": "#e8e4d8",
+                    "skin": "#f6d7b0",
+                },
+            ),
+            "wellington": dict(
+                build="stick",
+                head_scale=1.7,
+                hat="bicorne",
+                palette={
+                    "clothing": "#b3262e",
+                    "accessory": "#1f1f1f",
+                    "leg": "#e8e4d8",
+                    "skin": "#f6d7b0",
+                },
+            ),
         },
-        "lines": ("napoleon [happy]: I shall simply win again.",
-                  "wellington [angry]: Not at Waterloo, you won't."),
+        "lines": (
+            "napoleon [happy]: I shall simply win again.",
+            "wellington [angry]: Not at Waterloo, you won't.",
+        ),
     },
 }
 
 
 #: The mouth forms the casts' `[emotion]` tags prefer (an#98), so no line falls
 #: back to the neutral set with a warning. Smile offsets as `an character mouths`.
-CAST_MOUTH_FORMS: dict[str, float] = {"happy": 0.35, "sad": -0.35, "angry": -0.25, "surprised": 0.0}
+CAST_MOUTH_FORMS: dict[str, float] = {
+    "happy": 0.35,
+    "sad": -0.35,
+    "angry": -0.25,
+    "surprised": 0.0,
+}
 
 
 def _cast_extent(project: Path, names: tuple[str, ...]) -> tuple[float, float]:
@@ -1444,8 +1486,12 @@ def _cast_extent(project: Path, names: tuple[str, ...]) -> tuple[float, float]:
     from an.stores.characters import CharactersStore
 
     shot = Shot(
-        id="probe", renderer="cutout", duration=1.0,
-        entities=[AssetRef(kind="character", id=n, store="characters", ref=n) for n in names],
+        id="probe",
+        renderer="cutout",
+        duration=1.0,
+        entities=[
+            AssetRef(kind="character", id=n, store="characters", ref=n) for n in names
+        ],
     )
     mall = {"characters": CharactersStore(project / "assets" / "characters")}
     doc = to_dict(compile_shot(shot, mall=mall, fps=DEMO_FPS, strict_assets=True))
@@ -1488,9 +1534,20 @@ def _build_character_casts(work: Path) -> Path:
         chars_dir = pane / "assets" / "characters"
         chars_dir.mkdir(parents=True, exist_ok=True)
         for name, knobs in cast["characters"].items():
-            new_character(chars_dir, name=name, seed=name, use_dicebear=False,
-                          overwrite=True, mouth_variants=CAST_MOUTH_FORMS, **knobs)
-        pack = StylePack(**yaml.safe_load((specs / f"{style}.yaml").read_text("utf-8"))["live"]["style_pack"])
+            new_character(
+                chars_dir,
+                name=name,
+                seed=name,
+                use_dicebear=False,
+                overwrite=True,
+                mouth_variants=CAST_MOUTH_FORMS,
+                **knobs,
+            )
+        pack = StylePack(
+            **yaml.safe_load((specs / f"{style}.yaml").read_text("utf-8"))["live"][
+                "style_pack"
+            ]
+        )
         (pane / "assets" / "styles").mkdir(parents=True, exist_ok=True)
         (pane / "assets" / "styles" / f"{pack.name}.json").write_text(
             json.dumps(json.loads(pack.model_dump_json()), indent=2), encoding="utf-8"
@@ -1500,7 +1557,9 @@ def _build_character_casts(work: Path) -> Path:
         frame_h = float(DEMO_RESOLUTION[1])
         scale = min(1.2, frame_h * (1.0 - 2.0 * FRAME_MARGIN) / (bottom - top))
         y = -scale * (top + bottom) / 2.0
-        rows = [f"- kind: environment\n  id: set\n  store: environments\n  ref: {cast['environment']}"]
+        rows = [
+            f"- kind: environment\n  id: set\n  store: environments\n  ref: {cast['environment']}"
+        ]
         rows += [
             f"- kind: character\n  id: {n}\n  store: characters\n  ref: {n}\n"
             f"  stage:\n    at: [{x:g}, {y:.2f}]\n    scale: {scale:.4f}"
@@ -1517,18 +1576,39 @@ def _build_character_casts(work: Path) -> Path:
             _meta(f"Character casts: {style}", duration).replace(
                 "```\n", f"style_pack: {pack.name}\n```\n", 1
             )
-            + "\n" + _shot("s1", duration) + "\n```yaml entities\n" + "\n".join(rows)
-            + "\n```\n\n```yaml actions\n" + gestures + "```\n\n```dialogue\n"
-            + "\n".join(cast["lines"]) + "\n```\n"
+            + "\n"
+            + _shot("s1", duration)
+            + "\n```yaml entities\n"
+            + "\n".join(rows)
+            + "\n```\n\n```yaml actions\n"
+            + gestures
+            + "```\n\n```dialogue\n"
+            + "\n".join(cast["lines"])
+            + "\n```\n"
         )
         (pane / "scene.md").write_text(md, encoding="utf-8")
         panes.append(_render(pane))
     out = work / "character-casts.mp4"
     subprocess.run(
-        ["ffmpeg", "-v", "error", "-y", "-i", str(panes[0]), "-i", str(panes[1]),
-         # Silent, like the GIF: two conversations mixed over each other are noise.
-         "-filter_complex", "vstack=inputs=2", "-c:v", "libx264", "-pix_fmt", "yuv420p",
-         "-an", str(out)],
+        [
+            "ffmpeg",
+            "-v",
+            "error",
+            "-y",
+            "-i",
+            str(panes[0]),
+            "-i",
+            str(panes[1]),
+            # Silent, like the GIF: two conversations mixed over each other are noise.
+            "-filter_complex",
+            "vstack=inputs=2",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-an",
+            str(out),
+        ],
         check=True,
     )
     return out

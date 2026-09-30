@@ -86,7 +86,9 @@ def _recolour_cached(svg: str, swaps: tuple[tuple[str, str], ...]) -> str:
 
     def attr(m: re.Match) -> str:
         new = table.get(normalise_hex(m.group(3)))
-        return m.group(0) if new is None else f"{m.group(1)}{m.group(2)}{new}{m.group(2)}"
+        return (
+            m.group(0) if new is None else f"{m.group(1)}{m.group(2)}{new}{m.group(2)}"
+        )
 
     def decl(m: re.Match) -> str:
         new = table.get(normalise_hex(m.group(2)))
