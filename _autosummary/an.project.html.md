@@ -8,7 +8,7 @@ Layout (from spec §11):
 > ├── an.toml
 > ├── scene.md
 > ├── ir/scene.json
-> ├── assets/{characters,props,environments,voices,styles}/
+> ├── assets/{characters,props,environments,voices,styles,sounds}/
 > ├── artifacts/{audio,visemes,shots,previews}/
 > ├── output/
 > └── .an/{decisions.jsonl,verifier_runs/,memory.md}

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=e1efc05f"></script>
+    <script src="../../_static/documentation_options.js?v=09f5639d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.97" />
+  <meta name="docsearch:version" content="0.1.98" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -900,6 +900,19 @@ window.runMermaid = runMermaid;</script>
 <span class="s2">        NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with</span>
 <span class="s2">        narration now RAISES. To add a narrator, emit a dialogue line whose</span>
 <span class="s2">        speaker is not an entity in the shot; it gets audio and no lip-sync.</span>
+<span class="s2">      - transition (optional): how the shot is ENTERED —</span>
+<span class="s2">        {kind: "cut"|"fade"|"dissolve", duration: seconds, color: "#rrggbb"}.</span>
+<span class="s2">        Omitted = a hard cut. "fade" dips through color (half out of the</span>
+<span class="s2">        previous shot, half into this one; on the first shot, a fade up).</span>
+<span class="s2">        "dissolve" overlaps the two shots by duration, so the film gets that</span>
+<span class="s2">        much shorter; never on the first shot. A shot must be long enough to</span>
+<span class="s2">        hold its own transition and the next shot's.</span>
+<span class="s2">      - sounds (optional): SFX cues in SHOT-local time —</span>
+<span class="s2">        [{sound: &lt;key in the sounds store&gt;, at, [duration], [gain_db], [loop],</span>
+<span class="s2">        [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.</span>
+<span class="s2">  - meta.sounds (optional): the same cue shape in FILM time — a music bed is</span>
+<span class="s2">    {sound: &lt;key&gt;, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks</span>
+<span class="s2">    it under every dialogue line.</span>
 
 <span class="s2">Path syntax for patches: slash-delimited, list indices are integers. Examples:</span>
 
@@ -995,6 +1008,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">available_characters</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">),</span>
         <span class="n">available_props</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"props"</span><span class="p">),</span>
         <span class="n">available_environments</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"environments"</span><span class="p">),</span>
+        <span class="n">available_sounds</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sounds"</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">full_report</span> <span class="o">=</span> <span class="n">schema_report</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">semantic_report</span><span class="p">)</span>
 

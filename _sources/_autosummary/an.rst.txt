@@ -47,6 +47,7 @@
    :recursive:
 
    adapters
+   assemble
    audio
    base
    bench
@@ -70,6 +71,7 @@
    project
    props
    render
+   sounds
    stores
    styles
    text

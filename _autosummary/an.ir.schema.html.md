@@ -62,7 +62,9 @@ True
 | [`SequenceAction`](#an.ir.schema.SequenceAction)(\*\*data)   | Composition: run children one after the other.                                                                                                                      |
 | [`SetAction`](#an.ir.schema.SetAction)(\*\*data)        | Set a property to a value at a specific time.                                                                                                                       |
 | [`Shot`](#an.ir.schema.Shot)(\*\*data)             | A single rendered unit.                                                                                                                                             |
+| [`SoundCue`](#an.ir.schema.SoundCue)(\*\*data)         | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
 | [`StagePlacement`](#an.ir.schema.StagePlacement)(\*\*data)   | Where an entity stands on the stage, and how big it is.                                                                                                             |
+| [`Transition`](#an.ir.schema.Transition)(\*\*data)       | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
 | [`TweenAction`](#an.ir.schema.TweenAction)(\*\*data)      | Animate a property from a start value to an end value over a duration.                                                                                              |
 | [`VisemeKeyframe`](#an.ir.schema.VisemeKeyframe)(\*\*data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
 | [`VisemeTrack`](#an.ir.schema.VisemeTrack)(\*\*data)      | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
@@ -289,6 +291,11 @@ inherit. There is no per-shot override yet — style is a scene’s.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](#an.ir.schema.SoundCue)]*
+
+Sound cues in FILM time — a music bed, an ambience under every shot
+([`SoundCue`](#an.ir.schema.SoundCue)). Empty, the default, is no sound layer at all.
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
@@ -452,9 +459,55 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](#an.ir.schema.SoundCue)]*
+
+Sound cues in SHOT-local time ([`SoundCue`](#an.ir.schema.SoundCue)).
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-shot override of [`Meta.step_hz`](#an.ir.schema.Meta.step_hz) (`None` = inherit).
+
+#### transition *: [Transition](#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How this shot is entered ([`Transition`](#an.ir.schema.Transition)); `None` is a hard cut.
+
+### *class* an.ir.schema.SoundCue(\*\*data)
+
+Bases: `_IRModel`
+
+One sound placed on the timeline: an SFX hit, an ambience, a music bed.
+
+`sound` is a key in the project’s `sounds` store (`an.sounds`), where
+the bytes and their licence live — the IR never inlines audio.
+
+`at` is seconds from the start of whatever holds the cue: a shot’s
+`sounds` are SHOT-local (they move with the shot, across transitions
+and re-orderings), `meta.sounds` are FILM time (a music bed under the
+whole thing).
+
+```pycon
+>>> SoundCue(sound="hit", at=1.2).gain_db
+0.0
+>>> SoundCue(sound="bed", loop=True, duck_db=-12).duck_db
+-12.0
+```
+
+#### duck_db *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Attenuation, in dB, while any dialogue line plays; `None` never ducks.
+A music bed usually wants `DEFAULT_DUCK_DB`; an SFX hit wants none.
+
+#### duration *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the asset’s own length, or — when
+`loop` — to the end of its shot (shot cue) or of the film (meta cue).
+
+* **Type:**
+  How long it plays. `None`
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.StagePlacement(\*\*data)
 
@@ -518,6 +571,37 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### scale *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Uniform scale multiplier on the built rig. `1.0` = the rig’s own size.
+
+### *class* an.ir.schema.Transition(\*\*data)
+
+Bases: `_IRModel`
+
+How a shot is ENTERED — from the previous shot, or (for the first shot)
+from nothing.
+
+```pycon
+>>> Transition(kind="dissolve", duration=0.5).duration
+0.5
+>>> Transition(kind="fade").color
+'#000000'
+```
+
+- `cut` — the default, and what a shot with no `transition` means.
+- `fade` — through `color`: the previous shot’s last `duration / 2`
+  fades to the colour and this shot’s first `duration / 2` fades up from
+  it. On the FIRST shot the whole `duration` is a fade up from the
+  colour. **Holds the film’s length**: nothing overlaps.
+- `dissolve` — the previous shot’s last `duration` seconds and this
+  shot’s first `duration` seconds are seen through each other. \*\*The
+  film gets `duration` shorter\*\* than the sum of its shots: both shots
+  play in full, overlapped (the editor’s convention — the overlapped
+  seconds are each shot’s “handle”). Dialogue stays in sync with its own
+  shot’s picture; audio from both shots is heard in the overlap. Not
+  allowed on the first shot.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.TweenAction(\*\*data)
 

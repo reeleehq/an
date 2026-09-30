@@ -23,6 +23,11 @@ an.base
       EasingSpec
       RendererName
       SUPPORTED_RENDERERS
+      TRANSITION_KINDS
+      DEFAULT_TRANSITION_DURATION
+      DEFAULT_TRANSITION_COLOR
+      FILM_AUDIO_SAMPLE_RATE
+      DEFAULT_DUCK_DB
    
    .. rubric:: Functions
 

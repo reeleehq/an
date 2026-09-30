@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=e1efc05f"></script>
+    <script src="../../_static/documentation_options.js?v=09f5639d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.97" />
+  <meta name="docsearch:version" content="0.1.98" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -836,18 +836,20 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">collect_credits</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">CreditsReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Walk a project mall and gather every recorded :class:`AssetSource`.</span>
 
-<span class="sd">    Three stores carry provenance: characters, **props** (an#108) and</span>
-<span class="sd">    **environments** (an#110). Each was added by the PR that gave that store</span>
+<span class="sd">    Four stores carry provenance: characters, **props** (an#108),</span>
+<span class="sd">    **environments** (an#110) and **sounds**. Each was added by the PR that gave that store</span>
 <span class="sd">    real art, which is the rule rather than a coincidence — a walk that skips a</span>
 <span class="sd">    store holding third-party plates does not return less information, it</span>
 <span class="sd">    returns an affirmative false statement to exactly the people who need the</span>
-<span class="sd">    opposite. Styles will join when a StylePack has art (#112).</span>
+<span class="sd">    opposite. **Sounds** joined with the sound layer (an#163) — a sound is</span>
+<span class="sd">    third-party work more often than any other asset. Styles will join when a</span>
+<span class="sd">    StylePack has art (#112).</span>
 
 <span class="sd">    Legacy reconstruction runs on characters only: it recovers a DiceBear</span>
 <span class="sd">    record from `metadata.dicebear_*`, which no other store has ever written.</span>
 <span class="sd">    """</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">CreditsReport</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">store_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="s2">"props"</span><span class="p">,</span> <span class="s2">"environments"</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">store_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="s2">"props"</span><span class="p">,</span> <span class="s2">"environments"</span><span class="p">,</span> <span class="s2">"sounds"</span><span class="p">):</span>
         <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>

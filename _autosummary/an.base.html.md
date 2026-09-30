@@ -28,6 +28,11 @@ fraction of a second so the CLI is snappy.
 | [`EasingSpec`](#an.base.EasingSpec)                         | Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].                                                                                                                                                           |
 | [`RendererName`](#an.base.RendererName)                       | Which renderer draws a shot.                                                                                                                                                                                                                |
 | [`SUPPORTED_RENDERERS`](#an.base.SUPPORTED_RENDERERS)                | The same vocabulary as [`RendererName`](#an.base.RendererName), as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails. |
+| [`TRANSITION_KINDS`](#an.base.TRANSITION_KINDS)                   | The transition kinds a shot may be entered by.                                                                                                                                                                                              |
+| [`DEFAULT_TRANSITION_DURATION`](#an.base.DEFAULT_TRANSITION_DURATION)        | half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.                                                                                                         |
+| [`DEFAULT_TRANSITION_COLOR`](#an.base.DEFAULT_TRANSITION_COLOR)           | The colour a `fade` passes through when it names none.                                                                                                                                                                                      |
+| [`FILM_AUDIO_SAMPLE_RATE`](#an.base.FILM_AUDIO_SAMPLE_RATE)             | The film mix's sample rate and channel count.                                                                                                                                                                                               |
+| [`DEFAULT_DUCK_DB`](#an.base.DEFAULT_DUCK_DB)                    | how far a ducked cue drops under dialogue, and how fast it gets there and comes back.                                                                                                                                                       |
 
 ### Functions
 
@@ -124,6 +129,14 @@ asset-set name (an#62).
 
 Minimum Scene IR version this code can still read without migration.
 
+### an.base.DEFAULT_DUCK_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= -12.0*
+
+how far a ducked cue drops under dialogue, and how fast
+it gets there and comes back. The ramps are linear in gain.
+
+* **Type:**
+  Ducking defaults
+
 ### an.base.DEFAULT_SUPERSAMPLE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
 Render at this many times the declared resolution, then resolve back with an
@@ -140,6 +153,19 @@ The default stays 1 deliberately. Supersampling ships OPT-IN with its A/B
 committed (an#58, discussion #52), per the standing rule that a default
 chosen by taste ships opt-in and the flip is its own one-line change.
 
+### an.base.DEFAULT_TRANSITION_COLOR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#000000'*
+
+The colour a `fade` passes through when it names none.
+
+### an.base.DEFAULT_TRANSITION_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+half a second
+is a conventional editor’s default, short enough not to eat a line of
+dialogue and long enough to read as deliberate.
+
+* **Type:**
+  Seconds, when a `fade` or `dissolve` names no duration
+
 ### an.base.EASING_PRESETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('linear', 'ease', 'ease_in', 'ease_out', 'ease_in_out', 'step')*
 
 Named easing presets. Renderers should accept these and the cubic-Bézier
@@ -148,6 +174,13 @@ Named easing presets. Renderers should accept these and the cubic-Bézier
 ### an.base.EasingSpec *: [TypeAlias](https://docs.python.org/3/library/typing.html#typing.TypeAlias)* *= str | tuple[float, float, float, float] | list[float]*
 
 Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].
+
+### an.base.FILM_AUDIO_SAMPLE_RATE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 44100*
+
+The film mix’s sample rate and channel count. The SAME values the per-shot
+audio mux (`an.adapters.cutout.render._ffmpeg_add_audio`) writes, so a film
+assembled from sources and one concatenated from shot mp4s carry the same
+audio format.
 
 ### an.base.MP4_FASTSTART_ARGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('-movflags', '+faststart')*
 
@@ -219,6 +252,11 @@ as a path segment and `::` is the runtime’s pose-key separator.
 
 Time in seconds. Floats at the IR boundary; rational time is used internally
 only inside the audio pipeline where drift matters.
+
+### an.base.TRANSITION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cut', 'fade', 'dissolve')*
+
+The transition kinds a shot may be entered by. `cut` is the default and
+what every document written before transitions existed means.
 
 ### an.base.TRIM_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'trim_end', 'trim_start'})*
 

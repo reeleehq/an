@@ -1,4 +1,4 @@
-> built 2026-09-30 02:21 UTC from 11ff072 (main) · an 0.1.97. Details: build_info.json
+> built 2026-09-30 02:35 UTC from 13e27f9 (main) · an 0.1.98. Details: build_info.json
 
 # index.html.md
 
@@ -3397,6 +3397,191 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Whiteboard-style renderer (stub).
 
 
+# _autosummary/an.assemble.html.md
+
+# an.assemble
+
+Film assembly: rendered shots → one film, with transitions and a sound layer.
+
+Every shot renders in isolation (`an.render`); this module decides how the
+shots meet and what is heard over them. It runs only when a scene asks for it
+— a non-`cut` [`Transition`](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) or any
+[`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue) — so a scene with neither takes the old
+`_ffmpeg_concat` path, byte for byte ([`needs_assembly()`](_autosummary/an.assemble.html.md#an.assemble.needs_assembly)).
+
+**Where each part happens, and why there.**
+
+- *Picture*: transitions are composed in the FRAME STAGE, on the per-shot PNGs,
+  in exact integer arithmetic, and the film is muxed ONCE by the same
+  `_ffmpeg_mux` every shot uses. Composing in ffmpeg (`xfade`) would decode
+  already-encoded shots and re-encode them — a second generation of x264 loss
+  on every frame of the film, not just the transition — and would retire the
+  render pipeline’s “ffmpeg never touches a frame” clause. A frame no
+  transition touches is copied byte for byte: Chromium’s own PNG.
+- *Sound*: the film’s audio is rebuilt from SOURCES — every dialogue line’s
+  cached WAV and every cue’s asset, placed in film time — in one ffmpeg mix,
+  then muxed onto the picture with `-c:v copy`. Mixing onto the shots’
+  already-encoded AAC would be a second audio generation for the dialogue.
+
+**The timeline is frame-exact.** Shot `i` occupies `frame_count(duration,
+fps)` frames (the renderer’s own rule) starting at film frame
+`FilmTimeline.starts` `[i]`; audio is placed at `start / fps` plus
+its shot-local time, so a line stays on the frames it was lip-synced to
+whatever the transitions do.
+
+```pycon
+>>> from an.ir.schema import Shot, Transition
+>>> tl = film_timeline(
+...     [Shot(id="a", duration=2.0),
+...      Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))],
+...     fps=10,
+... )
+>>> tl.starts, tl.total_frames   # b starts 5 frames early: the film is 0.5 s shorter
+((0, 15), 35)
+```
+
+### Functions
+
+| [`assemble_film`](_autosummary/an.assemble.html.md#an.assemble.assemble_film)(scene, shot_results, output, ...)   | Assemble rendered shots into `output`: the picture from the shots' frames (transitions composed in), muxed once, then the mix.      |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| [`duck_gain`](_autosummary/an.assemble.html.md#an.assemble.duck_gain)(t, spans, \*, duck_db, attack, release) | The linear gain a ducked cue plays at, at film time `t` — the spec the ffmpeg expressions (`_duck_expressions()`) are written from. |
+| [`film_duration`](_autosummary/an.assemble.html.md#an.assemble.film_duration)(scene, \*[, fps])                   | Seconds the delivered film runs: the shots' durations, minus each dissolve's overlap.                                               |
+| [`film_timeline`](_autosummary/an.assemble.html.md#an.assemble.film_timeline)(shots, \*, fps)                     | Lay `shots` end to end, overlapping each dissolve.                                                                                  |
+| [`needs_assembly`](_autosummary/an.assemble.html.md#an.assemble.needs_assembly)(scene, \*[, fps])                  | True when the scene asks for anything beyond hard cuts and shot audio.                                                              |
+| [`transition_problems`](_autosummary/an.assemble.html.md#an.assemble.transition_problems)(shots, fps)                   | Every reason these shots' transitions cannot be assembled, as `(shot index, message)`.                                              |
+
+### Classes
+
+| [`FilmTimeline`](_autosummary/an.assemble.html.md#an.assemble.FilmTimeline)(fps, frames, starts, ...)   | Where each shot's frames land in the film, and what blends them.   |
+|-------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
+
+### Exceptions
+
+| [`AssemblyError`](_autosummary/an.assemble.html.md#an.assemble.AssemblyError)   | The shots cannot be assembled as the scene asks.   |
+|------------------------------------------------------------------|----------------------------------------------------|
+
+### *exception* an.assemble.AssemblyError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+The shots cannot be assembled as the scene asks. Carries the fix.
+
+### *class* an.assemble.FilmTimeline(fps, frames, starts, dissolve_in, fade_in, fade_out, fade_in_color, fade_out_color, total_frames)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Where each shot’s frames land in the film, and what blends them.
+
+`dissolve_in[i]` — frames shot `i` overlaps the previous shot by.
+`fade_in[i]` — frames at shot `i`’s head that fade up from a colour.
+`fade_out[i]` — frames at shot `i`’s tail that fade to a colour (the
+NEXT shot’s fade colour).
+
+#### end_seconds(i)
+
+Film time just after shot `i`’s last frame.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+#### start_seconds(i)
+
+Film time of shot `i`’s first frame.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+### an.assemble.assemble_film(scene, shot_results, output, , fps, mall, work_dir, pix_fmt=None)
+
+Assemble rendered shots into `output`: the picture from the shots’
+frames (transitions composed in), muxed once, then the mix.
+
+`shot_results` are the renderers’ `RenderResult`s, in timeline order;
+each must carry its frames (``frame_manifest``), so a renderer that only
+produces an mp4 cannot take part in an assembled film.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.assemble.duck_gain(t, spans, , duck_db, attack, release)
+
+The linear gain a ducked cue plays at, at film time `t` — the spec the
+ffmpeg expressions (`_duck_expressions()`) are written from.
+
+Full level away from dialogue; `duck_db` down while a line plays; a linear
+ramp over `attack` seconds BEFORE each line (so its first syllable is
+already clear) and `release` seconds after.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> spans = [(1.0, 2.0)]
+>>> [round(duck_gain(t, spans, duck_db=-20, attack=0.5, release=0.5), 3)
+...  for t in (0.0, 0.75, 1.5, 2.25, 3.0)]
+[1.0, 0.55, 0.1, 0.55, 1.0]
+```
+
+### an.assemble.film_duration(scene, , fps=None)
+
+Seconds the delivered film runs: the shots’ durations, minus each
+dissolve’s overlap. Exactly `sum(durations)` for a scene without one, so
+every existing document’s arithmetic is unchanged.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> from an.ir.schema import SceneIR, Shot, Transition
+>>> film_duration(SceneIR(timeline=[Shot(id="a", duration=2.0),
+...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))]))
+3.5
+```
+
+### an.assemble.film_timeline(shots, , fps)
+
+Lay `shots` end to end, overlapping each dissolve. Raises
+[`AssemblyError`](_autosummary/an.assemble.html.md#an.assemble.AssemblyError) on any [`transition_problems()`](_autosummary/an.assemble.html.md#an.assemble.transition_problems).
+
+* **Return type:**
+  [`FilmTimeline`](_autosummary/an.assemble.html.md#an.assemble.FilmTimeline)
+
+### an.assemble.needs_assembly(scene, , fps=None)
+
+True when the scene asks for anything beyond hard cuts and shot audio.
+
+Decided on FRAMES at the render’s rate (`fps`, default the scene’s): a
+transition that rounds to zero frames asks for nothing, and must not cost a
+scene its byte-identical concat.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> from an.ir.schema import Meta, SceneIR, Shot, Transition
+>>> needs_assembly(SceneIR(timeline=[Shot(id="a"), Shot(id="b")]))
+False
+>>> needs_assembly(SceneIR(timeline=[
+...     Shot(id="a"), Shot(id="b", transition=Transition(kind="fade", duration=0.0))]))
+False
+```
+
+### an.assemble.transition_problems(shots, fps)
+
+Every reason these shots’ transitions cannot be assembled, as
+`(shot index, message)`. The ONE list `an validate` reports and
+[`film_timeline()`](_autosummary/an.assemble.html.md#an.assemble.film_timeline) raises on, so the two cannot disagree.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> from an.ir.schema import Shot, Transition
+>>> transition_problems([Shot(id="a", transition=Transition(kind="dissolve"))], fps=30)
+[(0, "shot 'a' is the first shot, so a dissolve has nothing to dissolve from; use a fade (from a colour) or a cut")]
+```
+
+
 # _autosummary/an.audio.elevenlabs_tts.html.md
 
 # an.audio.elevenlabs_tts
@@ -4438,6 +4623,11 @@ fraction of a second so the CLI is snappy.
 | [`EasingSpec`](_autosummary/an.base.html.md#an.base.EasingSpec)                         | Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].                                                                                                                                                           |
 | [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName)                       | Which renderer draws a shot.                                                                                                                                                                                                                |
 | [`SUPPORTED_RENDERERS`](_autosummary/an.base.html.md#an.base.SUPPORTED_RENDERERS)                | The same vocabulary as [`RendererName`](_autosummary/an.base.html.md#an.base.RendererName), as a runtime tuple — DERIVED from it, because a hand-typed second copy is a second SSOT that drifts on the day a renderer is added and nothing fails. |
+| [`TRANSITION_KINDS`](_autosummary/an.base.html.md#an.base.TRANSITION_KINDS)                   | The transition kinds a shot may be entered by.                                                                                                                                                                                              |
+| [`DEFAULT_TRANSITION_DURATION`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_DURATION)        | half a second is a conventional editor's default, short enough not to eat a line of dialogue and long enough to read as deliberate.                                                                                                         |
+| [`DEFAULT_TRANSITION_COLOR`](_autosummary/an.base.html.md#an.base.DEFAULT_TRANSITION_COLOR)           | The colour a `fade` passes through when it names none.                                                                                                                                                                                      |
+| [`FILM_AUDIO_SAMPLE_RATE`](_autosummary/an.base.html.md#an.base.FILM_AUDIO_SAMPLE_RATE)             | The film mix's sample rate and channel count.                                                                                                                                                                                               |
+| [`DEFAULT_DUCK_DB`](_autosummary/an.base.html.md#an.base.DEFAULT_DUCK_DB)                    | how far a ducked cue drops under dialogue, and how fast it gets there and comes back.                                                                                                                                                       |
 
 ### Functions
 
@@ -4534,6 +4724,14 @@ asset-set name (an#62).
 
 Minimum Scene IR version this code can still read without migration.
 
+### an.base.DEFAULT_DUCK_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= -12.0*
+
+how far a ducked cue drops under dialogue, and how fast
+it gets there and comes back. The ramps are linear in gain.
+
+* **Type:**
+  Ducking defaults
+
 ### an.base.DEFAULT_SUPERSAMPLE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
 
 Render at this many times the declared resolution, then resolve back with an
@@ -4550,6 +4748,19 @@ The default stays 1 deliberately. Supersampling ships OPT-IN with its A/B
 committed (an#58, discussion #52), per the standing rule that a default
 chosen by taste ships opt-in and the flip is its own one-line change.
 
+### an.base.DEFAULT_TRANSITION_COLOR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#000000'*
+
+The colour a `fade` passes through when it names none.
+
+### an.base.DEFAULT_TRANSITION_DURATION *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
+
+half a second
+is a conventional editor’s default, short enough not to eat a line of
+dialogue and long enough to read as deliberate.
+
+* **Type:**
+  Seconds, when a `fade` or `dissolve` names no duration
+
 ### an.base.EASING_PRESETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('linear', 'ease', 'ease_in', 'ease_out', 'ease_in_out', 'step')*
 
 Named easing presets. Renderers should accept these and the cubic-Bézier
@@ -4558,6 +4769,13 @@ Named easing presets. Renderers should accept these and the cubic-Bézier
 ### an.base.EasingSpec *: [TypeAlias](https://docs.python.org/3/library/typing.html#typing.TypeAlias)* *= str | tuple[float, float, float, float] | list[float]*
 
 Either an easing preset name or a 4-tuple cubic-Bézier control [cx1,cy1,cx2,cy2].
+
+### an.base.FILM_AUDIO_SAMPLE_RATE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 44100*
+
+The film mix’s sample rate and channel count. The SAME values the per-shot
+audio mux (`an.adapters.cutout.render._ffmpeg_add_audio`) writes, so a film
+assembled from sources and one concatenated from shot mp4s carry the same
+audio format.
 
 ### an.base.MP4_FASTSTART_ARGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('-movflags', '+faststart')*
 
@@ -4629,6 +4847,11 @@ as a path segment and `::` is the runtime’s pose-key separator.
 
 Time in seconds. Floats at the IR boundary; rational time is used internally
 only inside the audio pipeline where drift matters.
+
+### an.base.TRANSITION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cut', 'fade', 'dissolve')*
+
+The transition kinds a shot may be entered by. `cut` is the default and
+what every document written before transitions existed means.
 
 ### an.base.TRIM_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'trim_end', 'trim_start'})*
 
@@ -5293,7 +5516,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'mouth', 'ellipse', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'eye', 'rect', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -11563,12 +11786,14 @@ reason `priv`’s upkeep keeps `unavailable` apart from `findings`.
 
 Walk a project mall and gather every recorded `AssetSource`.
 
-Three stores carry provenance: characters, **props** (an#108) and
-**environments** (an#110). Each was added by the PR that gave that store
+Four stores carry provenance: characters, **props** (an#108),
+**environments** (an#110) and **sounds**. Each was added by the PR that gave that store
 real art, which is the rule rather than a coincidence — a walk that skips a
 store holding third-party plates does not return less information, it
 returns an affirmative false statement to exactly the people who need the
-opposite. Styles will join when a StylePack has art (#112).
+opposite. **Sounds** joined with the sound layer (an#163) — a sound is
+third-party work more often than any other asset. Styles will join when a
+StylePack has art (#112).
 
 Legacy reconstruction runs on characters only: it recovers a DiceBear
 record from `metadata.dicebear_*`, which no other store has ever written.
@@ -13232,6 +13457,11 @@ inherit. There is no per-shot override yet — style is a scene’s.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+
+Sound cues in FILM time — a music bed, an ambience under every shot
+(`SoundCue`). Empty, the default, is no sound layer at all.
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
@@ -13323,9 +13553,17 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+
+Sound cues in SHOT-local time (`SoundCue`).
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-shot override of [`Meta.step_hz`](_autosummary/an.html.md#an.Meta.step_hz) (`None` = inherit).
+
+#### transition *: [Transition](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How this shot is entered (`Transition`); `None` is a hard cut.
 
 ### an.build_project_mall(project_dir, , ensure=False, \*\*overrides)
 
@@ -13528,7 +13766,7 @@ True
 False
 ```
 
-### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None)
+### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -13552,6 +13790,7 @@ always passes it).
 
 | [`adapters`](_autosummary/an.adapters.html.md#module-an.adapters)         | Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).       |
 |--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| [`assemble`](_autosummary/an.assemble.html.md#module-an.assemble)         | Film assembly: rendered shots → one film, with transitions and a sound layer.          |
 | [`audio`](_autosummary/an.audio.html.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                           |
 | [`base`](_autosummary/an.base.html.md#module-an.base)                 | Core types, constants, and re-exports for an.                                          |
 | [`bench`](_autosummary/an.bench.html.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.     |
@@ -13574,6 +13813,7 @@ always passes it).
 | [`project`](_autosummary/an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                         |
 | [`props`](_autosummary/an.props.html.md#module-an.props)               | Props: a rig whose art is not a person.                                                |
 | [`render`](_autosummary/an.render.html.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.        |
+| [`sounds`](_autosummary/an.sounds.html.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.       |
 | [`stores`](_autosummary/an.stores.html.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                            |
 | [`styles`](_autosummary/an.styles.html.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had. |
 | [`text`](_autosummary/an.text.html.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.           |
@@ -15504,6 +15744,11 @@ inherit. There is no per-shot override yet — style is a scene’s.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+
+Sound cues in FILM time — a music bed, an ambience under every shot
+(`SoundCue`). Empty, the default, is no sound layer at all.
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
@@ -15589,9 +15834,17 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+
+Sound cues in SHOT-local time (`SoundCue`).
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-shot override of [`Meta.step_hz`](_autosummary/an.ir.html.md#an.ir.Meta.step_hz) (`None` = inherit).
+
+#### transition *: [Transition](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How this shot is entered (`Transition`); `None` is a hard cut.
 
 ### *class* an.ir.ValidationFinding(severity, ir_path, description)
 
@@ -15850,7 +16103,7 @@ True
 False
 ```
 
-### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None)
+### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -15946,7 +16199,9 @@ True
 | [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction)(\*\*data)   | Composition: run children one after the other.                                                                                                                      |
 | [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)(\*\*data)        | Set a property to a value at a specific time.                                                                                                                       |
 | [`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot)(\*\*data)             | A single rendered unit.                                                                                                                                             |
+| [`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)(\*\*data)         | One sound placed on the timeline: an SFX hit, an ambience, a music bed.                                                                                             |
 | [`StagePlacement`](_autosummary/an.ir.schema.html.md#an.ir.schema.StagePlacement)(\*\*data)   | Where an entity stands on the stage, and how big it is.                                                                                                             |
+| [`Transition`](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition)(\*\*data)       | How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.                                                                               |
 | [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)(\*\*data)      | Animate a property from a start value to an end value over a duration.                                                                                              |
 | [`VisemeKeyframe`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeKeyframe)(\*\*data)   | A single mouth-shape keyframe in a viseme track.                                                                                                                    |
 | [`VisemeTrack`](_autosummary/an.ir.schema.html.md#an.ir.schema.VisemeTrack)(\*\*data)      | Aligned viseme track produced by the lip-sync stage.                                                                                                                |
@@ -16173,6 +16428,11 @@ inherit. There is no per-shot override yet — style is a scene’s.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+
+Sound cues in FILM time — a music bed, an ambience under every shot
+([`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)). Empty, the default, is no sound layer at all.
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
@@ -16336,9 +16596,55 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+
+Sound cues in SHOT-local time ([`SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)).
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-shot override of [`Meta.step_hz`](_autosummary/an.ir.schema.html.md#an.ir.schema.Meta.step_hz) (`None` = inherit).
+
+#### transition *: [Transition](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How this shot is entered ([`Transition`](_autosummary/an.ir.schema.html.md#an.ir.schema.Transition)); `None` is a hard cut.
+
+### *class* an.ir.schema.SoundCue(\*\*data)
+
+Bases: `_IRModel`
+
+One sound placed on the timeline: an SFX hit, an ambience, a music bed.
+
+`sound` is a key in the project’s `sounds` store (`an.sounds`), where
+the bytes and their licence live — the IR never inlines audio.
+
+`at` is seconds from the start of whatever holds the cue: a shot’s
+`sounds` are SHOT-local (they move with the shot, across transitions
+and re-orderings), `meta.sounds` are FILM time (a music bed under the
+whole thing).
+
+```pycon
+>>> SoundCue(sound="hit", at=1.2).gain_db
+0.0
+>>> SoundCue(sound="bed", loop=True, duck_db=-12).duck_db
+-12.0
+```
+
+#### duck_db *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Attenuation, in dB, while any dialogue line plays; `None` never ducks.
+A music bed usually wants `DEFAULT_DUCK_DB`; an SFX hit wants none.
+
+#### duration *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the asset’s own length, or — when
+`loop` — to the end of its shot (shot cue) or of the film (meta cue).
+
+* **Type:**
+  How long it plays. `None`
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.StagePlacement(\*\*data)
 
@@ -16402,6 +16708,37 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### scale *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Uniform scale multiplier on the built rig. `1.0` = the rig’s own size.
+
+### *class* an.ir.schema.Transition(\*\*data)
+
+Bases: `_IRModel`
+
+How a shot is ENTERED — from the previous shot, or (for the first shot)
+from nothing.
+
+```pycon
+>>> Transition(kind="dissolve", duration=0.5).duration
+0.5
+>>> Transition(kind="fade").color
+'#000000'
+```
+
+- `cut` — the default, and what a shot with no `transition` means.
+- `fade` — through `color`: the previous shot’s last `duration / 2`
+  fades to the colour and this shot’s first `duration / 2` fades up from
+  it. On the FIRST shot the whole `duration` is a fade up from the
+  colour. **Holds the film’s length**: nothing overlaps.
+- `dissolve` — the previous shot’s last `duration` seconds and this
+  shot’s first `duration` seconds are seen through each other. \*\*The
+  film gets `duration` shorter\*\* than the sum of its shots: both shots
+  play in full, overlapped (the editor’s convention — the overlapped
+  seconds are each shot’s “handle”). Dialogue stays in sync with its own
+  shot’s picture; audio from both shots is heard in the overlap. Not
+  allowed on the first shot.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### *class* an.ir.schema.TweenAction(\*\*data)
 
@@ -16616,7 +16953,7 @@ True
 False
 ```
 
-### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None)
+### an.ir.validate.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -17463,7 +17800,7 @@ Layout (from spec §11):
 > ├── an.toml
 > ├── scene.md
 > ├── ir/scene.json
-> ├── assets/{characters,props,environments,voices,styles}/
+> ├── assets/{characters,props,environments,voices,styles,sounds}/
 > ├── artifacts/{audio,visemes,shots,previews}/
 > ├── output/
 > └── .an/{decisions.jsonl,verifier_runs/,memory.md}
@@ -17806,6 +18143,166 @@ Returns the absolute path of the final output file (under `output/`).
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
+# _autosummary/an.sounds.html.md
+
+# an.sounds
+
+Sound assets: what the sound layer plays, where it came from, and a synthesizer.
+
+A [`an.ir.schema.SoundCue`](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue) names a key in the project’s `sounds` store;
+this module is the typed front door to that store. Every sound carries an
+[`AssetSource`](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) — provenance and licence — and the sha256 of
+the bytes that licence is attached to, because a sound is third-party work far
+more often than a character is, and \*\*a licence recorded and never displayed is
+not compliance\*\*: `an credits` walks this store like the others.
+
+```pycon
+>>> import tempfile
+>>> from an.stores.sounds import SoundsStore
+>>> with tempfile.TemporaryDirectory() as d:
+...     store = SoundsStore(d)
+...     asset = add_sound(store, "beep", synth_tone(440.0, 0.25), source=SYNTH_SOURCE)
+...     asset.duration, get_sound(store, "beep")[1][:4]
+(0.25, b'RIFF')
+```
+
+**The film mix is mono at 44.1 kHz** (the per-shot audio’s format), so a
+stereo asset is mixed down. **v1 stores WAV (PCM) only.** The mix needs each asset’s exact length to place
+a fade-out, and a WAV header states it without decoding anything; convert other
+formats with ffmpeg before adding them.
+
+The synthesizers ([`synth_tone()`](_autosummary/an.sounds.html.md#an.sounds.synth_tone), [`synth_hit()`](_autosummary/an.sounds.html.md#an.sounds.synth_hit), [`synth_bed()`](_autosummary/an.sounds.html.md#an.sounds.synth_bed)) are
+what the demo and the tests use instead of shipping any third-party audio: pure
+numpy, seeded, so the same call writes the same bytes.
+
+### Module Attributes
+
+| [`SYNTH_SOURCE`](_autosummary/an.sounds.html.md#an.sounds.SYNTH_SOURCE)   | The provenance of everything [`synth_tone()`](_autosummary/an.sounds.html.md#an.sounds.synth_tone) / [`synth_hit()`](_autosummary/an.sounds.html.md#an.sounds.synth_hit) / [`synth_bed()`](_autosummary/an.sounds.html.md#an.sounds.synth_bed) produce: generated on the user's machine by `an` from numbers, so no third party's work is in it.   |
+|-----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
+### Functions
+
+| [`add_sound`](_autosummary/an.sounds.html.md#an.sounds.add_sound)(store, key, audio, \*, source[, ...])    | Put `audio` (WAV bytes) in `store` under `key`, with its provenance.     |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`get_sound`](_autosummary/an.sounds.html.md#an.sounds.get_sound)(store, key)                              | `(asset, wav_bytes)` for `key`, the bytes checked against the digest.    |
+| [`synth_bed`](_autosummary/an.sounds.html.md#an.sounds.synth_bed)(duration, \*[, chord, pulse_hz, ...])    | A music bed: a sustained chord with a gentle pulse, loopable end to end. |
+| [`synth_hit`](_autosummary/an.sounds.html.md#an.sounds.synth_hit)([duration, seed, thump_hz, decay, ...])  | A percussive hit: a seeded noise burst over a low thump, decaying fast.  |
+| [`synth_tone`](_autosummary/an.sounds.html.md#an.sounds.synth_tone)(freq, duration, \*[, sample_rate, ...]) | A sine at `freq` Hz, with short linear ramps so it does not click.       |
+| [`wav_info`](_autosummary/an.sounds.html.md#an.sounds.wav_info)(data)                                     | `(sample_rate, channels, frames)` from a WAV's header.                   |
+
+### Classes
+
+| [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)(\*\*data)   | The `sound.json` of one entry in the `sounds` store.   |
+|-------------------------------------------------------------------------|--------------------------------------------------------|
+
+### Exceptions
+
+| [`SoundError`](_autosummary/an.sounds.html.md#an.sounds.SoundError)   | A sound the store cannot hold, or holds wrongly.   |
+|---------------------------------------------------------------|----------------------------------------------------|
+
+### an.sounds.SYNTH_SOURCE *= AssetSource(provider='an.sounds', id='procedural-synthesis', url=None, license='cc0-1.0', license_url=None, attribution=None, source_page_url=None, author='an (procedural synthesis, generated locally)', author_url=None, cacheable=True, sha256=None, cost_usd=None, extra={})*
+
+The provenance of everything [`synth_tone()`](_autosummary/an.sounds.html.md#an.sounds.synth_tone) / [`synth_hit()`](_autosummary/an.sounds.html.md#an.sounds.synth_hit) /
+[`synth_bed()`](_autosummary/an.sounds.html.md#an.sounds.synth_bed) produce: generated on the user’s machine by `an` from
+numbers, so no third party’s work is in it.
+
+### *class* an.sounds.SoundAsset(\*\*data)
+
+Bases: `BaseModel`
+
+The `sound.json` of one entry in the `sounds` store.
+
+#### duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Seconds, from the WAV header.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### sha256 *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+Digest of `audio.wav` as it entered the project; checked on every read.
+
+### *exception* an.sounds.SoundError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A sound the store cannot hold, or holds wrongly.
+
+### an.sounds.add_sound(store, key, audio, , source, description='')
+
+Put `audio` (WAV bytes) in `store` under `key`, with its provenance.
+
+`source` is required: a sound with no recorded origin is exactly the
+asset `an credits` cannot vouch for. Its `license` may be `None` —
+that is recorded as UNKNOWN and reported as unverified, never as free.
+
+* **Return type:**
+  [`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset)
+
+### an.sounds.get_sound(store, key)
+
+`(asset, wav_bytes)` for `key`, the bytes checked against the digest.
+
+A mismatch raises: the licence is attached to the digest, so different
+bytes under the same key are an asset nobody recorded.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SoundAsset`](_autosummary/an.sounds.html.md#an.sounds.SoundAsset), [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)]
+
+### an.sounds.synth_bed(duration, , chord=(220.0, 277.18, 329.63), pulse_hz=2.0, sample_rate=44100, amplitude=0.3)
+
+A music bed: a sustained chord with a gentle pulse, loopable end to end.
+
+The pulse is a whole number of cycles over `duration` when
+`duration * pulse_hz` is whole, so a looped bed does not bump at the seam.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> len(synth_bed(1.0)) > 44 and synth_bed(1.0) == synth_bed(1.0)
+True
+```
+
+### an.sounds.synth_hit(duration=0.35, , seed=0, thump_hz=90.0, decay=0.06, sample_rate=44100, amplitude=0.6)
+
+A percussive hit: a seeded noise burst over a low thump, decaying fast.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> synth_hit(seed=1) == synth_hit(seed=1), synth_hit(seed=1) == synth_hit(seed=2)
+(True, False)
+```
+
+### an.sounds.synth_tone(freq, duration, , sample_rate=44100, amplitude=0.3, attack=0.005, release=0.02)
+
+A sine at `freq` Hz, with short linear ramps so it does not click.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> synth_tone(440.0, 0.1) == synth_tone(440.0, 0.1)
+True
+```
+
+### an.sounds.wav_info(data)
+
+`(sample_rate, channels, frames)` from a WAV’s header.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int), [`int`](https://docs.python.org/3/builtins/functions.html#int)]
+
+```pycon
+>>> wav_info(synth_tone(440.0, 0.5, sample_rate=8000))
+(8000, 1, 4000)
+```
+
+
 # _autosummary/an.stores.artifacts.html.md
 
 # an.stores.artifacts
@@ -17960,7 +18457,7 @@ Per-environment directory store (meta + sidecar art).
 Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
-(characters, props, environments, voices, styles), the scene file pair, intermediate
+(characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
 artifacts (audio, viseme tracks, per-shot mp4s), final output, and the agent’s
 decision log — is keyed inside a store. Stores are dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
@@ -17973,7 +18470,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...     sorted(mall.keys()) == [
 ...         'audio', 'characters', 'decisions', 'environments',
 ...         'output', 'previews', 'props', 'scenes', 'shots',
-...         'styles', 'visemes', 'voices',
+...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
 True
 ```
@@ -17992,6 +18489,7 @@ True
 | [`StylesStore`](_autosummary/an.stores.html.md#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                           |
 | [`PropsStore`](_autosummary/an.stores.html.md#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                              |
 | [`ScenesStore`](_autosummary/an.stores.html.md#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.    |
+| [`SoundsStore`](_autosummary/an.stores.html.md#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                             |
 | [`AudioArtifactStore`](_autosummary/an.stores.html.md#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                       |
 | [`VisemeArtifactStore`](_autosummary/an.stores.html.md#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity. |
 | [`ShotArtifactStore`](_autosummary/an.stores.html.md#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                |
@@ -18095,6 +18593,30 @@ Bases: `_BlobStore`
 
 Per-shot rendered mp4s.
 
+### *class* an.stores.SoundsStore(root_dir)
+
+Bases: `JsonSidecarStore`
+
+Per-sound directory store.
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     store = SoundsStore(d)
+...     store['hit'] = {'description': 'a stick on a table'}
+...     store.write_audio('hit', b'RIFF....')
+...     store['hit']['description'], store.read_audio('hit')
+('a stick on a table', b'RIFF....')
+```
+
+#### AUDIO_NAME *= 'audio.wav'*
+
+`an.sounds` reads
+its header for the duration a fade-out needs, deterministically.
+
+* **Type:**
+  The sidecar holding the audio bytes. WAV only in v1
+
 ### *class* an.stores.StylesStore(root_dir)
 
 Bases: `JsonDirStore`
@@ -18142,6 +18664,7 @@ in-memory `dict` for tests).
 | [`environments`](_autosummary/an.stores.environments.html.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.          |
 | [`props`](_autosummary/an.stores.props.html.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                      |
 | [`scenes`](_autosummary/an.stores.scenes.html.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.    |
+| [`sounds`](_autosummary/an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`. |
 | [`styles`](_autosummary/an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts). |
 | [`voices`](_autosummary/an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                           |
 
@@ -18211,6 +18734,49 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 
 Keys: currently always `"main"`. The store enforces this by raising
 `KeyError` for other keys.
+
+
+# _autosummary/an.stores.sounds.html.md
+
+# an.stores.sounds
+
+Sounds store — one directory per sound: `sound.json` beside `audio.wav`.
+
+A sound is an asset like a character or a prop: bytes that end up in a video a
+user ships, so it carries its provenance and licence (`source`, an
+`an.ir.assets.AssetSource`) and the digest of the bytes the licence is attached
+to. The metadata is the mapping’s value; the audio is a sidecar read and written
+through `SoundsStore.read_audio()` / `SoundsStore.write_audio()`, so no
+caller builds a path by hand (pillar 7). `an.sounds` is the typed front door.
+
+### Classes
+
+| [`SoundsStore`](_autosummary/an.stores.sounds.html.md#an.stores.sounds.SoundsStore)(root_dir)   | Per-sound directory store.   |
+|--------------------------------------------------------------------------|------------------------------|
+
+### *class* an.stores.sounds.SoundsStore(root_dir)
+
+Bases: `JsonSidecarStore`
+
+Per-sound directory store.
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     store = SoundsStore(d)
+...     store['hit'] = {'description': 'a stick on a table'}
+...     store.write_audio('hit', b'RIFF....')
+...     store['hit']['description'], store.read_audio('hit')
+('a stick on a table', b'RIFF....')
+```
+
+#### AUDIO_NAME *= 'audio.wav'*
+
+`an.sounds` reads
+its header for the duration a fade-out needs, deterministically.
+
+* **Type:**
+  The sidecar holding the audio bytes. WAV only in v1
 
 
 # _autosummary/an.stores.styles.html.md
@@ -19710,7 +20276,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 02:21 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/11ff0725357c5bcee64da36bd5ed8ebd6fb0254b"><code>11ff072</code></a> on branch <code>main</code>, for **an 0.1.97** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 02:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/13e27f9e588ce11e754a2b5e8f8ed7b3fed66254"><code>13e27f9</code></a> on branch <code>main</code>, for **an 0.1.98** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -19719,9 +20285,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/11ff0725357c5bcee64da36bd5ed8ebd6fb0254b"><code>11ff0725357c5bcee64da36bd5ed8ebd6fb0254b</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/13e27f9e588ce11e754a2b5e8f8ed7b3fed66254"><code>13e27f9e588ce11e754a2b5e8f8ed7b3fed66254</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.97</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.98</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -19730,9 +20296,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36659207738">36659207738</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36660303075">36660303075</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>67b2bd6e31cf65103c7088cfdeb1e06b9b75593a</code> (in the history of the built commit) |
+| Event commit | <code>8af08a36f44488371b00ddb2e54edd900ce8b53c</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -19757,13 +20323,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.97/">0.1.97</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.98/">0.1.98</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 11ff0725357c5bcee64da36bd5ed8ebd6fb0254b
+git checkout 13e27f9e588ce11e754a2b5e8f8ed7b3fed66254
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

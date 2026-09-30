@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e1efc05f"></script>
+    <script src="../_static/documentation_options.js?v=09f5639d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.compose" href="an.ir.compose.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.97" />
+  <meta name="docsearch:version" content="0.1.98" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -325,6 +325,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
@@ -419,6 +420,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -426,6 +428,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
@@ -614,8 +617,14 @@ carry a <code class="code docutils literal notranslate"><span class="pre">kind</
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.Shot" title="an.ir.schema.Shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Shot</span></code></a>(**data)</p></td>
 <td><p>A single rendered unit.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.StagePlacement" title="an.ir.schema.StagePlacement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StagePlacement</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SoundCue</span></code></a>(**data)</p></td>
+<td><p>One sound placed on the timeline: an SFX hit, an ambience, a music bed.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.StagePlacement" title="an.ir.schema.StagePlacement"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StagePlacement</span></code></a>(**data)</p></td>
 <td><p>Where an entity stands on the stage, and how big it is.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.schema.Transition" title="an.ir.schema.Transition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Transition</span></code></a>(**data)</p></td>
+<td><p>How a shot is ENTERED — from the previous shot, or (for the first shot) from nothing.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TweenAction</span></code></a>(**data)</p></td>
 <td><p>Animate a property from a start value to an end value over a duration.</p></td>
@@ -901,6 +910,13 @@ inherit. There is no per-shot override yet — style is a scene’s.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.Meta.sounds">
+<span class="sig-name descname"><span class="pre">sounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><span class="pre">SoundCue</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.schema.Meta.sounds" title="Link to this definition">#</a></dt>
+<dd><p>Sound cues in FILM time — a music bed, an ambience under every shot
+(<a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoundCue</span></code></a>). Empty, the default, is no sound layer at all.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.schema.Meta.step_hz">
 <span class="sig-name descname"><span class="pre">step_hz</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.Meta.step_hz" title="Link to this definition">#</a></dt>
 <dd><p>Stepped timing for AUTHORED TWEENS, in pose updates per second; <code class="docutils literal notranslate"><span class="pre">None</span></code>
@@ -1107,9 +1123,67 @@ renderer while the thing that actually styles it went unread.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.Shot.sounds">
+<span class="sig-name descname"><span class="pre">sounds</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><span class="pre">SoundCue</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.schema.Shot.sounds" title="Link to this definition">#</a></dt>
+<dd><p>Sound cues in SHOT-local time (<a class="reference internal" href="#an.ir.schema.SoundCue" title="an.ir.schema.SoundCue"><code class="xref py py-class docutils literal notranslate"><span class="pre">SoundCue</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.schema.Shot.step_hz">
 <span class="sig-name descname"><span class="pre">step_hz</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.Shot.step_hz" title="Link to this definition">#</a></dt>
 <dd><p>Per-shot override of <a class="reference internal" href="#an.ir.schema.Meta.step_hz" title="an.ir.schema.Meta.step_hz"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Meta.step_hz</span></code></a> (<code class="docutils literal notranslate"><span class="pre">None</span></code> = inherit).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.Shot.transition">
+<span class="sig-name descname"><span class="pre">transition</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#an.ir.schema.Transition" title="an.ir.schema.Transition"><span class="pre">Transition</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.Shot.transition" title="Link to this definition">#</a></dt>
+<dd><p>How this shot is entered (<a class="reference internal" href="#an.ir.schema.Transition" title="an.ir.schema.Transition"><code class="xref py py-class docutils literal notranslate"><span class="pre">Transition</span></code></a>); <code class="docutils literal notranslate"><span class="pre">None</span></code> is a hard cut.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.schema.SoundCue">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">SoundCue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#SoundCue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.SoundCue" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
+<p>One sound placed on the timeline: an SFX hit, an ambience, a music bed.</p>
+<p><code class="docutils literal notranslate"><span class="pre">sound</span></code> is a key in the project’s <code class="docutils literal notranslate"><span class="pre">sounds</span></code> store (<code class="code docutils literal notranslate"><span class="pre">an.sounds</span></code>), where
+the bytes and their licence live — the IR never inlines audio.</p>
+<p><code class="docutils literal notranslate"><span class="pre">at</span></code> is seconds from the start of whatever holds the cue: a shot’s
+<code class="docutils literal notranslate"><span class="pre">sounds</span></code> are SHOT-local (they move with the shot, across transitions
+and re-orderings), <code class="docutils literal notranslate"><span class="pre">meta.sounds</span></code> are FILM time (a music bed under the
+whole thing).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">SoundCue</span><span class="p">(</span><span class="n">sound</span><span class="o">=</span><span class="s2">"hit"</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span><span class="o">.</span><span class="n">gain_db</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">SoundCue</span><span class="p">(</span><span class="n">sound</span><span class="o">=</span><span class="s2">"bed"</span><span class="p">,</span> <span class="n">loop</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">duck_db</span><span class="o">=-</span><span class="mi">12</span><span class="p">)</span><span class="o">.</span><span class="n">duck_db</span>
+<span class="go">-12.0</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.SoundCue.duck_db">
+<span class="sig-name descname"><span class="pre">duck_db</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.SoundCue.duck_db" title="Link to this definition">#</a></dt>
+<dd><p>Attenuation, in dB, while any dialogue line plays; <code class="docutils literal notranslate"><span class="pre">None</span></code> never ducks.
+A music bed usually wants <code class="docutils literal notranslate"><span class="pre">DEFAULT_DUCK_DB</span></code>; an SFX hit wants none.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.SoundCue.duration">
+<span class="sig-name descname"><span class="pre">duration</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.schema.SoundCue.duration" title="Link to this definition">#</a></dt>
+<dd><p>the asset’s own length, or — when
+<code class="docutils literal notranslate"><span class="pre">loop</span></code> — to the end of its shot (shot cue) or of the film (meta cue).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How long it plays. <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.SoundCue.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.SoundCue.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 </dd></dl>
@@ -1176,6 +1250,42 @@ does not refuse <code class="code docutils literal notranslate"><span class="pre
 <dt class="sig sig-object py" id="an.ir.schema.StagePlacement.scale">
 <span class="sig-name descname"><span class="pre">scale</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.ir.schema.StagePlacement.scale" title="Link to this definition">#</a></dt>
 <dd><p>Uniform scale multiplier on the built rig. <code class="docutils literal notranslate"><span class="pre">1.0</span></code> = the rig’s own size.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.schema.Transition">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.schema.</span></span><span class="sig-name descname"><span class="pre">Transition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#Transition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.schema.Transition" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
+<p>How a shot is ENTERED — from the previous shot, or (for the first shot)
+from nothing.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Transition</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"dissolve"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">duration</span>
+<span class="go">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Transition</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"fade"</span><span class="p">)</span><span class="o">.</span><span class="n">color</span>
+<span class="go">'#000000'</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cut</span></code> — the default, and what a shot with no <code class="docutils literal notranslate"><span class="pre">transition</span></code> means.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fade</span></code> — through <code class="docutils literal notranslate"><span class="pre">color</span></code>: the previous shot’s last <code class="docutils literal notranslate"><span class="pre">duration</span> <span class="pre">/</span> <span class="pre">2</span></code>
+fades to the colour and this shot’s first <code class="docutils literal notranslate"><span class="pre">duration</span> <span class="pre">/</span> <span class="pre">2</span></code> fades up from
+it. On the FIRST shot the whole <code class="docutils literal notranslate"><span class="pre">duration</span></code> is a fade up from the
+colour. <strong>Holds the film’s length</strong>: nothing overlaps.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dissolve</span></code> — the previous shot’s last <code class="docutils literal notranslate"><span class="pre">duration</span></code> seconds and this
+shot’s first <code class="docutils literal notranslate"><span class="pre">duration</span></code> seconds are seen through each other. **The
+film gets <code class="docutils literal notranslate"><span class="pre">duration</span></code> shorter** than the sum of its shots: both shots
+play in full, overlapped (the editor’s convention — the overlapped
+seconds are each shot’s “handle”). Dialogue stays in sync with its own
+shot’s picture; audio from both shots is heard in the overlap. Not
+allowed on the first shot.</p></li>
+</ul>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.schema.Transition.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.schema.Transition.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 </dd></dl>
@@ -1395,6 +1505,7 @@ and the project renderer all call it (an#89 review: three copies).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta"><code class="docutils literal notranslate"><span class="pre">Meta</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.default_easing"><code class="docutils literal notranslate"><span class="pre">Meta.default_easing</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.model_config"><code class="docutils literal notranslate"><span class="pre">Meta.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.sounds"><code class="docutils literal notranslate"><span class="pre">Meta.sounds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.step_hz"><code class="docutils literal notranslate"><span class="pre">Meta.step_hz</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Meta.style_pack"><code class="docutils literal notranslate"><span class="pre">Meta.style_pack</span></code></a></li>
 </ul>
@@ -1431,13 +1542,25 @@ and the project renderer all call it (an#89 review: three copies).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot"><code class="docutils literal notranslate"><span class="pre">Shot</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.model_config"><code class="docutils literal notranslate"><span class="pre">Shot.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.renderer"><code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.sounds"><code class="docutils literal notranslate"><span class="pre">Shot.sounds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.step_hz"><code class="docutils literal notranslate"><span class="pre">Shot.step_hz</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Shot.transition"><code class="docutils literal notranslate"><span class="pre">Shot.transition</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue"><code class="docutils literal notranslate"><span class="pre">SoundCue</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue.duck_db"><code class="docutils literal notranslate"><span class="pre">SoundCue.duck_db</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue.duration"><code class="docutils literal notranslate"><span class="pre">SoundCue.duration</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.SoundCue.model_config"><code class="docutils literal notranslate"><span class="pre">SoundCue.model_config</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement"><code class="docutils literal notranslate"><span class="pre">StagePlacement</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement.at"><code class="docutils literal notranslate"><span class="pre">StagePlacement.at</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement.model_config"><code class="docutils literal notranslate"><span class="pre">StagePlacement.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.StagePlacement.scale"><code class="docutils literal notranslate"><span class="pre">StagePlacement.scale</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Transition"><code class="docutils literal notranslate"><span class="pre">Transition</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.Transition.model_config"><code class="docutils literal notranslate"><span class="pre">Transition.model_config</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.schema.TweenAction"><code class="docutils literal notranslate"><span class="pre">TweenAction</span></code></a><ul class="nav section-nav flex-column">

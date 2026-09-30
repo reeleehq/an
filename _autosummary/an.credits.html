@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e1efc05f"></script>
+    <script src="../_static/documentation_options.js?v=09f5639d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.conftest" href="an.conftest.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.97" />
+  <meta name="docsearch:version" content="0.1.98" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -325,6 +325,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
@@ -419,6 +420,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
@@ -426,6 +428,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
@@ -586,12 +589,14 @@ reason <code class="code docutils literal notranslate"><span class="pre">priv</s
 <dt class="sig sig-object py" id="an.credits.collect_credits">
 <span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">collect_credits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#collect_credits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.collect_credits" title="Link to this definition">#</a></dt>
 <dd><p>Walk a project mall and gather every recorded <code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code>.</p>
-<p>Three stores carry provenance: characters, <strong>props</strong> (an#108) and
-<strong>environments</strong> (an#110). Each was added by the PR that gave that store
+<p>Four stores carry provenance: characters, <strong>props</strong> (an#108),
+<strong>environments</strong> (an#110) and <strong>sounds</strong>. Each was added by the PR that gave that store
 real art, which is the rule rather than a coincidence — a walk that skips a
 store holding third-party plates does not return less information, it
 returns an affirmative false statement to exactly the people who need the
-opposite. Styles will join when a StylePack has art (#112).</p>
+opposite. <strong>Sounds</strong> joined with the sound layer (an#163) — a sound is
+third-party work more often than any other asset. Styles will join when a
+StylePack has art (#112).</p>
 <p>Legacy reconstruction runs on characters only: it recovers a DiceBear
 record from <code class="code docutils literal notranslate"><span class="pre">metadata.dicebear_*</span></code>, which no other store has ever written.</p>
 <dl class="field-list simple">

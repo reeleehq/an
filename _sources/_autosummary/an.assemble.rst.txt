@@ -1,0 +1,29 @@
+an.assemble
+===========
+
+.. automodule:: an.assemble
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      assemble_film
+      duck_gain
+      film_duration
+      film_timeline
+      needs_assembly
+      transition_problems
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FilmTimeline
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      AssemblyError
+   

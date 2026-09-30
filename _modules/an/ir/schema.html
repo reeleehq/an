@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e1efc05f"></script>
+    <script src="../../../_static/documentation_options.js?v=09f5639d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.97" />
+  <meta name="docsearch:version" content="0.1.98" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -743,6 +743,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">model_serializer</span><span class="p">,</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">model_validator</span>
@@ -752,6 +753,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">DEFAULT_DURATION</span><span class="p">,</span>
     <span class="n">DEFAULT_FPS</span><span class="p">,</span>
     <span class="n">DEFAULT_RESOLUTION</span><span class="p">,</span>
+    <span class="n">DEFAULT_DUCK_ATTACK_S</span><span class="p">,</span>
+    <span class="n">DEFAULT_DUCK_RELEASE_S</span><span class="p">,</span>
+    <span class="n">DEFAULT_TRANSITION_COLOR</span><span class="p">,</span>
+    <span class="n">DEFAULT_TRANSITION_DURATION</span><span class="p">,</span>
     <span class="n">SCHEMA_VERSION</span><span class="p">,</span>
     <span class="n">EasingSpec</span><span class="p">,</span>
     <span class="n">PathStr</span><span class="p">,</span>
@@ -1298,6 +1303,87 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Transitions and the sound layer (assembled AFTER the shots render; no</span>
+<span class="c1"># renderer ever sees these — see `an.assemble`)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="n">_HEX_COLOR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Transition">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.Transition">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Transition</span><span class="p">(</span><span class="n">_IRModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""How a shot is ENTERED — from the previous shot, or (for the first shot)</span>
+<span class="sd">    from nothing.</span>
+
+<span class="sd">    &gt;&gt;&gt; Transition(kind="dissolve", duration=0.5).duration</span>
+<span class="sd">    0.5</span>
+<span class="sd">    &gt;&gt;&gt; Transition(kind="fade").color</span>
+<span class="sd">    '#000000'</span>
+
+<span class="sd">    - ``cut`` — the default, and what a shot with no ``transition`` means.</span>
+<span class="sd">    - ``fade`` — through ``color``: the previous shot's last ``duration / 2``</span>
+<span class="sd">      fades to the colour and this shot's first ``duration / 2`` fades up from</span>
+<span class="sd">      it. On the FIRST shot the whole ``duration`` is a fade up from the</span>
+<span class="sd">      colour. **Holds the film's length**: nothing overlaps.</span>
+<span class="sd">    - ``dissolve`` — the previous shot's last ``duration`` seconds and this</span>
+<span class="sd">      shot's first ``duration`` seconds are seen through each other. **The</span>
+<span class="sd">      film gets ``duration`` shorter** than the sum of its shots: both shots</span>
+<span class="sd">      play in full, overlapped (the editor's convention — the overlapped</span>
+<span class="sd">      seconds are each shot's "handle"). Dialogue stays in sync with its own</span>
+<span class="sd">      shot's picture; audio from both shots is heard in the overlap. Not</span>
+<span class="sd">      allowed on the first shot.</span>
+<span class="sd">    """</span>
+
+    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"cut"</span><span class="p">,</span> <span class="s2">"fade"</span><span class="p">,</span> <span class="s2">"dissolve"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"cut"</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_TRANSITION_DURATION</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_TRANSITION_COLOR</span>
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hex_color</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Transition"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_HEX_COLOR</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"transition color must be '#rrggbb'; got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">color</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+
+<div class="viewcode-block" id="SoundCue">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.SoundCue">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SoundCue</span><span class="p">(</span><span class="n">_IRModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""One sound placed on the timeline: an SFX hit, an ambience, a music bed.</span>
+
+<span class="sd">    ``sound`` is a key in the project's ``sounds`` store (`an.sounds`), where</span>
+<span class="sd">    the bytes and their licence live — the IR never inlines audio.</span>
+
+<span class="sd">    ``at`` is seconds from the start of whatever holds the cue: a shot's</span>
+<span class="sd">    ``sounds`` are SHOT-local (they move with the shot, across transitions</span>
+<span class="sd">    and re-orderings), ``meta.sounds`` are FILM time (a music bed under the</span>
+<span class="sd">    whole thing).</span>
+
+<span class="sd">    &gt;&gt;&gt; SoundCue(sound="hit", at=1.2).gain_db</span>
+<span class="sd">    0.0</span>
+<span class="sd">    &gt;&gt;&gt; SoundCue(sound="bed", loop=True, duck_db=-12).duck_db</span>
+<span class="sd">    -12.0</span>
+<span class="sd">    """</span>
+
+    <span class="n">sound</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">at</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#: How long it plays. ``None``: the asset's own length, or — when</span>
+    <span class="c1">#: ``loop`` — to the end of its shot (shot cue) or of the film (meta cue).</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">gain_db</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">loop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">fade_in</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">fade_out</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#: Attenuation, in dB, while any dialogue line plays; ``None`` never ducks.</span>
+    <span class="c1">#: A music bed usually wants ``DEFAULT_DUCK_DB``; an SFX hit wants none.</span>
+    <span class="n">duck_db</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">duck_attack</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_DUCK_ATTACK_S</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">duck_release</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_DUCK_RELEASE_S</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="c1"># Shot</span>
 <span class="c1"># -----------------------------------------------------------------------------</span>
 
@@ -1326,7 +1412,27 @@ window.runMermaid = runMermaid;</script>
     <span class="n">narration</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Narration</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="c1">#: Per-shot override of :attr:`Meta.step_hz` (``None`` = inherit).</span>
-    <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+    <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#: How this shot is entered (:class:`Transition`); ``None`` is a hard cut.</span>
+    <span class="n">transition</span><span class="p">:</span> <span class="n">Transition</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: Sound cues in SHOT-local time (:class:`SoundCue`).</span>
+    <span class="n">sounds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SoundCue</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_assembly</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Serialize ``transition``/``sounds`` out of existence when unset.</span>
+
+<span class="sd">        `AssetRef._omit_unset_stage`'s rule: every committed ``ir/scene.json``</span>
+<span class="sd">        predates these fields, and a defaulted ``null`` / ``[]`` on every shot</span>
+<span class="sd">        would rewrite all of them on the next ``an sync``.</span>
+<span class="sd">        """</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transition</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"transition"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span><span class="p">:</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"sounds"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
 
 
 
@@ -1406,6 +1512,9 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: theirs, and blinks, ``play`` clips and swap channels have none to</span>
     <span class="c1">#: inherit. There is no per-shot override yet — style is a scene's.</span>
     <span class="n">default_easing</span><span class="p">:</span> <span class="n">EasingSpec</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: Sound cues in FILM time — a music bed, an ambience under every shot</span>
+    <span class="c1">#: (:class:`SoundCue`). Empty, the default, is no sound layer at all.</span>
+    <span class="n">sounds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SoundCue</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
 
     <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_style_pack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
@@ -1428,6 +1537,9 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># because a model has one.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"default_easing"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"default_easing"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># `sounds` likewise: an empty list is what every existing meta means.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"sounds"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 

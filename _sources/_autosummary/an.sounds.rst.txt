@@ -1,0 +1,35 @@
+an.sounds
+=========
+
+.. automodule:: an.sounds
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SYNTH_SOURCE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_sound
+      get_sound
+      synth_bed
+      synth_hit
+      synth_tone
+      wav_info
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SoundAsset
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      SoundError
+   

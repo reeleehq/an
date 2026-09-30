@@ -1,0 +1,12 @@
+an.stores.sounds
+================
+
+.. automodule:: an.stores.sounds
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SoundsStore
+   

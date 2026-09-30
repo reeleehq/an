@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=e1efc05f"></script>
+    <script src="../../../../_static/documentation_options.js?v=09f5639d"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.97" />
+  <meta name="docsearch:version" content="0.1.98" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1261,6 +1261,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">runtime_target</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="s2">"runtime"</span>
     <span class="n">frames_dir</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="s2">"frames"</span>
     <span class="n">base</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Cleared, not reused: `.an/render_work` persists, and frames left by a</span>
+    <span class="c1"># longer earlier render of this shot would otherwise sit past this one's</span>
+    <span class="c1"># last frame — in `frame_manifest`, and in the pattern the mux reads.</span>
+    <span class="k">if</span> <span class="n">frames_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">frames_dir</span><span class="p">)</span>
     <span class="n">frames_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">runtime_target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">runtime_target</span><span class="p">)</span>

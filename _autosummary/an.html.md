@@ -178,6 +178,11 @@ inherit. There is no per-shot override yet — style is a scene’s.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+
+Sound cues in FILM time — a music bed, an ambience under every shot
+(`SoundCue`). Empty, the default, is no sound layer at all.
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
@@ -269,9 +274,17 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](an.ir.schema.html.md#an.ir.schema.SoundCue)]*
+
+Sound cues in SHOT-local time (`SoundCue`).
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-shot override of [`Meta.step_hz`](#an.Meta.step_hz) (`None` = inherit).
+
+#### transition *: [Transition](an.ir.schema.html.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How this shot is entered (`Transition`); `None` is a hard cut.
 
 ### an.build_project_mall(project_dir, , ensure=False, \*\*overrides)
 
@@ -474,7 +487,7 @@ True
 False
 ```
 
-### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None)
+### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -498,6 +511,7 @@ always passes it).
 
 | [`adapters`](an.adapters.html.md#module-an.adapters)         | Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).       |
 |--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
+| [`assemble`](an.assemble.html.md#module-an.assemble)         | Film assembly: rendered shots → one film, with transitions and a sound layer.          |
 | [`audio`](an.audio.html.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                           |
 | [`base`](an.base.html.md#module-an.base)                 | Core types, constants, and re-exports for an.                                          |
 | [`bench`](an.bench.html.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.     |
@@ -520,6 +534,7 @@ always passes it).
 | [`project`](an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                         |
 | [`props`](an.props.html.md#module-an.props)               | Props: a rig whose art is not a person.                                                |
 | [`render`](an.render.html.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.        |
+| [`sounds`](an.sounds.html.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.       |
 | [`stores`](an.stores.html.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                            |
 | [`styles`](an.styles.html.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had. |
 | [`text`](an.text.html.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.           |

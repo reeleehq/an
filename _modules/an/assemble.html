@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="assemble.html.md">
+<link rel="describedby" href="../../llms.txt" type="text/markdown">
+    <title>an.assemble &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/assemble';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.98" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.assemble</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.assemble</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Film assembly: rendered shots → one film, with transitions and a sound layer.</span>
+
+<span class="sd">Every shot renders in isolation (`an.render`); this module decides how the</span>
+<span class="sd">shots meet and what is heard over them. It runs only when a scene asks for it</span>
+<span class="sd">— a non-``cut`` :class:`~an.ir.schema.Transition` or any</span>
+<span class="sd">:class:`~an.ir.schema.SoundCue` — so a scene with neither takes the old</span>
+<span class="sd">``_ffmpeg_concat`` path, byte for byte (:func:`needs_assembly`).</span>
+
+<span class="sd">**Where each part happens, and why there.**</span>
+
+<span class="sd">- *Picture*: transitions are composed in the FRAME STAGE, on the per-shot PNGs,</span>
+<span class="sd">  in exact integer arithmetic, and the film is muxed ONCE by the same</span>
+<span class="sd">  ``_ffmpeg_mux`` every shot uses. Composing in ffmpeg (``xfade``) would decode</span>
+<span class="sd">  already-encoded shots and re-encode them — a second generation of x264 loss</span>
+<span class="sd">  on every frame of the film, not just the transition — and would retire the</span>
+<span class="sd">  render pipeline's "ffmpeg never touches a frame" clause. A frame no</span>
+<span class="sd">  transition touches is copied byte for byte: Chromium's own PNG.</span>
+<span class="sd">- *Sound*: the film's audio is rebuilt from SOURCES — every dialogue line's</span>
+<span class="sd">  cached WAV and every cue's asset, placed in film time — in one ffmpeg mix,</span>
+<span class="sd">  then muxed onto the picture with ``-c:v copy``. Mixing onto the shots'</span>
+<span class="sd">  already-encoded AAC would be a second audio generation for the dialogue.</span>
+
+<span class="sd">**The timeline is frame-exact.** Shot ``i`` occupies ``frame_count(duration,</span>
+<span class="sd">fps)`` frames (the renderer's own rule) starting at film frame</span>
+<span class="sd">:attr:`FilmTimeline.starts` ``[i]``; audio is placed at ``start / fps`` plus</span>
+<span class="sd">its shot-local time, so a line stays on the frames it was lip-synced to</span>
+<span class="sd">whatever the transitions do.</span>
+
+<span class="sd">&gt;&gt;&gt; from an.ir.schema import Shot, Transition</span>
+<span class="sd">&gt;&gt;&gt; tl = film_timeline(</span>
+<span class="sd">...     [Shot(id="a", duration=2.0),</span>
+<span class="sd">...      Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))],</span>
+<span class="sd">...     fps=10,</span>
+<span class="sd">... )</span>
+<span class="sd">&gt;&gt;&gt; tl.starts, tl.total_frames   # b starts 5 frames early: the film is 0.5 s shorter</span>
+<span class="sd">((0, 15), 35)</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FILM_AUDIO_BITRATE</span><span class="p">,</span>
+    <span class="n">FILM_AUDIO_CHANNELS</span><span class="p">,</span>
+    <span class="n">FILM_AUDIO_SAMPLE_RATE</span><span class="p">,</span>
+    <span class="n">MP4_FASTSTART_ARGS</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.frame_clock</span><span class="w"> </span><span class="kn">import</span> <span class="n">frame_count</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">SoundCue</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"AssemblyError"</span><span class="p">,</span>
+    <span class="s2">"FilmTimeline"</span><span class="p">,</span>
+    <span class="s2">"assemble_film"</span><span class="p">,</span>
+    <span class="s2">"duck_gain"</span><span class="p">,</span>
+    <span class="s2">"film_duration"</span><span class="p">,</span>
+    <span class="s2">"film_timeline"</span><span class="p">,</span>
+    <span class="s2">"needs_assembly"</span><span class="p">,</span>
+    <span class="s2">"transition_problems"</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="c1">#: The ducking gain is re-evaluated every this many samples (10 ms at</span>
+<span class="c1">#: 44.1 kHz): fine enough that a 80 ms attack is a ramp, not a step.</span>
+<span class="n">DUCK_FRAME_SAMPLES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">441</span>
+
+<span class="c1">#: Dialogue spans per ducking expression. ffmpeg 9.0.1 refuses one nested</span>
+<span class="c1">#: expression at about 95 spans (a sum of terms fails at 100 too); well under.</span>
+<span class="n">DUCK_SPANS_PER_EXPRESSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">40</span>
+
+
+<div class="viewcode-block" id="AssemblyError">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.AssemblyError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AssemblyError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The shots cannot be assembled as the scene asks. Carries the fix."""</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The timeline — pure, and the one statement of where every shot lands.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_transition_frame_count</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Frames ``shot``'s incoming transition spans; 0 for a cut, or for one so</span>
+<span class="sd">    short it rounds to nothing — which IS a cut, and must cost like one."""</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">shot</span><span class="o">.</span><span class="n">transition</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">t</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"cut"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span class="n">fps</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="needs_assembly">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.needs_assembly">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""True when the scene asks for anything beyond hard cuts and shot audio.</span>
+
+<span class="sd">    Decided on FRAMES at the render's rate (``fps``, default the scene's): a</span>
+<span class="sd">    transition that rounds to zero frames asks for nothing, and must not cost a</span>
+<span class="sd">    scene its byte-identical concat.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Meta, SceneIR, Shot, Transition</span>
+<span class="sd">    &gt;&gt;&gt; needs_assembly(SceneIR(timeline=[Shot(id="a"), Shot(id="b")]))</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; needs_assembly(SceneIR(timeline=[</span>
+<span class="sd">    ...     Shot(id="a"), Shot(id="b", transition=Transition(kind="fade", duration=0.0))]))</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">sounds</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">sounds</span> <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="n">fps</span> <span class="k">if</span> <span class="n">fps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">_transition_frame_count</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">rate</span><span class="p">)</span> <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="film_duration">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.film_duration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">film_duration</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Seconds the delivered film runs: the shots' durations, minus each</span>
+<span class="sd">    dissolve's overlap. Exactly ``sum(durations)`` for a scene without one, so</span>
+<span class="sd">    every existing document's arithmetic is unchanged.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import SceneIR, Shot, Transition</span>
+<span class="sd">    &gt;&gt;&gt; film_duration(SceneIR(timeline=[Shot(id="a", duration=2.0),</span>
+<span class="sd">    ...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))]))</span>
+<span class="sd">    3.5</span>
+<span class="sd">    """</span>
+    <span class="n">rate</span> <span class="o">=</span> <span class="n">fps</span> <span class="k">if</span> <span class="n">fps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">duration</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+        <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">transition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shot</span><span class="o">.</span><span class="n">transition</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"dissolve"</span><span class="p">:</span>
+            <span class="n">total</span> <span class="o">-=</span> <span class="n">_transition_frame_count</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">rate</span><span class="p">)</span> <span class="o">/</span> <span class="n">rate</span>
+    <span class="k">return</span> <span class="n">total</span></div>
+
+
+
+<div class="viewcode-block" id="FilmTimeline">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.FilmTimeline">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FilmTimeline</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where each shot's frames land in the film, and what blends them.</span>
+
+<span class="sd">    ``dissolve_in[i]`` — frames shot ``i`` overlaps the previous shot by.</span>
+<span class="sd">    ``fade_in[i]`` — frames at shot ``i``'s head that fade up from a colour.</span>
+<span class="sd">    ``fade_out[i]`` — frames at shot ``i``'s tail that fade to a colour (the</span>
+<span class="sd">    NEXT shot's fade colour).</span>
+<span class="sd">    """</span>
+
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">starts</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">dissolve_in</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">fade_in</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">fade_out</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">fade_in_color</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">fade_out_color</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">total_frames</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_frames</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">fps</span>
+
+<div class="viewcode-block" id="FilmTimeline.start_seconds">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.FilmTimeline.start_seconds">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_seconds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Film time of shot ``i``'s first frame."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">starts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">fps</span></div>
+
+
+<div class="viewcode-block" id="FilmTimeline.end_seconds">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.FilmTimeline.end_seconds">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">end_seconds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Film time just after shot ``i``'s last frame."""</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">starts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">fps</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_transitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fade_in</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fade_out</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_transition_frames</span><span class="p">(</span><span class="n">shots</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Shot</span><span class="p">],</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Per shot: (frames, dissolve_in, fade_in, fade_out, in_colour, out_colour)."""</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shots</span><span class="p">)</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="p">[</span><span class="n">frame_count</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shots</span><span class="p">]</span>
+    <span class="n">dissolve_in</span><span class="p">,</span> <span class="n">fade_in</span><span class="p">,</span> <span class="n">fade_out</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="n">in_color</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="n">out_color</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shots</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">shot</span><span class="o">.</span><span class="n">transition</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">_transition_frame_count</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"dissolve"</span><span class="p">:</span>
+            <span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># a fade on the first shot is a fade up from the colour</span>
+            <span class="n">fade_in</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">in_color</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">color</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># half out of the previous shot, half into this one</span>
+            <span class="n">fade_out</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">out_color</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">color</span>
+            <span class="n">fade_in</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">in_color</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">k</span> <span class="o">-</span> <span class="n">k</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">color</span>
+    <span class="k">return</span> <span class="n">frames</span><span class="p">,</span> <span class="n">dissolve_in</span><span class="p">,</span> <span class="n">fade_in</span><span class="p">,</span> <span class="n">fade_out</span><span class="p">,</span> <span class="n">in_color</span><span class="p">,</span> <span class="n">out_color</span>
+
+
+<div class="viewcode-block" id="transition_problems">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.transition_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">transition_problems</span><span class="p">(</span><span class="n">shots</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Shot</span><span class="p">],</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Every reason these shots' transitions cannot be assembled, as</span>
+<span class="sd">    ``(shot index, message)``. The ONE list `an validate` reports and</span>
+<span class="sd">    :func:`film_timeline` raises on, so the two cannot disagree.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Shot, Transition</span>
+<span class="sd">    &gt;&gt;&gt; transition_problems([Shot(id="a", transition=Transition(kind="dissolve"))], fps=30)</span>
+<span class="sd">    [(0, "shot 'a' is the first shot, so a dissolve has nothing to dissolve from; use a fade (from a colour) or a cut")]</span>
+<span class="sd">    """</span>
+    <span class="n">frames</span><span class="p">,</span> <span class="n">dissolve_in</span><span class="p">,</span> <span class="n">fade_in</span><span class="p">,</span> <span class="n">fade_out</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_transition_frames</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span>
+    <span class="n">problems</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shots</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">dissolve_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="mi">0</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is the first shot, so a dissolve has nothing "</span>
+                    <span class="s2">"to dissolve from; use a fade (from a colour) or a cut"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="c1"># The head of shot i is used by its own incoming transition; the tail by</span>
+        <span class="c1"># the NEXT shot's. A frame may belong to only one of them — a frame in</span>
+        <span class="c1"># two blends at once has no single rule, so it is refused, not guessed.</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">fade_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">tail</span> <span class="o">=</span> <span class="n">fade_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">shots</span><span class="p">)</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">head</span> <span class="o">+</span> <span class="n">tail</span> <span class="o">&gt;</span> <span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">i</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is </span><span class="si">{</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2"> frames long but its transitions "</span>
+                    <span class="sa">f</span><span class="s2">"need </span><span class="si">{</span><span class="n">head</span><span class="si">}</span><span class="s2"> at its head and </span><span class="si">{</span><span class="n">tail</span><span class="si">}</span><span class="s2"> at its tail; shorten a "</span>
+                    <span class="s2">"transition or lengthen the shot"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">problems</span></div>
+
+
+
+<div class="viewcode-block" id="film_timeline">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.film_timeline">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">film_timeline</span><span class="p">(</span><span class="n">shots</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Shot</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FilmTimeline</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Lay ``shots`` end to end, overlapping each dissolve. Raises</span>
+<span class="sd">    :class:`AssemblyError` on any :func:`transition_problems`."""</span>
+    <span class="n">problems</span> <span class="o">=</span> <span class="n">transition_problems</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span><span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">msg</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">))</span>
+    <span class="n">frames</span><span class="p">,</span> <span class="n">dissolve_in</span><span class="p">,</span> <span class="n">fade_in</span><span class="p">,</span> <span class="n">fade_out</span><span class="p">,</span> <span class="n">in_color</span><span class="p">,</span> <span class="n">out_color</span> <span class="o">=</span> <span class="n">_transition_frames</span><span class="p">(</span>
+        <span class="n">shots</span><span class="p">,</span> <span class="n">fps</span>
+    <span class="p">)</span>
+    <span class="n">starts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frames</span><span class="p">):</span>
+        <span class="n">cursor</span> <span class="o">-=</span> <span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">starts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+        <span class="n">cursor</span> <span class="o">+=</span> <span class="n">n</span>
+    <span class="k">return</span> <span class="n">FilmTimeline</span><span class="p">(</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">frames</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">frames</span><span class="p">),</span>
+        <span class="n">starts</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">starts</span><span class="p">),</span>
+        <span class="n">dissolve_in</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">dissolve_in</span><span class="p">),</span>
+        <span class="n">fade_in</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">fade_in</span><span class="p">),</span>
+        <span class="n">fade_out</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">fade_out</span><span class="p">),</span>
+        <span class="n">fade_in_color</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">in_color</span><span class="p">),</span>
+        <span class="n">fade_out_color</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">out_color</span><span class="p">),</span>
+        <span class="n">total_frames</span><span class="o">=</span><span class="n">cursor</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Picture: the frame-stage composer.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_hex_rgb</span><span class="p">(</span><span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">color</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>  <span class="c1"># type: ignore[return-value]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">blend</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">num</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">den</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``a`` moved ``num/den`` of the way to ``b``, per channel, exactly.</span>
+
+<span class="sd">    Integer arithmetic rounded half-to-even — the rule the supersample and</span>
+<span class="sd">    shutter resolves spell out — so a transition frame is a pure function of</span>
+<span class="sd">    its two inputs on every machine.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; a, b = np.zeros((1, 1, 3), np.uint8), np.full((1, 1, 3), 255, np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; blend(a, b, 1, 2)[0, 0].tolist()   # 127.5 -&gt; 128 (even)</span>
+<span class="sd">    [128, 128, 128]</span>
+<span class="sd">    &gt;&gt;&gt; blend(a, b, 0, 3) is a, blend(a, b, 3, 3) is b</span>
+<span class="sd">    (True, True)</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">a</span>
+    <span class="k">if</span> <span class="n">num</span> <span class="o">==</span> <span class="n">den</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">b</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">den</span> <span class="o">-</span> <span class="n">num</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span> <span class="o">*</span> <span class="n">num</span>
+    <span class="n">quotient</span><span class="p">,</span> <span class="n">remainder</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divmod</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="n">den</span><span class="p">)</span>
+    <span class="n">twice</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">remainder</span>
+    <span class="n">tie_to_even</span> <span class="o">=</span> <span class="p">(</span><span class="n">twice</span> <span class="o">==</span> <span class="n">den</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">quotient</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">quotient</span> <span class="o">+</span> <span class="p">((</span><span class="n">twice</span> <span class="o">&gt;</span> <span class="n">den</span><span class="p">)</span> <span class="o">|</span> <span class="n">tie_to_even</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_frame_sources</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""Per film frame, the ``(shot, local frame)`` pairs that make it."""</span>
+    <span class="n">sources</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">total_frames</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">starts</span><span class="p">,</span> <span class="n">timeline</span><span class="o">.</span><span class="n">frames</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">sources</span><span class="p">[</span><span class="n">start</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">sources</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_colour_weight</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(num, den, colour)``: how far frame ``j`` of shot ``i`` is faded.</span>
+
+<span class="sd">    Head frames go ``m/m, (m-1)/m, … 1/m`` of colour — the first frame of a</span>
+<span class="sd">    faded-in shot IS the colour, so a fade through black reaches black on</span>
+<span class="sd">    exactly one frame. Tail frames go ``1/(h+1) … h/(h+1)`` and never reach it.</span>
+<span class="sd">    """</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">fade_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">m</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">m</span> <span class="o">-</span> <span class="n">j</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">timeline</span><span class="o">.</span><span class="n">fade_in_color</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">fade_out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">tail</span> <span class="o">=</span> <span class="n">j</span> <span class="o">-</span> <span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">h</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">h</span> <span class="ow">and</span> <span class="n">tail</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tail</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">h</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">timeline</span><span class="o">.</span><span class="n">fade_out_color</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">compose_frames</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span><span class="p">,</span>
+    <span class="n">shot_frames</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">Path</span><span class="p">]],</span>
+    <span class="n">out_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">pattern</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Write the film's frames to ``out_dir`` as ``pattern % index``.</span>
+
+<span class="sd">    ``shot_frames[i]`` are shot ``i``'s PNGs in order (at least</span>
+<span class="sd">    ``timeline.frames[i]`` of them). A frame no transition touches is COPIED —</span>
+<span class="sd">    its bytes are the renderer's own; only blended frames are decoded.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">paths</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">timeline</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> rendered </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span><span class="si">}</span><span class="s2"> frames but the timeline needs "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">timeline</span><span class="o">.</span><span class="n">frames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">; a transition needs every shot's frames, "</span>
+                <span class="s2">"so this renderer cannot take part in one"</span>
+            <span class="p">)</span>
+    <span class="n">out_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">stale</span> <span class="ow">in</span> <span class="n">out_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.png"</span><span class="p">):</span>
+        <span class="n">stale</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">image</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">faded</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">arr</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">num</span><span class="p">,</span> <span class="n">den</span><span class="p">,</span> <span class="n">colour</span> <span class="o">=</span> <span class="n">_colour_weight</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">num</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">arr</span>
+        <span class="k">if</span> <span class="n">arr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">])</span>
+        <span class="n">fill</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
+        <span class="n">fill</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">_hex_rgb</span><span class="p">(</span><span class="n">colour</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">fill</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">blend</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">fill</span><span class="p">,</span> <span class="n">num</span><span class="p">,</span> <span class="n">den</span><span class="p">)</span>
+
+    <span class="n">written</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">sources</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">_frame_sources</span><span class="p">(</span><span class="n">timeline</span><span class="p">)):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">out_dir</span> <span class="o">/</span> <span class="p">(</span><span class="n">pattern</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">sources</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">arr</span> <span class="o">=</span> <span class="n">faded</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">arr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">out</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># a dissolve: the previous shot's tail under this shot's head</span>
+            <span class="p">(</span><span class="n">ia</span><span class="p">,</span> <span class="n">ja</span><span class="p">),</span> <span class="p">(</span><span class="n">ib</span><span class="p">,</span> <span class="n">jb</span><span class="p">)</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sources</span><span class="p">)</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">ib</span><span class="p">]</span>
+            <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">[</span><span class="n">ia</span><span class="p">][</span><span class="n">ja</span><span class="p">]),</span> <span class="n">load</span><span class="p">(</span><span class="n">shot_frames</span><span class="p">[</span><span class="n">ib</span><span class="p">][</span><span class="n">jb</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">b</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                <span class="c1"># Meet in the previous shot's mode, so the film's frames do not</span>
+                <span class="c1"># change pixel format mid-sequence.</span>
+                <span class="n">mode</span> <span class="o">=</span> <span class="s2">"RGBA"</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">4</span> <span class="k">else</span> <span class="s2">"RGB"</span>
+                <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+            <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">blend</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">jb</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"PNG"</span><span class="p">)</span>
+        <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">written</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Sound: the film mix, rebuilt from sources.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Placement</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One audio source in film time.</span>
+
+<span class="sd">    ``gain_db`` / fades / ``duck`` apply to cues only; a dialogue line is placed</span>
+<span class="sd">    as recorded. ``play`` is how long it sounds (``None``: its own length).</span>
+<span class="sd">    """</span>
+
+    <span class="n">path</span><span class="p">:</span> <span class="n">Path</span>
+    <span class="n">at</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">play</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">loop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">gain_db</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">fade_in</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">fade_out</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">duck</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># (duck_db, attack, release)</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MixPlan</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Everything the film mix places, plus the dialogue it ducks under."""</span>
+
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">placements</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Placement</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">dialogue_spans</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cue_placement</span><span class="p">(</span>
+    <span class="n">cue</span><span class="p">:</span> <span class="n">SoundCue</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">at</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">container_end</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">asset_duration</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Placement</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># A cue that does not loop cannot sound longer than its asset: its</span>
+        <span class="c1"># fade-out must land on audio that exists.</span>
+        <span class="n">play</span> <span class="o">=</span> <span class="n">cue</span><span class="o">.</span><span class="n">duration</span> <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">loop</span> <span class="k">else</span> <span class="nb">min</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">asset_duration</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cue</span><span class="o">.</span><span class="n">loop</span><span class="p">:</span>
+        <span class="n">play</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">container_end</span> <span class="o">-</span> <span class="n">at</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">play</span> <span class="o">=</span> <span class="n">asset_duration</span>
+    <span class="k">return</span> <span class="n">Placement</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">at</span><span class="o">=</span><span class="n">at</span><span class="p">,</span>
+        <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span>
+        <span class="n">loop</span><span class="o">=</span><span class="n">cue</span><span class="o">.</span><span class="n">loop</span><span class="p">,</span>
+        <span class="n">gain_db</span><span class="o">=</span><span class="n">cue</span><span class="o">.</span><span class="n">gain_db</span><span class="p">,</span>
+        <span class="n">fade_in</span><span class="o">=</span><span class="n">cue</span><span class="o">.</span><span class="n">fade_in</span><span class="p">,</span>
+        <span class="n">fade_out</span><span class="o">=</span><span class="n">cue</span><span class="o">.</span><span class="n">fade_out</span><span class="p">,</span>
+        <span class="n">duck</span><span class="o">=</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">duck_db</span><span class="p">,</span> <span class="n">cue</span><span class="o">.</span><span class="n">duck_attack</span><span class="p">,</span> <span class="n">cue</span><span class="o">.</span><span class="n">duck_release</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">cue</span><span class="o">.</span><span class="n">duck_db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">mix_plan</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">FilmTimeline</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">stage_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MixPlan</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Stage every audio source of the film into ``stage_dir`` and place it."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_sound</span>
+
+    <span class="n">stage_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">MixPlan</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">timeline</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+    <span class="n">audio_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">start_seconds</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
+            <span class="c1"># The per-shot mux's rule: a line with no audio yet is skipped.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">audio_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">audio_store</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="c1"># The extension is a hint ffmpeg's probe starts from: say what the</span>
+            <span class="c1"># bytes are (a provider may cache mp3), as the per-shot mux does.</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="s2">"mp3"</span> <span class="k">if</span> <span class="n">data</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">"ID3"</span> <span class="ow">or</span> <span class="n">data</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">"</span><span class="se">\xff</span><span class="s2">"</span> <span class="k">else</span> <span class="s2">"wav"</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">stage_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"dialogue_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">ext</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">at</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+            <span class="n">plan</span><span class="o">.</span><span class="n">placements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Placement</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">at</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
+                <span class="n">plan</span><span class="o">.</span><span class="n">dialogue_spans</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">at</span><span class="p">,</span> <span class="n">at</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">)))</span>
+
+    <span class="n">sounds</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"sounds"</span><span class="p">)</span>
+    <span class="n">staged</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">stage</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">staged</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"the scene plays sound </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> but the mall has no 'sounds' store"</span>
+                <span class="p">)</span>
+            <span class="n">asset</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">get_sound</span><span class="p">(</span><span class="n">sounds</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">stage_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"sound_</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">staged</span><span class="p">)</span><span class="si">}</span><span class="s2">.wav"</span>
+            <span class="n">path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">staged</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">asset</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">staged</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">place</span><span class="p">(</span><span class="n">cue</span><span class="p">:</span> <span class="n">SoundCue</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">at</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">container_end</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">path</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="n">stage</span><span class="p">(</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="p">)</span>
+        <span class="n">placement</span> <span class="o">=</span> <span class="n">_cue_placement</span><span class="p">(</span>
+            <span class="n">cue</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">at</span><span class="p">,</span> <span class="n">container_end</span><span class="o">=</span><span class="n">container_end</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">asset_duration</span><span class="o">=</span><span class="n">length</span>
+        <span class="p">)</span>
+        <span class="c1"># A cue that would sound for no time (a loop placed after its</span>
+        <span class="c1"># container ends) contributes nothing; validate warns about it.</span>
+        <span class="k">if</span> <span class="n">placement</span><span class="o">.</span><span class="n">play</span> <span class="ow">and</span> <span class="n">at</span> <span class="o">&lt;</span> <span class="n">plan</span><span class="o">.</span><span class="n">duration</span><span class="p">:</span>
+            <span class="n">plan</span><span class="o">.</span><span class="n">placements</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">placement</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">sounds</span><span class="p">:</span>
+        <span class="n">place</span><span class="p">(</span><span class="n">cue</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">,</span> <span class="n">container_end</span><span class="o">=</span><span class="n">timeline</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">sounds</span><span class="p">:</span>
+            <span class="n">place</span><span class="p">(</span>
+                <span class="n">cue</span><span class="p">,</span>
+                <span class="n">at</span><span class="o">=</span><span class="n">timeline</span><span class="o">.</span><span class="n">start_seconds</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="n">cue</span><span class="o">.</span><span class="n">at</span><span class="p">,</span>
+                <span class="n">container_end</span><span class="o">=</span><span class="n">timeline</span><span class="o">.</span><span class="n">end_seconds</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">plan</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">merge_spans</span><span class="p">(</span>
+    <span class="n">spans</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="o">*</span><span class="p">,</span> <span class="n">attack</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">release</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Sorted spans, with any two whose ramps would meet joined into one — so a</span>
+<span class="sd">    bed stays down between two close lines instead of pumping up for a breath.</span>
+
+<span class="sd">    &gt;&gt;&gt; merge_spans([(3.0, 4.0), (1.0, 2.0), (2.1, 2.5)], attack=0.1, release=0.1)</span>
+<span class="sd">    [(1.0, 2.5), (3.0, 4.0)]</span>
+<span class="sd">    """</span>
+    <span class="n">merged</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">spans</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">merged</span> <span class="ow">and</span> <span class="n">s</span> <span class="o">-</span> <span class="n">attack</span> <span class="o">&lt;=</span> <span class="n">merged</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">release</span><span class="p">:</span>
+            <span class="n">merged</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">max</span><span class="p">(</span><span class="n">merged</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">merged</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">s</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">merged</span>
+
+
+<div class="viewcode-block" id="duck_gain">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.duck_gain">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">duck_gain</span><span class="p">(</span>
+    <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">spans</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">duck_db</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">attack</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">release</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The linear gain a ducked cue plays at, at film time ``t`` — the spec the</span>
+<span class="sd">    ffmpeg expressions (:func:`_duck_expressions`) are written from.</span>
+
+<span class="sd">    Full level away from dialogue; ``duck_db`` down while a line plays; a linear</span>
+<span class="sd">    ramp over ``attack`` seconds BEFORE each line (so its first syllable is</span>
+<span class="sd">    already clear) and ``release`` seconds after.</span>
+
+<span class="sd">    &gt;&gt;&gt; spans = [(1.0, 2.0)]</span>
+<span class="sd">    &gt;&gt;&gt; [round(duck_gain(t, spans, duck_db=-20, attack=0.5, release=0.5), 3)</span>
+<span class="sd">    ...  for t in (0.0, 0.75, 1.5, 2.25, 3.0)]</span>
+<span class="sd">    [1.0, 0.55, 0.1, 0.55, 1.0]</span>
+<span class="sd">    """</span>
+    <span class="n">depth</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">duck_db</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">)</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">merge_spans</span><span class="p">(</span><span class="n">spans</span><span class="p">,</span> <span class="n">attack</span><span class="o">=</span><span class="n">attack</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">):</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="n">t</span> <span class="o">-</span> <span class="p">(</span><span class="n">s</span> <span class="o">-</span> <span class="n">attack</span><span class="p">))</span> <span class="o">/</span> <span class="n">attack</span><span class="p">,</span> <span class="p">((</span><span class="n">e</span> <span class="o">+</span> <span class="n">release</span><span class="p">)</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="n">release</span><span class="p">)</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">weight</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">w</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">depth</span> <span class="o">*</span> <span class="n">weight</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_duck_expressions</span><span class="p">(</span>
+    <span class="n">spans</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">duck_db</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">attack</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">release</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">""":func:`duck_gain` as ffmpeg ``volume`` expressions in ``t``, one per</span>
+<span class="sd">    chunk of at most :data:`DUCK_SPANS_PER_EXPRESSION` spans, to be CHAINED.</span>
+
+<span class="sd">    Chaining is exact, not an approximation: after :func:`merge_spans` no two</span>
+<span class="sd">    spans' ramps overlap, so at any instant at most one chunk's gain differs</span>
+<span class="sd">    from 1 and the product of the chunks is the single-expression gain. One</span>
+<span class="sd">    expression for a whole film is not an option — ffmpeg 9.0.1 refuses the</span>
+<span class="sd">    nested form at about 95 spans (measured), a long film's dialogue count.</span>
+<span class="sd">    """</span>
+    <span class="n">depth</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="mi">10</span> <span class="o">**</span> <span class="p">(</span><span class="n">duck_db</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">)</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">f</span><span class="s2">"clip(min((t-</span><span class="si">{</span><span class="n">s</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">attack</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">)/</span><span class="si">{</span><span class="n">attack</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="se">\\</span><span class="s2">,"</span>
+        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">e</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">release</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">-t)/</span><span class="si">{</span><span class="n">release</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">)</span><span class="se">\\</span><span class="s2">,0</span><span class="se">\\</span><span class="s2">,1)"</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">merge_spans</span><span class="p">(</span><span class="n">spans</span><span class="p">,</span> <span class="n">attack</span><span class="o">=</span><span class="n">attack</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">expressions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">terms</span><span class="p">),</span> <span class="n">DUCK_SPANS_PER_EXPRESSION</span><span class="p">):</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">terms</span><span class="p">[</span><span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="n">DUCK_SPANS_PER_EXPRESSION</span><span class="p">]</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">chunk</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"max(</span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="se">\\</span><span class="s2">,</span><span class="si">{</span><span class="n">term</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="n">expressions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"1-</span><span class="si">{</span><span class="n">depth</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">*</span><span class="si">{</span><span class="n">weight</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">expressions</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">mix_command</span><span class="p">(</span><span class="n">plan</span><span class="p">:</span> <span class="n">MixPlan</span><span class="p">,</span> <span class="n">video</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The ffmpeg argv that lays ``plan``'s audio under ``video``'s picture.</span>
+
+<span class="sd">    Pure (no I/O), so its shape is testable without ffmpeg. The picture is</span>
+<span class="sd">    ``-c:v copy``: the mix never touches a frame.</span>
+<span class="sd">    """</span>
+    <span class="n">sr</span><span class="p">,</span> <span class="n">channels</span> <span class="o">=</span> <span class="n">FILM_AUDIO_SAMPLE_RATE</span><span class="p">,</span> <span class="n">FILM_AUDIO_CHANNELS</span>
+    <span class="n">layout</span> <span class="o">=</span> <span class="s2">"mono"</span> <span class="k">if</span> <span class="n">channels</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">"stereo"</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"aformat=sample_fmts=fltp:sample_rates=</span><span class="si">{</span><span class="n">sr</span><span class="si">}</span><span class="s2">:channel_layouts=</span><span class="si">{</span><span class="n">layout</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">"ffmpeg"</span><span class="p">,</span> <span class="s2">"-y"</span><span class="p">,</span> <span class="s2">"-loglevel"</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">,</span>
+        <span class="s2">"-i"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">video</span><span class="p">),</span>
+        <span class="s2">"-f"</span><span class="p">,</span> <span class="s2">"lavfi"</span><span class="p">,</span> <span class="s2">"-t"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">plan</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"-i"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"anullsrc=channel_layout=</span><span class="si">{</span><span class="n">layout</span><span class="si">}</span><span class="s2">:sample_rate=</span><span class="si">{</span><span class="n">sr</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">]</span>  <span class="c1"># fmt: skip</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"[1:a]</span><span class="si">{</span><span class="n">fmt</span><span class="si">}</span><span class="s2">[base]"</span><span class="p">]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"[base]"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">placements</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">loop</span><span class="p">:</span>
+            <span class="n">cmd</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">"-stream_loop"</span><span class="p">,</span> <span class="s2">"-1"</span><span class="p">]</span>
+        <span class="n">cmd</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">"-i"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">path</span><span class="p">)]</span>
+        <span class="n">chain</span> <span class="o">=</span> <span class="p">[</span><span class="n">fmt</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">play</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"atrim=end=</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">play</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">fade_in</span><span class="p">:</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"afade=t=in:d=</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">fade_in</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">fade_out</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">play</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">play</span> <span class="o">-</span> <span class="n">p</span><span class="o">.</span><span class="n">fade_out</span><span class="p">)</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"afade=t=out:st=</span><span class="si">{</span><span class="n">start</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">:d=</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">fade_out</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">gain_db</span><span class="p">:</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"volume=</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">gain_db</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">dB"</span><span class="p">)</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">at</span> <span class="o">*</span> <span class="n">sr</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">delay</span><span class="p">:</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"adelay=</span><span class="si">{</span><span class="n">delay</span><span class="si">}</span><span class="s2">S:all=1"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">duck</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">plan</span><span class="o">.</span><span class="n">dialogue_spans</span><span class="p">:</span>
+            <span class="n">duck_db</span><span class="p">,</span> <span class="n">attack</span><span class="p">,</span> <span class="n">release</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">duck</span>
+            <span class="c1"># `eval=frame` holds the gain for a whole audio frame, and a WAV</span>
+            <span class="c1"># demuxes in frames of thousands of samples: re-chunked first, so</span>
+            <span class="c1"># the ramp is a staircase of DUCK_FRAME_SAMPLES-long steps.</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"asetnsamples=n=</span><span class="si">{</span><span class="n">DUCK_FRAME_SAMPLES</span><span class="si">}</span><span class="s2">:p=0"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">_duck_expressions</span><span class="p">(</span>
+                <span class="n">plan</span><span class="o">.</span><span class="n">dialogue_spans</span><span class="p">,</span> <span class="n">duck_db</span><span class="o">=</span><span class="n">duck_db</span><span class="p">,</span> <span class="n">attack</span><span class="o">=</span><span class="n">attack</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="n">release</span>
+            <span class="p">):</span>
+                <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"volume=eval=frame:volume='</span><span class="si">{</span><span class="n">expr</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"[s</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">]"</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">n</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">2</span><span class="si">}</span><span class="s2">:a]</span><span class="si">{</span><span class="s1">','</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="si">}</span><span class="s2">amix=inputs=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="si">}</span><span class="s2">:dropout_transition=0:normalize=0[aout]"</span>
+    <span class="p">)</span>
+    <span class="n">cmd</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="s2">"-filter_complex"</span><span class="p">,</span> <span class="s2">";"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">),</span>
+        <span class="s2">"-map"</span><span class="p">,</span> <span class="s2">"0:v"</span><span class="p">,</span> <span class="s2">"-map"</span><span class="p">,</span> <span class="s2">"[aout]"</span><span class="p">,</span>
+        <span class="s2">"-c:v"</span><span class="p">,</span> <span class="s2">"copy"</span><span class="p">,</span>
+        <span class="s2">"-c:a"</span><span class="p">,</span> <span class="s2">"aac"</span><span class="p">,</span> <span class="s2">"-b:a"</span><span class="p">,</span> <span class="n">FILM_AUDIO_BITRATE</span><span class="p">,</span>
+        <span class="s2">"-ar"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">sr</span><span class="p">),</span> <span class="s2">"-ac"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">channels</span><span class="p">),</span>
+        <span class="s2">"-t"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">plan</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="o">*</span><span class="n">MP4_FASTSTART_ARGS</span><span class="p">,</span>
+        <span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="p">),</span>
+    <span class="p">]</span>  <span class="c1"># fmt: skip</span>
+    <span class="k">return</span> <span class="n">cmd</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="n">cmd</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">doing</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ffmpeg failed to launch while </span><span class="si">{</span><span class="n">doing</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"ffmpeg failed while </span><span class="si">{</span><span class="n">doing</span><span class="si">}</span><span class="s2"> (rc=</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">returncode</span><span class="si">}</span><span class="s2">):</span><span class="se">\n</span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">stderr</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The facade.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="assemble_film">
+<a class="viewcode-back" href="../../_autosummary/an.assemble.html#an.assemble.assemble_film">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">assemble_film</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="n">shot_results</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="n">output</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">pix_fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Assemble rendered shots into ``output``: the picture from the shots'</span>
+<span class="sd">    frames (transitions composed in), muxed once, then the mix.</span>
+
+<span class="sd">    ``shot_results`` are the renderers' `RenderResult`s, in timeline order;</span>
+<span class="sd">    each must carry its frames (``frame_manifest``), so a renderer that only</span>
+<span class="sd">    produces an mp4 cannot take part in an assembled film.</span>
+<span class="sd">    """</span>
+    <span class="n">timeline</span> <span class="o">=</span> <span class="n">film_timeline</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
+    <span class="n">work</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"film"</span>
+    <span class="n">work</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">picture</span> <span class="o">=</span> <span class="n">work</span> <span class="o">/</span> <span class="s2">"picture.mp4"</span>
+    <span class="c1"># ALWAYS from frames, even with no transition: the concat of shot mp4s</span>
+    <span class="c1"># starts its picture after the AAC priming delay (23 ms) and advances by</span>
+    <span class="c1"># each shot's CONTAINER length, not its frame count, so a mix placed on the</span>
+    <span class="c1"># frame grid would lead the picture by 23 ms and drift at every shot whose</span>
+    <span class="c1"># duration is not a whole number of frames (both measured, an#163 review).</span>
+    <span class="c1"># One mux of the frame sequence puts frame i at exactly i / fps.</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span><span class="p">,</span> <span class="n">_ffmpeg_mux</span>
+
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">compose_frames</span><span class="p">(</span>
+        <span class="n">timeline</span><span class="p">,</span>
+        <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">frame_manifest</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">shot_results</span><span class="p">],</span>
+        <span class="n">work</span> <span class="o">/</span> <span class="s2">"frames"</span><span class="p">,</span>
+        <span class="n">pattern</span><span class="o">=</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="o">!=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">total_frames</span><span class="p">:</span>  <span class="c1"># pragma: no cover — invariant</span>
+        <span class="k">raise</span> <span class="n">AssemblyError</span><span class="p">(</span><span class="s2">"composed frame count disagrees with the timeline"</span><span class="p">)</span>
+    <span class="n">_ffmpeg_mux</span><span class="p">(</span><span class="n">work</span> <span class="o">/</span> <span class="s2">"frames"</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">picture</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="p">)</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">mix_plan</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">work</span> <span class="o">/</span> <span class="s2">"audio"</span><span class="p">)</span>
+    <span class="n">_run</span><span class="p">(</span><span class="n">mix_command</span><span class="p">(</span><span class="n">plan</span><span class="p">,</span> <span class="n">picture</span><span class="p">,</span> <span class="n">output</span><span class="p">),</span> <span class="n">doing</span><span class="o">=</span><span class="s2">"mixing the film's sound"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

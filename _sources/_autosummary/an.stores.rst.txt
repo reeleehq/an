@@ -20,6 +20,7 @@ an.stores
       StylesStore
       PropsStore
       ScenesStore
+      SoundsStore
       AudioArtifactStore
       VisemeArtifactStore
       ShotArtifactStore
@@ -39,5 +40,6 @@ an.stores
    environments
    props
    scenes
+   sounds
    styles
    voices

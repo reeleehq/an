@@ -37,7 +37,9 @@ an.ir.schema
       SequenceAction
       SetAction
       Shot
+      SoundCue
       StagePlacement
+      Transition
       TweenAction
       VisemeKeyframe
       VisemeTrack

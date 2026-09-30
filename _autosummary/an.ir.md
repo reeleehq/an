@@ -199,6 +199,11 @@ inherit. There is no per-shot override yet — style is a scene’s.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](an.ir.schema.md#an.ir.schema.SoundCue)]*
+
+Sound cues in FILM time — a music bed, an ambience under every shot
+(`SoundCue`). Empty, the default, is no sound layer at all.
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Stepped timing for AUTHORED TWEENS, in pose updates per second; `None`
@@ -284,9 +289,17 @@ holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
 
+#### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](an.ir.schema.md#an.ir.schema.SoundCue)]*
+
+Sound cues in SHOT-local time (`SoundCue`).
+
 #### step_hz *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Per-shot override of [`Meta.step_hz`](#an.ir.Meta.step_hz) (`None` = inherit).
+
+#### transition *: [Transition](an.ir.schema.md#an.ir.schema.Transition) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How this shot is entered (`Transition`); `None` is a hard cut.
 
 ### *class* an.ir.ValidationFinding(severity, ir_path, description)
 
@@ -545,7 +558,7 @@ True
 False
 ```
 
-### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None)
+### an.ir.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 

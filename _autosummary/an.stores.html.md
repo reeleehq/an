@@ -3,7 +3,7 @@
 Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
-(characters, props, environments, voices, styles), the scene file pair, intermediate
+(characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
 artifacts (audio, viseme tracks, per-shot mp4s), final output, and the agent’s
 decision log — is keyed inside a store. Stores are dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
@@ -16,7 +16,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...     sorted(mall.keys()) == [
 ...         'audio', 'characters', 'decisions', 'environments',
 ...         'output', 'previews', 'props', 'scenes', 'shots',
-...         'styles', 'visemes', 'voices',
+...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
 True
 ```
@@ -35,6 +35,7 @@ True
 | [`StylesStore`](#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                           |
 | [`PropsStore`](#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                              |
 | [`ScenesStore`](#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.    |
+| [`SoundsStore`](#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                             |
 | [`AudioArtifactStore`](#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                       |
 | [`VisemeArtifactStore`](#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity. |
 | [`ShotArtifactStore`](#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                |
@@ -138,6 +139,30 @@ Bases: `_BlobStore`
 
 Per-shot rendered mp4s.
 
+### *class* an.stores.SoundsStore(root_dir)
+
+Bases: `JsonSidecarStore`
+
+Per-sound directory store.
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     store = SoundsStore(d)
+...     store['hit'] = {'description': 'a stick on a table'}
+...     store.write_audio('hit', b'RIFF....')
+...     store['hit']['description'], store.read_audio('hit')
+('a stick on a table', b'RIFF....')
+```
+
+#### AUDIO_NAME *= 'audio.wav'*
+
+`an.sounds` reads
+its header for the duration a fade-out needs, deterministically.
+
+* **Type:**
+  The sidecar holding the audio bytes. WAV only in v1
+
 ### *class* an.stores.StylesStore(root_dir)
 
 Bases: `JsonDirStore`
@@ -185,5 +210,6 @@ in-memory `dict` for tests).
 | [`environments`](an.stores.environments.html.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.          |
 | [`props`](an.stores.props.html.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                      |
 | [`scenes`](an.stores.scenes.html.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.    |
+| [`sounds`](an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`. |
 | [`styles`](an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts). |
 | [`voices`](an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                           |

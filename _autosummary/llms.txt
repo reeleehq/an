@@ -26,6 +26,7 @@
 - [an.adapters.manim_adapter](an.adapters.manim_adapter.html.md): ManimRenderer — generate a minimal Manim scene + invoke &#96;manim&#96; as subprocess.
 - [an.adapters.remotion_adapter](an.adapters.remotion_adapter.html.md): RemotionRenderer — invoke &#96;npx remotion render&#96; against a generated TSX project.
 - [an.adapters.whiteboard](an.adapters.whiteboard.html.md): WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.
+- [an.assemble](an.assemble.html.md): Film assembly: rendered shots → one film, with transitions and a sound layer.
 - [an.audio](an.audio.html.md): Audio pipeline — TTS and lip-sync providers + orchestration.
 - [an.audio.elevenlabs_tts](an.audio.elevenlabs_tts.html.md): ElevenLabsTTS — real speech via the ElevenLabs API. Requires ELEVEN_API_KEY.
 - [an.audio.injectable_lipsync](an.audio.injectable_lipsync.html.md): Lip-sync provider that consumes pre-computed word timings.
@@ -106,6 +107,7 @@
 - [an.project](an.project.html.md): Project init/load/save — the on-disk anatomy of an an project.
 - [an.props](an.props.html.md): Props: a rig whose art is not a person.
 - [an.render](an.render.html.md): Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.
+- [an.sounds](an.sounds.html.md): Sound assets: what the sound layer plays, where it came from, and a synthesizer.
 - [an.stores](an.stores.html.md): Project mall: a dict of dol-backed &#96;MutableMapping&#96; stores.
 - [an.stores.artifacts](an.stores.artifacts.html.md): Artifact stores — derived, regeneratable products of the pipeline.
 - [an.stores.characters](an.stores.characters.html.md): Characters store — descriptor + sidecar folder per character.
@@ -113,6 +115,7 @@
 - [an.stores.environments](an.stores.environments.html.md): Environments store — backgrounds, set pieces, and prop bundles.
 - [an.stores.props](an.stores.props.html.md): Props store — descriptor + sidecar folder per prop.
 - [an.stores.scenes](an.stores.scenes.html.md): Scenes store — wraps the project’s &#96;scene.md&#96; + &#96;ir/scene.json&#96; pair.
+- [an.stores.sounds](an.stores.sounds.html.md): Sounds store — one directory per sound: &#96;sound.json&#96; beside &#96;audio.wav&#96;.
 - [an.stores.styles](an.stores.styles.html.md): Styles store — visual style presets (color palette, line weight, fonts).
 - [an.stores.voices](an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
 - [an.styles](an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=e1efc05f"></script>
+    <script src="../../_static/documentation_options.js?v=09f5639d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.97" />
+  <meta name="docsearch:version" content="0.1.98" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -970,6 +970,35 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: from it, because a hand-typed second copy is a second SSOT that drifts on</span>
 <span class="c1">#: the day a renderer is added and nothing fails.</span>
 <span class="n">SUPPORTED_RENDERERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">RendererName</span><span class="p">)</span>
+
+
+<span class="c1"># -- Shot transitions and the sound layer ---------------------------------------</span>
+
+<span class="c1">#: The transition kinds a shot may be entered by. ``cut`` is the default and</span>
+<span class="c1">#: what every document written before transitions existed means.</span>
+<span class="n">TRANSITION_KINDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"cut"</span><span class="p">,</span> <span class="s2">"fade"</span><span class="p">,</span> <span class="s2">"dissolve"</span><span class="p">)</span>
+
+<span class="c1">#: Seconds, when a ``fade`` or ``dissolve`` names no duration: half a second</span>
+<span class="c1">#: is a conventional editor's default, short enough not to eat a line of</span>
+<span class="c1">#: dialogue and long enough to read as deliberate.</span>
+<span class="n">DEFAULT_TRANSITION_DURATION</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="c1">#: The colour a ``fade`` passes through when it names none.</span>
+<span class="n">DEFAULT_TRANSITION_COLOR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#000000"</span>
+
+<span class="c1">#: The film mix's sample rate and channel count. The SAME values the per-shot</span>
+<span class="c1">#: audio mux (`an.adapters.cutout.render._ffmpeg_add_audio`) writes, so a film</span>
+<span class="c1">#: assembled from sources and one concatenated from shot mp4s carry the same</span>
+<span class="c1">#: audio format.</span>
+<span class="n">FILM_AUDIO_SAMPLE_RATE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">44100</span>
+<span class="n">FILM_AUDIO_CHANNELS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">FILM_AUDIO_BITRATE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"128k"</span>
+
+<span class="c1">#: Ducking defaults: how far a ducked cue drops under dialogue, and how fast</span>
+<span class="c1">#: it gets there and comes back. The ramps are linear in gain.</span>
+<span class="n">DEFAULT_DUCK_DB</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">12.0</span>
+<span class="n">DEFAULT_DUCK_ATTACK_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.08</span>
+<span class="n">DEFAULT_DUCK_RELEASE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span>
 </pre></div>
 
                 </article>
