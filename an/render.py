@@ -36,7 +36,6 @@ from an.project import Project, load
 DEFAULT_PARALLEL_CAP: int = 4
 
 
-
 class RenderError(RuntimeError):
     """Raised on render-pipeline failures with actionable detail."""
 
