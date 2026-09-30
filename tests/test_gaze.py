@@ -218,6 +218,56 @@ def test_emotion_and_gaze_compose_in_one_pose_over_real_pupils(rigs):
     assert pose[("g/head/left_pupil", "x")] > _rest(js, "g", "left_pupil", "x")
 
 
+def test_one_expression_carries_emotion_and_gaze_and_both_land_in_one_pose(rigs):
+    """#98's remaining item, in its real form: ONE `ExpressionAction` naming a
+    preset AND gaze axes, over a rig with pupils. The compiled pose carries the
+    emotion's brows (identical to the preset alone), the gaze's pupils
+    (identical to the gaze alone, on the inner ellipse for a diagonal ask —
+    the `gaze_travel` clamp) and a single channel per (node, property)."""
+    from an.adapters.cutout.compile import GAZE_ELLIPSE_MARGIN as M
+
+    root, mall = rigs
+
+    def compiled(*acts):
+        return compile_shot(_shot("g", "g", list(acts)), mall=mall, fps=24, strict_assets=True)
+
+    combined = compiled(expression("g", "angry", axes={"gaze_x": 1.0, "gaze_y": 1.0}, blend=0.0))
+    emotion_only = compiled(expression("g", "angry", blend=0.0))
+    gaze_only = compiled(expression("g", None, axes={"gaze_x": 1.0, "gaze_y": 1.0}, blend=0.0))
+
+    def pose(js, t=0.0):
+        return evaluate_timeline(timeline_from_scene(js), t)
+
+    both, emo, gz = pose(combined), pose(emotion_only), pose(gaze_only)
+
+    def rest(key):
+        return _rest(combined, "g", key[0].split("/")[-1], key[1])
+
+    brows = [(f"g/head/{s}_brow", p) for s in ("left", "right") for p in ("y", "rotation")]
+    pupils = [(f"g/head/{s}_pupil", p) for s in ("left", "right") for p in ("x", "y")]
+    for key in brows:
+        assert both[key] == pytest.approx(emo[key]), key
+        assert emo[key] != pytest.approx(rest(key)), f"angry must move {key}"
+    for key in pupils:
+        assert both[key] == pytest.approx(gz[key]), key
+        assert gz[key] != pytest.approx(rest(key)), f"gaze must move {key}"
+    # the clamp: a diagonal ask sits ON the inner ellipse, in axis units.
+    travel = mall["characters"]["g"]["gaze_travel"]
+    rest_x, rest_y = _rest(combined, "g", "left_pupil", "x"), _rest(combined, "g", "left_pupil", "y")
+    k = (pose(compiled(expression("g", None, axes={"gaze_x": 1.0}, blend=0.0)))[("g/head/left_pupil", "x")] - rest_x) / (M * travel["x"])
+    ux = (both[("g/head/left_pupil", "x")] - rest_x) / (travel["x"] * k)
+    uy = (both[("g/head/left_pupil", "y")] - rest_y) / (travel["y"] * k)
+    assert (ux * ux + uy * uy) ** 0.5 == pytest.approx(M)
+    # one writer per (node, property), and the emotion does not disturb the
+    # pupils' saccade track nor the gaze the brows'.
+    seen = []
+    for name, anim in to_dict(combined)["animations"].items():
+        if name.startswith(("__face__", "__blink__")):
+            seen += [(c["target"], c["property"]) for c in anim["channels"]]
+    assert len(seen) == len(set(seen)), seen
+    assert set(brows) <= set(seen) and set(pupils) <= set(seen)
+
+
 def test_a_baked_face_refuses_gaze_naming_add_gaze(rigs):
     root, mall = rigs
     baked = json.loads(json.dumps(mall["characters"]["g"]))

@@ -313,6 +313,91 @@ def judge_legibility(
     return _parse_legibility(reply)
 
 
+_EMOTION_PROMPT = """You are judging FACIAL EXPRESSION on a single frame of a simple animated
+cartoon character. The art is deliberately minimal (eyes, brows, a small
+mouth); look at the brows, the eyelids and the mouth. Which ONE of these
+emotion labels best names the expression shown?
+
+    {labels}
+
+Reply in JSON only, with this shape:
+
+{{"emotion": "<exactly one of the labels above>"}}
+"""
+
+
+def emotion_prompt(labels: Sequence[str]) -> str:
+    """The name-the-emotion prompt over a closed label set. The labels are part
+    of the key, so a different set is a different recording.
+
+    >>> "happy" in emotion_prompt(["neutral", "happy"])
+    True
+    """
+    return _EMOTION_PROMPT.format(labels=", ".join(labels))
+
+
+def _parse_emotion(body: str, labels: Sequence[str]) -> str | None:
+    """The named label from a reply, or ``None`` when it carried no verdict
+    (no JSON, no ``emotion`` key, or a name outside ``labels`` — a made-up
+    label is not a verdict).
+
+    >>> _parse_emotion('{"emotion": "Angry"}', ["neutral", "angry"])
+    'angry'
+    >>> _parse_emotion('{"emotion": "grumpy"}', ["neutral", "angry"]) is None
+    True
+    >>> _parse_emotion("no idea", ["neutral"]) is None
+    True
+    """
+    import json
+    import re
+
+    if not body:
+        return None
+    fenced = re.search(r"```(?:json)?\s*({.*?})\s*```", body, re.DOTALL)
+    raw = fenced.group(1) if fenced else body
+    start, end = raw.find("{"), raw.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        return None
+    try:
+        data = json.loads(raw[start : end + 1])
+    except json.JSONDecodeError:
+        return None
+    name = data.get("emotion") if isinstance(data, dict) else None
+    if not isinstance(name, str):
+        return None
+    name = name.strip().lower()
+    return name if name in {label.lower() for label in labels} else None
+
+
+def judge_emotion(
+    frames: Sequence[bytes],
+    *,
+    labels: Sequence[str] | None = None,
+    judge: Callable[..., str] | None = None,
+    model: str = _DEFAULT_MODEL,
+    max_tokens: int = _DEFAULT_MAX_TOKENS,
+    api_key: str | None = None,
+) -> str | None:
+    """Name the emotion a frame (or short strip) shows, or ``None`` if the
+    reply named nothing in ``labels`` (an#98).
+
+    ``labels`` defaults to every preset in :mod:`an.expression`. ``judge`` is
+    the `judge_frames`-shaped seam; parsing stays outside the recording.
+    """
+    if labels is None:
+        from an.expression import known_presets
+
+        labels = known_presets()
+    reply = (judge or judge_frames)(
+        frames,
+        prompt=emotion_prompt(labels),
+        model=model,
+        max_tokens=max_tokens,
+        api_key=api_key,
+    )
+    return _parse_emotion(reply, labels)
+
+
 def judge_frames(
     frames: Sequence[bytes],
     *,
