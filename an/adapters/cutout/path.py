@@ -242,7 +242,9 @@ def path_geometry(
         head = [(tx, ty), (bx + nx, by + ny), (bx - nx, by - ny)]
         stroke_end = b - hl * HEAD_STROKE_INSET
     if dash > 0:
-        spans = dash_spans(a, stroke_end, dash, gap, dash_offset) if stroke_end > a else []
+        spans = (
+            dash_spans(a, stroke_end, dash, gap, dash_offset) if stroke_end > a else []
+        )
         dashes = [trim_polyline(pts, cum, lo_s, hi_s) for lo_s, hi_s in spans]
         return {"stroke": [], "head": head, "dashes": dashes}
     stroke = trim_polyline(pts, cum, a, stroke_end) if stroke_end > a else []
