@@ -537,7 +537,7 @@ def turn(
     *,
     to: str = DFLT_TURN_TO,
     direction: str = "right",
-    from_direction: str = "right",
+    from_direction: str | None = None,
     duration: Seconds = DFLT_TURN_DURATION,
     view_set: str = DFLT_TURN_SET,
     rest: Rest | None = None,
@@ -548,8 +548,9 @@ def turn(
     midpoint, and ``scale_x`` opens again to the rest scale — mirrored when
     ``direction="left"``: a ``side`` view is drawn facing the viewer's right,
     so ``direction`` is which way the character FACES after the turn.
-    ``from_direction`` is which way it faced before (the preset cannot see an
-    earlier turn): turning back from a left-facing profile is
+    ``from_direction`` is which way it faced before — by default the sign of
+    the rest ``scale_x`` (a character staged mirrored faces left); the preset
+    cannot see an EARLIER turn, so turning back from a left-facing profile is
     ``turn(to="front", from_direction="left")``.
 
     ``to`` is a key of the character's ``view`` set — ``front``, ``back``,
@@ -568,7 +569,10 @@ def turn(
     _positive(duration=duration)
     if not isinstance(to, str) or not to:
         raise ValueError(f"to must name a view (a key of the {view_set!r} set), got {to!r}")
-    s0 = abs(_rest(rest, "scale_x"))
+    rest_sx = _rest(rest, "scale_x")
+    s0 = abs(rest_sx)
+    if from_direction is None:
+        from_direction = "left" if rest_sx < 0 else "right"
     before = _facing_sign("from_direction", from_direction) * s0
     after = _facing_sign("direction", direction) * s0
     half = duration / 2
@@ -599,7 +603,7 @@ def face_toward(
     other: str,
     *,
     view: str = "side",
-    from_direction: str = "right",
+    from_direction: str | None = None,
     duration: Seconds = DFLT_TURN_DURATION,
     mall: Mapping[str, Mapping] | None = None,
 ) -> Action:

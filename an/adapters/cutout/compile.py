@@ -3017,6 +3017,21 @@ def _swap_pose_layer(
     return layer
 
 
+def _pose_step_channels(
+    pose: Mapping[tuple[str, str], _StepCurve], *, skip: set[tuple[str, str]] = frozenset()
+) -> list[ChannelJSON]:
+    """The pose's curves as held step channels, keyed where each swap lands."""
+    return [
+        ChannelJSON(
+            target=path,
+            property=prop,
+            keyframes=[KeyframeJSON(time=t, value=v, easing="step") for t, v in curve],
+        )
+        for (path, prop), curve in sorted(pose.items())
+        if (path, prop) not in skip
+    ]
+
+
 def _step_at(curve: _StepCurve, t: float) -> float:
     """The value a step curve holds at ``t`` (a key applies from its own time,
     within float slack, like the evaluators' time-based snap)."""
@@ -4151,6 +4166,15 @@ def _add_face_clips(
     baked = _baked_face_speakers(shot, mall)
     track_lookup: dict[str, TrackJSON] = {t.target_root: t for t in tracks}
     spans_of = getattr(provider, "spans", None)
+
+    def place_first(entity_id: str, placed: list[PlacedClipJSON]) -> None:
+        track = track_lookup.get(entity_id)
+        if track is None:
+            track = TrackJSON(target_root=entity_id, clips=[])
+            tracks.append(track)
+            track_lookup[entity_id] = track
+        track.clips[:0] = placed
+
     for entity in shot.entities:
         if entity.kind != "character":
             continue
@@ -4173,6 +4197,19 @@ def _add_face_clips(
                     "nothing; the audio still plays.",
                     CutoutCompileWarning,
                     stacklevel=2,
+                )
+            # No face to solve, but a whole-character swap still poses the
+            # body (a baked-face rig's views hide an arm all the same).
+            pose = (poses or {}).get(entity.id)
+            if pose:
+                anim_id = f"__pose__{shot.id}_{entity.id}"
+                duration = max(0.001, float(shot.duration))
+                animations[anim_id] = AnimationClipJSON(
+                    name=anim_id, duration=duration, channels=_pose_step_channels(pose)
+                )
+                place_first(
+                    entity.id,
+                    [PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)],
                 )
             continue
         desc = vocab.descriptors.get(entity.id)
@@ -4243,12 +4280,7 @@ def _add_face_clips(
                 seeds[entity.id] = gaze_seed(entity.id)
         if not placed:
             continue
-        track = track_lookup.get(entity.id)
-        if track is None:
-            track = TrackJSON(target_root=entity.id, clips=[])
-            tracks.append(track)
-            track_lookup[entity.id] = track
-        track.clips[:0] = placed
+        place_first(entity.id, placed)
     return phases, seeds
 
 
@@ -4428,18 +4460,7 @@ def _solve_face(
 
     # The pose's own curves, where no contributor above drives the property:
     # held steps, keyed where each whole-character swap lands.
-    for (path, prop), curve in sorted(pose.items()):
-        if (path, prop) in folded:
-            continue
-        channels.append(
-            ChannelJSON(
-                target=path,
-                property=prop,
-                keyframes=[
-                    KeyframeJSON(time=t, value=v, easing="step") for t, v in curve
-                ],
-            )
-        )
+    channels.extend(_pose_step_channels(pose, skip=folded))
 
     placed: list[PlacedClipJSON] = []
     if channels:

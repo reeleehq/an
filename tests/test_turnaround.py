@@ -40,6 +40,7 @@ from an.characters.factory import (
     FACE_SLOTS,
     SIDE_EYE_SHIFT,
     SIDE_MOUTH_SHIFT,
+    THREE_QUARTER_FACE_SHIFT,
     add_views,
 )
 from an.characters.play import play_problems
@@ -166,6 +167,8 @@ def test_views_are_additive_to_the_character_that_existed(tmp_path):
             assert b["skins"]["default"]["slots"][slot][name] == att
     for part, roles in a["colour_roles"].items():
         assert b["colour_roles"][part] == roles
+    assert {k: v for k, v in b["asset_sets"].items() if k != VIEW_CHANNEL} == a["asset_sets"]
+    assert {k: v for k, v in b["metadata"].items() if k != "views"} == a["metadata"]
 
 
 def test_add_views_is_idempotent_and_brings_an_old_character_level(tmp_path):
@@ -249,6 +252,51 @@ def test_each_view_swaps_the_head_and_torso_and_poses_the_rig(project, view):
         assert _value(doc, after, "ned/head/mouth", "scale_x") < mouth_rest.scale_x
     else:
         assert set(alpha.values()) == {1.0}, alpha
+    if view == "three_quarter":
+        for s in ("left_eye", "right_eye", "left_brow"):
+            path = f"ned/head/{s}"
+            assert _value(doc, after, path, "x") == pytest.approx(
+                _rest(doc, path).x + THREE_QUARTER_FACE_SHIFT * K
+            ), path
+    if view == "front":
+        # Every pose curve returns to rest: nothing moved.
+        for (path, prop), v in after.items():
+            if prop in ("alpha", "scale_x") and "pupil" not in path and path != "ned":
+                assert v == pytest.approx(getattr(_rest(doc, path), prop)), (path, prop)
+
+
+def test_same_instant_swaps_resolve_to_the_later_one(project):
+    doc = _compile(project, _shot([
+        SetAction(target="ned", property="view", value="side", at=0.5),
+        SetAction(target="ned", property="view", value="back", at=0.5),
+    ]))
+    pose = _pose_at(doc, 1.0)
+    assert pose[("ned/head", VIEW_CHANNEL)] == "back"
+    assert _value(doc, pose, "ned/head/right_eye", "alpha") == 0.0  # back's pose
+    assert _value(doc, pose, "ned/arm_l", "alpha") == 1.0  # not side's
+
+
+def test_a_view_off_the_frame_grid_lands_on_the_next_frame(project):
+    at = 0.5 + 0.4 / FPS
+    doc = _compile(project, _shot([SetAction(target="ned", property="view", value="back", at=at)]))
+    assert _value(doc, _pose_at(doc, 12 / FPS), "ned/head/mouth", "alpha") == 1.0
+    assert _value(doc, _pose_at(doc, 13 / FPS), "ned/head/mouth", "alpha") == 0.0
+
+
+def test_a_baked_face_rig_is_still_posed(project, tmp_path):
+    """A rig with its face in the head art never reaches the face solver; its
+    view still hides the far arm (review of an#197)."""
+    root = init(tmp_path / "q")
+    chars = root / "assets" / "characters"
+    new_character(chars, name="ned", seed="ned", use_dicebear=False, hat="cap", sash=True)
+    d = json.loads((chars / "ned" / "character.json").read_text("utf-8"))
+    d["face_overlay"] = False
+    (chars / "ned" / "character.json").write_text(json.dumps(d), "utf-8")
+    doc = _compile(root, _shot([SetAction(target="ned", property="view", value="side", at=0.0)]))
+    pose = _pose_at(doc, 0.5)
+    assert pose[("ned/head", VIEW_CHANNEL)] == "side"
+    assert pose[("ned/arm_l", "alpha")] == 0.0
+    assert pose[("ned/arm_r", "x")] == pytest.approx(_rest(doc, "ned/arm_r").x - 90.0 * K)
 
 
 def test_back_to_front_restores_the_rest_pose(project):
@@ -322,11 +370,16 @@ def test_a_view_swap_on_a_character_without_views_is_refused(project, tmp_path):
 # --- 4. the turn preset --------------------------------------------------------
 
 
-def test_turn_is_a_preset_played_by_name():
+def test_turn_is_a_preset_played_by_name(project):
     assert PRESETS["turn"] is turn
     desc = CharacterDescriptor(name="plain")  # no views
     assert any("add-views" in p for p in play_problems(desc, "turn", args={"to": "back"}))
-    assert play_problems(None, "turn", args={"to": "side", "direction": "up"})
+    with_views = CharacterDescriptor.model_validate_json(
+        (project / "assets" / "characters" / "ned" / "character.json").read_text("utf-8")
+    )
+    assert play_problems(with_views, "turn", args={"to": "side"}) == []
+    (bad,) = play_problems(with_views, "turn", args={"to": "side", "direction": "up"})
+    assert "direction" in bad
 
 
 @pytest.mark.parametrize(("direction", "sign"), [("right", 1.0), ("left", -1.0)])
@@ -349,6 +402,28 @@ def test_turn_crosses_zero_and_swaps_at_the_midpoint(project, direction, sign):
     assert _value(doc, early, "ned/head/left_eye", "alpha") == 1.0
     assert _value(doc, late, "ned/head/left_eye", "alpha") == 0.0
     assert _pose_at(doc, 1.5)[("ned", "scale_x")] == pytest.approx(sign * s0)
+
+
+def test_validate_says_a_turn_s_art_is_missing(project, tmp_path):
+    """`an validate` and compile agree when a view's art is gone (review)."""
+    import shutil
+
+    from an.characters.play import art_exists_for
+
+    root = init(tmp_path / "q")
+    shutil.copytree(project / "assets" / "characters" / "ned", root / "assets" / "characters" / "ned")
+    (root / "assets" / "characters" / "ned" / "parts" / "head_side.svg").unlink()
+    mall = load(root).mall
+    desc = CharacterDescriptor.model_validate(mall["characters"]["ned"])
+    (problem,) = play_problems(
+        desc, "turn", args={"to": "side"}, art_exists=art_exists_for(mall["characters"], "ned")
+    )
+    assert "head_side.svg" in problem
+
+
+def test_turn_infers_the_starting_side_from_a_mirrored_rest():
+    first = flatten(turn("ned", to="back", rest={"scale_x": -2.0}))[0].action
+    assert first.from_value == -2.0
 
 
 def test_turn_back_from_a_left_profile_starts_mirrored():
