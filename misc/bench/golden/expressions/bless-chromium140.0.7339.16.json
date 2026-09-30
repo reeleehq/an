@@ -1,103 +1,103 @@
 {
-  "blessed_at": "2026-08-24T23:11:00Z",
+  "blessed_at": "2026-09-30T01:07:59Z",
   "chromium_build": "140.0.7339.16",
   "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
   "fps": 24,
   "frames": [
     {
-      "bytes": 4188,
+      "bytes": 5339,
       "file": "f0003-chromium140.0.7339.16.png",
       "frame_key": "f0003",
       "index": 3,
       "local_index": 3,
-      "sha256": "50f63ce778b5cce34c091562871dc90f20c2fbf2802b57bd84d17a3ba79384b4",
+      "sha256": "4c262a65e050a59474334b3424ec32c7f4b7b3aa0054aaa7484da7278a584f1c",
       "shot_id": "neutral",
       "time": 0.125
     },
     {
-      "bytes": 4256,
+      "bytes": 5309,
       "file": "f0009-chromium140.0.7339.16.png",
       "frame_key": "f0009",
       "index": 9,
       "local_index": 3,
-      "sha256": "f042c514b806b7aa4f18f55ed6089ba07d8fd06e29a06b67bfd4dc4e4ca317df",
+      "sha256": "aa535c7a78b2ab7d4e63f3d50b543e6fe5f9600278a5ecbc0e98514297db4ee8",
       "shot_id": "happy",
       "time": 0.375
     },
     {
-      "bytes": 4222,
+      "bytes": 5229,
       "file": "f0015-chromium140.0.7339.16.png",
       "frame_key": "f0015",
       "index": 15,
       "local_index": 3,
-      "sha256": "9b3efc410d6ac84c36fadd2f7adf4b1a4334dc6b9a2c464e9a21a1c5cf03cff4",
+      "sha256": "5837a6972c9cec8184fd454930c75897badd244fa0239cc4b7860f94a3b9c3bd",
       "shot_id": "sad",
       "time": 0.625
     },
     {
-      "bytes": 4212,
+      "bytes": 5326,
       "file": "f0021-chromium140.0.7339.16.png",
       "frame_key": "f0021",
       "index": 21,
       "local_index": 3,
-      "sha256": "901fe96ea04d1a992ddea190b6c16fc0e5bc2d3af2042042a6783ccbbc3309a4",
+      "sha256": "2634e40814f83b7b05311c429a3c5bef5271a7682fc25bb0e662e869b1b62dbb",
       "shot_id": "angry",
       "time": 0.875
     },
     {
-      "bytes": 4267,
+      "bytes": 5221,
       "file": "f0027-chromium140.0.7339.16.png",
       "frame_key": "f0027",
       "index": 27,
       "local_index": 3,
-      "sha256": "25e488f89bd22b9fd97649a8fe1c8e1259f444a2b904fcd51c830921da48ecd6",
+      "sha256": "c1877a807a33b16c374cfda6399094eb1d987678b8b0873daa0088c5f9f21b39",
       "shot_id": "surprised",
       "time": 1.125
     },
     {
-      "bytes": 4329,
+      "bytes": 5351,
       "file": "f0033-chromium140.0.7339.16.png",
       "frame_key": "f0033",
       "index": 33,
       "local_index": 3,
-      "sha256": "2d6e1e068069aa1539bef13f342f77c0882247449f34fa8e88ac68648ae0e405",
+      "sha256": "1ffe59fb3009a0d9f3fc5fa494ccf6c7de26a4bf779f078d9b76fe04d4352c99",
       "shot_id": "afraid",
       "time": 1.375
     },
     {
-      "bytes": 4257,
+      "bytes": 5331,
       "file": "f0039-chromium140.0.7339.16.png",
       "frame_key": "f0039",
       "index": 39,
       "local_index": 3,
-      "sha256": "e1aa0acd95fb177573031ad6e9cc29d776f6cc3b335d9bee1326980acfedcd6b",
+      "sha256": "64f7f98bda9d7cc7d258f1c22a4f949c408529650d87f56927c0675201281d17",
       "shot_id": "thinking",
       "time": 1.625
     },
     {
-      "bytes": 4245,
+      "bytes": 5370,
       "file": "f0045-chromium140.0.7339.16.png",
       "frame_key": "f0045",
       "index": 45,
       "local_index": 3,
-      "sha256": "23f9993f4e38781ffc02c67ffd3b12db1ded9ba717c6da1855555dff3f15a795",
+      "sha256": "395d98d9121421af4294d9650a1318190e4b7ecb21aaf545d0451443c0c76f74",
       "shot_id": "skeptical",
       "time": 1.875
     }
   ],
   "git": {
-    "branch": "wave6-pr-d",
-    "dirty": true,
-    "sha": "758cce972756b38c8b4ef8b7f8530f7f1dfe7778"
+    "branch": "fix/170-rig-leftovers",
+    "dirty": false,
+    "sha": "d7494dbee000576204e6f95acea0af831c41675f"
   },
-  "reason": "an#99: the gaze stack lands on the expressions rig \u2014 sclera and pupil slots under each lid, an outline-only open eye, a filled closed lid in the head's own skin tone, ambient saccades seeded by the entity name; the eye art changed on all eight, the presets' brows/lids/mouth forms are as blessed in an#98 (re-blessed a second time to carry the corrected note and the lid tone the review caught)",
+  "reason": "regenerated the committed rig with the an#169 factory: face parts on the head, legs from the hip to the ground, head sized to the layout (an#170); the old goldens drew the pre-fix layout",
   "removed": [],
   "resolution": [
     320,
     240
   ],
   "scene": "expressions",
-  "scene_contract_sha256": "bf53244b36da2fd9a636d2203b1104bbe4c832181f728a464e532ba3231ad0e4",
+  "scene_contract_sha256": "e4a6415f3c3492e34975c526a0537f978e2d096b2bf0a19f1da35e02f620e93c",
   "shot_ids": [
     "neutral",
     "happy",
