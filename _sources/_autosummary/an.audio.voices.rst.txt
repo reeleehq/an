@@ -10,6 +10,7 @@ an.audio.voices
    
       DEFAULT_VOICE
       PROVIDER_VOICE_KEY
+      PROVIDER_KEY
       CHARACTER_VOICE_KEY
    
    .. rubric:: Functions
@@ -19,4 +20,6 @@ an.audio.voices
       line_voice_id
       provider_voice
       speaker_voice_ref
+      voice_applies
+      voice_document
    

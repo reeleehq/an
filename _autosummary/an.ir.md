@@ -148,6 +148,14 @@ Where this line starts, in SHOT seconds, whatever came before it —
 DERIVES from `at`/`pause` on every pass; these two are what the
 author wrote (an#187).
 
+#### direction *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How the line is DELIVERED — cues such as `["excited"]` or
+`["sighs", "annoyed"]`, `{excited}` in `scene.md` (an#209). A TTS
+model that takes inline audio tags (ElevenLabs v3/v4) receives them as
+`[excited] Hi!`; others ignore them. Never part of `text`, so
+captions and lip-sync alignment never see a cue.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].

@@ -4,9 +4,30 @@ an.audio.elevenlabs\_tts
 .. automodule:: an.audio.elevenlabs_tts
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      AUDIO_TAG_MODEL_PREFIXES
+      VOICE_SETTINGS_RANGES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      normalize_voice_settings
+      tagged_text
+      takes_audio_tags
+   
    .. rubric:: Classes
 
    .. autosummary::
    
       ElevenLabsTTS
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      ElevenLabsVoiceError
    

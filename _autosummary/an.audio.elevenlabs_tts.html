@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=c5e348cc"></script>
+    <script src="../_static/documentation_options.js?v=619bccd5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.effects" href="an.audio.effects.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.114" />
+  <meta name="docsearch:version" content="0.1.115" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -327,6 +327,7 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.audio.cli.html">an.audio.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.audio.elevenlabs_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
@@ -524,6 +525,53 @@
 <p>Lazily imports the elevenlabs SDK so the rest of <code class="code docutils literal notranslate"><span class="pre">an</span></code> works without it.
 If you want real speech, <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">elevenlabs</span></code> and set
 <code class="docutils literal notranslate"><span class="pre">ELEVEN_API_KEY</span></code> (or <code class="docutils literal notranslate"><span class="pre">ELEVENLABS_API_KEY</span></code>) in your environment.</p>
+<p><strong>Expressive voices (an#209).</strong> A voice document in the <code class="docutils literal notranslate"><span class="pre">voices</span></code> store may
+declare, beside <code class="docutils literal notranslate"><span class="pre">voice_id</span></code>, the <code class="docutils literal notranslate"><span class="pre">model_id</span></code> it speaks with, its
+<code class="docutils literal notranslate"><span class="pre">voice_settings</span></code> and a sampling <code class="docutils literal notranslate"><span class="pre">seed</span></code>; a dialogue line’s <code class="docutils literal notranslate"><span class="pre">[emotion]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">{direction}</span></code> reach a model that takes inline audio tags (<code class="docutils literal notranslate"><span class="pre">eleven_v3</span></code>,
+<code class="docutils literal notranslate"><span class="pre">eleven_v4</span></code> and their variants) as <code class="docutils literal notranslate"><span class="pre">[excited]</span> <span class="pre">Hi!</span></code>.
+<a class="reference internal" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesis_options" title="an.audio.elevenlabs_tts.ElevenLabsTTS.synthesis_options"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ElevenLabsTTS.synthesis_options()</span></code></a> turns those into the keyword arguments
+<a class="reference internal" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesize" title="an.audio.elevenlabs_tts.ElevenLabsTTS.synthesize"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ElevenLabsTTS.synthesize()</span></code></a> takes — the audio pipeline keys its cache on
+exactly that dict, and a voice declaring none of them yields <code class="docutils literal notranslate"><span class="pre">{}</span></code>, so no
+existing cache key moves.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">tts</span> <span class="o">=</span> <span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">"unused"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tts</span><span class="o">.</span><span class="n">synthesis_options</span><span class="p">({})</span>
+<span class="go">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tts</span><span class="o">.</span><span class="n">synthesis_options</span><span class="p">({</span><span class="s2">"model_id"</span><span class="p">:</span> <span class="s2">"eleven_v3"</span><span class="p">},</span> <span class="n">emotion</span><span class="o">=</span><span class="s2">"happy"</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="p">[</span><span class="s2">"sighs"</span><span class="p">])</span>
+<span class="go">{'model_id': 'eleven_v3', 'audio_tags': ['happy', 'sighs']}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tts</span><span class="o">.</span><span class="n">synthesis_options</span><span class="p">({</span><span class="s2">"voice_settings"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"stability"</span><span class="p">:</span> <span class="mf">0.3</span><span class="p">,</span> <span class="s2">"speed"</span><span class="p">:</span> <span class="mf">1.1</span><span class="p">}})</span>
+<span class="go">{'voice_settings': {'speed': 1.1, 'stability': 0.3}}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tagged_text</span><span class="p">(</span><span class="s2">"Hi!"</span><span class="p">,</span> <span class="p">[</span><span class="s2">"excited"</span><span class="p">])</span>
+<span class="go">'[excited] Hi!'</span>
+</pre></div>
+</div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES" title="an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AUDIO_TAG_MODEL_PREFIXES</span></code></a></p></td>
+<td><p>Model ids that read inline audio tags (<code class="docutils literal notranslate"><span class="pre">[excited]</span></code>, <code class="docutils literal notranslate"><span class="pre">[sighs]</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES" title="an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VOICE_SETTINGS_RANGES</span></code></a></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">voice_settings</span></code> keys the API takes, with the range each accepts (<code class="docutils literal notranslate"><span class="pre">None</span></code> = a boolean).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.elevenlabs_tts.normalize_voice_settings" title="an.audio.elevenlabs_tts.normalize_voice_settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_voice_settings</span></code></a>(raw)</p></td>
+<td><p>The canonical <code class="docutils literal notranslate"><span class="pre">voice_settings</span></code> dict — only what was declared, key-sorted.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.elevenlabs_tts.tagged_text" title="an.audio.elevenlabs_tts.tagged_text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tagged_text</span></code></a>(text, tags)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">text</span></code> with each tag prefixed as <code class="docutils literal notranslate"><span class="pre">[tag]</span></code> — what an audio-tag model reads.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.elevenlabs_tts.takes_audio_tags" title="an.audio.elevenlabs_tts.takes_audio_tags"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes_audio_tags</span></code></a>(model_id, *[, prefixes])</p></td>
+<td><p>Whether <code class="docutils literal notranslate"><span class="pre">model_id</span></code> reads inline audio tags.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -533,15 +581,143 @@ If you want real speech, <code class="docutils literal notranslate"><span class=
 </tbody>
 </table>
 </div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.elevenlabs_tts.ElevenLabsVoiceError" title="an.audio.elevenlabs_tts.ElevenLabsVoiceError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ElevenLabsVoiceError</span></code></a></p></td>
+<td><p>A voice document declares ElevenLabs settings that are malformed.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES">
+<span class="sig-prename descclassname"><span class="pre">an.audio.elevenlabs_tts.</span></span><span class="sig-name descname"><span class="pre">AUDIO_TAG_MODEL_PREFIXES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('eleven_v3',</span> <span class="pre">'eleven_v4')</span></span><a class="headerlink" href="#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES" title="Link to this definition">#</a></dt>
+<dd><p>Model ids that read inline audio tags (<code class="docutils literal notranslate"><span class="pre">[excited]</span></code>, <code class="docutils literal notranslate"><span class="pre">[sighs]</span></code>). Matched
+as prefixes, so <code class="docutils literal notranslate"><span class="pre">eleven_v3_conversational</span></code> and <code class="docutils literal notranslate"><span class="pre">eleven_v4_turbo</span></code> count.
+Every other model would speak the brackets, so it never receives a tag.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.audio.elevenlabs_tts.ElevenLabsTTS">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.elevenlabs_tts.</span></span><span class="sig-name descname"><span class="pre">ElevenLabsTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eleven_turbo_v2_5'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mp3_44100_128'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.ElevenLabsTTS" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.elevenlabs_tts.</span></span><span class="sig-name descname"><span class="pre">ElevenLabsTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'eleven_turbo_v2_5'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mp3_44100_128'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_tag_model_prefixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('eleven_v3',</span> <span class="pre">'eleven_v4')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_factory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.ElevenLabsTTS" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 (falls back to <code class="docutils literal notranslate"><span class="pre">ELEVEN_API_KEY</span></code> / <code class="docutils literal notranslate"><span class="pre">ELEVENLABS_API_KEY</span></code>).</p>
-<p>Implements the <code class="docutils literal notranslate"><span class="pre">TTSProvider</span></code> protocol.</p>
+<p>Implements the <code class="docutils literal notranslate"><span class="pre">TTSProvider</span></code> protocol, plus the optional
+<code class="docutils literal notranslate"><span class="pre">synthesis_options</span></code> hook the audio pipeline reads (an#209).</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.ElevenLabsTTS.client_factory">
+<span class="sig-name descname"><span class="pre">client_factory</span></span><a class="headerlink" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.client_factory" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">api_key</span> <span class="pre">-&gt;</span> <span class="pre">client</span></code>; tests inject a fake so nothing reaches the API.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.ElevenLabsTTS.list_voices">
+<span class="sig-name descname"><span class="pre">list_voices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">search</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.list_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.list_voices" title="Link to this definition">#</a></dt>
+<dd><p>The account’s voices (its own plus the ones it saved), newest API.</p>
+<p><code class="docutils literal notranslate"><span class="pre">search</span></code> filters by name, description and labels on the server. An
+absent key or SDK yields <code class="docutils literal notranslate"><span class="pre">[]</span></code>; a key that is present and a call that
+fails RAISES — an empty listing must mean “no voices”, not “it broke”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterable</span></code></a>[<a class="reference internal" href="an.audio.tts.html#an.audio.tts.VoiceMeta" title="an.audio.tts.VoiceMeta"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceMeta</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.ElevenLabsTTS.synthesis_options">
+<span class="sig-name descname"><span class="pre">synthesis_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voice</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">emotion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.synthesis_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesis_options" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">synthesize</span></code> keyword arguments a voice document and a line imply.</p>
+<p>Only what is declared appears (<code class="docutils literal notranslate"><span class="pre">{}</span></code> for a plain voice), so the audio
+cache key — which includes this dict when it is non-empty — is unchanged
+for every voice that declares nothing new. <code class="docutils literal notranslate"><span class="pre">audio_tags</span></code> are the line’s
+<code class="docutils literal notranslate"><span class="pre">[emotion]</span></code> (unless <code class="docutils literal notranslate"><span class="pre">neutral</span></code>) then its <code class="docutils literal notranslate"><span class="pre">direction</span></code> cues, and only
+on a model that reads tags; elsewhere a direction is dropped with a
+warning and the emotion stays a face-only cue, as before.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.ElevenLabsTTS.synthesize">
+<span class="sig-name descname"><span class="pre">synthesize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.synthesize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesize" title="Link to this definition">#</a></dt>
+<dd><p>Speak <code class="docutils literal notranslate"><span class="pre">text</span></code>. The clip’s <code class="docutils literal notranslate"><span class="pre">transcript</span></code> is <code class="docutils literal notranslate"><span class="pre">text</span></code> WITHOUT the tags,
+so alignment and captions never read a cue.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.audio.tts.html#an.audio.tts.AudioClip" title="an.audio.tts.AudioClip"><code class="xref py py-class docutils literal notranslate"><span class="pre">AudioClip</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.ElevenLabsVoiceError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.elevenlabs_tts.</span></span><span class="sig-name descname"><span class="pre">ElevenLabsVoiceError</span></span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsVoiceError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.ElevenLabsVoiceError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>A voice document declares ElevenLabs settings that are malformed.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES">
+<span class="sig-prename descclassname"><span class="pre">an.audio.elevenlabs_tts.</span></span><span class="sig-name descname"><span class="pre">VOICE_SETTINGS_RANGES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'similarity_boost':</span> <span class="pre">(0.0,</span> <span class="pre">1.0),</span> <span class="pre">'speed':</span> <span class="pre">(0.7,</span> <span class="pre">1.2),</span> <span class="pre">'stability':</span> <span class="pre">(0.0,</span> <span class="pre">1.0),</span> <span class="pre">'style':</span> <span class="pre">(0.0,</span> <span class="pre">1.0),</span> <span class="pre">'use_speaker_boost':</span> <span class="pre">None}</span></span><a class="headerlink" href="#an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">voice_settings</span></code> keys the API takes, with the range each accepts
+(<code class="docutils literal notranslate"><span class="pre">None</span></code> = a boolean). <code class="docutils literal notranslate"><span class="pre">speed</span></code> is the API’s documented 0.7–1.2.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.normalize_voice_settings">
+<span class="sig-prename descclassname"><span class="pre">an.audio.elevenlabs_tts.</span></span><span class="sig-name descname"><span class="pre">normalize_voice_settings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#normalize_voice_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.normalize_voice_settings" title="Link to this definition">#</a></dt>
+<dd><p>The canonical <code class="docutils literal notranslate"><span class="pre">voice_settings</span></code> dict — only what was declared, key-sorted.</p>
+<p>Omit-when-unset: <code class="docutils literal notranslate"><span class="pre">None</span></code> and <code class="docutils literal notranslate"><span class="pre">{}</span></code> give <code class="docutils literal notranslate"><span class="pre">{}</span></code>. Unknown keys and values out
+of range raise, so a typo cannot silently fall back to the account default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_voice_settings</span><span class="p">({</span><span class="s2">"style"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"stability"</span><span class="p">:</span> <span class="mf">0.25</span><span class="p">})</span>
+<span class="go">{'stability': 0.25, 'style': 1.0}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_voice_settings</span><span class="p">({</span><span class="s2">"stabilty"</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">})</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">    </span><span class="o">...</span>
+<span class="gr">an.audio.elevenlabs_tts.ElevenLabsVoiceError</span>: <span class="n">unknown voice_settings key(s) ['stabilty']; known: ['similarity_boost', 'speed', 'stability', 'style', 'use_speaker_boost']</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.tagged_text">
+<span class="sig-prename descclassname"><span class="pre">an.audio.elevenlabs_tts.</span></span><span class="sig-name descname"><span class="pre">tagged_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#tagged_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.tagged_text" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">text</span></code> with each tag prefixed as <code class="docutils literal notranslate"><span class="pre">[tag]</span></code> — what an audio-tag model reads.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.elevenlabs_tts.takes_audio_tags">
+<span class="sig-prename descclassname"><span class="pre">an.audio.elevenlabs_tts.</span></span><span class="sig-name descname"><span class="pre">takes_audio_tags</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefixes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('eleven_v3',</span> <span class="pre">'eleven_v4')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#takes_audio_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.elevenlabs_tts.takes_audio_tags" title="Link to this definition">#</a></dt>
+<dd><p>Whether <code class="docutils literal notranslate"><span class="pre">model_id</span></code> reads inline audio tags.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">takes_audio_tags</span><span class="p">(</span><span class="s2">"eleven_v3"</span><span class="p">),</span> <span class="n">takes_audio_tags</span><span class="p">(</span><span class="s2">"eleven_turbo_v2_5"</span><span class="p">)</span>
+<span class="go">(True, False)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -593,7 +769,19 @@ If you want real speech, <code class="docutils literal notranslate"><span class=
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES"><code class="docutils literal notranslate"><span class="pre">AUDIO_TAG_MODEL_PREFIXES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.client_factory"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.client_factory</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.list_voices"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.list_voices()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesis_options"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.synthesis_options()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.synthesize()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.ElevenLabsVoiceError"><code class="docutils literal notranslate"><span class="pre">ElevenLabsVoiceError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES"><code class="docutils literal notranslate"><span class="pre">VOICE_SETTINGS_RANGES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.normalize_voice_settings"><code class="docutils literal notranslate"><span class="pre">normalize_voice_settings()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.tagged_text"><code class="docutils literal notranslate"><span class="pre">tagged_text()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.elevenlabs_tts.takes_audio_tags"><code class="docutils literal notranslate"><span class="pre">takes_audio_tags()</span></code></a></li>
 </ul>
   </nav></div>
 

@@ -1,0 +1,13 @@
+an.audio.cli
+============
+
+.. automodule:: an.audio.cli
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      browse_voices
+      format_voices
+   

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=c5e348cc"></script>
+    <script src="../_static/documentation_options.js?v=619bccd5"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="API reference" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.114" />
+  <meta name="docsearch:version" content="0.1.115" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -327,6 +327,7 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.cli.html">an.audio.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
@@ -724,6 +725,16 @@ gives us a real duration); the pipeline stamps them then, deriving
 <code class="docutils literal notranslate"><span class="pre">(at</span> <span class="pre">3.0)</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>. <code class="docutils literal notranslate"><span class="pre">start</span></code> is what the audio pipeline
 DERIVES from <code class="docutils literal notranslate"><span class="pre">at</span></code>/<code class="docutils literal notranslate"><span class="pre">pause</span></code> on every pass; these two are what the
 author wrote (an#187).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.Dialogue.direction">
+<span class="sig-name descname"><span class="pre">direction</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.Dialogue.direction" title="Link to this definition">#</a></dt>
+<dd><p>How the line is DELIVERED — cues such as <code class="docutils literal notranslate"><span class="pre">[&quot;excited&quot;]</span></code> or
+<code class="docutils literal notranslate"><span class="pre">[&quot;sighs&quot;,</span> <span class="pre">&quot;annoyed&quot;]</span></code>, <code class="docutils literal notranslate"><span class="pre">{excited}</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> (an#209). A TTS
+model that takes inline audio tags (ElevenLabs v3/v4) receives them as
+<code class="docutils literal notranslate"><span class="pre">[excited]</span> <span class="pre">Hi!</span></code>; others ignore them. Never part of <code class="docutils literal notranslate"><span class="pre">text</span></code>, so
+captions and lip-sync alignment never see a cue.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1411,6 +1422,7 @@ always passes it).</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue"><code class="docutils literal notranslate"><span class="pre">Dialogue</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.at"><code class="docutils literal notranslate"><span class="pre">Dialogue.at</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.direction"><code class="docutils literal notranslate"><span class="pre">Dialogue.direction</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.model_config"><code class="docutils literal notranslate"><span class="pre">Dialogue.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.pause"><code class="docutils literal notranslate"><span class="pre">Dialogue.pause</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.planned_start"><code class="docutils literal notranslate"><span class="pre">Dialogue.planned_start()</span></code></a></li>

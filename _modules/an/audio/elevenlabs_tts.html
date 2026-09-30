@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=c5e348cc"></script>
+    <script src="../../../_static/documentation_options.js?v=619bccd5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.114" />
+  <meta name="docsearch:version" content="0.1.115" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -715,13 +715,35 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">Lazily imports the elevenlabs SDK so the rest of `an` works without it.</span>
 <span class="sd">If you want real speech, ``pip install elevenlabs`` and set</span>
 <span class="sd">``ELEVEN_API_KEY`` (or ``ELEVENLABS_API_KEY``) in your environment.</span>
+
+<span class="sd">**Expressive voices (an#209).** A voice document in the ``voices`` store may</span>
+<span class="sd">declare, beside ``voice_id``, the ``model_id`` it speaks with, its</span>
+<span class="sd">``voice_settings`` and a sampling ``seed``; a dialogue line's ``[emotion]`` and</span>
+<span class="sd">``{direction}`` reach a model that takes inline audio tags (``eleven_v3``,</span>
+<span class="sd">``eleven_v4`` and their variants) as ``[excited] Hi!``.</span>
+<span class="sd">:meth:`ElevenLabsTTS.synthesis_options` turns those into the keyword arguments</span>
+<span class="sd">:meth:`ElevenLabsTTS.synthesize` takes — the audio pipeline keys its cache on</span>
+<span class="sd">exactly that dict, and a voice declaring none of them yields ``{}``, so no</span>
+<span class="sd">existing cache key moves.</span>
+
+<span class="sd">&gt;&gt;&gt; tts = ElevenLabsTTS(api_key="unused")</span>
+<span class="sd">&gt;&gt;&gt; tts.synthesis_options({})</span>
+<span class="sd">{}</span>
+<span class="sd">&gt;&gt;&gt; tts.synthesis_options({"model_id": "eleven_v3"}, emotion="happy", direction=["sighs"])</span>
+<span class="sd">{'model_id': 'eleven_v3', 'audio_tags': ['happy', 'sighs']}</span>
+<span class="sd">&gt;&gt;&gt; tts.synthesis_options({"voice_settings": {"stability": 0.3, "speed": 1.1}})</span>
+<span class="sd">{'voice_settings': {'speed': 1.1, 'stability': 0.3}}</span>
+<span class="sd">&gt;&gt;&gt; tagged_text("Hi!", ["excited"])</span>
+<span class="sd">'[excited] Hi!'</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span><span class="p">,</span> <span class="n">VoiceMeta</span>
 
@@ -730,6 +752,104 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_DEFAULT_VOICE_ID</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"21m00Tcm4TlvDq8ikWAM"</span>  <span class="c1"># ElevenLabs's "Rachel"</span>
 <span class="n">_DEFAULT_OUTPUT_FORMAT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"mp3_44100_128"</span>
 
+<span class="c1">#: Model ids that read inline audio tags (``[excited]``, ``[sighs]``). Matched</span>
+<span class="c1">#: as prefixes, so ``eleven_v3_conversational`` and ``eleven_v4_turbo`` count.</span>
+<span class="c1">#: Every other model would speak the brackets, so it never receives a tag.</span>
+<span class="n">AUDIO_TAG_MODEL_PREFIXES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"eleven_v3"</span><span class="p">,</span> <span class="s2">"eleven_v4"</span><span class="p">)</span>
+
+<span class="c1">#: The ``voice_settings`` keys the API takes, with the range each accepts</span>
+<span class="c1">#: (``None`` = a boolean). ``speed`` is the API's documented 0.7–1.2.</span>
+<span class="n">VOICE_SETTINGS_RANGES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"stability"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="s2">"similarity_boost"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="s2">"style"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+    <span class="s2">"use_speaker_boost"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">"speed"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">),</span>
+<span class="p">}</span>
+
+<span class="c1">#: Emotions that are the absence of one: never sent as an audio tag.</span>
+<span class="n">_UNTAGGED_EMOTIONS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"neutral"</span><span class="p">})</span>
+
+
+<div class="viewcode-block" id="ElevenLabsVoiceError">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.ElevenLabsVoiceError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ElevenLabsVoiceError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A voice document declares ElevenLabs settings that are malformed."""</span></div>
+
+
+
+<div class="viewcode-block" id="takes_audio_tags">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.takes_audio_tags">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">takes_audio_tags</span><span class="p">(</span>
+    <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefixes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">AUDIO_TAG_MODEL_PREFIXES</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``model_id`` reads inline audio tags.</span>
+
+<span class="sd">    &gt;&gt;&gt; takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_turbo_v2_5")</span>
+<span class="sd">    (True, False)</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">prefixes</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="normalize_voice_settings">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.normalize_voice_settings">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_voice_settings</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The canonical ``voice_settings`` dict — only what was declared, key-sorted.</span>
+
+<span class="sd">    Omit-when-unset: ``None`` and ``{}`` give ``{}``. Unknown keys and values out</span>
+<span class="sd">    of range raise, so a typo cannot silently fall back to the account default.</span>
+
+<span class="sd">    &gt;&gt;&gt; normalize_voice_settings({"style": 1, "stability": 0.25})</span>
+<span class="sd">    {'stability': 0.25, 'style': 1.0}</span>
+<span class="sd">    &gt;&gt;&gt; normalize_voice_settings({"stabilty": 0.5})</span>
+<span class="sd">    Traceback (most recent call last):</span>
+<span class="sd">        ...</span>
+<span class="sd">    an.audio.elevenlabs_tts.ElevenLabsVoiceError: unknown voice_settings key(s) ['stabilty']; known: ['similarity_boost', 'speed', 'stability', 'style', 'use_speaker_boost']</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">ElevenLabsVoiceError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"voice_settings must be a mapping, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">VOICE_SETTINGS_RANGES</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ElevenLabsVoiceError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"unknown voice_settings key(s) </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">; "</span>
+            <span class="sa">f</span><span class="s2">"known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">VOICE_SETTINGS_RANGES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+        <span class="n">value</span><span class="p">,</span> <span class="n">bounds</span> <span class="o">=</span> <span class="n">raw</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">VOICE_SETTINGS_RANGES</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">ElevenLabsVoiceError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> must be true or false, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">ElevenLabsVoiceError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> must be a number, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">bounds</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lo</span> <span class="o">&lt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">ElevenLabsVoiceError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> is outside [</span><span class="si">{</span><span class="n">lo</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">hi</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="tagged_text">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.tagged_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tagged_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tags</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``text`` with each tag prefixed as ``[tag]`` — what an audio-tag model reads."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tags</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">text</span>
+    <span class="k">return</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">]"</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" "</span> <span class="o">+</span> <span class="n">text</span></div>
+
+
 
 <div class="viewcode-block" id="ElevenLabsTTS">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.ElevenLabsTTS">[docs]</a>
@@ -737,7 +857,8 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""ElevenLabs-backed TTSProvider. Constructor takes an optional api_key</span>
 <span class="sd">    (falls back to ``ELEVEN_API_KEY`` / ``ELEVENLABS_API_KEY``).</span>
 
-<span class="sd">    Implements the ``TTSProvider`` protocol.</span>
+<span class="sd">    Implements the ``TTSProvider`` protocol, plus the optional</span>
+<span class="sd">    ``synthesis_options`` hook the audio pipeline reads (an#209).</span>
 <span class="sd">    """</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"elevenlabs"</span>
@@ -748,6 +869,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_DEFAULT_MODEL_ID</span><span class="p">,</span>
         <span class="n">output_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_DEFAULT_OUTPUT_FORMAT</span><span class="p">,</span>
+        <span class="n">audio_tag_model_prefixes</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">AUDIO_TAG_MODEL_PREFIXES</span><span class="p">,</span>
+        <span class="n">client_factory</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">api_key</span>
@@ -756,6 +879,9 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span> <span class="o">=</span> <span class="n">model_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span> <span class="o">=</span> <span class="n">output_format</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">audio_tag_model_prefixes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">audio_tag_model_prefixes</span><span class="p">)</span>
+        <span class="c1">#: ``api_key -&gt; client``; tests inject a fake so nothing reaches the API.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span> <span class="o">=</span> <span class="n">client_factory</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">:</span>
@@ -763,6 +889,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"ElevenLabsTTS requires an API key. Set ELEVEN_API_KEY in your "</span>
                 <span class="s2">"environment or pass api_key= to the constructor."</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">client_factory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">elevenlabs.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElevenLabs</span>  <span class="c1"># type: ignore</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -771,7 +899,74 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
         <span class="k">return</span> <span class="n">ElevenLabs</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">synthesize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioClip</span><span class="p">:</span>
+<div class="viewcode-block" id="ElevenLabsTTS.synthesis_options">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.ElevenLabsTTS.synthesis_options">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">synthesis_options</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">voice</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">emotion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">direction</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The ``synthesize`` keyword arguments a voice document and a line imply.</span>
+
+<span class="sd">        Only what is declared appears (``{}`` for a plain voice), so the audio</span>
+<span class="sd">        cache key — which includes this dict when it is non-empty — is unchanged</span>
+<span class="sd">        for every voice that declares nothing new. ``audio_tags`` are the line's</span>
+<span class="sd">        ``[emotion]`` (unless ``neutral``) then its ``direction`` cues, and only</span>
+<span class="sd">        on a model that reads tags; elsewhere a direction is dropped with a</span>
+<span class="sd">        warning and the emotion stays a face-only cue, as before.</span>
+<span class="sd">        """</span>
+        <span class="n">opts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">voice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_id"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">model</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ElevenLabsVoiceError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"model_id must be a string, got </span><span class="si">{</span><span class="n">model</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">opts</span><span class="p">[</span><span class="s2">"model_id"</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="n">normalize_voice_settings</span><span class="p">(</span><span class="n">voice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_settings"</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="p">:</span>
+            <span class="n">opts</span><span class="p">[</span><span class="s2">"voice_settings"</span><span class="p">]</span> <span class="o">=</span> <span class="n">settings</span>
+        <span class="n">seed</span> <span class="o">=</span> <span class="n">voice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="n">seed</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">ElevenLabsVoiceError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"seed must be a non-negative integer, got </span><span class="si">{</span><span class="n">seed</span><span class="si">!r}</span><span class="s2">"</span>
+                <span class="p">)</span>
+            <span class="n">opts</span><span class="p">[</span><span class="s2">"seed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="n">emotion</span> <span class="o">=</span> <span class="p">(</span><span class="n">emotion</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">emotion</span><span class="p">]</span> <span class="k">if</span> <span class="n">emotion</span> <span class="ow">and</span> <span class="n">emotion</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_UNTAGGED_EMOTIONS</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="p">)</span>
+        <span class="n">tags</span> <span class="o">+=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">direction</span> <span class="ow">or</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">]</span>
+        <span class="n">effective_model</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_id"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tags</span> <span class="ow">and</span> <span class="n">takes_audio_tags</span><span class="p">(</span>
+            <span class="n">effective_model</span><span class="p">,</span> <span class="n">prefixes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">audio_tag_model_prefixes</span>
+        <span class="p">):</span>
+            <span class="n">opts</span><span class="p">[</span><span class="s2">"audio_tags"</span><span class="p">]</span> <span class="o">=</span> <span class="n">tags</span>
+        <span class="k">elif</span> <span class="n">direction</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"direction </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span><span class="si">}</span><span class="s2"> is dropped: model </span><span class="si">{</span><span class="n">effective_model</span><span class="si">!r}</span><span class="s2"> "</span>
+                <span class="s2">"does not read audio tags (declare model_id: eleven_v3 on the voice)"</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">opts</span></div>
+
+
+<div class="viewcode-block" id="ElevenLabsTTS.synthesize">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.ElevenLabsTTS.synthesize">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">synthesize</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">voice_settings</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">audio_tags</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kw</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioClip</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Speak ``text``. The clip's ``transcript`` is ``text`` WITHOUT the tags,</span>
+<span class="sd">        so alignment and captions never read a cue."""</span>
         <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">()</span>
         <span class="c1"># ElevenLabs has no voice named "default"; if the caller passes the</span>
         <span class="c1"># canonical "default" sentinel (or None), use this provider's pinned</span>
@@ -779,14 +974,17 @@ window.runMermaid = runMermaid;</script>
         <span class="n">effective_voice</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">voice_id</span> <span class="k">if</span> <span class="n">voice_id</span> <span class="ow">and</span> <span class="n">voice_id</span> <span class="o">!=</span> <span class="s2">"default"</span> <span class="k">else</span> <span class="n">_DEFAULT_VOICE_ID</span>
         <span class="p">)</span>
-        <span class="c1"># elevenlabs SDK 1.x exposes `text_to_speech.convert`.</span>
-        <span class="n">audio_iter</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">text_to_speech</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span>
+        <span class="n">request</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">voice_id</span><span class="o">=</span><span class="n">effective_voice</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
-            <span class="n">model_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_id</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">tagged_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">),</span>
+            <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_id</span><span class="p">,</span>
             <span class="n">output_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">output_format</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">audio_bytes</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">audio_iter</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">voice_settings</span><span class="p">:</span>
+            <span class="n">request</span><span class="p">[</span><span class="s2">"voice_settings"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sdk_voice_settings</span><span class="p">(</span><span class="n">voice_settings</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">request</span><span class="p">[</span><span class="s2">"seed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed</span>
+        <span class="n">audio_bytes</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">text_to_speech</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="o">**</span><span class="n">request</span><span class="p">))</span>
 
         <span class="n">out_path</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">out_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -794,41 +992,94 @@ window.runMermaid = runMermaid;</script>
             <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="n">out_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">audio_bytes</span><span class="p">)</span>
 
-        <span class="c1"># Estimate duration: mp3_44100_128 is 128kbps → 16 KB/s.</span>
-        <span class="n">bitrate_bytes_per_s</span> <span class="o">=</span> <span class="mi">128</span> <span class="o">*</span> <span class="mi">1024</span> <span class="o">/</span> <span class="mi">8</span> <span class="k">if</span> <span class="s2">"128"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span> <span class="k">else</span> <span class="mi">16_000</span>
-        <span class="n">duration</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio_bytes</span><span class="p">)</span> <span class="o">/</span> <span class="n">bitrate_bytes_per_s</span> <span class="k">if</span> <span class="n">audio_bytes</span> <span class="k">else</span> <span class="mf">0.0</span>
-
         <span class="k">return</span> <span class="n">AudioClip</span><span class="p">(</span>
             <span class="n">path</span><span class="o">=</span><span class="n">out_path</span><span class="p">,</span>
             <span class="n">bytes_</span><span class="o">=</span><span class="n">audio_bytes</span><span class="p">,</span>
-            <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="n">_clip_duration</span><span class="p">(</span><span class="n">audio_bytes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_format</span><span class="p">),</span>
             <span class="n">sample_rate</span><span class="o">=</span><span class="mi">44100</span><span class="p">,</span>
             <span class="n">channels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
             <span class="n">voice_id</span><span class="o">=</span><span class="n">effective_voice</span><span class="p">,</span>
             <span class="n">transcript</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">list_voices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">VoiceMeta</span><span class="p">]:</span>
+
+<div class="viewcode-block" id="ElevenLabsTTS.list_voices">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.ElevenLabsTTS.list_voices">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_voices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">VoiceMeta</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The account's voices (its own plus the ones it saved), newest API.</span>
+
+<span class="sd">        ``search`` filters by name, description and labels on the server. An</span>
+<span class="sd">        absent key or SDK yields ``[]``; a key that is present and a call that</span>
+<span class="sd">        fails RAISES — an empty listing must mean "no voices", not "it broke".</span>
+<span class="sd">        """</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[]</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">voices</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">voices</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span><span class="o">.</span><span class="n">voices</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[]</span>
         <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">VoiceMeta</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">voices</span><span class="p">:</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">VoiceMeta</span><span class="p">(</span>
-                    <span class="n">voice_id</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"voice_id"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
-                    <span class="n">name</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
-                    <span class="n">provider</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                    <span class="n">language</span><span class="o">=</span><span class="s2">"en"</span><span class="p">,</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">voices</span><span class="p">,</span> <span class="s2">"search"</span><span class="p">):</span>  <span class="c1"># SDK &lt; 2: one unfiltered page</span>
+            <span class="n">pages</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">([</span><span class="n">client</span><span class="o">.</span><span class="n">voices</span><span class="o">.</span><span class="n">get_all</span><span class="p">()])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pages</span> <span class="o">=</span> <span class="n">_search_pages</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">search</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pages</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">voices</span><span class="p">:</span>
+                <span class="n">labels</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"labels"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">VoiceMeta</span><span class="p">(</span>
+                        <span class="n">voice_id</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"voice_id"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
+                        <span class="n">name</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">""</span><span class="p">),</span>
+                        <span class="n">provider</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                        <span class="n">language</span><span class="o">=</span><span class="n">labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"language"</span><span class="p">,</span> <span class="s2">"en"</span><span class="p">),</span>
+                        <span class="n">gender</span><span class="o">=</span><span class="n">labels</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"gender"</span><span class="p">),</span>
+                        <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">"category"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"category"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                            <span class="s2">"description"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                            <span class="s2">"labels"</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span>
+                        <span class="p">},</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
-            <span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span></div>
+</div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_search_pages</span><span class="p">(</span><span class="n">client</span><span class="p">,</span> <span class="n">search</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">page_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``voices.search`` pages until the server says there are no more (or</span>
+<span class="sd">    repeats a token, which would otherwise loop forever)."""</span>
+    <span class="n">token</span><span class="p">,</span> <span class="n">seen</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">voices</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+            <span class="n">search</span><span class="o">=</span><span class="n">search</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=</span><span class="n">page_size</span><span class="p">,</span> <span class="n">next_page_token</span><span class="o">=</span><span class="n">token</span>
+        <span class="p">)</span>
+        <span class="k">yield</span> <span class="n">page</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s2">"next_page_token"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s2">"has_more"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">token</span> <span class="ow">or</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sdk_voice_settings</span><span class="p">(</span><span class="n">settings</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+<span class="w">    </span><span class="sd">"""The SDK's ``VoiceSettings`` for ``settings`` (a plain dict without the SDK)."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">elevenlabs</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoiceSettings</span>  <span class="c1"># type: ignore</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">VoiceSettings</span><span class="p">(</span><span class="o">**</span><span class="n">settings</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_clip_duration</span><span class="p">(</span><span class="n">audio_bytes</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">output_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Seconds of ``audio_bytes``: ffprobe's reading — the one the pipeline's</span>
+<span class="sd">    cached path uses, so a fresh and a cached line time identically — else the</span>
+<span class="sd">    bitrate estimate (``mp3_44100_128`` is 128 kbit/s = 16 000 bytes/s)."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">audio_bytes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ffprobe_duration</span>
+
+    <span class="n">measured</span> <span class="o">=</span> <span class="n">_ffprobe_duration</span><span class="p">(</span><span class="n">audio_bytes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">measured</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">measured</span>
+    <span class="n">kbps</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">output_format</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"_"</span><span class="p">)[</span><span class="mi">2</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()),</span> <span class="mi">128</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio_bytes</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">kbps</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">/</span> <span class="mi">8</span><span class="p">)</span>
 </pre></div>
 
                 </article>

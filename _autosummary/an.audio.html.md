@@ -54,14 +54,52 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
 
-### *class* an.audio.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128')
+### *class* an.audio.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 (falls back to `ELEVEN_API_KEY` / `ELEVENLABS_API_KEY`).
 
-Implements the `TTSProvider` protocol.
+Implements the `TTSProvider` protocol, plus the optional
+`synthesis_options` hook the audio pipeline reads (an#209).
+
+#### client_factory
+
+`api_key -> client`; tests inject a fake so nothing reaches the API.
+
+#### list_voices(, search=None)
+
+The account’s voices (its own plus the ones it saved), newest API.
+
+`search` filters by name, description and labels on the server. An
+absent key or SDK yields `[]`; a key that is present and a call that
+fails RAISES — an empty listing must mean “no voices”, not “it broke”.
+
+* **Return type:**
+  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
+#### synthesis_options(voice, , emotion=None, direction=None)
+
+The `synthesize` keyword arguments a voice document and a line imply.
+
+Only what is declared appears (`{}` for a plain voice), so the audio
+cache key — which includes this dict when it is non-empty — is unchanged
+for every voice that declares nothing new. `audio_tags` are the line’s
+`[emotion]` (unless `neutral`) then its `direction` cues, and only
+on a model that reads tags; elsewhere a direction is dropped with a
+warning and the emotion stays a face-only cue, as before.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+#### synthesize(text, voice_id=None, , model_id=None, voice_settings=None, seed=None, audio_tags=None, \*\*kw)
+
+Speak `text`. The clip’s `transcript` is `text` WITHOUT the tags,
+so alignment and captions never read a cue.
+
+* **Return type:**
+  [`AudioClip`](an.audio.tts.html.md#an.audio.tts.AudioClip)
 
 ### *class* an.audio.LipSyncProvider(\*args, \*\*kwargs)
 
@@ -303,6 +341,12 @@ its own key, so changing an effect never re-pays the TTS.
 voice reaches here (an#194). The provider is handed the voice document’s
 own `voice_id` when it names one.
 
+What the provider’s optional `synthesis_options` hook derives from the
+voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
+`seed`, and the `[emotion]`/`direction` audio tags — an#209) is passed
+to `synthesize` and keyed; the text handed to alignment is always the
+bare `dialogue.text`, never the tagged one.
+
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
@@ -347,17 +391,18 @@ audio’s actual length.
 
 ### Modules
 
-| [`effects`](an.audio.effects.html.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163).   |
-|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`elevenlabs_tts`](an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                                |
-| [`injectable_lipsync`](an.audio.injectable_lipsync.html.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                         |
-| [`lipsync`](an.audio.lipsync.html.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                   |
-| [`mac_say_tts`](an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.             |
-| [`offline_lipsync`](an.audio.offline_lipsync.html.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                          |
-| [`offline_tts`](an.audio.offline_tts.html.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                          |
-| [`pipeline`](an.audio.pipeline.html.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.            |
-| [`providers`](an.audio.providers.html.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                   |
-| [`rhubarb_lipsync`](an.audio.rhubarb_lipsync.html.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.    |
-| [`tts`](an.audio.tts.html.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                    |
-| [`voices`](an.audio.voices.html.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).        |
-| [`whisper_lipsync`](an.audio.whisper_lipsync.html.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.                |
+| [`cli`](an.audio.cli.html.md#module-an.audio.cli)                               | `an voices ...` — browse a TTS provider's voices from the shell (an#209).        |
+|--------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`effects`](an.audio.effects.html.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163). |
+| [`elevenlabs_tts`](an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                              |
+| [`injectable_lipsync`](an.audio.injectable_lipsync.html.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                       |
+| [`lipsync`](an.audio.lipsync.html.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                 |
+| [`mac_say_tts`](an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.           |
+| [`offline_lipsync`](an.audio.offline_lipsync.html.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                        |
+| [`offline_tts`](an.audio.offline_tts.html.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                        |
+| [`pipeline`](an.audio.pipeline.html.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.          |
+| [`providers`](an.audio.providers.html.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                 |
+| [`rhubarb_lipsync`](an.audio.rhubarb_lipsync.html.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.  |
+| [`tts`](an.audio.tts.html.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                  |
+| [`voices`](an.audio.voices.html.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).      |
+| [`whisper_lipsync`](an.audio.whisper_lipsync.html.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.              |

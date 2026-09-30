@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=c5e348cc"></script>
+    <script src="../../../_static/documentation_options.js?v=619bccd5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.114" />
+  <meta name="docsearch:version" content="0.1.115" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -740,7 +740,13 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineLipSync</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineTTS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span><span class="p">,</span> <span class="n">TTSProvider</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_VOICE</span><span class="p">,</span> <span class="n">line_voice_id</span><span class="p">,</span> <span class="n">provider_voice</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DEFAULT_VOICE</span><span class="p">,</span>
+    <span class="n">line_voice_id</span><span class="p">,</span>
+    <span class="n">provider_voice</span><span class="p">,</span>
+    <span class="n">voice_applies</span><span class="p">,</span>
+    <span class="n">voice_document</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dialogue</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">VisemeKeyframe</span><span class="p">,</span> <span class="n">WordTimingIR</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisemeTrack</span> <span class="k">as</span> <span class="n">IRVisemeTrack</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">_stable_hash</span>
@@ -797,21 +803,35 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    :func:`an.audio.voices.line_voice_id` resolves, so a character's bound</span>
 <span class="sd">    voice reaches here (an#194). The provider is handed the voice document's</span>
 <span class="sd">    own ``voice_id`` when it names one.</span>
+
+<span class="sd">    What the provider's optional ``synthesis_options`` hook derives from the</span>
+<span class="sd">    voice document and the line (ElevenLabs: ``model_id``, ``voice_settings``,</span>
+<span class="sd">    ``seed``, and the ``[emotion]``/``direction`` audio tags — an#209) is passed</span>
+<span class="sd">    to ``synthesize`` and keyed; the text handed to alignment is always the</span>
+<span class="sd">    bare ``dialogue.text``, never the tagged one.</span>
 <span class="sd">    """</span>
     <span class="n">tts</span> <span class="o">=</span> <span class="n">tts</span> <span class="ow">or</span> <span class="n">default_tts</span><span class="p">()</span>
     <span class="n">lipsync</span> <span class="o">=</span> <span class="n">lipsync</span> <span class="ow">or</span> <span class="n">default_lipsync</span><span class="p">()</span>
     <span class="n">voice_id</span> <span class="o">=</span> <span class="n">voice_id</span> <span class="ow">or</span> <span class="n">dialogue</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">or</span> <span class="n">DEFAULT_VOICE</span>
     <span class="k">if</span> <span class="n">effects</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">effects</span> <span class="o">=</span> <span class="n">voice_effects</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
-    <span class="n">named</span> <span class="o">=</span> <span class="n">provider_voice</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
+    <span class="n">named</span> <span class="o">=</span> <span class="n">provider_voice</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts_name</span><span class="o">=</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">synthesis_options</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">dialogue</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
 
-    <span class="n">raw_key</span> <span class="o">=</span> <span class="n">audio_key</span><span class="p">(</span><span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">provider_voice</span><span class="o">=</span><span class="n">named</span><span class="p">)</span>
+    <span class="n">raw_key</span> <span class="o">=</span> <span class="n">audio_key</span><span class="p">(</span>
+        <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">provider_voice</span><span class="o">=</span><span class="n">named</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span>
+    <span class="p">)</span>
     <span class="n">cache_key</span> <span class="o">=</span> <span class="n">audio_key</span><span class="p">(</span>
-        <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">effects</span><span class="p">,</span> <span class="n">provider_voice</span><span class="o">=</span><span class="n">named</span>
+        <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+        <span class="n">voice_id</span><span class="p">,</span>
+        <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">effects</span><span class="p">,</span>
+        <span class="n">provider_voice</span><span class="o">=</span><span class="n">named</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">audio_clip</span> <span class="o">=</span> <span class="n">_load_or_synthesize</span><span class="p">(</span>
-        <span class="n">tts</span><span class="p">,</span> <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">named</span> <span class="ow">or</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">raw_key</span>
+        <span class="n">tts</span><span class="p">,</span> <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">named</span> <span class="ow">or</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">raw_key</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">cache_key</span> <span class="o">!=</span> <span class="n">raw_key</span><span class="p">:</span>
         <span class="n">audio_clip</span> <span class="o">=</span> <span class="n">_load_or_apply_effects</span><span class="p">(</span><span class="n">audio_clip</span><span class="p">,</span> <span class="n">effects</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">cache_key</span><span class="p">)</span>
@@ -882,7 +902,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">voice_id</span><span class="p">,</span>
                 <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
                 <span class="n">effects</span><span class="p">,</span>
-                <span class="n">provider_voice</span><span class="o">=</span><span class="n">provider_voice</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">),</span>
+                <span class="n">provider_voice</span><span class="o">=</span><span class="n">provider_voice</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts_name</span><span class="o">=</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                <span class="n">options</span><span class="o">=</span><span class="n">synthesis_options</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="n">expected_viseme_ref</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span>
                 <span class="n">expected_audio_ref</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span>
@@ -977,18 +998,57 @@ window.runMermaid = runMermaid;</script>
     <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">provider_voice</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Content key of a line's audio: text, voice, provider, and — only when the</span>
-<span class="sd">    voice declares them — its effects and the provider voice it names (an#194).</span>
-<span class="sd">    With neither, the payload is exactly the pre-effects one, so every key a</span>
-<span class="sd">    project already has is unchanged.</span>
+<span class="sd">    voice declares them — its effects, the provider voice it names (an#194) and</span>
+<span class="sd">    the provider's synthesis options (model, settings, seed, audio tags —</span>
+<span class="sd">    an#209). With none of them, the payload is exactly the pre-effects one, so</span>
+<span class="sd">    every key a project already has is unchanged.</span>
+
+<span class="sd">    &gt;&gt;&gt; audio_key("hi", "default", "offline") == audio_key(</span>
+<span class="sd">    ...     "hi", "default", "offline", {}, provider_voice=None, options={})</span>
+<span class="sd">    True</span>
 <span class="sd">    """</span>
     <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"text"</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span> <span class="s2">"voice"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">,</span> <span class="s2">"tts"</span><span class="p">:</span> <span class="n">tts_name</span><span class="p">}</span>
     <span class="k">if</span> <span class="n">effects</span><span class="p">:</span>
         <span class="n">payload</span><span class="p">[</span><span class="s2">"effects"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">effects</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">provider_voice</span><span class="p">:</span>
         <span class="n">payload</span><span class="p">[</span><span class="s2">"provider_voice"</span><span class="p">]</span> <span class="o">=</span> <span class="n">provider_voice</span>
+    <span class="k">if</span> <span class="n">options</span><span class="p">:</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">"options"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_stable_hash</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="synthesis_options">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.synthesis_options">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">synthesis_options</span><span class="p">(</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span>
+    <span class="n">line</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The provider-specific ``synthesize`` kwargs for ``line`` in ``voice_id``.</span>
+
+<span class="sd">    ``{}`` for a provider without a ``synthesis_options`` hook (offline,</span>
+<span class="sd">    mac_say) and for a voice written for another provider — which is what</span>
+<span class="sd">    keeps their cache keys where they were.</span>
+<span class="sd">    """</span>
+    <span class="n">hook</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"synthesis_options"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hook</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">voice_document</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">voice_applies</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">hook</span><span class="p">(</span>
+            <span class="n">doc</span><span class="p">,</span>
+            <span class="n">emotion</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="s2">"emotion"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">direction</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="s2">"direction"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="ow">or</span> <span class="p">{}</span>
+    <span class="p">)</span></div>
 
 
 
@@ -1073,6 +1133,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cache_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioClip</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">"audio"</span> <span class="ow">in</span> <span class="n">mall</span> <span class="ow">and</span> <span class="n">cache_key</span> <span class="ow">in</span> <span class="n">mall</span><span class="p">[</span><span class="s2">"audio"</span><span class="p">]:</span>
         <span class="n">wav_bytes</span> <span class="o">=</span> <span class="n">mall</span><span class="p">[</span><span class="s2">"audio"</span><span class="p">][</span><span class="n">cache_key</span><span class="p">]</span>
@@ -1081,7 +1143,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">AudioClip</span><span class="p">(</span>
             <span class="n">bytes_</span><span class="o">=</span><span class="n">wav_bytes</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span> <span class="n">voice_id</span><span class="o">=</span><span class="n">voice_id</span><span class="p">,</span> <span class="n">transcript</span><span class="o">=</span><span class="n">text</span>
         <span class="p">)</span>
-    <span class="n">clip</span> <span class="o">=</span> <span class="n">tts</span><span class="o">.</span><span class="n">synthesize</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
+    <span class="n">clip</span> <span class="o">=</span> <span class="n">tts</span><span class="o">.</span><span class="n">synthesize</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="o">**</span><span class="p">(</span><span class="n">options</span> <span class="ow">or</span> <span class="p">{}))</span>
     <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">"audio"</span> <span class="ow">in</span> <span class="n">mall</span> <span class="ow">and</span> <span class="n">clip</span><span class="o">.</span><span class="n">bytes_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">mall</span><span class="p">[</span><span class="s2">"audio"</span><span class="p">][</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">bytes_</span>
     <span class="k">return</span> <span class="n">clip</span>

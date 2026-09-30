@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=c5e348cc"></script>
+    <script src="../../../_static/documentation_options.js?v=619bccd5"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.114" />
+  <meta name="docsearch:version" content="0.1.115" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -991,10 +991,12 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">_DIALOGUE_LINE_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
     <span class="sa">r</span><span class="s2">"^\s*(?P&lt;speaker&gt;[\w-]+)"</span>
-    <span class="sa">r</span><span class="s2">"(?P&lt;mods&gt;(?:\s*(?:\[[^\]]*\]|\([^)]*\)))*)"</span>
+    <span class="sa">r</span><span class="s2">"(?P&lt;mods&gt;(?:\s*(?:\[[^\]]*\]|\([^)]*\)|\{[^}]*\}))*)"</span>
     <span class="sa">r</span><span class="s2">"\s*:\s*(?P&lt;text&gt;.*?)\s*$"</span>
 <span class="p">)</span>
-<span class="n">_DIALOGUE_MOD_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\[(?P&lt;bracket&gt;[^\]]*)\]|\((?P&lt;paren&gt;[^)]*)\)"</span><span class="p">)</span>
+<span class="n">_DIALOGUE_MOD_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">"\[(?P&lt;bracket&gt;[^\]]*)\]|\((?P&lt;paren&gt;[^)]*)\)|\{(?P&lt;brace&gt;[^}]*)\}"</span>
+<span class="p">)</span>
 <span class="n">_EMOTION_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[\w-]+"</span><span class="p">)</span>
 <span class="c1">#: ``(pause 1.5)``, ``(pause 1.5s)``, ``(at 3)``, ``(at 3.0s)`` — the timing a</span>
 <span class="c1">#: dialogue line may carry in ``scene.md`` (an#187). Parentheses hold timing,</span>
@@ -1004,15 +1006,16 @@ window.runMermaid = runMermaid;</script>
     <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">_DIALOGUE_GRAMMAR</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">"`speaker [emotion] (pause 1.5): text` — the emotion in square brackets and "</span>
-    <span class="s2">"the timing in parentheses are each optional: `(pause &lt;s&gt;)` is silence "</span>
-    <span class="s2">"after the previous line, `(at &lt;s&gt;)` a start in shot seconds; speaker ids "</span>
-    <span class="s2">"are `[</span><span class="se">\\</span><span class="s2">w-]+`"</span>
+    <span class="s2">"`speaker [emotion] </span><span class="si">{direction}</span><span class="s2"> (pause 1.5): text` — the emotion in square "</span>
+    <span class="s2">"brackets, the delivery direction in braces (comma-separated cues such as "</span>
+    <span class="s2">"`{sighs, annoyed}`) and the timing in parentheses are each optional: "</span>
+    <span class="s2">"`(pause &lt;s&gt;)` is silence after the previous line, `(at &lt;s&gt;)` a start in "</span>
+    <span class="s2">"shot seconds; speaker ids are `[</span><span class="se">\\</span><span class="s2">w-]+`"</span>
 <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parse_dialogue_line</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dialogue</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""One ``speaker [emotion] (timing): text`` line → a `Dialogue`."""</span>
+<span class="w">    </span><span class="sd">"""One ``speaker [emotion] {direction} (timing): text`` line → a `Dialogue`."""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">refuse</span><span class="p">(</span><span class="n">why</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneMarkdownError</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">SceneMarkdownError</span><span class="p">(</span>
@@ -1029,6 +1032,17 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"text"</span><span class="p">:</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"text"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
     <span class="p">}</span>
     <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">_DIALOGUE_MOD_RE</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"mods"</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"brace"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">"direction"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="s2">"carries two directions; list every cue in one `{...}`"</span><span class="p">)</span>
+            <span class="n">cues</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"brace"</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">cues</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"has </span><span class="se">{{</span><span class="si">{</span><span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">'brace'</span><span class="p">)</span><span class="si">}</span><span class="se">}}</span><span class="s2">, an empty direction cue; cues "</span>
+                    <span class="s2">"are comma-separated, e.g. `{sighs, annoyed}`"</span>
+                <span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"direction"</span><span class="p">]</span> <span class="o">=</span> <span class="n">cues</span>
+            <span class="k">continue</span>
         <span class="k">if</span> <span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"bracket"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">emotion</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"bracket"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">_EMOTION_RE</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">emotion</span><span class="p">):</span>
@@ -1046,7 +1060,12 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="s2">"pause"</span> <span class="ow">in</span> <span class="n">kwargs</span> <span class="ow">or</span> <span class="s2">"at"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="s2">"carries two timings; a line takes one `pause` or one `at`"</span><span class="p">)</span>
         <span class="n">kwargs</span><span class="p">[</span><span class="n">timing</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"key"</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">timing</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"value"</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">Dialogue</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Dialogue</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pydantic's ValidationError is one</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="s2">"errors"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">why</span> <span class="o">=</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">err</span><span class="p">[</span><span class="s2">"msg"</span><span class="p">]</span> <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">())</span> <span class="k">if</span> <span class="n">errors</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="sa">f</span><span class="s2">"does not validate (</span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_format_dialogue_line</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Dialogue</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1054,6 +1073,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">head</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">speaker</span>
     <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">emotion</span><span class="p">:</span>
         <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">emotion</span><span class="si">}</span><span class="s2">]"</span>
+    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">direction</span><span class="p">:</span>
+        <span class="n">head</span> <span class="o">+=</span> <span class="s2">" {"</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">direction</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"}"</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"pause"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">):</span>
         <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1076,14 +1097,17 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_dialogue_block</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Dialogue</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Parse a ```dialogue block.</span>
 
-<span class="sd">    Each non-empty, non-comment line follows ``speaker [emotion] (timing): text``</span>
-<span class="sd">    where the bracketed emotion and the parenthesised timing are optional, in</span>
-<span class="sd">    either order. Examples:</span>
+<span class="sd">    Each non-empty, non-comment line follows</span>
+<span class="sd">    ``speaker [emotion] {direction} (timing): text`` where the bracketed</span>
+<span class="sd">    emotion, the braced delivery direction (an#209) and the parenthesised</span>
+<span class="sd">    timing are optional, in any order. Examples:</span>
 
 <span class="sd">        charlie: Hello.</span>
 <span class="sd">        charlie [happy]: Hello!</span>
 <span class="sd">        maya [skeptical] (pause 1.5): Sure.</span>
 <span class="sd">        maya (at 4): Goodbye.</span>
+<span class="sd">        bob [happy] {excited}: Hi!</span>
+<span class="sd">        ned {sighs, annoyed}: Fine.</span>
 
 <span class="sd">    ``(pause &lt;s&gt;)`` is silence after the previous line ends; ``(at &lt;s&gt;)`` starts</span>
 <span class="sd">    the line at that shot time (an#187). A line that matches none of those</span>

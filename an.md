@@ -1,4 +1,4 @@
-> built 2026-09-30 14:58 UTC from 935429f (main) · an 0.1.114. Details: build_info.json
+> built 2026-09-30 16:10 UTC from aef94b2 (main) · an 0.1.115. Details: build_info.json
 
 # index.html.md
 
@@ -4251,6 +4251,63 @@ Every reason these shots’ transitions cannot be assembled, as
 ```
 
 
+# _autosummary/an.audio.cli.html.md
+
+# an.audio.cli
+
+`an voices ...` — browse a TTS provider’s voices from the shell (an#209).
+
+Thin string-typed wrappers dispatched by typer the way `an character ...` is;
+the business logic is [`browse_voices()`](_autosummary/an.audio.cli.html.md#an.audio.cli.browse_voices), a plain function over the
+provider factories.
+
+> an voices list –provider elevenlabs
+> an voices list –provider elevenlabs –search british
+> an voices list –provider mac_say
+
+The `voice_id` column is what a `voices`-store document’s `voice_id` takes.
+
+### Functions
+
+| [`browse_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.browse_voices)([provider, search, make])   | The voices `provider` exposes, optionally filtered by `search`.   |
+|--------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| [`format_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.format_voices)(voices)                     | One line per voice: `voice_id  name  (labels)`.                   |
+
+### an.audio.cli.browse_voices(provider='elevenlabs', \*, search=None, make=<function make_tts>)
+
+The voices `provider` exposes, optionally filtered by `search`.
+
+A provider whose `list_voices` takes `search` (ElevenLabs) filters on
+its server; for the others the filter is a case-insensitive substring over
+the name, id and labels.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
+```pycon
+>>> from an.audio.tts import VoiceMeta
+>>> class Fake:
+...     name = "fake"
+...     def list_voices(self):
+...         return [VoiceMeta("v1", "Ada", "fake"), VoiceMeta("v2", "Bob", "fake")]
+>>> [v.name for v in browse_voices("fake", search="ad", make=lambda _: Fake())]
+['Ada']
+```
+
+### an.audio.cli.format_voices(voices)
+
+One line per voice: `voice_id  name  (labels)`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> from an.audio.tts import VoiceMeta
+>>> print(format_voices([VoiceMeta("abc", "Ada", "x", extra={"labels": {"accent": "british"}})]))
+abc  Ada  (accent=british)
+```
+
+
 # _autosummary/an.audio.effects.html.md
 
 # an.audio.effects
@@ -4375,19 +4432,152 @@ Lazily imports the elevenlabs SDK so the rest of `an` works without it.
 If you want real speech, `pip install elevenlabs` and set
 `ELEVEN_API_KEY` (or `ELEVENLABS_API_KEY`) in your environment.
 
+**Expressive voices (an#209).** A voice document in the `voices` store may
+declare, beside `voice_id`, the `model_id` it speaks with, its
+`voice_settings` and a sampling `seed`; a dialogue line’s `[emotion]` and
+`{direction}` reach a model that takes inline audio tags (`eleven_v3`,
+`eleven_v4` and their variants) as `[excited] Hi!`.
+[`ElevenLabsTTS.synthesis_options()`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesis_options) turns those into the keyword arguments
+[`ElevenLabsTTS.synthesize()`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsTTS.synthesize) takes — the audio pipeline keys its cache on
+exactly that dict, and a voice declaring none of them yields `{}`, so no
+existing cache key moves.
+
+```pycon
+>>> tts = ElevenLabsTTS(api_key="unused")
+>>> tts.synthesis_options({})
+{}
+>>> tts.synthesis_options({"model_id": "eleven_v3"}, emotion="happy", direction=["sighs"])
+{'model_id': 'eleven_v3', 'audio_tags': ['happy', 'sighs']}
+>>> tts.synthesis_options({"voice_settings": {"stability": 0.3, "speed": 1.1}})
+{'voice_settings': {'speed': 1.1, 'stability': 0.3}}
+>>> tagged_text("Hi!", ["excited"])
+'[excited] Hi!'
+```
+
+### Module Attributes
+
+| [`AUDIO_TAG_MODEL_PREFIXES`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES)   | Model ids that read inline audio tags (`[excited]`, `[sighs]`).                            |
+|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| [`VOICE_SETTINGS_RANGES`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES)      | The `voice_settings` keys the API takes, with the range each accepts (`None` = a boolean). |
+
+### Functions
+
+| [`normalize_voice_settings`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.normalize_voice_settings)(raw)              | The canonical `voice_settings` dict — only what was declared, key-sorted.   |
+|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`tagged_text`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.tagged_text)(text, tags)                    | `text` with each tag prefixed as `[tag]` — what an audio-tag model reads.   |
+| [`takes_audio_tags`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.takes_audio_tags)(model_id, \*[, prefixes]) | Whether `model_id` reads inline audio tags.                                 |
+
 ### Classes
 
 | [`ElevenLabsTTS`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsTTS)(\*[, api_key, model_id, ...])   | ElevenLabs-backed TTSProvider.   |
 |------------------------------------------------------------------------------------------------|----------------------------------|
 
-### *class* an.audio.elevenlabs_tts.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128')
+### Exceptions
+
+| [`ElevenLabsVoiceError`](_autosummary/an.audio.elevenlabs_tts.html.md#an.audio.elevenlabs_tts.ElevenLabsVoiceError)   | A voice document declares ElevenLabs settings that are malformed.   |
+|-------------------------------------------------------------------------|---------------------------------------------------------------------|
+
+### an.audio.elevenlabs_tts.AUDIO_TAG_MODEL_PREFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('eleven_v3', 'eleven_v4')*
+
+Model ids that read inline audio tags (`[excited]`, `[sighs]`). Matched
+as prefixes, so `eleven_v3_conversational` and `eleven_v4_turbo` count.
+Every other model would speak the brackets, so it never receives a tag.
+
+### *class* an.audio.elevenlabs_tts.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 (falls back to `ELEVEN_API_KEY` / `ELEVENLABS_API_KEY`).
 
-Implements the `TTSProvider` protocol.
+Implements the `TTSProvider` protocol, plus the optional
+`synthesis_options` hook the audio pipeline reads (an#209).
+
+#### client_factory
+
+`api_key -> client`; tests inject a fake so nothing reaches the API.
+
+#### list_voices(, search=None)
+
+The account’s voices (its own plus the ones it saved), newest API.
+
+`search` filters by name, description and labels on the server. An
+absent key or SDK yields `[]`; a key that is present and a call that
+fails RAISES — an empty listing must mean “no voices”, not “it broke”.
+
+* **Return type:**
+  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
+#### synthesis_options(voice, , emotion=None, direction=None)
+
+The `synthesize` keyword arguments a voice document and a line imply.
+
+Only what is declared appears (`{}` for a plain voice), so the audio
+cache key — which includes this dict when it is non-empty — is unchanged
+for every voice that declares nothing new. `audio_tags` are the line’s
+`[emotion]` (unless `neutral`) then its `direction` cues, and only
+on a model that reads tags; elsewhere a direction is dropped with a
+warning and the emotion stays a face-only cue, as before.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+#### synthesize(text, voice_id=None, , model_id=None, voice_settings=None, seed=None, audio_tags=None, \*\*kw)
+
+Speak `text`. The clip’s `transcript` is `text` WITHOUT the tags,
+so alignment and captions never read a cue.
+
+* **Return type:**
+  [`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip)
+
+### *exception* an.audio.elevenlabs_tts.ElevenLabsVoiceError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A voice document declares ElevenLabs settings that are malformed.
+
+### an.audio.elevenlabs_tts.VOICE_SETTINGS_RANGES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)]* *= {'similarity_boost': (0.0, 1.0), 'speed': (0.7, 1.2), 'stability': (0.0, 1.0), 'style': (0.0, 1.0), 'use_speaker_boost': None}*
+
+The `voice_settings` keys the API takes, with the range each accepts
+(`None` = a boolean). `speed` is the API’s documented 0.7–1.2.
+
+### an.audio.elevenlabs_tts.normalize_voice_settings(raw)
+
+The canonical `voice_settings` dict — only what was declared, key-sorted.
+
+Omit-when-unset: `None` and `{}` give `{}`. Unknown keys and values out
+of range raise, so a typo cannot silently fall back to the account default.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> normalize_voice_settings({"style": 1, "stability": 0.25})
+{'stability': 0.25, 'style': 1.0}
+>>> normalize_voice_settings({"stabilty": 0.5})
+Traceback (most recent call last):
+    ...
+an.audio.elevenlabs_tts.ElevenLabsVoiceError: unknown voice_settings key(s) ['stabilty']; known: ['similarity_boost', 'speed', 'stability', 'style', 'use_speaker_boost']
+```
+
+### an.audio.elevenlabs_tts.tagged_text(text, tags)
+
+`text` with each tag prefixed as `[tag]` — what an audio-tag model reads.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.elevenlabs_tts.takes_audio_tags(model_id, , prefixes=('eleven_v3', 'eleven_v4'))
+
+Whether `model_id` reads inline audio tags.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> takes_audio_tags("eleven_v3"), takes_audio_tags("eleven_turbo_v2_5")
+(True, False)
+```
 
 
 # _autosummary/an.audio.html.md
@@ -4448,14 +4638,52 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A rendered audio clip, on disk or in memory.
 
-### *class* an.audio.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128')
+### *class* an.audio.ElevenLabsTTS(, api_key=None, model_id='eleven_turbo_v2_5', output_format='mp3_44100_128', audio_tag_model_prefixes=('eleven_v3', 'eleven_v4'), client_factory=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 (falls back to `ELEVEN_API_KEY` / `ELEVENLABS_API_KEY`).
 
-Implements the `TTSProvider` protocol.
+Implements the `TTSProvider` protocol, plus the optional
+`synthesis_options` hook the audio pipeline reads (an#209).
+
+#### client_factory
+
+`api_key -> client`; tests inject a fake so nothing reaches the API.
+
+#### list_voices(, search=None)
+
+The account’s voices (its own plus the ones it saved), newest API.
+
+`search` filters by name, description and labels on the server. An
+absent key or SDK yields `[]`; a key that is present and a call that
+fails RAISES — an empty listing must mean “no voices”, not “it broke”.
+
+* **Return type:**
+  [`Iterable`](https://docs.python.org/3/library/typing.html#typing.Iterable)[[`VoiceMeta`](_autosummary/an.audio.tts.html.md#an.audio.tts.VoiceMeta)]
+
+#### synthesis_options(voice, , emotion=None, direction=None)
+
+The `synthesize` keyword arguments a voice document and a line imply.
+
+Only what is declared appears (`{}` for a plain voice), so the audio
+cache key — which includes this dict when it is non-empty — is unchanged
+for every voice that declares nothing new. `audio_tags` are the line’s
+`[emotion]` (unless `neutral`) then its `direction` cues, and only
+on a model that reads tags; elsewhere a direction is dropped with a
+warning and the emotion stays a face-only cue, as before.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+#### synthesize(text, voice_id=None, , model_id=None, voice_settings=None, seed=None, audio_tags=None, \*\*kw)
+
+Speak `text`. The clip’s `transcript` is `text` WITHOUT the tags,
+so alignment and captions never read a cue.
+
+* **Return type:**
+  [`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip)
 
 ### *class* an.audio.LipSyncProvider(\*args, \*\*kwargs)
 
@@ -4697,6 +4925,12 @@ its own key, so changing an effect never re-pays the TTS.
 voice reaches here (an#194). The provider is handed the voice document’s
 own `voice_id` when it names one.
 
+What the provider’s optional `synthesis_options` hook derives from the
+voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
+`seed`, and the `[emotion]`/`direction` audio tags — an#209) is passed
+to `synthesize` and keyed; the text handed to alignment is always the
+bare `dialogue.text`, never the tagged one.
+
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
@@ -4741,20 +4975,21 @@ audio’s actual length.
 
 ### Modules
 
-| [`effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163).   |
-|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                                |
-| [`injectable_lipsync`](_autosummary/an.audio.injectable_lipsync.html.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                         |
-| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                   |
-| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.             |
-| [`offline_lipsync`](_autosummary/an.audio.offline_lipsync.html.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                          |
-| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                          |
-| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.            |
-| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                   |
-| [`rhubarb_lipsync`](_autosummary/an.audio.rhubarb_lipsync.html.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.    |
-| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                    |
-| [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).        |
-| [`whisper_lipsync`](_autosummary/an.audio.whisper_lipsync.html.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.                |
+| [`cli`](_autosummary/an.audio.cli.html.md#module-an.audio.cli)                               | `an voices ...` — browse a TTS provider's voices from the shell (an#209).        |
+|--------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163). |
+| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                              |
+| [`injectable_lipsync`](_autosummary/an.audio.injectable_lipsync.html.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                       |
+| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                 |
+| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.           |
+| [`offline_lipsync`](_autosummary/an.audio.offline_lipsync.html.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                        |
+| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                        |
+| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.          |
+| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                 |
+| [`rhubarb_lipsync`](_autosummary/an.audio.rhubarb_lipsync.html.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.  |
+| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                  |
+| [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).      |
+| [`whisper_lipsync`](_autosummary/an.audio.whisper_lipsync.html.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.              |
 
 
 # _autosummary/an.audio.injectable_lipsync.html.md
@@ -5121,14 +5356,15 @@ the entire pipeline runs without API keys or external binaries.
 
 ### Functions
 
-| [`audio_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects and the provider voice it names (an#194).   |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                                                                        |
-| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                 |
-| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                       |
-| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                     |
-| [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                         |
-| [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                   |
+| [`audio_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194) and the provider's synthesis options (model, settings, seed, audio tags — an#209).   |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                                                                                                                                                       |
+| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                                |
+| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                      |
+| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                    |
+| [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                        |
+| [`synthesis_options`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                    |
+| [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                                  |
 
 ### Exceptions
 
@@ -5141,15 +5377,22 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The scene declares audio the pipeline cannot produce. Carries detail.
 
-### an.audio.pipeline.audio_key(text, voice_id, tts_name, effects=None, , provider_voice=None)
+### an.audio.pipeline.audio_key(text, voice_id, tts_name, effects=None, , provider_voice=None, options=None)
 
 Content key of a line’s audio: text, voice, provider, and — only when the
-voice declares them — its effects and the provider voice it names (an#194).
-With neither, the payload is exactly the pre-effects one, so every key a
-project already has is unchanged.
+voice declares them — its effects, the provider voice it names (an#194) and
+the provider’s synthesis options (model, settings, seed, audio tags —
+an#209). With none of them, the payload is exactly the pre-effects one, so
+every key a project already has is unchanged.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> audio_key("hi", "default", "offline") == audio_key(
+...     "hi", "default", "offline", {}, provider_voice=None, options={})
+True
+```
 
 ### an.audio.pipeline.default_lipsync()
 
@@ -5184,6 +5427,12 @@ its own key, so changing an effect never re-pays the TTS.
 [`an.audio.voices.line_voice_id()`](_autosummary/an.audio.voices.html.md#an.audio.voices.line_voice_id) resolves, so a character’s bound
 voice reaches here (an#194). The provider is handed the voice document’s
 own `voice_id` when it names one.
+
+What the provider’s optional `synthesis_options` hook derives from the
+voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
+`seed`, and the `[emotion]`/`direction` audio tags — an#209) is passed
+to `synthesize` and keyed; the text handed to alignment is always the
+bare `dialogue.text`, never the tagged one.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
@@ -5238,6 +5487,17 @@ without the pipeline there is no authority to say that stamp is stale.
 >>> [d.start for d in retime_dialogue(SceneIR(timeline=[shot])).timeline[0].dialogue]
 [0.0, 2.0]
 ```
+
+### an.audio.pipeline.synthesis_options(tts, line, mall, voice_id)
+
+The provider-specific `synthesize` kwargs for `line` in `voice_id`.
+
+`{}` for a provider without a `synthesis_options` hook (offline,
+mac_say) and for a voice written for another provider — which is what
+keeps their cache keys where they were.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
 
@@ -5461,7 +5721,12 @@ order, first hit wins:
 
 A voice document may name the TTS provider’s own voice with `voice_id` (a
 `say -v` name for `mac_say`, a voice id for ElevenLabs); the provider is
-handed that, and otherwise the store key itself. Nothing declared anywhere
+handed that, and otherwise the store key itself. A document that declares
+`provider` scopes its provider-specific keys (`voice_id`, and the
+`model_id` / `voice_settings` / `seed` ElevenLabs reads — an#209) to that
+provider: rendered with another one, the line is handed `"default"`, so an
+ElevenLabs-voiced project previews with `mac_say` or `offline` instead of
+failing on a foreign voice id. Nothing declared anywhere
 resolves every line to `"default"` handed to the provider as `"default"` —
 exactly what the pipeline did before this module, so no cache key moves.
 
@@ -5479,6 +5744,9 @@ exactly what the pipeline did before this module, so no cache key moves.
 'own'
 >>> provider_voice(mall, "carl_kid"), provider_voice(mall, "default")
 ('Junior', None)
+>>> mall["voices"]["bob"] = {"provider": "elevenlabs", "voice_id": "abc123"}
+>>> provider_voice(mall, "bob", tts_name="elevenlabs"), provider_voice(mall, "bob", tts_name="mac_say")
+('abc123', 'default')
 ```
 
 ### Module Attributes
@@ -5486,14 +5754,17 @@ exactly what the pipeline did before this module, so no cache key moves.
 | [`DEFAULT_VOICE`](_autosummary/an.audio.voices.html.md#an.audio.voices.DEFAULT_VOICE)       | The voice a line gets when neither it nor its speaker names one.                                                     |
 |----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
 | [`PROVIDER_VOICE_KEY`](_autosummary/an.audio.voices.html.md#an.audio.voices.PROVIDER_VOICE_KEY)  | The key, in a voice document, naming the TTS provider's own voice.                                                   |
+| [`PROVIDER_KEY`](_autosummary/an.audio.voices.html.md#an.audio.voices.PROVIDER_KEY)        | The key, in a voice document, naming the TTS provider it is written for.                                             |
 | [`CHARACTER_VOICE_KEY`](_autosummary/an.audio.voices.html.md#an.audio.voices.CHARACTER_VOICE_KEY) | The key, in a character descriptor (or an entity's `overrides`), naming the character's voice in the `voices` store. |
 
 ### Functions
 
-| [`line_voice_id`](_autosummary/an.audio.voices.html.md#an.audio.voices.line_voice_id)(line, shot, mall, \*[, default])   | The `voices`-store key `line` is spoken with (see the module doc).   |
-|---------------------------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| [`provider_voice`](_autosummary/an.audio.voices.html.md#an.audio.voices.provider_voice)(mall, voice_id)                   | The provider voice `mall["voices"][voice_id]` names, or `None`.      |
-| [`speaker_voice_ref`](_autosummary/an.audio.voices.html.md#an.audio.voices.speaker_voice_ref)(speaker, shot, mall)           | The voice the speaking character is bound to in `shot`, or `None`.   |
+| [`line_voice_id`](_autosummary/an.audio.voices.html.md#an.audio.voices.line_voice_id)(line, shot, mall, \*[, default])   | The `voices`-store key `line` is spoken with (see the module doc).     |
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| [`provider_voice`](_autosummary/an.audio.voices.html.md#an.audio.voices.provider_voice)(mall, voice_id, \*[, tts_name])   | The provider voice `mall["voices"][voice_id]` names, or `None`.        |
+| [`speaker_voice_ref`](_autosummary/an.audio.voices.html.md#an.audio.voices.speaker_voice_ref)(speaker, shot, mall)           | The voice the speaking character is bound to in `shot`, or `None`.     |
+| [`voice_applies`](_autosummary/an.audio.voices.html.md#an.audio.voices.voice_applies)(doc, tts_name)                     | Whether `doc`'s provider-specific keys apply under the TTS `tts_name`. |
+| [`voice_document`](_autosummary/an.audio.voices.html.md#an.audio.voices.voice_document)(mall, voice_id)                   | `mall["voices"][voice_id]` when it is a mapping, else `{}`.            |
 
 ### an.audio.voices.CHARACTER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_ref'*
 
@@ -5503,6 +5774,10 @@ the character’s voice in the `voices` store.
 ### an.audio.voices.DEFAULT_VOICE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'default'*
 
 The voice a line gets when neither it nor its speaker names one.
+
+### an.audio.voices.PROVIDER_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'provider'*
+
+The key, in a voice document, naming the TTS provider it is written for.
 
 ### an.audio.voices.PROVIDER_VOICE_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'voice_id'*
 
@@ -5515,13 +5790,15 @@ The `voices`-store key `line` is spoken with (see the module doc).
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.audio.voices.provider_voice(mall, voice_id)
+### an.audio.voices.provider_voice(mall, voice_id, , tts_name=None)
 
 The provider voice `mall["voices"][voice_id]` names, or `None`.
 
 `None` means “hand the provider `voice_id` itself” — a voice that is not
 in the store, a document without `voice_id`, or one whose `voice_id` is
 its own key (which changes nothing, so it must not move a cache key).
+Given `tts_name`, a document written for ANOTHER provider gives
+[`DEFAULT_VOICE`](_autosummary/an.audio.voices.html.md#an.audio.voices.DEFAULT_VOICE) — never a foreign voice id (an#209).
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
@@ -5537,6 +5814,30 @@ lets the entity’s `overrides` speak.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.voices.voice_applies(doc, tts_name)
+
+Whether `doc`’s provider-specific keys apply under the TTS `tts_name`.
+
+True when the document names no `provider`, or names this one (case
+ignored), or when the caller does not say which provider is speaking.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> voice_applies({}, "offline"), voice_applies({"provider": "ElevenLabs"}, "elevenlabs")
+(True, True)
+>>> voice_applies({"provider": "elevenlabs"}, "offline")
+False
+```
+
+### an.audio.voices.voice_document(mall, voice_id)
+
+`mall["voices"][voice_id]` when it is a mapping, else `{}`.
+
+* **Return type:**
+  [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)
 
 
 # _autosummary/an.audio.whisper_lipsync.html.md
@@ -6582,7 +6883,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'mouth', 'eye', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'rect', 'ellipse', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -15531,6 +15832,14 @@ Where this line starts, in SHOT seconds, whatever came before it —
 DERIVES from `at`/`pause` on every pass; these two are what the
 author wrote (an#187).
 
+#### direction *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How the line is DELIVERED — cues such as `["excited"]` or
+`["sighs", "annoyed"]`, `{excited}` in `scene.md` (an#209). A TTS
+model that takes inline audio tags (ElevenLabs v3/v4) receives them as
+`[excited] Hi!`; others ignore them. Never part of `text`, so
+captions and lip-sync alignment never see a cue.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -17904,6 +18213,14 @@ Where this line starts, in SHOT seconds, whatever came before it —
 DERIVES from `at`/`pause` on every pass; these two are what the
 author wrote (an#187).
 
+#### direction *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How the line is DELIVERED — cues such as `["excited"]` or
+`["sighs", "annoyed"]`, `{excited}` in `scene.md` (an#209). A TTS
+model that takes inline audio tags (ElevenLabs v3/v4) receives them as
+`[excited] Hi!`; others ignore them. Never part of `text`, so
+captions and lip-sync alignment never see a cue.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -18707,6 +19024,14 @@ Where this line starts, in SHOT seconds, whatever came before it —
 `(at 3.0)` in `scene.md`. `start` is what the audio pipeline
 DERIVES from `at`/`pause` on every pass; these two are what the
 author wrote (an#187).
+
+#### direction *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+How the line is DELIVERED — cues such as `["excited"]` or
+`["sighs", "annoyed"]`, `{excited}` in `scene.md` (an#209). A TTS
+model that takes inline audio tags (ElevenLabs v3/v4) receives them as
+`[excited] Hi!`; others ignore them. Never part of `text`, so
+captions and lip-sync alignment never see a cue.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
@@ -23025,20 +23350,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 14:58 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/935429f5a1190d1a09321968345a66a3fde6d4cf"><code>935429f</code></a> on branch <code>main</code>, for **an 0.1.114** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 16:10 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/aef94b2ecaf28ac814c50bed4db402693ba517e7"><code>aef94b2</code></a> on branch <code>main</code>, for **an 0.1.115** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.114) is ahead of the latest release on PyPI (0.1.113): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/935429f5a1190d1a09321968345a66a3fde6d4cf"><code>935429f5a1190d1a09321968345a66a3fde6d4cf</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/aef94b2ecaf28ac814c50bed4db402693ba517e7"><code>aef94b2ecaf28ac814c50bed4db402693ba517e7</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.114</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.115</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -23047,9 +23370,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36732592954">36732592954</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36741710724">36741710724</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>4a34eb546e677192bd66d311ab8ae355ade8e9c2</code> (in the history of the built commit) |
+| Event commit | <code>74819d1241311e03336e3126d528dbfc445cf00e</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -23074,13 +23397,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.113/">0.1.113</a>, older than the documented version (0.1.114).
+Latest release: <a href="https://pypi.org/project/an/0.1.115/">0.1.115</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 935429f5a1190d1a09321968345a66a3fde6d4cf
+git checkout aef94b2ecaf28ac814c50bed4db402693ba517e7
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

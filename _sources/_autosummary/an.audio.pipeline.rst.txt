@@ -14,6 +14,7 @@ an.audio.pipeline
       produce_audio_for_dialogue
       produce_audio_for_scene
       retime_dialogue
+      synthesis_options
       viseme_key
    
    .. rubric:: Exceptions

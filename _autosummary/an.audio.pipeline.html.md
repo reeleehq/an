@@ -21,14 +21,15 @@ the entire pipeline runs without API keys or external binaries.
 
 ### Functions
 
-| [`audio_key`](#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects and the provider voice it names (an#194).   |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`default_lipsync`](#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                                                                        |
-| [`default_tts`](#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                 |
-| [`produce_audio_for_dialogue`](#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                       |
-| [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                     |
-| [`retime_dialogue`](#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                         |
-| [`viseme_key`](#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                   |
+| [`audio_key`](#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194) and the provider's synthesis options (model, settings, seed, audio tags — an#209).   |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`default_lipsync`](#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                                                                                                                                                       |
+| [`default_tts`](#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                                |
+| [`produce_audio_for_dialogue`](#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                      |
+| [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                    |
+| [`retime_dialogue`](#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                        |
+| [`synthesis_options`](#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                    |
+| [`viseme_key`](#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                                  |
 
 ### Exceptions
 
@@ -41,15 +42,22 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The scene declares audio the pipeline cannot produce. Carries detail.
 
-### an.audio.pipeline.audio_key(text, voice_id, tts_name, effects=None, , provider_voice=None)
+### an.audio.pipeline.audio_key(text, voice_id, tts_name, effects=None, , provider_voice=None, options=None)
 
 Content key of a line’s audio: text, voice, provider, and — only when the
-voice declares them — its effects and the provider voice it names (an#194).
-With neither, the payload is exactly the pre-effects one, so every key a
-project already has is unchanged.
+voice declares them — its effects, the provider voice it names (an#194) and
+the provider’s synthesis options (model, settings, seed, audio tags —
+an#209). With none of them, the payload is exactly the pre-effects one, so
+every key a project already has is unchanged.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> audio_key("hi", "default", "offline") == audio_key(
+...     "hi", "default", "offline", {}, provider_voice=None, options={})
+True
+```
 
 ### an.audio.pipeline.default_lipsync()
 
@@ -84,6 +92,12 @@ its own key, so changing an effect never re-pays the TTS.
 [`an.audio.voices.line_voice_id()`](an.audio.voices.html.md#an.audio.voices.line_voice_id) resolves, so a character’s bound
 voice reaches here (an#194). The provider is handed the voice document’s
 own `voice_id` when it names one.
+
+What the provider’s optional `synthesis_options` hook derives from the
+voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
+`seed`, and the `[emotion]`/`direction` audio tags — an#209) is passed
+to `synthesize` and keyed; the text handed to alignment is always the
+bare `dialogue.text`, never the tagged one.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
@@ -138,6 +152,17 @@ without the pipeline there is no authority to say that stamp is stale.
 >>> [d.start for d in retime_dialogue(SceneIR(timeline=[shot])).timeline[0].dialogue]
 [0.0, 2.0]
 ```
+
+### an.audio.pipeline.synthesis_options(tts, line, mall, voice_id)
+
+The provider-specific `synthesize` kwargs for `line` in `voice_id`.
+
+`{}` for a provider without a `synthesis_options` hook (offline,
+mac_say) and for a voice written for another provider — which is what
+keeps their cache keys where they were.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 ### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
 
