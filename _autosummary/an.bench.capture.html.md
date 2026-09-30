@@ -108,11 +108,19 @@ tree, a character rig’s included.
 
 Where the renderer leaves its per-shot working tree inside the project.
 
-### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>)
+### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>, capture='')
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 One fixture’s whole render.
+
+#### capture *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+How the frames left the browser (`"screenshot"` / `"canvas"`),
+resolved the way the render resolves it. The decoded pixels are the same
+either way, so no metric moves — but `wall_seconds` does, several-fold,
+and a timing row is only readable beside the path that produced it
+(an#192 flipped the default).
 
 ### *class* an.bench.capture.ShotCapture(shot_id, frames_dir, scene_json, runtime_dir, frame_count, duration=0.0, frame_sizes=())
 

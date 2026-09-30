@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=619bccd5"></script>
+    <script src="../../../_static/documentation_options.js?v=566346bf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.115" />
+  <meta name="docsearch:version" content="0.1.116" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1861,6 +1861,10 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"asset_resolution"</span><span class="p">:</span> <span class="n">capture</span><span class="o">.</span><span class="n">asset_resolution</span><span class="p">,</span>
                 <span class="s2">"audio_cache"</span><span class="p">:</span> <span class="n">capture</span><span class="o">.</span><span class="n">audio_cache</span><span class="p">,</span>
                 <span class="s2">"wall_seconds"</span><span class="p">:</span> <span class="n">capture</span><span class="o">.</span><span class="n">wall_seconds</span><span class="p">,</span>
+                <span class="c1"># Beside the timing it explains: the canvas path is several</span>
+                <span class="c1"># times faster and moves no pixel (an#192), so wall_seconds on</span>
+                <span class="c1"># either side of the default flip are not comparable.</span>
+                <span class="s2">"capture"</span><span class="p">:</span> <span class="n">capture</span><span class="o">.</span><span class="n">capture</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">scene_prov</span><span class="p">,</span>
             <span class="p">}</span>
             <span class="k">if</span> <span class="n">provenance</span><span class="p">[</span><span class="s2">"frames_on_disk"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">:</span>

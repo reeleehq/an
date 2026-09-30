@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=619bccd5"></script>
+    <script src="../_static/documentation_options.js?v=566346bf"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.props" href="an.props.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.115" />
+  <meta name="docsearch:version" content="0.1.116" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -634,12 +634,12 @@ GIL during the slow parts).</p>
 <p><code class="docutils literal notranslate"><span class="pre">supersample</span></code> renders at N times the declared resolution and resolves back
 with an exact block mean. <strong>Opt-in, and 1 is free</strong> — at 1 nothing is
 decoded and Chromium’s own bytes reach disk. See <a class="reference internal" href="#an.render.render" title="an.render.render"><code class="xref py py-func docutils literal notranslate"><span class="pre">render()</span></code></a>.</p>
-<p><code class="docutils literal notranslate"><span class="pre">capture</span></code> picks how frames leave the browser: <code class="docutils literal notranslate"><span class="pre">&quot;screenshot&quot;</span></code> (the
-default, via <code class="docutils literal notranslate"><span class="pre">None</span></code>) or <code class="docutils literal notranslate"><span class="pre">&quot;canvas&quot;</span></code> — an in-page read of the canvas,
-batched, writing frames whose decoded pixels equal the screenshot path’s
-and measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p (see
-<code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.canvas_capture</span></code>). Opt-in until the equivalence gate has
-held on both rendering lanes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">capture</span></code> picks how frames leave the browser: <code class="docutils literal notranslate"><span class="pre">&quot;canvas&quot;</span></code> (the default,
+via <code class="docutils literal notranslate"><span class="pre">None</span></code>, since an#192) — an in-page read of the canvas, batched,
+writing frames whose decoded pixels equal the screenshot path’s and
+measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at
+1080p (see <code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.canvas_capture</span></code>) — or <code class="docutils literal notranslate"><span class="pre">&quot;screenshot&quot;</span></code>, a
+Playwright element screenshot per instant.</p>
 <p><code class="docutils literal notranslate"><span class="pre">step_hz</span></code> overrides the scene’s <code class="docutils literal notranslate"><span class="pre">meta.step_hz</span></code> for this render (a shot’s
 own <code class="docutils literal notranslate"><span class="pre">step_hz</span></code> still wins): authored tweens are resampled onto a pose grid
 of that many updates per second — 15 at 30 fps is “on twos”. <code class="docutils literal notranslate"><span class="pre">None</span></code> uses

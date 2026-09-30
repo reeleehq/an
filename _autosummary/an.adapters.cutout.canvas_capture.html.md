@@ -2,8 +2,9 @@
 
 The canvas capture path: frames read from the page, not photographed off the screen.
 
-The default capture (`render._capture_frames`, `capture="screenshot"`) asks
-Playwright for an ELEMENT screenshot of `#stage` on every frame. That is a page
+The screenshot capture (`render._capture_frames`, `capture="screenshot"`, the
+default until an#192) asks Playwright for an ELEMENT screenshot of `#stage` on
+every frame. That is a page
 capture clipped to the element, taken from the compositor, and it is the largest
 single cost in the frame path — ~100 ms/frame at 1080p that is neither the GPU
 readback nor the PNG encode (`an-dev-render-pipeline` §8). This path instead

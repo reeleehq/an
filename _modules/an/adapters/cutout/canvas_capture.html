@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=619bccd5"></script>
+    <script src="../../../../_static/documentation_options.js?v=566346bf"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.115" />
+  <meta name="docsearch:version" content="0.1.116" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -712,8 +712,9 @@ window.runMermaid = runMermaid;</script>
   <h1>Source code for an.adapters.cutout.canvas_capture</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""The canvas capture path: frames read from the page, not photographed off the screen.</span>
 
-<span class="sd">The default capture (`render._capture_frames`, ``capture="screenshot"``) asks</span>
-<span class="sd">Playwright for an ELEMENT screenshot of ``#stage`` on every frame. That is a page</span>
+<span class="sd">The screenshot capture (`render._capture_frames`, ``capture="screenshot"``, the</span>
+<span class="sd">default until an#192) asks Playwright for an ELEMENT screenshot of ``#stage`` on</span>
+<span class="sd">every frame. That is a page</span>
 <span class="sd">capture clipped to the element, taken from the compositor, and it is the largest</span>
 <span class="sd">single cost in the frame path — ~100 ms/frame at 1080p that is neither the GPU</span>
 <span class="sd">readback nor the PNG encode (`an-dev-render-pipeline` §8). This path instead</span>
@@ -931,15 +932,21 @@ window.runMermaid = runMermaid;</script>
         <span class="k">raise</span> <span class="n">CanvasCaptureError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"frame </span><span class="si">{</span><span class="n">frame</span><span class="si">}</span><span class="s2">: no samples were captured"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">compress_level</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">compress_level</span> <span class="o">=</span> <span class="n">DEFAULT_PNG_COMPRESS_LEVEL</span>
-    <span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="n">opaque_rgb</span><span class="p">(</span><span class="n">png</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span> <span class="k">for</span> <span class="n">png</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">==</span> <span class="n">NO_SUPERSAMPLE</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">factor</span> <span class="o">==</span> <span class="n">NO_SUPERSAMPLE</span><span class="p">:</span>
         <span class="c1"># The common case never leaves Pillow: nothing to resolve or average.</span>
-        <span class="p">(</span><span class="n">image</span><span class="p">,)</span> <span class="o">=</span> <span class="n">images</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">opaque_rgb</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)</span>
         <span class="n">_check_size</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="n">factor</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_encode</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">compress_level</span><span class="p">)</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-    <span class="n">resolved</span> <span class="o">=</span> <span class="p">[</span><span class="n">block_mean_resolve</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">im</span><span class="p">),</span> <span class="n">factor</span><span class="p">)</span> <span class="k">for</span> <span class="n">im</span> <span class="ow">in</span> <span class="n">images</span><span class="p">]</span>
+    <span class="c1"># Resolved as each sample is decoded, so at most ONE full-size (k-times)</span>
+    <span class="c1"># canvas is alive at a time, as on the screenshot path. Decoding them all</span>
+    <span class="c1"># first held samples x k² full frames per frame in flight (review of an#192:</span>
+    <span class="c1"># 16 GB at supersample 3 with a grain pack).</span>
+    <span class="n">resolved</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">block_mean_resolve</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">opaque_rgb</span><span class="p">(</span><span class="n">png</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">frame</span><span class="p">)),</span> <span class="n">factor</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">png</span> <span class="ow">in</span> <span class="n">samples</span>
+    <span class="p">]</span>
     <span class="n">shapes</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">resolved</span><span class="p">}</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shapes</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CanvasCaptureError</span><span class="p">(</span>

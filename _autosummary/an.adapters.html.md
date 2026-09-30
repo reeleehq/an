@@ -55,8 +55,8 @@ after itself or treat it as ephemeral.
 `"screenshot"` (a Playwright element
 screenshot per instant) or `"canvas"` (the runtime reads its own canvas
 in-page, in batches). `None` is the renderer’s module default, read at
-call time — `"screenshot"` until the equivalence gate has held on the
-whole corpus on both lanes. The two paths write frames whose DECODED
+call time — `"canvas"` since an#192, after the equivalence gate held on
+the whole corpus on both lanes. The two paths write frames whose DECODED
 pixels are equal, so this is a throughput knob and never a picture knob;
 a `RenderContext` field for `supersample`’s reason, and recorded in
 per-shot provenance.

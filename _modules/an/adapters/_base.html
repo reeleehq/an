@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=619bccd5"></script>
+    <script src="../../../_static/documentation_options.js?v=566346bf"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.115" />
+  <meta name="docsearch:version" content="0.1.116" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -826,8 +826,8 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: How frames leave the browser: ``"screenshot"`` (a Playwright element</span>
     <span class="c1">#: screenshot per instant) or ``"canvas"`` (the runtime reads its own canvas</span>
     <span class="c1">#: in-page, in batches). ``None`` is the renderer's module default, read at</span>
-    <span class="c1">#: call time — ``"screenshot"`` until the equivalence gate has held on the</span>
-    <span class="c1">#: whole corpus on both lanes. The two paths write frames whose DECODED</span>
+    <span class="c1">#: call time — ``"canvas"`` since an#192, after the equivalence gate held on</span>
+    <span class="c1">#: the whole corpus on both lanes. The two paths write frames whose DECODED</span>
     <span class="c1">#: pixels are equal, so this is a throughput knob and never a picture knob;</span>
     <span class="c1">#: a `RenderContext` field for `supersample`'s reason, and recorded in</span>
     <span class="c1">#: per-shot provenance.</span>

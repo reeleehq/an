@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=619bccd5"></script>
+    <script src="../../../../_static/documentation_options.js?v=566346bf"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.115" />
+  <meta name="docsearch:version" content="0.1.116" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -719,9 +719,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">   JSON beside it.</span>
 <span class="sd">3. Launch headless Chromium via Playwright; load `index.html`; inject the</span>
 <span class="sd">   scene via ``window.anLoadScene``.</span>
-<span class="sd">4. For each frame ``f`` in ``[0, total_frames)``: call ``window.anSetTime(f/fps)``</span>
-<span class="sd">   and screenshot the canvas to a PNG — or, with ``capture="canvas"``, read the</span>
-<span class="sd">   canvas's own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`).</span>
+<span class="sd">4. For each frame ``f`` in ``[0, total_frames)``: seek ``f/fps`` and capture the</span>
+<span class="sd">   canvas to a PNG — by default (``capture="canvas"``, since an#192) reading its</span>
+<span class="sd">   own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`); with</span>
+<span class="sd">   ``capture="screenshot"``, ``window.anSetTime`` plus a Playwright element</span>
+<span class="sd">   screenshot per instant.</span>
 <span class="sd">5. Mux the PNG sequence to mp4 with ffmpeg.</span>
 
 <span class="sd">Failures are reported with concrete remediation: missing ffmpeg, missing</span>
@@ -885,20 +887,21 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: has not been measured against the panel.</span>
 <span class="n">SUPPORTED_PIX_FMTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"yuv420p"</span><span class="p">,</span> <span class="s2">"yuv444p"</span><span class="p">)</span>
 
-<span class="c1">#: How frames leave the browser. ``"screenshot"``: a Playwright element</span>
-<span class="c1">#: screenshot of ``#stage`` per instant — the path every render took before the</span>
-<span class="c1">#: canvas path existed, and still the default. ``"canvas"``: the runtime's</span>
-<span class="c1">#: ``anCaptureFrames`` reads the canvas in-page and hands back PNG data URLs in</span>
-<span class="c1">#: batches (`an.adapters.cutout.canvas_capture`), which writes frames whose</span>
-<span class="c1">#: DECODED pixels equal the screenshot path's.</span>
+<span class="c1">#: How frames leave the browser. ``"canvas"`` (the default since an#192): the</span>
+<span class="c1">#: runtime's ``anCaptureFrames`` reads the canvas in-page and hands back PNG data</span>
+<span class="c1">#: URLs in batches (`an.adapters.cutout.canvas_capture`), which writes frames</span>
+<span class="c1">#: whose DECODED pixels equal the screenshot path's — ~7.8x faster in the frame</span>
+<span class="c1">#: stage on the golden corpus, ~2.3x at 1080p. ``"screenshot"``: a Playwright</span>
+<span class="c1">#: element screenshot of ``#stage`` per instant, the path every render took</span>
+<span class="c1">#: before; still available (``an render --capture screenshot``).</span>
 <span class="c1">#:</span>
-<span class="c1">#: **The default stays ``"screenshot"`` until the equivalence gate has held on</span>
-<span class="c1">#: the whole golden corpus on both the developer machine and the labelled Linux</span>
-<span class="c1">#: rendering lane** (epic #9's throughput track): a faster path that moved a</span>
-<span class="c1">#: pixel would silently invalidate every baseline recorded before it. The flip is</span>
-<span class="c1">#: its own one-line PR. Read as a MODULE GLOBAL at call time, for</span>
-<span class="c1">#: `DEFAULT_PIX_FMT`'s reason — a default argument would bind it at def time.</span>
-<span class="n">DEFAULT_CAPTURE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"screenshot"</span>
+<span class="c1">#: Flipped only after the equivalence gate (`tests/test_canvas_capture_equivalence.py`)</span>
+<span class="c1">#: held on the whole golden corpus on a developer machine AND the labelled Linux</span>
+<span class="c1">#: rendering lane (an#189, re-run on an#192): a faster path that moved a pixel</span>
+<span class="c1">#: would silently invalidate every baseline recorded before it. Read as a MODULE</span>
+<span class="c1">#: GLOBAL at call time, for `DEFAULT_PIX_FMT`'s reason — a default argument</span>
+<span class="c1">#: would bind it at def time.</span>
+<span class="n">DEFAULT_CAPTURE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"canvas"</span>
 
 <span class="c1">#: The capture paths `_check_capture` accepts. Not an open string: a typo must</span>
 <span class="c1">#: fail before a browser launches, not minutes into a render.</span>
@@ -918,6 +921,21 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: it eats the win. Two, not `cpu_count()`: `an render --parallel` already runs</span>
 <span class="c1">#: one Chromium per shot, and each of them is another source of CPU pressure.</span>
 <span class="n">DEFAULT_CANVAS_ENCODE_WORKERS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1">#: The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample</span>
+<span class="c1">#: counts k² times and an open shutter once per instant): at most this many per</span>
+<span class="c1">#: ``anCaptureFrames`` round trip, and twice this many waiting on the encode</span>
+<span class="c1">#: pool. Two 1080p instants: small scenes still batch by the frame count</span>
+<span class="c1">#: above, and at 1080p the batch size stopped mattering for a flat scene</span>
+<span class="c1">#: (96 frames: 4.7 s at 2, 4 or 8 per round trip) while it decides everything</span>
+<span class="c1">#: for an incompressible one (a grain pack, 48 frames: 11.0 s / 0.38 GB at 2</span>
+<span class="c1">#: against 17.8 s / 2.1 GB at 8; the screenshot path 17.8 s / 0.16 GB). Needed</span>
+<span class="c1">#: because a count alone does not bound the bytes: the review of an#192</span>
+<span class="c1">#: measured grain at supersample 2 with an 8-sample shutter overflowing the</span>
+<span class="c1">#: driver's string limit in ONE reply (the render hung in ``browser.close()``),</span>
+<span class="c1">#: and ~16 GB of Python memory at supersample 3. A frame whose instants alone</span>
+<span class="c1">#: exceed it is captured over several round trips.</span>
+<span class="n">DEFAULT_CANVAS_BATCH_PIXELS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="mi">1920</span> <span class="o">*</span> <span class="mi">1080</span>
 
 <span class="c1">#: BACK-PRESSURE: frames handed to the encode pool and not yet written. When</span>
 <span class="c1">#: the pool falls behind, the capture loop blocks on the oldest one before it</span>
@@ -1041,15 +1059,16 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Resolve and validate the capture path; ``None`` is the module default</span>
 <span class="sd">    **at call time**, which keeps :data:`DEFAULT_CAPTURE` flippable from outside.</span>
 
-<span class="sd">    &gt;&gt;&gt; _check_capture(None), _check_capture("canvas")</span>
-<span class="sd">    ('screenshot', 'canvas')</span>
+<span class="sd">    &gt;&gt;&gt; _check_capture(None), _check_capture("screenshot")</span>
+<span class="sd">    ('canvas', 'screenshot')</span>
 <span class="sd">    """</span>
     <span class="n">resolved</span> <span class="o">=</span> <span class="n">capture</span> <span class="ow">or</span> <span class="n">DEFAULT_CAPTURE</span>
     <span class="k">if</span> <span class="n">resolved</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SUPPORTED_CAPTURES</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CutoutRenderError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"capture=</span><span class="si">{</span><span class="n">resolved</span><span class="si">!r}</span><span class="s2"> is not one of </span><span class="si">{</span><span class="n">SUPPORTED_CAPTURES</span><span class="si">}</span><span class="s2">. "</span>
-            <span class="s2">"'screenshot' is the default; 'canvas' reads the canvas in-page and "</span>
-            <span class="s2">"writes frames whose decoded pixels equal the screenshot path's."</span>
+            <span class="s2">"'canvas' is the default and reads the canvas in-page; 'screenshot' "</span>
+            <span class="s2">"takes a Playwright element screenshot per instant. Both write frames "</span>
+            <span class="s2">"with the same decoded pixels."</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">resolved</span>
 
@@ -1116,7 +1135,7 @@ window.runMermaid = runMermaid;</script>
 
         <span class="n">job</span> <span class="o">=</span> <span class="n">_stage_job</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">work_dir</span><span class="p">,</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">scene_json</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">mall</span><span class="p">)</span>
 
-        <span class="c1"># Drive Chromium → screenshot frames.</span>
+        <span class="c1"># Drive Chromium → capture frames (canvas read or screenshot, `capture`).</span>
         <span class="c1"># Phase 11b: serve runtime via local HTTP because PIXI.Assets.fetch()</span>
         <span class="c1"># can't load file:// URLs in headless Chromium. Same effect as a</span>
         <span class="c1"># static deployment, isolated to this render.</span>
@@ -1597,6 +1616,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">batch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">max_inflight</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">batch_pixels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The ``capture="canvas"`` frame stage: in-page reads, batched, ordered, bounded.</span>
 
@@ -1623,8 +1643,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">      unwritten; past that the loop blocks on the OLDEST before asking the page</span>
 <span class="sd">      for more (back-pressure), so a long shot costs bounded memory.</span>
 
-<span class="sd">    ``None`` for ``batch`` / ``workers`` / ``max_inflight`` reads the module</span>
-<span class="sd">    defaults at call time.</span>
+<span class="sd">    Both bounds are ALSO held in captured pixels when ``resolution`` is known</span>
+<span class="sd">    (:data:`DEFAULT_CANVAS_BATCH_PIXELS`, ``batch_pixels``): a round trip</span>
+<span class="sd">    carries at most that many backbuffer pixels, the pool at most twice that,</span>
+<span class="sd">    and a frame whose instants alone exceed it is captured over several round</span>
+<span class="sd">    trips and encoded once all of them are in. A frame count alone bounds</span>
+<span class="sd">    nothing when a frame is a k-times, many-sample, incompressible canvas.</span>
+
+<span class="sd">    ``None`` for ``batch`` / ``workers`` / ``max_inflight`` / ``batch_pixels``</span>
+<span class="sd">    reads the module defaults at call time.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
@@ -1632,10 +1659,16 @@ window.runMermaid = runMermaid;</script>
     <span class="n">batch</span> <span class="o">=</span> <span class="n">batch</span> <span class="ow">or</span> <span class="n">DEFAULT_CANVAS_BATCH</span>
     <span class="n">workers</span> <span class="o">=</span> <span class="n">workers</span> <span class="ow">or</span> <span class="n">DEFAULT_CANVAS_ENCODE_WORKERS</span>
     <span class="n">max_inflight</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_inflight</span> <span class="ow">or</span> <span class="n">DEFAULT_CANVAS_MAX_INFLIGHT</span><span class="p">)</span>
+    <span class="n">budget</span> <span class="o">=</span> <span class="n">batch_pixels</span> <span class="ow">or</span> <span class="n">DEFAULT_CANVAS_BATCH_PIXELS</span>
     <span class="n">instants</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">fps</span><span class="p">),)</span> <span class="k">if</span> <span class="n">frame_samples</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">frame_samples</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_frames</span><span class="p">)</span>
     <span class="p">]</span>
+    <span class="c1"># Backbuffer pixels per captured instant; 0 (unknown) disables the pixel</span>
+    <span class="c1"># bounds and leaves the frame counts in charge, as before.</span>
+    <span class="n">per_instant</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">resolution</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">resolution</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">supersample</span> <span class="o">*</span> <span class="n">supersample</span> <span class="k">if</span> <span class="n">resolution</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_encode</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pngs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">frames_dir</span> <span class="o">/</span> <span class="p">(</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
@@ -1646,17 +1679,39 @@ window.runMermaid = runMermaid;</script>
         <span class="n">out</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">i</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_round_trips</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">"""Requests grouped into round trips, each ``(request, frame_done)``.</span>
+<span class="sd">        A frame's instants are split only when they alone exceed the budget,</span>
+<span class="sd">        so the parts of one frame never share a round trip."""</span>
+        <span class="n">per_part</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">budget</span> <span class="o">//</span> <span class="n">per_instant</span><span class="p">)</span> <span class="k">if</span> <span class="n">per_instant</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">trip</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">trip_pixels</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">times</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">instants</span><span class="p">):</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="n">per_part</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">),</span> <span class="n">step</span><span class="p">):</span>
+                <span class="n">part</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">times</span><span class="p">[</span><span class="n">j</span> <span class="p">:</span> <span class="n">j</span> <span class="o">+</span> <span class="n">step</span><span class="p">])</span>
+                <span class="n">pixels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">part</span><span class="p">)</span> <span class="o">*</span> <span class="n">per_instant</span>
+                <span class="k">if</span> <span class="n">trip</span> <span class="ow">and</span> <span class="p">(</span>
+                    <span class="nb">len</span><span class="p">(</span><span class="n">trip</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">batch</span>
+                    <span class="ow">or</span> <span class="p">(</span><span class="n">per_instant</span> <span class="ow">and</span> <span class="n">trip_pixels</span> <span class="o">+</span> <span class="n">pixels</span> <span class="o">&gt;</span> <span class="n">budget</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">trip</span>
+                    <span class="n">trip</span><span class="p">,</span> <span class="n">trip_pixels</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">0</span>
+                <span class="n">trip</span><span class="o">.</span><span class="n">append</span><span class="p">(({</span><span class="s2">"frame"</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s2">"times"</span><span class="p">:</span> <span class="n">part</span><span class="p">},</span> <span class="n">j</span> <span class="o">+</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)))</span>
+                <span class="n">trip_pixels</span> <span class="o">+=</span> <span class="n">pixels</span>
+        <span class="k">if</span> <span class="n">trip</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">trip</span>
+
     <span class="n">written</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">inflight</span><span class="p">:</span> <span class="n">deque</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>
+    <span class="n">inflight</span><span class="p">:</span> <span class="n">deque</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>  <span class="c1"># (future, pixels)</span>
+    <span class="n">inflight_pixels</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">pending</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the samples of a frame split across round trips</span>
     <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span>
         <span class="n">max_workers</span><span class="o">=</span><span class="n">workers</span><span class="p">,</span> <span class="n">thread_name_prefix</span><span class="o">=</span><span class="s2">"an-canvas"</span>
     <span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
-                <span class="n">requests</span> <span class="o">=</span> <span class="p">[</span>
-                    <span class="p">{</span><span class="s2">"frame"</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s2">"times"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">instants</span><span class="p">[</span><span class="n">i</span><span class="p">])}</span>
-                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">batch</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">))</span>
-                <span class="p">]</span>
+            <span class="k">for</span> <span class="n">trip</span> <span class="ow">in</span> <span class="n">_round_trips</span><span class="p">():</span>
+                <span class="n">requests</span> <span class="o">=</span> <span class="p">[</span><span class="n">req</span> <span class="k">for</span> <span class="n">req</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">trip</span><span class="p">]</span>
                 <span class="n">reply</span> <span class="o">=</span> <span class="n">_evaluate</span><span class="p">(</span>
                     <span class="n">page</span><span class="p">,</span>
                     <span class="n">_CAPTURE_FRAMES_JS</span><span class="p">,</span>
@@ -1666,16 +1721,28 @@ window.runMermaid = runMermaid;</script>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">requests</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">'frame'</span><span class="p">]</span><span class="si">}</span><span class="s2"> from the canvas"</span>
                     <span class="p">),</span>
                 <span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pngs</span> <span class="ow">in</span> <span class="n">_checked_capture_reply</span><span class="p">(</span><span class="n">reply</span><span class="p">,</span> <span class="n">requests</span><span class="p">):</span>
-                    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">inflight</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_inflight</span><span class="p">:</span>
-                        <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inflight</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
-                    <span class="n">inflight</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_encode</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pngs</span><span class="p">))</span>
+                <span class="n">checked</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_checked_capture_reply</span><span class="p">(</span><span class="n">reply</span><span class="p">,</span> <span class="n">requests</span><span class="p">))</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">pngs</span><span class="p">),</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">done</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">checked</span><span class="p">,</span> <span class="n">trip</span><span class="p">):</span>
+                    <span class="n">pending</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">pngs</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">pixels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pending</span><span class="p">)</span> <span class="o">*</span> <span class="n">per_instant</span>
+                    <span class="k">while</span> <span class="n">inflight</span> <span class="ow">and</span> <span class="p">(</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="n">inflight</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_inflight</span>
+                        <span class="ow">or</span> <span class="p">(</span><span class="n">per_instant</span> <span class="ow">and</span> <span class="n">inflight_pixels</span> <span class="o">+</span> <span class="n">pixels</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">budget</span><span class="p">)</span>
+                    <span class="p">):</span>
+                        <span class="n">fut</span><span class="p">,</span> <span class="n">done_pixels</span> <span class="o">=</span> <span class="n">inflight</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+                        <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fut</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+                        <span class="n">inflight_pixels</span> <span class="o">-=</span> <span class="n">done_pixels</span>
+                    <span class="n">inflight</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_encode</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pending</span><span class="p">),</span> <span class="n">pixels</span><span class="p">))</span>
+                    <span class="n">inflight_pixels</span> <span class="o">+=</span> <span class="n">pixels</span>
+                    <span class="n">pending</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">while</span> <span class="n">inflight</span><span class="p">:</span>
-                <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inflight</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+                <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inflight</span><span class="o">.</span><span class="n">popleft</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="c1"># A failure anywhere must not leave encodes running against a</span>
             <span class="c1"># frames directory the caller is about to treat as finished.</span>
-            <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">inflight</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fut</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">inflight</span><span class="p">:</span>
                 <span class="n">fut</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
     <span class="c1"># Belt and braces, checked on DISK rather than on the bookkeeping above</span>
     <span class="c1"># (which is correct by construction): the mux reads the directory, so the</span>

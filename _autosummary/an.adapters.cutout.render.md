@@ -9,9 +9,11 @@ The flow per shot:
    JSON beside it.
 3. Launch headless Chromium via Playwright; load `index.html`; inject the
    scene via `window.anLoadScene`.
-4. For each frame `f` in `[0, total_frames)`: call `window.anSetTime(f/fps)`
-   and screenshot the canvas to a PNG — or, with `capture="canvas"`, read the
-   canvas’s own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`).
+4. For each frame `f` in `[0, total_frames)`: seek `f/fps` and capture the
+   canvas to a PNG — by default (`capture="canvas"`, since an#192) reading its
+   own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`); with
+   `capture="screenshot"`, `window.anSetTime` plus a Playwright element
+   screenshot per instant.
 5. Mux the PNG sequence to mp4 with ffmpeg.
 
 Failures are reported with concrete remediation: missing ffmpeg, missing
@@ -20,18 +22,19 @@ facade boundary.
 
 ### Module Attributes
 
-| [`DEFAULT_ASSET_LOAD_TIMEOUT_MS`](#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS)   | Deadline for `anLoadScene`, which awaits `PIXI.Assets.load` for every declared texture.                                                             |
-|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DETERMINISTIC_CHROMIUM_ARGS`](#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS)     | Chromium launch flags that pin the rasteriser (an#31, research §2).                                                                                 |
-| [`DEFAULT_PIX_FMT`](#an.adapters.cutout.render.DEFAULT_PIX_FMT)                 | x264 encode knobs pinned so the delivered mp4 is a function of the frames rather than of the machine (an#34, research §2).                          |
-| [`SUPPORTED_PIX_FMTS`](#an.adapters.cutout.render.SUPPORTED_PIX_FMTS)              | a typo would reach ffmpeg as an obscure failure minutes into a render, and a format outside this set has not been measured against the panel.       |
-| [`DEFAULT_CAPTURE`](#an.adapters.cutout.render.DEFAULT_CAPTURE)                 | a Playwright element screenshot of `#stage` per instant — the path every render took before the canvas path existed, and still the default.         |
-| [`SUPPORTED_CAPTURES`](#an.adapters.cutout.render.SUPPORTED_CAPTURES)              | a typo must fail before a browser launches, not minutes into a render.                                                                              |
-| [`DEFAULT_CANVAS_BATCH`](#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH)            | Frames per `anCaptureFrames` round trip.                                                                                                            |
-| [`DEFAULT_CANVAS_ENCODE_WORKERS`](#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS)   | Threads decoding, resolving and re-encoding canvas frames while the page renders the next batch.                                                    |
-| [`DEFAULT_CANVAS_MAX_INFLIGHT`](#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT)     | frames handed to the encode pool and not yet written.                                                                                               |
-| [`ASSET_LOAD_TIMEOUT_MARKER`](#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER)       | Sentinel the in-page deadline rejects with, so the Python side can tell a timeout apart from a load failure and say something different about each. |
-| [`ASSET_SRC_PREFIX_TO_STORE`](#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE)       | Texture `src` prefix → the mall store that resolves the rest of the path.                                                                           |
+| [`DEFAULT_ASSET_LOAD_TIMEOUT_MS`](#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS)   | Deadline for `anLoadScene`, which awaits `PIXI.Assets.load` for every declared texture.                                                                                                                                                                                              |
+|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DETERMINISTIC_CHROMIUM_ARGS`](#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS)     | Chromium launch flags that pin the rasteriser (an#31, research §2).                                                                                                                                                                                                                  |
+| [`DEFAULT_PIX_FMT`](#an.adapters.cutout.render.DEFAULT_PIX_FMT)                 | x264 encode knobs pinned so the delivered mp4 is a function of the frames rather than of the machine (an#34, research §2).                                                                                                                                                           |
+| [`SUPPORTED_PIX_FMTS`](#an.adapters.cutout.render.SUPPORTED_PIX_FMTS)              | a typo would reach ffmpeg as an obscure failure minutes into a render, and a format outside this set has not been measured against the panel.                                                                                                                                        |
+| [`DEFAULT_CAPTURE`](#an.adapters.cutout.render.DEFAULT_CAPTURE)                 | the runtime's `anCaptureFrames` reads the canvas in-page and hands back PNG data URLs in batches (`an.adapters.cutout.canvas_capture`), which writes frames whose DECODED pixels equal the screenshot path's — ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p. |
+| [`SUPPORTED_CAPTURES`](#an.adapters.cutout.render.SUPPORTED_CAPTURES)              | a typo must fail before a browser launches, not minutes into a render.                                                                                                                                                                                                               |
+| [`DEFAULT_CANVAS_BATCH`](#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH)            | Frames per `anCaptureFrames` round trip.                                                                                                                                                                                                                                             |
+| [`DEFAULT_CANVAS_ENCODE_WORKERS`](#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS)   | Threads decoding, resolving and re-encoding canvas frames while the page renders the next batch.                                                                                                                                                                                     |
+| [`DEFAULT_CANVAS_BATCH_PIXELS`](#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS)     | The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample counts k² times and an open shutter once per instant): at most this many per `anCaptureFrames` round trip, and twice this many waiting on the encode pool.                                               |
+| [`DEFAULT_CANVAS_MAX_INFLIGHT`](#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT)     | frames handed to the encode pool and not yet written.                                                                                                                                                                                                                                |
+| [`ASSET_LOAD_TIMEOUT_MARKER`](#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER)       | Sentinel the in-page deadline rejects with, so the Python side can tell a timeout apart from a load failure and say something different about each.                                                                                                                                  |
+| [`ASSET_SRC_PREFIX_TO_STORE`](#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE)       | Texture `src` prefix → the mall store that resolves the rest of the path.                                                                                                                                                                                                            |
 
 ### Functions
 
@@ -135,6 +138,22 @@ also the memory the page holds before Python takes it: eight data URLs of a
 1080p frame are well under a megabyte of text, and at a supersampled 4K
 backbuffer a few megabytes each.
 
+### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4147200*
+
+The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample
+counts k² times and an open shutter once per instant): at most this many per
+`anCaptureFrames` round trip, and twice this many waiting on the encode
+pool. Two 1080p instants: small scenes still batch by the frame count
+above, and at 1080p the batch size stopped mattering for a flat scene
+(96 frames: 4.7 s at 2, 4 or 8 per round trip) while it decides everything
+for an incompressible one (a grain pack, 48 frames: 11.0 s / 0.38 GB at 2
+against 17.8 s / 2.1 GB at 8; the screenshot path 17.8 s / 0.16 GB). Needed
+because a count alone does not bound the bytes: the review of an#192
+measured grain at supersample 2 with an 8-sample shutter overflowing the
+driver’s string limit in ONE reply (the render hung in `browser.close()`),
+and ~16 GB of Python memory at supersample 3. A frame whose instants alone
+exceed it is captured over several round trips.
+
 ### an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
 Threads decoding, resolving and re-encoding canvas frames while the page
@@ -153,24 +172,25 @@ batch however long the shot is.
 * **Type:**
   BACK-PRESSURE
 
-### an.adapters.cutout.render.DEFAULT_CAPTURE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'screenshot'*
+### an.adapters.cutout.render.DEFAULT_CAPTURE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'canvas'*
 
-a Playwright element
-screenshot of `#stage` per instant — the path every render took before the
-canvas path existed, and still the default. `"canvas"`: the runtime’s
-`anCaptureFrames` reads the canvas in-page and hands back PNG data URLs in
-batches (`an.adapters.cutout.canvas_capture`), which writes frames whose
-DECODED pixels equal the screenshot path’s.
+the
+runtime’s `anCaptureFrames` reads the canvas in-page and hands back PNG data
+URLs in batches (`an.adapters.cutout.canvas_capture`), which writes frames
+whose DECODED pixels equal the screenshot path’s — ~7.8x faster in the frame
+stage on the golden corpus, ~2.3x at 1080p. `"screenshot"`: a Playwright
+element screenshot of `#stage` per instant, the path every render took
+before; still available (`an render --capture screenshot`).
 
-\*\*The default stays `"screenshot"` until the equivalence gate has held on
-the whole golden corpus on both the developer machine and the labelled Linux
-rendering lane\*\* (epic #9’s throughput track): a faster path that moved a
-pixel would silently invalidate every baseline recorded before it. The flip is
-its own one-line PR. Read as a MODULE GLOBAL at call time, for
-`DEFAULT_PIX_FMT`’s reason — a default argument would bind it at def time.
+Flipped only after the equivalence gate (`tests/test_canvas_capture_equivalence.py`)
+held on the whole golden corpus on a developer machine AND the labelled Linux
+rendering lane (an#189, re-run on an#192): a faster path that moved a pixel
+would silently invalidate every baseline recorded before it. Read as a MODULE
+GLOBAL at call time, for `DEFAULT_PIX_FMT`’s reason — a default argument
+would bind it at def time.
 
 * **Type:**
-  How frames leave the browser. `"screenshot"`
+  How frames leave the browser. `"canvas"` (the default since an#192)
 
 ### an.adapters.cutout.render.DEFAULT_PIX_FMT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'yuv420p'*
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=619bccd5"></script>
+    <script src="../../_static/documentation_options.js?v=566346bf"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.115" />
+  <meta name="docsearch:version" content="0.1.116" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -821,12 +821,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    with an exact block mean. **Opt-in, and 1 is free** — at 1 nothing is</span>
 <span class="sd">    decoded and Chromium's own bytes reach disk. See :func:`render`.</span>
 
-<span class="sd">    ``capture`` picks how frames leave the browser: ``"screenshot"`` (the</span>
-<span class="sd">    default, via ``None``) or ``"canvas"`` — an in-page read of the canvas,</span>
-<span class="sd">    batched, writing frames whose decoded pixels equal the screenshot path's</span>
-<span class="sd">    and measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p (see</span>
-<span class="sd">    `an.adapters.cutout.canvas_capture`). Opt-in until the equivalence gate has</span>
-<span class="sd">    held on both rendering lanes.</span>
+<span class="sd">    ``capture`` picks how frames leave the browser: ``"canvas"`` (the default,</span>
+<span class="sd">    via ``None``, since an#192) — an in-page read of the canvas, batched,</span>
+<span class="sd">    writing frames whose decoded pixels equal the screenshot path's and</span>
+<span class="sd">    measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at</span>
+<span class="sd">    1080p (see `an.adapters.cutout.canvas_capture`) — or ``"screenshot"``, a</span>
+<span class="sd">    Playwright element screenshot per instant.</span>
 
 <span class="sd">    ``step_hz`` overrides the scene's ``meta.step_hz`` for this render (a shot's</span>
 <span class="sd">    own ``step_hz`` still wins): authored tweens are resampled onto a pose grid</span>

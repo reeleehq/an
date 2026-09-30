@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=619bccd5"></script>
+    <script src="../_static/documentation_options.js?v=566346bf"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench" href="an.bench.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.115" />
+  <meta name="docsearch:version" content="0.1.116" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -673,11 +673,21 @@ tree, a character rig’s included.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.bench.capture.SceneCapture">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">SceneCapture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepared</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mp4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_declared_entity_refs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visual_kinds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_cache</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">determinism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/capture.html#SceneCapture"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.capture.SceneCapture" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">SceneCapture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prepared</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mp4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_declared_entity_refs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">visual_kinds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_cache</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_seconds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">determinism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/capture.html#SceneCapture"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.capture.SceneCapture" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>One fixture’s whole render.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.bench.capture.SceneCapture.capture">
+<span class="sig-name descname"><span class="pre">capture</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.bench.capture.SceneCapture.capture" title="Link to this definition">#</a></dt>
+<dd><p>How the frames left the browser (<code class="docutils literal notranslate"><span class="pre">&quot;screenshot&quot;</span></code> / <code class="docutils literal notranslate"><span class="pre">&quot;canvas&quot;</span></code>),
+resolved the way the render resolves it. The decoded pixels are the same
+either way, so no metric moves — but <code class="docutils literal notranslate"><span class="pre">wall_seconds</span></code> does, several-fold,
+and a timing row is only readable beside the path that produced it
+(an#192 flipped the default).</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -860,7 +870,10 @@ the only way to drop <code class="docutils literal notranslate"><span class="pre
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.IGNORED_ON_COPY"><code class="docutils literal notranslate"><span class="pre">IGNORED_ON_COPY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.IGNORED_RELPATHS_ON_COPY"><code class="docutils literal notranslate"><span class="pre">IGNORED_RELPATHS_ON_COPY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.RENDER_WORK_RELPATH"><code class="docutils literal notranslate"><span class="pre">RENDER_WORK_RELPATH</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.SceneCapture"><code class="docutils literal notranslate"><span class="pre">SceneCapture</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.SceneCapture"><code class="docutils literal notranslate"><span class="pre">SceneCapture</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.SceneCapture.capture"><code class="docutils literal notranslate"><span class="pre">SceneCapture.capture</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.ShotCapture"><code class="docutils literal notranslate"><span class="pre">ShotCapture</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.ShotCapture.duration"><code class="docutils literal notranslate"><span class="pre">ShotCapture.duration</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.ShotCapture.frame_sizes"><code class="docutils literal notranslate"><span class="pre">ShotCapture.frame_sizes</span></code></a></li>
