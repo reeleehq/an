@@ -180,9 +180,7 @@ def _drawn_extent() -> tuple[float, float]:
 
     with tempfile.TemporaryDirectory() as d:
         root = init(Path(d) / "probe")
-        new_character(
-            root / "assets" / "characters", name="probe", use_dicebear=False
-        )
+        new_character(root / "assets" / "characters", name="probe", use_dicebear=False)
         shot = Shot(
             id="probe",
             renderer="cutout",
@@ -1357,7 +1355,9 @@ def _build_south_park_style(work: Path) -> Path:
             [("gus", -110, seat_head(1.4), 1.4), ("dot", 110, seat_head(1.4), 1.4)],
             "gus [surprised]: Dude, they're serving meatloaf again.\n"
             "dot [angry]: Oh, come on!\n",
-            gesture("gus", 0.2, 2.2) + hop_on("dot", 2.4, seat_head(1.4)) + gesture("dot", 2.8, 3.8),
+            gesture("gus", 0.2, 2.2)
+            + hop_on("dot", 2.4, seat_head(1.4))
+            + gesture("dot", 2.8, 3.8),
         )
         + "\n"
         + shot(  # the single close
