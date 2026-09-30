@@ -30,7 +30,7 @@ get fixed.
   `DEFAULT_MOUTH_VARIANTS` in `an/characters/mouth_set.py`; `declare_mouth_variants` in the factory.
 - Measurement: corpus `expressions` (eight goldens, re-blessed once in PR-D when the eye stack landed),
   `tests/test_expression_goldens.py` (pairwise ≥ 53 px in the face crop), ledger
-  `expression_min_pairwise_changed_px`. The emotion cassette is NOT recorded yet.
+  `expression_min_pairwise_changed_px`. The emotion judge (`an.verify.vision.judge_emotion`, frozen faces `tests/_emotion_frames.py`, `tests/test_emotion_judge.py`) is built; its cassette is NOT recorded yet (an#171, needs a human with a key).
 - Gaze (PR-D, an#99): `an/adapters/cutout/gaze.py` (`saccade_track`, `gaze_seed`, the design-value constants),
   `an.characters.factory.add_gaze` / `GAZE_PARTS` / `gaze_travel_for`, `CharacterDescriptor.gaze_travel`,
   `an character add-gaze`, `meta.gaze_seeds`. A rig with pupils always takes the solver path (saccades are a
@@ -60,7 +60,7 @@ bound `(node, property)` and emits **exactly one** channel per key. A second gen
 for a face key is a bug; the test that guards it asserts every generated face channel has a
 distinct `(target, property)`, that a pose at t carries *both* an emotion's brow offset and a
 second contributor's offset (a per-axis override in `test_expression_compose.py`; a real gaze
-offset over pupils in `test_gaze.py`), and that the pose is identical with contributors fed in
+offset over pupils in `test_gaze.py`, one `ExpressionAction` naming a preset AND gaze axes, with the rendered-pixel twin in `tests/test_emotion_gaze_render.py`), and that the pose is identical with contributors fed in
 reverse order.
 
 - **Transform axes sum, then clamp. Swap axes resolve by priority**, never by blending two
