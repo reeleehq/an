@@ -4,6 +4,12 @@ an.adapters.cutout.timeline
 .. automodule:: an.adapters.cutout.timeline
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SWAP_WRITE_GROUP
+   
    .. rubric:: Functions
 
    .. autosummary::
@@ -12,6 +18,7 @@ an.adapters.cutout.timeline
       screen_position
       timeline_from_scene
       transform_of
+      write_group
    
    .. rubric:: Classes
 

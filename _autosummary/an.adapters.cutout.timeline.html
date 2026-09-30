@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=0e6ad801"></script>
+    <script src="../_static/documentation_options.js?v=c5e348cc"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.text" href="an.adapters.cutout.text.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.113" />
+  <meta name="docsearch:version" content="0.1.114" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -548,6 +548,15 @@ decides what to do with the ramps. Additive blending lands in 2B.</p></li>
 <span class="go">5.0</span>
 </pre></div>
 </div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.SWAP_WRITE_GROUP" title="an.adapters.cutout.timeline.SWAP_WRITE_GROUP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAP_WRITE_GROUP</span></code></a></p></td>
+<td><p>two keys in one group set the same thing, so only the more recently written can be showing.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -562,6 +571,9 @@ decides what to do with the ramps. Additive blending lands in 2B.</p></li>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.transform_of" title="an.adapters.cutout.timeline.transform_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_of</span></code></a>(node[, pose])</p></td>
 <td><p>A node's transform, with <code class="docutils literal notranslate"><span class="pre">pose</span></code> overriding what the document declares.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.write_group" title="an.adapters.cutout.timeline.write_group"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_group</span></code></a>(prop)</p></td>
+<td><p>What <code class="docutils literal notranslate"><span class="pre">prop</span></code> writes on its node — see <a class="reference internal" href="#an.adapters.cutout.timeline.SWAP_WRITE_GROUP" title="an.adapters.cutout.timeline.SWAP_WRITE_GROUP"><code class="xref py py-data docutils literal notranslate"><span class="pre">SWAP_WRITE_GROUP</span></code></a>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -597,6 +609,22 @@ decides what to do with the ramps. Additive blending lands in 2B.</p></li>
 <dd><p>Duration this clip occupies on the timeline (after speed scaling).</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.adapters.cutout.timeline.SWAP_WRITE_GROUP">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">SWAP_WRITE_GROUP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'&lt;swap&gt;'</span></span><a class="headerlink" href="#an.adapters.cutout.timeline.SWAP_WRITE_GROUP" title="Link to this definition">#</a></dt>
+<dd><p>two keys in one group set the same
+thing, so only the more recently written can be showing. Every swap set on a
+node swaps the one visual it carries (<code class="docutils literal notranslate"><span class="pre">viseme</span></code> and <code class="docutils literal notranslate"><span class="pre">viseme&#64;happy</span></code> both set
+the mouth’s texture, an#88), and <code class="docutils literal notranslate"><span class="pre">rotation_rad</span></code> is <code class="docutils literal notranslate"><span class="pre">rotation</span></code>. Every other
+runtime property (<code class="xref py py-data docutils literal notranslate"><span class="pre">an.base.TRANSFORM_PROPERTIES</span></code>, the runtime’s own
+switch) writes only itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The group a property WRITES, on its node</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -676,6 +704,50 @@ moves everything the node contains, in the opposite direction.</p>
 <dt class="sig sig-object py" id="an.adapters.cutout.timeline.evaluate_timeline">
 <span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">evaluate_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/timeline.html#evaluate_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.evaluate_timeline" title="Link to this definition">#</a></dt>
 <dd><p>Evaluate <code class="docutils literal notranslate"><span class="pre">timeline</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, merging poses across tracks/clips.</p>
+<p>The result is a PURE function of <code class="docutils literal notranslate"><span class="pre">t</span></code> (an#185): what a node shows at <code class="docutils literal notranslate"><span class="pre">t</span></code>
+never depends on which instants were evaluated before it. Per
+<code class="docutils literal notranslate"><span class="pre">(target,</span> <span class="pre">property)</span></code>:</p>
+<ul class="simple">
+<li><p><strong>Active</strong> — some clip writing it is playing at <code class="docutils literal notranslate"><span class="pre">t</span></code> (inclusive end:
+a clip at <code class="docutils literal notranslate"><span class="pre">[s,</span> <span class="pre">e]</span></code> is active at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">==</span> <span class="pre">e</span></code> too, so the final frame of
+“play this from 0 to 1 s” is visible at 1.0). Later wins: track order,
+then clip order within a track. Written at <code class="docutils literal notranslate"><span class="pre">t</span></code>.</p></li>
+<li><p><strong>Held</strong> — no clip writing it is playing, but one has ended: the value
+the clip reached AT ITS END holds. The latest end wins; a tie goes to
+the later clip, the same “later wins” as above. Written at that end.</p></li>
+<li><p><strong>At rest</strong> — nothing writing it has started yet. The key is ABSENT from
+the pose, and its value is the node’s own (<code class="docutils literal notranslate"><span class="pre">transform_of</span></code> reads it
+from the document; <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> restores what it built).</p></li>
+</ul>
+<p>Keys that write the same thing on one node (<a class="reference internal" href="#an.adapters.cutout.timeline.write_group" title="an.adapters.cutout.timeline.write_group"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_group()</span></code></a>: the swap
+sets of one visual, <code class="docutils literal notranslate"><span class="pre">rotation</span></code>/<code class="docutils literal notranslate"><span class="pre">rotation_rad</span></code>) keep only the most
+recently WRITTEN — an ended <code class="docutils literal notranslate"><span class="pre">viseme&#64;happy</span></code> span does not outlive the
+<code class="docutils literal notranslate"><span class="pre">viseme</span></code> track that took the mouth back.</p>
+<p>Forward-order rendering used to show the value at the clip’s last SAMPLED
+frame instead (the runtime kept whatever it last applied). The two agree
+whenever a clip ends on the frame grid — true of every golden-corpus clip
+— and differ when it ends between frames: a 0.37 s tween to 10 at 24 fps
+used to stop at 9.80 and now lands on 10, as authored. That landing is
+deliberate (it is the bug the motion presets’ settling <code class="docutils literal notranslate"><span class="pre">set</span></code> patched one
+preset at a time), and it is what makes the pose independent of the grid.
+Also deliberate: a clip shorter than a frame that no frame lands in now
+leaves its end value, and a held descendant tint stays on top of an
+ancestor’s later tint (the more specific target wins, as it always did
+while both played).</p>
+<p><code class="docutils literal notranslate"><span class="pre">runtime.js::evaluateTimeline</span></code> is a port of this function and
+<code class="docutils literal notranslate"><span class="pre">tests/test_pure_pose.py</span></code> holds the two to it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.channel</span><span class="w"> </span><span class="kn">import</span> <span class="n">Channel</span><span class="p">,</span> <span class="n">Keyframe</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.clip</span><span class="w"> </span><span class="kn">import</span> <span class="n">Clip</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ch</span> <span class="o">=</span> <span class="n">Channel</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="p">[</span><span class="n">Keyframe</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">Keyframe</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tl</span> <span class="o">=</span> <span class="n">Timeline</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="p">[</span><span class="n">Track</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="p">[</span><span class="n">PlacedClip</span><span class="p">(</span><span class="n">Clip</span><span class="p">(</span><span class="s2">"m"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="n">ch</span><span class="p">]),</span> <span class="mf">0.5</span><span class="p">)])])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>  <span class="c1"># not started: at rest, so absent</span>
+<span class="go">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)[(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)]</span>  <span class="c1"># active</span>
+<span class="go">5.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">tl</span><span class="p">,</span> <span class="mf">1.75</span><span class="p">)[(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)]</span>  <span class="c1"># ended: its end value holds</span>
+<span class="go">10.0</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
@@ -761,6 +833,21 @@ every keyframe instead of an offset from it.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="an.adapters.cutout.timeline.write_group">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">write_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prop</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/timeline.html#write_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.write_group" title="Link to this definition">#</a></dt>
+<dd><p>What <code class="docutils literal notranslate"><span class="pre">prop</span></code> writes on its node — see <a class="reference internal" href="#an.adapters.cutout.timeline.SWAP_WRITE_GROUP" title="an.adapters.cutout.timeline.SWAP_WRITE_GROUP"><code class="xref py py-data docutils literal notranslate"><span class="pre">SWAP_WRITE_GROUP</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">write_group</span><span class="p">(</span><span class="s2">"x"</span><span class="p">),</span> <span class="n">write_group</span><span class="p">(</span><span class="s2">"rotation_rad"</span><span class="p">),</span> <span class="n">write_group</span><span class="p">(</span><span class="s2">"viseme@happy"</span><span class="p">)</span>
+<span class="go">('x', 'rotation', '&lt;swap&gt;')</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 
 
@@ -814,6 +901,7 @@ every keyframe instead of an offset from it.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.PlacedClip.effective_duration"><code class="docutils literal notranslate"><span class="pre">PlacedClip.effective_duration</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.SWAP_WRITE_GROUP"><code class="docutils literal notranslate"><span class="pre">SWAP_WRITE_GROUP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Timeline"><code class="docutils literal notranslate"><span class="pre">Timeline</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Track"><code class="docutils literal notranslate"><span class="pre">Track</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Transform2D"><code class="docutils literal notranslate"><span class="pre">Transform2D</span></code></a><ul class="nav section-nav flex-column">
@@ -825,6 +913,7 @@ every keyframe instead of an offset from it.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.screen_position"><code class="docutils literal notranslate"><span class="pre">screen_position()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.timeline_from_scene"><code class="docutils literal notranslate"><span class="pre">timeline_from_scene()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.transform_of"><code class="docutils literal notranslate"><span class="pre">transform_of()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.write_group"><code class="docutils literal notranslate"><span class="pre">write_group()</span></code></a></li>
 </ul>
   </nav></div>
 

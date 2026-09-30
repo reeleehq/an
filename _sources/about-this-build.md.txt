@@ -5,19 +5,21 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-09-30 13:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/066d62e187fb1fc3e3fe96d86db0788aed81279b"><code>066d62e</code></a> on branch <code>main</code>, for **an 0.1.113** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 14:58 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/935429f5a1190d1a09321968345a66a3fde6d4cf"><code>935429f</code></a> on branch <code>main</code>, for **an 0.1.114** (from <code>pyproject.toml</code>).
 
-:::{note}
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+:::{warning}
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.114) is ahead of the latest release on PyPI (0.1.113): these docs describe unreleased code.
 :::
 
 ## Source
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/thorwhalen/an/commit/066d62e187fb1fc3e3fe96d86db0788aed81279b"><code>066d62e187fb1fc3e3fe96d86db0788aed81279b</code></a> |
+| Commit | <a href="https://github.com/thorwhalen/an/commit/935429f5a1190d1a09321968345a66a3fde6d4cf"><code>935429f5a1190d1a09321968345a66a3fde6d4cf</code></a> |
 | Branch | <code>main</code> |
-| Tags at this commit | <code>0.1.113</code> |
+| Tags at this commit | <code>0.1.114</code> |
 | Working tree | clean |
 | Remote | <code>https://github.com/thorwhalen/an</code> |
 
@@ -26,9 +28,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | | |
 |---|---|
 | Repository | <code>thorwhalen/an</code> |
-| Run | <a href="https://github.com/thorwhalen/an/actions/runs/36722286312">36722286312</a> |
+| Run | <a href="https://github.com/thorwhalen/an/actions/runs/36732592954">36732592954</a> |
 | Ref | <code>refs/heads/main</code> |
-| Event commit | <code>ad91f2b0e17e24d504eefc0a219d224fce991ffc</code> (in the history of the built commit) |
+| Event commit | <code>4a34eb546e677192bd66d311ab8ae355ade8e9c2</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -53,13 +55,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.113/">0.1.113</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.113/">0.1.113</a>, older than the documented version (0.1.114).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 066d62e187fb1fc3e3fe96d86db0788aed81279b
+git checkout 935429f5a1190d1a09321968345a66a3fde6d4cf
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

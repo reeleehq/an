@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=0e6ad801"></script>
+    <script src="../../../../_static/documentation_options.js?v=c5e348cc"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.113" />
+  <meta name="docsearch:version" content="0.1.114" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1602,8 +1602,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    Per round trip the page seeks up to ``batch`` frames' instants **in frame</span>
 <span class="sd">    order, samples in the order given** — the order the screenshot path seeks</span>
-<span class="sd">    them, which matters because the runtime's pose is not yet a pure function of</span>
-<span class="sd">    ``t`` (an#185) — and returns each frame's canvas as PNG data URLs. The decode,</span>
+<span class="sd">    them. Since an#185 the pose is a pure function of ``t``, so the order no</span>
+<span class="sd">    longer decides the picture; it is kept because the page echoes frame numbers</span>
+<span class="sd">    in it — and returns each frame's canvas as PNG data URLs. The decode,</span>
 <span class="sd">    opacity check, supersample and temporal resolve, and RGB re-encode</span>
 <span class="sd">    (:func:`~an.adapters.cutout.canvas_capture.canvas_frame_png`) run on a</span>
 <span class="sd">    small thread pool while the page renders the next batch.</span>

@@ -28,13 +28,19 @@ Evaluation semantics in Phase 2A:
 5.0
 ```
 
+### Module Attributes
+
+| [`SWAP_WRITE_GROUP`](#an.adapters.cutout.timeline.SWAP_WRITE_GROUP)   | two keys in one group set the same thing, so only the more recently written can be showing.   |
+|---------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+
 ### Functions
 
-| [`evaluate_timeline`](#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t)                  | Evaluate `timeline` at time `t`, merging poses across tracks/clips.       |
-|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`screen_position`](#an.adapters.cutout.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                |
-| [`timeline_from_scene`](#an.adapters.cutout.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as this module's `Timeline`. |
-| [`transform_of`](#an.adapters.cutout.timeline.transform_of)(node[, pose])                      | A node's transform, with `pose` overriding what the document declares.    |
+| [`evaluate_timeline`](#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t)                  | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                     |
+|--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| [`screen_position`](#an.adapters.cutout.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                              |
+| [`timeline_from_scene`](#an.adapters.cutout.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as this module's `Timeline`.                               |
+| [`transform_of`](#an.adapters.cutout.timeline.transform_of)(node[, pose])                      | A node's transform, with `pose` overriding what the document declares.                                  |
+| [`write_group`](#an.adapters.cutout.timeline.write_group)(prop)                               | What `prop` writes on its node — see [`SWAP_WRITE_GROUP`](#an.adapters.cutout.timeline.SWAP_WRITE_GROUP). |
 
 ### Classes
 
@@ -53,6 +59,18 @@ A clip placed at an absolute time on a track.
 #### *property* effective_duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
 Duration this clip occupies on the timeline (after speed scaling).
+
+### an.adapters.cutout.timeline.SWAP_WRITE_GROUP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '<swap>'*
+
+two keys in one group set the same
+thing, so only the more recently written can be showing. Every swap set on a
+node swaps the one visual it carries (`viseme` and `viseme@happy` both set
+the mouth’s texture, an#88), and `rotation_rad` is `rotation`. Every other
+runtime property (`an.base.TRANSFORM_PROPERTIES`, the runtime’s own
+switch) writes only itself.
+
+* **Type:**
+  The group a property WRITES, on its node
 
 ### *class* an.adapters.cutout.timeline.Timeline(duration, tracks=<factory>)
 
@@ -118,6 +136,54 @@ The inverse of [`apply()`](#an.adapters.cutout.timeline.Transform2D.apply) — a
 ### an.adapters.cutout.timeline.evaluate_timeline(timeline, t)
 
 Evaluate `timeline` at time `t`, merging poses across tracks/clips.
+
+The result is a PURE function of `t` (an#185): what a node shows at `t`
+never depends on which instants were evaluated before it. Per
+`(target, property)`:
+
+- **Active** — some clip writing it is playing at `t` (inclusive end:
+  a clip at `[s, e]` is active at `t == e` too, so the final frame of
+  “play this from 0 to 1 s” is visible at 1.0). Later wins: track order,
+  then clip order within a track. Written at `t`.
+- **Held** — no clip writing it is playing, but one has ended: the value
+  the clip reached AT ITS END holds. The latest end wins; a tie goes to
+  the later clip, the same “later wins” as above. Written at that end.
+- **At rest** — nothing writing it has started yet. The key is ABSENT from
+  the pose, and its value is the node’s own (`transform_of` reads it
+  from the document; `runtime.js` restores what it built).
+
+Keys that write the same thing on one node ([`write_group()`](#an.adapters.cutout.timeline.write_group): the swap
+sets of one visual, `rotation`/`rotation_rad`) keep only the most
+recently WRITTEN — an ended `viseme@happy` span does not outlive the
+`viseme` track that took the mouth back.
+
+Forward-order rendering used to show the value at the clip’s last SAMPLED
+frame instead (the runtime kept whatever it last applied). The two agree
+whenever a clip ends on the frame grid — true of every golden-corpus clip
+— and differ when it ends between frames: a 0.37 s tween to 10 at 24 fps
+used to stop at 9.80 and now lands on 10, as authored. That landing is
+deliberate (it is the bug the motion presets’ settling `set` patched one
+preset at a time), and it is what makes the pose independent of the grid.
+Also deliberate: a clip shorter than a frame that no frame lands in now
+leaves its end value, and a held descendant tint stays on top of an
+ancestor’s later tint (the more specific target wins, as it always did
+while both played).
+
+`runtime.js::evaluateTimeline` is a port of this function and
+`tests/test_pure_pose.py` holds the two to it.
+
+```pycon
+>>> from an.adapters.cutout.channel import Channel, Keyframe
+>>> from an.adapters.cutout.clip import Clip
+>>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
+>>> tl = Timeline(2.0, [Track("a", [PlacedClip(Clip("m", 1.0, [ch]), 0.5)])])
+>>> evaluate_timeline(tl, 0.0)  # not started: at rest, so absent
+{}
+>>> evaluate_timeline(tl, 1.0)[("a", "x")]  # active
+5.0
+>>> evaluate_timeline(tl, 1.75)[("a", "x")]  # ended: its end value holds
+10.0
+```
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
@@ -196,3 +262,15 @@ every keyframe instead of an offset from it.
 
 * **Return type:**
   [`Transform2D`](#an.adapters.cutout.timeline.Transform2D)
+
+### an.adapters.cutout.timeline.write_group(prop)
+
+What `prop` writes on its node — see [`SWAP_WRITE_GROUP`](#an.adapters.cutout.timeline.SWAP_WRITE_GROUP).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
+('x', 'rotation', '<swap>')
+```
