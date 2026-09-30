@@ -61,10 +61,25 @@ from an.ir.migrate import DocumentKind, omit_unset, register_kind
 __all__ = [
     "ENVIRONMENT_SCHEMA_VERSION",
     "ENVIRONMENT_DOCUMENT_KIND",
+    "PLANE_FILL_SPAN",
     "EnvironmentDescriptor",
     "Plane",
     "PlaneArt",
+    "Rect",
+    "frame_rect",
+    "plane_rect",
+    "uncovered_part",
 ]
+
+#: A `fill` plane with no declared size covers the canvas at any camera scale.
+#: The same 4000 the preset backdrop uses, and for the same reason — the runtime
+#: centres `root` and applies camera scale, so a huge rect always covers. Lives
+#: here (the schema) so the IR layer's framing check and the compiler read one
+#: number; `an.adapters.cutout.compile` re-exports it.
+PLANE_FILL_SPAN: float = 4000.0
+
+#: ``(left, top, right, bottom)`` in scene pixels, `y` down (the stage's axes).
+Rect = tuple[float, float, float, float]
 
 ENVIRONMENT_SCHEMA_VERSION = "0.1.0"
 
@@ -108,6 +123,11 @@ class PlaneArt(BaseModel):
     '#cfe9ff'
     >>> PlaneArt(kind="image", src="plates/forest.svg").src
     'plates/forest.svg'
+    >>> PlaneArt(kind="image", src="plates/street.png").src
+    'plates/street.png'
+
+    An `image` is SVG or raster — PNG, JPEG or WebP (an#211): the compiler
+    sizes it from its header and PixiJS loads it natively.
 
     Two kinds ship, and the omission is deliberate rather than partial:
     `gradient` and `generated` would each need a runtime that can draw them,
@@ -122,7 +142,8 @@ class PlaneArt(BaseModel):
     #: `fill` only: a CSS colour.
     color: str = "#888888"
     #: `image` only: a path under the environment's own folder in the store,
-    #: exactly as a character attachment's `path` is.
+    #: exactly as a character attachment's `path` is — `.svg`, `.png`,
+    #: `.jpg`/`.jpeg` or `.webp`.
     src: Optional[str] = None
 
 
@@ -163,8 +184,26 @@ class Plane(BaseModel):
     #: The art's anchor within its own box, in 0..1 per axis.
     anchor: tuple[float, float] = (0.5, 0.5)
     #: `None` = the art's own extent. A `fill` with no size covers the canvas.
+    #: The box the art is fitted into, in scene pixels. **A declared size wins**
+    #: (an#211); `None` = the art's own extent — an SVG's `width`/`height`, a
+    #: raster's pixel size. A `fill` with no size covers the canvas.
     size: Optional[tuple[float, float]] = None
     fit: Literal["stretch", "contain"] = "contain"
+
+    #: Where THIS plane's art came from, when it is not the environment's —
+    #: a composite stage of a carved plate and a CC0 prop credits both
+    #: (an#211). `None` = the environment's `source` covers it. Omitted from
+    #: the stored document when unset.
+    source: AssetSource | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_source(self, handler):
+        """``source: null`` is written out of existence: a plane with no source
+        of its own is the plane every stored document already holds."""
+        data = handler(self)
+        if isinstance(data, dict) and data.get("source") is None:
+            data.pop("source", None)
+        return data
 
     def factors(self) -> tuple[float, float]:
         """The per-axis parallax factors this plane actually moves by.
@@ -249,3 +288,111 @@ class EnvironmentDescriptor(_EnvModel):
                 "depth and nothing would say so."
             )
         return self
+
+
+# --- framing: what a camera shows, and what the planes cover (an#211) --------
+
+
+def plane_rect(
+    plane: Plane,
+    art_size: tuple[float, float] | None,
+    *,
+    camera: tuple[float, float] = (0.0, 0.0),
+) -> Rect | None:
+    """Where ``plane`` is drawn, in scene pixels, with the camera at ``camera``.
+
+    The compiler's own geometry, restated for a pre-flight: the box is the
+    declared `size` or the art's extent (``art_size``), the art is fitted into
+    it by `fit`, placed by `anchor` at `offset`, and the plane's parallax
+    compensation moves it by ``(1 − f) · camera`` per axis. ``None`` when the
+    extent cannot be known (an image whose art cannot be measured and whose
+    `fit` makes the drawn size depend on it) — an unknown, not a hole.
+
+    >>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"),
+    ...                  size=(100.0, 50.0), fit="stretch"), None)
+    (-50.0, -25.0, 50.0, 25.0)
+    >>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"), depth=0.0),
+    ...            (200.0, 100.0), camera=(40.0, 0.0))
+    (-60.0, -50.0, 140.0, 50.0)
+    """
+    if plane.art.kind == "fill":
+        w, h = plane.size or (PLANE_FILL_SPAN, PLANE_FILL_SPAN)
+    else:
+        box = plane.size or art_size
+        if box is None:
+            return None
+        w, h = box
+        if plane.fit == "contain" and plane.size is not None:
+            if art_size is None or not (art_size[0] > 0 and art_size[1] > 0):
+                return None
+            k = min(w / art_size[0], h / art_size[1])
+            w, h = art_size[0] * k, art_size[1] * k
+    fx, fy = plane.factors()
+    x = plane.offset[0] + (1.0 - fx) * camera[0]
+    y = plane.offset[1] + (1.0 - fy) * camera[1]
+    # A `fill` is emitted as a centred rect — the compiler does not pass the
+    # anchor to it — so the anchor is the image path's only.
+    ax, ay = plane.anchor if plane.art.kind == "image" else (0.5, 0.5)
+    return (x - ax * w, y - ay * h, x + (1.0 - ax) * w, y + (1.0 - ay) * h)
+
+
+def frame_rect(
+    *,
+    x: float,
+    y: float,
+    zoom: float,
+    rotation: float,
+    width: float,
+    height: float,
+) -> Rect:
+    """The scene region a camera pose shows: centred on the camera, the canvas
+    divided by the zoom, grown to the axis-aligned box of a rolled frame —
+    CONSERVATIVE under roll (the box contains corners the rotated frame does
+    not show, so a plate that covers a rolled view can still be flagged).
+
+    `root.pivot` is the camera and `root.scale` the zoom, composed about the
+    canvas centre, so a pose shows ``camera ± canvas / (2 · zoom)``.
+
+    >>> frame_rect(x=0, y=0, zoom=1.25, rotation=0, width=320, height=240)
+    (-128.0, -96.0, 128.0, 96.0)
+    """
+    import math
+
+    hw, hh = width / (2.0 * zoom), height / (2.0 * zoom)
+    if rotation:
+        c, s = abs(math.cos(rotation)), abs(math.sin(rotation))
+        hw, hh = hw * c + hh * s, hw * s + hh * c
+    return (x - hw, y - hh, x + hw, y + hh)
+
+
+def uncovered_part(view: Rect, covers: list[Rect]) -> Rect | None:
+    """The bounding box of the part of ``view`` no rect in ``covers`` covers.
+
+    ``None`` when the union covers the whole view. Exact for axis-aligned
+    rects: the view is cut into cells at every cover edge, and a cell is
+    covered or not as a whole.
+
+    >>> uncovered_part((0, 0, 10, 10), [(0, 0, 10, 8)])
+    (0, 8, 10, 10)
+    >>> uncovered_part((0, 0, 10, 10), [(0, 0, 6, 10), (5, 0, 10, 10)]) is None
+    True
+    """
+    l, t, r, b = view
+    xs = sorted({l, r, *(min(max(c[i], l), r) for c in covers for i in (0, 2))})
+    ys = sorted({t, b, *(min(max(c[i], t), b) for c in covers for i in (1, 3))})
+    holes: list[Rect] = []
+    for x0, x1 in zip(xs, xs[1:]):
+        for y0, y1 in zip(ys, ys[1:]):
+            if x1 <= x0 or y1 <= y0:
+                continue
+            cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
+            if not any(c[0] <= cx <= c[2] and c[1] <= cy <= c[3] for c in covers):
+                holes.append((x0, y0, x1, y1))
+    if not holes:
+        return None
+    return (
+        min(h[0] for h in holes),
+        min(h[1] for h in holes),
+        max(h[2] for h in holes),
+        max(h[3] for h in holes),
+    )

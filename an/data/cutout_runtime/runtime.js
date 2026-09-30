@@ -238,8 +238,10 @@
         copy.texture = main.texture;
         copy.anchor.copyFrom(main.anchor);
         copy.scale.set(main.scale.x * sx, main.scale.y * sy);
-        copy.x = off[0] + (0.5 - main.anchor.x) * w * (1 - sx);
-        copy.y = off[1] + (0.5 - main.anchor.y) * h * (1 - sy);
+        // `main.x`/`main.y` are 0 unless a swap key carries its own offset
+        // (an#211), and a copy follows its part wherever the key put it.
+        copy.x = main.x + off[0] + (0.5 - main.anchor.x) * w * (1 - sx);
+        copy.y = main.y + off[1] + (0.5 - main.anchor.y) * h * (1 - sy);
     }
 
     function makeUnderlays(visualSpec, main) {
@@ -353,8 +355,43 @@
         if (visualSpec.asset_sets) {
             sprite._anAssetSets = visualSpec.asset_sets;
         }
+        // an#211: a swap key drawn on a different canvas (or anchor, or
+        // offset) carries its own geometry, applied with its texture — and the
+        // geometry the sprite was BUILT with is kept so any other key, and the
+        // restore-to-rest path, put it back. Absent on every rig whose keys
+        // share one canvas, which leaves this sprite exactly as before.
+        if (visualSpec.asset_geometry) {
+            sprite._anAssetGeometry = visualSpec.asset_geometry;
+            sprite._anBuiltGeometry = {
+                width: boxW, height: boxH, anchor_x: ax, anchor_y: ay, x: 0, y: 0,
+                fit: visualSpec.fit,
+            };
+        }
         sprite._anAssetId = visualSpec.asset_id;
         return sprite;
+    }
+
+    function applyKeyGeometry(sprite, assetId) {
+        // Re-box, re-anchor and re-place a sprite for the texture it now shows
+        // (an#211). Returns false when the sprite carries no per-key geometry,
+        // so the caller keeps its plain re-fit.
+        const table = sprite._anAssetGeometry;
+        if (!table) return false;
+        const built = sprite._anBuiltGeometry;
+        const g = table[assetId] || built;
+        sprite.anchor.set(g.anchor_x, g.anchor_y);
+        sprite.x = g.x || 0;
+        sprite.y = g.y || 0;
+        const tex = sprite.texture;
+        if (built.fit === 'contain' && tex && tex.orig
+                && tex.orig.width > 0 && tex.orig.height > 0) {
+            sprite._anFitBox = [g.width, g.height];
+            refitToBox(sprite);
+        } else {
+            sprite.width = g.width;
+            sprite.height = g.height;
+        }
+        return true;
     }
 
     function makeRect(visualSpec) {
@@ -770,8 +807,10 @@
         // the sprite, so a swap must recompute it. Without this every key
         // after the first inherits the previous texture's scale — silently,
         // and only visible as art that is subtly the wrong size on some
-        // frames.
-        refitToBox(child);
+        // frames. A key with its own box/anchor/offset takes those too.
+        if (!(child._anAssetGeometry && applyKeyGeometry(child, assetId))) {
+            refitToBox(child);
+        }
         // an#163: the part's outline/shadow copies swap WITH it — a mouth's
         // outline that kept the rest shape would be the wrong mouth drawn
         // behind the right one.
@@ -1042,7 +1081,10 @@
                 return () => {
                     if (child.texture === tex) return;
                     child.texture = tex;
-                    refitToBox(child);
+                    if (!(child._anAssetGeometry
+                            && applyKeyGeometry(child, child._anAssetId))) {
+                        refitToBox(child);
+                    }
                     for (const copy of (child._anUnderlays || [])) {
                         fitUnderlay(child, copy);
                     }

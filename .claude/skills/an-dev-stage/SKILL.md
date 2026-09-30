@@ -124,7 +124,10 @@ x = 0 probe excludes a zoom.
   `an bench-mutants` as declared guard mutants.
 - **Corpus plates stay vector.** Raster takes a different loader (premultiplied alpha,
   implementation-defined colour-space conversion, a worker pool) that the determinism report does
-  not watch, and the cross-arch verdict does not cover it.
+  not watch, and the cross-arch verdict does not cover it. Raster plates and parts are SUPPORTED
+  since an#211 (sized by `an.raster.art_size`, a header parse; the alias carries a content digest)
+  — they are simply kept out of the corpus for that reason, and their pixel tests
+  (`tests/test_raster_art.py`) sample flat-colour regions with a tolerance rather than bless bytes.
 
 ## 3b. Planes, and props
 
@@ -134,7 +137,12 @@ order is draw order** (the runtime has no `zIndex`, so a `z` field would be a se
 not honour). `characters_after: str | None` is how a foreground plane happens; `anchors` are named
 stage marks (a horizon is one of them); `source: AssetSource` is mandatory in spirit because
 `an credits` walks only `mall["characters"]` and would otherwise be a false compliance statement
-the day plates arrive. Build planes **only when the store entry declares them** — re-expressing
+the day plates arrive. A plane may carry its OWN `source` (an#211; omitted from the stored
+document when unset), credited as `environments/<key>/planes/<name>`. **A plane's declared `size`
+is its box and wins over the art's measured extent** (an#211 — it was the other way round).
+`an validate`'s framing check (`an.environments.plane_rect` / `frame_rect` / `uncovered_part`,
+called by `_check_framing`) evaluates this geometry at every camera key — keys suffice without
+roll, because x/y/zoom share one eased parameter and each edge gap is convex in it. Build planes **only when the store entry declares them** — re-expressing
 `_ENV_PRESETS` as planes moves two ledger hashes for no picture change; a richer default look
 ships as a *new* preset. `repeat` ships with `TilingSprite` wired or not at all.
 

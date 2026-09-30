@@ -833,17 +833,28 @@ def test_validate_blocks_a_missing_file_that_is_the_slot_s_default_art(
     assert hits and any(f.severity == "error" for f in hits), hits
 
 
-def test_validate_advises_when_a_set_s_attachments_differ_in_geometry(
+def test_a_key_whose_geometry_differs_carries_its_own_and_validate_is_quiet(
     gale_store, tmp_path
 ):
+    """an#211 replaced this advisory with the fix it advised about. A swap
+    used to carry the texture only, so a key anchored (or drawn on a canvas)
+    unlike the default was placed with the default's geometry and validate
+    warned about DECLARED differences. Now the key's own anchor reaches the
+    wire (`asset_geometry`), so the picture is what the art package says and
+    there is nothing left to warn about."""
+
     def mutate(doc, _):
         doc["skins"]["default"]["slots"]["left_hand"]["point"]["anchor"] = [0.0, 0.0]
 
     report = _validate_gale(tmp_path, mutate)
-    assert any(
-        f.severity == "warning" and "geometry" in f.description
-        for f in report.findings
-    )
+    assert not any("geometry" in f.description for f in report.findings)
+    scene = compile_shot(_shot(), mall={"characters": gale_store})
+    gale = scene.scene.children[0]
+    hand = next(c for c in gale.children if c.name == "left_hand")
+    geometry = hand.visual.asset_geometry
+    assert set(geometry) == {"gale.left_hand.point"}, geometry
+    assert (geometry["gale.left_hand.point"]["anchor_x"],
+            geometry["gale.left_hand.point"]["anchor_y"]) == (0.0, 0.0)
 
 
 def test_the_factory_declares_face_overlay_from_the_dicebear_path(tmp_path, monkeypatch):

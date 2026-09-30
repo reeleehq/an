@@ -35,6 +35,7 @@ from an.characters.schema import (
     CharacterDescriptor,
 )
 from an.characters.svg_utils import SVG_NS, extract_pivots
+from an.raster import RASTER_SUFFIXES, has_alpha, image_size, is_raster
 from an.verify._base import Finding, VerificationReport
 
 #: Elements an art package may not contain.
@@ -46,8 +47,16 @@ from an.verify._base import Finding, VerificationReport
 PROHIBITED_ELEMENTS: dict[str, str] = {
     "script": "executable content; a part is a drawing, not a program",
     "foreignObject": "embeds non-SVG content that most rasterisers drop",
-    "image": "raster embed; inline it or ship it as its own part",
+    "image": (
+        "raster embed; ship the raster as its own part instead "
+        "(parts/<name>.png, with alpha — an#211)"
+    ),
 }
+
+#: The part file formats an art package may ship: SVG, or raster with the
+#: suffixes `an.raster` reads (an#211). Order is the lookup order for a
+#: required part, so an SVG wins when both exist.
+PART_SUFFIXES: tuple[str, ...] = (".svg", *RASTER_SUFFIXES)
 
 #: Elements that put ink on the canvas. A part containing none of these is
 #: blank, whatever else it contains.
@@ -67,17 +76,85 @@ def _localname(tag: str) -> str:
 
 
 def _iter_parts(char_dir: Path) -> Iterator[tuple[str, Path]]:
-    """``(relative name, path)`` for every part SVG an art package ships."""
+    """``(relative name, path)`` for every part an art package ships — SVG or
+    raster (an#211)."""
     parts = char_dir / "parts"
     if not parts.is_dir():
         return
-    for path in sorted(parts.rglob("*.svg")):
-        yield path.relative_to(parts).as_posix(), path
+    for path in sorted(parts.rglob("*")):
+        if path.is_file() and path.suffix.lower() in PART_SUFFIXES:
+            yield path.relative_to(parts).as_posix(), path
+
+
+def _part_file(parts_dir: Path, stem: str) -> Path | None:
+    """The file a part named ``stem`` ships as, in any accepted format."""
+    for suffix in PART_SUFFIXES:
+        candidate = parts_dir / f"{stem}{suffix}"
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def _check_raster_part(rel: str, path: Path, report: VerificationReport) -> None:
+    """A raster part (an#211): readable, transparent around the art, not blank.
+
+    The same three questions an SVG part answers, asked of pixels: can the
+    loader read it (BLOCKING — an unreadable texture fails the load), does it
+    draw anything (BLOCKING — a fully transparent part is the invisible-art
+    failure `DRAWABLE_ELEMENTS` exists for), and is it a cut-out at all
+    (ADVISORY — a part with no alpha draws its whole rectangle, background
+    included, which is legitimate for a plate and almost never for a limb).
+    """
+    ir_path = f"parts/{rel}"
+    try:
+        image_size(path)
+    except (OSError, ValueError) as e:
+        report.add(
+            BLOCKING,
+            ir_path,
+            f"{rel} is not a readable PNG/JPEG/WebP: {e}",
+            "Re-export it as a PNG with an alpha channel.",
+        )
+        return
+    alpha = has_alpha(path)
+    if alpha is False:
+        report.add(
+            ADVISORY,
+            ir_path,
+            f"{rel} has no alpha channel, so it draws its whole rectangle — "
+            "background and all — over whatever is behind it",
+            "Cut it out: export a PNG with a transparent background.",
+        )
+    if alpha and _fully_transparent(path):
+        report.add(
+            BLOCKING,
+            ir_path,
+            f"{rel} is fully transparent: it draws nothing",
+            "Put the art in it, or delete the part and the slot that names it. "
+            "A blank part renders invisibly with no error anywhere.",
+        )
+
+
+def _fully_transparent(path: Path) -> bool:
+    """Whether every pixel's alpha is 0. ``False`` when it cannot be decoded
+    here (Pillow absent) — an unrun check is not a finding."""
+    try:
+        from PIL import Image
+    except ImportError:  # pragma: no cover — Pillow arrives with tituli
+        return False
+    try:
+        with Image.open(path) as im:
+            return im.convert("RGBA").getchannel("A").getbbox() is None
+    except (OSError, ValueError):
+        return False
 
 
 def _check_part(rel: str, path: Path, report: VerificationReport) -> None:
     """Open one part and report what would go wrong at render time."""
     ir_path = f"parts/{rel}"
+    if is_raster(path):
+        _check_raster_part(rel, path, report)
+        return
     try:
         root = ET.parse(path).getroot()
     except ET.ParseError as e:
@@ -214,7 +291,7 @@ def validate_character(
 
     parts_dir = directory / "parts"
     for part in REQUIRED_PARTS:
-        if not (parts_dir / f"{part}.svg").exists():
+        if _part_file(parts_dir, part) is None:
             report.add(
                 BLOCKING,
                 f"parts/{part}.svg",
@@ -222,7 +299,7 @@ def validate_character(
                 "Draw it, or drop the slot that names it from the descriptor.",
             )
     for shape in MOUTH_SHAPES:
-        if not (parts_dir / "mouth" / f"mouth_{shape}.svg").exists():
+        if _part_file(parts_dir / "mouth", f"mouth_{shape}") is None:
             report.add(
                 BLOCKING,
                 f"parts/mouth/mouth_{shape}.svg",
@@ -234,6 +311,7 @@ def validate_character(
         _check_part(rel, path, report)
 
     _check_asset_sets(directory, descriptor, report, who=who)
+    _check_raster_colour_roles(descriptor, report, who=who)
     _check_swap_poses(descriptor, report, who=who)
 
     _check_mouth_variants(descriptor, report, who=who)
@@ -273,11 +351,13 @@ def _check_asset_sets(
     - **A key whose attachment resolves but whose FILE is missing** —
       ADVISORY, the inventory-gap class (`a rig without a blink still
       renders`); it escalates only when a shot actually uses the key.
-    - **Attachments within one set+slot that declare differing geometry**
-      (anchor / offset / explicit box) — ADVISORY, because the swap carries
-      texture only: the node's transform and fit box are baked from the
-      default attachment, so a key drawn at a different anchor lands
-      somewhere its author did not put it.
+
+    Differing geometry between a set's keys is NOT a finding any more: each
+    key carries its own box, anchor and offset through to the runtime
+    (an#211). It used to be an advisory about DECLARED geometry only, which
+    missed the case that actually broke — keys drawn on canvases of different
+    sizes, fitted into the default key's box (a thin closed mouth squashed
+    every open mouth to a fraction of a pixel).
     """
     if descriptor is None:
         return
@@ -344,26 +424,28 @@ def _check_asset_sets(
                         ),
                         "Draw the file, or drop the key from the set.",
                     )
-        # Geometry consistency, per slot the channel projects onto.
-        for slot_name, attachments in skin.slots.items():
-            in_set = [
-                attachments[name] for name in key_map.values() if name in attachments
-            ]
-            if len(in_set) < 2:
-                continue
-            geometries = {(a.anchor, a.x, a.y, a.width, a.height) for a in in_set}
-            if len(geometries) > 1:
-                report.add(
-                    ADVISORY,
-                    f"character.json#asset_sets.{channel}",
-                    f"{who}'s {channel!r} set attachments in slot "
-                    f"{slot_name!r} declare differing geometry "
-                    "(anchor/offset/box) — a swap carries texture only, so "
-                    "every key renders with the DEFAULT attachment's "
-                    "placement and fit box",
-                    "Give the set's attachments identical geometry, or "
-                    "accept that per-key placement is not yet expressible.",
-                )
+
+
+def _check_raster_colour_roles(
+    descriptor: CharacterDescriptor | None, report: VerificationReport, *, who: str
+) -> None:
+    """A colour role on a raster part does nothing (an#211) — ADVISORY.
+
+    A StylePack recolours SVG art by rewriting the literals `colour_roles`
+    tags; a raster's colours are pixels, so the compiler skips the entry and
+    the part renders as drawn.
+    """
+    if descriptor is None:
+        return
+    for rel_path in sorted(descriptor.colour_roles):
+        if is_raster(rel_path):
+            report.add(
+                ADVISORY,
+                f"character.json#colour_roles.{rel_path}",
+                f"{who} tags colour roles on {rel_path}, a raster part — a style "
+                "pack cannot recolour pixels, so the roles do nothing",
+                "Drop the entry, or ship that part as SVG if it must follow a pack.",
+            )
 
 
 def _check_swap_poses(
@@ -560,8 +642,7 @@ def _check_joint_names(
         pivots = set(extract_pivots(canonical))
     except (OSError, ET.ParseError, ValueError):
         return
-    part_ids = {stem for stem, _ in _iter_parts(directory)}
-    part_ids = {p.rsplit(".svg", 1)[0].rsplit("/", 1)[-1] for p in part_ids}
+    part_ids = {Path(rel).stem for rel, _ in _iter_parts(directory)}
     for clash in sorted(pivots & part_ids):
         report.add(
             ADVISORY,
@@ -607,7 +688,7 @@ def render_contract() -> str:
         "    <name>/",
         "      character.json        the descriptor: bones, slots, skins, asset_sets",
         "      <name>.svg            the canonical drawing, with a <g id='skeleton'>",
-        "      parts/                one SVG per attachment",
+        "      parts/                one SVG (or PNG) per attachment",
         "        mouth/              the viseme set",
         "",
         "## Coordinate space",
@@ -660,6 +741,26 @@ def render_contract() -> str:
     ]
     for name, why in PROHIBITED_ELEMENTS.items():
         lines.append(f"      <{name}> — {why}")
+    lines += [
+        "",
+        "## Raster parts",
+        "",
+        "A part may instead be raster: " + ", ".join(RASTER_SUFFIXES) + " (an#211) —",
+        "art carved from a scan or a frame keeps its shading. Point the",
+        "attachment's `path` at it (`parts/head.png`); a required part may ship",
+        "in any of these formats. Every raster part",
+        "",
+        "  - has an alpha channel (a PNG with transparency), or it draws its",
+        "    whole rectangle, background and all",
+        "  - draws something (not fully transparent)",
+        "  - is drawn at its pixel size x the rig's one uniform scale, like an",
+        "    SVG part at its width/height",
+        "  - is NOT recoloured by a style pack (its colours are pixels); outline",
+        "    and shadow treatments still apply",
+        "",
+        "Swap keys (visemes, eyelids, views) may be drawn on canvases of",
+        "different sizes: each key is placed with its own box, anchor and offset.",
+    ]
     from an.characters.schema import DFLT_VIEW, VIEW_CHANNEL, VIEWS
 
     lines += [
@@ -671,7 +772,8 @@ def render_contract() -> str:
         "a negative scale_x mirrors it) and whose values are attachment names",
         "carried by every slot whose art changes with the view (the head and",
         f"torso, typically; `{DFLT_VIEW}` names the slot's default art). Draw each",
-        "view on the SAME canvas as the default part: a swap carries texture only.",
+        "view on the same canvas as the default part where you can (a key on another",
+        "canvas is placed by its own box, anchor and offset — an#211).",
         "Then say what else each view does in `swap_poses` —",
         f'`{{"{VIEW_CHANNEL}": {{"back": {{"mouth": {{"alpha": 0}}}}}}}}`:',
         "x/y offsets (view_box units), scale_x/scale_y/alpha factors, per slot.",
