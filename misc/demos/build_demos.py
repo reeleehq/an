@@ -1042,6 +1042,31 @@ def _build_motion_presets(work: Path) -> Path:
     return _render(work)
 
 
+def _build_preset_plays(work: Path) -> Path:
+    """Motion presets played BY NAME from `scene.md`, with a scene default
+    easing (an#166): no Python, no `rest=`. `bo` stands at x = 110 in a
+    two-character shot, and its `shake` stays centred there; the unnamed-easing
+    slide takes the scene's `default_easing: linear`."""
+    md = (
+        _meta("Motion presets by name", 4.0).replace(
+            "default_renderer: cutout", "default_renderer: cutout\ndefault_easing: linear"
+        )
+        + "\n"
+        + _shot("s1", 4.0)
+        + "\n"
+        + _entities("maya", "bo")
+        + "\n```yaml actions\n"
+        "- {kind: play, target: maya, animation: pop_in, start: 0.1}\n"
+        "- {kind: play, target: bo, animation: shake, args: {amplitude: 12, cycles: 4}, start: 0.6}\n"
+        "- {kind: play, target: maya, animation: hop, args: {height: 25}, start: 1.2}\n"
+        "- {kind: play, target: bo, animation: nod, start: 1.8}\n"
+        "- {kind: play, target: maya, animation: squash_stretch, duration: 0.6, start: 2.4}\n"
+        "- {kind: tween, target: bo, property: y, to: -30, duration: 0.5, start: 3.1}\n"
+        "```\n"
+    )
+    return _render(_project(work, scene_md=md, characters=("maya", "bo")))
+
+
 #: The style spec the style demo applies, read from the downstream skill so the
 #: demo and the spec cannot disagree about what "South Park-style" means here.
 STYLE_SPEC_PATH = (
@@ -1520,6 +1545,22 @@ DEMOS: tuple[Demo, ...] = (
             "round-trips the expanded tweens."
         ),
         build=_build_motion_presets,
+    ),
+    Demo(
+        slug="preset-plays",
+        title="Motion presets by name from scene.md",
+        shows=(
+            "Two characters pop in, shake, hop, nod and squash — every move a "
+            "`play` of a preset NAME in `scene.md`, no Python. The right-hand "
+            "character's shake stays centred on its laid-out position with no "
+            "`rest=`, and the last move is a plain tween with no easing, which "
+            "takes the scene's `default_easing: linear`."
+        ),
+        how=(
+            "`{kind: play, target: bo, animation: shake, args: {cycles: 4}}` in "
+            "`yaml actions`; `default_easing: linear` in `yaml meta`."
+        ),
+        build=_build_preset_plays,
     ),
     Demo(
         slug="swap-channels",

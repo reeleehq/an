@@ -7,6 +7,7 @@ cost_note: puppets of 20-50 hinged pieces; the engine mostly exists, the puppets
 live:
   meta:
     fps: 24
+    default_easing: ease_in_out     # naturalistic, studied movement
     step_hz: 12              # an estimate: the source cadence is not established
   environment:
     # plane offsets and sizes are scene pixels from the stage centre at the default

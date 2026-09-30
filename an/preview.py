@@ -190,6 +190,7 @@ def _compile_scene_to(
         # MISSING pack previewed happily and only failed at render, skipping
         # the an#33 raise entirely (an#112 review, H2).
         style_pack=style_pack_for(scene.meta, project.mall.get("styles") or {}),
+        default_easing=scene.meta.default_easing,
     )
     _stage_scene_assets(scene_json, project.mall, runtime_target)
 

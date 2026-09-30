@@ -7,6 +7,7 @@ cost_note: about 200 unique assets per 10-minute video; the cost is art volume, 
 live:
   meta:
     fps: 30                  # smooth: no step_hz
+    default_easing: ease_in_out     # smooth; name the overshoot Bezier on pop-ins only
   environment:
     # plane offsets and sizes are scene pixels from the stage centre at the default
     # 1920x1080; scale them with meta.resolution

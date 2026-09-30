@@ -825,7 +825,7 @@ def test_scene_md_accepts_play_and_the_mistake_is_caught_where_it_can_be_seen():
     remains — naming an animation the target's descriptor does not declare —
     is reported by `an validate` (given the characters store) and refused at
     compile, each naming the declared animations. A procedural character has
-    no descriptor, so it can play nothing.
+    no descriptor, so it can play motion presets only (an#166) — `walk` is none.
     """
     from an.ir.sync import markdown_to_ir
     from an.ir.validate import validate_semantic

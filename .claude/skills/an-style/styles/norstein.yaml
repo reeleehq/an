@@ -7,6 +7,7 @@ cost_note: painted, textured art on every plane; the engine has the planes, the 
 live:
   meta:
     fps: 25                  # no step_hz: a genuine mix of ones and twos
+    default_easing: ease_in_out
   environment:
     # plane offsets and sizes are scene pixels from the stage centre at the default
     # 1920x1080; scale them with meta.resolution

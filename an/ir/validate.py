@@ -20,7 +20,14 @@ from typing import Any, Literal, Mapping
 from pydantic import ValidationError
 
 from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES
-from an.characters.play import art_exists_for, play_problems
+from an.characters.play import (
+    PRESET_SOURCE,
+    art_exists_for,
+    play_problems,
+    play_source,
+    preset_moved_node,
+    preset_play_span,
+)
 from an.characters.schema import CharacterDescriptor
 from an.expression.binding import expression_problems
 from an.ir.camera import CAMERA_MOVES, CameraError, camera_keys
@@ -308,6 +315,14 @@ def _check_swap_references(
     # `face_overlay=false` all used to pass here and raise there). Art is
     # checked when the store has a filesystem root; a dict store assumes
     # presence, as the compiler's part probe does.
+    #
+    # A name the descriptor does not declare — or any name on an entity with
+    # no descriptor — falls back to a motion preset (an#166), decided by the
+    # same `play_problems`. A preset additionally needs the node it moves to
+    # be BUILT, which only the compiler's scene builder knows: the stage is
+    # built once per shot, lazily, and only when a preset play is present.
+    stage_nodes: set[str] | None = None
+    stage_tried = False
     for k, action in enumerate(shot.actions):
         for flat in flatten(action):
             leaf = flat.action
@@ -321,27 +336,61 @@ def _check_swap_references(
             # `play` resolves against a CHARACTER's animations. A prop has an
             # `animations` field so the shared rig builder can read the same
             # attribute on either document, but nothing seeds it and no author
-            # tool writes one — so a `play` on a prop lands here with the same
-            # "no descriptor" verdict the compiler gives it.
+            # tool writes one — so a `play` on a prop resolves presets only,
+            # exactly as the compiler (which reads character descriptors
+            # alone) resolves it.
+            is_character = entity is not None and entity.kind == "character"
             desc = (
                 CharacterDescriptor.model_validate(doc)
-                if doc is not None and entity.kind == "character"
+                if doc is not None and is_character
                 else None
             )
-            if desc is None:
-                report.add(
-                    "error",
-                    f"{path}/actions/{k}",
-                    f"`play` names animation {leaf.animation!r} on {entity_id!r}, "
-                    "which has no descriptor — named animations live in a "
-                    "character's descriptor `animations`; compiling this shot raises.",
-                )
-                continue
-            for problem in play_problems(
+            problems = play_problems(
                 desc,
                 leaf.animation,
-                art_exists=art_exists_for(stores.get("characters"), entity.ref),
-            ):
+                art_exists=(
+                    art_exists_for(stores.get("characters"), entity.ref)
+                    if is_character
+                    else None
+                ),
+                args=leaf.args,
+                duration=leaf.duration,
+                speed=leaf.speed,
+                loop=leaf.loop,
+            )
+            if not problems and play_source(desc, leaf.animation) == PRESET_SOURCE:
+                if not stage_tried:
+                    stage_tried = True
+                    stage_nodes, why = _built_node_paths(shot, stores)
+                    if why is not None:
+                        # Said out loud, never a silent pass: validate could
+                        # not see what compile will look the node up in.
+                        report.add(
+                            "warning",
+                            f"{path}/actions/{k}",
+                            "the node a motion-preset `play` moves was NOT "
+                            f"checked: the shot's stage did not build ({why}).",
+                        )
+                end = flat.start + preset_play_span(leaf)
+                if end > shot.duration + 1e-9:
+                    report.add(
+                        "warning",
+                        f"{path}/actions/{k}",
+                        f"`play` of motion preset {leaf.animation!r} on "
+                        f"{entity_id!r} runs to t={end:g}s, past the shot's end "
+                        f"({shot.duration:g}s): the rest of the move never shows.",
+                    )
+                if stage_nodes is not None:
+                    node = preset_moved_node(leaf.target, leaf.animation, leaf.args)
+                    if node not in stage_nodes:
+                        built = sorted(
+                            p for p in stage_nodes if p.split("/")[0] == entity_id
+                        )
+                        problems = [
+                            f"motion preset {leaf.animation!r} moves node {node!r}, "
+                            f"which the built scene does not carry (built: {built})"
+                        ]
+            for problem in problems:
                 report.add(
                     "error",
                     f"{path}/actions/{k}",
@@ -477,6 +526,28 @@ def _check_swap_references(
                     f"{prop!r} set (it has: {sorted(keys)}) — compiling "
                     "this shot raises.",
                 )
+
+
+def _built_node_paths(
+    shot, stores: Mapping[str, Any]
+) -> tuple[set[str] | None, str | None]:
+    """``(node paths, None)`` — every node path the cutout compiler builds for
+    ``shot``'s STAGE (its entities; no actions), from the supplied stores — or
+    ``(None, why)`` when the stage does not build. Read off the compiler rather
+    than restated: a preset play's node is checked against exactly what compile
+    will look it up in (an#166). The failure is RETURNED so the caller reports
+    that the check was skipped; swallowing it would be validate saying "fine"
+    about a play it never looked at."""
+    import warnings
+
+    from an.motion import stage_poses
+
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # the render's warnings, not validate's
+            return set(stage_poses(shot, mall=stores)), None
+    except Exception as e:  # noqa: BLE001 — reported by the caller, by name
+        return None, f"{type(e).__name__}: {e}"
 
 
 def _descriptor_for(ref, available_characters) -> CharacterDescriptor | None:
@@ -657,6 +728,52 @@ def _check_step_hz(
         )
 
 
+def _check_default_easing(spec: Any, *, report: "ValidationReport") -> None:
+    """``meta.default_easing`` (an#166) must be an easing the evaluators know:
+    it reaches every unnamed tween in the scene, so a typo is not one broken
+    tween but all of them. The compiler re-checks, since a render never runs
+    validate."""
+    if spec is None:
+        return
+    from an.adapters.cutout.easing import apply_easing
+
+    try:
+        apply_easing(spec, 0.5)
+    except (ValueError, TypeError) as e:
+        report.add("error", "meta/default_easing", f"{spec!r} is not an easing: {e}")
+
+
+def _check_default_easing_reach(scene: SceneIR, *, report: "ValidationReport") -> None:
+    """Warn when ``meta.default_easing`` is set and some tweens spell
+    ``ease_in_out`` explicitly — the shape every ``scene.json`` written before
+    an#166 has (the old serializer wrote the default out), where the scene
+    default silently reaches nothing. Explicit is explicit, so it is a
+    warning naming the count, not a rewrite."""
+    if scene.meta.default_easing is None:
+        return
+    from an.ir.schema import TweenAction
+
+    pinned = [
+        f"timeline/{i}/actions/{k}"
+        for i, shot in enumerate(scene.timeline)
+        for k, action in enumerate(shot.actions)
+        for flat in flatten(action)
+        if isinstance(flat.action, TweenAction)
+        and "easing" in flat.action.model_fields_set
+        and flat.action.easing == "ease_in_out"
+    ]
+    if pinned:
+        report.add(
+            "warning",
+            "meta/default_easing",
+            f"{len(pinned)} tween(s) name `easing: ease_in_out` explicitly, so "
+            f"default_easing {scene.meta.default_easing!r} does not reach them "
+            f"(first: {pinned[0]}). A scene.json written before an#166 spells the "
+            "old default out on every tween; drop the key where the scene "
+            "default is meant.",
+        )
+
+
 #: Keys an#106 retired, and what to write instead. `SceneIR`'s models are
 #: `extra="allow"` (deliberately — forward compatibility), so a document that
 #: still carries one of these validates cleanly and renders with the DEFAULT
@@ -773,6 +890,8 @@ def validate_semantic(
     _check_step_hz(
         scene.meta.step_hz, fps=scene.meta.fps, path="meta/step_hz", report=report
     )
+    _check_default_easing(scene.meta.default_easing, report=report)
+    _check_default_easing_reach(scene, report=report)
     if not scene.timeline:
         report.add(
             "warning",

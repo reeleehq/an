@@ -156,10 +156,13 @@ The IR shape (relevant fields):
         A tween with no "from" starts at the property's rest value: 1.0 for
         scale_x / scale_y / alpha, "#ffffff" for tint, 0.0 for the rest.
         A "play" action ({kind: play, target: <entity>, animation: <name>,
-        [duration], [speed], [loop]}) plays one of the target character's
-        descriptor animations ("idle_breath", "blink", or any it declares);
-        an animation the descriptor does not declare fails the compile —
-        never invent a name.
+        [duration], [speed], [loop], [args]}) plays one of the target character's
+        descriptor animations ("idle_breath", "blink", or any it declares) or,
+        for a name the descriptor does not declare, a motion preset — pop_in,
+        hop, shake, nod, point (target the arm node), slide_in, slide_out,
+        squash_stretch, waddle — with "args" as its parameters (e.g.
+        {"height": 30}); a name in neither fails validation — never invent one.
+        A tween with no "easing" takes the scene's meta.default_easing when set.
         An "expression" action ({kind: expression, target: <entity>, preset: <name>,
         [axes: {axis: value}], [intensity], [duration], [blend]}) holds a facial
         expression on a character: brows, eyelids, and the mouth's set for any

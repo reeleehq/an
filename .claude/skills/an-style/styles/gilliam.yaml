@@ -7,6 +7,7 @@ cost_note: medium if the images are public domain; sourcing and cutting the phot
 live:
   meta:
     fps: 25                  # PAL source; no step_hz: snap moves on ones
+    default_easing: step            # "swift, sudden movements": a tween holds, then jumps
   environment:
     preset: default          # replace with an image plane (PlaneArt kind image) holding an engraving or photograph
   camera:

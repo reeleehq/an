@@ -149,16 +149,23 @@ def test_an_undeclared_animation_is_refused_naming_the_declared_ones(gale_store)
         compile_shot(_shot([play("gale", "walk")]), mall={"characters": gale_store})
 
 
-def test_a_procedural_entity_cannot_play_anything():
-    shot = Shot(
-        id="s",
-        renderer="cutout",
-        duration=2.0,
-        entities=[AssetRef(kind="character", id="c", store="characters", ref="c")],
-        actions=[play("c", "idle_breath")],
-    )
+def test_a_procedural_entity_plays_motion_presets_only():
+    """No descriptor, so no descriptor animation — but the motion presets
+    resolve on any built node (an#166)."""
+    def shot(name):
+        return Shot(
+            id="s",
+            renderer="cutout",
+            duration=2.0,
+            entities=[AssetRef(kind="character", id="c", store="characters", ref="c")],
+            actions=[play("c", name)],
+        )
+
     with pytest.raises(CutoutCompileError, match="no descriptor"):
-        compile_shot(shot, mall={"characters": {}})
+        compile_shot(shot("idle_breath"), mall={"characters": {}})
+    with pytest.warns(Warning):  # the stand-in rig
+        compiled = compile_shot(shot("hop"), mall={"characters": {}})
+    assert any(c.target == "c" for a in compiled.animations.values() for c in a.channels)
 
 
 def test_play_round_trips_through_scene_md(gale_store):
