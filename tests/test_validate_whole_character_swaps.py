@@ -104,7 +104,7 @@ def test_a_slot_with_none_of_the_set_s_art_is_not_a_target(tmp_path):
     slots["head"]["pa"] = dict(next(iter(slots["head"].values())))
     slots["torso"]["pa"] = {**next(iter(slots["torso"].values())), "path": "parts/nonexistent.svg"}
     doc["asset_sets"]["pose"] = {"a": "pa"}
-    doc_path.write_text(json.dumps(doc), "utf-8")
+    doc_path.write_text(json.dumps(doc), encoding="utf-8")
     shot = _shot(SetAction(target="ned", property="pose", value="a", at=0.0))
     _compile(root, shot, strict=True)
     assert _errors(root, shot) == []
