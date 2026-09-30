@@ -25,12 +25,14 @@ live:
     allowed: [hold, pan_left, pan_right]   # slow pans
   easing: [ease_in_out]      # naturalistic, studied movement
   tween_duration_s: [0.5, 2.0]
+  motion_presets: [turn]     # an.motion; a turn keeps to profiles, to `side` facing left or right
   shots:
     mean_s: 12               # measured, n=5
     range_s: [6, 20]
   characters:
     generate: offline
     tint: "#000000"          # a `tint` set on each character root: a black multiply is a silhouette
+    view: side               # a `set` of `view` on each character root at `at: 0` in every shot: the profile IS the silhouette; a negative `scale_x` faces left
   transitions:
     default: {kind: dissolve, duration: 1.0}   # between painted plates; the duration is an estimate
   sound:
@@ -42,7 +44,7 @@ targets:
 
 guidance:
   construction: black cardboard puppets of 20-50 pieces with wire hinges; rigs are flat in `an` today, so deep hierarchies are untested
-  expression: pose and profile only, no mouth animation; use side-view art
+  expression: pose and profile only, no mouth animation (the profile is `live.characters.view`; turn with a `turn` play to `side`); the factory's profile is a round head with a nose, not a cut-paper face
   shot_timing: shot lengths counted to the music; cut to the bed's bars by hand (nothing reads the music's tempo)
   text: ornamental-script intertitles, cyan on dark blue — an overlay text prop with an ornamental font FILE over a dark-blue fill plane; the geometric border is SVG prop art or path props
   sound: a composed score, no dialogue; bring a licensed or public-domain recording for `live.sound`'s bed

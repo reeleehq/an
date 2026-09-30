@@ -234,6 +234,7 @@ def validate_character(
         _check_part(rel, path, report)
 
     _check_asset_sets(directory, descriptor, report, who=who)
+    _check_swap_poses(descriptor, report, who=who)
 
     _check_mouth_variants(descriptor, report, who=who)
     _check_gaze_stack(descriptor, report, who=who)
@@ -362,6 +363,51 @@ def _check_asset_sets(
                     "placement and fit box",
                     "Give the set's attachments identical geometry, or "
                     "accept that per-key placement is not yet expressible.",
+                )
+
+
+def _check_swap_poses(
+    descriptor: CharacterDescriptor | None,
+    report: VerificationReport,
+    *,
+    who: str,
+) -> None:
+    """``swap_poses`` must pose declared keys of declared sets, on slots the rig
+    has (an#197) — BLOCKING, because the compiler skips a pose it cannot place
+    and the turn then shows a face the view was meant to hide.
+    """
+    if descriptor is None:
+        return
+    slots = {s.name for s in descriptor.slots}
+    for set_name, per_key in descriptor.swap_poses.items():
+        where = f"character.json#swap_poses.{set_name}"
+        keys = descriptor.asset_sets.get(set_name)
+        if keys is None:
+            report.add(
+                BLOCKING,
+                where,
+                f"{who} poses the {set_name!r} set, which it does not declare "
+                f"(asset_sets: {sorted(descriptor.asset_sets)})",
+                "Declare the set in asset_sets, or drop its poses.",
+            )
+            continue
+        for key, poses in per_key.items():
+            if key not in keys:
+                report.add(
+                    BLOCKING,
+                    f"{where}.{key}",
+                    f"{who} poses {key!r}, which is not a key of its {set_name!r} "
+                    f"set (keys: {sorted(keys)}) — no swap can ever show it",
+                    "Pose a declared key, or declare the key.",
+                )
+            unknown = sorted(set(poses) - slots)
+            if unknown:
+                report.add(
+                    BLOCKING,
+                    f"{where}.{key}",
+                    f"{who}'s {set_name!r}.{key!r} pose names slot(s) {unknown} the "
+                    f"rig does not have (slots: {sorted(slots)})",
+                    "Name the slots as the descriptor's `slots` do.",
                 )
 
 
@@ -614,6 +660,24 @@ def render_contract() -> str:
     ]
     for name, why in PROHIBITED_ELEMENTS.items():
         lines.append(f"      <{name}> — {why}")
+    from an.characters.schema import DFLT_VIEW, VIEW_CHANNEL, VIEWS
+
+    lines += [
+        "",
+        "## Optional: views (a turnaround)",
+        "",
+        f"To let a scene turn the character, declare a `{VIEW_CHANNEL}` asset set whose",
+        f"keys are views ({', '.join(VIEWS)}; `side` faces the viewer's RIGHT —",
+        "a negative scale_x mirrors it) and whose values are attachment names",
+        "carried by every slot whose art changes with the view (the head and",
+        f"torso, typically; `{DFLT_VIEW}` names the slot's default art). Draw each",
+        "view on the SAME canvas as the default part: a swap carries texture only.",
+        "Then say what else each view does in `swap_poses` —",
+        f"`{{\"{VIEW_CHANNEL}\": {{\"back\": {{\"mouth\": {{\"alpha\": 0}}}}}}}}`:",
+        "x/y offsets (view_box units), scale_x/scale_y/alpha factors, per slot.",
+        "The back view hides the face this way; a profile hides the far eye.",
+        "`an character new --offline` draws all of this for its own characters.",
+    ]
     lines += [
         "",
         "## Provenance",

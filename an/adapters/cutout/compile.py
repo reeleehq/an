@@ -105,6 +105,8 @@ from an.adapters.cutout.serialize import (
 from an.characters.schema import (
     CHARACTER_DOCUMENT_KIND,
     EYELID_CHANNEL,
+    SLOT_POSE_FACTORS,
+    SLOT_POSE_OFFSETS,
     MOUTH_SHAPES,
     VISEME_CHANNEL,
     Attachment,
@@ -1014,6 +1016,7 @@ def compile_shot(
             f"overlay and scene both build a node named {sorted(clash)}; the "
             "runtime indexes both layers by path, so one would shadow the other"
         )
+    entity_swaps: list[_EntitySwap] = []
     animations, tracks = _compile_actions(
         shot.actions,
         shot.duration,
@@ -1022,7 +1025,11 @@ def compile_shot(
         fps=fps,
         step_hz=step_hz,
         default_easing=default_easing,
+        entity_swaps=entity_swaps,
     )
+    # What each whole-character swap POSES (an#197) — folded into the face
+    # solver's channels below, so a posed pupil still follows the gaze.
+    poses = _swap_pose_layer(entity_swaps, vocab)
     provider = expression_provider or DefaultExpressionProvider()
     # Phase 4: emit a viseme channel per dialogue line that has a viseme_track.
     _add_viseme_clips(
@@ -1038,7 +1045,14 @@ def compile_shot(
     # channel per (node, property), ahead of everything authored. An entity
     # nothing expresses on gets its blink clips exactly as before (an#88).
     blink_phases, gaze_seeds = _add_face_clips(
-        shot, animations, tracks, vocab=vocab, fps=fps, mall=mall, provider=provider
+        shot,
+        animations,
+        tracks,
+        vocab=vocab,
+        fps=fps,
+        mall=mall,
+        provider=provider,
+        poses=poses,
     )
     # Phase 7: wire camera.move ("push_in", "pull_out", "hold") into a scale
     # animation on the synthetic scene root so directors get visible camera
@@ -2642,8 +2656,13 @@ def _compile_actions(
     fps: int = 30,
     step_hz: float | None = None,
     default_easing: Any = None,
+    entity_swaps: list["_EntitySwap"] | None = None,
 ) -> tuple[dict[str, AnimationClipJSON], list[TrackJSON]]:
     """Flatten authoring actions and convert to animation clips.
+
+    A ``set`` of a swap set on the ENTITY ITSELF fans out to every slot the
+    set projects onto (:func:`_fan_out_entity_swaps`, an#197); each such swap
+    is appended to ``entity_swaps`` when given, for the pose layer.
 
     A ``play`` of a MOTION PRESET is replaced by the tweens and settling sets
     it stands for before anything else looks (:func:`_expand_preset_plays`,
@@ -2685,6 +2704,9 @@ def _compile_actions(
     for action in actions:
         flat_list.extend(flatten(action, play_extent=extent))
     flat_list = _expand_preset_plays(flat_list, vocab=vocab)
+    flat_list = _fan_out_entity_swaps(
+        flat_list, vocab=vocab, resolutions=resolutions, record=entity_swaps
+    )
 
     # `expression` leaves (an#98) are the face solver's input, not clips of
     # their own: `_add_face_clips` sums them per (node, property).
@@ -2817,6 +2839,190 @@ def _compile_actions(
         for root, clips in placed_by_track.items()
     ]
     return animations, tracks
+
+
+@dataclass(frozen=True)
+class _EntitySwap:
+    """A swap set applied to a whole character at one instant (an#197)."""
+
+    entity_id: str
+    set_name: str
+    time: float
+    key: str
+
+
+def _fan_out_entity_swaps(
+    flat_list: list[FlatAction],
+    *,
+    vocab: _SwapVocabulary | None,
+    resolutions: list[AssetResolutionJSON] | None = None,
+    record: list[_EntitySwap] | None = None,
+) -> list[FlatAction]:
+    """A ``set`` of a swap set on the ENTITY ITSELF becomes the same ``set`` on
+    every slot the set projects onto — one key turns a whole character (an#197).
+
+    ``{kind: set, target: maya, property: view, value: side}`` swaps the head
+    AND the torso to their ``side`` art; each fanned-out swap is then checked
+    like any authored one (:func:`_check_swap_action`). The swap is recorded in
+    ``record`` so :func:`_swap_pose_layer` can pose the slots the key lists in
+    the descriptor's ``swap_poses``. Set-name-agnostic: ``view`` is a
+    convention, and a ``hands`` set fans out to both hands the same way.
+
+    Only a character with a descriptor, and only when the entity node does not
+    carry the set itself; a tween of a swap on the entity is left to the
+    ordinary check, which names the nodes that carry the set.
+    """
+    if vocab is None:
+        return flat_list
+    out: list[FlatAction] = []
+    for flat in flat_list:
+        action = flat.action
+        prop = getattr(action, "property", None)
+        if (
+            not isinstance(action, SetAction)
+            or "/" in action.target
+            or prop in _PROPERTY_REST_VALUES
+            or action.target not in vocab.descriptors
+            or prop in vocab.node_sets.get(action.target, {})
+        ):
+            out.append(flat)
+            continue
+        entity_id = action.target
+        declared = vocab.declared.get(entity_id, {})
+        if prop not in declared:
+            raise CutoutCompileError(
+                f"action sets {entity_id!r}:{prop!r}, but {entity_id!r}'s "
+                f"descriptor declares no asset set named {prop!r} (it has: "
+                f"{sorted(declared)}). A property that is not a transform must "
+                "name a declared swap set"
+                + (
+                    " — a character made before an#197 has no views: "
+                    "`an character add-views` draws them."
+                    if prop == "view"
+                    else "."
+                )
+            )
+        if not isinstance(action.value, str) or action.value not in declared[prop]:
+            raise CutoutCompileError(
+                f"action sets {entity_id!r}:{prop!r} to {action.value!r}, which is "
+                f"not a declared key of that set (it has: {sorted(declared[prop])})."
+            )
+        capable = vocab.swap_capable_paths(entity_id, prop)
+        if not capable:
+            _record_used_swap_fallback(
+                resolutions,
+                entity_id,
+                entity_id,
+                prop,
+                detail=(
+                    f"the {prop!r} set is declared but none of its art resolved "
+                    f"on any node of {entity_id!r}, so the swap to "
+                    f"{action.value!r} shows no art (only its pose, if any)"
+                ),
+            )
+        for path in capable:
+            out.append(
+                FlatAction(
+                    start=flat.start,
+                    end=flat.end,
+                    action=action.model_copy(update={"target": path}),
+                )
+            )
+        if record is not None:
+            record.append(_EntitySwap(entity_id, prop, float(flat.start), action.value))
+    return out
+
+
+#: ``(node path, property) -> [(time, value)]``: a step function, first key at 0.
+_StepCurve = list[tuple[float, float]]
+
+
+def _swap_pose_layer(
+    swaps: list[_EntitySwap], vocab: _SwapVocabulary
+) -> dict[str, dict[tuple[str, str], _StepCurve]]:
+    """``{entity id: {(node path, property): step curve}}`` — the transforms the
+    descriptor's ``swap_poses`` put on its slots as each whole-character swap
+    lands (an#197). A key poses the slots it lists; every other slot any key
+    of that set poses is at rest. Offsets (``x``, ``y``) are view_box units,
+    scaled by the rig's k and added to the rest; factors (``scale_*``,
+    ``alpha``) multiply it; several posed sets compose the same way.
+
+    A curve that never leaves the rest is dropped, and an entity nothing
+    poses is absent — so a scene without whole-character swaps compiles
+    byte-identically. Slots the rig builder did not build are skipped, as the
+    face solver skips them.
+    """
+    by_entity: dict[str, list[_EntitySwap]] = {}
+    for swap in swaps:
+        by_entity.setdefault(swap.entity_id, []).append(swap)
+    layer: dict[str, dict[tuple[str, str], _StepCurve]] = {}
+    for entity_id, events in by_entity.items():
+        desc = vocab.descriptors[entity_id]
+        posed_sets = {e.set_name for e in events if desc.swap_poses.get(e.set_name)}
+        if not posed_sets:
+            continue
+        k = vocab.entity_scale.get(entity_id, 1.0)
+        paths: dict[str, str] = {}
+        for set_name in sorted(posed_sets):
+            for per_key in desc.swap_poses[set_name].values():
+                for slot in per_key:
+                    try:
+                        path = f"{entity_id}/{slot_node_path(desc, slot)}"
+                    except KeyError:
+                        continue  # `an character validate` names the slot
+                    if path in vocab.paths:
+                        paths[slot] = path
+        state: dict[str, str] = {}
+        curves: dict[tuple[str, str], _StepCurve] = {}
+        # Stable by time: at one instant the later-authored swap wins.
+        for event in sorted(events, key=lambda e: e.time):
+            if event.set_name not in posed_sets:
+                continue
+            state[event.set_name] = event.key
+            for slot, path in paths.items():
+                rest = vocab.node_transforms[path]
+                poses = [
+                    desc.swap_poses[s].get(key, {}).get(slot)
+                    for s, key in sorted(state.items())
+                ]
+                poses = [p for p in poses if p is not None]
+                for prop in SLOT_POSE_OFFSETS:
+                    value = float(getattr(rest, prop)) + k * sum(
+                        getattr(p, prop) for p in poses
+                    )
+                    curves.setdefault((path, prop), []).append((event.time, value))
+                for prop in SLOT_POSE_FACTORS:
+                    value = float(getattr(rest, prop)) * math.prod(
+                        getattr(p, prop) for p in poses
+                    )
+                    curves.setdefault((path, prop), []).append((event.time, value))
+        out: dict[tuple[str, str], _StepCurve] = {}
+        for (path, prop), keys in curves.items():
+            rest_value = float(getattr(vocab.node_transforms[path], prop))
+            if all(abs(v - rest_value) < 1e-9 for _, v in keys):
+                continue
+            steps: _StepCurve = [] if keys[0][0] <= 0.0 else [(0.0, rest_value)]
+            for t, v in keys:
+                if steps and abs(steps[-1][0] - t) < 1e-12:
+                    steps[-1] = (t, v)  # same instant: the later swap wins
+                elif not steps or steps[-1][1] != v:
+                    steps.append((max(0.0, t), v))
+            out[(path, prop)] = steps
+        if out:
+            layer[entity_id] = out
+    return layer
+
+
+def _step_at(curve: _StepCurve, t: float) -> float:
+    """The value a step curve holds at ``t`` (a key applies from its own time,
+    within float slack, like the evaluators' time-based snap)."""
+    value = curve[0][1]
+    for time, v in curve:
+        if time <= t + 1e-9:
+            value = v
+        else:
+            break
+    return value
 
 
 def _compile_one(
@@ -3901,6 +4107,7 @@ def _add_face_clips(
     fps: int,
     mall: Mapping[str, Mapping] | None = None,
     provider: ExpressionProvider | None = None,
+    poses: Mapping[str, Mapping[tuple[str, str], _StepCurve]] | None = None,
 ) -> tuple[dict[str, float], dict[str, int]]:
     """Emit the face of every character: blinks, expressions, the silent mouth
     form — **exactly one channel per (node, property)**, summed at compile
@@ -3928,6 +4135,11 @@ def _add_face_clips(
     A rig with a pupil layer (an#99) always takes the solver path, expressed on
     or not: its ambient saccades are a contributor like blinks. Returns the
     blink phases and the gaze seeds used, per entity, for the scene's meta.
+
+    ``poses`` (an#197, :func:`_swap_pose_layer`) is a contributor too: a posed
+    entity always takes the solver path, which folds the pose into every
+    channel it drives (a posed pupil keeps its gaze on top of the pose) and
+    emits the rest of the pose as step channels in the same clip.
     """
     provider = provider or DefaultExpressionProvider()
     phases: dict[str, float] = {}
@@ -3993,7 +4205,8 @@ def _add_face_clips(
                 and (sp.mouth_form or any(a in bound for a in sp.offsets()))
             ]
         has_pupils = desc is not None and bool(_pupil_paths(vocab, entity.id))
-        if (not spans and not has_pupils) or desc is None:
+        pose = (poses or {}).get(entity.id)
+        if (not spans and not has_pupils and not pose) or desc is None:
             if spans and desc is None:
                 warnings.warn(
                     f"shot {shot.id!r}: {entity.id!r} has no descriptor (a procedural "
@@ -4018,6 +4231,7 @@ def _add_face_clips(
                 fps=fps,
                 provider=provider,
                 spans=spans,
+                pose=pose,
             )
             if _eye_paths(vocab, entity.id):
                 phases[entity.id] = blink_phase(entity.id)
@@ -4053,8 +4267,14 @@ def _solve_face(
     fps: int,
     provider: ExpressionProvider,
     spans,
+    pose: Mapping[tuple[str, str], _StepCurve] | None = None,
 ) -> list[PlacedClipJSON]:
-    """The solved face of one expressed-on entity: one clip, one channel per key."""
+    """The solved face of one expressed-on entity: one clip, one channel per key.
+
+    A ``pose`` (an#197) replaces the rest a channel is summed onto, frame by
+    frame, for every (node, property) the solver drives; the pose's other
+    curves ride the same clip as step channels.
+    """
     curves = {
         c.axis: list(c.samples) for c in provider.curves(shot, entity_id, fps=fps)
     }
@@ -4128,6 +4348,16 @@ def _solve_face(
             for i in range(n):
                 acc[i] += samples[i]
 
+    pose = pose or {}
+
+    def base_values(path: str, prop: str) -> list[float]:
+        """The value each frame's contributors sum onto: the rest, or the pose."""
+        curve = pose.get((path, prop))
+        if curve is None:
+            return [float(getattr(vocab.node_transforms[path], prop))] * n
+        return [_step_at(curve, t) for t in times]
+
+    folded: set[tuple[str, str]] = set()
     channels: list[ChannelJSON] = []
     for (path, prop), acc in sorted(offsets.items()):
         if (path, prop) in authored:
@@ -4137,12 +4367,13 @@ def _solve_face(
                 CutoutCompileWarning,
                 stacklevel=3,
             )
-        rest = float(getattr(vocab.node_transforms[path], prop))
+        base = base_values(path, prop)
+        folded.add((path, prop))
         channels.append(
             ChannelJSON(
                 target=path,
                 property=prop,
-                keyframes=_compress_linear(times, [rest + v for v in acc]),
+                keyframes=_compress_linear(times, [b + v for b, v in zip(base, acc)]),
             )
         )
     # Lids: every eye node, expression or not — a blink is a lid contributor.
@@ -4172,11 +4403,12 @@ def _solve_face(
         else:
             if (path, "scale_y") in authored:
                 continue
-            rest_sy = float(vocab.node_transforms[path].scale_y)
+            base_sy = base_values(path, "scale_y")
+            folded.add((path, "scale_y"))
             values = [
                 max(
-                    0.05 * rest_sy,
-                    rest_sy
+                    0.05 * base_sy[i],
+                    base_sy[i]
                     * _blink_squash_at(t, windows)
                     * (1.0 + LID_SQUASH_GAIN * expr[i]),
                 )
@@ -4189,6 +4421,21 @@ def _solve_face(
                     keyframes=_compress_linear(times, values),
                 )
             )
+
+    # The pose's own curves, where no contributor above drives the property:
+    # held steps, keyed where each whole-character swap lands.
+    for (path, prop), curve in sorted(pose.items()):
+        if (path, prop) in folded:
+            continue
+        channels.append(
+            ChannelJSON(
+                target=path,
+                property=prop,
+                keyframes=[
+                    KeyframeJSON(time=t, value=v, easing="step") for t, v in curve
+                ],
+            )
+        )
 
     placed: list[PlacedClipJSON] = []
     if channels:

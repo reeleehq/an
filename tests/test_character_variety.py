@@ -85,7 +85,11 @@ def _desc(char_dir: Path) -> CharacterDescriptor:
 
 @pytest.mark.parametrize("name", sorted(GOLDEN_FACTORY_DIGESTS))
 def test_the_default_character_is_byte_identical_to_the_pre_knob_factory(tmp_path, name):
-    assert _factory_digest(_make(tmp_path, name)) == GOLDEN_FACTORY_DIGESTS[name]
+    # `views=False`: the turnaround (an#197) only ADDS parts and descriptor
+    # entries, which `tests/test_turnaround.py::test_views_are_additive_...`
+    # holds against this very character — so the pre-knob digest still pins
+    # everything the character had before either.
+    assert _factory_digest(_make(tmp_path, name, views=False)) == GOLDEN_FACTORY_DIGESTS[name]
 
 
 def test_a_default_character_records_no_knob_in_its_metadata(tmp_path):

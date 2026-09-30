@@ -1072,6 +1072,49 @@ def _build_swap_channels(work: Path) -> Path:
     return _render(work)
 
 
+def _build_turnaround(work: Path) -> Path:
+    """The hi/bye script's turn beat (an#197): "X comes in, says hi to Y. Y
+    pauses. Looks at X. Turns around and says bye." Carl enters in profile
+    facing LEFT (the side view mirrored), turns to the front and says hi; Ned
+    pauses, turns to profile to look at him, then turns his back and says bye
+    — every turn one `play: turn` line, no alpha on any face node."""
+    _, scale = frame_full_body()
+    both = _entities("ned", "carl")
+    md = (
+        _meta("Turning around", 7.0)
+        + "\n"
+        + _shot("enter", 2.0)
+        + "\n"
+        + both
+        + "\n```yaml actions\n"
+        "- {kind: set, target: carl, property: view, value: side, at: 0.0}\n"
+        f"- {{kind: set, target: carl, property: scale_x, value: {-scale:.4f}, at: 0.0}}\n"
+        "- {kind: play, target: carl, animation: slide_in, args: {from_side: right, distance: 260}, duration: 0.9}\n"
+        "- {kind: play, target: carl, animation: turn, args: {to: front, from_direction: left}, start: 1.3}\n"
+        "```\n\n"
+        + _shot("hi", 1.4)
+        + "\n"
+        + both
+        + "\n```yaml actions\n"
+        "- {kind: play, target: carl, animation: hop, args: {height: 12}, start: 0.1}\n"
+        "```\n\n```dialogue\ncarl: Hi!\n```\n\n"
+        + _shot("look", 2.2)
+        + "\n"
+        + both
+        + "\n```yaml actions\n"
+        "- {kind: play, target: ned, animation: turn, args: {to: side, direction: right}, start: 0.7}\n"
+        "- {kind: play, target: ned, animation: turn, args: {to: back}, start: 1.7}\n"
+        "```\n\n"
+        + _shot("bye", 1.4)
+        + "\n"
+        + both
+        + "\n```yaml actions\n"
+        "- {kind: set, target: ned, property: view, value: back, at: 0.0}\n"
+        "```\n\n```dialogue\nned: Bye.\n```\n"
+    )
+    return _render(_project(work, scene_md=md, characters=("ned", "carl")))
+
+
 def _build_play(work: Path) -> Path:
     """`play` of a descriptor animation (an#7): the seeded `idle_breath` loops
     to the shot end from ONE line, and two `blink`s ride the eyelid swap set."""
@@ -2284,6 +2327,30 @@ DEMOS: tuple[Demo, ...] = (
             "every error."
         ),
         build=_build_swap_channels,
+    ),
+    Demo(
+        slug="turnaround",
+        title="Turning around: views and the turn preset",
+        shows=(
+            "The hi/bye script's turn beat. Carl slides in as a PROFILE facing left "
+            "— the side view mirrored by a negative `scale_x` — and turns to face "
+            "front; Ned pauses, turns to profile to look at him, then turns his "
+            "back and says bye. Each turn squashes `scale_x` through 0 and swaps "
+            "the view at the edge-on midpoint. The back hides the face, the profile "
+            "keeps one eye and slides the mouth to the edge, blinks and gaze keep "
+            "running on what shows — the view's pose, not an alpha hack. Limits: "
+            "the preset cannot see an earlier turn, so a turn back from a left "
+            "profile says `from_direction: left`; a view holds only within its "
+            "shot, so the next shot sets it again; and the lip-sync under a back "
+            "view is hidden with the mouth."
+        ),
+        how=(
+            "`an character new --offline` draws `front`/`three_quarter`/`side`/"
+            "`back` as a `view` swap set with a pose per view (`add_views`); "
+            "`{kind: play, target: ned, animation: turn, args: {to: back}}` — or "
+            "`{kind: set, target: ned, property: view, value: back}` for a cut."
+        ),
+        build=_build_turnaround,
     ),
     Demo(
         slug="play-animation",

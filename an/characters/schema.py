@@ -93,6 +93,22 @@ EYELID_CHANNEL: str = "eyelid"
 DEFAULT_EYELID_MAP: dict[str, str] = {"OPEN": "open", "CLOSED": "closed"}
 
 
+#: The swap set a turnaround rides (an#197): one KEY per drawn view, projected
+#: onto the slots whose art changes with the view (the factory draws the head
+#: and the torso), each slot carrying attachments NAMED after the keys. A
+#: conventional name, like `viseme` — nothing in the compiler or the runtime
+#: reads it; `an.motion.turn` is the one writer that defaults to it.
+VIEW_CHANNEL: str = "view"
+
+#: The views the factory draws, in turnaround order. ``side`` is a profile
+#: facing the viewer's RIGHT at a positive ``scale_x``; a negative ``scale_x``
+#: (``an.motion.turn(direction="left")``) mirrors it to face left.
+VIEWS: tuple[str, ...] = ("front", "three_quarter", "side", "back")
+
+#: The view a character shows at rest: its default attachments ARE this view.
+DFLT_VIEW: str = "front"
+
+
 def default_asset_sets() -> dict[str, dict[str, str]]:
     """``{channel: {key: attachment_name}}`` for a freshly-built character."""
     return {
@@ -203,6 +219,32 @@ class Skin(_CharModel):
 
     name: str = "default"
     slots: dict[str, dict[str, Attachment]] = Field(default_factory=dict)
+
+
+class SlotPose(_CharModel):
+    """How one slot is posed while a swap key is shown (``swap_poses``, an#197).
+
+    Relative to the slot's REST, so one pose serves every placement: ``x``/``y``
+    are added (view_box units, like an attachment offset), ``scale_x``,
+    ``scale_y`` and ``alpha`` multiply. ``alpha: 0`` is how a view HIDES a slot
+    — the back view hides the face — which is a property of the view, never an
+    author's alpha hack on node paths guessed by trial.
+
+    >>> SlotPose(alpha=0).alpha, SlotPose().x
+    (0.0, 0.0)
+    """
+
+    x: float = 0.0
+    y: float = 0.0
+    scale_x: float = 1.0
+    scale_y: float = 1.0
+    alpha: float = 1.0
+
+
+#: The transform properties a :class:`SlotPose` sets, and whether each is an
+#: OFFSET added to the rest (in view_box units) or a FACTOR on it.
+SLOT_POSE_OFFSETS: tuple[str, ...] = ("x", "y")
+SLOT_POSE_FACTORS: tuple[str, ...] = ("scale_x", "scale_y", "alpha")
 
 
 _TrackType = Literal["sine", "step", "linear"]
@@ -396,6 +438,20 @@ class CharacterDescriptor(_CharModel):
     #: This comment used to say "art license, etc." — an invitation nothing ever
     #: took up. Rights live in ``source`` now, typed, so they can be found.
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    #: How slots are POSED while a swap key shows — ``{set: {key: {slot:
+    #: SlotPose}}}`` (an#197). A ``set`` of a swap set on the ENTITY itself
+    #: (``{kind: set, target: maya, property: view, value: side}``) fans the
+    #: key out to every slot the set projects onto AND poses the slots listed
+    #: under that key; a slot listed under another key of the set returns to
+    #: rest. That is how one key turns a whole character: the head and torso
+    #: swap art, the far eye and arm hide, the mouth slides to the profile
+    #: edge — while blinks, gaze and lip-sync keep running on what is visible
+    #: (the face solver folds a pose into its own channels). Additive: no
+    #: schema bump, and a descriptor without it reads back unposed.
+    swap_poses: dict[str, dict[str, dict[str, SlotPose]]] = Field(
+        default_factory=dict
+    )
 
     def model_post_init(self, __context: Any) -> None:
         # If the caller didn't seed bones/slots/skins, fill in a sensible default
