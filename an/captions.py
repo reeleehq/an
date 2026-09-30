@@ -338,7 +338,9 @@ def _line_pages(
     # A page whose successor starts on the same frame would never be seen
     # ("Mr." then "Smith is here" 15 ms later): it joins its successor.
     ranges: list[range] = []
-    for r in paginate(texts, max_chars=captions.max_chars, max_lines=captions.max_lines):
+    for r in paginate(
+        texts, max_chars=captions.max_chars, max_lines=captions.max_lines
+    ):
         if ranges and frame_of[r.start] <= frame_of[ranges[-1].start]:
             ranges[-1] = range(ranges[-1].start, r.stop)
         else:
@@ -348,7 +350,7 @@ def _line_pages(
         start = frame_of[r.start]
         if start >= shot_frames:
             warnings.warn(
-                f"{where}: {' '.join(texts[r.start:])!r} is spoken after the shot "
+                f"{where}: {' '.join(texts[r.start :])!r} is spoken after the shot "
                 f"ends (frame {start} of {shot_frames}), so it is not captioned",
                 CaptionWarning,
                 stacklevel=3,
@@ -561,7 +563,12 @@ def _page_actions(
         # would be overridden by the base-colour set at 0 (review finding).
         from_start = lit and first == 0
         actions.append(
-            c.set_(target, "tint", captions.highlight if from_start else captions.color, at=0.0)
+            c.set_(
+                target,
+                "tint",
+                captions.highlight if from_start else captions.color,
+                at=0.0,
+            )
         )
         if not lit:
             continue  # the next word starts on the same frame: this one is never lit
@@ -570,7 +577,9 @@ def _page_actions(
                 c.set_(target, "tint", captions.highlight, at=_set_time(first, fps))
             )
         if until < page.end:
-            actions.append(c.set_(target, "tint", captions.color, at=_set_time(until, fps)))
+            actions.append(
+                c.set_(target, "tint", captions.color, at=_set_time(until, fps))
+            )
     return actions
 
 
@@ -639,10 +648,16 @@ def captioned_shot(
             _check_typesettable(shot, page, overrides, resolution)
         entities.append(
             AssetRef(
-                kind="prop", id=eid, store="props", ref=CAPTION_PROP_REF, overrides=overrides
+                kind="prop",
+                id=eid,
+                store="props",
+                ref=CAPTION_PROP_REF,
+                overrides=overrides,
             )
         )
-        actions += _page_actions(page, eid, fps=fps, n_frames=n_frames, captions=captions)
+        actions += _page_actions(
+            page, eid, fps=fps, n_frames=n_frames, captions=captions
+        )
     style = {"kind": "TextDescriptor", "name": "caption"}
     new_mall = dict(mall)
     # `is None`, not `or`: an EMPTY on-disk props store is falsy, and swapping
@@ -655,7 +670,10 @@ def captioned_shot(
 
 
 def _check_typesettable(
-    shot: Shot, page: CaptionPage, overrides: Mapping[str, Any], resolution: tuple[int, int]
+    shot: Shot,
+    page: CaptionPage,
+    overrides: Mapping[str, Any],
+    resolution: tuple[int, int],
 ) -> None:
     """Typeset one page now: it must be drawable, fit the title-safe width,
     and (for a highlight) build exactly one unit per word."""

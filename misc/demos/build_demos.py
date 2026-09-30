@@ -1522,11 +1522,13 @@ def _build_captions(work: Path) -> Path:
         ```
         """
     ) + (
-        "\n" + _entities("maya")
+        "\n"
+        + _entities("maya")
         + "\n```dialogue\nmaya: Every word I say is on screen. In time.\n```\n"
         + "\n## Shot s2 (cutout)\n\n```yaml shot\nduration: 3.0\n"
         "transition:\n  kind: dissolve\n  duration: 0.6\n```\n"
-        + "\n" + _entities("charlie")
+        + "\n"
+        + _entities("charlie")
         + "\n```dialogue\ncharlie: And the subtitles file agrees.\n```\n"
     )
     project = _project(work, scene_md=md, characters=("maya", "charlie"))
@@ -2093,7 +2095,7 @@ DEMOS: tuple[Demo, ...] = (
             "the picture's does."
         ),
         how=(
-            "`captions: {highlight: \"#c0392b\"}` in the meta block "
+            '`captions: {highlight: "#c0392b"}` in the meta block '
             "(`an.ir.schema.Captions`); timings from any lip-sync provider that "
             "keeps words (`--lipsync whisper`, or `WordTimingsLipSync` as here). "
             "Built by `an.captions`."
