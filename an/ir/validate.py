@@ -712,12 +712,14 @@ def _check_whole_character_swap(
     except ValidationError:
         return  # reported where the descriptor is loaded
     nodes = []
-    for slot in swap_slots(cdesc, prop):
+    for slot in swap_slots(cdesc, prop, art_exists=art_exists):
         try:
             nodes.append(f"{entity_id}/{slot_node_path(cdesc, slot)}")
         except KeyError:
             continue  # `an character validate` names the slot
     if getattr(action, "kind", None) == "tween":
+        if not nodes:
+            return  # no node carries the set: compile drops it, recording why
         report.add(
             "error",
             where,
@@ -741,8 +743,9 @@ def _check_whole_character_swap(
             report.add(
                 "error",
                 where,
-                f"{v!r} is not a declared key of {entity_id!r}'s {prop!r} set "
-                f"(it has: {sorted(keys)}) — compiling this shot raises.",
+                f"{v!r} is not a declared key of the {prop!r} set of "
+                f"{entity_id!r} (it has: {sorted(keys)}) — compiling this shot "
+                "raises.",
             )
             continue
         if art_exists is None:
@@ -752,7 +755,7 @@ def _check_whole_character_swap(
             report.add(
                 "error",
                 where,
-                f"setting {entity_id!r}'s {prop!r} to {v!r} swaps every slot "
+                f"setting {prop!r} to {v!r} on {entity_id!r} swaps every slot "
                 f"that carries it ({nodes}), but its art is not on disk for "
                 f"all of them: {missing} — the render draws those slots "
                 "unswapped, and `--strict-assets` refuses the shot.",

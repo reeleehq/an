@@ -87,3 +87,24 @@ def test_art_missing_on_one_slot_of_a_whole_character_swap_is_an_error(project, 
     assert "head_side.svg" in msg and "'side'" in msg
     # The torso still has its side art, so a key that no slot misses is fine.
     assert _errors(root, _shot(SetAction(target="ned", property="view", value="back", at=0.0))) == []
+
+
+def test_a_slot_with_none_of_the_set_s_art_is_not_a_target(tmp_path):
+    """Review of an#201: compile fans a root `set` out only to slots where some
+    art of the set resolved; a slot whose only attachment for the set is missing
+    receives nothing, so validate must not count it as missing art."""
+    import json
+
+    root = init(tmp_path / "q")
+    chars = root / "assets" / "characters"
+    new_character(chars, name="ned", seed="ned", use_dicebear=False)
+    doc_path = chars / "ned" / "character.json"
+    doc = json.loads(doc_path.read_text("utf-8"))
+    slots = doc["skins"]["default"]["slots"]
+    slots["head"]["pa"] = dict(next(iter(slots["head"].values())))
+    slots["torso"]["pa"] = {**next(iter(slots["torso"].values())), "path": "parts/nonexistent.svg"}
+    doc["asset_sets"]["pose"] = {"a": "pa"}
+    doc_path.write_text(json.dumps(doc), "utf-8")
+    shot = _shot(SetAction(target="ned", property="pose", value="a", at=0.0))
+    _compile(root, shot, strict=True)
+    assert _errors(root, shot) == []
