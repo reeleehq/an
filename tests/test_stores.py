@@ -102,6 +102,7 @@ def test_mall_keys_match_spec():
         mall = build_project_mall(d, ensure=True)
         assert sorted(mall.keys()) == [
             "audio",
+            "captions",
             "characters",
             "decisions",
             "environments",

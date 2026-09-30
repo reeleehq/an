@@ -93,3 +93,10 @@ class OutputStore(_BlobStore):
     """Final composited renders."""
 
     EXT = "mp4"
+
+
+class CaptionsStore(_BlobStore):
+    """SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they
+    caption — ``captions["main"]`` is ``output/main.srt`` (an#175)."""
+
+    EXT = "srt"

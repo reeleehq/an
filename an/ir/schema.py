@@ -611,6 +611,79 @@ class SoundCue(_IRModel):
 
 
 # -----------------------------------------------------------------------------
+# Captions (built from the dialogue's word timings at render time — see
+# `an.captions`; no renderer reads this model directly)
+# -----------------------------------------------------------------------------
+
+#: Characters per caption line and lines per caption page: the broadcast
+#: convention (BBC / Netflix timed-text guidance: 42 characters, two lines).
+DEFAULT_CAPTION_MAX_CHARS: int = 42
+DEFAULT_CAPTION_MAX_LINES: int = 2
+
+#: Caption type size as a fraction of frame height — a little under the title
+#: default, as captions are read while something else is watched.
+DEFAULT_CAPTION_SIZE: float = 0.05
+
+
+class Captions(_IRModel):
+    """Captions for the whole film, built from the dialogue's word timings.
+
+    Present = on; ``meta.captions`` unset (the default) is no captions and no
+    trace in any document. One cue list (:func:`an.captions.caption_pages`)
+    feeds BOTH outputs, so the picture and the sidecar cannot disagree:
+
+    - ``burn``: each page is drawn as an overlay text block (camera-immune,
+      placed at ``anchor`` in the title-safe area), shown for exactly the
+      frames the sidecar says;
+    - ``sidecar``: a SubRip ``.srt`` written through the ``captions`` store,
+      next to the delivered mp4, in FILM time (a dissolve shortens the film,
+      and every later cue moves with it).
+
+    >>> Captions().max_chars, Captions().anchor
+    (42, 'bottom')
+    >>> Captions(highlight="#ffcc00").highlight
+    '#ffcc00'
+    """
+
+    burn: bool = True
+    sidecar: bool = True
+    #: Line breaks are made HERE, by character count, and written into both
+    #: the burned block and the sidecar — the same lines in both. 42 fits the
+    #: title-safe width of a 16:9 or 4:3 frame at the default size; a square
+    #: or portrait frame needs fewer (about 32 at 1:1) or a smaller ``size`` —
+    #: a line that does not fit is REFUSED before the render, never clipped.
+    max_chars: int = Field(default=DEFAULT_CAPTION_MAX_CHARS, ge=1)
+    max_lines: int = Field(default=DEFAULT_CAPTION_MAX_LINES, ge=1)
+    size: float = Field(default=DEFAULT_CAPTION_SIZE, gt=0, le=1, allow_inf_nan=False)
+    color: str = "#1a1a1a"
+    #: ``#rrggbb``: the word being spoken is drawn in this colour (karaoke);
+    #: ``None`` draws every word in ``color``.
+    highlight: str | None = None
+    #: One of tituli's nine title-safe anchors.
+    anchor: str = "bottom"
+    #: ``None`` = the embedded face; else an ABSOLUTE font file path, or one
+    #: relative to the project directory.
+    font: str | None = None
+    #: A line with no word timings is captioned with its words spread evenly
+    #: over its duration, with a warning; ``strict`` makes that an error.
+    strict: bool = False
+
+    @model_validator(mode="after")
+    def _hex_colors(self) -> "Captions":
+        for name in ("color", "highlight"):
+            value = getattr(self, name)
+            if value is not None and not _HEX_COLOR.fullmatch(value):
+                raise ValueError(f"captions {name} must be '#rrggbb'; got {value!r}")
+        from tituli import ANCHORS  # the typesetter owns the anchor vocabulary
+
+        if self.anchor not in ANCHORS:
+            raise ValueError(
+                f"unknown captions anchor {self.anchor!r}; choose from {sorted(ANCHORS)}"
+            )
+        return self
+
+
+# -----------------------------------------------------------------------------
 # Shot
 # -----------------------------------------------------------------------------
 
@@ -734,6 +807,9 @@ class Meta(_IRModel):
     #: Sound cues in FILM time — a music bed, an ambience under every shot
     #: (:class:`SoundCue`). Empty, the default, is no sound layer at all.
     sounds: list[SoundCue] = Field(default_factory=list)
+    #: Captions from the dialogue's word timings (:class:`Captions`, an#175);
+    #: ``None`` — the default — is none, omitted from JSON like ``style_pack``.
+    captions: Captions | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_style_pack(self, handler):
@@ -759,6 +835,9 @@ class Meta(_IRModel):
         # `sounds` likewise: an empty list is what every existing meta means.
         if isinstance(data, dict) and not self.sounds:
             data.pop("sounds", None)
+        # `captions` likewise (an#175): unset is what every existing meta means.
+        if isinstance(data, dict) and self.captions is None:
+            data.pop("captions", None)
         return data
 
 
