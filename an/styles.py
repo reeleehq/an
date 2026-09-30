@@ -194,7 +194,14 @@ class Outline(_Treatment):
 
     ``nested`` extends it to parts nested inside another part (face features
     on the head). Off by default: the pieces of a cut-out are the paper; the
-    face is drawn on them.
+    face is drawn on them. A procedural eye or mouth never gets one (they are
+    not copyable shapes); an SVG rig's eyes and mouth do, under ``nested``.
+
+    **Fading a treated part darkens it.** The copies are opaque and drawn
+    separately, so at ``alpha`` 0.5 the part shows its outline colour through
+    itself rather than the background. A group fade needs the subtree drawn to
+    a texture first (a filter), which this package refuses; the compiler warns
+    when an ``alpha`` channel reaches a treated part.
     """
 
     width: float = Field(DFLT_OUTLINE_WIDTH, gt=0)
@@ -211,8 +218,11 @@ class PaperShadow(_Treatment):
     with it (a light fixed to the paper, not the room) — invisible at the
     small offsets this is for, and a limit to know for a large one.
 
-    With an outline, the shadow is the OUTLINED silhouette (grown by the
-    outline width) so it shows past the outline rather than hiding under it.
+    With an outline, the shadow is grown by the outline width so it shows past
+    the outline rather than hiding under it: exactly the outlined silhouette on
+    a procedural part; on an SVG part one copy scaled about the art's centre, so
+    it grows the art's BOX by the width (one copy, because translucent copies
+    would compound where they overlap).
     """
 
     dx: float = DFLT_SHADOW_DX
@@ -225,8 +235,10 @@ class PaperShadow(_Treatment):
 class Glow(_Treatment):
     """An additive radial-gradient sprite behind an entity.
 
-    Its box is the entity's drawn box grown by ``radius``; the gradient holds
-    ``intensity`` over the entity's own box and fades to nothing at the edge.
+    Its box is the entity's drawn box grown by ``radius``, and the gradient is
+    an ELLIPSE over that box: it holds ``intensity`` out to the entity's box
+    along its shorter axis and fades to nothing at the edge — so on a tall
+    entity the halo is fainter at the top and bottom than at the sides.
     Drawn with the engine's native ADD blend (PixiJS 7 does it in the blend
     equation, no filter), as the entity's first child, so it moves with the
     entity and lights the background around it, not the entity itself.
@@ -257,17 +269,20 @@ class SurfaceTreatment(_Treatment):
 
     In ``StylePack.entity_surfaces`` an entry OVERRIDES the pack's ``surface``
     key by key, for the keys it sets: ``{"glow": {...}}`` adds a glow and keeps
-    the pack's outline; ``{"outline": null}`` removes the outline. Which keys
+    the pack's outline; ``{"outline": false}`` removes the outline. Which keys
     were set survives a dump (only they are serialized), so a pack written with
-    ``model_dump()`` and read back means the same thing.
+    ``model_dump()`` and read back means the same thing. ``null`` switches one
+    off too, but a dump with ``exclude_none=True`` drops it — and the override
+    then silently inherits the pack's treatment — so ``false`` is the spelling
+    to store.
 
     >>> SurfaceTreatment(glow={}).model_dump()
     {'glow': {'color': '#fff4c2', 'radius': 60.0, 'intensity': 0.5}}
     """
 
-    outline: Outline | None = None
-    shadow: PaperShadow | None = None
-    glow: Glow | None = None
+    outline: Outline | Literal[False] | None = None
+    shadow: PaperShadow | Literal[False] | None = None
+    glow: Glow | Literal[False] | None = None
 
     @model_serializer(mode="wrap")
     def _only_what_was_set(self, handler):
@@ -275,7 +290,7 @@ class SurfaceTreatment(_Treatment):
         return {k: v for k, v in data.items() if k in self.model_fields_set}
 
     def is_empty(self) -> bool:
-        return self.outline is None and self.shadow is None and self.glow is None
+        return not (self.outline or self.shadow or self.glow)
 
 
 class StylePack(BaseModel):
@@ -350,6 +365,25 @@ class StylePack(BaseModel):
                     )
         return self
 
+    @model_validator(mode="after")
+    def _no_near_miss_keys(self) -> "StylePack":
+        """Refuse an unknown key that is one slip from a real one.
+
+        The pack is ``extra="allow"`` (forward compatibility), which would let
+        ``grian: {...}`` or ``entity_surface: {...}`` validate and draw nothing
+        — the silent no-op the treatment models refuse with ``extra="forbid"``.
+        """
+        import difflib
+
+        for key in self.model_extra or {}:
+            close = difflib.get_close_matches(key, type(self).model_fields, n=1, cutoff=0.8)
+            if close:
+                raise ValueError(
+                    f"{key!r} is not a StylePack field; did you mean {close[0]!r}? "
+                    "An unknown key is kept but read by nothing."
+                )
+        return self
+
     def colour_for(self, role: str, *, entity: str | None = None) -> Optional[str]:
         """The colour for ``role``, or ``None`` when the pack does not set it.
 
@@ -399,7 +433,7 @@ def surface_for(pack: "StylePack | None", entity: str) -> SurfaceTreatment | Non
     such scene's compiled document byte-identical to before an#163.
 
     >>> pack = StylePack(name="sp", surface={"outline": {}},
-    ...                  entity_surfaces={"sun": {"glow": {}}, "bob": {"outline": None}})
+    ...                  entity_surfaces={"sun": {"glow": {}}, "bob": {"outline": False}})
     >>> sorted(surface_for(pack, "sun").model_dump())
     ['glow', 'outline']
     >>> surface_for(pack, "bob") is None
@@ -417,5 +451,5 @@ def surface_for(pack: "StylePack | None", entity: str) -> SurfaceTreatment | Non
     override = pack.entity_surfaces.get(entity)
     if override is not None:
         merged.update({k: getattr(override, k) for k in override.model_fields_set})
-    result = SurfaceTreatment(**{k: v for k, v in merged.items() if v is not None})
+    result = SurfaceTreatment(**{k: v for k, v in merged.items() if v})
     return None if result.is_empty() else result

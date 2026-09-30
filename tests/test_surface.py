@@ -236,6 +236,46 @@ def test_a_dumped_pack_reads_back_meaning_the_same_thing():
     assert again.grain == pack.grain
 
 
+def test_false_switches_a_treatment_off_and_survives_an_exclude_none_dump():
+    pack = StylePack(name="p", surface={"outline": {}}, entity_surfaces={"bob": {"outline": False}})
+    again = StylePack.model_validate(pack.model_dump(exclude_none=True))
+    assert surface_for(again, "bob") is None
+    assert surface_for(again, "maya").outline
+
+
+def test_a_pack_key_one_slip_from_a_real_one_is_refused():
+    import pydantic
+
+    for bad in ({"grian": {}}, {"entity_surface": {}}, {"surfaces": {}}):
+        with pytest.raises(pydantic.ValidationError, match="did you mean"):
+            StylePack(name="p", **bad)
+    StylePack(name="p", notes="an unrelated extra key is still allowed")
+
+
+def test_a_glow_reaches_a_stroked_path_whose_visual_is_on_the_entity():
+    mall = {"props": {"arrow": {"kind": "PathDescriptor", "name": "arrow",
+                                "points": [[0, 0], [100, 0]], "width": 6}}}
+    shot = _shot(AssetRef(kind="prop", id="route", store="props", ref="arrow"))
+    doc = _compile(shot, StylePack(name="p", surface={"glow": {"radius": 10}}), mall)
+    route = _node(doc, "route")
+    assert route.children[0].name == GLOW_NODE
+    assert (route.children[0].visual.width, route.children[0].visual.height) == (126.0, 26.0)
+
+
+def test_fading_a_treated_part_warns():
+    fade = TweenAction(kind="tween", target="charlie", property="alpha",
+                       start=0.0, duration=1.0, from_value=0.0, to_value=1.0)
+    pack = StylePack(name="p", surface={"outline": {}})
+    with pytest.warns(CutoutCompileWarning, match="fades"):
+        compile_shot(_shot(actions=[fade]), fps=24, width=W, height=H, style_pack=pack)
+    with warnings.catch_warnings():  # the glow alone may fade freely
+        warnings.simplefilter("error", CutoutCompileWarning)
+        glow_fade = fade.model_copy(update={"target": f"charlie/{GLOW_NODE}"})
+        compile_shot(_shot(_char("charlie"), actions=[glow_fade]), {"characters": {
+            "c": {"name": "c", "parts": list(_PLACEHOLDER_PARTS)}}}, fps=24, width=W,
+            height=H, style_pack=StylePack(name="p", surface={"glow": {}}))
+
+
 def test_a_treatment_refuses_a_key_it_does_not_have_or_a_bad_colour():
     import pydantic
 
@@ -341,9 +381,61 @@ def test_in_pixels_outline_shadow_and_grain_land_where_the_document_says(tmp_pat
     cx, cy = W // 2, H // 2
     edge = cx + 50 + 15  # the right arm's right edge: x 50, width 30
     y = cy - 10  # the arm's middle: y -10, height 70
+    # the arm itself is drawn OVER its copies (draw order), in its own colour
+    from an.adapters.cutout.compile import _palette_for
+
+    arm = tuple(int(_palette_for("charlie")[1][i : i + 2], 16) for i in (1, 3, 5))
+    check(first, edge - 10, y, arm, "the arm over its own outline")
     check(first, edge + 2, y, (255, 0, 255), "outline band")
     check(first, edge + int(width) + 4, y, (128, 128, 128), "shadow past the outline")
     check(first, 5, 5, (255, 255, 255), "plain paper under the grain")
     # t = 0.75 s: the arm has moved +40 px; its outline band went with it
     check(last, edge + 40 + 2, y, (255, 0, 255), "outline band after the tween")
     check(last, edge + 2, y, (255, 255, 255), "the band's old place is paper again")
+
+
+@pytest.mark.browser
+@pytest.mark.ffmpeg
+def test_in_pixels_an_svg_parts_outline_ring_follows_a_swap(tmp_path):
+    """A hand swapped fist -> point mid-render must be outlined exactly like a
+    hand DRAWN as a point from the start: the ring copies are re-textured and
+    re-fitted by the swap, not left holding the fist."""
+    import json
+
+    import numpy as np
+    from PIL import Image
+
+    from an.adapters._base import RenderContext
+    from an.adapters.cutout.render import CutoutRenderer
+    from an.ir.schema import SetAction
+    from an.stores.characters import CharactersStore
+
+    pack = StylePack(name="p", surface={"outline": {"width": 6, "color": "#ff00ff"}})
+    frames = []
+    for variant in ("drawn", "swapped"):
+        root = tmp_path / variant
+        shutil.copytree(FIXTURE, root / "chars" / "gale")
+        actions = []
+        if variant == "drawn":
+            meta = root / "chars" / "gale" / "character.json"
+            doc = json.loads(meta.read_text())
+            for slot in doc["slots"]:
+                if slot["name"] == "left_hand":
+                    slot["attachment"] = "point"
+            meta.write_text(json.dumps(doc))
+        else:
+            actions = [SetAction(kind="set", target="gale/left_hand", property="hands",
+                                 value="point", start=0.2)]
+        shot = _shot(_char("gale", "gale"), actions=actions)
+        result = CutoutRenderer().render(
+            shot,
+            RenderContext(mall={"characters": CharactersStore(root / "chars")},
+                          work_dir=root / "out", fps=4, resolution=(W, H),
+                          style_pack=pack, strict_assets=True),
+        )
+        frames.append(np.asarray(Image.open(result.frame_manifest[-1]).convert("RGB")))
+    drawn, swapped = frames
+    # the tint MULTIPLIES the art: magenta zeroes green and keeps red and blue
+    magenta = (drawn[..., 1] < 20) & (drawn[..., 0].astype(int) + drawn[..., 2] > 150)
+    assert magenta.sum() > 200  # the outline is there at all
+    assert np.array_equal(drawn, swapped)

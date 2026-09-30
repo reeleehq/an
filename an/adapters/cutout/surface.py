@@ -60,14 +60,16 @@ __all__ = [
     "grain_greys",
     "grain_png",
     "grain_node",
+    "faded_treated_targets",
 ]
 
 #: The directions of an SVG part's outline ring: eight unit vectors, stated
 #: exactly rather than as ``cos``/``sin`` values, because the offsets go into
 #: the scene contract and a libm's last bit is not the same on every machine.
 #: Eight copies at radius ``w`` cover the true dilation to within
-#: ``w·(1 − cos 22.5°) ≈ 0.08·w`` on a convex edge — a quarter pixel at the
-#: default 3.
+#: ``w·(1 − cos 22.5°) ≈ 0.08·w`` along a straight or gently curved edge — a
+#: quarter pixel at the default 3. At a sharp tip, or a feature thinner than
+#: ``w``, the gap between neighbouring copies can reach ``w·sin 22.5° ≈ 0.38·w``.
 _R = math.sqrt(0.5)  # correctly rounded by IEEE 754, so the same everywhere
 _RING_DIRECTIONS: tuple[tuple[float, float], ...] = (
     (1.0, 0.0),
@@ -96,6 +98,8 @@ GRAIN_NODE: str = "_grain"
 #: of an 8-bit one), and finer steps than 8-bit output could show at the small
 #: `amount`s grain is used at.
 GRAIN_LEVELS: int = 16
+_GRAIN_BIT_DEPTH: int = 4  # a 4-bit palette PNG holds exactly GRAIN_LEVELS
+assert GRAIN_LEVELS == 1 << _GRAIN_BIT_DEPTH
 
 #: Digits kept from a float before it enters the document (offsets, sizes), so
 #: tiny FP noise cannot move the contract.
@@ -129,11 +133,12 @@ def apply_surface(
     surface: "SurfaceTreatment | None",
     *,
     textures: dict[str, AssetJSON],
-) -> None:
+) -> list[str]:
     """Expand ``surface`` into ``node`` (an entity's subtree), in place.
 
-    A no-op for ``None``, which is every entity of a scene whose pack sets no
-    treatment. The outline and the shadow go on each part: the entity's
+    Returns what it could not do, for the compiler to warn with (a glow on an
+    entity that draws nothing). A no-op for ``None``, which is every entity of
+    a scene whose pack sets no treatment. The outline and the shadow go on each part: the entity's
     direct children, and deeper parts too when the treatment is ``nested``.
     The glow is added after the parts are walked, so it never gets an outline
     of its own.
@@ -142,12 +147,14 @@ def apply_surface(
     >>> part = NodeJSON(name="torso", visual=VisualJSON(kind="rect", width=40, height=60))
     >>> ent = NodeJSON(name="bob", children=[part])
     >>> apply_surface(ent, SurfaceTreatment(outline={"width": 2}, shadow={}), textures={})
+    []
     >>> [(u.grow, u.offsets) for u in part.visual.underlays]
     [(2.0, [(4.0, 4.0)]), (2.0, [(0.0, 0.0)])]
     """
     if surface is None:
-        return
-    outline, shadow = surface.outline, surface.shadow
+        return []
+    notes: list[str] = []
+    outline, shadow = surface.outline or None, surface.shadow or None
 
     def treat(part: NodeJSON, *, nested: bool) -> None:
         visual = part.visual
@@ -186,16 +193,20 @@ def apply_surface(
 
     for part in node.children:
         treat(part, nested=False)
-    if surface.glow is not None:
+    if surface.glow:
         glow = glow_node(surface.glow, node, textures=textures)
         if glow is not None:
             node.children.insert(0, glow)
+        else:
+            notes.append(f"{node.name!r} has a glow but draws nothing to size it on")
+    return notes
 
 
 def drawn_box(node: NodeJSON) -> tuple[float, float, float, float] | None:
     """``(x0, y0, x1, y1)`` of what ``node``'s parts draw, in its own frame.
 
-    Rest translations and each visual's box and anchor. Rest rotations and
+    The entity's own visual and every descendant's: rest translations and each
+    visual's box and anchor. Rest rotations and
     scales are not applied: the compiled rigs have none below the entity
     root. That is an assumption about the rigs this compiler builds, not
     about arbitrary documents.
@@ -226,8 +237,9 @@ def drawn_box(node: NodeJSON) -> tuple[float, float, float, float] | None:
         for c in n.children:
             walk(c, x, y)
 
-    for child in node.children:
-        walk(child, 0.0, 0.0)
+    # The entity's OWN visual too (a stroked path carries it there), at the
+    # origin: the glow lives in the entity's frame, not its parent's.
+    walk(node.model_copy(update={"transform": TransformJSON()}), 0.0, 0.0)
     if not xs:
         return None
     return (min(xs), min(ys), max(xs), max(ys))
@@ -367,7 +379,7 @@ def grain_png(*, seed: int, amount: float, tile: int) -> bytes:
         if len(row) % 2:
             row = row + [0]
         rows += bytes((row[i] << 4) | row[i + 1] for i in range(0, len(row), 2))
-    ihdr = struct.pack(">IIBBBBB", tile, tile, 4, 3, 0, 0, 0)
+    ihdr = struct.pack(">IIBBBBB", tile, tile, _GRAIN_BIT_DEPTH, 3, 0, 0, 0)
     plte = b"".join(bytes((g, g, g)) for g in grain_greys(amount))
     return (
         b"\x89PNG\r\n\x1a\n"
@@ -413,3 +425,30 @@ def grain_node(
         for i in range(math.ceil(width / t))
     ]
     return NodeJSON(name=GRAIN_NODE, children=tiles)
+
+
+def faded_treated_targets(scene: NodeJSON, animations) -> list[str]:
+    """The ``alpha`` channel targets that fade a part carrying underlays.
+
+    A treated part's copies are drawn separately, so a fade shows them
+    through the part instead of the background (see `an.styles.Outline`).
+    An alpha on the glow node only fades the glow, which is fine.
+    """
+    treated: set[str] = set()
+
+    def walk(n: NodeJSON, path: str, parents: tuple[str, ...]) -> None:
+        here = f"{path}/{n.name}" if path else n.name
+        if n.visual is not None and n.visual.underlays:
+            treated.update(parents + (here,))
+        for c in n.children:
+            walk(c, here, parents + (here,))
+
+    for child in scene.children:
+        walk(child, "", ())
+    hits = {
+        ch.target
+        for clip in animations.values()
+        for ch in clip.channels
+        if ch.property == "alpha" and ch.target in treated
+    }
+    return sorted(hits)

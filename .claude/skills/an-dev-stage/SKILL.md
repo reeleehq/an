@@ -204,6 +204,13 @@ probe counts filters):
   blocks, because zlib and zlib-ng compress differently and the texture is in the contract. It is
   opaque, so no premultiply step is involved. It sits at integer frame positions at scale 1 on
   the OVERLAY, so the camera cannot scale it and captions draw over it.
+- **Known limit: a fade darkens a treated part.** The copies are separate draws, and a group
+  alpha needs render-to-texture (a filter). Hollowing the procedural outline was rejected: its
+  inner edge would coincide with the part's edge and MSAA conflation would leave a light seam on
+  EVERY frame, to fix a fade. The compiler warns instead (`faded_treated_targets`).
+- An override switches a treatment off with `false` (`null` works in memory but an
+  `exclude_none` dump drops it and the entity inherits the pack's treatment). `StylePack` refuses
+  an unknown key within one slip of a real field (`grian`, `entity_surface`).
 - `underlays`/`blend` are omit-when-unset; `surface_for` returns `None` for "nothing to draw",
   and every such scene compiles byte-identically (parametrised test).
 

@@ -35,7 +35,7 @@ live:
     flash: {kind: fade, duration: 0.25, color: "#ffffff"}   # an estimate of the clip's sub-second flashes
   sound:
     bed: {loop: true, gain_db: -10, duck_db: -10, fade_in: 2.0, fade_out: 2.0}   # an ambient score under the narrator; levels are an estimate
-  entity_surface:            # an#163: put under the pack's `entity_surfaces: {<id>: ...}` for each glowing thing (stars, the sun, screens), not on every entity
+  glow_template:             # an#163: NOT a pack field; copy it into the pack as `entity_surfaces: {<id>: <this>}` for each glowing thing (stars, the sun, screens), not every entity
     glow: {color: "#daf7ea", radius: 80, intensity: 0.4}   # additive gradient behind it; colour is the palette's highlight, size and strength an estimate
 
 targets:
@@ -48,7 +48,7 @@ guidance:
   characters: birds and blobs seen at a distance, not lip-synced; narration is voiceover
   ambient_motion: star twinkle, particles, glow pulses and drift under every shot; no ambient layer ships, so add looping tweens by hand
   palette_accents: {highlight: "#daf7ea", orange: "#d96739", sky_blue: "#5c9ec2"}   # not StylePack roles
-  glow_pulse: a glow is static; pulse it by tweening the glowing entity's `alpha` (which fades its glow with it)
+  glow_pulse: a glow is static; pulse it with a looping tween on `<id>/_glow`'s `alpha` (the glow node alone, not the entity)
   dolly: depth-aware zoom is the real technique and is not built (an#110 deferred it); a zoom is uniform across planes
   text: labels are text props and drawn-on diagram lines are path props (a `trim_end` tween); the rounded, coloured-border label boxes need SVG prop art
   sound: a calm single narrator (dialogue), the score as `live.sound`'s bed (bring a licensed track), designed SFX as shot `sounds` cues

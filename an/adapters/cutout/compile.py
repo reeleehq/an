@@ -128,7 +128,11 @@ from an.adapters.cutout.text import build_text_subtree, svg_data_uri, text_docum
 from an.characters.colour_roles import recolour_svg, role_recolouring
 from an.text import font_base_dir, text_entity_problem
 from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette, surface_for
-from an.adapters.cutout.surface import apply_surface, grain_node
+from an.adapters.cutout.surface import (
+    apply_surface,
+    faded_treated_targets,
+    grain_node,
+)
 
 
 # Default placeholder character: a recognizable stick-figure layout in pixel
@@ -338,6 +342,12 @@ DFLT_LEG_COLOUR: str = "#2c3e50"
 #: the eye WHITE beside it is a literal and cannot be reached, which is the
 #: split `REACHABLE_ROLES` / `UNREACHABLE_ROLES` records.
 DFLT_PUPIL_COLOUR: str = "#1a1a1a"
+
+
+def _warn_surface(notes: list[str]) -> None:
+    """Say what a surface treatment could not do (an#163) — never silently."""
+    for note in notes:
+        warnings.warn(f"surface treatment: {note}", CutoutCompileWarning, stacklevel=3)
 
 
 def _palette_for(entity_id: str) -> tuple[str, str, str]:
@@ -1044,6 +1054,19 @@ def compile_shot(
     # those passes (usage-aware escalation, an#87), and this is the one place
     # that decides warn-vs-raise for every fallback.
     _raise_or_warn_on_asset_fallbacks(shot.id, resolutions, strict=strict_assets)
+    if style_pack is not None:
+        faded = faded_treated_targets(scene_root, animations)
+        if faded:
+            warnings.warn(
+                f"an alpha channel fades {faded}, which carry surface treatments "
+                "(an#163): their outline/shadow copies are drawn separately, so a "
+                "fade shows the outline colour through the part rather than the "
+                "background. Fade with the treatment switched off for that entity "
+                "(`entity_surfaces: {<id>: {outline: false, shadow: false}}`), or "
+                "accept it for a short fade.",
+                CutoutCompileWarning,
+                stacklevel=2,
+            )
 
     timeline = TimelineJSON(duration=shot.duration, tracks=tracks)
 
@@ -1158,7 +1181,9 @@ def _build_scene_root(
             sub.transform.x = x
             _apply_stage_placement(sub, entity)
             # an#163: outline / paper-gap shadow / glow, when the pack asks.
-            apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
+            _warn_surface(
+                apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
+            )
             children.append(sub)
         elif entity.kind == "prop":
             text_doc = text_document(entity, props_store)
@@ -1184,7 +1209,9 @@ def _build_scene_root(
                 reached=reached,
             )
             _apply_stage_placement(sub, entity)
-            apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
+            _warn_surface(
+                apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
+            )
             children.append(sub)
         # `voice` entities are legitimately not drawable: they
         # configure the render rather than appearing in it.

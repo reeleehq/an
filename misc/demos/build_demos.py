@@ -2104,7 +2104,7 @@ DEMOS: tuple[Demo, ...] = (
         title="Outline, paper-gap shadow, glow and grain, compiled",
         shows=(
             "The same scene twice: plain on the left, under a pack with surface "
-            "treatments on the right. Every part of both (SVG) characters gets a "
+            "treatments on the right. Every top-level piece of both (SVG) characters gets a "
             "near-black outline and a translucent paper-gap shadow that follow "
             "the hop, the nod and the raised arm exactly; `bo` has an additive "
             "glow; a static paper grain lies over the whole frame. No runtime "

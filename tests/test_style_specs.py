@@ -29,7 +29,7 @@ SPECS = sorted(SPEC_DIR.glob("*.yaml"))
 LIVE_KEYS = {
     "meta", "style_pack", "environment", "camera", "easing",
     "tween_duration_s", "shots", "characters", "motion_presets",
-    "transitions", "sound", "voice", "entity_surface",
+    "transitions", "sound", "voice", "glow_template",
 }
 TOP_KEYS = {"style", "title", "cost_class", "cost_note", "live", "targets", "guidance"}
 COST_CLASSES = {"low", "low_to_medium", "medium", "high", "very_high"}
@@ -85,10 +85,11 @@ def test_surface_treatments_are_live_where_they_ship():
     assert "glow" not in kz["guidance"]
 
 
-def test_an_entity_surface_template_is_a_valid_treatment(spec):
-    template = spec["live"].get("entity_surface")
+def test_a_glow_template_is_a_valid_per_entity_treatment(spec):
+    template = spec["live"].get("glow_template")
     if template is not None:
-        assert not SurfaceTreatment(**template).is_empty()
+        assert SurfaceTreatment(**template).glow
+        StylePack(name="x", entity_surfaces={"sun": template})
 
 
 def test_environment_is_a_preset_or_a_valid_descriptor(spec):
