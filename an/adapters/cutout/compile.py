@@ -132,13 +132,37 @@ from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette
 # a (x, y) offset; colors come from a per-character palette so multiple
 # characters look distinct. Used only when the characters store has no rig.
 _PLACEHOLDER_PARTS: tuple[str, ...] = ("head", "torso", "left_arm", "right_arm")
+
+#: Fraction of a limb rect's height, from its top edge, at which the joint sits:
+#: ``0.0`` is the shoulder/hip. A part without a ``pivot_y`` rotates about its
+#: centre (``0.5``), which is right for a head or a torso and wrong for a limb —
+#: a centre-pivoted arm swings its hand up while its top swings down into the
+#: torso (an#173). Named so the limb entries below say what they mean.
+_LIMB_PIVOT_Y: float = 0.0
+_DFLT_PIVOT_Y: float = 0.5
+
+#: ``x``/``y`` are the rect's CENTRE when at rest (the layout); ``pivot_y``, when
+#: present, moves the NODE to the joint and hangs the rect from it, so the same
+#: pixels are covered at rest and a rotation pivots at the joint.
 _PLACEHOLDER_PART_GEOMETRY: dict[str, dict[str, float]] = {
     "head": {"x": 0.0, "y": -55.0, "width": 50.0, "height": 50.0},
     "torso": {"x": 0.0, "y": 0.0, "width": 60.0, "height": 80.0},
-    "left_arm": {"x": -50.0, "y": -10.0, "width": 30.0, "height": 70.0},
-    "right_arm": {"x": 50.0, "y": -10.0, "width": 30.0, "height": 70.0},
-    "left_leg": {"x": -18.0, "y": 65.0, "width": 30.0, "height": 70.0},
-    "right_leg": {"x": 18.0, "y": 65.0, "width": 30.0, "height": 70.0},
+    "left_arm": {
+        "x": -50.0, "y": -10.0, "width": 30.0, "height": 70.0,
+        "pivot_y": _LIMB_PIVOT_Y,
+    },
+    "right_arm": {
+        "x": 50.0, "y": -10.0, "width": 30.0, "height": 70.0,
+        "pivot_y": _LIMB_PIVOT_Y,
+    },
+    "left_leg": {
+        "x": -18.0, "y": 65.0, "width": 30.0, "height": 70.0,
+        "pivot_y": _LIMB_PIVOT_Y,
+    },
+    "right_leg": {
+        "x": 18.0, "y": 65.0, "width": 30.0, "height": 70.0,
+        "pivot_y": _LIMB_PIVOT_Y,
+    },
 }
 
 # Per-character color palettes. Each entry is (skin, clothing, hair). Picked
@@ -1890,14 +1914,18 @@ def _build_character_subtree(
         )
         # Head renders as a fleshier ellipse; everything else stays a rect.
         kind = "ellipse" if part == "head" else "rect"
+        # The node sits at the joint, the rect hangs from it (an#173).
+        pivot_y = float(geom.get("pivot_y", _DFLT_PIVOT_Y))
+        node_y = float(geom["y"]) - float(geom["height"]) * (_DFLT_PIVOT_Y - pivot_y)
         children.append(
             NodeJSON(
                 name=part,
-                transform=TransformJSON(x=float(geom["x"]), y=float(geom["y"])),
+                transform=TransformJSON(x=float(geom["x"]), y=node_y),
                 visual=VisualJSON(
                     kind=kind,
                     width=float(geom["width"]),
                     height=float(geom["height"]),
+                    anchor_y=pivot_y,
                     color=part_color.get(part, "#cccccc"),
                 ),
             )
