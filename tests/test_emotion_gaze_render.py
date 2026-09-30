@@ -31,6 +31,13 @@ FRAME: int = 0
 FACE_Y: float = 45.0
 #: (row0, row1, col0, col1): head and brows, nothing below the collar. The mp4 is
 #: lossy, so the body below it carries encoder noise that would swamp the sets.
+#: Per-channel difference that counts as a drawn change. The frames come out of
+#: a lossy mp4 and the encoder differs per platform (Linux CI measured 2755
+#: changed pixels where a Mac measured 2170 at threshold 0), so exact
+#: inequality is noise; a brow or a pupil moving is a difference of 100+.
+STRONG_CHANGE: int = 32
+#: Share of a contribution's changed pixels that must reappear in the combined frame.
+OVERLAP_MIN: float = 0.75
 FACE_CROP: tuple[int, int, int, int] = (0, 130, 60, 260)
 
 
@@ -88,7 +95,8 @@ def test_emotion_and_gaze_both_reach_the_rendered_pixels():
     r0, r1, c0, c1 = FACE_CROP
 
     def changed(a, b):
-        return (frames[a] != frames[b]).any(axis=-1)[r0:r1, c0:c1]
+        delta = np.abs(frames[a] - frames[b]).max(axis=-1)
+        return (delta > STRONG_CHANGE)[r0:r1, c0:c1]
 
     emotion, gaze_px, both = changed("emotion", "neutral"), changed("gaze", "neutral"), changed("both", "neutral")
     assert emotion.any() and gaze_px.any(), "each contribution must draw something by itself"
@@ -97,7 +105,7 @@ def test_emotion_and_gaze_both_reach_the_rendered_pixels():
     )
     for label, own in (("emotion", emotion), ("gaze", gaze_px)):
         overlap = int((own & both).sum())
-        assert overlap >= 0.9 * int(own.sum()), f"the {label}'s pixels must reappear in the combined frame ({overlap}/{int(own.sum())})"
+        assert overlap >= OVERLAP_MIN * int(own.sum()), f"the {label}'s pixels must reappear in the combined frame ({overlap}/{int(own.sum())})"
     assert changed("both", "emotion").any(), "combined is not the emotion alone"
     assert changed("both", "gaze").any(), "combined is not the gaze alone"
     assert int(both.sum()) > max(int(emotion.sum()), int(gaze_px.sum())), "the union moves more than either part"
