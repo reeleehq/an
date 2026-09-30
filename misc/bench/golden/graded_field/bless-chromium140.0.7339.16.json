@@ -1,5 +1,5 @@
 {
-  "blessed_at": "2026-08-24T16:06:37Z",
+  "blessed_at": "2026-09-30T18:52:54Z",
   "chromium_build": "140.0.7339.16",
   "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
   "fps": 24,
@@ -26,18 +26,18 @@
     }
   ],
   "git": {
-    "branch": "wave5-blinks",
+    "branch": "bench/rebless-drift",
     "dirty": true,
-    "sha": "da5db60614e7294423fc3e3957fb4395aae83362"
+    "sha": "3a114a1339ceb722f38ae792cd57c626dcfd0456"
   },
-  "reason": "an#88: blinks are compiled channels; promote_demo f0070 now shows maya's closed-eye art (eyelid swap) where the runtime squashed the open eye \u2014 the one golden the move changes (single_character's compiled squash is byte-identical)",
+  "reason": "Record re-anchored, no pixel moved. The scene contract moved in an#88's review round (PR #92: per-window blink clips, rest-closed eyes) without moving either pinned frame, so this record kept naming the pre-review scene for five weeks. Both pinned frames are byte-identical on main 646f9e4 and on the guard commit 1a31093 (changed_px 0); found by the new bless-record contract guard.",
   "removed": [],
   "resolution": [
     320,
     240
   ],
   "scene": "graded_field",
-  "scene_contract_sha256": "eb5590accc122a9f6f19444390461d94425c0183e87aeac972f886b3c4ef498c",
+  "scene_contract_sha256": "39ed8248b5a87e26f70c1c3443c01a3fe03b5efda8df55c2a3d740b726b5b68a",
   "shot_ids": [
     "field"
   ],

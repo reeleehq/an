@@ -197,6 +197,52 @@ def _audio_cache_state(project_dir: Path) -> str:
     return "warm" if audio.is_dir() and any(audio.iterdir()) else "cold"
 
 
+def compiled_contract_sha256(fixture: Fixture, *, repo_root: Path) -> str:
+    """The ``scene_contract_sha256`` a render of ``fixture`` would record — no browser.
+
+    Compiles every timeline shot the way the cutout renderer does (the scene's
+    size, fps, style pack, default easing and stepped-timing policy, with
+    ``strict_assets`` as the bench sets it) in a throwaway copy, and hashes the
+    documents. It is the default-leg twin of :func:`capture_fixture`: the
+    contract hash is a function of the compiled JSON alone, so the guards that
+    check it — against the newest ledger row and against each golden's bless
+    record — run on every PR, not only in the labelled browser lane.
+
+    It is the contract of a bench render, which passes no overrides: a render
+    given its own ``step_hz``, fps or resolution compiles something else.
+    """
+    from an.adapters.cutout.compile import compile_shot, style_pack_for
+    from an.adapters.cutout.serialize import to_dict
+    from an.bench.contract import scenes_contract_sha256
+    from an.ir.schema import resolve_step_hz
+    from an.project import load
+
+    with tempfile.TemporaryDirectory(prefix="an-contract-") as tmp:
+        work = stage_copy(Path(repo_root) / fixture.path, Path(tmp))
+        if fixture.prepare is not None:
+            fixture.prepare(work)
+        project = load(work)
+        meta = project.scene.meta
+        style_pack = style_pack_for(meta, project.mall.get("styles") or {})
+        docs = [
+            to_dict(
+                compile_shot(
+                    shot,
+                    mall=project.mall,
+                    fps=int(round(meta.fps)),
+                    width=meta.resolution.width,
+                    height=meta.resolution.height,
+                    strict_assets=BENCH_RENDER_KWARGS["strict_assets"],
+                    step_hz=resolve_step_hz(shot, meta.step_hz),
+                    style_pack=style_pack,
+                    default_easing=meta.default_easing,
+                )
+            )
+            for shot in project.scene.timeline
+        ]
+    return scenes_contract_sha256(docs)
+
+
 def capture_fixture(
     name: str,
     fixture: Fixture,

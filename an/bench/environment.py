@@ -130,13 +130,33 @@ def probe_browser() -> dict[str, Any]:
                     "launch_argv": args,
                     "headless": True,
                     "chromium_build": browser.version,
-                    "executable_path": str(p.chromium.executable_path),
+                    "executable_path": home_relative(p.chromium.executable_path),
                     "webgl": page.evaluate(probe_js),
                 }
             finally:
                 browser.close()
     except Exception as e:  # noqa: BLE001 — reported, never fatal
         return {"error": f"{type(e).__name__}: {e}"}
+
+
+def home_relative(path: Any, *, home: Path | None = None) -> str:
+    """``path`` with the user's home directory spelled ``~``.
+
+    Ledger rows are committed to a public repository, so a row must not carry
+    the absolute path of the machine that wrote it. Provenance only: nothing
+    compares on this field. POSIX-spelled on every platform.
+
+    >>> home_relative("/home/u/.cache/ms-playwright/chrome", home=Path("/home/u"))
+    '~/.cache/ms-playwright/chrome'
+    >>> home_relative("/opt/chrome", home=Path("/home/u"))
+    '/opt/chrome'
+    """
+    p = Path(str(path))
+    base = Path.home() if home is None else Path(home)
+    try:
+        return "~/" + p.relative_to(base).as_posix()
+    except ValueError:
+        return p.as_posix()
 
 
 def runtime_sha256() -> str:

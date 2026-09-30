@@ -297,6 +297,12 @@ Two consequences worth knowing before you meet them:
 - **A committed golden is cross-checked against its own bless record** on every
   run, on DECODED PIXELS. A disagreement is `unavailable`, not a pass: the file
   is not the picture a human blessed.
+- **A PR that moves a fixture's contract re-blesses it, pixels or not.** The
+  default leg compiles every fixture (`an.bench.capture.compiled_contract_sha256`,
+  no browser) and checks it against the newest clean ledger row AND each bless
+  record's `scene_contract_sha256`. Only the first existed until 2026-10: an#88's
+  review round and an#173 moved five contracts without moving a pinned pixel,
+  committed rows, and left five records naming scenes that no longer compiled.
 
 ## Pulling a lever (an#41)
 
