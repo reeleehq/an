@@ -21,12 +21,14 @@ The classic traps, and where each one is closed:
 - **Row order.** ``gl.readPixels`` returns rows bottom-up. ``toDataURL`` returns
   the image top-down, and this path uses ``toDataURL`` — so there is no flip,
   and adding one is the mutation the equivalence test must catch.
-- **Premultiplied alpha.** The WebGL drawing buffer is premultiplied; the PNG
-  ``toDataURL`` writes is not. The two agree exactly where alpha is 255, and a
-  screenshot composites anything else over the page's white. So a frame with any
-  pixel below full alpha is REFUSED (:func:`opaque_rgb`) rather than guessed at:
-  compositing it here would be a second implementation of the browser's blend,
-  equal to it only by luck.
+- **Premultiplied alpha.** Not live today: the runtime leaves PixiJS's
+  ``backgroundAlpha`` at 1, so the WebGL context is created without alpha and
+  every pixel measured came back at 255. It becomes live the day a scene gets a
+  translucent background — then the premultiplied drawing buffer, the
+  un-premultiplied PNG and the screenshot's composite over the page's white all
+  disagree. So a frame with any pixel below full alpha is REFUSED
+  (:func:`opaque_rgb`) rather than guessed at: compositing it here would be a
+  second implementation of the browser's blend, equal to it only by luck.
 - **Why not ``renderer.extract``.** It re-renders the stage into a render
   texture, which is not multisampled — a different picture from the one the
   ``antialias: true`` backbuffer holds.
@@ -134,16 +136,18 @@ def opaque_rgb(png: bytes, *, frame: int) -> Any:
     with Image.open(io.BytesIO(png)) as image:
         image.load()
         mode = image.mode
-        if mode == "RGB":
-            return image.copy()
-        if mode != "RGBA":
+        if mode not in ("RGBA", "RGB"):
             raise CanvasCaptureError(
                 f"frame {frame}: the canvas PNG is mode {mode!r}; only RGBA and "
                 "RGB are decoded, because any other mode is a conversion this "
                 "path would be inventing"
             )
-        alpha = image.getchannel("A")
-        low, _ = alpha.getextrema()
+        # Chromium's `toDataURL` returned RGBA on every frame measured (alpha
+        # all 255); RGB is accepted too, and both leave through the ONE
+        # conversion below, so a flip or a conversion bug cannot hide in a
+        # branch the tests do not reach.
+        alpha = image.getchannel("A") if mode == "RGBA" else None
+        low = alpha.getextrema()[0] if alpha is not None else 255
         if low != 255:
             import numpy as np
 
@@ -156,7 +160,11 @@ def opaque_rgb(png: bytes, *, frame: int) -> Any:
             )
         # Rows as the PNG stores them: top-down. `toDataURL` is not
         # `readPixels`, so there is nothing to flip — see the module docstring.
-        return image.convert("RGB")
+        rgb = image.convert("RGB")
+    # Pixels only: an iCCP / gAMA chunk from the canvas PNG must not ride
+    # into the frame file, where the screenshot path's frames carry none.
+    rgb.info.clear()
+    return rgb
 
 
 def canvas_frame_png(

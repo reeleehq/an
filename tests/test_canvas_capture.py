@@ -64,9 +64,19 @@ def _data_url(arr) -> str:
 # --------------------------------------------------------------- arithmetic
 
 
+#: Chromium's `toDataURL` returned RGBA on every frame measured; RGB is accepted
+#: too, and every pixel test runs over both so neither branch is untested.
+CANVAS_MODES = ("RGBA", "RGB")
+
+
+def _canvas_png(arr, mode: str) -> bytes:
+    return _png(arr if mode == "RGBA" else np.ascontiguousarray(arr[..., :3]))
+
+
+@pytest.mark.parametrize("mode", CANVAS_MODES)
 @pytest.mark.parametrize("factor", [1, 2, 3])
 @pytest.mark.parametrize("n_samples", [1, 3])
-def test_a_canvas_frame_decodes_to_the_screenshot_paths_frame(factor, n_samples):
+def test_a_canvas_frame_decodes_to_the_screenshot_paths_frame(factor, n_samples, mode):
     """Same pixels in, same decoded frame out — the whole contract, offline.
 
     The screenshot path gets RGB PNGs from Chromium and runs
@@ -79,7 +89,7 @@ def test_a_canvas_frame_decodes_to_the_screenshot_paths_frame(factor, n_samples)
     rgba = [_frame_rgba(10 * factor + s, factor=factor) for s in range(n_samples)]
     screenshot = mean_png_bytes([_png(a[..., :3]) for a in rgba], factor=factor)
     canvas = canvas_frame_png(
-        [_png(a) for a in rgba], frame=0, factor=factor, size=(WIDTH, HEIGHT)
+        [_canvas_png(a, mode) for a in rgba], frame=0, factor=factor, size=(WIDTH, HEIGHT)
     )
     s_mode, s_arr = _decoded(screenshot)
     c_mode, c_arr = _decoded(canvas)
@@ -87,12 +97,13 @@ def test_a_canvas_frame_decodes_to_the_screenshot_paths_frame(factor, n_samples)
     assert np.array_equal(c_arr, s_arr)
 
 
-def test_rows_are_kept_top_down():
+@pytest.mark.parametrize("mode", CANVAS_MODES)
+def test_rows_are_kept_top_down(mode):
     """`toDataURL` is not `readPixels`: the PNG is already top-down, so the
     first row of the canvas image is the first row written. A flip here is the
     classic readback bug, and it is invisible in a frame-size check."""
     arr = _frame_rgba(200)
-    _, out = _decoded(canvas_frame_png([_png(arr)], frame=0))
+    _, out = _decoded(canvas_frame_png([_canvas_png(arr, mode)], frame=0))
     assert np.array_equal(out, arr[..., :3])
     assert not np.array_equal(out, arr[::-1, :, :3])
 
@@ -247,7 +258,11 @@ def test_back_pressure_bounds_the_frames_held_in_flight(tmp_path, monkeypatch):
     """When the encoders fall behind, the loop must stop asking the page for
     more. Measured from outside: at every round trip, the frames requested so
     far minus the frames already on disk is at most ``max_inflight`` + one batch.
-    Without the bound, a fast page and a slow encoder buffer the whole shot."""
+    Without the bound, a fast page and a slow encoder buffer the whole shot.
+
+    The bound is exact, not approximate: every frame the loop has popped from
+    its in-flight queue is already on disk, so requested - written can never
+    exceed ``max_inflight`` at the moment the page is asked for more."""
     real = canvas_capture.canvas_frame_png
     active = []
     peak = [0]
@@ -266,16 +281,16 @@ def test_back_pressure_bounds_the_frames_held_in_flight(tmp_path, monkeypatch):
 
     monkeypatch.setattr(render, "canvas_frame_png", slow)
     page = _FakePage(frames_dir=tmp_path)
-    batch, max_inflight, total = 2, 3, 30
+    batch, max_inflight, total, workers = 2, 3, 30, 2
     render._capture_frames_canvas(
-        page, total, 24, tmp_path, batch=batch, workers=1, max_inflight=max_inflight
+        page, total, 24, tmp_path, batch=batch, workers=workers, max_inflight=max_inflight
     )
     requested = 0
     for req, written in zip(page.requests, page.written_at_call):
-        assert requested - written <= max_inflight + batch, (requested, written)
+        assert requested - written <= max_inflight, (requested, written)
         requested += len(req)
     assert len(list(tmp_path.glob("*.png"))) == total
-    assert peak[0] == 1, "one worker means one encode at a time"
+    assert 1 <= peak[0] <= workers, "the pool never runs more encodes than it has workers"
 
 
 def test_an_encode_failure_surfaces_as_the_typed_error(tmp_path, monkeypatch):

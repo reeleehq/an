@@ -253,7 +253,7 @@ Every trap, and where it is closed — do not reopen any of them:
 | trap | what happens | closed by |
 |---|---|---|
 | row order | `gl.readPixels` is bottom-up; a PNG is top-down. A flipped frame has the declared size and passes every shape check | `toDataURL`, no flip; mutant `canvas_capture_flips_rows` + an in-test flip in the equivalence gate |
-| premultiplied alpha | the drawing buffer is premultiplied, the PNG is not, the screenshot composites over the page's white; all three agree only at alpha 255 | `opaque_rgb` **refuses** any pixel below 255 — never blends |
+| premultiplied alpha | NOT live today (`backgroundAlpha` 1, every measured pixel 255 — though `toDataURL` still hands back an RGBA PNG). Live the day a background is translucent: the drawing buffer is premultiplied, the PNG is not, the screenshot composites over the page's white; all three agree only at alpha 255 | `opaque_rgb` **refuses** any pixel below 255 — never blends |
 | `renderer.extract` | re-renders the stage into a render texture that is NOT multisampled — a different picture | the hook reads `app.view` |
 | raw RGBA over CDP | 8 MB/frame at 1080p: 830-950 ms/f via in-page base64, 5.9 s/f via Playwright's typed-array serialisation (measured) | the PNG data URL is the transfer encoding (~45 KB) |
 | seek order | the pose is not a pure function of t (an#185): t=0 after t=0.967 differs from a fresh t=0 by 122 px on `single_character` | instants are seeked in exactly the screenshot path's order, frame then sample |

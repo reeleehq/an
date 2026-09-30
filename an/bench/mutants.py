@@ -658,8 +658,8 @@ MUTANTS: tuple[Mutant, ...] = (
     Mutant(
         name="canvas_capture_flips_rows",
         file="an/adapters/cutout/canvas_capture.py",
-        old='image.convert("RGB")',
-        new='image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")',
+        old='rgb = image.convert("RGB")',
+        new='rgb = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")',
         caught_by="tests/test_canvas_capture.py",
         why=(
             "the `readPixels` trap in reverse: WebGL readback is bottom-up and a "

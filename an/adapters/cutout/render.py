@@ -886,8 +886,9 @@ def _capture_frames_canvas(
       with one PNG per instant — otherwise this raises before anything is
       written from that batch. Every file is named by the frame number the page
       echoed and the loop's own index agreeing, never by arrival order from the
-      pool; and before returning, every frame ``0..total_frames-1`` must have
-      been written exactly once.
+      pool; and before returning, every frame file ``0..total_frames-1`` must
+      exist on disk (redundant with the above by construction — kept because
+      the mux reads the directory, not this loop's bookkeeping).
     - **Unbounded buffering.** At most ``max_inflight`` frames sit in the pool
       unwritten; past that the loop blocks on the OLDEST before asking the page
       for more (back-pressure), so a long shot costs bounded memory.
@@ -944,11 +945,19 @@ def _capture_frames_canvas(
             # frames directory the caller is about to treat as finished.
             for fut in inflight:
                 fut.cancel()
-    if written != list(range(total_frames)):
+    # Belt and braces, checked on DISK rather than on the bookkeeping above
+    # (which is correct by construction): the mux reads the directory, so the
+    # directory is what must hold every frame exactly once.
+    missing = [
+        i
+        for i in range(total_frames)
+        if not (frames_dir / (DEFAULT_FRAME_PNG_PATTERN % i)).is_file()
+    ]
+    if written != list(range(total_frames)) or missing:
         raise CutoutRenderError(
-            f"canvas capture wrote frames {written[:5]}... ({len(written)}) but "
-            f"the shot has {total_frames}; a dropped or reordered frame is "
-            "silent corruption, so this refuses rather than muxing it"
+            f"canvas capture finished with frames {missing[:5]} missing from "
+            f"{frames_dir} ({len(written)} of {total_frames} encoded); a dropped "
+            "frame is silent corruption, so this refuses rather than muxing it"
         )
 
 
