@@ -444,6 +444,18 @@ class _RecordingRenderer:
         return RenderResult(mp4_path=out, duration=shot.duration)
 
 
+def _no_ffmpeg(monkeypatch):
+    """These tests are about which files the render writes, not the encode: the
+    concat is stubbed (the default CI lane has no ffmpeg)."""
+    import shutil
+
+    import an.render as render_mod
+
+    monkeypatch.setattr(
+        render_mod, "_ffmpeg_concat", lambda inputs, out: shutil.copy(list(inputs)[0], out)
+    )
+
+
 def _render(tmp_path, monkeypatch, scene):
     from an import init
     from an.project import load
@@ -454,6 +466,7 @@ def _render(tmp_path, monkeypatch, scene):
     project.mall["scenes"]["main"] = scene
     project = load(root)
     renderer = _RecordingRenderer()
+    _no_ffmpeg(monkeypatch)
     monkeypatch.setattr(render_mod._DEFAULT_REGISTRY, "find_for", lambda shot: renderer)
     out = render_mod.render(project, auto_audio=False)
     return project, renderer, out
@@ -513,6 +526,7 @@ def test_an_authors_own_srt_is_left_alone_when_the_scene_has_no_captions(tmp_pat
     (root / "output" / "main.srt").write_text("mine", encoding="utf-8")
     project = load(root)
     project.mall["scenes"]["main"] = scene
+    _no_ffmpeg(monkeypatch)
     monkeypatch.setattr(render_mod._DEFAULT_REGISTRY, "find_for", lambda shot: _RecordingRenderer())
     with pytest.warns(UserWarning, match="NOT written by this render"):
         render_mod.render(load(root), auto_audio=False)
@@ -526,7 +540,6 @@ def test_a_shot_off_the_frame_grid_sends_a_captioned_film_through_assembly(tmp_p
     import an.render as render_mod
 
     scene = _scene(Shot(id="a", duration=1.04, dialogue=[_line("hi")]), Shot(id="b", duration=1.0))
-    monkeypatch.setattr(render_mod, "_ffmpeg_concat", lambda inputs, out: out.write_bytes(b"x"))
     with pytest.warns(UserWarning, match="not a whole number of frames"):
         _render(tmp_path / "x", monkeypatch, scene)  # recording renderer: no frames
 
