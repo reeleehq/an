@@ -39,7 +39,11 @@ from an.adapters.cutout.serialize import TransformJSON
 from an.base import TRANSFORM_PROPERTIES
 
 if TYPE_CHECKING:  # pragma: no cover - types only
-    from an.adapters.cutout.serialize import CutoutSceneJSON, NodeJSON
+    from an.adapters.cutout.serialize import (
+        AnimationClipJSON,
+        CutoutSceneJSON,
+        NodeJSON,
+    )
 
 
 @dataclass(slots=True)
@@ -189,6 +193,38 @@ def evaluate_timeline(timeline: Timeline, t: float) -> Pose:
     }
 
 
+def clip_from_json(anim: AnimationClipJSON, *, name: str | None = None) -> Clip:
+    """One compiled animation (``AnimationClipJSON``) as an evaluable :class:`Clip`.
+
+    Two fields are carried rather than defaulted, and both have cost a bug:
+    ``loop_mode`` (without it every loop evaluated as ``once`` — an#7) and a
+    list-valued ``easing``, which is a cubic-bezier control quadruple and must
+    stay a tuple for ``Keyframe``. The compiler reads a from-less tween's
+    start through this too (an#212), so it evaluates exactly what the
+    runtime will.
+    """
+    return Clip(
+        anim.name if name is None else name,
+        duration=anim.duration,
+        loop_mode=LoopMode(anim.loop_mode),
+        channels=[
+            Channel(
+                ch.target,
+                ch.property,
+                [
+                    Keyframe(
+                        k.time,
+                        k.value,
+                        tuple(k.easing) if isinstance(k.easing, list) else k.easing,
+                    )
+                    for k in ch.keyframes
+                ],
+            )
+            for ch in anim.channels
+        ],
+    )
+
+
 def timeline_from_scene(scene: CutoutSceneJSON) -> Timeline:
     """The compiled scene's `timeline`/`animations` as this module's `Timeline`.
 
@@ -212,29 +248,7 @@ def timeline_from_scene(scene: CutoutSceneJSON) -> Timeline:
     >>> evaluate_timeline(timeline_from_scene(scene), 0.5)[("root", "x")]
     5.0
     """
-    clips = {
-        aid: Clip(
-            aid,
-            duration=a.duration,
-            loop_mode=LoopMode(a.loop_mode),
-            channels=[
-                Channel(
-                    ch.target,
-                    ch.property,
-                    [
-                        Keyframe(
-                            k.time,
-                            k.value,
-                            tuple(k.easing) if isinstance(k.easing, list) else k.easing,
-                        )
-                        for k in ch.keyframes
-                    ],
-                )
-                for ch in a.channels
-            ],
-        )
-        for aid, a in scene.animations.items()
-    }
+    clips = {aid: clip_from_json(a, name=aid) for aid, a in scene.animations.items()}
     return Timeline(
         duration=scene.timeline.duration,
         tracks=[
