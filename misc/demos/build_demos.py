@@ -22,6 +22,7 @@ Run::
 
 from __future__ import annotations
 
+import functools
 import json
 import shutil
 import subprocess
@@ -151,11 +152,128 @@ def to_gif(mp4: Path, gif: Path, *, crop: str = "") -> Path:
 # -----------------------------------------------------------------------------
 
 
-def _entities(*names: str) -> str:
-    rows = "\n".join(
-        f"- kind: character\n  id: {n}\n  store: characters\n  ref: {n}" for n in names
+#: Empty space kept above the head and below the feet when a demo frames a
+#: full-body character, as a fraction of the frame height.
+FRAME_MARGIN: float = 0.04
+
+
+@functools.lru_cache(maxsize=1)
+def _drawn_extent() -> tuple[float, float]:
+    """``(top, bottom)`` of a synthesized character's DRAWN art, in scene pixels
+    from the entity's own origin, at scale 1.
+
+    Measured off the compiled document rather than assumed. The compiler places
+    a character by the centre of its BONE extent (`_rig_origin`), which is not
+    the centre of what is drawn — the head hangs above its bone and the hair
+    above the head — so a default-placed character sits high in the frame and,
+    at these demos' 480x270, its hair is cropped by the top edge (an#170).
+    Every demo character shares one rig geometry (the seed only picks colours),
+    so one probe serves them all.
+    """
+    import tempfile
+
+    from an.adapters.cutout.compile import compile_shot
+    from an.adapters.cutout.serialize import to_dict
+    from an.characters import new_character
+    from an.ir.schema import AssetRef, Shot
+    from an.project import init, load
+
+    with tempfile.TemporaryDirectory() as d:
+        root = init(Path(d) / "probe")
+        new_character(
+            root / "assets" / "characters", name="probe", use_dicebear=False
+        )
+        shot = Shot(
+            id="probe",
+            renderer="cutout",
+            duration=1.0,
+            entities=[
+                AssetRef(kind="character", id="probe", store="characters", ref="probe")
+            ],
+        )
+        doc = to_dict(
+            compile_shot(shot, mall=load(root).mall, fps=DEMO_FPS, strict_assets=True)
+        )
+    (character,) = doc["scene"]["children"]
+    tops: list[float] = []
+    bottoms: list[float] = []
+
+    def walk(node: dict, oy: float = 0.0) -> None:
+        t, v = node["transform"], node["visual"]
+        y = oy + t["y"]
+        top = y - v["anchor_y"] * v["height"]
+        tops.append(top)
+        bottoms.append(top + v["height"])
+        for kid in node.get("children") or []:
+            walk(kid, y)
+
+    for part in character["children"]:
+        walk(part)
+    return min(tops), max(bottoms)
+
+
+def frame_full_body() -> tuple[float, float]:
+    """``(y, scale)`` of a stage placement that seats a synthesized character's
+    drawn bounds inside the demo frame, centred, with `FRAME_MARGIN` to spare.
+
+    The scale is capped at 1: a demo never enlarges a character to fill the
+    frame (a close-up says so itself, with its own `stage`).
+    """
+    top, bottom = _drawn_extent()
+    frame_h = float(DEMO_RESOLUTION[1])
+    scale = min(1.0, frame_h * (1.0 - 2.0 * FRAME_MARGIN) / (bottom - top))
+    return -scale * (top + bottom) / 2.0, scale
+
+
+def seat_head(scale: float) -> float:
+    """The stage `y` at which a character drawn at ``scale`` has its head
+    `FRAME_MARGIN` below the frame's top edge — for a close-up that shows
+    head and shoulders and lets the legs fall off the bottom on purpose.
+    """
+    top, _ = _drawn_extent()
+    frame_h = float(DEMO_RESOLUTION[1])
+    return -frame_h / 2.0 * (1.0 - 2.0 * FRAME_MARGIN) - scale * top
+
+
+def framed_rest() -> dict[str, float]:
+    """The framed character's REST pose, for `an.motion` presets.
+
+    A preset animates an absolute channel and returns it to the pose it was
+    told is the rest, which defaults to the identity: `hop` would land the
+    character back at y=0 and `pop_in` would grow it to scale 1, undoing the
+    framing on the first move.
+    """
+    y, scale = frame_full_body()
+    return {"y": y, "scale_x": scale, "scale_y": scale}
+
+
+def _character_rows(names: tuple[str, ...], *, framed: bool = True) -> str:
+    """The entity rows for ``names`` (no fence, so a demo can put an environment
+    beside them).
+
+    ``framed`` seats each character full-body in the frame (`frame_full_body`);
+    the x positions are the compiler's own evenly-spaced layout, so a placed
+    character stands where an unplaced one would. ``framed=False`` leaves the
+    compiler's default placement, for a demo that frames by other means.
+    """
+    from an.adapters.cutout.compile import _layout_character_positions
+
+    y, scale = frame_full_body()
+    xs = _layout_character_positions(len(names))
+
+    def stage(x: float) -> str:
+        if not framed:
+            return ""
+        return f"\n  stage:\n    at: [{x:g}, {y:.2f}]\n    scale: {scale:.4f}"
+
+    return "\n".join(
+        f"- kind: character\n  id: {n}\n  store: characters\n  ref: {n}{stage(x)}"
+        for n, x in zip(names, xs)
     )
-    return "```yaml entities\n" + rows + "\n```\n"
+
+
+def _entities(*names: str, framed: bool = True) -> str:
+    return "```yaml entities\n" + _character_rows(names, framed=framed) + "\n```\n"
 
 
 def _shot(shot_id: str, duration: float, *, camera: str | None = None) -> str:
@@ -509,8 +627,8 @@ def _build_multiplane(work: Path) -> Path:
         + _shot("s1", 3.0, camera="pan_right")
         + "\n```yaml entities\n"
         "- kind: environment\n  id: depths\n  store: environments\n  ref: depths\n"
-        "- kind: character\n  id: maya\n  store: characters\n  ref: maya\n"
-        "```\n"
+        + _character_rows(("maya",))
+        + "\n```\n"
     )
     return _render(_project(work, scene_md=md, characters=("maya",)))
 
@@ -819,6 +937,7 @@ def _build_alpha(work: Path) -> Path:
 
 
 def _build_composition(work: Path) -> Path:
+    y0 = frame_full_body()[0]  # the framed rest, not the identity's y=0
     md = (
         _meta("Composed motion, flattened to one timeline", 4.0)
         + "\n"
@@ -830,10 +949,10 @@ def _build_composition(work: Path) -> Path:
         "  from: 0.0\n  to: -1.2\n  duration: 1.0\n  start: 0.2\n"
         "- kind: tween\n  target: maya/arm_r\n  property: rotation\n"
         "  from: 0.0\n  to: 1.2\n  duration: 1.0\n  start: 0.2\n"
-        "- kind: tween\n  target: maya\n  property: y\n"
-        "  from: 0.0\n  to: -28.0\n  duration: 0.6\n  start: 1.4\n"
-        "- kind: tween\n  target: maya\n  property: y\n"
-        "  from: -28.0\n  to: 0.0\n  duration: 0.6\n  start: 2.0\n"
+        f"- kind: tween\n  target: maya\n  property: y\n"
+        f"  from: {y0:.2f}\n  to: {y0 - 28.0:.2f}\n  duration: 0.6\n  start: 1.4\n"
+        f"- kind: tween\n  target: maya\n  property: y\n"
+        f"  from: {y0 - 28.0:.2f}\n  to: {y0:.2f}\n  duration: 0.6\n  start: 2.0\n"
         "- kind: tween\n  target: maya\n  property: rotation\n"
         "  from: 0.0\n  to: 0.25\n  duration: 1.2\n  start: 2.6\n"
         "```\n"
@@ -1089,17 +1208,18 @@ def _build_motion_presets(work: Path) -> Path:
         + _entities("maya")
     )
     project = load(_project(work, scene_md=md, characters=("maya",)))
+    rest = framed_rest()  # the presets return to the FRAMED pose, not the identity
     moves = sequence(
-        pop_in("maya"),
+        pop_in("maya", rest=rest),
         delay(0.3),
-        hop("maya"),
+        hop("maya", rest=rest),
         nod("maya"),
         point(
             "maya/arm_r", angle=1.3
         ),  # a descriptor rig's arm_r hangs on the viewer's left
-        squash_stretch("maya"),
+        squash_stretch("maya", rest=rest),
         shake("maya"),
-        waddle("maya", travel=60.0),
+        waddle("maya", travel=60.0, rest=rest),
     )
     project.scene.timeline[0].actions = as_leaves(moves, start=0.2)
     save(project)
@@ -1186,8 +1306,11 @@ def _build_south_park_style(work: Path) -> Path:
             f"  duration: {hop}\n  easing: {easing}\n  start: {round(at, 3)}\n"
         )
 
-    def hop_on(target, at):
-        return tween(target, "y", -18, at) + tween(target, "y", 0, at + hop, frm=-18)
+    def hop_on(target, at, y0):
+        """A hop from the character's PLACED y, not from the identity's 0."""
+        return tween(target, "y", y0 - 18, at, frm=y0) + tween(
+            target, "y", y0, at + hop, frm=y0 - 18
+        )
 
     def gesture(target, start, end, *, beat=0.25, amp=0.35):
         """The speaker's arm and head move while they talk, then HOLD — body
@@ -1230,15 +1353,15 @@ def _build_south_park_style(work: Path) -> Path:
         + "\n"
         + shot(  # the two-shot
             "s1",
-            [("gus", -110, 100, 1.4), ("dot", 110, 100, 1.4)],
+            [("gus", -110, seat_head(1.4), 1.4), ("dot", 110, seat_head(1.4), 1.4)],
             "gus [surprised]: Dude, they're serving meatloaf again.\n"
             "dot [angry]: Oh, come on!\n",
-            gesture("gus", 0.2, 2.2) + hop_on("dot", 2.4) + gesture("dot", 2.8, 3.8),
+            gesture("gus", 0.2, 2.2) + hop_on("dot", 2.4, seat_head(1.4)) + gesture("dot", 2.8, 3.8),
         )
         + "\n"
         + shot(  # the single close
             "s2",
-            [("gus", 0, 175, 2.0)],
+            [("gus", 0, seat_head(2.0), 2.0)],
             "gus [thinking]: I'm gonna go talk to the lunch lady.\n",
             gesture("gus", 0.2, 3.6),
         )
