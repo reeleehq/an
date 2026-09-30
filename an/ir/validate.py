@@ -527,7 +527,9 @@ def _check_swap_references(
                         leaf.animation,
                         leaf.args,
                         parts=[
-                            p[len(prefix) :] for p in stage_nodes if p.startswith(prefix)
+                            p[len(prefix) :]
+                            for p in stage_nodes
+                            if p.startswith(prefix)
                         ],
                     )
                     missing = [n for n in moved if n not in stage_nodes]

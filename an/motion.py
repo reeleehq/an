@@ -133,8 +133,14 @@ DFLT_WALK_ROCK: float = 0.06  # radians, a legless figure's side-to-side rock
 WALK_LANDING_S: Seconds = 1e-3
 #: Leg and arm node names a walk looks for, in order: the rig contract's
 #: (descriptor rigs, ``an character new``), then the procedural placeholder's.
-WALK_LEG_NAMES: tuple[tuple[str, str], ...] = (("leg_l", "leg_r"), ("left_leg", "right_leg"))
-WALK_ARM_NAMES: tuple[tuple[str, str], ...] = (("arm_l", "arm_r"), ("left_arm", "right_arm"))
+WALK_LEG_NAMES: tuple[tuple[str, str], ...] = (
+    ("leg_l", "leg_r"),
+    ("left_leg", "right_leg"),
+)
+WALK_ARM_NAMES: tuple[tuple[str, str], ...] = (
+    ("arm_l", "arm_r"),
+    ("left_arm", "right_arm"),
+)
 #: Views whose legs SWING about the hip (the character seen from the side);
 #: every other view (``front``, ``back``, none) steps them up and down.
 WALK_SWING_VIEWS: frozenset[str] = frozenset({"side", "three_quarter"})
@@ -640,7 +646,9 @@ def walk(
         distance = sign * abs(distance)
     _positive(step_s=step_s, step_length=step_length)
     if step_s <= 4 * WALK_LANDING_S:
-        raise ValueError(f"step_s must be longer than {4 * WALK_LANDING_S}s, got {step_s!r}")
+        raise ValueError(
+            f"step_s must be longer than {4 * WALK_LANDING_S}s, got {step_s!r}"
+        )
     if steps is None:
         steps = (
             max(1, round(abs(distance) / step_length))
@@ -661,13 +669,22 @@ def walk(
                 target,
                 "x",
                 x1,
-                tween(target, "x", to=x1, duration=steps * step_s, from_=x0, easing="linear"),
+                tween(
+                    target,
+                    "x",
+                    to=x1,
+                    duration=steps * step_s,
+                    from_=x0,
+                    easing="linear",
+                ),
             )
         )
     bob_values = [y0]
     for _ in range(steps):
         bob_values += [y0 - bob, y0]
-    moves.append(_through(target, "y", bob_values, durations=[half] * n, easings=up_down))
+    moves.append(
+        _through(target, "y", bob_values, durations=[half] * n, easings=up_down)
+    )
 
     def limb(name: str) -> str:
         return f"{target}/{name}"
@@ -675,7 +692,9 @@ def walk(
     def part_rest(name: str) -> Rest | None:
         return (parts or {}).get(name)
 
-    def unsettled(path: str, prop: str, values: list[float], durations, easings) -> Action:
+    def unsettled(
+        path: str, prop: str, values: list[float], durations, easings
+    ) -> Action:
         # The landing takes its time out of the last segment: the walk's length
         # is exactly `steps × step_s`, which `play_extent` promised.
         durations = [*durations[:-1], durations[-1] - WALK_LANDING_S]
@@ -685,15 +704,26 @@ def walk(
                 for a, b, d, e in zip(values, values[1:], durations, easings)
             ),
             tween(
-                path, prop, to=values[-1], duration=WALK_LANDING_S, from_=values[-1], easing="linear"
+                path,
+                prop,
+                to=values[-1],
+                duration=WALK_LANDING_S,
+                from_=values[-1],
+                easing="linear",
             ),
         )
 
     def swing(path: str, r0: float, amount: float, phase: float) -> Action:
         # Extremes at every contact (a step boundary), the rest at both ends.
-        values = [r0] + [r0 + phase * amount * (-1) ** k for k in range(steps - 1)] + [r0]
+        values = (
+            [r0] + [r0 + phase * amount * (-1) ** k for k in range(steps - 1)] + [r0]
+        )
         return unsettled(
-            path, "rotation", values, [step_s] * steps, [DFLT_OSCILLATION_EASING] * steps
+            path,
+            "rotation",
+            values,
+            [step_s] * steps,
+            [DFLT_OSCILLATION_EASING] * steps,
         )
 
     leg_pair = _limb_pair(legs, WALK_LEG_NAMES, parts)
@@ -720,9 +750,13 @@ def walk(
                 moves.append(unsettled(limb(name), "y", values, durations, easings))
     else:
         r0 = _rest(rest, "rotation")
-        rock_values = [r0] + [v for i in range(steps) for v in (r0 + rock * (-1) ** i, r0)]
+        rock_values = [r0] + [
+            v for i in range(steps) for v in (r0 + rock * (-1) ** i, r0)
+        ]
         moves.append(
-            _through(target, "rotation", rock_values, durations=[half] * n, easings=up_down)
+            _through(
+                target, "rotation", rock_values, durations=[half] * n, easings=up_down
+            )
         )
     if arm_pair is not None:
         # Against the leg on the same side: the leg_l phase is +1, so arm_l's is -1.

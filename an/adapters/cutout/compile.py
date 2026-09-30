@@ -3774,7 +3774,12 @@ def _with_view_and_posed_parts(
     entity = action.target
     args = dict(action.args or {})
     view_set = DFLT_TURN_SET
-    events = [f for _, f in sorted(history.get((entity, SWAP_WRITE_GROUP), []), key=lambda e: e[0])]
+    events = [
+        f
+        for _, f in sorted(
+            history.get((entity, SWAP_WRITE_GROUP), []), key=lambda e: e[0]
+        )
+    ]
     view = args.get(VIEW_ARG)
     if view is None and preset_takes(action.animation, VIEW_ARG):
         view = facing_at(events, entity, t, view_set=view_set).view
