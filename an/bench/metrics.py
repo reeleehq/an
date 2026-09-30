@@ -59,6 +59,33 @@ FLICKER_DELTA_TOL: int = 2
 #: global-moment form.
 SSIM_RADIUS: int = 3
 
+#: The neighbourhood of each threshold counter's OWN free parameters over which
+#: its verdict must agree before `an bench-compare` will call it a direction
+#: (an#140). ``flat_field_deviation`` is ``(dev > tol).mean()`` over a mask
+#: eroded by ``FLAT_DILATE_K``; both are free, and measured on one machine and
+#: one x264 build its direction under a 4:2:0 -> 4:4:4 change reversed on three
+#: of six scenes somewhere on this grid (``graded_field`` +84.2% at tol 6,
+#: -81.6% at tol 8). Every shipped value sits inside its own sweep, so a sweep
+#: that disagrees is the row saying "somewhere near my own settings, my
+#: direction reverses". The grids are the ones the defect was measured on, not
+#: tuned ones; the flicker grid is one-sided below because tol 0 counts every
+#: pixel.
+FLAT_DEV_TOL_SWEEP: tuple[int, ...] = (4, 5, 6, 7, 8)
+FLAT_DILATE_K_SWEEP: tuple[int, ...] = (1, 3, 5)
+FLICKER_DELTA_TOL_SWEEP: tuple[int, ...] = (1, 2, 3, 4)
+
+
+def sweep_cell_key(**params: int) -> str:
+    """The label of one cell of a parameter sweep, stable across rows.
+
+    Keyword order is irrelevant — the key is sorted — so two rows written by
+    code that spells the call differently still match cell for cell.
+
+    >>> sweep_cell_key(tol=6, dilate_k=3)
+    'dilate_k=3,tol=6'
+    """
+    return ",".join(f"{k}={params[k]}" for k in sorted(params))
+
 
 def _trimmed_mean(values: Any, trim: float) -> float:
     import numpy as np
@@ -354,6 +381,50 @@ def flat_field_deviation(
     return float((dev > tol).mean()), float(np.percentile(dev, 99))
 
 
+def flat_field_deviation_sweep(
+    src_rgb: Any,
+    dec_rgb: Any,
+    *,
+    mask_rgb: Any,
+    tols: tuple[int, ...] = FLAT_DEV_TOL_SWEEP,
+    ks: tuple[int, ...] = FLAT_DILATE_K_SWEEP,
+) -> dict[str, list[int]]:
+    """``flat_field_deviation``'s count at every ``(dilate_k, tol)`` of its sweep.
+
+    ``{cell_key: [counted, of]}`` — integers, so a comparison between two rows
+    is exact rather than a comparison of two rounded fractions. The positional
+    pair is ``flat_field_deviation``'s own (reference, decoded); ``mask_rgb``
+    — what the flat mask is derived from, the SOURCE frames in `run.py` — is
+    keyword-only so the two roles cannot be swapped positionally. A ``k``
+    whose mask selects nothing is omitted, not recorded as ``[0, 0]``.
+
+    It is not a new number for the panel. It is what lets `an bench-compare`
+    tell a verdict from a threshold accident (an#140): the shipped cell IS the
+    metric, and the others say whether anywhere else on the declared grid of
+    its own two parameters the direction reverses.
+
+    >>> import numpy as np
+    >>> s = np.zeros((1, 9, 9, 3), np.uint8)
+    >>> d = s.copy(); d[0, 4, 4] = 7
+    >>> cells = flat_field_deviation_sweep(s, d, mask_rgb=s, tols=(6, 7), ks=(3,))
+    >>> cells
+    {'dilate_k=3,tol=6': [1, 81], 'dilate_k=3,tol=7': [0, 81]}
+    """
+    import numpy as np
+
+    from an.bench import masks
+
+    dev_full = np.abs(dec_rgb.astype(np.int16) - src_rgb.astype(np.int16)).max(-1)
+    out: dict[str, list[int]] = {}
+    for k in ks:
+        dev = dev_full[masks.flat_mask(mask_rgb, k=k)]
+        if not dev.size:
+            continue
+        for t in tols:
+            out[sweep_cell_key(dilate_k=k, tol=t)] = [int((dev > t).sum()), int(dev.size)]
+    return out
+
+
 def encode_flicker_on_held_pixels(
     src_rgb: Any, dec_rgb: Any, *, tol: int = FLICKER_DELTA_TOL
 ) -> float:
@@ -378,6 +449,34 @@ def encode_flicker_on_held_pixels(
         return float("nan")
     moved = np.abs(v[1:] - v[:-1]).max(-1)
     return float((moved[held] >= tol).mean())
+
+
+def encode_flicker_sweep(
+    src_rgb: Any, dec_rgb: Any, *, tols: tuple[int, ...] = FLICKER_DELTA_TOL_SWEEP
+) -> dict[str, list[int]]:
+    """``encode_flicker_on_held_pixels``' count at every ``tol`` of its sweep.
+
+    Same shape and same purpose as :func:`flat_field_deviation_sweep`: this is
+    the panel's other hard-threshold counter, and measured under the same
+    4:2:0 -> 4:4:4 change its direction reverses between tol 2 and tol 3 on
+    ``single_character`` (+25% -> -15%), and under ``high_crf`` between tol 1
+    and tol 2 on ``graded_field`` (-9% -> +29%). Empty when nothing is held.
+
+    >>> import numpy as np
+    >>> s = np.zeros((2, 1, 4, 3), np.uint8)
+    >>> d = s.copy(); d[1, 0, 0] = 2
+    >>> encode_flicker_sweep(s, d, tols=(2, 3))
+    {'tol=2': [1, 4], 'tol=3': [0, 4]}
+    """
+    import numpy as np
+
+    s = src_rgb.astype(np.int16)
+    v = dec_rgb.astype(np.int16)
+    held = np.abs(s[1:] - s[:-1]).max(-1) == 0
+    if not held.any():
+        return {}
+    moved = np.abs(v[1:] - v[:-1]).max(-1)[held]
+    return {sweep_cell_key(tol=t): [int((moved >= t).sum()), int(moved.size)] for t in tols}
 
 
 def overshoot_mean(dec_luma: Any, src_luma: Any, ring: Any) -> float:

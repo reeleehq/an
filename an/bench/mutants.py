@@ -759,6 +759,59 @@ MUTANTS: tuple[Mutant, ...] = (
             "family E on three of ten scenes (an#72)."
         ),
     ),
+    Mutant(
+        name="sweep_never_finds_a_reversal",
+        file="an/bench/compare.py",
+        old='    unstable = tally["increase"] > 0 and tally["decrease"] > 0',
+        new='    unstable = tally["increase"] > 0 and tally["decrease"] < 0',
+        caught_by="tests/test_bench_compare.py",
+        why=(
+            "the robustness gate that stops being able to fire. Every row "
+            "still carries its sweep and every report still prints a `sweep` "
+            "block reading `stable`, so the instrument looks exactly like one "
+            "that checked and found nothing — while `graded_field`'s +84.2% "
+            "at tol 6, which is -81.6% at tol 8, counts toward family D again "
+            "(an#140)."
+        ),
+    ),
+    Mutant(
+        name="sweep_counts_a_different_statistic",
+        file="an/bench/metrics.py",
+        old="int((dev > t).sum())",
+        new="int((dev >= t).sum())",
+        caught_by="tests/test_bench_metrics.py",
+        why=(
+            "a sweep of a statistic the row does not report. Off by one code "
+            "value, every cell stays a plausible, monotone survival count, and "
+            "the comparer then certifies the robustness of `>=` while the "
+            "ledger's number is `>` (an#140)."
+        ),
+    ),
+    Mutant(
+        name="sweep_deletion_is_excused",
+        file="an/bench/compare.py",
+        old='    spec = declared.get("threshold_sweep")\n',
+        new="    spec = None\n",
+        caught_by="tests/test_bench_compare.py",
+        why=(
+            "a row that declares a threshold sweep and carries none reads as "
+            "'written before an#140' — so deleting one field from a row turns "
+            "an `unstable` verdict back into a counted witness, the cheapest "
+            "possible way to fake a caught mutation."
+        ),
+    ),
+    Mutant(
+        name="strict_passes_an_unstable_movement",
+        file="an/tools.py",
+        old='else bool(report.get("has_regressions") or report.get("unstable"))',
+        new='else bool(report.get("has_regressions"))',
+        caught_by="tests/test_bench_compare.py",
+        why=(
+            "`unstable` is neither a regression nor a pass; with no mutation it "
+            "means some cell of the metric's own grid got worse. A CI gate that "
+            "exits 0 on it reads 'cannot tell' as 'fine' (an#140)."
+        ),
+    ),
 )
 
 

@@ -86,6 +86,24 @@ def test_bench_refuses_an_undeclared_lever_before_rendering_anything():
         assert declared in out, "the refusal must list what IS declared"
 
 
+def test_a_refused_lever_answers_with_its_measured_reason():
+    """an#72. A lever that was tried and refused is not "unknown": the
+    registry records why, and the CLI says it before anything renders — so the
+    next person to reach for `pix_fmt` meets the measurement, not a roster.
+
+    MUTATION: drop the `REFUSED_LEVERS` branch in `an.tools.bench`.
+    """
+    from an import tools
+    from an.bench.registry import MUTATIONS, REFUSED_LEVERS
+
+    assert not set(REFUSED_LEVERS) & set(MUTATIONS), (
+        "a lever cannot be both registered and refused"
+    )
+    for name, reason in REFUSED_LEVERS.items():
+        out = tools.bench(mutation=name)
+        assert out.startswith(f"{name!r} is not a lever") and reason in out
+
+
 def test_a_mutated_row_may_not_be_written_into_the_ledger_directory(
     tmp_path, monkeypatch
 ):
