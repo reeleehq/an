@@ -182,12 +182,16 @@ Two characters — an eager one and a flat, annoyed one:
 new_character(ch, name="laura", use_dicebear=False, voice_ref="laura_voice")
 new_character(ch, name="callum", use_dicebear=False, voice_ref="callum_voice")
 mall["voices"]["laura_voice"] = {
-    "provider": "elevenlabs", "voice_id": "FGY2WhTYpPnrIDTdsKH5",  # Laura — enthusiast, quirky
-    "model_id": "eleven_v3", "voice_settings": {"stability": 0.0},  # Creative: big swings
+    "provider": "elevenlabs",
+    "voice_id": "FGY2WhTYpPnrIDTdsKH5",  # Laura — enthusiast, quirky
+    "model_id": "eleven_v3",
+    "voice_settings": {"stability": 0.0},  # Creative: big swings
 }
 mall["voices"]["callum_voice"] = {
-    "provider": "elevenlabs", "voice_id": "N2lVS1w4EtoT3dr4eOWO",  # Callum — husky trickster
-    "model_id": "eleven_v3", "voice_settings": {"stability": 0.5, "speed": 0.95},
+    "provider": "elevenlabs",
+    "voice_id": "N2lVS1w4EtoT3dr4eOWO",  # Callum — husky trickster
+    "model_id": "eleven_v3",
+    "voice_settings": {"stability": 0.5, "speed": 0.95},
 }
 ```
 

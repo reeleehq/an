@@ -106,7 +106,9 @@ def normalize_voice_settings(raw: Mapping[str, Any] | None) -> dict[str, Any]:
             continue
         if bounds is None:
             if not isinstance(value, bool):
-                raise ElevenLabsVoiceError(f"{key} must be true or false, got {value!r}")
+                raise ElevenLabsVoiceError(
+                    f"{key} must be true or false, got {value!r}"
+                )
             out[key] = value
             continue
         if isinstance(value, bool) or not isinstance(value, (int, float)):
@@ -204,10 +206,14 @@ class ElevenLabsTTS:
                 )
             opts["seed"] = seed
         emotion = (emotion or "").strip()
-        tags = ([emotion] if emotion and emotion.lower() not in _UNTAGGED_EMOTIONS else [])
+        tags = (
+            [emotion] if emotion and emotion.lower() not in _UNTAGGED_EMOTIONS else []
+        )
         tags += [c for c in direction or [] if c not in tags]
         effective_model = opts.get("model_id", self.model_id)
-        if tags and takes_audio_tags(effective_model, prefixes=self.audio_tag_model_prefixes):
+        if tags and takes_audio_tags(
+            effective_model, prefixes=self.audio_tag_model_prefixes
+        ):
             opts["audio_tags"] = tags
         elif direction:
             warnings.warn(
@@ -336,7 +342,5 @@ def _clip_duration(audio_bytes: bytes, output_format: str) -> float:
     measured = _ffprobe_duration(audio_bytes)
     if measured > 0:
         return measured
-    kbps = next(
-        (int(p) for p in output_format.split("_")[2:3] if p.isdigit()), 128
-    )
+    kbps = next((int(p) for p in output_format.split("_")[2:3] if p.isdigit()), 128)
     return len(audio_bytes) / (kbps * 1000 / 8)
