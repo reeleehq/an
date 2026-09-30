@@ -240,6 +240,7 @@ def render(
         # launch rather than per shot — and so every shot in a scene is drawn
         # under the same art direction by construction.
         style_pack=style_pack_for(scene.meta, project.mall.get("styles") or {}),
+        default_easing=scene.meta.default_easing,
     )
 
     shots = list(scene.timeline)

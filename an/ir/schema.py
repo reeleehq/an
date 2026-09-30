@@ -281,7 +281,45 @@ class TweenAction(_ActionBase):
     to_value: Any
     from_value: Any | None = None
     duration: Seconds = 1.0
+    #: The curve. **Unset is not the same as ``"ease_in_out"``** (an#166): a
+    #: tween that does not name an easing takes the scene's
+    #: :attr:`Meta.default_easing`, and only when that is unset too the
+    #: built-in ``"ease_in_out"`` this default spells. "Unset" is
+    #: ``"easing" not in model_fields_set`` — the default stays the literal so
+    #: every reader of ``.easing`` still sees the curve a scene without a
+    #: default draws — and the serializer below omits an unset easing, so the
+    #: distinction survives ``scene.json``. ``None`` is an explicit LINEAR
+    #: ramp (the evaluators' reading of a null easing), not "unset".
     easing: EasingSpec | None = "ease_in_out"
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_easing(self, handler):
+        """Serialize an easing nobody wrote out of existence.
+
+        Without this a JSON round trip would turn every unset easing into an
+        explicit ``"ease_in_out"``, and the scene's ``default_easing`` would
+        silently stop applying to it after the first ``an sync`` (an#166).
+        """
+        data = handler(self)
+        if isinstance(data, dict) and "easing" not in self.model_fields_set:
+            data.pop("easing", None)
+        return data
+
+    def resolved_easing(self, default: "EasingSpec | None" = None) -> Any:
+        """The easing this tween draws with under a scene default of
+        ``default`` — the ONE statement of the precedence **tween > scene
+        (``Meta.default_easing``) > built-in ``"ease_in_out"``** (an#166).
+
+        >>> TweenAction(target="a", property="x", to_value=1).resolved_easing("linear")
+        'linear'
+        >>> TweenAction(target="a", property="x", to_value=1, easing="ease_in_out").resolved_easing("linear")
+        'ease_in_out'
+        >>> TweenAction(target="a", property="x", to_value=1).resolved_easing(None)
+        'ease_in_out'
+        """
+        if "easing" in self.model_fields_set or default is None:
+            return self.easing
+        return default
 
 
 class PlayAction(_ActionBase):
@@ -289,7 +327,16 @@ class PlayAction(_ActionBase):
 
     ``animation`` names an entry of ``CharacterDescriptor.animations`` (the
     seeded ``idle_breath`` and ``blink``, or anything an author adds); the
-    compiler resolves its tracks into channels on the entity's nodes.
+    compiler resolves its tracks into channels on the entity's nodes. A name
+    the descriptor does NOT declare — or any name on an entity with no
+    descriptor (a procedural rig, a prop) — falls back to the motion presets
+    of :data:`an.motion.PRESETS` (``hop``, ``nod``, …), which expand to
+    ordinary tweens at the target's built rest pose; a descriptor animation of
+    the same name wins (an#166). Both halves are decided by
+    :func:`an.characters.play.play_problems`, the one resolver ``an validate``
+    and the compiler share. For a preset, ``args`` are its parameters,
+    ``duration`` stretches the whole move to that length, ``speed`` divides
+    it, and ``loop: true`` is refused (a preset is a one-shot).
     ``duration`` widens/narrows the placement window; ``None`` means the
     animation's own duration — or, when the resolved ``loop`` is true, the
     rest of the shot, because a loop bounded by its own natural duration
@@ -305,6 +352,21 @@ class PlayAction(_ActionBase):
     duration: Seconds | None = None  # None = the animation's natural duration
     speed: float = 1.0
     loop: bool | None = None  # None = the descriptor animation's own `loop`
+    #: Parameters of a MOTION PRESET (an#166) — ``{"height": 30}`` for a
+    #: ``hop`` — passed to its :data:`an.motion.PRESETS` function as keyword
+    #: arguments. ``None`` (the default, omitted from JSON) means the preset's
+    #: own defaults. A descriptor animation takes none, and one given to it is
+    #: refused; ``rest`` is never one — it is read off the built scene.
+    args: dict[str, Any] | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_args(self, handler):
+        """``args: null`` leaves no trace: every committed ``scene.json`` with
+        a ``play`` predates the field (the an#112 omit-when-unset rule)."""
+        data = handler(self)
+        if isinstance(data, dict) and data.get("args") is None:
+            data.pop("args", None)
+        return data
 
 
 #: Default ramp in/out of an expression, seconds (0 = cut). The dialogue
@@ -556,6 +618,18 @@ class Meta(_IRModel):
     #: name at compile.
     style_pack: str | None = None
 
+    #: The easing every authored ``tween`` that names none is drawn with
+    #: (an#166) — ``"linear"`` for a snappy South Park cadence, an overshooting
+    #: cubic-Bezier for a bouncy one. Precedence is **tween > this > the
+    #: built-in ``"ease_in_out"``** (:meth:`TweenAction.resolved_easing`).
+    #: ``None`` — the default and what every existing document has — changes
+    #: nothing, and is omitted from JSON like ``style_pack``, so no committed
+    #: scene and no compiled document moves. It reaches authored tweens ONLY:
+    #: a motion preset writes its own easings, the camera's named moves supply
+    #: theirs, and blinks, ``play`` clips and swap channels have none to
+    #: inherit. There is no per-shot override yet — style is a scene's.
+    default_easing: EasingSpec | None = None
+
     @model_serializer(mode="wrap")
     def _omit_unset_style_pack(self, handler):
         """Serialize ``style_pack: null`` out of existence when it is unset.
@@ -573,6 +647,10 @@ class Meta(_IRModel):
         # prevent (an#112 review, L2).
         if isinstance(data, dict) and not data.get("style_pack"):
             data.pop("style_pack", None)
+        # The same rule for `default_easing` (an#166), in the same serializer
+        # because a model has one.
+        if isinstance(data, dict) and data.get("default_easing") is None:
+            data.pop("default_easing", None)
         return data
 
 

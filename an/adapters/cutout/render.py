@@ -324,6 +324,7 @@ class CutoutRenderer:
             strict_assets=ctx.strict_assets,
             step_hz=step_hz,
             style_pack=ctx.style_pack,
+            default_easing=ctx.default_easing,
         )
 
         job = _stage_job(ctx.work_dir, shot.id, scene_json, mall=ctx.mall)

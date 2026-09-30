@@ -55,6 +55,19 @@ def set_(target: PathStr, property: str, value: Any, *, at: Seconds = 0.0) -> Se
     return SetAction(target=target, property=property, value=value, at=at)
 
 
+class _Inherit:
+    """The type of :data:`INHERIT`."""
+
+    def __repr__(self) -> str:
+        return "INHERIT"
+
+
+#: ``tween(..., easing=INHERIT)`` — the default — leaves the easing UNSET, so
+#: the scene's ``meta.default_easing`` applies, else ``"ease_in_out"`` (an#166).
+#: A sentinel rather than ``None`` because ``None`` already means linear.
+INHERIT = _Inherit()
+
+
 def tween(
     target: PathStr,
     property: str,
@@ -62,16 +75,26 @@ def tween(
     duration: Seconds,
     *,
     from_: Any | None = None,
-    easing: EasingSpec | None = "ease_in_out",
+    easing: EasingSpec | None | _Inherit = INHERIT,
 ) -> TweenAction:
-    """Animate a property from ``from_`` (or its current value) to ``to``."""
+    """Animate a property from ``from_`` (or its current value) to ``to``.
+
+    ``easing`` left out inherits the scene's ``meta.default_easing`` (else
+    ``"ease_in_out"``); naming one — ``"ease_in_out"`` included — pins it.
+
+    >>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
+    False
+    >>> tween("a", "x", to=1.0, duration=1.0, easing="linear").easing
+    'linear'
+    """
+    kwargs: dict[str, Any] = {} if easing is INHERIT else {"easing": easing}
     return TweenAction(
         target=target,
         property=property,
         to_value=to,
         from_value=from_,
         duration=duration,
-        easing=easing,
+        **kwargs,
     )
 
 
@@ -82,6 +105,7 @@ def play(
     duration: Seconds | None = None,
     speed: float = 1.0,
     loop: bool | None = None,
+    args: dict[str, Any] | None = None,
 ) -> PlayAction:
     """Play a named animation of the target entity's descriptor (an#7).
 
@@ -93,6 +117,12 @@ def play(
     [0.0, 1.0]
     >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
     [0.0, 2.0]
+
+    A name the descriptor does not declare falls back to a motion preset of
+    :data:`an.motion.PRESETS`, with ``args`` as its parameters (an#166):
+
+    >>> play("charlie", "hop", args={"height": 30}).args
+    {'height': 30}
     """
     return PlayAction(
         target=target,
@@ -100,6 +130,7 @@ def play(
         duration=duration,
         speed=speed,
         loop=loop,
+        args=args,
     )
 
 

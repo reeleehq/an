@@ -41,6 +41,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from an.base import TRANSFORM_PROPERTIES, TRIM_PROPERTIES, swap_set_name_problem
+from an.adapters.cutout.easing import apply_easing
 from an.adapters.cutout.path import flatten_curve
 from an.adapters.cutout.coarticulate import coarticulate
 from an.expression.axes import LID_KEY_CLOSED, LID_KEY_OPEN, lid_key
@@ -57,10 +58,14 @@ from an.adapters.cutout.gaze import gaze_seed, saccade_track
 from an.expression.presets import mouth_form_of
 from an.expression.provider import DefaultExpressionProvider, ExpressionProvider
 from an.characters.play import (
+    PRESET_SOURCE,
     BoneTrack,
     PlayResolutionError,
     art_exists_for,
     drawn_attachment,
+    expand_preset_play,
+    play_problems,
+    play_source,
     primary_slot_per_bone,
     resolve_play,
     sampled_deviations,
@@ -698,8 +703,14 @@ def compile_shot(
     step_hz: float | None = None,
     expression_provider: ExpressionProvider | None = None,
     style_pack: "StylePack | None" = None,
+    default_easing: Any = None,
 ) -> CutoutSceneJSON:
     """Compile a single cutout-style `Shot` to its JS-runtime JSON form.
+
+    ``default_easing`` (an#166) is the scene's ``meta.default_easing``: the
+    curve of every authored tween that names none (tween > this > the built-in
+    ``"ease_in_out"``, :meth:`~an.ir.schema.TweenAction.resolved_easing`).
+    ``None`` leaves the document byte-identical to before the knob existed.
 
     ``expression_provider`` (an#98) is the seam that turns authored
     ``expression`` leaves and dialogue ``[emotion]`` sugar into per-axis
@@ -741,6 +752,8 @@ def compile_shot(
             f"step_hz must satisfy 0 < step_hz <= fps ({fps}); got {step_hz!r}. "
             f"At {fps} fps, {fps / 2:g} is 'on twos' and {fps / 3:g} 'on threes'."
         )
+    if default_easing is not None:
+        _check_default_easing(default_easing)
     mall = mall or {}
 
     textures: dict[str, AssetJSON] = {}
@@ -756,6 +769,7 @@ def compile_shot(
         resolutions=resolutions,
         fps=fps,
         step_hz=step_hz,
+        default_easing=default_easing,
     )
     provider = expression_provider or DefaultExpressionProvider()
     # Phase 4: emit a viseme channel per dialogue line that has a viseme_track.
@@ -2159,8 +2173,15 @@ def _compile_actions(
     resolutions: list[AssetResolutionJSON] | None = None,
     fps: int = 30,
     step_hz: float | None = None,
+    default_easing: Any = None,
 ) -> tuple[dict[str, AnimationClipJSON], list[TrackJSON]]:
     """Flatten authoring actions and convert to animation clips.
+
+    A ``play`` of a MOTION PRESET is replaced by the tweens and settling sets
+    it stands for before anything else looks (:func:`_expand_preset_plays`,
+    an#166), so from here on it is ordinary authored motion — stepped under
+    ``step_hz`` like any tween, which is what the ``an.motion`` macro spelling
+    of the same preset has always been.
 
     Tweens and plays compile per action. **Set actions compile per
     (target, property) group into step channels that HOLD from each set until
@@ -2190,6 +2211,7 @@ def _compile_actions(
     flat_list: list[FlatAction] = []
     for action in actions:
         flat_list.extend(flatten(action))
+    flat_list = _expand_preset_plays(flat_list, vocab=vocab)
 
     # `expression` leaves (an#98) are the face solver's input, not clips of
     # their own: `_add_face_clips` sums them per (node, property).
@@ -2230,6 +2252,7 @@ def _compile_actions(
                 vocab=vocab,
                 fps=fps,
                 step_hz=step_hz,
+                default_easing=default_easing,
             )
         if (
             isinstance(flat.action, PlayAction)
@@ -2454,6 +2477,7 @@ def _build_anim_for(
     vocab: _SwapVocabulary | None = None,
     fps: int = 30,
     step_hz: float | None = None,
+    default_easing: Any = None,
 ) -> AnimationClipJSON:
     action = flat.action
     if isinstance(action, PlayAction):
@@ -2468,7 +2492,7 @@ def _build_anim_for(
         _check_keyframe_value(
             action.to_value, target=action.target, prop=action.property
         )
-        easing = _easing_to_json(action.easing)
+        easing = _easing_to_json(action.resolved_easing(default_easing))
         # Only an easing the author actually WROTE earns a warning:
         # TweenAction's default is 'ease_in_out', so a swap tween with no
         # easing given would otherwise be told it "asked for" one.
@@ -2589,6 +2613,76 @@ def _stepped_keyframes(
         KeyframeJSON(time=t, value=float(evaluate(channel, t)), easing="step")
         for t in step_times(start, duration, step_hz)
     ]
+
+
+def _check_default_easing(spec: Any) -> None:
+    """Refuse a scene default easing the evaluators would refuse — at compile,
+    because a render never runs ``an validate``, and a typo here would
+    otherwise surface as a runtime throw on the first tween of every shot."""
+    try:
+        apply_easing(spec, 0.5)
+    except (ValueError, TypeError) as e:
+        raise CutoutCompileError(f"meta.default_easing {spec!r}: {e}") from e
+
+
+def _expand_preset_plays(
+    flat_list: list[FlatAction], *, vocab: _SwapVocabulary | None
+) -> list[FlatAction]:
+    """Replace each ``play`` of a motion preset with the flat tweens and sets
+    it expands to (an#166); descriptor plays pass through to
+    :func:`_resolve_play`.
+
+    Every ``play`` — both sources — is checked here by
+    :func:`an.characters.play.play_problems`, the verdict ``an validate``
+    reports, so the two cannot disagree about a name, an argument or a
+    source. The preset's rest pose is the moved node's BUILT transform
+    (``vocab.node_transforms``), so a move on ``x`` in a two-character shot
+    stays centred on the laid-out ``-110`` without a ``rest=``; with no
+    vocabulary (a unit test compiling bare actions) it is the identity pose.
+    """
+    from an.motion import IDENTITY_POSE, POSE_PROPERTIES
+
+    def rest_of(path: str):
+        if vocab is None:
+            return dict(IDENTITY_POSE)
+        transform = vocab.node_transforms.get(path)
+        if transform is None:
+            return None
+        return {p: float(getattr(transform, p)) for p in POSE_PROPERTIES}
+
+    out: list[FlatAction] = []
+    for flat in flat_list:
+        action = flat.action
+        if not isinstance(action, PlayAction):
+            out.append(flat)
+            continue
+        entity_id = _track_root_of(action.target)
+        desc = vocab.descriptors.get(entity_id) if vocab is not None else None
+        where = f"play of {action.animation!r} on {action.target!r}"
+        problems = play_problems(
+            desc,
+            action.animation,
+            art_exists=vocab.art_exists.get(entity_id) if vocab is not None else None,
+            args=action.args,
+            duration=action.duration,
+            speed=action.speed,
+            loop=action.loop,
+        )
+        if problems:
+            raise CutoutCompileError(f"{where}: " + "; ".join(problems))
+        if play_source(desc, action.animation) != PRESET_SOURCE:
+            out.append(flat)
+            continue
+        try:
+            out.extend(expand_preset_play(action, start=flat.start, rest_of=rest_of))
+        except PlayResolutionError as e:
+            built = sorted(
+                p for p in (vocab.paths if vocab else ()) if p.split("/")[0] == entity_id
+            )
+            raise CutoutCompileError(
+                f"{where}: " + "; ".join(e.problems) + f" (built: {built})"
+            ) from e
+    return out
 
 
 def _resolve_play(

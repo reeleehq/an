@@ -33,8 +33,22 @@ helpers rather than restating them, so the two cannot drift:
 >>> resolved = resolve_play(desc, "blink")
 >>> [(t.slot, t.set_name) for t in resolved.tracks]
 [('left_eye', 'eyelid'), ('right_eye', 'eyelid')]
->>> play_problems(desc, "walk")
-["the descriptor declares no animation 'walk' (it has: ['blink', 'idle_breath'])"]
+
+**Motion presets (an#166).** A name the descriptor does not declare — or any
+name on an entity with no descriptor (a procedural rig, a prop) — falls back
+to :data:`an.motion.PRESETS`. The DESCRIPTOR WINS a name both know: a rig that
+ships its own ``hop`` means that one. :func:`play_source` makes that call and
+:func:`play_problems` gives the whole verdict, for ``an validate`` and the
+compiler alike. A preset resolves to tweens, not a clip:
+:func:`expand_preset_play` builds them at the moved node's REST pose, which
+the caller reads off the built scene, so an author never passes ``rest``.
+
+>>> play_problems(desc, "walk")  # doctest: +NORMALIZE_WHITESPACE
+["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no
+  motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
+  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'waddle'])"]
+>>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
+('preset', 'preset', 'descriptor')
 """
 
 from __future__ import annotations
@@ -219,20 +233,233 @@ def art_exists_for(characters_store: Mapping, ref: str) -> Callable[[str], bool]
 # ----------------------------------------------------------------- resolution
 
 
+#: Where a ``play`` resolves: the entity descriptor's own ``animations``…
+DESCRIPTOR_SOURCE = "descriptor"
+#: …or, for a name it does not declare, :data:`an.motion.PRESETS` (an#166).
+PRESET_SOURCE = "preset"
+
+#: Preset parameters an author may NOT pass through ``args``: the target is
+#: the play's own, and the rest pose is read off the built scene.
+RESERVED_PRESET_ARGS: frozenset[str] = frozenset({"target", "rest"})
+
+
+def _presets() -> dict[str, Callable]:
+    # Lazy: `an.motion` imports the IR, and the IR's validator imports this.
+    from an.motion import PRESETS
+
+    return PRESETS
+
+
+def play_source(desc: CharacterDescriptor | None, animation: str) -> str:
+    """Which library a ``play`` of ``animation`` resolves in —
+    :data:`DESCRIPTOR_SOURCE` when ``desc`` declares it (the descriptor WINS a
+    name a preset also has), else :data:`PRESET_SOURCE` when a motion preset
+    has it. ``desc=None`` is an entity with no descriptor: presets only.
+
+    Raises :class:`PlayResolutionError` naming BOTH vocabularies when neither
+    has the name.
+    """
+    if desc is not None and animation in desc.animations:
+        return DESCRIPTOR_SOURCE
+    presets = _presets()
+    if animation in presets:
+        return PRESET_SOURCE
+    if desc is None:
+        problem = (
+            f"no animation {animation!r}: the entity has no descriptor, so only "
+            f"motion presets resolve, and none has that name "
+            f"(presets: {sorted(presets)})"
+        )
+    else:
+        problem = (
+            f"no animation {animation!r}: the descriptor declares "
+            f"{sorted(desc.animations)} and no motion preset has that name "
+            f"(presets: {sorted(presets)})"
+        )
+    raise PlayResolutionError(animation, [problem])
+
+
 def play_problems(
-    desc: CharacterDescriptor,
+    desc: CharacterDescriptor | None,
     animation: str,
     *,
     art_exists: Callable[[str], bool] | None = None,
+    args: Mapping[str, object] | None = None,
+    duration: float | None = None,
+    speed: float = 1.0,
+    loop: bool | None = None,
 ) -> list[str]:
-    """Every reason ``play(<entity>, animation)`` cannot resolve — empty when
-    it can. The validate-facing spelling of :func:`resolve_play`.
+    """Every reason ``play(<entity>, animation, ...)`` cannot resolve — empty
+    when it can. THE verdict ``an validate`` reports and the compiler raises
+    on, for both sources (an#7, an#166).
+
+    >>> play_problems(None, "hop", args={"heigth": 3})  # doctest: +ELLIPSIS
+    ["motion preset 'hop' has no parameter 'heigth' (it takes: [...])"]
+    >>> play_problems(None, "hop", loop=True)  # doctest: +ELLIPSIS
+    ["motion preset 'hop' is a one-shot: `loop: true` ...
     """
+    try:
+        source = play_source(desc, animation)
+    except PlayResolutionError as e:
+        return list(e.problems)
+    if source == PRESET_SOURCE:
+        return preset_problems(
+            animation, args=args, duration=duration, speed=speed, loop=loop
+        )
+    problems: list[str] = []
+    if args:
+        problems.append(
+            f"`args` {dict(args)!r} are motion-preset parameters, and "
+            f"{animation!r} is the descriptor's own animation, which takes none "
+            "(a descriptor animation wins over a preset of the same name)"
+        )
     try:
         resolve_play(desc, animation, art_exists=art_exists)
     except PlayResolutionError as e:
-        return list(e.problems)
-    return []
+        problems.extend(e.problems)
+    return problems
+
+
+def preset_problems(
+    animation: str,
+    *,
+    args: Mapping[str, object] | None = None,
+    duration: float | None = None,
+    speed: float = 1.0,
+    loop: bool | None = None,
+) -> list[str]:
+    """Why a ``play`` of the motion preset ``animation`` cannot expand.
+
+    The parameters are checked by NAME against the preset's signature, then by
+    building it (at the identity pose), so a value the preset itself refuses —
+    ``cycles: 0``, a string height — is reported in the preset's own words.
+    """
+    import inspect
+
+    preset = _presets()[animation]
+    problems: list[str] = []
+    args = dict(args or {})
+    params = inspect.signature(preset).parameters
+    accepted = sorted(
+        n
+        for n, p in params.items()
+        if n not in RESERVED_PRESET_ARGS and p.kind is inspect.Parameter.KEYWORD_ONLY
+    )
+    for name in sorted(args):
+        if name in RESERVED_PRESET_ARGS:
+            problems.append(
+                f"motion preset {animation!r}: {name!r} is not an argument — "
+                + (
+                    "the rest pose is read off the built scene"
+                    if name == "rest"
+                    else "the target is the play's own `target`"
+                )
+            )
+        elif name not in accepted:
+            problems.append(
+                f"motion preset {animation!r} has no parameter {name!r} "
+                f"(it takes: {accepted})"
+            )
+    if loop:
+        problems.append(
+            f"motion preset {animation!r} is a one-shot: `loop: true` is for "
+            "descriptor animations — place the play again, or pass the "
+            "preset's own count (`cycles`, `count`, `steps`) in `args`"
+        )
+    if duration is not None and speed != 1.0:
+        problems.append(
+            f"motion preset {animation!r}: give `duration` (stretch the move "
+            "to that length) or `speed` (divide its length), not both"
+        )
+    if duration is not None and not duration > 0:
+        problems.append(f"motion preset {animation!r}: duration must be > 0")
+    if not speed > 0:
+        problems.append(f"motion preset {animation!r}: speed must be > 0")
+    if not problems:
+        try:
+            preset("_", **args)
+        except (TypeError, ValueError) as e:
+            problems.append(f"motion preset {animation!r} refuses {args!r}: {e}")
+    return problems
+
+
+def preset_moved_node(action_target: str, animation: str, args=None) -> str:
+    """The ONE node path a preset play moves — ``<target>/head`` for a ``nod``,
+    the target itself for the rest. Read off the expansion rather than
+    restated per preset, so a preset added later needs no entry here.
+
+    >>> preset_moved_node("charlie", "nod"), preset_moved_node("charlie", "hop")
+    ('charlie/head', 'charlie')
+    """
+    from an.ir.compose import flatten
+
+    tree = _presets()[animation](action_target, **dict(args or {}))
+    moved = sorted({f.action.target for f in flatten(tree)})
+    if len(moved) != 1:  # every shipped preset moves one node; a new one must too
+        raise PlayResolutionError(
+            animation,
+            [f"motion preset {animation!r} moves {moved}; a play needs exactly one node"],
+        )
+    return moved[0]
+
+
+def expand_preset_play(
+    action,
+    *,
+    start: float,
+    rest_of: Callable[[str], Mapping[str, float] | None],
+) -> list:
+    """A preset ``play`` as the flat tweens and settling ``set``s it stands
+    for, at absolute times from ``start`` (an#166).
+
+    ``rest_of(node_path)`` returns that node's built rest pose (``x``, ``y``,
+    ``rotation``, ``scale_x``, ``scale_y``, ``alpha``), or ``None`` when the
+    built scene carries no such node — then this raises naming it, which is
+    what the runtime would otherwise do mid-render. ``duration`` stretches the
+    move to that length; ``speed`` divides it. Assumes
+    :func:`preset_problems` came back empty.
+
+    >>> from an.ir.schema import PlayAction
+    >>> flats = expand_preset_play(
+    ...     PlayAction(target="a", animation="hop", args={"height": 10}),
+    ...     start=1.0, rest_of=lambda p: {"y": 5.0})
+    >>> [(round(f.start, 3), type(f.action).__name__, f.action.property) for f in flats]
+    [(1.0, 'TweenAction', 'y'), (1.25, 'TweenAction', 'y'), (1.5, 'SetAction', 'y')]
+    >>> flats[0].action.to_value
+    -5.0
+    """
+    from an.ir.compose import FlatAction, duration_of, flatten
+    from an.ir.schema import TweenAction
+
+    preset = _presets()[action.animation]
+    args = dict(action.args or {})
+    node = preset_moved_node(action.target, action.animation, args)
+    rest = rest_of(node)
+    if rest is None:
+        raise PlayResolutionError(
+            action.animation,
+            [
+                f"motion preset {action.animation!r} on {action.target!r} moves "
+                f"node {node!r}, which the built scene does not carry"
+            ],
+        )
+    tree = preset(action.target, rest=rest, **args)
+    natural = duration_of(tree)
+    if action.duration is not None and natural > 0:
+        scale = float(action.duration) / natural
+    else:
+        scale = 1.0 / float(action.speed)
+    flats = flatten(tree, start=start)  # the macro's own time arithmetic, exactly
+    if scale == 1.0:
+        return flats
+    out = []
+    for f in flats:
+        leaf = f.action
+        if isinstance(leaf, TweenAction):
+            leaf = leaf.model_copy(update={"duration": leaf.duration * scale})
+        t0 = start + (f.start - start) * scale
+        out.append(FlatAction(start=t0, end=t0 + (f.end - f.start) * scale, action=leaf))
+    return out
 
 
 def resolve_play(
@@ -518,8 +745,11 @@ def sampled_deviations(
 __all__ = [
     "BONE_TRACK_PROPERTIES",
     "BoneTrack",
+    "DESCRIPTOR_SOURCE",
     "HEAD_BONE",
+    "PRESET_SOURCE",
     "PlayResolutionError",
+    "RESERVED_PRESET_ARGS",
     "RIG_SCALED_PROPERTIES",
     "ROOT_BONE",
     "ResolvedPlay",
@@ -527,7 +757,11 @@ __all__ = [
     "active_skin",
     "art_exists_for",
     "drawn_attachment",
+    "expand_preset_play",
     "play_problems",
+    "play_source",
+    "preset_moved_node",
+    "preset_problems",
     "primary_slot_per_bone",
     "resolve_play",
     "sampled_deviations",

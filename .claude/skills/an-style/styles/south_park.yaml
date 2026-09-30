@@ -11,6 +11,7 @@ cost_note: rigid shape characters, a locked camera and flat sets; `an character 
 live:
   meta:                      # the ```yaml meta``` block
     fps: 24                  # 24p source
+    default_easing: linear          # short snaps, never an overshoot; every unnamed tween takes it
     step_hz: 12              # on twos at 24 fps; body tweens hold every other frame
     style_pack: south_park
   style_pack:                # save as assets/styles/south_park.json; reaches environment presets and procedural rigs only

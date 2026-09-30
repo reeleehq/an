@@ -99,6 +99,16 @@ def test_easings_exist(spec):
             apply_easing(e, 0.5)  # a 4-point cubic-Bezier the evaluator accepts
 
 
+def test_the_default_easing_is_live_and_is_the_style_s_house_curve(spec):
+    """``meta.default_easing`` (an#166) is a real `Meta` key the compiler reads,
+    so every spec sets it — to the FIRST of ``live.easing``, the style's house
+    curve; the rest of that list are the curves a move may name instead."""
+    meta = Meta(**spec["live"]["meta"])
+    assert meta.default_easing is not None
+    assert meta.default_easing == spec["live"]["easing"][0]
+    apply_easing(meta.default_easing, 0.5)
+
+
 def test_ranges_and_characters(spec):
     live = spec["live"]
     lo, hi = live["tween_duration_s"]

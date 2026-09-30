@@ -43,11 +43,16 @@ placement — but an entity's ``x`` is laid out across the shot (``-110`` and
 wants ``rest=rest_pose(shot, "charlie")``, which reads the value off the
 compiler's own scene builder rather than restating its layout.
 
-**scene.md.** A preset is a composition tree, and ``scene.md`` round-trips
-only leaves with a ``start``. :func:`as_leaves` converts a preset into exactly
-those, for a scene that must survive a ``scene.md`` edit; a ``play`` of a
-preset NAME from ``scene.md`` is not wired (the ``play`` resolver reads a
-character descriptor's own animations only).
+**scene.md: play a preset by name** (an#166). ``{kind: play, target:
+charlie, animation: hop, args: {height: 30}, start: 1.0}`` expands to exactly
+this module's tweens at compile, with the rest pose read off the built scene —
+no ``rest=`` — and ``args`` as the preset's keyword arguments. A character
+descriptor animation of the same name WINS; ``an validate`` and the compiler
+decide both through :func:`an.characters.play.play_problems`. ``duration``
+stretches the move and ``speed`` divides it; ``loop`` is refused. Like every
+``play`` without a ``duration``, it is zero-width inside a ``sequence``.
+:func:`as_leaves` remains for a preset composed in Python and written into
+``scene.md`` as plain tweens (a composition tree does not round-trip).
 """
 
 from __future__ import annotations
@@ -510,8 +515,8 @@ def waddle(
     return parallel(*moves)
 
 
-#: Every preset by name — the one list the skill, the demo and a future
-#: ``play`` fallback read.
+#: Every preset by name — the one list the skill, the demo and the ``play``
+#: fallback (:func:`an.characters.play.play_source`, an#166) read.
 PRESETS: dict[str, Callable[..., Action]] = {
     f.__name__: f
     for f in (
@@ -552,6 +557,25 @@ def rest_pose(
     >>> rest_pose(two, "a/head")["y"]
     -55.0
     """
+    poses = stage_poses(shot, mall=mall)
+    if target not in poses:
+        raise KeyError(f"no node {target!r} in the built scene; built: {sorted(poses)}")
+    return poses[target]
+
+
+def stage_poses(
+    shot: Shot, *, mall: Mapping[str, Mapping] | None = None
+) -> dict[str, dict[str, float]]:
+    """``{node path: rest pose}`` for every node the compiler builds for
+    ``shot``'s stage — what :func:`rest_pose` reads one entry of, and what
+    ``an validate`` checks a preset ``play``'s node against (an#166).
+
+    >>> from an.ir.schema import AssetRef
+    >>> one = Shot(id="s", entities=[AssetRef(kind="character", id="c", store="characters", ref="c")])
+    >>> poses = stage_poses(one)
+    >>> "c/right_arm" in poses, poses["c/head"]["y"]
+    (True, -55.0)
+    """
     from an.adapters.cutout.compile import compile_shot
 
     stage = shot.model_copy(
@@ -561,12 +585,12 @@ def rest_pose(
         # The stand-in-rig warning is the real render's to give, not this read's.
         warnings.simplefilter("ignore")
         doc = compile_shot(stage, mall)
-    found: dict[str, Any] = {}
+    found: dict[str, dict[str, float]] = {}
 
     def walk(node: Any, prefix: str) -> None:
         path = f"{prefix}/{node.name}" if prefix else node.name
         if prefix or node.name != "root":
-            found[path] = node
+            found[path] = {p: float(getattr(node.transform, p)) for p in POSE_PROPERTIES}
             child_prefix = path
         else:
             child_prefix = ""  # the synthetic root is not addressable
@@ -574,10 +598,7 @@ def rest_pose(
             walk(child, child_prefix)
 
     walk(doc.scene, "")
-    if target not in found:
-        raise KeyError(f"no node {target!r} in the built scene; built: {sorted(found)}")
-    transform = found[target].transform
-    return {p: float(getattr(transform, p)) for p in POSE_PROPERTIES}
+    return found
 
 
 def as_leaves(action: Action, *, start: Seconds = 0.0) -> list[Action]:
@@ -619,6 +640,7 @@ __all__ = [
     "pop_in",
     "rest_pose",
     "shake",
+    "stage_poses",
     "slide_in",
     "slide_out",
     "squash_stretch",

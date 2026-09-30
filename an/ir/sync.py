@@ -328,6 +328,18 @@ def _extract_entities_block(text: str) -> list[AssetRef]:
     return out
 
 
+def _play_args(raw: Any, *, index: int) -> dict[str, Any] | None:
+    """A ``play``'s ``args:`` — a mapping of motion-preset parameters, or absent."""
+    if raw is None:
+        return None
+    if not isinstance(raw, dict):
+        raise SceneMarkdownError(
+            f"actions[{index}].args must be a mapping of motion-preset "
+            f"parameters (e.g. `args: {{height: 30}}`); got {raw!r}"
+        )
+    return {str(k): v for k, v in raw.items()}
+
+
 def _extract_actions_block(text: str) -> list:
     """Parse a ```yaml actions block: a list of leaf-action dicts.
 
@@ -336,9 +348,12 @@ def _extract_actions_block(text: str) -> list:
       - ``{kind: set,   target, property, value, [at]}`` — `at`, never
         `start`: a `set` is instantaneous, and `start` on one RAISES rather
         than being silently dropped as it was before an#108.
-      - ``{kind: play,  target, animation, [duration], [speed], [loop], [start]}``
+      - ``{kind: play,  target, animation, [duration], [speed], [loop], [args], [start]}``
         — resolved at compile against the target entity's descriptor
-        ``animations`` (an#7). ``loop`` omitted means the animation's own.
+        ``animations`` (an#7), falling back to the motion presets of
+        ``an.motion.PRESETS`` for a name the descriptor does not declare, with
+        ``args`` as the preset's parameters (an#166). ``loop`` omitted means
+        the animation's own.
 
     A leaf action with a ``start`` key is wrapped in ``sequence(delay(start),
     action)`` so flatten yields the correct absolute time. ``set`` uses ``at``
@@ -366,14 +381,16 @@ def _extract_actions_block(text: str) -> list:
             to = item["to"]
             duration = float(item["duration"])
             from_ = item.get("from_") if "from_" in item else item.get("from")
-            easing = item.get("easing", "ease_in_out")
+            # An `easing:` key the author did not write stays UNSET, so the
+            # scene's `default_easing` reaches it (an#166); `easing: null` is
+            # an explicit linear ramp, so presence — not truthiness — decides.
             action = _compose.tween(
                 target,
                 property_,
                 to=to,
                 duration=duration,
                 from_=from_,
-                easing=easing,
+                easing=item["easing"] if "easing" in item else _compose.INHERIT,
             )
         elif kind == "set":
             if "start" in item:
@@ -416,6 +433,7 @@ def _extract_actions_block(text: str) -> list:
                 ),
                 speed=float(item.get("speed", 1.0)),
                 loop=(bool(item["loop"]) if item.get("loop") is not None else None),
+                args=_play_args(item.get("args"), index=i),
             )
         elif kind == "expression":
             # `{kind: expression, target, [preset], [axes], [intensity],
@@ -506,6 +524,11 @@ def ir_to_markdown(scene: SceneIR) -> str:
     # thing that catches it (an#112).
     if scene.meta.style_pack:
         meta_dict["style_pack"] = scene.meta.style_pack
+    if scene.meta.default_easing is not None:  # an#166, same rule
+        easing = scene.meta.default_easing
+        meta_dict["default_easing"] = (
+            list(easing) if isinstance(easing, tuple) else easing
+        )
     parts.append("```yaml meta")
     parts.append(yaml.safe_dump(meta_dict, sort_keys=False).rstrip())
     parts.append("```\n")
@@ -592,8 +615,15 @@ def _actions_to_yaml_list(actions: list) -> list[dict]:
             }
             if leaf.from_value is not None:
                 entry["from"] = leaf.from_value
-            if leaf.easing not in (None, "ease_in_out"):
-                entry["easing"] = leaf.easing
+            # Written exactly when the author set it — `ease_in_out` included,
+            # because under a scene `default_easing` an explicit ease_in_out
+            # and an unset easing draw different curves (an#166).
+            if "easing" in leaf.model_fields_set:
+                entry["easing"] = (
+                    list(leaf.easing)
+                    if isinstance(leaf.easing, tuple)
+                    else leaf.easing
+                )
             if start is not None:
                 entry["start"] = start
             out.append(entry)
@@ -619,6 +649,8 @@ def _actions_to_yaml_list(actions: list) -> list[dict]:
                 entry["speed"] = leaf.speed
             if leaf.loop is not None:
                 entry["loop"] = bool(leaf.loop)
+            if leaf.args is not None:
+                entry["args"] = dict(leaf.args)
             if start is not None:
                 entry["start"] = start
             out.append(entry)

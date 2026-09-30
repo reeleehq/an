@@ -91,6 +91,12 @@ class RenderContext:
     #: per shot: a pack is art direction for a project, and a scene whose shots
     #: disagreed about it would be two scenes.
     style_pack: "StylePack | None" = None
+    #: The scene's ``meta.default_easing`` (an#166): the curve of every
+    #: authored tween that names none. ``None`` = the built-in
+    #: ``"ease_in_out"``, and a compiled document byte-identical to before the
+    #: field existed; set, it changes keyframes, so the contract hash moves
+    #: with it — as it should.
+    default_easing: Any = None
     #: Per output frame, the scene instants to render and average into it —
     #: ``None`` is one instant at ``i / fps``, the path every render took before
     #: this field existed, byte for byte. Several instants per frame are an open
