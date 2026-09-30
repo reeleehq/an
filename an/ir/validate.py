@@ -32,6 +32,9 @@ from an.characters.play import (
     preset_moved_node,
     preset_play_span,
     resolve_turns,
+    slot_node_path,
+    swap_art_missing,
+    swap_slots,
 )
 from an.audio.effects import VoiceEffectError, voice_effects
 from an.audio.voices import speaker_voice_ref
@@ -628,6 +631,20 @@ def _check_swap_references(
             )
             continue
         keys = declared.get(prop) or {}
+        if entity.kind == "character" and "/" not in target:
+            # A swap on the CHARACTER ITSELF (an#197) is fanned out by the
+            # compiler to every slot the set projects onto — so it is checked
+            # per slot, through the resolvers the compiler's fan-out and
+            # `play: turn` share (an#201), not by the per-node rule below.
+            _check_whole_character_swap(
+                action, desc, prop, keys, entity_id,
+                where=f"{path}/actions/{k}",
+                report=report,
+                art_exists=art_exists_for(
+                    stores.get(RIG_STORES[entity.kind][0]), entity.ref
+                ),
+            )
+            continue
         # …and the ART has to be there. The compiler registers only the
         # attachments whose files resolve and then refuses a key whose art is
         # missing, so a key that is DECLARED but undrawable passed validate and
@@ -669,6 +686,77 @@ def _check_swap_references(
                     f"{prop!r} set (it has: {sorted(keys)}) — compiling "
                     "this shot raises.",
                 )
+
+
+def _check_whole_character_swap(
+    action,
+    desc: Mapping[str, Any],
+    prop: str,
+    keys: Mapping[str, str],
+    entity_id: str,
+    *,
+    where: str,
+    report: "ValidationReport",
+    art_exists,
+) -> None:
+    """A swap-set action on a character's ROOT, judged the way compile judges
+    it (an#201). A ``set`` lands on every slot the set projects onto
+    (:func:`~an.characters.play.swap_slots`), so each key's art must be there
+    on EVERY one of them (:func:`~an.characters.play.swap_art_missing`) —
+    "some slot has it" passed a key ``--strict-assets`` then refused. A
+    ``tween`` is not fanned out: compile names the nodes that carry the set,
+    and so does this.
+    """
+    try:
+        cdesc = CharacterDescriptor.model_validate(desc)
+    except ValidationError:
+        return  # reported where the descriptor is loaded
+    nodes = []
+    for slot in swap_slots(cdesc, prop):
+        try:
+            nodes.append(f"{entity_id}/{slot_node_path(cdesc, slot)}")
+        except KeyError:
+            continue  # `an character validate` names the slot
+    if getattr(action, "kind", None) == "tween":
+        report.add(
+            "error",
+            where,
+            f"a `tween` of {prop!r} on the whole character {entity_id!r}: the "
+            f"{prop!r} set resolves on {nodes}, not on that node — compiling "
+            "this shot raises. A whole-character swap is a `set` (it lands on "
+            "all of them at one instant); a `tween` targets one of those nodes.",
+        )
+        return
+    values = [
+        v
+        for v in (
+            getattr(action, "value", None),
+            getattr(action, "from_value", None),
+            getattr(action, "to_value", None),
+        )
+        if v is not None
+    ]
+    for v in values:
+        if not isinstance(v, str) or v not in keys:
+            report.add(
+                "error",
+                where,
+                f"{v!r} is not a declared key of {entity_id!r}'s {prop!r} set "
+                f"(it has: {sorted(keys)}) — compiling this shot raises.",
+            )
+            continue
+        if art_exists is None:
+            continue  # a store with no filesystem root assumes presence
+        missing = swap_art_missing(cdesc, prop, v, art_exists)
+        if missing:
+            report.add(
+                "error",
+                where,
+                f"setting {entity_id!r}'s {prop!r} to {v!r} swaps every slot "
+                f"that carries it ({nodes}), but its art is not on disk for "
+                f"all of them: {missing} — the render draws those slots "
+                "unswapped, and `--strict-assets` refuses the shot.",
+            )
 
 
 def _turn_resolution(

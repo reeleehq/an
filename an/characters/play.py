@@ -440,18 +440,67 @@ def preset_swap_problems(
                 f"(keys: {sorted(desc.asset_sets[leaf.property])})"
             )
         elif art_exists is not None:
-            name = desc.asset_sets[leaf.property][leaf.value]
-            skin = desc.skins.get("default") or next(iter(desc.skins.values()), None)
-            missing = sorted(
-                att.path
-                for atts in (skin.slots.values() if skin is not None else ())
-                if name in atts
-                for att in (atts[name],)
-                if not art_exists(att.path)
-            )
+            missing = swap_art_missing(desc, leaf.property, leaf.value, art_exists)
             if missing:
                 problems.append(f"{what}, but its art is not on disk: {missing}")
     return problems
+
+
+def swap_slots(desc: CharacterDescriptor, set_name: str) -> list[str]:
+    """The slots a WHOLE-CHARACTER swap of ``set_name`` lands on: every slot
+    whose skin carries an attachment some key of the set names (an#197) — the
+    compiler fans an entity-level ``set`` out to exactly these nodes.
+
+    >>> from an.characters.schema import Skin
+    >>> d = CharacterDescriptor(
+    ...     name="m", asset_sets={"view": {"front": "a", "side": "b"}},
+    ...     skins={"default": Skin(slots={"head": {"a": {"path": "h.svg"}},
+    ...                                   "torso": {"b": {"path": "t.svg"}}})})
+    >>> swap_slots(d, "view")
+    ['head', 'torso']
+    """
+    names = set((desc.asset_sets.get(set_name) or {}).values())
+    unbuilt = suppressed_slots(desc)
+    return sorted(
+        slot
+        for slot, atts in active_skin(desc).slots.items()
+        if names & set(atts) and slot not in unbuilt
+    )
+
+
+def swap_art_missing(
+    desc: CharacterDescriptor,
+    set_name: str,
+    key: str,
+    art_exists: Callable[[str], bool],
+) -> list[str]:
+    """The art ``key`` of ``set_name`` is missing, on ANY slot carrying it.
+
+    A whole-character swap lands on every slot the set projects onto
+    (:func:`swap_slots`), and the compiler drops a slot whose art for the key
+    did not resolve — so ``--strict-assets`` refuses the shot when one slot
+    lacks it, even though another slot has it (a slot the rig never builds is
+    skipped, as the compiler skips it). "Some slot has the art" is the
+    wrong question for an entity-level swap; this is the right one, shared by
+    ``an validate`` and :func:`preset_swap_problems` (an#201).
+
+    >>> from an.characters.schema import Skin
+    >>> d = CharacterDescriptor(
+    ...     name="m", asset_sets={"view": {"side": "s"}},
+    ...     skins={"default": Skin(slots={"head": {"s": {"path": "hs.svg"}},
+    ...                                   "torso": {"s": {"path": "ts.svg"}}})})
+    >>> swap_art_missing(d, "view", "side", lambda p: p != "hs.svg")
+    ['hs.svg']
+    """
+    name = (desc.asset_sets.get(set_name) or {}).get(key)
+    if name is None:
+        return []
+    unbuilt = suppressed_slots(desc)
+    return sorted(
+        atts[name].path
+        for slot, atts in active_skin(desc).slots.items()
+        if name in atts and slot not in unbuilt and not art_exists(atts[name].path)
+    )
 
 
 def _easing_problems(animation: str, tree) -> list[str]:
