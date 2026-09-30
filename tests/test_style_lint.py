@@ -279,3 +279,21 @@ def test_the_verifier_is_still_importable_from_the_package():
     import an.verify
 
     assert an.verify.StyleLintVerifier is StyleLintVerifier
+
+
+def test_an_unreadable_shot_list_is_a_failure_not_a_traceback(tmp_path):
+    """A corrupt scene.json made the CLI exit 1 ("a target was missed")."""
+    (tmp_path / "ir").mkdir()
+    (tmp_path / "ir" / "scene.json").write_text("{bad", encoding="utf-8")
+    result = style_lint(tmp_path / "missing.mp4", {"cuts_per_min": [1, 2]}, scene=tmp_path)
+    assert result.metrics is None
+    assert any(f.severity == FAILURE_SEVERITY for f in result.report.findings)
+
+
+@pytest.mark.ffmpeg
+def test_a_shot_list_that_is_not_this_video_is_flagged(tmp_path):
+    frames = _moving(48, every=2)
+    frames = np.stack([np.kron(f, np.ones((10, 10, 1), np.uint8)) for f in frames])
+    mp4 = _encode(frames, 24, tmp_path / "v.mp4")
+    result = style_lint(mp4, {"cuts_per_min": [0, 100]}, shot_durations=[1.0, 3.0])
+    assert any("do not describe the same film" in f.description for f in result.report.findings)

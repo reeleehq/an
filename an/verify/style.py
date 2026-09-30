@@ -128,6 +128,9 @@ CUT_HISTOGRAM_L1: float = 0.6
 CUT_MEAN_DIFF: float = 8.0
 CUT_DEDUPE_FRAMES: int = 5
 HISTOGRAM_BITS_DROPPED: int = 5  # 8 bins per channel over 0..255
+#: Frames a shot list may disagree with the decoded video by before the lint
+#: says the two do not describe the same film (rounding per shot, a trailing frame).
+SHOT_LIST_FRAME_SLACK: int = 2
 #: Gaps between changes longer than this are holds, not cadence.
 MAX_CADENCE_INTERVAL: int = 12
 #: Palette statistics use every Nth frame.
@@ -834,14 +837,27 @@ def style_lint(
     # Validate the spec before touching the video, so a bad spec fails loudly.
     _validate_targets(targets)
 
-    shot_ids: list[str] | None = None
-    if scene is not None and shot_durations is None:
-        shots = film_shots(_load_scene(scene))
-        shot_ids = [sid for sid, _ in shots]
-        shot_durations = [d for _, d in shots]
-
     report = VerificationReport()
     label = f"style {style!r}" if style else "style targets"
+
+    shot_ids: list[str] | None = None
+    if scene is not None and shot_durations is None:
+        # A scene that cannot be read (corrupt JSON, a transition the assembler
+        # refuses) is a lint that could not run — never a traceback that exits
+        # like a missed target.
+        try:
+            shots = film_shots(_load_scene(scene))
+        except (ValueError, RuntimeError) as e:
+            report.add(
+                FAILURE_SEVERITY,
+                "<style>",
+                f"style lint could not read the shot list of {scene}: {e}",
+                suggested_fix="check the project's ir/scene.json (`an validate`), "
+                "or lint without --project to detect cuts from pixels",
+            )
+            return StyleLintResult(None, report)
+        shot_ids = [sid for sid, _ in shots]
+        shot_durations = [d for _, d in shots]
     try:
         mp4 = Path(mp4)
         if not mp4.exists():
@@ -860,6 +876,19 @@ def style_lint(
             suggested_fix="check the render produced a readable mp4 and ffmpeg is installed",
         )
         return StyleLintResult(None, report)
+
+    if shot_durations:
+        expected = sum(shot_durations) * fps
+        if abs(expected - len(frames)) > SHOT_LIST_FRAME_SLACK:
+            report.add(
+                "warning",
+                "<style>/cuts_per_min",
+                f"the shot list totals {sum(shot_durations):.3f} s but the video is "
+                f"{len(frames) / fps:.3f} s, so they do not describe the same film "
+                "(a scene edited since the render?); the cut statistics and the "
+                "per-shot table are placed by the shot list and may be wrong",
+                suggested_fix="re-render, or lint against the scene the video was rendered from",
+            )
 
     measured = ", ".join(f"{k}={getattr(metrics, k)}" for k in METRICS)
     report.add(
