@@ -443,7 +443,7 @@ def test_validate_reports_unreadable_boxed_art_instead_of_crashing(tmp_path):
     doc = _character(tmp_path / "chars", views=False)
     torso = doc["skins"]["default"]["slots"]["torso"]["torso"]
     torso.update(path="parts/torso.svg", width=80.0, height=40.0)
-    (tmp_path / "chars" / "rae" / "parts" / "torso.svg").write_text("<svg not xml")
+    (tmp_path / "chars" / "rae" / "parts" / "torso.svg").write_text("<svg not xml", encoding="utf-8")
     _store(tmp_path, doc)
     report = validate_character(tmp_path / "chars" / "rae")
     assert any("torso.svg" in f.ir_path for f in report.findings)
