@@ -344,7 +344,9 @@ def close_after_speech(
     cues = _cues(keys)
     if speech_end is None:
         return cues
-    shapes = [c for c in cues if c.code != rest and c.time < _last_rest_time(cues, rest)]
+    shapes = [
+        c for c in cues if c.code != rest and c.time < _last_rest_time(cues, rest)
+    ]
     closing = max(
         float(speech_end), (shapes[-1].time + _AFTER_SHAPE_S) if shapes else -math.inf
     )

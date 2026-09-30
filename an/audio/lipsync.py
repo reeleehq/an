@@ -131,7 +131,9 @@ def word_timings_to_visemes(
         w_start = clamp(w_start)
         w_end = clamp(w_end)
         if w_start - prev_end > min_gap_for_rest:
-            out.append(Viseme(time=clamp(prev_end + _REST_AFTER_WORD_S), code=rest_viseme))
+            out.append(
+                Viseme(time=clamp(prev_end + _REST_AFTER_WORD_S), code=rest_viseme)
+            )
 
         codes: list[str] = []
         previous: str | None = None
