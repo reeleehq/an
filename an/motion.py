@@ -48,8 +48,11 @@ compiler's own scene builder rather than restating its layout.
 
 **scene.md: play a preset by name** (an#166). ``{kind: play, target:
 charlie, animation: hop, args: {height: 30}, start: 1.0}`` expands to exactly
-this module's tweens at compile, with the rest pose read off the built scene —
-no ``rest=`` — and ``args`` as the preset's keyword arguments. A character
+this module's tweens at compile, with ``rest`` the pose the node HAS at the
+play's start — the built scene's (stage placement, layout) overridden by the
+sets and tweens before it (an#212) — so no ``rest=``, and a preset after a move
+starts where the move left it (an entrance in :data:`HOME_PRESETS` lands on the
+built pose instead); ``args`` are the preset's keyword arguments. A character
 descriptor animation of the same name WINS; ``an validate`` and the compiler
 decide both through :func:`an.characters.play.play_problems`. ``duration``
 stretches the move and ``speed`` divides it; ``loop`` is refused. In a
@@ -662,6 +665,14 @@ PRESETS: dict[str, Callable[..., Action]] = {
 }
 
 
+#: Presets whose ``rest`` is the node's HOME — where an entrance LANDS — rather
+#: than where the node is when the move starts. Played by name these read the
+#: BUILT pose (``slide_out`` then ``slide_in`` comes back home; ``pop_in`` after a
+#: ``set`` of the scales to 0 grows to full size); every other preset moves
+#: relative to where the node IS at its start (an#212).
+HOME_PRESETS: frozenset[str] = frozenset({"pop_in", "slide_in"})
+
+
 # -----------------------------------------------------------------------------
 # Rest from the built scene, and scene.md-friendly leaves
 # -----------------------------------------------------------------------------
@@ -773,6 +784,7 @@ def as_leaves(action: Action, *, start: Seconds = 0.0) -> list[Action]:
 
 
 __all__ = [
+    "HOME_PRESETS",
     "IDENTITY_POSE",
     "face_toward",
     "OVERSHOOT",

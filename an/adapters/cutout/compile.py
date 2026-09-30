@@ -535,8 +535,9 @@ TINT_COMPONENTS: tuple[str, str, str] = ("tint_r", "tint_g", "tint_b")
 def _property_rest_values() -> dict[str, float]:
     """Rest ("identity") value per animatable property, derived from the schema.
 
-    A tween that declares no ``from_value`` starts from its property's rest
-    value. This is not cosmetic: offsets and rotations rest at 0.0, but the
+    A tween that declares no ``from_value`` starts from the value its property
+    has at that moment (an#212, :func:`_value_at`) — and with nothing placed or
+    animated before it, that is this rest value. This is not cosmetic: offsets and rotations rest at 0.0, but the
     *multiplicative* properties rest at 1.0, and defaulting all of them to 0.0
     silently breaks the two most obvious uses of a tween — a fade-out (``alpha``
     starting at 0 is already invisible, so the fade never happens and the
@@ -617,7 +618,8 @@ class CutoutCompileWarning(UserWarning):
 
 
 def _rest_value_for(prop: str, target: str) -> float:
-    """The implicit start of a tween on ``prop``, or refuse to invent one.
+    """The identity of ``prop`` — the implicit start of a tween on a node
+    nothing has placed or moved (:func:`_built_value`) — or refuse to invent one.
 
     A property with no numeric identity — a viseme code, a colour — has no
     meaningful "start from rest". Substituting 0.0 does not mean "unchanged", it
@@ -2942,14 +2944,22 @@ def _compile_actions(
     )
     for action in actions:
         flat_list.extend(flatten(action, play_extent=extent))
-    flat_list = _expand_preset_plays(flat_list, vocab=vocab)
+    # BEFORE the swap dispatch: `tint` is not in the transform vocabulary, so a
+    # leaf still spelling it would be read as an asset-set name (an#62). And
+    # before the timeline pass below, so a from-less tint tween starts from
+    # the tint in force per channel (an#212).
+    flat_list = _expand_tint_actions(flat_list)
+    flat_list = _expand_preset_plays(
+        flat_list,
+        vocab=vocab,
+        fps=fps,
+        step_hz=step_hz,
+        default_easing=default_easing,
+    )
 
     # `expression` leaves (an#98) are the face solver's input, not clips of
     # their own: `_add_face_clips` sums them per (node, property).
     flat_list = [f for f in flat_list if not isinstance(f.action, ExpressionAction)]
-    # BEFORE the swap dispatch: `tint` is not in the transform vocabulary, so a
-    # leaf still spelling it would be read as an asset-set name (an#62).
-    flat_list = _expand_tint_actions(flat_list)
     # AFTER the tint expansion, like the swap dispatch: a `tint` set on a
     # character root is a colour, not a whole-character swap (an#197 review).
     flat_list = _fan_out_entity_swaps(
@@ -3020,15 +3030,7 @@ def _compile_actions(
         # the tween clips in the track mask the tween for the whole shot —
         # measured, and the most common authoring shape ("set the start
         # pose, then animate") was a no-op tween (an#87 review).
-        runs: list[list[FlatAction]] = []
-        for flat in group:
-            if runs and not any(
-                runs[-1][0].start <= b <= flat.start for b in boundaries
-            ):
-                runs[-1].append(flat)
-            else:
-                runs.append([flat])
-        for run in runs:
+        for run in _set_runs(group, boundaries):
             first = run[0].start
             end = next((b for b in boundaries if b >= first), shot_duration)
             anim_id = f"__set__{ordinal}"
@@ -3080,6 +3082,24 @@ def _compile_actions(
         for root, clips in placed_by_track.items()
     ]
     return animations, tracks
+
+
+def _set_runs(
+    sets: list[FlatAction], tween_starts: list[float]
+) -> list[list[FlatAction]]:
+    """``sets`` (sorted by start) cut into runs that each compile to ONE hold
+    clip: a set joins the run before it unless a tween on the same (target,
+    property) starts in between — see :func:`_compile_actions`. Shared with
+    :func:`_value_at`, so a from-less tween reads the holds the runtime plays."""
+    runs: list[list[FlatAction]] = []
+    for flat in sets:
+        if runs and not any(
+            runs[-1][0].start <= b <= flat.start for b in tween_starts
+        ):
+            runs[-1].append(flat)
+        else:
+            runs.append([flat])
+    return runs
 
 
 @dataclass(frozen=True)
@@ -3571,27 +3591,45 @@ def _check_default_easing(spec: Any) -> None:
 
 
 def _expand_preset_plays(
-    flat_list: list[FlatAction], *, vocab: _SwapVocabulary | None
+    flat_list: list[FlatAction],
+    *,
+    vocab: _SwapVocabulary | None,
+    fps: int = 30,
+    step_hz: float | None = None,
+    default_easing: Any = None,
 ) -> list[FlatAction]:
     """Replace each ``play`` of a motion preset with the flat tweens and sets
-    it expands to (an#166); descriptor plays pass through to
-    :func:`_resolve_play`.
+    it expands to (an#166), and give every from-less tween its start (an#212);
+    descriptor plays pass through to :func:`_resolve_play`.
 
     Every ``play`` — both sources — is checked here by
     :func:`an.characters.play.play_problems`, the verdict ``an validate``
     reports, so the two cannot disagree about a name, an argument or a
-    source. The preset's rest pose is the moved node's BUILT transform
-    (``vocab.node_transforms``), so a move on ``x`` in a two-character shot
-    stays centred on the laid-out ``-110`` without a ``rest=``; with no
-    vocabulary (a unit test compiling bare actions) it is the identity pose.
+    source.
+
+    **Both read the pose the timeline has AT their start** (an#212): the
+    moved node's BUILT transform (``vocab.node_transforms`` — the stage
+    placement included; the identity with no vocabulary), overridden by the
+    authored ``set``s and tweens before it on the same (target, property), as
+    the runtime evaluates them (:func:`_value_at`). So a ``tween`` with no
+    ``from`` continues from where the entity stands — its ``stage`` ``at``, the
+    end of the tween before it, a ``set`` at the same instant — instead of
+    jumping to the property's identity value, and a preset played after a move
+    (a ``hop`` after a walk) starts where the move left it. Leaves are
+    resolved in time order (authoring order at one instant), each seeing the
+    ones before it resolved; the output keeps authoring order, which is what
+    the tracks' later-wins reads. Descriptor ``play`` clips and the compiled
+    face, blink and lip-sync channels are not part of that pose: they write
+    their own nodes, which authored motion does not tween.
 
     A ``turn`` that does not say which way it faced opens from the side the
     timeline before it left the entity facing (:func:`an.characters.play.
     resolve_turns`, an#203) — the resolver ``an validate`` checks with.
     """
-    from an.motion import IDENTITY_POSE, POSE_PROPERTIES
+    from an.adapters.cutout.timeline import write_group
+    from an.motion import HOME_PRESETS, IDENTITY_POSE, POSE_PROPERTIES
 
-    def rest_of(path: str):
+    def built_rest(path: str) -> dict[str, float] | None:
         if vocab is None:
             return dict(IDENTITY_POSE)
         transform = vocab.node_transforms.get(path)
@@ -3602,17 +3640,15 @@ def _expand_preset_plays(
     flat_list = resolve_turns(
         flat_list,
         descriptor_of=lambda e: vocab.descriptors.get(e) if vocab is not None else None,
-        rest_of=rest_of,
+        rest_of=built_rest,
     ).flats
-    out: list[FlatAction] = []
-    for flat in flat_list:
+    presets: set[int] = set()
+    for i, flat in enumerate(flat_list):
         action = flat.action
         if not isinstance(action, PlayAction):
-            out.append(flat)
             continue
         entity_id = _track_root_of(action.target)
         desc = vocab.descriptors.get(entity_id) if vocab is not None else None
-        where = f"play of {action.animation!r} on {action.target!r}"
         problems = play_problems(
             desc,
             action.animation,
@@ -3623,22 +3659,199 @@ def _expand_preset_plays(
             loop=action.loop,
         )
         if problems:
-            raise CutoutCompileError(f"{where}: " + "; ".join(problems))
-        if play_source(desc, action.animation) != PRESET_SOURCE:
-            out.append(flat)
-            continue
-        try:
-            out.extend(expand_preset_play(action, start=flat.start, rest_of=rest_of))
-        except PlayResolutionError as e:
-            built = sorted(
-                p
-                for p in (vocab.paths if vocab else ())
-                if p.split("/")[0] == entity_id
-            )
             raise CutoutCompileError(
-                f"{where}: " + "; ".join(e.problems) + f" (built: {built})"
-            ) from e
-    return out
+                f"play of {action.animation!r} on {action.target!r}: "
+                + "; ".join(problems)
+            )
+        if play_source(desc, action.animation) == PRESET_SOURCE:
+            presets.add(i)
+
+    history: dict[tuple[str, str], list[tuple[tuple[int, int], FlatAction]]] = {}
+    placed: dict[int, list[FlatAction]] = {}
+
+    def value_at(target: str, prop: str, t: float, base: float) -> float:
+        return _value_at(
+            history.get((target, write_group(prop)), []),
+            prop,
+            t,
+            base,
+            vocab=vocab,
+            fps=fps,
+            step_hz=step_hz,
+            default_easing=default_easing,
+        )
+
+    def pose_at(path: str, t: float) -> dict[str, float] | None:
+        rest = built_rest(path)
+        if rest is None:
+            return None
+        return {p: value_at(path, p, t, v) for p, v in rest.items()}
+
+    for i in sorted(range(len(flat_list)), key=lambda k: (flat_list[k].start, k)):
+        flat = flat_list[i]
+        action = flat.action
+        if i in presets:
+            try:
+                leaves = expand_preset_play(
+                    action,
+                    start=flat.start,
+                    rest_of=(
+                        built_rest
+                        if action.animation in HOME_PRESETS
+                        else lambda path, t=flat.start: pose_at(path, t)
+                    ),
+                )
+            except PlayResolutionError as e:
+                entity_id = _track_root_of(action.target)
+                built = sorted(
+                    p
+                    for p in (vocab.paths if vocab else ())
+                    if p.split("/")[0] == entity_id
+                )
+                raise CutoutCompileError(
+                    f"play of {action.animation!r} on {action.target!r}: "
+                    + "; ".join(e.problems)
+                    + f" (built: {built})"
+                ) from e
+        elif (
+            isinstance(action, TweenAction)
+            and action.from_value is None
+            and action.property in _PROPERTY_REST_VALUES
+        ):
+            base = _built_value(action.target, action.property, vocab=vocab)
+            start_value = value_at(action.target, action.property, flat.start, base)
+            leaves = [
+                dataclasses.replace(
+                    flat, action=action.model_copy(update={"from_value": start_value})
+                )
+            ]
+        else:
+            leaves = [flat]
+        placed[i] = leaves
+        for sub, leaf in enumerate(leaves):
+            if isinstance(leaf.action, (SetAction, TweenAction)):
+                # Keyed by what the property WRITES: `rotation_rad` is `rotation`.
+                key = (leaf.action.target, write_group(leaf.action.property))
+                history.setdefault(key, []).append(((i, sub), leaf))
+    return [leaf for i in range(len(flat_list)) for leaf in placed[i]]
+
+
+def _built_value(target: str, prop: str, *, vocab: _SwapVocabulary | None) -> float:
+    """What ``target``'s ``prop`` shows before anything animates it: its BUILT
+    transform (a ``stage`` placement, a laid-out ``x``), a path's own trim, or
+    the property's identity (:data:`_PROPERTY_REST_VALUES`)."""
+    if vocab is not None:
+        trim = vocab.path_trims.get(target, {}).get(prop)
+        if trim is not None:
+            return float(trim)
+        transform = vocab.node_transforms.get(target)
+        field_name = "rotation" if prop == "rotation_rad" else prop
+        if transform is not None and field_name in TransformJSON.model_fields:
+            return float(getattr(transform, field_name))
+    return _rest_value_for(prop, target)
+
+
+def _value_at(
+    entries: list[tuple[tuple[int, int], FlatAction]],
+    prop: str,
+    t: float,
+    base: float,
+    *,
+    vocab: _SwapVocabulary | None,
+    fps: int,
+    step_hz: float | None,
+    default_easing: Any,
+) -> float:
+    """The value one (target, property) shows at ``t``, from the ``set``s and
+    tweens in ``entries`` that start at or before it — compiled the way
+    :func:`_compile_actions` compiles them (sets as step holds cut by
+    :func:`_set_runs`, placed first; tweens after, in authoring order) and
+    evaluated by the executable spec of the runtime,
+    :func:`~an.adapters.cutout.timeline.evaluate_timeline`, so the answer is
+    the runtime's by construction: an active tween governs, otherwise the
+    latest write holds. ``base`` when nothing has written it yet (an#212).
+
+    ``entries`` are one node's writes of ``prop``'s write group (``rotation``
+    and ``rotation_rad`` are one). Only the writes that can still show at ``t``
+    are compiled — the latest set and whatever did not end before it or before
+    the latest-ending finished tween — so a long chain on one property costs
+    one short evaluation per tween, not the whole history each time.
+    """
+    from an.adapters.cutout.timeline import (
+        PlacedClip,
+        Timeline,
+        Track,
+        clip_from_json,
+        evaluate_timeline,
+        write_group,
+    )
+
+    earlier = [(k, f) for k, f in entries if f.start <= t + 1e-12]
+    if not earlier:
+        return base
+    # Prune what cannot show at t: before the latest set (it holds from there,
+    # or is cut by a tween that is itself kept), and any tween that ended
+    # before the latest-ending one that has ended (a held end loses to a later
+    # end). Ties are kept, so later-wins still decides between them.
+    last_set = max(
+        (f.start for _, f in earlier if isinstance(f.action, SetAction)),
+        default=-math.inf,
+    )
+    ended = max(
+        (f.end for _, f in earlier if isinstance(f.action, TweenAction) and f.end < t),
+        default=-math.inf,
+    )
+    cutoff = max(last_set, ended)
+    earlier = [
+        (k, f)
+        for k, f in earlier
+        if (f.start >= last_set if isinstance(f.action, SetAction) else f.end >= cutoff)
+    ]
+    tweens = [f for _, f in sorted(earlier, key=lambda e: e[0]) if isinstance(f.action, TweenAction)]
+    sets = sorted(
+        (f for _, f in earlier if isinstance(f.action, SetAction)), key=lambda f: f.start
+    )
+    boundaries = sorted(f.start for f in tweens)
+    placed: list[PlacedClip] = []
+    target = prop = ""
+    for run in _set_runs(sets, boundaries):
+        first = run[0].start
+        end = next((b for b in boundaries if b >= first), t + 1.0)
+        target, prop = run[0].action.target, run[0].action.property
+        anim = AnimationClipJSON(
+            name="_hold",
+            duration=max(0.001, end - first),
+            channels=[
+                ChannelJSON(
+                    target=target,
+                    property=prop,
+                    keyframes=[
+                        KeyframeJSON(time=f.start - first, value=f.action.value, easing="step")
+                        for f in run
+                    ],
+                )
+            ],
+        )
+        placed.append(PlacedClip(clip_from_json(anim), start_time=first))
+    for f in tweens:
+        target, prop = f.action.target, f.action.property
+        anim = _build_anim_for(
+            f,
+            "_tween",
+            vocab=vocab,
+            fps=fps,
+            step_hz=step_hz,
+            default_easing=default_easing,
+        )
+        placed.append(PlacedClip(clip_from_json(anim), start_time=f.start))
+    pose = evaluate_timeline(Timeline(t + 1.0, [Track("", placed)]), t)
+    group = write_group(prop)
+    # One key of the group survives the evaluation — the most recently written.
+    shown = [v for (n, p), v in pose.items() if n == target and write_group(p) == group]
+    value = pose.get((target, prop), shown[-1] if shown else None)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return base  # a value the compiler refuses later, where it says why
+    return float(value)
 
 
 def _resolve_play(
