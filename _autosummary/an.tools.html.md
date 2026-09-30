@@ -73,8 +73,10 @@ mutation: evaluate the per-mutation predictions instead of asking whether
 > the second row is worse. One of the mutations the rows declare.
 
 strict: exit nonzero when the answer is bad — a regression without a
-: mutation, an unmet criterion with one, a comparison that answered
-  nothing, or a row that could not be read at all. For CI.
+: mutation, or a direction that reverses on its own metric’s threshold
+  grid (an#140: some cell of it got worse), an unmet criterion with one,
+  a comparison that answered nothing, or a row that could not be read at
+  all. For CI.
 
 raw: print the report as JSON instead of the human digest
 

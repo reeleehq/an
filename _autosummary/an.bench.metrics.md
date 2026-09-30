@@ -40,34 +40,38 @@ video is smoother). Its existing use as a frozen-render detector in
 
 ### Module Attributes
 
-| [`EDGE_FLAT_TOL`](#an.bench.metrics.EDGE_FLAT_TOL)     | Two neighbours within this many code values count as "flat".                                                                        |
-|--------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| [`EDGE_TRIM`](#an.bench.metrics.EDGE_TRIM)         | Trim fraction for `edge_transition_width`'s mean, so one pathological run cannot carry the number.                                  |
-| [`FLAT_DEV_TOL`](#an.bench.metrics.FLAT_DEV_TOL)      | A flat-field pixel more than this far off is "deviated".                                                                            |
-| [`FLICKER_DELTA_TOL`](#an.bench.metrics.FLICKER_DELTA_TOL) | A held pixel that moved by at least this much "flickered".                                                                          |
-| [`SSIM_RADIUS`](#an.bench.metrics.SSIM_RADIUS)       | `ssim_map` window radius; 7x7, matched to feature size rather than the global-moment form.                                          |
-| [`BLEND_TOLERANCE`](#an.bench.metrics.BLEND_TOLERANCE)   | How far off the line between two palette colours a pixel may sit and still be called a blend of them.                               |
-| [`LUMA_709`](#an.bench.metrics.LUMA_709)          | BT.709 luma coefficients, recorded in the ledger so a future change to the reduction is visible rather than folded into the number. |
+| [`EDGE_FLAT_TOL`](#an.bench.metrics.EDGE_FLAT_TOL)      | Two neighbours within this many code values count as "flat".                                                                                                     |
+|---------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`EDGE_TRIM`](#an.bench.metrics.EDGE_TRIM)          | Trim fraction for `edge_transition_width`'s mean, so one pathological run cannot carry the number.                                                               |
+| [`FLAT_DEV_TOL`](#an.bench.metrics.FLAT_DEV_TOL)       | A flat-field pixel more than this far off is "deviated".                                                                                                         |
+| [`FLICKER_DELTA_TOL`](#an.bench.metrics.FLICKER_DELTA_TOL)  | A held pixel that moved by at least this much "flickered".                                                                                                       |
+| [`SSIM_RADIUS`](#an.bench.metrics.SSIM_RADIUS)        | `ssim_map` window radius; 7x7, matched to feature size rather than the global-moment form.                                                                       |
+| [`FLAT_DEV_TOL_SWEEP`](#an.bench.metrics.FLAT_DEV_TOL_SWEEP) | The neighbourhood of each threshold counter's OWN free parameters over which its verdict must agree before `an bench-compare` will call it a direction (an#140). |
+| [`BLEND_TOLERANCE`](#an.bench.metrics.BLEND_TOLERANCE)    | How far off the line between two palette colours a pixel may sit and still be called a blend of them.                                                            |
+| [`LUMA_709`](#an.bench.metrics.LUMA_709)           | BT.709 luma coefficients, recorded in the ledger so a future change to the reduction is visible rather than folded into the number.                              |
 
 ### Functions
 
-| [`classify_off_palette`](#an.bench.metrics.classify_off_palette)(entries, palette)           | Say, for each off-palette colour, whether it is a blend of two declared ones.   |
-|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`edge_masked_distinct_colours`](#an.bench.metrics.edge_masked_distinct_colours)(packed, edge)       | Mean distinct colours per frame, counted ONLY on the edge mask.                 |
-| [`edge_transition_width`](#an.bench.metrics.edge_transition_width)(rgb, \*[, tol, trim])      | Average thickness, in pixels, of the fuzzy band between two flat areas.         |
-| [`encode_flicker_on_held_pixels`](#an.bench.metrics.encode_flicker_on_held_pixels)(src_rgb, ...)      | Fraction of perfectly-held pixels that moved in the delivered video.            |
-| [`encode_ringing_excess`](#an.bench.metrics.encode_ringing_excess)(dec_luma, ...)             | How much more the lossy encode overshoots than a lossless one does.             |
-| [`flat_field_deviation`](#an.bench.metrics.flat_field_deviation)(src_rgb, dec_rgb, flat, \*) | Fraction of flat-field pixels the encoder moved by more than `tol`.             |
-| [`frame_distinct_colours`](#an.bench.metrics.frame_distinct_colours)(packed)                   | Mean number of distinct colours per frame.                                      |
-| [`golden_comparison`](#an.bench.metrics.golden_comparison)(today_rgb, golden_rgb)         | The full-frame identity gate plus its diagnostics.                              |
-| [`luma709`](#an.bench.metrics.luma709)(rgb)                                     | `(H,W,3)` uint8 -> `(H,W)` float in [0,1].                                      |
-| [`luma_u8`](#an.bench.metrics.luma_u8)(rgb)                                     | `(...,3)` uint8 -> `(...)` uint8 luma, on the 0-255 scale a plane uses.         |
-| [`masked_mean_abs`](#an.bench.metrics.masked_mean_abs)(a, b, mask)                      | `|a - b|` averaged over `mask`, with the cast that makes it correct.            |
-| [`off_palette_pixel_fraction`](#an.bench.metrics.off_palette_pixel_fraction)(packed, palette)      | Fraction of the frame whose colour is not one the compiler declared.            |
-| [`off_palette_top_colours`](#an.bench.metrics.off_palette_top_colours)(packed, palette, \*)     | The most frequent off-palette colours, as `[{"hex", "count"}]`.                 |
-| [`overshoot_mean`](#an.bench.metrics.overshoot_mean)(dec_luma, src_luma, ring)         | Mean positive excursion above the source, over the ring band.                   |
-| [`pack_rgb`](#an.bench.metrics.pack_rgb)(rgb)                                    | `(N,H,W,3)` uint8 -> `(N,H,W)` uint32, one integer per colour.                  |
-| [`ssim_map`](#an.bench.metrics.ssim_map)(a, b, \*[, r])                          | Windowed SSIM at stride 1, as a per-pixel map.                                  |
+| [`classify_off_palette`](#an.bench.metrics.classify_off_palette)(entries, palette)             | Say, for each off-palette colour, whether it is a blend of two declared ones.   |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| [`edge_masked_distinct_colours`](#an.bench.metrics.edge_masked_distinct_colours)(packed, edge)         | Mean distinct colours per frame, counted ONLY on the edge mask.                 |
+| [`edge_transition_width`](#an.bench.metrics.edge_transition_width)(rgb, \*[, tol, trim])        | Average thickness, in pixels, of the fuzzy band between two flat areas.         |
+| [`encode_flicker_on_held_pixels`](#an.bench.metrics.encode_flicker_on_held_pixels)(src_rgb, ...)        | Fraction of perfectly-held pixels that moved in the delivered video.            |
+| [`encode_flicker_sweep`](#an.bench.metrics.encode_flicker_sweep)(src_rgb, dec_rgb, \*[, tols]) | `encode_flicker_on_held_pixels`' count at every `tol` of its sweep.             |
+| [`encode_ringing_excess`](#an.bench.metrics.encode_ringing_excess)(dec_luma, ...)               | How much more the lossy encode overshoots than a lossless one does.             |
+| [`flat_field_deviation`](#an.bench.metrics.flat_field_deviation)(src_rgb, dec_rgb, flat, \*)   | Fraction of flat-field pixels the encoder moved by more than `tol`.             |
+| [`flat_field_deviation_sweep`](#an.bench.metrics.flat_field_deviation_sweep)(src_rgb, dec_rgb, ...)  | `flat_field_deviation`'s count at every `(dilate_k, tol)` of its sweep.         |
+| [`frame_distinct_colours`](#an.bench.metrics.frame_distinct_colours)(packed)                     | Mean number of distinct colours per frame.                                      |
+| [`golden_comparison`](#an.bench.metrics.golden_comparison)(today_rgb, golden_rgb)           | The full-frame identity gate plus its diagnostics.                              |
+| [`luma709`](#an.bench.metrics.luma709)(rgb)                                       | `(H,W,3)` uint8 -> `(H,W)` float in [0,1].                                      |
+| [`luma_u8`](#an.bench.metrics.luma_u8)(rgb)                                       | `(...,3)` uint8 -> `(...)` uint8 luma, on the 0-255 scale a plane uses.         |
+| [`masked_mean_abs`](#an.bench.metrics.masked_mean_abs)(a, b, mask)                        | `|a - b|` averaged over `mask`, with the cast that makes it correct.            |
+| [`off_palette_pixel_fraction`](#an.bench.metrics.off_palette_pixel_fraction)(packed, palette)        | Fraction of the frame whose colour is not one the compiler declared.            |
+| [`off_palette_top_colours`](#an.bench.metrics.off_palette_top_colours)(packed, palette, \*)       | The most frequent off-palette colours, as `[{"hex", "count"}]`.                 |
+| [`overshoot_mean`](#an.bench.metrics.overshoot_mean)(dec_luma, src_luma, ring)           | Mean positive excursion above the source, over the ring band.                   |
+| [`pack_rgb`](#an.bench.metrics.pack_rgb)(rgb)                                      | `(N,H,W,3)` uint8 -> `(N,H,W)` uint32, one integer per colour.                  |
+| [`ssim_map`](#an.bench.metrics.ssim_map)(a, b, \*[, r])                            | Windowed SSIM at stride 1, as a per-pixel map.                                  |
+| [`sweep_cell_key`](#an.bench.metrics.sweep_cell_key)(\*\*params)                         | The label of one cell of a parameter sweep, stable across rows.                 |
 
 ### an.bench.metrics.BLEND_TOLERANCE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
 
@@ -88,6 +92,20 @@ cannot carry the number.
 ### an.bench.metrics.FLAT_DEV_TOL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 6*
 
 A flat-field pixel more than this far off is “deviated”.
+
+### an.bench.metrics.FLAT_DEV_TOL_SWEEP *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), ...]* *= (4, 5, 6, 7, 8)*
+
+The neighbourhood of each threshold counter’s OWN free parameters over which
+its verdict must agree before `an bench-compare` will call it a direction
+(an#140). `flat_field_deviation` is `(dev > tol).mean()` over a mask
+eroded by `FLAT_DILATE_K`; both are free, and measured on one machine and
+one x264 build its direction under a 4:2:0 -> 4:4:4 change reversed on three
+of six scenes somewhere on this grid (`graded_field` +84.2% at tol 6,
+-81.6% at tol 8). Every shipped value sits inside its own sweep, so a sweep
+that disagrees is the row saying “somewhere near my own settings, my
+direction reverses”. The grids are the ones the defect was measured on, not
+tuned ones; the flicker grid is one-sided below because tol 0 counts every
+pixel.
 
 ### an.bench.metrics.FLICKER_DELTA_TOL *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
 
@@ -249,6 +267,27 @@ three held pixels does not weigh as much as one with seventy thousand.
 0.25
 ```
 
+### an.bench.metrics.encode_flicker_sweep(src_rgb, dec_rgb, , tols=(1, 2, 3, 4))
+
+`encode_flicker_on_held_pixels`’ count at every `tol` of its sweep.
+
+Same shape and same purpose as [`flat_field_deviation_sweep()`](#an.bench.metrics.flat_field_deviation_sweep): this is
+the panel’s other hard-threshold counter, and measured under the same
+4:2:0 -> 4:4:4 change its direction reverses between tol 2 and tol 3 on
+`single_character` (+25% -> -15%), and under `high_crf` between tol 1
+and tol 2 on `graded_field` (-9% -> +29%). Empty when nothing is held.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
+
+```pycon
+>>> import numpy as np
+>>> s = np.zeros((2, 1, 4, 3), np.uint8)
+>>> d = s.copy(); d[1, 0, 0] = 2
+>>> encode_flicker_sweep(s, d, tols=(2, 3))
+{'tol=2': [1, 4], 'tol=3': [0, 4]}
+```
+
 ### an.bench.metrics.encode_ringing_excess(dec_luma, lossless_luma, src_luma, ring)
 
 How much more the lossy encode overshoots than a lossless one does.
@@ -292,6 +331,34 @@ Returns `(fraction_over_tol, p99_of_the_deviation)`.
 >>> d = s.copy(); d[0, 1, 1] = 20
 >>> flat_field_deviation(s, d, np.ones((1, 3, 3), bool))[0]
 0.1111111111111111
+```
+
+### an.bench.metrics.flat_field_deviation_sweep(src_rgb, dec_rgb, , mask_rgb, tols=(4, 5, 6, 7, 8), ks=(1, 3, 5))
+
+`flat_field_deviation`’s count at every `(dilate_k, tol)` of its sweep.
+
+`{cell_key: [counted, of]}` — integers, so a comparison between two rows
+is exact rather than a comparison of two rounded fractions. The positional
+pair is `flat_field_deviation`’s own (reference, decoded); `mask_rgb`
+— what the flat mask is derived from, the SOURCE frames in `run.py` — is
+keyword-only so the two roles cannot be swapped positionally. A `k`
+whose mask selects nothing is omitted, not recorded as `[0, 0]`.
+
+It is not a new number for the panel. It is what lets `an bench-compare`
+tell a verdict from a threshold accident (an#140): the shipped cell IS the
+metric, and the others say whether anywhere else on the declared grid of
+its own two parameters the direction reverses.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]]
+
+```pycon
+>>> import numpy as np
+>>> s = np.zeros((1, 9, 9, 3), np.uint8)
+>>> d = s.copy(); d[0, 4, 4] = 7
+>>> cells = flat_field_deviation_sweep(s, d, mask_rgb=s, tols=(6, 7), ks=(3,))
+>>> cells
+{'dilate_k=3,tol=6': [1, 81], 'dilate_k=3,tol=7': [0, 81]}
 ```
 
 ### an.bench.metrics.frame_distinct_colours(packed)
@@ -478,4 +545,19 @@ disagreement *grows* with degradation.
 >>> x = np.linspace(0, 1, 64).reshape(8, 8)
 >>> round(float(ssim_map(x, x).min()), 6)
 1.0
+```
+
+### an.bench.metrics.sweep_cell_key(\*\*params)
+
+The label of one cell of a parameter sweep, stable across rows.
+
+Keyword order is irrelevant — the key is sorted — so two rows written by
+code that spells the call differently still match cell for cell.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> sweep_cell_key(tol=6, dilate_k=3)
+'dilate_k=3,tol=6'
 ```

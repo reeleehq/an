@@ -13,6 +13,7 @@ an.bench.metrics
       FLAT_DEV_TOL
       FLICKER_DELTA_TOL
       SSIM_RADIUS
+      FLAT_DEV_TOL_SWEEP
       BLEND_TOLERANCE
       LUMA_709
    
@@ -24,8 +25,10 @@ an.bench.metrics
       edge_masked_distinct_colours
       edge_transition_width
       encode_flicker_on_held_pixels
+      encode_flicker_sweep
       encode_ringing_excess
       flat_field_deviation
+      flat_field_deviation_sweep
       frame_distinct_colours
       golden_comparison
       luma709
@@ -36,4 +39,5 @@ an.bench.metrics
       overshoot_mean
       pack_rgb
       ssim_map
+      sweep_cell_key
    

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=5d5d822f"></script>
+    <script src="../_static/documentation_options.js?v=f9250636"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.capture" href="an.bench.capture.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.100" />
+  <meta name="docsearch:version" content="0.1.101" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -545,6 +545,15 @@ Measured: two consecutive <code class="code docutils literal notranslate"><span 
 <code class="code docutils literal notranslate"><span class="pre">source_pixels_sha256</span></code> — the render is pinned and the encode is pinned, so a
 delta of exactly zero is the normal case and any nonzero delta is a real change.
 An epsilon here would only hide small real movements.</p>
+<p><strong>A direction must survive the metric’s own knobs</strong> (an#140). The two
+hard-threshold counters (<code class="docutils literal notranslate"><span class="pre">flat_field_deviation</span></code>, <code class="docutils literal notranslate"><span class="pre">encode_flicker_on_held_pixels</span></code>)
+carry their count at every cell of a small grid of their own free parameters,
+and a movement whose direction some cells contradict is reported <code class="docutils literal notranslate"><span class="pre">unstable</span></code>
+— neither counted toward a family nor <code class="docutils literal notranslate"><span class="pre">contrary</span></code>. Measured: under 4:2:0 -&gt;
+4:4:4, <code class="docutils literal notranslate"><span class="pre">graded_field</span></code>’s flat-field count read +84.2% at tol 6 and -81.6% at
+tol 8, and the panel had no way to say so. That is not a tolerance band: every
+cell is still compared exactly; what changes is whether the answer is a
+direction at all.</p>
 <p>A fourth, quieter one: <strong>a metric’s own declaration is a comparability key</strong>.
 If <code class="docutils literal notranslate"><span class="pre">family</span></code> or <code class="docutils literal notranslate"><span class="pre">optimum</span></code> changed between the two rows, the metric means
 something different in each and the comparison is refused for that metric alone
@@ -603,6 +612,12 @@ than referencing the registry that happened to be installed.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.compare.load_row" title="an.bench.compare.load_row"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_row</span></code></a>(path)</p></td>
 <td><p>Read one ledger row from disk.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.compare.readable_sweep" title="an.bench.compare.readable_sweep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">readable_sweep</span></code></a>(sweep)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sweep</span></code> if every cell is a possible <code class="docutils literal notranslate"><span class="pre">[counted,</span> <span class="pre">of]</span></code> pair, else <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.compare.sweep_verdict" title="an.bench.compare.sweep_verdict"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sweep_verdict</span></code></a>(before, after, *[, shipped])</p></td>
+<td><p>Does a threshold counter's direction survive its own parameter grid?</p></td>
 </tr>
 </tbody>
 </table>
@@ -794,6 +809,68 @@ nameable. <code class="code docutils literal notranslate"><span class="pre">an</
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.compare.readable_sweep">
+<span class="sig-prename descclassname"><span class="pre">an.bench.compare.</span></span><span class="sig-name descname"><span class="pre">readable_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sweep</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/compare.html#readable_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.compare.readable_sweep" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">sweep</span></code> if every cell is a possible <code class="docutils literal notranslate"><span class="pre">[counted,</span> <span class="pre">of]</span></code> pair, else <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p>Possible means integers (a bool is not a count), <code class="docutils literal notranslate"><span class="pre">of</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> and
+<code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">counted</span> <span class="pre">&lt;=</span> <span class="pre">of</span></code> — a cell no measurement could have produced is an
+edited row, and reading it would let the edit choose the verdict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">readable_sweep</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">10</span><span class="p">]})</span>
+<span class="go">{'t=1': [3, 10]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">readable_sweep</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">10</span><span class="p">]})</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">readable_sweep</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="kc">True</span><span class="p">,</span> <span class="mi">10</span><span class="p">]})</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.compare.sweep_verdict">
+<span class="sig-prename descclassname"><span class="pre">an.bench.compare.</span></span><span class="sig-name descname"><span class="pre">sweep_verdict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">before</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">shipped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/compare.html#sweep_verdict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.compare.sweep_verdict" title="Link to this definition">#</a></dt>
+<dd><p>Does a threshold counter’s direction survive its own parameter grid?</p>
+<p>an#140. <code class="docutils literal notranslate"><span class="pre">flat_field_deviation</span></code> counts pixels past a hard threshold over a
+mask eroded by a second free parameter, and a row carries its count at
+every cell of a declared grid of both (<code class="docutils literal notranslate"><span class="pre">sweep</span></code>: <code class="docutils literal notranslate"><span class="pre">{cell:</span> <span class="pre">[counted,</span> <span class="pre">of]}</span></code>).
+This reads the direction at every cell the two rows SHARE. When some cells
+rise and others fall, the shipped value’s direction is a property of where
+the threshold happened to be set, not of the change under test — measured,
+a 4:2:0 -&gt; 4:4:4 change moved <code class="docutils literal notranslate"><span class="pre">graded_field</span></code> +84.2% at tol 6 and -81.6%
+at tol 8 — and <code class="docutils literal notranslate"><span class="pre">state</span></code> is <code class="docutils literal notranslate"><span class="pre">unstable</span></code>. <code class="docutils literal notranslate"><span class="pre">no_change</span></code> cells contradict
+nothing.</p>
+<p>Exact, like everything else here: fractions are compared by cross-multiplying
+the integer counts, never as rounded floats.</p>
+<p>Shared cells rather than identical grids: a dilation whose mask is empty in
+one row is omitted from that row, and discarding the other fourteen cells
+for it would let the verdict count unchecked. <code class="docutils literal notranslate"><span class="pre">unknown</span></code> only when a side
+has no readable sweep, or the <code class="docutils literal notranslate"><span class="pre">shipped</span></code> cell is not among the shared ones
+— the check could not run, which is a caveat and not a refusal, because a
+row written before an#140 has no sweep and is otherwise perfectly readable.
+(A row that DECLARES a sweep and carries none is refused upstream, in
+<code class="docutils literal notranslate"><span class="pre">_compare_scene</span></code>.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sweep_verdict</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="s2">"t=2"</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]},</span> <span class="p">{</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="s2">"t=2"</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">10</span><span class="p">]})[</span><span class="s2">"state"</span><span class="p">]</span>
+<span class="go">'unstable'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sweep_verdict</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">]},</span> <span class="p">{</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">20</span><span class="p">]})[</span><span class="s2">"state"</span><span class="p">]</span>
+<span class="go">'stable'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sweep_verdict</span><span class="p">({</span><span class="s2">"t=1"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">]},</span> <span class="kc">None</span><span class="p">)[</span><span class="s2">"state"</span><span class="p">]</span>
+<span class="go">'unknown'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sweep_verdict</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 
 
@@ -859,6 +936,8 @@ nameable. <code class="code docutils literal notranslate"><span class="pre">an</
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.compare.format_comparison"><code class="docutils literal notranslate"><span class="pre">format_comparison()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.compare.latest_rows"><code class="docutils literal notranslate"><span class="pre">latest_rows()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.compare.load_row"><code class="docutils literal notranslate"><span class="pre">load_row()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.compare.readable_sweep"><code class="docutils literal notranslate"><span class="pre">readable_sweep()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.compare.sweep_verdict"><code class="docutils literal notranslate"><span class="pre">sweep_verdict()</span></code></a></li>
 </ul>
   </nav></div>
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=5d5d822f"></script>
+    <script src="../../../_static/documentation_options.js?v=f9250636"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.100" />
+  <meta name="docsearch:version" content="0.1.101" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1481,6 +1481,59 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"code stays correct on the default path and is wrong only under a "</span>
             <span class="s2">"knob: measured on the corpus at 4:4:4, it changes the SIGN of "</span>
             <span class="s2">"family E on three of ten scenes (an#72)."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">Mutant</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"sweep_never_finds_a_reversal"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/bench/compare.py"</span><span class="p">,</span>
+        <span class="n">old</span><span class="o">=</span><span class="s1">'    unstable = tally["increase"] &gt; 0 and tally["decrease"] &gt; 0'</span><span class="p">,</span>
+        <span class="n">new</span><span class="o">=</span><span class="s1">'    unstable = tally["increase"] &gt; 0 and tally["decrease"] &lt; 0'</span><span class="p">,</span>
+        <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_bench_compare.py"</span><span class="p">,</span>
+        <span class="n">why</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"the robustness gate that stops being able to fire. Every row "</span>
+            <span class="s2">"still carries its sweep and every report still prints a `sweep` "</span>
+            <span class="s2">"block reading `stable`, so the instrument looks exactly like one "</span>
+            <span class="s2">"that checked and found nothing — while `graded_field`'s +84.2% "</span>
+            <span class="s2">"at tol 6, which is -81.6</span><span class="si">% a</span><span class="s2">t tol 8, counts toward family D again "</span>
+            <span class="s2">"(an#140)."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">Mutant</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"sweep_counts_a_different_statistic"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/bench/metrics.py"</span><span class="p">,</span>
+        <span class="n">old</span><span class="o">=</span><span class="s2">"int((dev &gt; t).sum())"</span><span class="p">,</span>
+        <span class="n">new</span><span class="o">=</span><span class="s2">"int((dev &gt;= t).sum())"</span><span class="p">,</span>
+        <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_bench_metrics.py"</span><span class="p">,</span>
+        <span class="n">why</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"a sweep of a statistic the row does not report. Off by one code "</span>
+            <span class="s2">"value, every cell stays a plausible, monotone survival count, and "</span>
+            <span class="s2">"the comparer then certifies the robustness of `&gt;=` while the "</span>
+            <span class="s2">"ledger's number is `&gt;` (an#140)."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">Mutant</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"sweep_deletion_is_excused"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/bench/compare.py"</span><span class="p">,</span>
+        <span class="n">old</span><span class="o">=</span><span class="s1">'    spec = declared.get("threshold_sweep")</span><span class="se">\n</span><span class="s1">'</span><span class="p">,</span>
+        <span class="n">new</span><span class="o">=</span><span class="s2">"    spec = None</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_bench_compare.py"</span><span class="p">,</span>
+        <span class="n">why</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"a row that declares a threshold sweep and carries none reads as "</span>
+            <span class="s2">"'written before an#140' — so deleting one field from a row turns "</span>
+            <span class="s2">"an `unstable` verdict back into a counted witness, the cheapest "</span>
+            <span class="s2">"possible way to fake a caught mutation."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="n">Mutant</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"strict_passes_an_unstable_movement"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/tools.py"</span><span class="p">,</span>
+        <span class="n">old</span><span class="o">=</span><span class="s1">'else bool(report.get("has_regressions") or report.get("unstable"))'</span><span class="p">,</span>
+        <span class="n">new</span><span class="o">=</span><span class="s1">'else bool(report.get("has_regressions"))'</span><span class="p">,</span>
+        <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_bench_compare.py"</span><span class="p">,</span>
+        <span class="n">why</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"`unstable` is neither a regression nor a pass; with no mutation it "</span>
+            <span class="s2">"means some cell of the metric's own grid got worse. A CI gate that "</span>
+            <span class="s2">"exits 0 on it reads 'cannot tell' as 'fine' (an#140)."</span>
         <span class="p">),</span>
     <span class="p">),</span>
 <span class="p">)</span>

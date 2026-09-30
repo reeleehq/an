@@ -78,7 +78,7 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A ledger row violates an invariant that would make it misreadable.
 
-### *class* an.bench.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=<factory>)
+### *class* an.bench.MetricSpec(key, family, unit, optimum, predictions, sentence, role=None, reference='none', provisional=False, unreviewed=False, tripwire=False, requires='', notes=<factory>, sweep=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -99,6 +99,10 @@ structural, not a gap in the instrument.
 Declared rather than hardcoded in the test, so the panel rule keeps
 naming its own exceptions instead of a test file carrying a list the
 registry does not know about.
+
+#### sweep *: [Sweep](an.bench.registry.md#an.bench.registry.Sweep) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Set only on a hard-threshold counter (an#140); see `Sweep`.
 
 ### *exception* an.bench.PngFormatError
 

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=5d5d822f"></script>
+    <script src="../_static/documentation_options.js?v=f9250636"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.masks" href="an.bench.masks.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.100" />
+  <meta name="docsearch:version" content="0.1.101" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -572,10 +572,13 @@ video is smoother). Its existing use as a frozen-render detector in
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.metrics.SSIM_RADIUS" title="an.bench.metrics.SSIM_RADIUS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SSIM_RADIUS</span></code></a></p></td>
 <td><p><code class="code docutils literal notranslate"><span class="pre">ssim_map</span></code> window radius; 7x7, matched to feature size rather than the global-moment form.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.metrics.BLEND_TOLERANCE" title="an.bench.metrics.BLEND_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BLEND_TOLERANCE</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.metrics.FLAT_DEV_TOL_SWEEP" title="an.bench.metrics.FLAT_DEV_TOL_SWEEP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FLAT_DEV_TOL_SWEEP</span></code></a></p></td>
+<td><p>The neighbourhood of each threshold counter's OWN free parameters over which its verdict must agree before <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench-compare</span></code> will call it a direction (an#140).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.metrics.BLEND_TOLERANCE" title="an.bench.metrics.BLEND_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BLEND_TOLERANCE</span></code></a></p></td>
 <td><p>How far off the line between two palette colours a pixel may sit and still be called a blend of them.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.metrics.LUMA_709" title="an.bench.metrics.LUMA_709"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LUMA_709</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.metrics.LUMA_709" title="an.bench.metrics.LUMA_709"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LUMA_709</span></code></a></p></td>
 <td><p>BT.709 luma coefficients, recorded in the ledger so a future change to the reduction is visible rather than folded into the number.</p></td>
 </tr>
 </tbody>
@@ -596,11 +599,17 @@ video is smoother). Its existing use as a frozen-render detector in
 <tr class="row-even"><td><p><a class="reference internal" href="#an.bench.metrics.encode_flicker_on_held_pixels" title="an.bench.metrics.encode_flicker_on_held_pixels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">encode_flicker_on_held_pixels</span></code></a>(src_rgb, ...)</p></td>
 <td><p>Fraction of perfectly-held pixels that moved in the delivered video.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.metrics.encode_ringing_excess" title="an.bench.metrics.encode_ringing_excess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">encode_ringing_excess</span></code></a>(dec_luma, ...)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.metrics.encode_flicker_sweep" title="an.bench.metrics.encode_flicker_sweep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">encode_flicker_sweep</span></code></a>(src_rgb, dec_rgb, *[, tols])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">encode_flicker_on_held_pixels</span></code>' count at every <code class="docutils literal notranslate"><span class="pre">tol</span></code> of its sweep.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.metrics.encode_ringing_excess" title="an.bench.metrics.encode_ringing_excess"><code class="xref py py-obj docutils literal notranslate"><span class="pre">encode_ringing_excess</span></code></a>(dec_luma, ...)</p></td>
 <td><p>How much more the lossy encode overshoots than a lossless one does.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.metrics.flat_field_deviation" title="an.bench.metrics.flat_field_deviation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flat_field_deviation</span></code></a>(src_rgb, dec_rgb, flat, *)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.metrics.flat_field_deviation" title="an.bench.metrics.flat_field_deviation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flat_field_deviation</span></code></a>(src_rgb, dec_rgb, flat, *)</p></td>
 <td><p>Fraction of flat-field pixels the encoder moved by more than <code class="docutils literal notranslate"><span class="pre">tol</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.metrics.flat_field_deviation_sweep" title="an.bench.metrics.flat_field_deviation_sweep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flat_field_deviation_sweep</span></code></a>(src_rgb, dec_rgb, ...)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">flat_field_deviation</span></code>'s count at every <code class="docutils literal notranslate"><span class="pre">(dilate_k,</span> <span class="pre">tol)</span></code> of its sweep.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.metrics.frame_distinct_colours" title="an.bench.metrics.frame_distinct_colours"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_distinct_colours</span></code></a>(packed)</p></td>
 <td><p>Mean number of distinct colours per frame.</p></td>
@@ -632,6 +641,9 @@ video is smoother). Its existing use as a frozen-render detector in
 <tr class="row-even"><td><p><a class="reference internal" href="#an.bench.metrics.ssim_map" title="an.bench.metrics.ssim_map"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ssim_map</span></code></a>(a, b, *[, r])</p></td>
 <td><p>Windowed SSIM at stride 1, as a per-pixel map.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.metrics.sweep_cell_key" title="an.bench.metrics.sweep_cell_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sweep_cell_key</span></code></a>(**params)</p></td>
+<td><p>The label of one cell of a parameter sweep, stable across rows.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -661,6 +673,22 @@ cannot carry the number.</p>
 <dt class="sig sig-object py" id="an.bench.metrics.FLAT_DEV_TOL">
 <span class="sig-prename descclassname"><span class="pre">an.bench.metrics.</span></span><span class="sig-name descname"><span class="pre">FLAT_DEV_TOL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></span><a class="headerlink" href="#an.bench.metrics.FLAT_DEV_TOL" title="Link to this definition">#</a></dt>
 <dd><p>A flat-field pixel more than this far off is “deviated”.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.bench.metrics.FLAT_DEV_TOL_SWEEP">
+<span class="sig-prename descclassname"><span class="pre">an.bench.metrics.</span></span><span class="sig-name descname"><span class="pre">FLAT_DEV_TOL_SWEEP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(4,</span> <span class="pre">5,</span> <span class="pre">6,</span> <span class="pre">7,</span> <span class="pre">8)</span></span><a class="headerlink" href="#an.bench.metrics.FLAT_DEV_TOL_SWEEP" title="Link to this definition">#</a></dt>
+<dd><p>The neighbourhood of each threshold counter’s OWN free parameters over which
+its verdict must agree before <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench-compare</span></code> will call it a direction
+(an#140). <code class="docutils literal notranslate"><span class="pre">flat_field_deviation</span></code> is <code class="docutils literal notranslate"><span class="pre">(dev</span> <span class="pre">&gt;</span> <span class="pre">tol).mean()</span></code> over a mask
+eroded by <code class="docutils literal notranslate"><span class="pre">FLAT_DILATE_K</span></code>; both are free, and measured on one machine and
+one x264 build its direction under a 4:2:0 -&gt; 4:4:4 change reversed on three
+of six scenes somewhere on this grid (<code class="docutils literal notranslate"><span class="pre">graded_field</span></code> +84.2% at tol 6,
+-81.6% at tol 8). Every shipped value sits inside its own sweep, so a sweep
+that disagrees is the row saying “somewhere near my own settings, my
+direction reverses”. The grids are the ones the defect was measured on, not
+tuned ones; the flicker grid is one-sided below because tol 0 counts every
+pixel.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -852,6 +880,29 @@ three held pixels does not weigh as much as one with seventy thousand.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.bench.metrics.encode_flicker_sweep">
+<span class="sig-prename descclassname"><span class="pre">an.bench.metrics.</span></span><span class="sig-name descname"><span class="pre">encode_flicker_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_rgb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec_rgb</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/metrics.html#encode_flicker_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.metrics.encode_flicker_sweep" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">encode_flicker_on_held_pixels</span></code>’ count at every <code class="docutils literal notranslate"><span class="pre">tol</span></code> of its sweep.</p>
+<p>Same shape and same purpose as <a class="reference internal" href="#an.bench.metrics.flat_field_deviation_sweep" title="an.bench.metrics.flat_field_deviation_sweep"><code class="xref py py-func docutils literal notranslate"><span class="pre">flat_field_deviation_sweep()</span></code></a>: this is
+the panel’s other hard-threshold counter, and measured under the same
+4:2:0 -&gt; 4:4:4 change its direction reverses between tol 2 and tol 3 on
+<code class="docutils literal notranslate"><span class="pre">single_character</span></code> (+25% -&gt; -15%), and under <code class="docutils literal notranslate"><span class="pre">high_crf</span></code> between tol 1
+and tol 2 on <code class="docutils literal notranslate"><span class="pre">graded_field</span></code> (-9% -&gt; +29%). Empty when nothing is held.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">copy</span><span class="p">();</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">encode_flicker_sweep</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">tols</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="go">{'tol=2': [1, 4], 'tol=3': [0, 4]}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.bench.metrics.encode_ringing_excess">
 <span class="sig-prename descclassname"><span class="pre">an.bench.metrics.</span></span><span class="sig-name descname"><span class="pre">encode_ringing_excess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dec_luma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lossless_luma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_luma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ring</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/metrics.html#encode_ringing_excess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.metrics.encode_ringing_excess" title="Link to this definition">#</a></dt>
 <dd><p>How much more the lossy encode overshoots than a lossless one does.</p>
@@ -894,6 +945,35 @@ orthogonal to the edge/AA axis: monotone over a 133x span on the CRF ladder
 <span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">copy</span><span class="p">();</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flat_field_deviation</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="nb">bool</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
 <span class="go">0.1111111111111111</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.metrics.flat_field_deviation_sweep">
+<span class="sig-prename descclassname"><span class="pre">an.bench.metrics.</span></span><span class="sig-name descname"><span class="pre">flat_field_deviation_sweep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_rgb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dec_rgb</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_rgb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(4,</span> <span class="pre">5,</span> <span class="pre">6,</span> <span class="pre">7,</span> <span class="pre">8)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">3,</span> <span class="pre">5)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/metrics.html#flat_field_deviation_sweep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.metrics.flat_field_deviation_sweep" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">flat_field_deviation</span></code>’s count at every <code class="docutils literal notranslate"><span class="pre">(dilate_k,</span> <span class="pre">tol)</span></code> of its sweep.</p>
+<p><code class="docutils literal notranslate"><span class="pre">{cell_key:</span> <span class="pre">[counted,</span> <span class="pre">of]}</span></code> — integers, so a comparison between two rows
+is exact rather than a comparison of two rounded fractions. The positional
+pair is <code class="docutils literal notranslate"><span class="pre">flat_field_deviation</span></code>’s own (reference, decoded); <code class="docutils literal notranslate"><span class="pre">mask_rgb</span></code>
+— what the flat mask is derived from, the SOURCE frames in <code class="code docutils literal notranslate"><span class="pre">run.py</span></code> — is
+keyword-only so the two roles cannot be swapped positionally. A <code class="docutils literal notranslate"><span class="pre">k</span></code>
+whose mask selects nothing is omitted, not recorded as <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">0]</span></code>.</p>
+<p>It is not a new number for the panel. It is what lets <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench-compare</span></code>
+tell a verdict from a threshold accident (an#140): the shipped cell IS the
+metric, and the others say whether anywhere else on the declared grid of
+its own two parameters the direction reverses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">copy</span><span class="p">();</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">7</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cells</span> <span class="o">=</span> <span class="n">flat_field_deviation_sweep</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">mask_rgb</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">tols</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span> <span class="n">ks</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cells</span>
+<span class="go">{'dilate_k=3,tol=6': [1, 81], 'dilate_k=3,tol=7': [0, 81]}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1105,6 +1185,23 @@ disagreement <em>grows</em> with degradation.</p>
 </div>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.metrics.sweep_cell_key">
+<span class="sig-prename descclassname"><span class="pre">an.bench.metrics.</span></span><span class="sig-name descname"><span class="pre">sweep_cell_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/metrics.html#sweep_cell_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.metrics.sweep_cell_key" title="Link to this definition">#</a></dt>
+<dd><p>The label of one cell of a parameter sweep, stable across rows.</p>
+<p>Keyword order is irrelevant — the key is sorted — so two rows written by
+code that spells the call differently still match cell for cell.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sweep_cell_key</span><span class="p">(</span><span class="n">tol</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">dilate_k</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">'dilate_k=3,tol=6'</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </section>
 
 
@@ -1158,6 +1255,7 @@ disagreement <em>grows</em> with degradation.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.EDGE_FLAT_TOL"><code class="docutils literal notranslate"><span class="pre">EDGE_FLAT_TOL</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.EDGE_TRIM"><code class="docutils literal notranslate"><span class="pre">EDGE_TRIM</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.FLAT_DEV_TOL"><code class="docutils literal notranslate"><span class="pre">FLAT_DEV_TOL</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.FLAT_DEV_TOL_SWEEP"><code class="docutils literal notranslate"><span class="pre">FLAT_DEV_TOL_SWEEP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.FLICKER_DELTA_TOL"><code class="docutils literal notranslate"><span class="pre">FLICKER_DELTA_TOL</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.LUMA_709"><code class="docutils literal notranslate"><span class="pre">LUMA_709</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.SSIM_RADIUS"><code class="docutils literal notranslate"><span class="pre">SSIM_RADIUS</span></code></a></li>
@@ -1165,8 +1263,10 @@ disagreement <em>grows</em> with degradation.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.edge_masked_distinct_colours"><code class="docutils literal notranslate"><span class="pre">edge_masked_distinct_colours()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.edge_transition_width"><code class="docutils literal notranslate"><span class="pre">edge_transition_width()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.encode_flicker_on_held_pixels"><code class="docutils literal notranslate"><span class="pre">encode_flicker_on_held_pixels()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.encode_flicker_sweep"><code class="docutils literal notranslate"><span class="pre">encode_flicker_sweep()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.encode_ringing_excess"><code class="docutils literal notranslate"><span class="pre">encode_ringing_excess()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.flat_field_deviation"><code class="docutils literal notranslate"><span class="pre">flat_field_deviation()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.flat_field_deviation_sweep"><code class="docutils literal notranslate"><span class="pre">flat_field_deviation_sweep()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.frame_distinct_colours"><code class="docutils literal notranslate"><span class="pre">frame_distinct_colours()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.golden_comparison"><code class="docutils literal notranslate"><span class="pre">golden_comparison()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.luma709"><code class="docutils literal notranslate"><span class="pre">luma709()</span></code></a></li>
@@ -1177,6 +1277,7 @@ disagreement <em>grows</em> with degradation.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.overshoot_mean"><code class="docutils literal notranslate"><span class="pre">overshoot_mean()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.pack_rgb"><code class="docutils literal notranslate"><span class="pre">pack_rgb()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.ssim_map"><code class="docutils literal notranslate"><span class="pre">ssim_map()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.metrics.sweep_cell_key"><code class="docutils literal notranslate"><span class="pre">sweep_cell_key()</span></code></a></li>
 </ul>
   </nav></div>
 

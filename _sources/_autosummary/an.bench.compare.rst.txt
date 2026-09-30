@@ -28,6 +28,8 @@ an.bench.compare
       format_comparison
       latest_rows
       load_row
+      readable_sweep
+      sweep_verdict
    
    .. rubric:: Exceptions
 

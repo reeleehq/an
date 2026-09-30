@@ -35,6 +35,16 @@ Measured: two consecutive `an bench` runs on the same machine produce
 delta of exactly zero is the normal case and any nonzero delta is a real change.
 An epsilon here would only hide small real movements.
 
+**A direction must survive the metric’s own knobs** (an#140). The two
+hard-threshold counters (`flat_field_deviation`, `encode_flicker_on_held_pixels`)
+carry their count at every cell of a small grid of their own free parameters,
+and a movement whose direction some cells contradict is reported `unstable`
+— neither counted toward a family nor `contrary`. Measured: under 4:2:0 ->
+4:4:4, `graded_field`’s flat-field count read +84.2% at tol 6 and -81.6% at
+tol 8, and the panel had no way to say so. That is not a tolerance band: every
+cell is still compared exactly; what changes is whether the answer is a
+direction at all.
+
 A fourth, quieter one: **a metric’s own declaration is a comparability key**.
 If `family` or `optimum` changed between the two rows, the metric means
 something different in each and the comparison is refused for that metric alone
@@ -57,12 +67,14 @@ than referencing the registry that happened to be installed.
 
 ### Functions
 
-| [`compare`](#an.bench.compare.compare)(before, after, \*[, mutation])   | Compare two ledger rows.                                            |
-|-------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| [`direction_of`](#an.bench.compare.direction_of)(before, after)              | `increase` / `decrease` / `no_change` — exactly, with no tolerance. |
-| [`format_comparison`](#an.bench.compare.format_comparison)(report)                | The human-readable digest.                                          |
-| [`latest_rows`](#an.bench.compare.latest_rows)(\*[, root, count])           |                                                                     |
-| [`load_row`](#an.bench.compare.load_row)(path)                           | Read one ledger row from disk.                                      |
+| [`compare`](#an.bench.compare.compare)(before, after, \*[, mutation])      | Compare two ledger rows.                                               |
+|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| [`direction_of`](#an.bench.compare.direction_of)(before, after)                 | `increase` / `decrease` / `no_change` — exactly, with no tolerance.    |
+| [`format_comparison`](#an.bench.compare.format_comparison)(report)                   | The human-readable digest.                                             |
+| [`latest_rows`](#an.bench.compare.latest_rows)(\*[, root, count])              |                                                                        |
+| [`load_row`](#an.bench.compare.load_row)(path)                              | Read one ledger row from disk.                                         |
+| [`readable_sweep`](#an.bench.compare.readable_sweep)(sweep)                       | `sweep` if every cell is a possible `[counted, of]` pair, else `None`. |
+| [`sweep_verdict`](#an.bench.compare.sweep_verdict)(before, after, \*[, shipped]) | Does a threshold counter's direction survive its own parameter grid?   |
 
 ### Exceptions
 
@@ -218,3 +230,63 @@ Read one ledger row from disk.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)
+
+### an.bench.compare.readable_sweep(sweep)
+
+`sweep` if every cell is a possible `[counted, of]` pair, else `None`.
+
+Possible means integers (a bool is not a count), `of > 0` and
+`0 <= counted <= of` — a cell no measurement could have produced is an
+edited row, and reading it would let the edit choose the verdict.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> readable_sweep({"t=1": [3, 10]})
+{'t=1': [3, 10]}
+>>> readable_sweep({"t=1": [11, 10]}) is None
+True
+>>> readable_sweep({"t=1": [True, 10]}) is None
+True
+```
+
+### an.bench.compare.sweep_verdict(before, after, , shipped=None)
+
+Does a threshold counter’s direction survive its own parameter grid?
+
+an#140. `flat_field_deviation` counts pixels past a hard threshold over a
+mask eroded by a second free parameter, and a row carries its count at
+every cell of a declared grid of both (`sweep`: `{cell: [counted, of]}`).
+This reads the direction at every cell the two rows SHARE. When some cells
+rise and others fall, the shipped value’s direction is a property of where
+the threshold happened to be set, not of the change under test — measured,
+a 4:2:0 -> 4:4:4 change moved `graded_field` +84.2% at tol 6 and -81.6%
+at tol 8 — and `state` is `unstable`. `no_change` cells contradict
+nothing.
+
+Exact, like everything else here: fractions are compared by cross-multiplying
+the integer counts, never as rounded floats.
+
+Shared cells rather than identical grids: a dilation whose mask is empty in
+one row is omitted from that row, and discarding the other fourteen cells
+for it would let the verdict count unchecked. `unknown` only when a side
+has no readable sweep, or the `shipped` cell is not among the shared ones
+— the check could not run, which is a caveat and not a refusal, because a
+row written before an#140 has no sweep and is otherwise perfectly readable.
+(A row that DECLARES a sweep and carries none is refused upstream, in
+`_compare_scene`.)
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> sweep_verdict({"t=1": [1, 10], "t=2": [5, 10]}, {"t=1": [2, 10], "t=2": [4, 10]})["state"]
+'unstable'
+>>> sweep_verdict({"t=1": [1, 10]}, {"t=1": [2, 20]})["state"]
+'stable'
+>>> sweep_verdict({"t=1": [1, 10]}, None)["state"]
+'unknown'
+>>> sweep_verdict(None, None) is None
+True
+```

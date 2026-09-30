@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=5d5d822f"></script>
+    <script src="../_static/documentation_options.js?v=f9250636"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.text" href="an.text.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.100" />
+  <meta name="docsearch:version" content="0.1.101" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -609,8 +609,10 @@ mutation: evaluate the per-mutation predictions instead of asking whether</p>
 <div><p>the second row is worse. One of the mutations the rows declare.</p>
 </div></blockquote>
 <dl class="simple">
-<dt>strict: exit nonzero when the answer is bad — a regression without a</dt><dd><p>mutation, an unmet criterion with one, a comparison that answered
-nothing, or a row that could not be read at all. For CI.</p>
+<dt>strict: exit nonzero when the answer is bad — a regression without a</dt><dd><p>mutation, or a direction that reverses on its own metric’s threshold
+grid (an#140: some cell of it got worse), an unmet criterion with one,
+a comparison that answered nothing, or a row that could not be read at
+all. For CI.</p>
 </dd>
 </dl>
 <p>raw: print the report as JSON instead of the human digest</p>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=5d5d822f"></script>
+    <script src="../../../_static/documentation_options.js?v=f9250636"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.100" />
+  <meta name="docsearch:version" content="0.1.101" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1311,18 +1311,32 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
     <span class="n">frac</span><span class="p">,</span> <span class="n">p99</span> <span class="o">=</span> <span class="n">M</span><span class="o">.</span><span class="n">flat_field_deviation</span><span class="p">(</span><span class="n">ref_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">dec_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">flat</span><span class="p">)</span>
+    <span class="c1"># The count at every cell of its own declared parameter grid, carried on</span>
+    <span class="c1"># the value (an#140). Not a second number: the shipped cell IS this metric</span>
+    <span class="c1"># (`an bench-compare` refuses the row if it is not), and the rest decide</span>
+    <span class="c1"># whether its direction is a direction or a threshold accident. The mask</span>
+    <span class="c1"># source is the same `src_rgb[:n]` the `flat` mask above was built from.</span>
     <span class="n">values</span><span class="p">[</span><span class="s2">"flat_field_deviation"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">unavailable</span><span class="p">(</span><span class="s2">"no flat field in this scene"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">frac</span> <span class="o">!=</span> <span class="n">frac</span>
-        <span class="k">else</span> <span class="n">measured</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">frac</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="k">else</span> <span class="n">measured</span><span class="p">(</span>
+            <span class="nb">round</span><span class="p">(</span><span class="n">frac</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+            <span class="n">sweep</span><span class="o">=</span><span class="n">M</span><span class="o">.</span><span class="n">flat_field_deviation_sweep</span><span class="p">(</span>
+                <span class="n">ref_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">dec_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">mask_rgb</span><span class="o">=</span><span class="n">src_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">values</span><span class="p">[</span><span class="s2">"flat_field_p99_dev"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">unavailable</span><span class="p">(</span><span class="s2">"no flat field in this scene"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">p99</span> <span class="o">!=</span> <span class="n">p99</span>
         <span class="k">else</span> <span class="n">measured</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">p99</span><span class="p">),</span> <span class="mi">4</span><span class="p">))</span>
     <span class="p">)</span>
-    <span class="n">values</span><span class="p">[</span><span class="s2">"encode_flicker_on_held_pixels"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_num</span><span class="p">(</span>
-        <span class="n">M</span><span class="o">.</span><span class="n">encode_flicker_on_held_pixels</span><span class="p">,</span> <span class="n">ref_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">dec_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+    <span class="c1"># The panel's other hard-threshold counter, so the same sweep (an#140).</span>
+    <span class="n">flicker</span> <span class="o">=</span> <span class="n">_num</span><span class="p">(</span><span class="n">M</span><span class="o">.</span><span class="n">encode_flicker_on_held_pixels</span><span class="p">,</span> <span class="n">ref_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">dec_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">])</span>
+    <span class="n">values</span><span class="p">[</span><span class="s2">"encode_flicker_on_held_pixels"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">measured</span><span class="p">(</span><span class="n">flicker</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">sweep</span><span class="o">=</span><span class="n">M</span><span class="o">.</span><span class="n">encode_flicker_sweep</span><span class="p">(</span><span class="n">ref_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">],</span> <span class="n">dec_rgb</span><span class="p">[:</span><span class="n">n</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">flicker</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="s2">"measured"</span>
+        <span class="k">else</span> <span class="n">flicker</span>
     <span class="p">)</span>
     <span class="c1"># The Q4 pair, both on the PNG reference. `encode_ringing_excess` cancels a</span>
     <span class="c1"># term that exists only when both its legs share that reference — against</span>

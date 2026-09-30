@@ -9,6 +9,7 @@ an.bench.registry
    .. autosummary::
    
       MUTATIONS
+      REFUSED_LEVERS
       REFERENCE_NOTE
       FAMILY_SIDE
       METRICS
@@ -21,6 +22,7 @@ an.bench.registry
       MetricSpec
       Optimum
       Prediction
+      Sweep
       Touch
    
    .. rubric:: Exceptions

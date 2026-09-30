@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=5d5d822f"></script>
+    <script src="../../../_static/documentation_options.js?v=f9250636"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.100" />
+  <meta name="docsearch:version" content="0.1.101" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -771,6 +771,36 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: global-moment form.</span>
 <span class="n">SSIM_RADIUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
 
+<span class="c1">#: The neighbourhood of each threshold counter's OWN free parameters over which</span>
+<span class="c1">#: its verdict must agree before `an bench-compare` will call it a direction</span>
+<span class="c1">#: (an#140). ``flat_field_deviation`` is ``(dev &gt; tol).mean()`` over a mask</span>
+<span class="c1">#: eroded by ``FLAT_DILATE_K``; both are free, and measured on one machine and</span>
+<span class="c1">#: one x264 build its direction under a 4:2:0 -&gt; 4:4:4 change reversed on three</span>
+<span class="c1">#: of six scenes somewhere on this grid (``graded_field`` +84.2% at tol 6,</span>
+<span class="c1">#: -81.6% at tol 8). Every shipped value sits inside its own sweep, so a sweep</span>
+<span class="c1">#: that disagrees is the row saying "somewhere near my own settings, my</span>
+<span class="c1">#: direction reverses". The grids are the ones the defect was measured on, not</span>
+<span class="c1">#: tuned ones; the flicker grid is one-sided below because tol 0 counts every</span>
+<span class="c1">#: pixel.</span>
+<span class="n">FLAT_DEV_TOL_SWEEP</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">FLAT_DILATE_K_SWEEP</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="n">FLICKER_DELTA_TOL_SWEEP</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="sweep_cell_key">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.metrics.html#an.bench.metrics.sweep_cell_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sweep_cell_key</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The label of one cell of a parameter sweep, stable across rows.</span>
+
+<span class="sd">    Keyword order is irrelevant — the key is sorted — so two rows written by</span>
+<span class="sd">    code that spells the call differently still match cell for cell.</span>
+
+<span class="sd">    &gt;&gt;&gt; sweep_cell_key(tol=6, dilate_k=3)</span>
+<span class="sd">    'dilate_k=3,tol=6'</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">params</span><span class="p">))</span></div>
+
+
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_trimmed_mean</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">trim</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -1093,6 +1123,56 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="flat_field_deviation_sweep">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.metrics.html#an.bench.metrics.flat_field_deviation_sweep">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">flat_field_deviation_sweep</span><span class="p">(</span>
+    <span class="n">src_rgb</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">dec_rgb</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mask_rgb</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">tols</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">FLAT_DEV_TOL_SWEEP</span><span class="p">,</span>
+    <span class="n">ks</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">FLAT_DILATE_K_SWEEP</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``flat_field_deviation``'s count at every ``(dilate_k, tol)`` of its sweep.</span>
+
+<span class="sd">    ``{cell_key: [counted, of]}`` — integers, so a comparison between two rows</span>
+<span class="sd">    is exact rather than a comparison of two rounded fractions. The positional</span>
+<span class="sd">    pair is ``flat_field_deviation``'s own (reference, decoded); ``mask_rgb``</span>
+<span class="sd">    — what the flat mask is derived from, the SOURCE frames in `run.py` — is</span>
+<span class="sd">    keyword-only so the two roles cannot be swapped positionally. A ``k``</span>
+<span class="sd">    whose mask selects nothing is omitted, not recorded as ``[0, 0]``.</span>
+
+<span class="sd">    It is not a new number for the panel. It is what lets `an bench-compare`</span>
+<span class="sd">    tell a verdict from a threshold accident (an#140): the shipped cell IS the</span>
+<span class="sd">    metric, and the others say whether anywhere else on the declared grid of</span>
+<span class="sd">    its own two parameters the direction reverses.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; s = np.zeros((1, 9, 9, 3), np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; d = s.copy(); d[0, 4, 4] = 7</span>
+<span class="sd">    &gt;&gt;&gt; cells = flat_field_deviation_sweep(s, d, mask_rgb=s, tols=(6, 7), ks=(3,))</span>
+<span class="sd">    &gt;&gt;&gt; cells</span>
+<span class="sd">    {'dilate_k=3,tol=6': [1, 81], 'dilate_k=3,tol=7': [0, 81]}</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench</span><span class="w"> </span><span class="kn">import</span> <span class="n">masks</span>
+
+    <span class="n">dev_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dec_rgb</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span> <span class="o">-</span> <span class="n">src_rgb</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">))</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ks</span><span class="p">:</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">dev_full</span><span class="p">[</span><span class="n">masks</span><span class="o">.</span><span class="n">flat_mask</span><span class="p">(</span><span class="n">mask_rgb</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">dev</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tols</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">sweep_cell_key</span><span class="p">(</span><span class="n">dilate_k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="n">t</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="nb">int</span><span class="p">((</span><span class="n">dev</span> <span class="o">&gt;</span> <span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">dev</span><span class="o">.</span><span class="n">size</span><span class="p">),</span>
+            <span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
 <div class="viewcode-block" id="encode_flicker_on_held_pixels">
 <a class="viewcode-back" href="../../../_autosummary/an.bench.metrics.html#an.bench.metrics.encode_flicker_on_held_pixels">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">encode_flicker_on_held_pixels</span><span class="p">(</span>
@@ -1119,6 +1199,39 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"nan"</span><span class="p">)</span>
     <span class="n">moved</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">v</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">float</span><span class="p">((</span><span class="n">moved</span><span class="p">[</span><span class="n">held</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">tol</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span></div>
+
+
+
+<div class="viewcode-block" id="encode_flicker_sweep">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.metrics.html#an.bench.metrics.encode_flicker_sweep">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">encode_flicker_sweep</span><span class="p">(</span>
+    <span class="n">src_rgb</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">dec_rgb</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tols</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">FLICKER_DELTA_TOL_SWEEP</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``encode_flicker_on_held_pixels``' count at every ``tol`` of its sweep.</span>
+
+<span class="sd">    Same shape and same purpose as :func:`flat_field_deviation_sweep`: this is</span>
+<span class="sd">    the panel's other hard-threshold counter, and measured under the same</span>
+<span class="sd">    4:2:0 -&gt; 4:4:4 change its direction reverses between tol 2 and tol 3 on</span>
+<span class="sd">    ``single_character`` (+25% -&gt; -15%), and under ``high_crf`` between tol 1</span>
+<span class="sd">    and tol 2 on ``graded_field`` (-9% -&gt; +29%). Empty when nothing is held.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; s = np.zeros((2, 1, 4, 3), np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; d = s.copy(); d[1, 0, 0] = 2</span>
+<span class="sd">    &gt;&gt;&gt; encode_flicker_sweep(s, d, tols=(2, 3))</span>
+<span class="sd">    {'tol=2': [1, 4], 'tol=3': [0, 4]}</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">src_rgb</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">dec_rgb</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+    <span class="n">held</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">s</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">held</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="n">moved</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">v</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="n">held</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">sweep_cell_key</span><span class="p">(</span><span class="n">tol</span><span class="o">=</span><span class="n">t</span><span class="p">):</span> <span class="p">[</span><span class="nb">int</span><span class="p">((</span><span class="n">moved</span> <span class="o">&gt;=</span> <span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()),</span> <span class="nb">int</span><span class="p">(</span><span class="n">moved</span><span class="o">.</span><span class="n">size</span><span class="p">)]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tols</span>
+    <span class="p">}</span></div>
 
 
 
