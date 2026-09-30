@@ -70,12 +70,19 @@ def test_character_uses_store_provided_parts_when_present():
     assert [c.name for c in char.children] == ["head", "body"]
 
 
+#: A backdrop whose nodes (`a/sky`, `a/ground`) the timing tests animate: a
+#: target must be a node the compiler builds (an#193), and a backdrop adds no
+#: generated channels (a character's blinks would) to the counts below.
+_BACKDROP = [AssetRef(kind="environment", id="a", store="environments", ref="default")]
+
+
 def test_tween_compiles_to_animation_plus_placed_clip():
     shot = Shot(
         id="s1",
         renderer="cutout",
         duration=2.0,
-        actions=[tween("charlie/torso", "rotation", to=1.5, duration=1.0)],
+        entities=_BACKDROP,
+        actions=[tween("a/sky", "rotation", to=1.5, duration=1.0)],
     )
     j = compile_shot(shot)
     # One animation registered, one placed clip on one track.
@@ -84,14 +91,14 @@ def test_tween_compiles_to_animation_plus_placed_clip():
     assert anim.duration == 1.0
     assert len(anim.channels) == 1
     ch = anim.channels[0]
-    assert ch.target == "charlie/torso"
+    assert ch.target == "a/sky"
     assert ch.property == "rotation"
     assert len(ch.keyframes) == 2
     assert ch.keyframes[0].value == 0.0
     assert ch.keyframes[1].value == 1.5
     assert len(j.timeline.tracks) == 1
     track = j.timeline.tracks[0]
-    assert track.target_root == "charlie"
+    assert track.target_root == "a"
     assert len(track.clips) == 1
     assert track.clips[0].animation_id == anim_id
     assert track.clips[0].start_time == 0.0
@@ -102,11 +109,12 @@ def test_sequence_flattens_to_correct_start_times():
         id="s1",
         renderer="cutout",
         duration=3.0,
+        entities=_BACKDROP,
         actions=[
             sequence(
-                tween("a/x", "rotation", to=1.0, duration=1.0),
+                tween("a/sky", "rotation", to=1.0, duration=1.0),
                 delay(0.5),
-                tween("a/x", "rotation", to=0.0, duration=1.0),
+                tween("a/sky", "rotation", to=0.0, duration=1.0),
             )
         ],
     )
@@ -122,6 +130,7 @@ def test_set_action_compiles_to_step_keyframe():
         id="s1",
         renderer="cutout",
         duration=1.0,
+        entities=_BACKDROP,
         actions=[set_("a", "x", 5.0, at=0.5)],
     )
     j = compile_shot(shot)

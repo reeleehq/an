@@ -36,7 +36,7 @@ import hashlib
 import math
 import re
 import warnings
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
@@ -596,6 +596,90 @@ def _runtime_node_paths(node: NodeJSON, prefix: str = "") -> set[str]:
     return paths
 
 
+#: How many "did you mean" paths an unknown-target message offers.
+DFLT_TARGET_SUGGESTIONS: int = 3
+#: `difflib` similarity a path must reach to be offered as a suggestion.
+_TARGET_SUGGESTION_CUTOFF: float = 0.6
+#: The runtime's camera node: indexed by the runtime, absent from the tree.
+CAMERA_NODE: str = "root"
+
+
+def node_path_suggestions(
+    target: str, paths: Iterable[str], *, n: int = DFLT_TARGET_SUGGESTIONS
+) -> list[str]:
+    """The built node paths a mistyped ``target`` most plausibly meant.
+
+    The paths of the SAME entity that end in the same part name — the usual
+    mistake is a missing level (``ned/left_brow`` for ``ned/head/left_brow``)
+    — or, when there are none, the closest spellings.
+
+    >>> built = ["ned", "ned/head", "ned/head/left_brow", "ned/head/mouth", "ned/arm_l"]
+    >>> node_path_suggestions("ned/left_brow", built)
+    ['ned/head/left_brow']
+    >>> node_path_suggestions("ned/arm_x", built)
+    ['ned/arm_l']
+    >>> node_path_suggestions("zzz", built)
+    []
+    """
+    import difflib
+
+    paths = sorted(set(paths))
+    entity, _, _ = target.partition("/")
+    leaf = target.rsplit("/", 1)[-1]
+    same_leaf = [
+        p
+        for p in paths
+        if p != target and p.split("/", 1)[0] == entity and p.rsplit("/", 1)[-1] == leaf
+    ]
+    if same_leaf:  # a part found by name beats any spelling guess
+        return same_leaf[:n]
+    return difflib.get_close_matches(target, paths, n=n, cutoff=_TARGET_SUGGESTION_CUTOFF)
+
+
+def unknown_target_message(target: str, paths: Iterable[str]) -> str:
+    """One sentence saying ``target`` is not a built node, with suggestions.
+
+    Shared by the compiler (which raises it) and ``an validate`` (which
+    reports it), so the two say the same thing about the same path.
+
+    >>> print(unknown_target_message("ned/mouth", ["ned", "ned/head", "ned/head/mouth"]))
+    'ned/mouth' is not a node of the built scene; did you mean 'ned/head/mouth'? (nodes of 'ned': ['ned', 'ned/head', 'ned/head/mouth'])
+    """
+    paths = sorted(set(paths))
+    entity = target.split("/", 1)[0]
+    msg = f"{target!r} is not a node of the built scene"
+    suggestions = node_path_suggestions(target, paths)
+    if suggestions:
+        msg += "; did you mean " + " or ".join(repr(s) for s in suggestions) + "?"
+    own = [p for p in paths if p.split("/", 1)[0] == entity]
+    if own:
+        msg += f" (nodes of {entity!r}: {own})"
+    else:
+        entities = sorted({p.split("/", 1)[0] for p in paths})
+        msg += f" (no entity {entity!r}; entities: {entities})"
+    return msg
+
+
+def _check_channel_targets(
+    animations: Mapping[str, AnimationClipJSON], paths: frozenset[str], *, shot_id: str
+) -> None:
+    """Refuse a channel whose target the runtime will not find (an#193).
+
+    The runtime throws on an unknown node from inside the frame loop, which
+    reached the author as a JavaScript stack trace from Chromium. Every channel
+    is swept here, after every emission pass, so authored, preset and
+    generated targets are all held to the tree that was actually built.
+    """
+    known = paths | {CAMERA_NODE}
+    for clip in animations.values():
+        for channel in clip.channels:
+            if channel.target not in known:
+                raise CutoutCompileError(
+                    f"shot {shot_id!r}: a {channel.property!r} animation targets "
+                    f"an unknown node — {unknown_target_message(channel.target, paths)}."
+                )
+
+
 @dataclass(frozen=True)
 class _SwapVocabulary:
     """What the built scene can swap, and what the descriptors declare.
@@ -937,6 +1021,9 @@ def compile_shot(
     # swapping them is picture-equivalent. What IS load-bearing is that both
     # resolve the same `camera_keys`, so they cannot describe different moves.
     _add_parallax_clips(shot, mall, animations, tracks, width=width, height=height)
+    # After EVERY emission pass, so no channel reaches the runtime's frame loop
+    # naming a node it will not find (an#193).
+    _check_channel_targets(animations, vocab.paths, shot_id=shot.id)
     # AFTER action + viseme compilation, deliberately: a swap key the timeline
     # actually USES whose art is missing is recorded as a fallback during
     # those passes (usage-aware escalation, an#87), and this is the one place

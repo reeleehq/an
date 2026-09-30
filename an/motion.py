@@ -568,11 +568,17 @@ def rest_pose(
 
 
 def stage_poses(
-    shot: Shot, *, mall: Mapping[str, Mapping] | None = None
+    shot: Shot,
+    *,
+    mall: Mapping[str, Mapping] | None = None,
+    width: int | None = None,
+    height: int | None = None,
 ) -> dict[str, dict[str, float]]:
     """``{node path: rest pose}`` for every node the compiler builds for
     ``shot``'s stage — what :func:`rest_pose` reads one entry of, and what
-    ``an validate`` checks a preset ``play``'s node against (an#166).
+    ``an validate`` checks a preset ``play``'s node and every ``set``/``tween``
+    target against (an#166, an#193). ``width``/``height`` (default: the
+    compiler's) matter to text, whose line breaks depend on the frame.
 
     >>> from an.ir.schema import AssetRef
     >>> one = Shot(id="s", entities=[AssetRef(kind="character", id="c", store="characters", ref="c")])
@@ -588,7 +594,10 @@ def stage_poses(
     with warnings.catch_warnings():
         # The stand-in-rig warning is the real render's to give, not this read's.
         warnings.simplefilter("ignore")
-        doc = compile_shot(stage, mall)
+        size = {
+            k: v for k, v in (("width", width), ("height", height)) if v is not None
+        }
+        doc = compile_shot(stage, mall, **size)
     found: dict[str, dict[str, float]] = {}
 
     def walk(node: Any, prefix: str) -> None:

@@ -656,6 +656,58 @@ def _run(cmd: list[str]) -> bytes:
     return proc.stdout
 
 
+#: Relative disagreement below which two frame-rate readings are the same rate.
+_FPS_AGREEMENT: float = 1e-3
+
+
+def _rate(text: str | None) -> float | None:
+    """``"24/1"`` → 24.0; ``"0/0"``, empty or malformed → ``None``."""
+    num, _, den = (text or "").strip().partition("/")
+    try:
+        value = float(num) / float(den or 1)
+    except (ValueError, ZeroDivisionError):
+        return None
+    return value if value > 0 else None
+
+
+def stream_fps(
+    r_frame_rate: str | None,
+    avg_frame_rate: str | None,
+    *,
+    n_frames: int | None = None,
+    duration: float | None = None,
+) -> float:
+    """The frame rate a video stream actually PLAYS at, from ffprobe's fields.
+
+    ``r_frame_rate`` is the lowest rate that represents every timestamp, not
+    the rate the frames arrive at: a file with sub-frame holes between its
+    shots read ``120/1`` for a 24 fps film, and the lint measured "2.042 s at
+    120 fps, 0 cuts" (an#195). So it is trusted only when the average rate
+    agrees; otherwise frames over duration decide, then the average.
+
+    >>> stream_fps("24/1", "24/1")
+    24.0
+    >>> round(stream_fps("120/1", "602112/25129", n_frames=245, duration=10.225016), 3)
+    23.961
+    >>> round(stream_fps("120/1", "602112/25129"), 3)
+    23.961
+    >>> stream_fps("30/1", "0/0")
+    30.0
+    """
+    r, avg = _rate(r_frame_rate), _rate(avg_frame_rate)
+    if r is not None and avg is not None and abs(r - avg) <= _FPS_AGREEMENT * avg:
+        return r
+    if n_frames and duration and duration > 0:
+        return n_frames / duration
+    for value in (avg, r):
+        if value is not None:
+            return value
+    raise StyleLintError(
+        f"could not read a frame rate (r_frame_rate={r_frame_rate!r}, "
+        f"avg_frame_rate={avg_frame_rate!r})"
+    )
+
+
 def _probe_fps(mp4: Path) -> float:
     out = (
         _run(
@@ -666,20 +718,31 @@ def _probe_fps(mp4: Path) -> float:
                 "-select_streams",
                 "v:0",
                 "-show_entries",
-                "stream=r_frame_rate",
+                "stream=r_frame_rate,avg_frame_rate,nb_frames,duration",
                 "-of",
-                "csv=p=0",
+                "default=noprint_wrappers=1",
                 str(mp4),
             ]
         )
         .decode("utf-8")
         .strip()
     )
-    num, _, den = out.partition("/")
-    try:
-        return float(num) / float(den or 1)
-    except (ValueError, ZeroDivisionError) as e:
-        raise StyleLintError(f"could not read a frame rate from {out!r}") from e
+    fields = dict(
+        line.split("=", 1) for line in out.splitlines() if "=" in line
+    )
+
+    def number(key: str, kind):
+        try:
+            return kind(fields.get(key, ""))
+        except ValueError:  # "N/A"
+            return None
+
+    return stream_fps(
+        fields.get("r_frame_rate"),
+        fields.get("avg_frame_rate"),
+        n_frames=number("nb_frames", int),
+        duration=number("duration", float),
+    )
 
 
 def _decode_frames(mp4: Path, *, width: int, height: int) -> np.ndarray:

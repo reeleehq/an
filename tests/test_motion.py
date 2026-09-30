@@ -22,7 +22,7 @@ from pathlib import Path
 
 import pytest
 
-from an.adapters.cutout.compile import compile_shot
+from an.adapters.cutout.compile import CutoutCompileError, compile_shot
 from an.adapters.cutout.timeline import evaluate_timeline, timeline_from_scene
 from an.ir.compose import duration_of, flatten, sequence
 from an.ir.compose import delay, set_
@@ -136,8 +136,11 @@ def test_preset_targets_nodes_a_descriptor_rig_builds(name, gale_store):
 
 def test_the_rigs_name_their_arms_differently():
     """Why `point` takes the arm node: the procedural rig has no `arm_r`, and
-    the runtime would throw on it (an unknown node)."""
-    scene = _compile(_shot([point("charlie/arm_r")]))
+    the compiler refuses it as an unknown node, naming the one it has (an#193;
+    before, the runtime threw from inside the browser)."""
+    with pytest.raises(CutoutCompileError, match=r"'charlie/arm_r' is not a node"):
+        _compile(_shot([point("charlie/arm_r")]))
+    scene = _compile(_shot([point("charlie/right_arm")]))
     assert "charlie/arm_r" not in _node_paths(scene)
     assert "charlie/right_arm" in _node_paths(scene)
 
