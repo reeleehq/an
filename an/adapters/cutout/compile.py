@@ -633,7 +633,9 @@ def node_path_suggestions(
     ]
     if same_leaf:  # a part found by name beats any spelling guess
         return same_leaf[:n]
-    return difflib.get_close_matches(target, paths, n=n, cutoff=_TARGET_SUGGESTION_CUTOFF)
+    return difflib.get_close_matches(
+        target, paths, n=n, cutoff=_TARGET_SUGGESTION_CUTOFF
+    )
 
 
 def unknown_target_message(target: str, paths: Iterable[str]) -> str:

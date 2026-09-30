@@ -727,9 +727,7 @@ def _probe_fps(mp4: Path) -> float:
         .decode("utf-8")
         .strip()
     )
-    fields = dict(
-        line.split("=", 1) for line in out.splitlines() if "=" in line
-    )
+    fields = dict(line.split("=", 1) for line in out.splitlines() if "=" in line)
 
     def number(key: str, kind):
         try:

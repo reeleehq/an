@@ -81,9 +81,7 @@ def line_voice_id(
     line: Any, shot: Any, mall: Mapping | None, *, default: str = DEFAULT_VOICE
 ) -> str:
     """The ``voices``-store key ``line`` is spoken with (see the module doc)."""
-    return (
-        line.voice_ref or speaker_voice_ref(line.speaker, shot, mall) or default
-    )
+    return line.voice_ref or speaker_voice_ref(line.speaker, shot, mall) or default
 
 
 def provider_voice(mall: Mapping | None, voice_id: str) -> str | None:
