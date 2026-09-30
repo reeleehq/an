@@ -601,7 +601,7 @@ DFLT_TARGET_SUGGESTIONS: int = 3
 #: `difflib` similarity a path must reach to be offered as a suggestion.
 _TARGET_SUGGESTION_CUTOFF: float = 0.6
 #: The runtime's camera node: indexed by the runtime, absent from the tree.
-_CAMERA_NODE: str = "root"
+CAMERA_NODE: str = "root"
 
 
 def node_path_suggestions(
@@ -670,7 +670,7 @@ def _check_channel_targets(
     is swept here, after every emission pass, so authored, preset and
     generated targets are all held to the tree that was actually built.
     """
-    known = paths | {_CAMERA_NODE}
+    known = paths | {CAMERA_NODE}
     for clip in animations.values():
         for channel in clip.channels:
             if channel.target not in known:

@@ -27,6 +27,8 @@ from tests.test_assemble import _project, _render
 FPS = 24
 #: 62.4, 48 and 76.8 frames: two of three are off the frame grid.
 DURATIONS = {"red": 2.6, "blue": 2.0, "green": 3.2}
+#: One AAC frame at the film's sample rate: the encoder's priming delay.
+AAC_PRIMING_S = 1024 / 44100
 
 
 def _meta(duration, **kw):
@@ -45,6 +47,15 @@ def _probe(mp4: Path) -> dict:
 
 def _assert_plays_at(mp4: Path, n_frames: int, *, fps: int = FPS) -> None:
     p = _probe(mp4)
+    container = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "csv=p=0", str(mp4)],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    # The container is the picture's length, up to the AAC encoder's priming
+    # (one 1024-sample frame the concat carries, measured in an#163's review) —
+    # never the ~a-frame-per-shot excess the holes added.
+    assert 0 <= float(container) - n_frames / fps <= AAC_PRIMING_S + 1e-3, container
     assert p["r_frame_rate"] == f"{fps}/1", p
     assert p["avg_frame_rate"] == f"{fps}/1", p
     assert int(p["nb_read_frames"]) == n_frames, p
@@ -107,7 +118,8 @@ def test_the_style_lint_reads_the_rate_the_frames_arrive_at(tmp_path):
         shots.append(shot)
     holed = tmp_path / "holed.mp4"
     render_mod._ffmpeg_concat(shots, holed)
-    assert _probe(holed)["r_frame_rate"] != f"{FPS}/1"  # the quirk is reproduced
+    # ffmpeg 8 reads this file as 120/1; whatever this build reads, the lint
+    # must report the rate the frames arrive at.
     assert _probe_fps(holed) == pytest.approx(FPS, rel=0.01)
 
 

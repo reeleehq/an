@@ -667,7 +667,13 @@ _NODE_TARGETING_KINDS = frozenset({"set", "tween"})
 
 
 def _check_action_targets(
-    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
+    shot,
+    path: str,
+    report: "ValidationReport",
+    stores: Mapping[str, Any],
+    *,
+    resolution: tuple[int | None, int | None] | None = None,
+    skip: frozenset[str] = frozenset(),
 ) -> None:
     """Every `set`/`tween` target must be a node the compiler BUILDS (an#193).
 
@@ -678,10 +684,13 @@ def _check_action_targets(
     mean" suggestions from the real paths. A target on an entity whose store
     was not supplied is skipped: without it a stand-in (the placeholder rig,
     the default backdrop) would be built, and its paths are not the asset's.
+    ``skip`` names entities another check owns (text blocks: their units are
+    checked by `_check_text_blocks`, at the scene's resolution). The runtime's
+    camera node (``root``) is a legitimate target, as the compiler says.
     """
     if not stores or shot.renderer != "cutout":
         return
-    from an.adapters.cutout.compile import unknown_target_message
+    from an.adapters.cutout.compile import CAMERA_NODE, unknown_target_message
 
     store_of = {kind: name for kind, (name, _doc) in RIG_STORES.items()}
     store_of["environment"] = "environments"  # its planes are nodes too
@@ -689,7 +698,7 @@ def _check_action_targets(
         e.id
         for e in shot.entities
         if e.kind in store_of and stores.get(store_of[e.kind]) is None
-    }
+    } | set(skip)
     leaves = [
         (k, flat.action)
         for k, action in enumerate(shot.actions)
@@ -700,10 +709,11 @@ def _check_action_targets(
         (k, a.target)
         for k, a in leaves
         if (a.target or "").split("/", 1)[0] not in unchecked
+        and a.target != CAMERA_NODE
     ]
     if not targets:
         return
-    built, why = _built_node_paths(shot, stores)
+    built, why = _built_node_paths(shot, stores, resolution=resolution)
     if built is None:
         report.add(
             "warning",
@@ -721,7 +731,10 @@ def _check_action_targets(
 
 
 def _built_node_paths(
-    shot, stores: Mapping[str, Any]
+    shot,
+    stores: Mapping[str, Any],
+    *,
+    resolution: tuple[int | None, int | None] | None = None,
 ) -> tuple[set[str] | None, str | None]:
     """``(node paths, None)`` — every node path the cutout compiler builds for
     ``shot``'s STAGE (its entities; no actions), from the supplied stores — or
@@ -737,7 +750,11 @@ def _built_node_paths(
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # the render's warnings, not validate's
-            return set(stage_poses(shot, mall=stores)), None
+            width, height = resolution or (None, None)
+            return (
+                set(stage_poses(shot, mall=stores, width=width, height=height)),
+                None,
+            )
     except Exception as e:  # noqa: BLE001 — reported by the caller, by name
         return None, f"{type(e).__name__}: {e}"
 
@@ -1123,7 +1140,6 @@ def validate_semantic(
 
         _check_renderable(shot, path, report, stores=rig_stores)
         _check_swap_references(shot, path, report, rig_stores)
-        _check_action_targets(shot, path, report, rig_stores)
         _check_trim_targets(shot, path, report, rig_stores)
         text_ids = _check_text_blocks(
             shot,
@@ -1132,6 +1148,17 @@ def validate_semantic(
             rig_stores,
             width=scene.meta.resolution.width,
             height=scene.meta.resolution.height,
+        )
+        _check_action_targets(
+            shot,
+            path,
+            report,
+            rig_stores,
+            resolution=(
+                scene.meta.resolution.width or None,
+                scene.meta.resolution.height or None,
+            ),
+            skip=frozenset(text_ids),
         )
 
         # Entity references resolve?

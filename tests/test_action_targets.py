@@ -118,3 +118,10 @@ def test_a_plane_target_is_not_judged_without_the_environments_store(mall):
         actions=[SetAction(target="map/west", property="tint", value="#3a5fa0")],
     )
     assert _errors(shot, mall) == []
+
+
+def test_the_camera_node_is_a_legitimate_target(mall):
+    """`root` is the runtime's camera node; the compiler accepts it, so must validate."""
+    zoom = SetAction(target="root", property="scale_x", value=1.2)
+    assert _errors(_shot(zoom), mall) == []
+    compile_shot(_shot(zoom), mall)

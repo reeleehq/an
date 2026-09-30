@@ -25,7 +25,7 @@ from an.adapters.cutout.compile import (
     compile_shot,
 )
 from an.ir.camera import CameraError
-from an.ir.schema import Camera, CameraKey, Meta, SceneIR, SetAction, Shot
+from an.ir.schema import AssetRef, Camera, CameraKey, Meta, SceneIR, SetAction, Shot
 from an.ir.validate import validate_semantic
 
 
@@ -250,6 +250,10 @@ def test_a_channel_on_a_child_node_is_not_a_collision():
     shot = _shot(
         Camera(move="push_in"),
         actions=[SetAction(target="someone", property="scale_x", value=3.0)],
+    ).model_copy(
+        update={"entities": [
+            AssetRef(kind="environment", id="someone", store="environments", ref="default")
+        ]}
     )
     compile_shot(shot, fps=24, width=320, height=240)  # must not raise
 
