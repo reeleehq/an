@@ -8,6 +8,15 @@ an.characters.factory
 
    .. autosummary::
    
+      PALETTE_ROLES
+      HEAD_ART_ROLES
+      OUTLINE_COLOUR
+      SHOE_COLOUR
+      PUPIL_COLOUR
+      DFLT_HAND_COLOUR
+      HATS
+      MAX_HEAD_SCALE
+      BUILDS
       EYE_CANVAS
       GAZE_PARTS
    
@@ -19,4 +28,11 @@ an.characters.factory
       declare_mouth_variants
       gaze_travel_for
       new_character
+      scale_part_files
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BodyBuild
    

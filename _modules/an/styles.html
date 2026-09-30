@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../../_static/documentation_options.js?v=7eceb120"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.107" />
+  <meta name="docsearch:version" content="0.1.108" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -719,24 +719,17 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">retired `AssetRef(kind="style")` because it selected nothing. This is what the</span>
 <span class="sd">word was reserved for.</span>
 
-<span class="sd">**A pack does not recolour SVG art at compile time.** Four code-backed reasons,</span>
-<span class="sd">and they are the reason this module is small:</span>
-
-<span class="sd">1. It would break `src` content addressing and the asset-resolution ledger.</span>
-<span class="sd">2. The only substitution precedent in this package is a regex</span>
-<span class="sd">   (`_skin_fill_of`) — which is exactly what `bench/palette.py` had to abandon</span>
-<span class="sd">   for XML parsing.</span>
-<span class="sd">3. `CharacterDescriptor` has no role tagging, so a pack would have to infer a</span>
-<span class="sd">   role from a pixel; inferring a role from a pixel is what produced an#99's</span>
-<span class="sd">   wrong-tone lid.</span>
-<span class="sd">4. `tint` occurs zero times in the runtime.</span>
-
-<span class="sd">**Nothing recolours SVG art today.** A pack seam in the character factory —</span>
-<span class="sd">which already owns the colour seams — is the obvious home for it and is NOT</span>
-<span class="sd">built; the compiler **warns**, naming the entities it could not reach, and says</span>
-<span class="sd">so rather than pointing at a flag that does not exist. Until then, an SVG rig</span>
-<span class="sd">is recoloured by editing its art or generating it in the colours you want. A pack that silently did nothing to an SVG rig would be the</span>
-<span class="sd">worst of the options.</span>
+<span class="sd">**A pack recolours SVG art only where the art says what its colours are.**</span>
+<span class="sd">The character factory records, per part, which literal it drew as which role</span>
+<span class="sd">(`CharacterDescriptor.colour_roles`, see :mod:`an.characters.colour_roles`),</span>
+<span class="sd">and the compiler rewrites exactly those literals into a new, content-addressed</span>
+<span class="sd">inline texture — palette swapping. Untagged art (hand-drawn, DiceBear) is left</span>
+<span class="sd">alone and the compiler warns once, naming it: a pack would otherwise have to</span>
+<span class="sd">infer a role from a pixel, which is what produced an#99's wrong-tone lid. So</span>
+<span class="sd">the four reasons this module once gave for never touching SVG reduce to one</span>
+<span class="sd">that still holds — no tags, no recolour. (The texture is inline, so staging and</span>
+<span class="sd">content addressing are unaffected; the substitution rewrites paint attributes</span>
+<span class="sd">only, never geometry or ids.)</span>
 
 <span class="sd">**A pack must not declare a role it cannot change.** `lip`, `mouth_fill`,</span>
 <span class="sd">`teeth`, `tongue` and the eye's white are literals inside `runtime.js`; a role</span>
@@ -791,6 +784,9 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: `stroke` is a stroked path's default colour (`an.paths.DFLT_STROKE_COLOUR`,</span>
 <span class="c1">#: an#161) — the arrowhead is filled in the same colour, so it is not a second</span>
 <span class="c1">#: role. A path that names its own `color` is art and is left alone.</span>
+<span class="c1">#: `accessory` (a hat, a sash) exists only in role-tagged SVG art — the</span>
+<span class="c1">#: factory's `colour_roles` — and reaches the document through the recoloured</span>
+<span class="c1">#: texture, as do the SVG rig's `skin`, `clothing`, `hair`, `leg` and `pupil`.</span>
 <span class="c1">#:</span>
 <span class="c1">#: Every one of these is compiled with a marker colour and asserted to reach</span>
 <span class="c1">#: the document by `tests/test_styles.py`. `pupil` shipped in this set wired to</span>
@@ -798,7 +794,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: set it was checking — a declared-reachable role that reaches nothing is the</span>
 <span class="c1">#: same defect as an unreachable one, and it needs the same kind of test.</span>
 <span class="n">REACHABLE_ROLES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
-    <span class="p">{</span><span class="s2">"skin"</span><span class="p">,</span> <span class="s2">"clothing"</span><span class="p">,</span> <span class="s2">"hair"</span><span class="p">,</span> <span class="s2">"leg"</span><span class="p">,</span> <span class="s2">"pupil"</span><span class="p">,</span> <span class="s2">"sky"</span><span class="p">,</span> <span class="s2">"ground"</span><span class="p">,</span> <span class="s2">"stroke"</span><span class="p">}</span>
+    <span class="p">{</span><span class="s2">"skin"</span><span class="p">,</span> <span class="s2">"clothing"</span><span class="p">,</span> <span class="s2">"hair"</span><span class="p">,</span> <span class="s2">"leg"</span><span class="p">,</span> <span class="s2">"pupil"</span><span class="p">,</span> <span class="s2">"sky"</span><span class="p">,</span> <span class="s2">"ground"</span><span class="p">,</span> <span class="s2">"stroke"</span><span class="p">,</span> <span class="s2">"accessory"</span><span class="p">}</span>
 <span class="p">)</span>
 
 <span class="c1">#: Roles a pack must NOT declare, with what makes each unreachable. These are</span>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../_static/documentation_options.js?v=7eceb120"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.dicebear" href="an.characters.dicebear.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.107" />
+  <meta name="docsearch:version" content="0.1.108" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -366,6 +366,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.characters.factory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
@@ -535,10 +536,37 @@ problem routes the way every other verifier’s does (an#78).</p>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.EYE_CANVAS" title="an.characters.factory.EYE_CANVAS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EYE_CANVAS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.PALETTE_ROLES" title="an.characters.factory.PALETTE_ROLES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PALETTE_ROLES</span></code></a></p></td>
+<td><p>The roles <code class="docutils literal notranslate"><span class="pre">new_character(palette=...)</span></code> takes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.HEAD_ART_ROLES" title="an.characters.factory.HEAD_ART_ROLES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HEAD_ART_ROLES</span></code></a></p></td>
+<td><p>The roles a head's own art carries.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.OUTLINE_COLOUR" title="an.characters.factory.OUTLINE_COLOUR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OUTLINE_COLOUR</span></code></a></p></td>
+<td><p>it is the drawing's ink, not a costume colour.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.SHOE_COLOUR" title="an.characters.factory.SHOE_COLOUR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SHOE_COLOUR</span></code></a></p></td>
+<td><p>The shoe, drawn in the leg part.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.PUPIL_COLOUR" title="an.characters.factory.PUPIL_COLOUR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PUPIL_COLOUR</span></code></a></p></td>
+<td><p>The pupil, in its own part (or the pre-gaze open eye).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.DFLT_HAND_COLOUR" title="an.characters.factory.DFLT_HAND_COLOUR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_HAND_COLOUR</span></code></a></p></td>
+<td><p>Default hand, trouser and brow colours — the literals the factory always drew.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.HATS" title="an.characters.factory.HATS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HATS</span></code></a></p></td>
+<td><p>The hats <a class="reference internal" href="#an.characters.factory.new_character" title="an.characters.factory.new_character"><code class="xref py py-func docutils literal notranslate"><span class="pre">new_character()</span></code></a> can draw.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.MAX_HEAD_SCALE" title="an.characters.factory.MAX_HEAD_SCALE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_HEAD_SCALE</span></code></a></p></td>
+<td><p>The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.BUILDS" title="an.characters.factory.BUILDS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BUILDS</span></code></a></p></td>
+<td><p>Named builds.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.EYE_CANVAS" title="an.characters.factory.EYE_CANVAS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EYE_CANVAS</span></code></a></p></td>
 <td><p>The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.GAZE_PARTS" title="an.characters.factory.GAZE_PARTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GAZE_PARTS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.GAZE_PARTS" title="an.characters.factory.GAZE_PARTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GAZE_PARTS</span></code></a></p></td>
 <td><p>The parts a rig gains with <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">add-gaze</span></code>.</p></td>
 </tr>
 </tbody>
@@ -559,9 +587,86 @@ problem routes the way every other verifier’s does (an#78).</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.new_character" title="an.characters.factory.new_character"><code class="xref py py-obj docutils literal notranslate"><span class="pre">new_character</span></code></a>(out_dir, *, name[, seed, ...])</p></td>
 <td><p>Build a complete character on disk.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.scale_part_files" title="an.characters.factory.scale_part_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scale_part_files</span></code></a>(paths, scale)</p></td>
+<td><p>Rewrite each part SVG's root size by <code class="docutils literal notranslate"><span class="pre">scale</span></code> (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.BodyBuild" title="an.characters.factory.BodyBuild"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BodyBuild</span></code></a>([torso_size, torso_radius, ...])</p></td>
+<td><p>The proportions of a synthesized body, in view_box units.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.factory.BUILDS">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">BUILDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#an.characters.factory.BodyBuild" title="an.characters.factory.BodyBuild"><span class="pre">BodyBuild</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'regular':</span> <span class="pre">BodyBuild(torso_size=(256,</span> <span class="pre">256),</span> <span class="pre">torso_radius=40,</span> <span class="pre">torso_inset_bottom=20,</span> <span class="pre">arm_width=36,</span> <span class="pre">arm_length=256,</span> <span class="pre">hand_radius=20,</span> <span class="pre">limb_stroke=4,</span> <span class="pre">leg_width=40,</span> <span class="pre">leg_length=300.0,</span> <span class="pre">shoe_size=(32,</span> <span class="pre">18),</span> <span class="pre">shoulder=(90,</span> <span class="pre">240),</span> <span class="pre">hip_x=50,</span> <span class="pre">neck_height=260),</span> <span class="pre">'squat':</span> <span class="pre">BodyBuild(torso_size=(300,</span> <span class="pre">220),</span> <span class="pre">torso_radius=80,</span> <span class="pre">torso_inset_bottom=4,</span> <span class="pre">arm_width=36,</span> <span class="pre">arm_length=140,</span> <span class="pre">hand_radius=18,</span> <span class="pre">limb_stroke=4,</span> <span class="pre">leg_width=50,</span> <span class="pre">leg_length=96,</span> <span class="pre">shoe_size=(34,</span> <span class="pre">16),</span> <span class="pre">shoulder=(118,</span> <span class="pre">168),</span> <span class="pre">hip_x=46,</span> <span class="pre">neck_height=214),</span> <span class="pre">'stick':</span> <span class="pre">BodyBuild(torso_size=(170,</span> <span class="pre">210),</span> <span class="pre">torso_radius=14,</span> <span class="pre">torso_inset_bottom=4,</span> <span class="pre">arm_width=10,</span> <span class="pre">arm_length=200,</span> <span class="pre">hand_radius=9,</span> <span class="pre">limb_stroke=3,</span> <span class="pre">leg_width=10,</span> <span class="pre">leg_length=230,</span> <span class="pre">shoe_size=(15,</span> <span class="pre">7),</span> <span class="pre">shoulder=(82,</span> <span class="pre">188),</span> <span class="pre">hip_x=28,</span> <span class="pre">neck_height=214),</span> <span class="pre">'tall':</span> <span class="pre">BodyBuild(torso_size=(224,</span> <span class="pre">320),</span> <span class="pre">torso_radius=36,</span> <span class="pre">torso_inset_bottom=4,</span> <span class="pre">arm_width=32,</span> <span class="pre">arm_length=320,</span> <span class="pre">hand_radius=18,</span> <span class="pre">limb_stroke=4,</span> <span class="pre">leg_width=36,</span> <span class="pre">leg_length=380,</span> <span class="pre">shoe_size=(30,</span> <span class="pre">16),</span> <span class="pre">shoulder=(80,</span> <span class="pre">304),</span> <span class="pre">hip_x=44,</span> <span class="pre">neck_height=324)}</span></span><a class="headerlink" href="#an.characters.factory.BUILDS" title="Link to this definition">#</a></dt>
+<dd><p>Named builds. <code class="docutils literal notranslate"><span class="pre">regular</span></code> is today’s body, number for number.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.characters.factory.BodyBuild">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">BodyBuild</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">torso_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(256,</span> <span class="pre">256)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">torso_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">torso_inset_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">36</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arm_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hand_radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limb_stroke</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leg_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leg_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shoe_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(32,</span> <span class="pre">18)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shoulder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(90,</span> <span class="pre">240)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hip_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neck_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">260</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#BodyBuild"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.factory.BodyBuild" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The proportions of a synthesized body, in view_box units.</p>
+<p>Every length that decides where a part hangs is here, so the bones the
+factory writes and the art it draws are derived from ONE record and cannot
+disagree — a leg’s art is exactly <code class="docutils literal notranslate"><span class="pre">leg_length</span></code> tall and its bone sits
+<code class="docutils literal notranslate"><span class="pre">leg_length</span></code> above the ground, so it hangs from the hip to the ground at
+every build (tests/test_rig_layout.py).</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.factory.BodyBuild.arm_width">
+<span class="sig-name descname"><span class="pre">arm_width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">36</span></span><a class="headerlink" href="#an.characters.factory.BodyBuild.arm_width" title="Link to this definition">#</a></dt>
+<dd><p>Sleeve thickness and the arm canvas’s length (sleeve + hand).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.factory.BodyBuild.hip_x">
+<span class="sig-name descname"><span class="pre">hip_x</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">50</span></span><a class="headerlink" href="#an.characters.factory.BodyBuild.hip_x" title="Link to this definition">#</a></dt>
+<dd><p>The hip joints’ distance from the centre line.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.factory.BodyBuild.neck_height">
+<span class="sig-name descname"><span class="pre">neck_height</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">260</span></span><a class="headerlink" href="#an.characters.factory.BodyBuild.neck_height" title="Link to this definition">#</a></dt>
+<dd><p>The neck’s height above the hip; the head hangs above it.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.factory.BodyBuild.shoulder">
+<span class="sig-name descname"><span class="pre">shoulder</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(90,</span> <span class="pre">240)</span></span><a class="headerlink" href="#an.characters.factory.BodyBuild.shoulder" title="Link to this definition">#</a></dt>
+<dd><p>The shoulder joint (x from the centre line, height above the hip).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.factory.BodyBuild.torso_inset_bottom">
+<span class="sig-name descname"><span class="pre">torso_inset_bottom</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></span><a class="headerlink" href="#an.characters.factory.BodyBuild.torso_inset_bottom" title="Link to this definition">#</a></dt>
+<dd><p>The gap between the drawn body and the canvas bottom (the hip). The
+regular body’s 20 leaves a sliver between body and legs; the other
+builds close it.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.factory.BodyBuild.torso_size">
+<span class="sig-name descname"><span class="pre">torso_size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(256,</span> <span class="pre">256)</span></span><a class="headerlink" href="#an.characters.factory.BodyBuild.torso_size" title="Link to this definition">#</a></dt>
+<dd><p>Torso canvas; the drawn body is inset 20 on every side, and the canvas
+bottom sits on the hip.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.factory.DFLT_HAND_COLOUR">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">DFLT_HAND_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#f1c9a5'</span></span><a class="headerlink" href="#an.characters.factory.DFLT_HAND_COLOUR" title="Link to this definition">#</a></dt>
+<dd><p>Default hand, trouser and brow colours — the literals the factory always drew.</p>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.factory.EYE_CANVAS">
 <span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">EYE_CANVAS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(64,</span> <span class="pre">32)</span></span><a class="headerlink" href="#an.characters.factory.EYE_CANVAS" title="Link to this definition">#</a></dt>
@@ -575,6 +680,59 @@ the sclera, the pupil and the lid outline agree (an#99).</p>
 <dd><p>The parts a rig gains with <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">add-gaze</span></code>. Optional — never in
 <code class="code docutils literal notranslate"><span class="pre">REQUIRED_PARTS</span></code>: a pre-Wave-6 rig without them still renders, and gaze is
 a no-op on it.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.factory.HATS">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">HATS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('none',</span> <span class="pre">'cap',</span> <span class="pre">'beanie',</span> <span class="pre">'bowler',</span> <span class="pre">'bicorne')</span></span><a class="headerlink" href="#an.characters.factory.HATS" title="Link to this definition">#</a></dt>
+<dd><p>The hats <a class="reference internal" href="#an.characters.factory.new_character" title="an.characters.factory.new_character"><code class="xref py py-func docutils literal notranslate"><span class="pre">new_character()</span></code></a> can draw.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.factory.HEAD_ART_ROLES">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">HEAD_ART_ROLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'hair',</span> <span class="pre">'skin'})</span></span><a class="headerlink" href="#an.characters.factory.HEAD_ART_ROLES" title="Link to this definition">#</a></dt>
+<dd><p>The roles a head’s own art carries. On a head the factory did not draw
+(DiceBear) they are left untagged everywhere, never half-tagged.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.factory.MAX_HEAD_SCALE">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">MAX_HEAD_SCALE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.5</span></span><a class="headerlink" href="#an.characters.factory.MAX_HEAD_SCALE" title="Link to this definition">#</a></dt>
+<dd><p>The largest head scale accepted — past it the head no longer fits the
+1024-unit view box above a regular body.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.factory.OUTLINE_COLOUR">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">OUTLINE_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#222222'</span></span><a class="headerlink" href="#an.characters.factory.OUTLINE_COLOUR" title="Link to this definition">#</a></dt>
+<dd><p>it is the
+drawing’s ink, not a costume colour.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The outline every synthesized body part is stroked in. Untagged</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.factory.PALETTE_ROLES">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">PALETTE_ROLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('skin',</span> <span class="pre">'hair',</span> <span class="pre">'clothing',</span> <span class="pre">'leg',</span> <span class="pre">'accessory')</span></span><a class="headerlink" href="#an.characters.factory.PALETTE_ROLES" title="Link to this definition">#</a></dt>
+<dd><p>The roles <code class="docutils literal notranslate"><span class="pre">new_character(palette=...)</span></code> takes. They are <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> role
+names on purpose: a palette chosen at authoring time and a pack applied at
+compile time speak one vocabulary, and the factory records each as a colour
+role so the pack can reach what the palette drew.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.factory.PUPIL_COLOUR">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">PUPIL_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#1a1a1a'</span></span><a class="headerlink" href="#an.characters.factory.PUPIL_COLOUR" title="Link to this definition">#</a></dt>
+<dd><p>The pupil, in its own part (or the pre-gaze open eye). Role <code class="docutils literal notranslate"><span class="pre">pupil</span></code>.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.factory.SHOE_COLOUR">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">SHOE_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#1a1a1a'</span></span><a class="headerlink" href="#an.characters.factory.SHOE_COLOUR" title="Link to this definition">#</a></dt>
+<dd><p>The shoe, drawn in the leg part. Untagged.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -639,8 +797,29 @@ inside the white at every angle without a runtime mask.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.characters.factory.new_character">
-<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">new_character</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lorelei'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dicebear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acknowledge_attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mouth_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#new_character"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.factory.new_character" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">new_character</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lorelei'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dicebear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acknowledge_attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mouth_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#new_character"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.factory.new_character" title="Link to this definition">#</a></dt>
 <dd><p>Build a complete character on disk.</p>
+<p><strong>Variety knobs</strong> (every default reproduces the pre-knob character byte for
+byte, which a golden test holds):</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">palette</span></code> — <code class="docutils literal notranslate"><span class="pre">{role:</span> <span class="pre">&quot;#rrggbb&quot;}</span></code> over <a class="reference internal" href="#an.characters.factory.PALETTE_ROLES" title="an.characters.factory.PALETTE_ROLES"><code class="xref py py-data docutils literal notranslate"><span class="pre">PALETTE_ROLES</span></code></a> (<code class="docutils literal notranslate"><span class="pre">skin</span></code>,
+<code class="docutils literal notranslate"><span class="pre">hair</span></code>, <code class="docutils literal notranslate"><span class="pre">clothing</span></code>, <code class="docutils literal notranslate"><span class="pre">leg</span></code>, <code class="docutils literal notranslate"><span class="pre">accessory</span></code>) — the SAME role names a
+<a class="reference internal" href="an.styles.html#an.styles.StylePack" title="an.styles.StylePack"><code class="xref py py-class docutils literal notranslate"><span class="pre">StylePack</span></code></a> uses. Unset roles keep the seed’s colours.</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">skin</span></code> also paints the hands and the gaze lid; <code class="docutils literal notranslate"><span class="pre">hair</span></code> the brows and
+the collar. On a DiceBear head only the body follows (its face is baked).</p>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">build</span></code> — a key of <a class="reference internal" href="#an.characters.factory.BUILDS" title="an.characters.factory.BUILDS"><code class="xref py py-data docutils literal notranslate"><span class="pre">BUILDS</span></code></a>: <code class="docutils literal notranslate"><span class="pre">regular</span></code>, <code class="docutils literal notranslate"><span class="pre">squat</span></code> (round body,
+short legs), <code class="docutils literal notranslate"><span class="pre">tall</span></code>, <code class="docutils literal notranslate"><span class="pre">stick</span></code> (small blocky body, stick limbs).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">head_scale</span></code> — the head and its whole face (eyes, brows, mouths, their
+offsets, the pupil travel) scaled together, so a big head keeps its face.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hat</span></code> — a key of <a class="reference internal" href="#an.characters.factory.HATS" title="an.characters.factory.HATS"><code class="xref py py-data docutils literal notranslate"><span class="pre">HATS</span></code></a> (offline head only), in <code class="docutils literal notranslate"><span class="pre">accessory</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sash</span></code> — a diagonal band across the torso, in <code class="docutils literal notranslate"><span class="pre">accessory</span></code>.</p></li>
+</ul>
+<p>Every colour the factory draws in a role is recorded in the descriptor’s
+<code class="docutils literal notranslate"><span class="pre">colour_roles</span></code> so a style pack can recolour it later (palette swapping,
+<a class="reference internal" href="an.characters.colour_roles.html#module-an.characters.colour_roles" title="an.characters.colour_roles"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.characters.colour_roles</span></code></a>).</p>
 <p><code class="docutils literal notranslate"><span class="pre">gaze</span></code> (an#99) adds the eye stack — sclera and pupil slots under each
 lid, a filled closed lid, the <code class="docutils literal notranslate"><span class="pre">gaze_travel</span></code> clamp — through
 <a class="reference internal" href="#an.characters.factory.add_gaze" title="an.characters.factory.add_gaze"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_gaze()</span></code></a>, so <code class="code docutils literal notranslate"><span class="pre">gaze_x</span></code>/<code class="code docutils literal notranslate"><span class="pre">gaze_y</span></code> and the ambient saccades reach the
@@ -669,6 +848,19 @@ character is complete out of the box.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.factory.scale_part_files">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">scale_part_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">paths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#scale_part_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.factory.scale_part_files" title="Link to this definition">#</a></dt>
+<dd><p>Rewrite each part SVG’s root size by <code class="docutils literal notranslate"><span class="pre">scale</span></code> (its drawing untouched):
+the compiler draws a part at its own raster size, so that IS its size on
+screen. Missing files are skipped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -722,12 +914,31 @@ character is complete out of the box.</p></li>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.BUILDS"><code class="docutils literal notranslate"><span class="pre">BUILDS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.BodyBuild"><code class="docutils literal notranslate"><span class="pre">BodyBuild</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.BodyBuild.arm_width"><code class="docutils literal notranslate"><span class="pre">BodyBuild.arm_width</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.BodyBuild.hip_x"><code class="docutils literal notranslate"><span class="pre">BodyBuild.hip_x</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.BodyBuild.neck_height"><code class="docutils literal notranslate"><span class="pre">BodyBuild.neck_height</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.BodyBuild.shoulder"><code class="docutils literal notranslate"><span class="pre">BodyBuild.shoulder</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.BodyBuild.torso_inset_bottom"><code class="docutils literal notranslate"><span class="pre">BodyBuild.torso_inset_bottom</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.BodyBuild.torso_size"><code class="docutils literal notranslate"><span class="pre">BodyBuild.torso_size</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.DFLT_HAND_COLOUR"><code class="docutils literal notranslate"><span class="pre">DFLT_HAND_COLOUR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.EYE_CANVAS"><code class="docutils literal notranslate"><span class="pre">EYE_CANVAS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.GAZE_PARTS"><code class="docutils literal notranslate"><span class="pre">GAZE_PARTS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.HATS"><code class="docutils literal notranslate"><span class="pre">HATS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.HEAD_ART_ROLES"><code class="docutils literal notranslate"><span class="pre">HEAD_ART_ROLES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.MAX_HEAD_SCALE"><code class="docutils literal notranslate"><span class="pre">MAX_HEAD_SCALE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.OUTLINE_COLOUR"><code class="docutils literal notranslate"><span class="pre">OUTLINE_COLOUR</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.PALETTE_ROLES"><code class="docutils literal notranslate"><span class="pre">PALETTE_ROLES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.PUPIL_COLOUR"><code class="docutils literal notranslate"><span class="pre">PUPIL_COLOUR</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.SHOE_COLOUR"><code class="docutils literal notranslate"><span class="pre">SHOE_COLOUR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.add_gaze"><code class="docutils literal notranslate"><span class="pre">add_gaze()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.declare_mouth_variants"><code class="docutils literal notranslate"><span class="pre">declare_mouth_variants()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.gaze_travel_for"><code class="docutils literal notranslate"><span class="pre">gaze_travel_for()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.new_character"><code class="docutils literal notranslate"><span class="pre">new_character()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.scale_part_files"><code class="docutils literal notranslate"><span class="pre">scale_part_files()</span></code></a></li>
 </ul>
   </nav></div>
 

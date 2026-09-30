@@ -20,9 +20,18 @@ problem routes the way every other verifier’s does (an#78).
 
 ### Module Attributes
 
-| [`EYE_CANVAS`](#an.characters.factory.EYE_CANVAS)   | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).   |
-|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| [`GAZE_PARTS`](#an.characters.factory.GAZE_PARTS)   | The parts a rig gains with `an character add-gaze`.                                                                                   |
+| [`PALETTE_ROLES`](#an.characters.factory.PALETTE_ROLES)    | The roles `new_character(palette=...)` takes.                                                                                       |
+|-------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| [`HEAD_ART_ROLES`](#an.characters.factory.HEAD_ART_ROLES)   | The roles a head's own art carries.                                                                                                 |
+| [`OUTLINE_COLOUR`](#an.characters.factory.OUTLINE_COLOUR)   | it is the drawing's ink, not a costume colour.                                                                                      |
+| [`SHOE_COLOUR`](#an.characters.factory.SHOE_COLOUR)      | The shoe, drawn in the leg part.                                                                                                    |
+| [`PUPIL_COLOUR`](#an.characters.factory.PUPIL_COLOUR)     | The pupil, in its own part (or the pre-gaze open eye).                                                                              |
+| [`DFLT_HAND_COLOUR`](#an.characters.factory.DFLT_HAND_COLOUR) | Default hand, trouser and brow colours — the literals the factory always drew.                                                      |
+| [`HATS`](#an.characters.factory.HATS)             | The hats [`new_character()`](#an.characters.factory.new_character) can draw.                                                 |
+| [`MAX_HEAD_SCALE`](#an.characters.factory.MAX_HEAD_SCALE)   | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                      |
+| [`BUILDS`](#an.characters.factory.BUILDS)           | Named builds.                                                                                                                       |
+| [`EYE_CANVAS`](#an.characters.factory.EYE_CANVAS)       | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99). |
+| [`GAZE_PARTS`](#an.characters.factory.GAZE_PARTS)       | The parts a rig gains with `an character add-gaze`.                                                                                 |
 
 ### Functions
 
@@ -31,6 +40,59 @@ problem routes the way every other verifier’s does (an#78).
 | [`declare_mouth_variants`](#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                            |
 | [`gaze_travel_for`](#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                             |
 | [`new_character`](#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                    |
+| [`scale_part_files`](#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                 |
+
+### Classes
+
+| [`BodyBuild`](#an.characters.factory.BodyBuild)([torso_size, torso_radius, ...])   | The proportions of a synthesized body, in view_box units.   |
+|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+
+### an.characters.factory.BUILDS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [BodyBuild](#an.characters.factory.BodyBuild)]* *= {'regular': BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), 'squat': BodyBuild(torso_size=(300, 220), torso_radius=80, torso_inset_bottom=4, arm_width=36, arm_length=140, hand_radius=18, limb_stroke=4, leg_width=50, leg_length=96, shoe_size=(34, 16), shoulder=(118, 168), hip_x=46, neck_height=214), 'stick': BodyBuild(torso_size=(170, 210), torso_radius=14, torso_inset_bottom=4, arm_width=10, arm_length=200, hand_radius=9, limb_stroke=3, leg_width=10, leg_length=230, shoe_size=(15, 7), shoulder=(82, 188), hip_x=28, neck_height=214), 'tall': BodyBuild(torso_size=(224, 320), torso_radius=36, torso_inset_bottom=4, arm_width=32, arm_length=320, hand_radius=18, limb_stroke=4, leg_width=36, leg_length=380, shoe_size=(30, 16), shoulder=(80, 304), hip_x=44, neck_height=324)}*
+
+Named builds. `regular` is today’s body, number for number.
+
+### *class* an.characters.factory.BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The proportions of a synthesized body, in view_box units.
+
+Every length that decides where a part hangs is here, so the bones the
+factory writes and the art it draws are derived from ONE record and cannot
+disagree — a leg’s art is exactly `leg_length` tall and its bone sits
+`leg_length` above the ground, so it hangs from the hip to the ground at
+every build (tests/test_rig_layout.py).
+
+#### arm_width *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 36*
+
+Sleeve thickness and the arm canvas’s length (sleeve + hand).
+
+#### hip_x *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 50*
+
+The hip joints’ distance from the centre line.
+
+#### neck_height *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 260*
+
+The neck’s height above the hip; the head hangs above it.
+
+#### shoulder *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (90, 240)*
+
+The shoulder joint (x from the centre line, height above the hip).
+
+#### torso_inset_bottom *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 20*
+
+The gap between the drawn body and the canvas bottom (the hip). The
+regular body’s 20 leaves a sliver between body and legs; the other
+builds close it.
+
+#### torso_size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (256, 256)*
+
+Torso canvas; the drawn body is inset 20 on every side, and the canvas
+bottom sits on the hip.
+
+### an.characters.factory.DFLT_HAND_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#f1c9a5'*
+
+Default hand, trouser and brow colours — the literals the factory always drew.
 
 ### an.characters.factory.EYE_CANVAS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (64, 32)*
 
@@ -42,6 +104,43 @@ the sclera, the pupil and the lid outline agree (an#99).
 The parts a rig gains with `an character add-gaze`. Optional — never in
 `REQUIRED_PARTS`: a pre-Wave-6 rig without them still renders, and gaze is
 a no-op on it.
+
+### an.characters.factory.HATS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('none', 'cap', 'beanie', 'bowler', 'bicorne')*
+
+The hats [`new_character()`](#an.characters.factory.new_character) can draw.
+
+### an.characters.factory.HEAD_ART_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'hair', 'skin'})*
+
+The roles a head’s own art carries. On a head the factory did not draw
+(DiceBear) they are left untagged everywhere, never half-tagged.
+
+### an.characters.factory.MAX_HEAD_SCALE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.5*
+
+The largest head scale accepted — past it the head no longer fits the
+1024-unit view box above a regular body.
+
+### an.characters.factory.OUTLINE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#222222'*
+
+it is the
+drawing’s ink, not a costume colour.
+
+* **Type:**
+  The outline every synthesized body part is stroked in. Untagged
+
+### an.characters.factory.PALETTE_ROLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('skin', 'hair', 'clothing', 'leg', 'accessory')*
+
+The roles `new_character(palette=...)` takes. They are `StylePack` role
+names on purpose: a palette chosen at authoring time and a pack applied at
+compile time speak one vocabulary, and the factory records each as a colour
+role so the pack can reach what the palette drew.
+
+### an.characters.factory.PUPIL_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
+
+The pupil, in its own part (or the pre-gaze open eye). Role `pupil`.
+
+### an.characters.factory.SHOE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
+
+The shoe, drawn in the leg part. Untagged.
 
 ### an.characters.factory.add_gaze(char_dir, , skin=None, overwrite_eyes=False)
 
@@ -94,9 +193,28 @@ inside the white at every angle without a runtime mask.
 {'x': 9.0, 'y': 5.0}
 ```
 
-### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True)
+### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False)
 
 Build a complete character on disk.
+
+**Variety knobs** (every default reproduces the pre-knob character byte for
+byte, which a golden test holds):
+
+- `palette` — `{role: "#rrggbb"}` over [`PALETTE_ROLES`](#an.characters.factory.PALETTE_ROLES) (`skin`,
+  `hair`, `clothing`, `leg`, `accessory`) — the SAME role names a
+  [`StylePack`](an.styles.html.md#an.styles.StylePack) uses. Unset roles keep the seed’s colours.
+  > `skin` also paints the hands and the gaze lid; `hair` the brows and
+  > the collar. On a DiceBear head only the body follows (its face is baked).
+- `build` — a key of [`BUILDS`](#an.characters.factory.BUILDS): `regular`, `squat` (round body,
+  short legs), `tall`, `stick` (small blocky body, stick limbs).
+- `head_scale` — the head and its whole face (eyes, brows, mouths, their
+  offsets, the pupil travel) scaled together, so a big head keeps its face.
+- `hat` — a key of [`HATS`](#an.characters.factory.HATS) (offline head only), in `accessory`.
+- `sash` — a diagonal band across the torso, in `accessory`.
+
+Every colour the factory draws in a role is recorded in the descriptor’s
+`colour_roles` so a style pack can recolour it later (palette swapping,
+[`an.characters.colour_roles`](an.characters.colour_roles.html.md#module-an.characters.colour_roles)).
 
 `gaze` (an#99) adds the eye stack — sclera and pupil slots under each
 lid, a filled closed lid, the `gaze_travel` clamp — through
@@ -129,3 +247,12 @@ Raises [`FileExistsError`](https://docs.python.org/3/builtins/exceptions.html#Fi
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.characters.factory.scale_part_files(paths, scale)
+
+Rewrite each part SVG’s root size by `scale` (its drawing untouched):
+the compiler draws a part at its own raster size, so that IS its size on
+screen. Missing files are skipped.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)

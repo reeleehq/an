@@ -71,7 +71,7 @@ variants: comma-separated mouth forms (see `an character new`); “” = none
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad')
+### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False)
 
 Create a new character at `out_dir`/`name`.
 
@@ -92,6 +92,20 @@ mouth_variants: comma-separated mouth forms to draw as `viseme@<form>`
 
 > sets (an#98) — a form an expression preset prefers (happy, sad, angry,
 > surprised, afraid, disgusted); “” for the neutral set only
+
+palette: colours by StylePack role, “skin=#f1c9a5,clothing=#2e7d4f” (or a
+: JSON object); roles: skin, hair, clothing, leg, accessory
+
+build: body proportions — regular, squat (round body, short legs), tall,
+: stick (small blocky body, stick limbs)
+
+head_scale: the head and its whole face scaled together (1.0 = regular)
+hat: none, cap, beanie, bowler or bicorne (offline head only), in the
+
+> accessory colour
+
+sash: a diagonal band across the torso, in the accessory colour
+
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 

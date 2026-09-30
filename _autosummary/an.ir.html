@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../_static/documentation_options.js?v=7eceb120"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.impacts.truth" href="an.impacts.truth.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.107" />
+  <meta name="docsearch:version" content="0.1.108" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -366,6 +366,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
@@ -847,11 +848,11 @@ under, by key. <code class="docutils literal notranslate"><span class="pre">None
 has — leaves every colour exactly where it is, which is why adding this
 moved no corpus hash (an#112).</p>
 <p>A pack changes what the COMPILER decides: the character palette, the
-leg and pupil colours, the environment presets’ sky and ground. It does
-NOT recolour SVG art — that would need role tagging the descriptor does
-not have, and inferring a role from a pixel is what produced an#99’s
-wrong-tone lid. A rig whose art a pack cannot reach is WARNED about by
-name at compile.</p>
+leg and pupil colours, the environment presets’ sky and ground — and SVG
+art whose descriptor tags its colours by role (<code class="code docutils literal notranslate"><span class="pre">colour_roles</span></code>, written by
+<code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">new</span></code>). Untagged art is never inferred (inferring a role
+from a pixel is what produced an#99’s wrong-tone lid); a rig a pack
+cannot reach is WARNED about by name at compile.</p>
 </dd></dl>
 
 </dd></dl>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../_static/documentation_options.js?v=7eceb120"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.record" href="an.characters.record.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.107" />
+  <meta name="docsearch:version" content="0.1.108" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -366,6 +366,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
@@ -791,6 +792,22 @@ a data change. Replaces <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.colour_roles">
+<span class="sig-name descname"><span class="pre">colour_roles</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.colour_roles" title="Link to this definition">#</a></dt>
+<dd><p>Which colour literal in which part plays which <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> role —
+<code class="docutils literal notranslate"><span class="pre">{part</span> <span class="pre">path:</span> <span class="pre">{&quot;#rrggbb&quot;:</span> <span class="pre">role}}</span></code>, e.g.
+<code class="docutils literal notranslate"><span class="pre">{&quot;parts/torso.svg&quot;:</span> <span class="pre">{&quot;#a83249&quot;:</span> <span class="pre">&quot;clothing&quot;}}</span></code>. Written by the factory,
+which KNOWS what it drew as skin or clothing; read by the compiler, which
+rewrites the tagged literals under a pack (palette swapping — see
+<a class="reference internal" href="an.characters.colour_roles.html#module-an.characters.colour_roles" title="an.characters.colour_roles"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.characters.colour_roles</span></code></a>). Empty = untagged art (hand-drawn,
+DiceBear): a pack cannot reach it and the compiler says so, because the
+alternative is inferring a role from a pixel (an#99’s wrong-tone lid).
+Additive: no schema bump, and a descriptor without it reads back as
+untagged. Keys are normalised to lowercase <code class="docutils literal notranslate"><span class="pre">#rrggbb</span></code>; a role must be
+one a pack can set (<a class="reference internal" href="an.styles.html#an.styles.REACHABLE_ROLES" title="an.styles.REACHABLE_ROLES"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.styles.REACHABLE_ROLES</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.expression_binding">
 <span class="sig-name descname"><span class="pre">expression_binding</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.expression_binding" title="Link to this definition">#</a></dt>
 <dd><p>How expression axes reach this rig (an#98), as a list of binding dicts —
@@ -1164,6 +1181,7 @@ first, which is why this walks in declaration order rather than by index.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CHARACTER_DOCUMENT_KIND"><code class="docutils literal notranslate"><span class="pre">CHARACTER_DOCUMENT_KIND</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.asset_sets"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.asset_sets</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.colour_roles"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.colour_roles</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.expression_binding"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.expression_binding</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.face_overlay"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.face_overlay</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.gaze_travel"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.gaze_travel</span></code></a></li>

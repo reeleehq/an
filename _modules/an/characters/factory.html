@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../../../_static/documentation_options.js?v=7eceb120"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.107" />
+  <meta name="docsearch:version" content="0.1.108" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -736,7 +736,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">textwrap</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">xml.etree</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElementTree</span> <span class="k">as</span> <span class="n">ET</span>
 
 
@@ -767,8 +767,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">mouth_attachment_name</span><span class="p">,</span>
     <span class="n">write_default_mouths</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.colour_roles</span><span class="w"> </span><span class="kn">import</span> <span class="n">distinct_literal</span><span class="p">,</span> <span class="n">normalise_hex</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Bone</span><span class="p">,</span>
     <span class="n">CharacterDescriptor</span><span class="p">,</span>
+    <span class="n">HEAD_ANCHOR</span><span class="p">,</span>
     <span class="n">LEG_LENGTH</span><span class="p">,</span>
     <span class="n">MOUTH_SHAPES</span><span class="p">,</span>
     <span class="n">REFERENCE_HEAD_HEIGHT</span><span class="p">,</span>
@@ -787,6 +790,323 @@ window.runMermaid = runMermaid;</script>
 <span class="c1"># Each part SVG is a self-contained content-centered drawing. The canonical</span>
 <span class="c1"># `&lt;name&gt;.svg` (built via wrap_dicebear_for_an) is for human inspection /</span>
 <span class="c1"># silhouette test; the renderer uses these per-part files directly.</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Variety knobs: palette, build, head scale, hat, sash</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: The roles ``new_character(palette=...)`` takes. They are `StylePack` role</span>
+<span class="c1">#: names on purpose: a palette chosen at authoring time and a pack applied at</span>
+<span class="c1">#: compile time speak one vocabulary, and the factory records each as a colour</span>
+<span class="c1">#: role so the pack can reach what the palette drew.</span>
+<span class="n">PALETTE_ROLES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"skin"</span><span class="p">,</span> <span class="s2">"hair"</span><span class="p">,</span> <span class="s2">"clothing"</span><span class="p">,</span> <span class="s2">"leg"</span><span class="p">,</span> <span class="s2">"accessory"</span><span class="p">)</span>
+
+<span class="c1">#: The roles a head's own art carries. On a head the factory did not draw</span>
+<span class="c1">#: (DiceBear) they are left untagged everywhere, never half-tagged.</span>
+<span class="n">HEAD_ART_ROLES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"skin"</span><span class="p">,</span> <span class="s2">"hair"</span><span class="p">})</span>
+
+<span class="c1">#: The outline every synthesized body part is stroked in. Untagged: it is the</span>
+<span class="c1">#: drawing's ink, not a costume colour.</span>
+<span class="n">OUTLINE_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#222222"</span>
+<span class="c1">#: The shoe, drawn in the leg part. Untagged.</span>
+<span class="n">SHOE_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#1a1a1a"</span>
+<span class="c1">#: The pupil, in its own part (or the pre-gaze open eye). Role ``pupil``.</span>
+<span class="n">PUPIL_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#1a1a1a"</span>
+<span class="c1">#: Default hand, trouser and brow colours — the literals the factory always drew.</span>
+<span class="n">DFLT_HAND_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#f1c9a5"</span>
+<span class="n">DFLT_LEG_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#3a3a4a"</span>
+<span class="n">DFLT_BROW_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#3a2a20"</span>
+
+<span class="c1">#: Hat and sash colours when the palette names no ``accessory``, picked by seed.</span>
+<span class="n">_ACCESSORY_TONES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"#c0392b"</span><span class="p">,</span>  <span class="c1"># red</span>
+    <span class="s2">"#2e86c1"</span><span class="p">,</span>  <span class="c1"># blue</span>
+    <span class="s2">"#27ae60"</span><span class="p">,</span>  <span class="c1"># green</span>
+    <span class="s2">"#8e44ad"</span><span class="p">,</span>  <span class="c1"># purple</span>
+    <span class="s2">"#e67e22"</span><span class="p">,</span>  <span class="c1"># orange</span>
+    <span class="s2">"#34495e"</span><span class="p">,</span>  <span class="c1"># slate</span>
+<span class="p">)</span>
+
+<span class="c1">#: Hats, drawn inside the offline head's 80x80 drawing, ABOVE the brow line</span>
+<span class="c1">#: (the brows sit at y~25 and the eyes at y~35 of it): the face parts are</span>
+<span class="c1">#: overlays drawn over the head, so a hat reaching lower would wear the eyes on</span>
+<span class="c1">#: its brim. ``{acc}`` is the accessory colour, ``{ink}`` the outline.</span>
+<span class="n">_HAT_SVG</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"none"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+    <span class="s2">"cap"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">'&lt;path d="M 12 22 C 12 3 68 3 68 22 Z" fill="</span><span class="si">{acc}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1.5"/&gt;'</span>
+        <span class="s1">'&lt;path d="M 10 22 Q 40 16 70 22 Q 40 27 10 22 Z" fill="</span><span class="si">{acc}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1.5"/&gt;'</span>
+        <span class="s1">'&lt;circle cx="40" cy="4.5" r="2" fill="</span><span class="si">{acc}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1"/&gt;'</span>
+    <span class="p">),</span>
+    <span class="s2">"beanie"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">'&lt;path d="M 11 24 C 11 2 69 2 69 24 Z" fill="</span><span class="si">{acc}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1.5"/&gt;'</span>
+        <span class="s1">'&lt;rect x="9" y="17" width="62" height="8" rx="3" fill="</span><span class="si">{acc}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1.5"/&gt;'</span>
+        <span class="s1">'&lt;circle cx="40" cy="5.5" r="5" fill="</span><span class="si">{acc}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1.5"/&gt;'</span>
+    <span class="p">),</span>
+    <span class="s2">"bowler"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">'&lt;path d="M 20 18 C 20 -1 60 -1 60 18 Z" fill="</span><span class="si">{acc}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1.5"/&gt;'</span>
+        <span class="s1">'&lt;rect x="20.5" y="13" width="39" height="4" fill="</span><span class="si">{ink}</span><span class="s1">"/&gt;'</span>
+        <span class="s1">'&lt;ellipse cx="40" cy="19" rx="27" ry="4" fill="</span><span class="si">{acc}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1.5"/&gt;'</span>
+    <span class="p">),</span>
+    <span class="s2">"bicorne"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s1">'&lt;path d="M 4 21 Q 40 -8 76 21 Q 40 13 4 21 Z" fill="</span><span class="si">{acc}</span><span class="s1">" stroke="</span><span class="si">{ink}</span><span class="s1">" stroke-width="1.5"/&gt;'</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+<span class="c1">#: The hats :func:`new_character` can draw.</span>
+<span class="n">HATS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_HAT_SVG</span><span class="p">)</span>
+<span class="n">DFLT_HAT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"none"</span>
+
+<span class="c1">#: The largest head scale accepted — past it the head no longer fits the</span>
+<span class="c1">#: 1024-unit view box above a regular body.</span>
+<span class="n">MAX_HEAD_SCALE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.5</span>
+
+
+<div class="viewcode-block" id="BodyBuild">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.BodyBuild">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">BodyBuild</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The proportions of a synthesized body, in view_box units.</span>
+
+<span class="sd">    Every length that decides where a part hangs is here, so the bones the</span>
+<span class="sd">    factory writes and the art it draws are derived from ONE record and cannot</span>
+<span class="sd">    disagree — a leg's art is exactly ``leg_length`` tall and its bone sits</span>
+<span class="sd">    ``leg_length`` above the ground, so it hangs from the hip to the ground at</span>
+<span class="sd">    every build (tests/test_rig_layout.py).</span>
+<span class="sd">    """</span>
+
+    <span class="c1">#: Torso canvas; the drawn body is inset 20 on every side, and the canvas</span>
+    <span class="c1">#: bottom sits on the hip.</span>
+    <span class="n">torso_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+    <span class="n">torso_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">40</span>
+    <span class="c1">#: The gap between the drawn body and the canvas bottom (the hip). The</span>
+    <span class="c1">#: regular body's 20 leaves a sliver between body and legs; the other</span>
+    <span class="c1">#: builds close it.</span>
+    <span class="n">torso_inset_bottom</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="c1">#: Sleeve thickness and the arm canvas's length (sleeve + hand).</span>
+    <span class="n">arm_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">36</span>
+    <span class="n">arm_length</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">256</span>
+    <span class="n">hand_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">20</span>
+    <span class="n">limb_stroke</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">leg_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">40</span>
+    <span class="n">leg_length</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">LEG_LENGTH</span>
+    <span class="n">shoe_size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">18</span><span class="p">)</span>
+    <span class="c1">#: The shoulder joint (x from the centre line, height above the hip).</span>
+    <span class="n">shoulder</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mi">240</span><span class="p">)</span>
+    <span class="c1">#: The hip joints' distance from the centre line.</span>
+    <span class="n">hip_x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="c1">#: The neck's height above the hip; the head hangs above it.</span>
+    <span class="n">neck_height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">260</span></div>
+
+
+
+<span class="c1">#: Named builds. ``regular`` is today's body, number for number.</span>
+<span class="n">BUILDS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">BodyBuild</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"regular"</span><span class="p">:</span> <span class="n">BodyBuild</span><span class="p">(),</span>
+    <span class="c1"># Round and low: a wide, heavily rounded body on short legs, stubby arms —</span>
+    <span class="c1"># the South Park construction.</span>
+    <span class="s2">"squat"</span><span class="p">:</span> <span class="n">BodyBuild</span><span class="p">(</span>
+        <span class="n">torso_size</span><span class="o">=</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">220</span><span class="p">),</span>
+        <span class="n">torso_radius</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+        <span class="n">torso_inset_bottom</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">arm_width</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+        <span class="n">arm_length</span><span class="o">=</span><span class="mi">140</span><span class="p">,</span>
+        <span class="n">hand_radius</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span>
+        <span class="n">leg_width</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">leg_length</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span>
+        <span class="n">shoe_size</span><span class="o">=</span><span class="p">(</span><span class="mi">34</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+        <span class="n">shoulder</span><span class="o">=</span><span class="p">(</span><span class="mi">118</span><span class="p">,</span> <span class="mi">168</span><span class="p">),</span>
+        <span class="n">hip_x</span><span class="o">=</span><span class="mi">46</span><span class="p">,</span>
+        <span class="n">neck_height</span><span class="o">=</span><span class="mi">214</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"tall"</span><span class="p">:</span> <span class="n">BodyBuild</span><span class="p">(</span>
+        <span class="n">torso_size</span><span class="o">=</span><span class="p">(</span><span class="mi">224</span><span class="p">,</span> <span class="mi">320</span><span class="p">),</span>
+        <span class="n">torso_radius</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+        <span class="n">torso_inset_bottom</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">arm_width</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+        <span class="n">arm_length</span><span class="o">=</span><span class="mi">320</span><span class="p">,</span>
+        <span class="n">hand_radius</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span>
+        <span class="n">leg_width</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
+        <span class="n">leg_length</span><span class="o">=</span><span class="mi">380</span><span class="p">,</span>
+        <span class="n">shoe_size</span><span class="o">=</span><span class="p">(</span><span class="mi">30</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+        <span class="n">shoulder</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">304</span><span class="p">),</span>
+        <span class="n">hip_x</span><span class="o">=</span><span class="mi">44</span><span class="p">,</span>
+        <span class="n">neck_height</span><span class="o">=</span><span class="mi">324</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="c1"># A small blocky body with stick limbs — the OverSimplified construction,</span>
+    <span class="c1"># usually with a big head (`head_scale`).</span>
+    <span class="s2">"stick"</span><span class="p">:</span> <span class="n">BodyBuild</span><span class="p">(</span>
+        <span class="n">torso_size</span><span class="o">=</span><span class="p">(</span><span class="mi">170</span><span class="p">,</span> <span class="mi">210</span><span class="p">),</span>
+        <span class="n">torso_radius</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span>
+        <span class="n">torso_inset_bottom</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="n">arm_width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">arm_length</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+        <span class="n">hand_radius</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span>
+        <span class="n">limb_stroke</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">leg_width</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">leg_length</span><span class="o">=</span><span class="mi">230</span><span class="p">,</span>
+        <span class="n">shoe_size</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">7</span><span class="p">),</span>
+        <span class="n">shoulder</span><span class="o">=</span><span class="p">(</span><span class="mi">82</span><span class="p">,</span> <span class="mi">188</span><span class="p">),</span>
+        <span class="n">hip_x</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span>
+        <span class="n">neck_height</span><span class="o">=</span><span class="mi">214</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+<span class="n">DFLT_BUILD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"regular"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_palette</span><span class="p">(</span><span class="n">palette</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The palette with every colour normalised; an unknown role or a malformed</span>
+<span class="sd">    colour is refused here, before anything is written."""</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">role</span><span class="p">,</span> <span class="n">colour</span> <span class="ow">in</span> <span class="p">(</span><span class="n">palette</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">role</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">PALETTE_ROLES</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"unknown palette role </span><span class="si">{</span><span class="n">role</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">PALETTE_ROLES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">role</span><span class="p">]</span> <span class="o">=</span> <span class="n">normalise_hex</span><span class="p">(</span><span class="n">colour</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_build</span><span class="p">(</span><span class="n">build</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BodyBuild</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">build</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">BUILDS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown build </span><span class="si">{</span><span class="n">build</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">BUILDS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">BUILDS</span><span class="p">[</span><span class="n">build</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_bones_for</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="n">BodyBuild</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">head_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Bone</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The default rig's seven bones placed for ``body`` (same names, same</span>
+<span class="sd">    parents, same pivots — only the lengths move).</span>
+
+<span class="sd">    A scaled head hangs lower below its neck (it is anchored at</span>
+<span class="sd">    :data:`~an.characters.schema.HEAD_ANCHOR`), so the neck is raised by the</span>
+<span class="sd">    extra overhang: the head overlaps the collar by the same amount at every</span>
+<span class="sd">    scale instead of swallowing a stick figure's body.</span>
+<span class="sd">    """</span>
+    <span class="n">sx</span><span class="p">,</span> <span class="n">sy</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">shoulder</span>
+    <span class="n">neck</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">body</span><span class="o">.</span><span class="n">neck_height</span>
+        <span class="o">+</span> <span class="p">(</span><span class="n">head_scale</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">HEAD_ANCHOR</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">REFERENCE_HEAD_HEIGHT</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">980</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"root"</span><span class="p">),</span>
+        <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="n">body</span><span class="o">.</span><span class="n">leg_length</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"hip"</span><span class="p">),</span>
+        <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"head"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="nb">round</span><span class="p">(</span><span class="n">neck</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"neck"</span><span class="p">),</span>
+        <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm_l"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">x</span><span class="o">=-</span><span class="n">sx</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="n">sy</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"shoulder_l"</span><span class="p">),</span>
+        <span class="n">Bone</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"arm_r"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"torso"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">sx</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="n">sy</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"shoulder_r"</span><span class="p">),</span>
+        <span class="n">Bone</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"leg_l"</span><span class="p">,</span>
+            <span class="n">parent</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span>
+            <span class="n">x</span><span class="o">=-</span><span class="n">body</span><span class="o">.</span><span class="n">hip_x</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=-</span><span class="n">body</span><span class="o">.</span><span class="n">leg_length</span><span class="p">,</span>
+            <span class="n">pivot</span><span class="o">=</span><span class="s2">"hip_l"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">Bone</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"leg_r"</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">hip_x</span><span class="p">,</span> <span class="n">y</span><span class="o">=-</span><span class="n">body</span><span class="o">.</span><span class="n">leg_length</span><span class="p">,</span> <span class="n">pivot</span><span class="o">=</span><span class="s2">"hip_r"</span>
+        <span class="p">),</span>
+    <span class="p">]</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_Looks</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Every colour one character is drawn in, resolved once from the seed and</span>
+<span class="sd">    the palette — and made distinct within each part, so each role's literal is</span>
+<span class="sd">    an exact swap key (:func:`~an.characters.colour_roles.distinct_literal`)."""</span>
+
+    <span class="n">head_svg</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">head_roles</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+    <span class="n">clothing</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">accent</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">hand</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">leg</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">brow</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">accessory</span><span class="p">:</span> <span class="nb">str</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_looks</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">palette</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_Looks</span><span class="p">:</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">_stable_hash</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">ink</span> <span class="o">=</span> <span class="n">OUTLINE_COLOUR</span>
+    <span class="c1"># The head keeps its own two tables (see `_fallback_face_svg`); the body</span>
+    <span class="c1"># keeps `_palette_for_seed`'s. That the two disagree is the pre-knob</span>
+    <span class="c1"># behaviour, kept so a default character is byte-identical — a palette</span>
+    <span class="c1"># `skin`/`hair` is what makes them agree.</span>
+    <span class="n">skin</span> <span class="o">=</span> <span class="n">palette</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skin"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_SKIN_TONES</span><span class="p">[</span><span class="n">h</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_SKIN_TONES</span><span class="p">)]</span>
+    <span class="n">hair</span> <span class="o">=</span> <span class="n">palette</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"hair"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_HAIR_TONES</span><span class="p">[(</span><span class="n">h</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_HAIR_TONES</span><span class="p">)]</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">seed_clothing</span><span class="p">,</span> <span class="n">seed_accent</span> <span class="o">=</span> <span class="n">_palette_for_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">acc</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">palette</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"accessory"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_ACCESSORY_TONES</span><span class="p">[(</span><span class="n">h</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_ACCESSORY_TONES</span><span class="p">)]</span>
+    <span class="p">)</span>
+
+    <span class="n">head_skin</span> <span class="o">=</span> <span class="n">distinct_literal</span><span class="p">(</span><span class="n">skin</span><span class="p">,</span> <span class="p">{</span><span class="n">ink</span><span class="p">})</span>
+    <span class="n">head_hair</span> <span class="o">=</span> <span class="n">distinct_literal</span><span class="p">(</span><span class="n">hair</span><span class="p">,</span> <span class="p">{</span><span class="n">head_skin</span><span class="p">})</span>
+    <span class="n">head_acc</span> <span class="o">=</span> <span class="n">distinct_literal</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="p">{</span><span class="n">head_skin</span><span class="p">,</span> <span class="n">head_hair</span><span class="p">,</span> <span class="n">ink</span><span class="p">})</span>
+    <span class="n">head_roles</span> <span class="o">=</span> <span class="p">{</span><span class="n">head_skin</span><span class="p">:</span> <span class="s2">"skin"</span><span class="p">,</span> <span class="n">head_hair</span><span class="p">:</span> <span class="s2">"hair"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">hat</span> <span class="o">!=</span> <span class="n">DFLT_HAT</span><span class="p">:</span>
+        <span class="n">head_roles</span><span class="p">[</span><span class="n">head_acc</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"accessory"</span>
+
+    <span class="n">clothing</span> <span class="o">=</span> <span class="n">distinct_literal</span><span class="p">(</span><span class="n">palette</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"clothing"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">seed_clothing</span><span class="p">,</span> <span class="p">{</span><span class="n">ink</span><span class="p">})</span>
+    <span class="n">accent</span> <span class="o">=</span> <span class="n">distinct_literal</span><span class="p">(</span><span class="n">palette</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"hair"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">seed_accent</span><span class="p">,</span> <span class="p">{</span><span class="n">clothing</span><span class="p">,</span> <span class="n">ink</span><span class="p">})</span>
+    <span class="n">hand</span> <span class="o">=</span> <span class="n">distinct_literal</span><span class="p">(</span><span class="n">palette</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skin"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DFLT_HAND_COLOUR</span><span class="p">,</span> <span class="p">{</span><span class="n">clothing</span><span class="p">,</span> <span class="n">ink</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">_Looks</span><span class="p">(</span>
+        <span class="n">head_svg</span><span class="o">=</span><span class="n">_fallback_face_svg</span><span class="p">(</span>
+            <span class="n">seed</span><span class="p">,</span> <span class="n">skin</span><span class="o">=</span><span class="n">head_skin</span><span class="p">,</span> <span class="n">hair</span><span class="o">=</span><span class="n">head_hair</span><span class="p">,</span> <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">,</span> <span class="n">accessory</span><span class="o">=</span><span class="n">head_acc</span>
+        <span class="p">),</span>
+        <span class="n">head_roles</span><span class="o">=</span><span class="n">head_roles</span><span class="p">,</span>
+        <span class="n">clothing</span><span class="o">=</span><span class="n">clothing</span><span class="p">,</span>
+        <span class="n">accent</span><span class="o">=</span><span class="n">accent</span><span class="p">,</span>
+        <span class="n">hand</span><span class="o">=</span><span class="n">hand</span><span class="p">,</span>
+        <span class="n">leg</span><span class="o">=</span><span class="n">distinct_literal</span><span class="p">(</span><span class="n">palette</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"leg"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DFLT_LEG_COLOUR</span><span class="p">,</span> <span class="p">{</span><span class="n">SHOE_COLOUR</span><span class="p">}),</span>
+        <span class="n">brow</span><span class="o">=</span><span class="n">normalise_hex</span><span class="p">(</span><span class="n">palette</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"hair"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DFLT_BROW_COLOUR</span><span class="p">),</span>
+        <span class="n">accessory</span><span class="o">=</span><span class="n">distinct_literal</span><span class="p">(</span><span class="n">acc</span><span class="p">,</span> <span class="p">{</span><span class="n">clothing</span><span class="p">,</span> <span class="n">accent</span><span class="p">,</span> <span class="n">ink</span><span class="p">}),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_scale_face</span><span class="p">(</span><span class="n">char_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Scale every face part with the head: its art, its offset from the neck,</span>
+<span class="sd">    and the pupil's travel — so a big head keeps its face in proportion.</span>
+
+<span class="sd">    The face offsets are measured from the neck for a head</span>
+<span class="sd">    :data:`~an.characters.schema.REFERENCE_HEAD_HEIGHT` tall, and a head hangs</span>
+<span class="sd">    from the neck at a fixed anchor, so scaling the head by ``s`` moves every</span>
+<span class="sd">    face point by exactly ``s`` — which is why one factor does it all. Recorded</span>
+<span class="sd">    as ``metadata.head_scale`` so `add_gaze` and `an character mouths` redraw at</span>
+<span class="sd">    the same size.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">migrate</span>
+
+    <span class="n">desc_path</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="s2">"character.json"</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">desc_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">migrate</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"CharacterDescriptor"</span><span class="p">))</span>
+    <span class="n">face_slots</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">slots</span> <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">bone</span> <span class="o">==</span> <span class="s2">"head"</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">"head"</span><span class="p">}</span>
+    <span class="n">paths</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">slot_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">face_slots</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">attachments</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">att</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="n">att</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                <span class="n">paths</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">scale_part_files</span><span class="p">([</span><span class="n">char_dir</span> <span class="o">/</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">paths</span><span class="p">)],</span> <span class="n">scale</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">gaze_travel</span><span class="p">:</span>
+        <span class="n">desc</span><span class="o">.</span><span class="n">gaze_travel</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">gaze_travel</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">desc</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"head_scale"</span><span class="p">]</span> <span class="o">=</span> <span class="n">scale</span>
+    <span class="n">desc_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="scale_part_files">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.factory.html#an.characters.scale_part_files">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">scale_part_files</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Rewrite each part SVG's root size by ``scale`` (its drawing untouched):</span>
+<span class="sd">    the compiler draws a part at its own raster size, so that IS its size on</span>
+<span class="sd">    screen. Missing files are skipped."""</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">or</span> <span class="n">scale</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">svg</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">raster_size</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">_sized_to_height</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">scale</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_style_is_usable</span><span class="p">(</span><span class="n">style</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">acknowledge_attribution</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -829,8 +1149,32 @@ window.runMermaid = runMermaid;</script>
     <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">mouth_variants</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">gaze</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">palette</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">build</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_BUILD</span><span class="p">,</span>
+    <span class="n">head_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAT</span><span class="p">,</span>
+    <span class="n">sash</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Build a complete character on disk.</span>
+
+<span class="sd">    **Variety knobs** (every default reproduces the pre-knob character byte for</span>
+<span class="sd">    byte, which a golden test holds):</span>
+
+<span class="sd">    - ``palette`` — ``{role: "#rrggbb"}`` over :data:`PALETTE_ROLES` (``skin``,</span>
+<span class="sd">      ``hair``, ``clothing``, ``leg``, ``accessory``) — the SAME role names a</span>
+<span class="sd">      :class:`~an.styles.StylePack` uses. Unset roles keep the seed's colours.</span>
+<span class="sd">      ``skin`` also paints the hands and the gaze lid; ``hair`` the brows and</span>
+<span class="sd">      the collar. On a DiceBear head only the body follows (its face is baked).</span>
+<span class="sd">    - ``build`` — a key of :data:`BUILDS`: ``regular``, ``squat`` (round body,</span>
+<span class="sd">      short legs), ``tall``, ``stick`` (small blocky body, stick limbs).</span>
+<span class="sd">    - ``head_scale`` — the head and its whole face (eyes, brows, mouths, their</span>
+<span class="sd">      offsets, the pupil travel) scaled together, so a big head keeps its face.</span>
+<span class="sd">    - ``hat`` — a key of :data:`HATS` (offline head only), in ``accessory``.</span>
+<span class="sd">    - ``sash`` — a diagonal band across the torso, in ``accessory``.</span>
+
+<span class="sd">    Every colour the factory draws in a role is recorded in the descriptor's</span>
+<span class="sd">    ``colour_roles`` so a style pack can recolour it later (palette swapping,</span>
+<span class="sd">    :mod:`an.characters.colour_roles`).</span>
 
 <span class="sd">    ``gaze`` (an#99) adds the eye stack — sclera and pupil slots under each</span>
 <span class="sd">    lid, a filled closed lid, the ``gaze_travel`` clamp — through</span>
@@ -861,6 +1205,19 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Raises :class:`FileExistsError` if ``out_dir/name`` already exists and</span>
 <span class="sd">    ``overwrite=False``.</span>
 <span class="sd">    """</span>
+    <span class="n">palette_</span> <span class="o">=</span> <span class="n">_check_palette</span><span class="p">(</span><span class="n">palette</span><span class="p">)</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">_check_build</span><span class="p">(</span><span class="n">build</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">head_scale</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">head_scale</span> <span class="o">&lt;=</span> <span class="n">MAX_HEAD_SCALE</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"head_scale must be in (0, </span><span class="si">{</span><span class="n">MAX_HEAD_SCALE</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">]; got </span><span class="si">{</span><span class="n">head_scale</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">hat</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">HATS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown hat </span><span class="si">{</span><span class="n">hat</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">HATS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">hat</span> <span class="o">!=</span> <span class="n">DFLT_HAT</span> <span class="ow">and</span> <span class="n">use_dicebear</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"hats are drawn for the offline head (its geometry is known); a DiceBear "</span>
+            <span class="s2">"avatar's is not. Pass use_dicebear=False (`--offline`)."</span>
+        <span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">name</span>
     <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span><span class="p">:</span>
@@ -874,6 +1231,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="c1"># Step 1 &amp; 2: source art</span>
     <span class="n">seed_used</span> <span class="o">=</span> <span class="n">seed</span> <span class="ow">or</span> <span class="n">name</span>
+    <span class="n">looks</span> <span class="o">=</span> <span class="n">_resolve_looks</span><span class="p">(</span><span class="n">seed_used</span><span class="p">,</span> <span class="n">palette_</span><span class="p">,</span> <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">)</span>
     <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"art_provenance"</span><span class="p">:</span> <span class="s2">"fallback_geometric"</span><span class="p">}</span>
     <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">use_dicebear</span><span class="p">:</span>
@@ -887,13 +1245,14 @@ window.runMermaid = runMermaid;</script>
             <span class="p">}</span>
             <span class="n">source</span> <span class="o">=</span> <span class="n">dicebear_source</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed_used</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">avatar</span> <span class="o">=</span> <span class="n">_fallback_face_svg</span><span class="p">(</span><span class="n">seed_used</span><span class="p">)</span>
+            <span class="n">avatar</span> <span class="o">=</span> <span class="n">looks</span><span class="o">.</span><span class="n">head_svg</span>
             <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">"art_provenance"</span><span class="p">:</span> <span class="s2">"fallback_geometric"</span><span class="p">,</span>
                 <span class="s2">"dicebear_error"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
             <span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">avatar</span> <span class="o">=</span> <span class="n">_fallback_face_svg</span><span class="p">(</span><span class="n">seed_used</span><span class="p">)</span>
+        <span class="n">avatar</span> <span class="o">=</span> <span class="n">looks</span><span class="o">.</span><span class="n">head_svg</span>
+    <span class="n">head_is_ours</span> <span class="o">=</span> <span class="n">avatar</span> <span class="ow">is</span> <span class="n">looks</span><span class="o">.</span><span class="n">head_svg</span>
 
     <span class="n">canonical</span> <span class="o">=</span> <span class="n">wrap_dicebear_for_an</span><span class="p">(</span><span class="n">avatar</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
     <span class="n">canonical_path</span> <span class="o">=</span> <span class="n">out</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">.svg"</span>
@@ -904,13 +1263,30 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># texture loading in Pixi.</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">normalize_svg</span><span class="p">(</span><span class="n">canonical_path</span><span class="p">)</span>
     <span class="n">pivots</span> <span class="o">=</span> <span class="n">extract_pivots</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
-    <span class="n">skin</span><span class="p">,</span> <span class="n">clothing</span><span class="p">,</span> <span class="n">hair</span> <span class="o">=</span> <span class="n">_palette_for_seed</span><span class="p">(</span><span class="n">seed_used</span><span class="p">)</span>
-    <span class="n">_write_head_part</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"head.svg"</span><span class="p">,</span> <span class="n">avatar</span><span class="p">)</span>
-    <span class="n">_write_torso_part</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"torso.svg"</span><span class="p">,</span> <span class="n">clothing</span><span class="o">=</span><span class="n">clothing</span><span class="p">,</span> <span class="n">accent</span><span class="o">=</span><span class="n">hair</span><span class="p">)</span>
-    <span class="n">_write_arm_part</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"arm_l.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"l"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">clothing</span><span class="p">)</span>
-    <span class="n">_write_arm_part</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"arm_r.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"r"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">clothing</span><span class="p">)</span>
-    <span class="n">_write_leg_part</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"leg_l.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"l"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#3a3a4a"</span><span class="p">)</span>
-    <span class="n">_write_leg_part</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"leg_r.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"r"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#3a3a4a"</span><span class="p">)</span>
+    <span class="n">roles</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_write_head_part</span><span class="p">(</span>
+        <span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"head.svg"</span><span class="p">,</span> <span class="n">avatar</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">REFERENCE_HEAD_HEIGHT</span> <span class="o">*</span> <span class="n">head_scale</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">head_is_ours</span><span class="p">:</span>
+        <span class="n">roles</span><span class="p">[</span><span class="s2">"parts/head.svg"</span><span class="p">]</span> <span class="o">=</span> <span class="n">looks</span><span class="o">.</span><span class="n">head_roles</span>
+    <span class="n">roles</span><span class="p">[</span><span class="s2">"parts/torso.svg"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_write_torso_part</span><span class="p">(</span>
+        <span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"torso.svg"</span><span class="p">,</span>
+        <span class="n">clothing</span><span class="o">=</span><span class="n">looks</span><span class="o">.</span><span class="n">clothing</span><span class="p">,</span>
+        <span class="n">accent</span><span class="o">=</span><span class="n">looks</span><span class="o">.</span><span class="n">accent</span><span class="p">,</span>
+        <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">,</span>
+        <span class="n">sash</span><span class="o">=</span><span class="n">looks</span><span class="o">.</span><span class="n">accessory</span> <span class="k">if</span> <span class="n">sash</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"l"</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">):</span>
+        <span class="n">roles</span><span class="p">[</span><span class="sa">f</span><span class="s2">"parts/arm_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_write_arm_part</span><span class="p">(</span>
+            <span class="n">parts_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"arm_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">,</span>
+            <span class="n">side</span><span class="o">=</span><span class="n">side</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">looks</span><span class="o">.</span><span class="n">clothing</span><span class="p">,</span>
+            <span class="n">hand</span><span class="o">=</span><span class="n">looks</span><span class="o">.</span><span class="n">hand</span><span class="p">,</span>
+            <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">roles</span><span class="p">[</span><span class="sa">f</span><span class="s2">"parts/leg_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_write_leg_part</span><span class="p">(</span>
+            <span class="n">parts_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"leg_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="n">side</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">looks</span><span class="o">.</span><span class="n">leg</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span>
+        <span class="p">)</span>
 
     <span class="c1"># Step 4: default mouths, plus the form variants (an#98)</span>
     <span class="n">variants</span> <span class="o">=</span> <span class="p">(</span>
@@ -923,13 +1299,27 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_synthesize_eye_closed</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"eye_l_closed.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"l"</span><span class="p">)</span>
     <span class="n">_synthesize_eye_open</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"eye_r_open.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)</span>
     <span class="n">_synthesize_eye_closed</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"eye_r_closed.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)</span>
-    <span class="n">_synthesize_brow</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"brow_l.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"l"</span><span class="p">)</span>
-    <span class="n">_synthesize_brow</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"brow_r.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)</span>
+    <span class="n">_synthesize_brow</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"brow_l.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"l"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">looks</span><span class="o">.</span><span class="n">brow</span><span class="p">)</span>
+    <span class="n">_synthesize_brow</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"brow_r.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="s2">"r"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">looks</span><span class="o">.</span><span class="n">brow</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"l"</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">):</span>
+        <span class="n">roles</span><span class="p">[</span><span class="sa">f</span><span class="s2">"parts/eye_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_open.svg"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">PUPIL_COLOUR</span><span class="p">:</span> <span class="s2">"pupil"</span><span class="p">}</span>
+        <span class="n">roles</span><span class="p">[</span><span class="sa">f</span><span class="s2">"parts/brow_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">looks</span><span class="o">.</span><span class="n">brow</span><span class="p">:</span> <span class="s2">"hair"</span><span class="p">}</span>
 
     <span class="c1"># Step 6: descriptor. `face_overlay` is DECLARED here (an#87): a DiceBear</span>
     <span class="c1"># avatar has its face baked into the head SVG, so the overlay face parts</span>
     <span class="c1"># and the viseme channel are suppressed by this fact — the compiler no</span>
     <span class="c1"># longer sniffs metadata.art_provenance, which is provenance again.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">head_is_ours</span><span class="p">:</span>
+        <span class="c1"># A DiceBear head carries its own skin and hair, which this factory did</span>
+        <span class="c1"># not draw and cannot tag. Tagging them on the body alone would let a</span>
+        <span class="c1"># pack repaint the hands and brows and not the face — so the body</span>
+        <span class="c1"># keeps them untagged too, and the compiler says the pack could not</span>
+        <span class="c1"># reach this rig's skin/hair.</span>
+        <span class="n">roles</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">part</span><span class="p">:</span> <span class="n">kept</span>
+            <span class="k">for</span> <span class="n">part</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">roles</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">kept</span> <span class="o">:=</span> <span class="p">{</span><span class="n">lit</span><span class="p">:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">lit</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">r</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">HEAD_ART_ROLES</span><span class="p">})</span>
+        <span class="p">}</span>
     <span class="n">descriptor</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
         <span class="n">display_name</span><span class="o">=</span><span class="n">name</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span>
@@ -938,13 +1328,31 @@ window.runMermaid = runMermaid;</script>
         <span class="n">face_overlay</span><span class="o">=</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"art_provenance"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"dicebear"</span><span class="p">,</span>
         <span class="n">metadata</span><span class="o">=</span><span class="p">{</span><span class="o">**</span><span class="n">metadata</span><span class="p">,</span> <span class="s2">"pivots_detected"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">pivots</span><span class="o">.</span><span class="n">keys</span><span class="p">())},</span>
         <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
+        <span class="n">colour_roles</span><span class="o">=</span><span class="n">roles</span><span class="p">,</span>
+        <span class="o">**</span><span class="p">(</span>
+            <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">build</span> <span class="o">==</span> <span class="n">DFLT_BUILD</span> <span class="ow">and</span> <span class="n">head_scale</span> <span class="o">==</span> <span class="mf">1.0</span>
+            <span class="k">else</span> <span class="p">{</span><span class="s2">"bones"</span><span class="p">:</span> <span class="n">_bones_for</span><span class="p">(</span><span class="n">body</span><span class="p">,</span> <span class="n">head_scale</span><span class="o">=</span><span class="n">head_scale</span><span class="p">)}</span>
+        <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">declare_mouth_variants</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">variants</span><span class="p">)</span>
     <span class="n">descriptor</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"seed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">seed_used</span>
+    <span class="c1"># The knobs, recorded only when set — so a default character's descriptor</span>
+    <span class="c1"># carries nothing it did not carry before them.</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">default</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">"build"</span><span class="p">,</span> <span class="n">build</span><span class="p">,</span> <span class="n">DFLT_BUILD</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"hat"</span><span class="p">,</span> <span class="n">hat</span><span class="p">,</span> <span class="n">DFLT_HAT</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"sash"</span><span class="p">,</span> <span class="n">sash</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"palette"</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">palette_</span><span class="p">),</span> <span class="p">{}),</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="n">default</span><span class="p">:</span>
+            <span class="n">descriptor</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
     <span class="n">desc_path</span> <span class="o">=</span> <span class="n">out</span> <span class="o">/</span> <span class="s2">"character.json"</span>
     <span class="n">desc_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">descriptor</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">gaze</span> <span class="ow">and</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">face_overlay</span><span class="p">:</span>
         <span class="n">add_gaze</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>  <span class="c1"># the lid's fill is read off the head art it just wrote</span>
+    <span class="k">if</span> <span class="n">head_scale</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+        <span class="n">_scale_face</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">head_scale</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">desc_path</span></div>
 
 
@@ -1016,21 +1424,35 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_fallback_face_svg</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_fallback_face_svg</span><span class="p">(</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">skin</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">hair</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"none"</span><span class="p">,</span>
+    <span class="n">accessory</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Tiny fallback face SVG used when DiceBear is unavailable.</span>
 
 <span class="sd">    Deterministic: same seed → same face (skin tone + hair color picked</span>
-<span class="sd">    from hand-curated palettes via stable hash). Crucially: NO eyes /</span>
+<span class="sd">    from hand-curated palettes via stable hash, unless given). Crucially: NO eyes /</span>
 <span class="sd">    brows / mouth baked in — those are added by the overlay slots so</span>
 <span class="sd">    they can blink and lip-sync. Phase 11d fix for the "four eyes" bug.</span>
+
+<span class="sd">    ``hat`` (a key of :data:`HATS`) is drawn over the hair in ``accessory``.</span>
 <span class="sd">    """</span>
     <span class="n">h</span> <span class="o">=</span> <span class="n">_stable_hash</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-    <span class="n">skin</span> <span class="o">=</span> <span class="n">_SKIN_TONES</span><span class="p">[</span><span class="n">h</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_SKIN_TONES</span><span class="p">)]</span>
-    <span class="n">hair</span> <span class="o">=</span> <span class="n">_HAIR_TONES</span><span class="p">[(</span><span class="n">h</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_HAIR_TONES</span><span class="p">)]</span>
+    <span class="n">skin</span> <span class="o">=</span> <span class="n">skin</span> <span class="ow">or</span> <span class="n">_SKIN_TONES</span><span class="p">[</span><span class="n">h</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_SKIN_TONES</span><span class="p">)]</span>
+    <span class="n">hair</span> <span class="o">=</span> <span class="n">hair</span> <span class="ow">or</span> <span class="n">_HAIR_TONES</span><span class="p">[(</span><span class="n">h</span> <span class="o">&gt;&gt;</span> <span class="mi">16</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_HAIR_TONES</span><span class="p">)]</span>
+    <span class="n">hat_svg</span> <span class="o">=</span> <span class="n">_HAT_SVG</span><span class="p">[</span><span class="n">hat</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">acc</span><span class="o">=</span><span class="n">accessory</span> <span class="ow">or</span> <span class="n">_ACCESSORY_TONES</span><span class="p">[(</span><span class="n">h</span> <span class="o">&gt;&gt;</span> <span class="mi">32</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_ACCESSORY_TONES</span><span class="p">)],</span>
+        <span class="n">ink</span><span class="o">=</span><span class="n">OUTLINE_COLOUR</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">hat_line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">          </span><span class="si">{</span><span class="n">hat_svg</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">hat_svg</span> <span class="k">else</span> <span class="s2">""</span>
     <span class="k">return</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"""&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"&gt;</span>
 <span class="s2">          &lt;circle cx="40" cy="44" r="28" fill="</span><span class="si">{</span><span class="n">skin</span><span class="si">}</span><span class="s2">"/&gt;</span>
-<span class="s2">          &lt;path d="M 12 36 Q 40 4 68 36 L 60 24 L 40 14 L 20 24 Z" fill="</span><span class="si">{</span><span class="n">hair</span><span class="si">}</span><span class="s2">"/&gt;</span>
+<span class="s2">          &lt;path d="M 12 36 Q 40 4 68 36 L 60 24 L 40 14 L 20 24 Z" fill="</span><span class="si">{</span><span class="n">hair</span><span class="si">}</span><span class="s2">"/&gt;</span><span class="si">{</span><span class="n">hat_line</span><span class="si">}</span>
 <span class="s2">        &lt;/svg&gt;"""</span>
     <span class="p">)</span>
 
@@ -1096,7 +1518,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_synthesize_pupil</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
     <span class="n">cx</span><span class="p">,</span> <span class="n">cy</span> <span class="o">=</span> <span class="n">EYE_CENTRE</span>
-    <span class="n">inner</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'&lt;circle cx="</span><span class="si">{</span><span class="n">cx</span><span class="si">}</span><span class="s1">" cy="</span><span class="si">{</span><span class="n">cy</span><span class="si">}</span><span class="s1">" r="</span><span class="si">{</span><span class="n">PUPIL_R</span><span class="si">}</span><span class="s1">" fill="#1a1a1a"/&gt;'</span>
+    <span class="n">inner</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'&lt;circle cx="</span><span class="si">{</span><span class="n">cx</span><span class="si">}</span><span class="s1">" cy="</span><span class="si">{</span><span class="n">cy</span><span class="si">}</span><span class="s1">" r="</span><span class="si">{</span><span class="n">PUPIL_R</span><span class="si">}</span><span class="s1">" fill="</span><span class="si">{</span><span class="n">PUPIL_COLOUR</span><span class="si">}</span><span class="s1">"/&gt;'</span>
     <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">_eye_svg</span><span class="p">(</span><span class="n">inner</span><span class="p">,</span> <span class="n">gid</span><span class="o">=</span><span class="sa">f</span><span class="s2">"pupil_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">"</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
@@ -1228,6 +1650,38 @@ window.runMermaid = runMermaid;</script>
             <span class="n">parts</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"eye_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_open.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="n">side</span><span class="p">,</span> <span class="n">outline_only</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
         <span class="n">_synthesize_eye_closed</span><span class="p">(</span><span class="n">parts</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"eye_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_closed.svg"</span><span class="p">,</span> <span class="n">side</span><span class="o">=</span><span class="n">side</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">skin</span><span class="p">)</span>
+    <span class="c1"># Same size as the rest of the face on a rig drawn with a head scale.</span>
+    <span class="n">head_scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"head_scale"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">scale_part_files</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">parts</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">.svg"</span>
+            <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"l"</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">stem</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"sclera"</span><span class="p">,</span> <span class="s2">"pupil"</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="o">+</span> <span class="p">[</span>
+            <span class="n">parts</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"eye_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">state</span><span class="si">}</span><span class="s2">.svg"</span>
+            <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"l"</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"open"</span><span class="p">,</span> <span class="s2">"closed"</span><span class="p">)</span>
+        <span class="p">],</span>
+        <span class="n">head_scale</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># The colours it just drew, as roles — but ONLY on a rig whose art is</span>
+    <span class="c1"># already tagged, and the lid only when its colour is the head's TAGGED</span>
+    <span class="c1"># skin literal. On an untagged rig the lid colour was read off the head</span>
+    <span class="c1"># art (`_skin_fill_of`), and turning that guess into a role is inferring</span>
+    <span class="c1"># a role from a pixel: a pack would repaint the lids and not the face,</span>
+    <span class="c1"># an#99's wrong-tone lid again, with the compiler's warning silenced.</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">colour_roles</span><span class="p">:</span>
+        <span class="n">head_roles</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">colour_roles</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"parts/head.svg"</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">lid</span> <span class="o">=</span> <span class="n">_hex_or_none</span><span class="p">(</span><span class="n">skin</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"l"</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">):</span>
+            <span class="c1"># Pop before re-adding, so a second run writes the same key order</span>
+            <span class="c1"># (add_gaze is idempotent, byte for byte).</span>
+            <span class="k">for</span> <span class="n">stem</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"eye_</span><span class="si">{}</span><span class="s2">_open"</span><span class="p">,</span> <span class="s2">"eye_</span><span class="si">{}</span><span class="s2">_closed"</span><span class="p">,</span> <span class="s2">"pupil_</span><span class="si">{}</span><span class="s2">"</span><span class="p">):</span>
+                <span class="n">desc</span><span class="o">.</span><span class="n">colour_roles</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="sa">f</span><span class="s2">"parts/</span><span class="si">{</span><span class="n">stem</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">side</span><span class="p">)</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">lid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">head_roles</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">lid</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"skin"</span><span class="p">:</span>
+                <span class="n">desc</span><span class="o">.</span><span class="n">colour_roles</span><span class="p">[</span><span class="sa">f</span><span class="s2">"parts/eye_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_closed.svg"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">lid</span><span class="p">:</span> <span class="s2">"skin"</span><span class="p">}</span>
+            <span class="n">desc</span><span class="o">.</span><span class="n">colour_roles</span><span class="p">[</span><span class="sa">f</span><span class="s2">"parts/pupil_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">PUPIL_COLOUR</span><span class="p">:</span> <span class="s2">"pupil"</span><span class="p">}</span>
     <span class="n">had_stack</span> <span class="o">=</span> <span class="s2">"left_pupil"</span> <span class="ow">in</span> <span class="n">by_name</span> <span class="ow">or</span> <span class="s2">"right_pupil"</span> <span class="ow">in</span> <span class="n">by_name</span>
     <span class="k">for</span> <span class="n">side</span><span class="p">,</span> <span class="n">eye_slot</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"l"</span><span class="p">,</span> <span class="s2">"left_eye"</span><span class="p">),</span> <span class="p">(</span><span class="s2">"r"</span><span class="p">,</span> <span class="s2">"right_eye"</span><span class="p">)):</span>
         <span class="n">eye</span> <span class="o">=</span> <span class="n">by_name</span><span class="p">[</span><span class="n">eye_slot</span><span class="p">]</span>
@@ -1258,11 +1712,22 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># under the mouth and `right_eye` over it — harmless, they never</span>
         <span class="c1"># overlap, but do not read the numbers as a strict stack.</span>
         <span class="n">eye</span><span class="o">.</span><span class="n">draw_order</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="n">desc</span><span class="o">.</span><span class="n">gaze_travel</span> <span class="o">=</span> <span class="n">gaze_travel_for</span><span class="p">()</span>
+    <span class="n">desc</span><span class="o">.</span><span class="n">gaze_travel</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">axis</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">head_scale</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span> <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">gaze_travel_for</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
     <span class="n">desc</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s2">"gaze_stack"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"an#99"</span>
     <span class="n">desc_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">desc_path</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_hex_or_none</span><span class="p">(</span><span class="n">colour</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``colour`` normalised, or ``None`` when it is not a hex literal (a named</span>
+<span class="sd">    SVG colour is a valid fill but cannot be a role key)."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">normalise_hex</span><span class="p">(</span><span class="n">colour</span><span class="p">)</span> <span class="k">if</span> <span class="n">colour</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_palette_for_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
@@ -1325,7 +1790,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">svg</span><span class="p">[:</span> <span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">()]</span> <span class="o">+</span> <span class="n">tag</span> <span class="o">+</span> <span class="n">svg</span><span class="p">[</span><span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">()</span> <span class="p">:]</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_write_head_part</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">avatar_svg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_head_part</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">avatar_svg</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">REFERENCE_HEAD_HEIGHT</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Write the avatar SVG as the head part, sized to the rig's head.</span>
 
 <span class="sd">    The compiler draws a part at its own raster size, in view_box units, so</span>
@@ -1335,73 +1802,122 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    762×762 one nearly three times it (an#168). Only the root's</span>
 <span class="sd">    ``width``/``height`` change; the drawing and its viewBox are untouched.</span>
 <span class="sd">    """</span>
-    <span class="n">avatar_svg</span> <span class="o">=</span> <span class="n">_sized_to_height</span><span class="p">(</span><span class="n">avatar_svg</span><span class="p">,</span> <span class="n">REFERENCE_HEAD_HEIGHT</span><span class="p">)</span>
+    <span class="n">avatar_svg</span> <span class="o">=</span> <span class="n">_sized_to_height</span><span class="p">(</span><span class="n">avatar_svg</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">avatar_svg</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"&lt;?xml"</span><span class="p">):</span>
         <span class="n">avatar_svg</span> <span class="o">=</span> <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span><span class="se">\n</span><span class="s1">'</span> <span class="o">+</span> <span class="n">avatar_svg</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span>
     <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">avatar_svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_write_torso_part</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">clothing</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">accent</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A 256x256 torso SVG: rounded rect with a slight collar accent."""</span>
-    <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span><span class="se">\n</span><span class="s1">'</span>
-        <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 256 256" width="256" height="256"&gt;'</span>
-        <span class="s1">'&lt;g id="torso"&gt;'</span>
-        <span class="sa">f</span><span class="s1">'&lt;rect x="20" y="20" width="216" height="216" rx="40" ry="40" '</span>
-        <span class="sa">f</span><span class="s1">'fill="</span><span class="si">{</span><span class="n">clothing</span><span class="si">}</span><span class="s1">" stroke="#222" stroke-width="6"/&gt;'</span>
-        <span class="sa">f</span><span class="s1">'&lt;path d="M 96 20 Q 128 60 160 20" stroke="</span><span class="si">{</span><span class="n">accent</span><span class="si">}</span><span class="s1">" '</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_torso_part</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">clothing</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">accent</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">body</span><span class="p">:</span> <span class="n">BodyBuild</span> <span class="o">=</span> <span class="n">BUILDS</span><span class="p">[</span><span class="n">DFLT_BUILD</span><span class="p">],</span>
+    <span class="n">sash</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The torso SVG: a rounded rect with a slight collar accent, inset 20 in</span>
+<span class="sd">    its ``body.torso_size`` canvas. ``sash`` draws a diagonal band across it in</span>
+<span class="sd">    that colour. Returns the part's colour roles."""</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">torso_size</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">torso_radius</span>
+    <span class="n">hb</span> <span class="o">=</span> <span class="n">h</span> <span class="o">-</span> <span class="mi">20</span> <span class="o">-</span> <span class="n">body</span><span class="o">.</span><span class="n">torso_inset_bottom</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'x="20" y="20" width="</span><span class="si">{</span><span class="n">w</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">40</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">hb</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" rx="</span><span class="si">{</span><span class="n">r</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" ry="</span><span class="si">{</span><span class="n">r</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"'</span>
+    <span class="n">collar</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'&lt;path d="M </span><span class="si">{</span><span class="n">w</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">32</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1"> 20 Q </span><span class="si">{</span><span class="n">w</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1"> 60 </span><span class="si">{</span><span class="n">w</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">32</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1"> 20" stroke="</span><span class="si">{</span><span class="n">accent</span><span class="si">}</span><span class="s1">" '</span>
         <span class="sa">f</span><span class="s1">'stroke-width="6" fill="none"/&gt;'</span>
-        <span class="s2">"&lt;/g&gt;&lt;/svg&gt;"</span>
     <span class="p">)</span>
-    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">path</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_write_arm_part</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A 64x256 arm SVG with hand at the bottom."""</span>
+    <span class="n">roles</span> <span class="o">=</span> <span class="p">{</span><span class="n">clothing</span><span class="p">:</span> <span class="s2">"clothing"</span><span class="p">,</span> <span class="n">accent</span><span class="p">:</span> <span class="s2">"hair"</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">sash</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inner</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'&lt;rect </span><span class="si">{</span><span class="n">rect</span><span class="si">}</span><span class="s1"> fill="</span><span class="si">{</span><span class="n">clothing</span><span class="si">}</span><span class="s1">" stroke="#222" stroke-width="6"/&gt;'</span> <span class="o">+</span> <span class="n">collar</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Fill, then the band clipped to the body, then the outline on top, so</span>
+        <span class="c1"># the band never covers the ink.</span>
+        <span class="n">band</span> <span class="o">=</span> <span class="mf">0.16</span> <span class="o">*</span> <span class="nb">min</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">hb</span><span class="p">)</span>
+        <span class="n">inner</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'&lt;clipPath id="torso_body"&gt;&lt;rect </span><span class="si">{</span><span class="n">rect</span><span class="si">}</span><span class="s1">/&gt;&lt;/clipPath&gt;'</span>
+            <span class="sa">f</span><span class="s1">'&lt;rect </span><span class="si">{</span><span class="n">rect</span><span class="si">}</span><span class="s1"> fill="</span><span class="si">{</span><span class="n">clothing</span><span class="si">}</span><span class="s1">"/&gt;'</span>
+            <span class="sa">f</span><span class="s1">'&lt;path d="M 20 </span><span class="si">{</span><span class="mi">20</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.12</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hb</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1"> L </span><span class="si">{</span><span class="n">w</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">20</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="mi">20</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mf">0.88</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hb</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" '</span>
+            <span class="sa">f</span><span class="s1">'stroke="</span><span class="si">{</span><span class="n">sash</span><span class="si">}</span><span class="s1">" stroke-width="</span><span class="si">{</span><span class="n">band</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" fill="none" '</span>
+            <span class="s1">'clip-path="url(#torso_body)"/&gt;'</span>
+            <span class="o">+</span> <span class="n">collar</span>
+            <span class="o">+</span> <span class="sa">f</span><span class="s1">'&lt;rect </span><span class="si">{</span><span class="n">rect</span><span class="si">}</span><span class="s1"> fill="none" stroke="#222" stroke-width="6"/&gt;'</span>
+        <span class="p">)</span>
+        <span class="n">roles</span><span class="p">[</span><span class="n">sash</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"accessory"</span>
     <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span><span class="se">\n</span><span class="s1">'</span>
-        <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 64 256" width="64" height="256"&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 </span><span class="si">{</span><span class="n">w</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" width="</span><span class="si">{</span><span class="n">w</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;g id="torso"&gt;</span><span class="si">{</span><span class="n">inner</span><span class="si">}</span><span class="s1">&lt;/g&gt;&lt;/svg&gt;'</span>
+    <span class="p">)</span>
+    <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">roles</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_arm_part</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">hand</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_HAND_COLOUR</span><span class="p">,</span>
+    <span class="n">body</span><span class="p">:</span> <span class="n">BodyBuild</span> <span class="o">=</span> <span class="n">BUILDS</span><span class="p">[</span><span class="n">DFLT_BUILD</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""A 64-wide arm SVG, ``body.arm_length`` long, hand at the bottom.</span>
+<span class="sd">    Returns the part's colour roles."""</span>
+    <span class="n">L</span><span class="p">,</span> <span class="n">aw</span><span class="p">,</span> <span class="n">hr</span><span class="p">,</span> <span class="n">sw</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">arm_length</span><span class="p">,</span> <span class="n">body</span><span class="o">.</span><span class="n">arm_width</span><span class="p">,</span> <span class="n">body</span><span class="o">.</span><span class="n">hand_radius</span><span class="p">,</span> <span class="n">body</span><span class="o">.</span><span class="n">limb_stroke</span>
+    <span class="n">cy</span> <span class="o">=</span> <span class="n">L</span> <span class="o">-</span> <span class="mi">4</span> <span class="o">-</span> <span class="n">hr</span>
+    <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 64 </span><span class="si">{</span><span class="n">L</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" width="64" height="</span><span class="si">{</span><span class="n">L</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"&gt;'</span>
         <span class="sa">f</span><span class="s1">'&lt;g id="arm_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s1">"&gt;'</span>
-        <span class="sa">f</span><span class="s1">'&lt;rect x="14" y="0" width="36" height="216" rx="18" ry="18" '</span>
-        <span class="sa">f</span><span class="s1">'fill="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">" stroke="#222" stroke-width="4"/&gt;'</span>
-        <span class="sa">f</span><span class="s1">'&lt;circle cx="32" cy="232" r="20" fill="#f1c9a5" stroke="#222" '</span>
-        <span class="sa">f</span><span class="s1">'stroke-width="4"/&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;rect x="</span><span class="si">{</span><span class="p">(</span><span class="mi">64</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">aw</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" y="0" width="</span><span class="si">{</span><span class="n">aw</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">16</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" '</span>
+        <span class="sa">f</span><span class="s1">'rx="</span><span class="si">{</span><span class="n">aw</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" ry="</span><span class="si">{</span><span class="n">aw</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" '</span>
+        <span class="sa">f</span><span class="s1">'fill="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">" stroke="#222" stroke-width="</span><span class="si">{</span><span class="n">sw</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"/&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;circle cx="32" cy="</span><span class="si">{</span><span class="n">cy</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" r="</span><span class="si">{</span><span class="n">hr</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" fill="</span><span class="si">{</span><span class="n">hand</span><span class="si">}</span><span class="s1">" stroke="#222" '</span>
+        <span class="sa">f</span><span class="s1">'stroke-width="</span><span class="si">{</span><span class="n">sw</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"/&gt;'</span>
         <span class="s2">"&lt;/g&gt;&lt;/svg&gt;"</span>
     <span class="p">)</span>
     <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">path</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">color</span><span class="p">:</span> <span class="s2">"clothing"</span><span class="p">,</span> <span class="n">hand</span><span class="p">:</span> <span class="s2">"skin"</span><span class="p">}</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_write_leg_part</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_leg_part</span><span class="p">(</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">body</span><span class="p">:</span> <span class="n">BodyBuild</span> <span class="o">=</span> <span class="n">BUILDS</span><span class="p">[</span><span class="n">DFLT_BUILD</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""An 80-wide leg SVG with a shoe at the bottom, hip to ground long.</span>
 
-<span class="sd">    Its height is the rig's :data:`~an.characters.schema.LEG_LENGTH`, so a leg</span>
-<span class="sd">    hung from the hip bone puts the shoe on the ground (an#168).</span>
+<span class="sd">    Its height is the build's ``leg_length`` — the rig's</span>
+<span class="sd">    :data:`~an.characters.schema.LEG_LENGTH` by default — so a leg hung from the</span>
+<span class="sd">    hip bone puts the shoe on the ground (an#168). Returns its colour roles.</span>
 <span class="sd">    """</span>
-    <span class="n">h</span> <span class="o">=</span> <span class="n">LEG_LENGTH</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">lw</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_length</span><span class="p">,</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_width</span>
+    <span class="n">srx</span><span class="p">,</span> <span class="n">sry</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="n">shoe_size</span>
+    <span class="n">cy</span> <span class="o">=</span> <span class="n">h</span> <span class="o">-</span> <span class="mi">6</span> <span class="o">-</span> <span class="n">sry</span>
+    <span class="n">rx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">lw</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span><span class="se">\n</span><span class="s1">'</span>
         <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 80 </span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" width="80" height="</span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">"&gt;'</span>
         <span class="sa">f</span><span class="s1">'&lt;g id="leg_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s1">"&gt;'</span>
-        <span class="sa">f</span><span class="s1">'&lt;rect x="20" y="0" width="40" height="</span><span class="si">{</span><span class="n">h</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">36</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" rx="6" ry="6" '</span>
+        <span class="sa">f</span><span class="s1">'&lt;rect x="</span><span class="si">{</span><span class="p">(</span><span class="mi">80</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">lw</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" y="0" width="</span><span class="si">{</span><span class="n">lw</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" height="</span><span class="si">{</span><span class="n">cy</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">12</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" '</span>
+        <span class="sa">f</span><span class="s1">'rx="</span><span class="si">{</span><span class="n">rx</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" ry="</span><span class="si">{</span><span class="n">rx</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" '</span>
         <span class="sa">f</span><span class="s1">'fill="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">"/&gt;'</span>
-        <span class="sa">f</span><span class="s1">'&lt;ellipse cx="40" cy="</span><span class="si">{</span><span class="n">h</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">24</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" rx="32" ry="18" fill="#1a1a1a"/&gt;'</span>
+        <span class="sa">f</span><span class="s1">'&lt;ellipse cx="40" cy="</span><span class="si">{</span><span class="n">cy</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" rx="</span><span class="si">{</span><span class="n">srx</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" ry="</span><span class="si">{</span><span class="n">sry</span><span class="si">:</span><span class="s1">g</span><span class="si">}</span><span class="s1">" fill="</span><span class="si">{</span><span class="n">SHOE_COLOUR</span><span class="si">}</span><span class="s1">"/&gt;'</span>
         <span class="s2">"&lt;/g&gt;&lt;/svg&gt;"</span>
     <span class="p">)</span>
     <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">path</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">color</span><span class="p">:</span> <span class="s2">"leg"</span><span class="p">}</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_synthesize_brow</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_synthesize_brow</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">side</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_BROW_COLOUR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
     <span class="n">tilt</span> <span class="o">=</span> <span class="mi">4</span> <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="s2">"l"</span> <span class="k">else</span> <span class="o">-</span><span class="mi">4</span>
     <span class="n">svg</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s1">'&lt;?xml version="1.0" encoding="UTF-8"?&gt;</span><span class="se">\n</span><span class="s1">'</span>
         <span class="sa">f</span><span class="s1">'&lt;svg xmlns="</span><span class="si">{</span><span class="n">SVG_NS</span><span class="si">}</span><span class="s1">" viewBox="0 0 80 24" width="80" height="24"&gt;'</span>
         <span class="sa">f</span><span class="s1">'&lt;g id="brow_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s1">"&gt;'</span>
         <span class="sa">f</span><span class="s1">'&lt;path d="M 8 </span><span class="si">{</span><span class="mi">12</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">tilt</span><span class="si">}</span><span class="s1"> Q 40 4 72 </span><span class="si">{</span><span class="mi">12</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tilt</span><span class="si">}</span><span class="s1">" '</span>
-        <span class="s1">'stroke="#3a2a20" stroke-width="6" fill="none" stroke-linecap="round"/&gt;'</span>
+        <span class="sa">f</span><span class="s1">'stroke="</span><span class="si">{</span><span class="n">color</span><span class="si">}</span><span class="s1">" stroke-width="6" fill="none" stroke-linecap="round"/&gt;'</span>
         <span class="s2">"&lt;/g&gt;&lt;/svg&gt;"</span>
     <span class="p">)</span>
     <span class="n">path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">svg</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>

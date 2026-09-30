@@ -45,6 +45,7 @@ an.characters
    :recursive:
 
    cli
+   colour_roles
    dicebear
    factory
    idle

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../_static/documentation_options.js?v=7eceb120"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stores.voices" href="an.stores.voices.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.107" />
+  <meta name="docsearch:version" content="0.1.108" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -366,6 +366,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
@@ -522,24 +523,17 @@ compiler’s <code class="code docutils literal notranslate"><span class="pre">_
 character factory, which carried <em>two disagreeing</em> palette tables. an#106
 retired <code class="code docutils literal notranslate"><span class="pre">AssetRef(kind=&quot;style&quot;)</span></code> because it selected nothing. This is what the
 word was reserved for.</p>
-<p><strong>A pack does not recolour SVG art at compile time.</strong> Four code-backed reasons,
-and they are the reason this module is small:</p>
-<ol class="arabic simple">
-<li><p>It would break <code class="code docutils literal notranslate"><span class="pre">src</span></code> content addressing and the asset-resolution ledger.</p></li>
-<li><p>The only substitution precedent in this package is a regex
-(<code class="code docutils literal notranslate"><span class="pre">_skin_fill_of</span></code>) — which is exactly what <code class="code docutils literal notranslate"><span class="pre">bench/palette.py</span></code> had to abandon
-for XML parsing.</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code> has no role tagging, so a pack would have to infer a
-role from a pixel; inferring a role from a pixel is what produced an#99’s
-wrong-tone lid.</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">tint</span></code> occurs zero times in the runtime.</p></li>
-</ol>
-<p><strong>Nothing recolours SVG art today.</strong> A pack seam in the character factory —
-which already owns the colour seams — is the obvious home for it and is NOT
-built; the compiler <strong>warns</strong>, naming the entities it could not reach, and says
-so rather than pointing at a flag that does not exist. Until then, an SVG rig
-is recoloured by editing its art or generating it in the colours you want. A pack that silently did nothing to an SVG rig would be the
-worst of the options.</p>
+<p><strong>A pack recolours SVG art only where the art says what its colours are.</strong>
+The character factory records, per part, which literal it drew as which role
+(<code class="code docutils literal notranslate"><span class="pre">CharacterDescriptor.colour_roles</span></code>, see <a class="reference internal" href="an.characters.colour_roles.html#module-an.characters.colour_roles" title="an.characters.colour_roles"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.characters.colour_roles</span></code></a>),
+and the compiler rewrites exactly those literals into a new, content-addressed
+inline texture — palette swapping. Untagged art (hand-drawn, DiceBear) is left
+alone and the compiler warns once, naming it: a pack would otherwise have to
+infer a role from a pixel, which is what produced an#99’s wrong-tone lid. So
+the four reasons this module once gave for never touching SVG reduce to one
+that still holds — no tags, no recolour. (The texture is inline, so staging and
+content addressing are unaffected; the substitution rewrites paint attributes
+only, never geometry or ids.)</p>
 <p><strong>A pack must not declare a role it cannot change.</strong> <code class="code docutils literal notranslate"><span class="pre">lip</span></code>, <code class="code docutils literal notranslate"><span class="pre">mouth_fill</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">teeth</span></code>, <code class="code docutils literal notranslate"><span class="pre">tongue</span></code> and the eye’s white are literals inside <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code>; a role
 that resolves to nothing is worse than an absent one, and <a class="reference internal" href="#an.styles.UNREACHABLE_ROLES" title="an.styles.UNREACHABLE_ROLES"><code class="xref py py-data docutils literal notranslate"><span class="pre">UNREACHABLE_ROLES</span></code></a>
@@ -584,7 +578,7 @@ representation doubles the surface on which the two can silently diverge.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.styles.REACHABLE_ROLES">
-<span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">REACHABLE_ROLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'clothing',</span> <span class="pre">'ground',</span> <span class="pre">'hair',</span> <span class="pre">'leg',</span> <span class="pre">'pupil',</span> <span class="pre">'skin',</span> <span class="pre">'sky',</span> <span class="pre">'stroke'})</span></span><a class="headerlink" href="#an.styles.REACHABLE_ROLES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">REACHABLE_ROLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'accessory',</span> <span class="pre">'clothing',</span> <span class="pre">'ground',</span> <span class="pre">'hair',</span> <span class="pre">'leg',</span> <span class="pre">'pupil',</span> <span class="pre">'skin',</span> <span class="pre">'sky',</span> <span class="pre">'stroke'})</span></span><a class="headerlink" href="#an.styles.REACHABLE_ROLES" title="Link to this definition">#</a></dt>
 <dd><p>Roles a pack can actually change, because the COMPILER decides them and
 stamps them into the document the runtime draws.</p>
 <p><code class="code docutils literal notranslate"><span class="pre">skin</span></code>, <code class="code docutils literal notranslate"><span class="pre">clothing</span></code> and <code class="code docutils literal notranslate"><span class="pre">hair</span></code> are <code class="code docutils literal notranslate"><span class="pre">_CHARACTER_PALETTES</span></code>’ three components;
@@ -592,7 +586,10 @@ stamps them into the document the runtime draws.</p>
 <code class="code docutils literal notranslate"><span class="pre">DFLT_PUPIL_COLOUR</span></code>); <code class="code docutils literal notranslate"><span class="pre">sky</span></code> and <code class="code docutils literal notranslate"><span class="pre">ground</span></code> are the environment presets’;
 <code class="code docutils literal notranslate"><span class="pre">stroke</span></code> is a stroked path’s default colour (<code class="code docutils literal notranslate"><span class="pre">an.paths.DFLT_STROKE_COLOUR</span></code>,
 an#161) — the arrowhead is filled in the same colour, so it is not a second
-role. A path that names its own <code class="code docutils literal notranslate"><span class="pre">color</span></code> is art and is left alone.</p>
+role. A path that names its own <code class="code docutils literal notranslate"><span class="pre">color</span></code> is art and is left alone.
+<code class="code docutils literal notranslate"><span class="pre">accessory</span></code> (a hat, a sash) exists only in role-tagged SVG art — the
+factory’s <code class="code docutils literal notranslate"><span class="pre">colour_roles</span></code> — and reaches the document through the recoloured
+texture, as do the SVG rig’s <code class="code docutils literal notranslate"><span class="pre">skin</span></code>, <code class="code docutils literal notranslate"><span class="pre">clothing</span></code>, <code class="code docutils literal notranslate"><span class="pre">hair</span></code>, <code class="code docutils literal notranslate"><span class="pre">leg</span></code> and <code class="code docutils literal notranslate"><span class="pre">pupil</span></code>.</p>
 <p>Every one of these is compiled with a marker colour and asserted to reach
 the document by <code class="code docutils literal notranslate"><span class="pre">tests/test_styles.py</span></code>. <code class="code docutils literal notranslate"><span class="pre">pupil</span></code> shipped in this set wired to
 NOTHING (an#112 review) because the guard checked set membership against the

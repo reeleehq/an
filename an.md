@@ -1,4 +1,4 @@
-> built 2026-09-30 04:56 UTC from a454d98 (main) · an 0.1.107. Details: build_info.json
+> built 2026-09-30 05:15 UTC from 9a3f599 (main) · an 0.1.108. Details: build_info.json
 
 # index.html.md
 
@@ -10123,7 +10123,7 @@ variants: comma-separated mouth forms (see `an character new`); “” = none
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad')
+### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False)
 
 Create a new character at `out_dir`/`name`.
 
@@ -10144,6 +10144,20 @@ mouth_variants: comma-separated mouth forms to draw as `viseme@<form>`
 
 > sets (an#98) — a form an expression preset prefers (happy, sad, angry,
 > surprised, afraid, disgusted); “” for the neutral set only
+
+palette: colours by StylePack role, “skin=#f1c9a5,clothing=#2e7d4f” (or a
+: JSON object); roles: skin, hair, clothing, leg, accessory
+
+build: body proportions — regular, squat (round body, short legs), tall,
+: stick (small blocky body, stick limbs)
+
+head_scale: the head and its whole face scaled together (1.0 = regular)
+hat: none, cap, beanie, bowler or bicorne (offline head only), in the
+
+> accessory colour
+
+sash: a diagonal band across the torso, in the accessory colour
+
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
@@ -10204,6 +10218,138 @@ out_dir: parent directory; defaults to ./assets/characters
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+
+# _autosummary/an.characters.colour_roles.html.md
+
+# an.characters.colour_roles
+
+Colour roles: which colour literal in which part is skin, clothing, hair…
+
+A `StylePack` maps a role to a colour. For the procedural rig the compiler
+decides every colour, so the mapping is a lookup. For SVG art the colours live
+inside the drawings, and a pack could only reach them by guessing which literal
+means what — inferring a role from a pixel, which is what produced an#99’s
+wrong-tone lid. So the roles are recorded at the SOURCE instead: the character
+factory knows which fill it drew as skin and which as clothing, and it writes
+that down in the descriptor’s `colour_roles`:
+
+```default
+{"parts/torso.svg": {"#a83249": "clothing", "#3b2a1a": "hair"}}
+```
+
+This is **palette swapping**, the indexed-colour technique 2D games have used
+since sprites: a part is keyed by the literal it was drawn in, and a swap
+rewrites that literal. Keyed per PART, not per character, because one literal
+can mean two things in two drawings (the default pupil and a near-black hair
+are both `#1a1a1a`). The one limit it inherits is the classic one: within a
+single part, two roles must be drawn in two distinct literals — the factory
+guarantees it ([`distinct_literal()`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.distinct_literal)), and an illustrator tagging their own
+art is told so by the descriptor validator.
+
+The compiler applies it ([`recolour_svg()`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.recolour_svg)) at compile time: the tagged
+part’s SVG text is rewritten, and the result becomes a new, content-addressed
+inline texture. Art with no roles — hand-drawn, DiceBear — is untouched, and
+the compiler says so.
+
+```pycon
+>>> recolour_svg('<rect fill="#A83249" stroke="#222"/>', {"#a83249": "#123456"})
+'<rect fill="#123456" stroke="#222"/>'
+```
+
+### Module Attributes
+
+| [`ColourRoles`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.ColourRoles)   | `{part path: {"#rrggbb": role}}` — the descriptor field's shape.   |
+|----------------------------------------------------------------|--------------------------------------------------------------------|
+
+### Functions
+
+| [`normalise_hex`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.normalise_hex)(colour)               | `'#ABC'` -> `'#aabbcc'`: the one spelling a literal is keyed by.                                                              |
+|--------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| [`recolour_svg`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.recolour_svg)(svg, swaps)            | `svg` with every paint use of an old literal replaced by its new one.                                                         |
+| [`role_recolouring`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.role_recolouring)(roles, colour_for) | `{old literal: new colour}` for the roles `colour_for` sets.                                                                  |
+| [`distinct_literal`](_autosummary/an.characters.colour_roles.html.md#an.characters.colour_roles.distinct_literal)(colour, taken)     | `colour`, nudged by the smallest step until no literal in `taken` has it — the one rule palette swapping needs within a part. |
+
+### an.characters.colour_roles.ColourRoles
+
+`{part path: {"#rrggbb": role}}` — the descriptor field’s shape.
+
+alias of [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.characters.colour_roles.distinct_literal(colour, taken)
+
+`colour`, nudged by the smallest step until no literal in `taken`
+has it — the one rule palette swapping needs within a part.
+
+Two roles drawn in one literal cannot be told apart by a swap, and neither
+can a role and an untagged detail (a shoe, an outline) that happens to share
+it. One step in one channel is invisible and makes the key exact.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> distinct_literal("#222222", {"#222222"})
+'#222223'
+>>> distinct_literal("#ffffff", {"#ffffff", "#fffffe"})
+'#fffffd'
+>>> distinct_literal("#123456", {"#abcdef"})
+'#123456'
+```
+
+### an.characters.colour_roles.normalise_hex(colour)
+
+`'#ABC'` -> `'#aabbcc'`: the one spelling a literal is keyed by.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> normalise_hex("#A83249"), normalise_hex("#fa0")
+('#a83249', '#ffaa00')
+>>> normalise_hex("red")
+Traceback (most recent call last):
+...
+ValueError: 'red' is not a #rgb or #rrggbb colour
+```
+
+### an.characters.colour_roles.recolour_svg(svg, swaps)
+
+`svg` with every paint use of an old literal replaced by its new one.
+
+Only paint colours are touched (`fill`, `stroke`, gradient stops…, as an
+attribute or a style declaration); everything else — geometry, ids,
+fragment references — stays byte-for-byte. Literals match case- and
+length-insensitively (`#FA0` is `#ffaa00`). Deterministic, and cached by
+content: the same text and swaps are rewritten once per process.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> recolour_svg('<g style="fill:#fa0;stroke:#000"><use href="#fa0"/></g>',
+...              {"#ffaa00": "#010203"})
+'<g style="fill:#010203;stroke:#000"><use href="#fa0"/></g>'
+>>> recolour_svg('<rect data-fill="#aaa" fill="#aaa"/>', {"#aaaaaa": "#bbbbbb"})
+'<rect data-fill="#aaa" fill="#bbbbbb"/>'
+```
+
+### an.characters.colour_roles.role_recolouring(roles, colour_for)
+
+`{old literal: new colour}` for the roles `colour_for` sets.
+
+`colour_for(role)` is the pack’s lookup (per entity); a role it leaves
+unset keeps its literal, and a role set to the colour it already has is not
+a swap — so a pack that changes nothing produces nothing to rewrite.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> role_recolouring({"#a83249": "clothing", "#3b2a1a": "hair"},
+...                  {"clothing": "#202028"}.get)
+{'#a83249': '#202028'}
+```
 
 
 # _autosummary/an.characters.dicebear.html.md
@@ -10331,9 +10477,18 @@ problem routes the way every other verifier’s does (an#78).
 
 ### Module Attributes
 
-| [`EYE_CANVAS`](_autosummary/an.characters.factory.html.md#an.characters.factory.EYE_CANVAS)   | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).   |
-|---------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| [`GAZE_PARTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.GAZE_PARTS)   | The parts a rig gains with `an character add-gaze`.                                                                                   |
+| [`PALETTE_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.PALETTE_ROLES)    | The roles `new_character(palette=...)` takes.                                                                                       |
+|-------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| [`HEAD_ART_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.HEAD_ART_ROLES)   | The roles a head's own art carries.                                                                                                 |
+| [`OUTLINE_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.OUTLINE_COLOUR)   | it is the drawing's ink, not a costume colour.                                                                                      |
+| [`SHOE_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.SHOE_COLOUR)      | The shoe, drawn in the leg part.                                                                                                    |
+| [`PUPIL_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.PUPIL_COLOUR)     | The pupil, in its own part (or the pre-gaze open eye).                                                                              |
+| [`DFLT_HAND_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.DFLT_HAND_COLOUR) | Default hand, trouser and brow colours — the literals the factory always drew.                                                      |
+| [`HATS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HATS)             | The hats [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) can draw.                                                 |
+| [`MAX_HEAD_SCALE`](_autosummary/an.characters.factory.html.md#an.characters.factory.MAX_HEAD_SCALE)   | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                      |
+| [`BUILDS`](_autosummary/an.characters.factory.html.md#an.characters.factory.BUILDS)           | Named builds.                                                                                                                       |
+| [`EYE_CANVAS`](_autosummary/an.characters.factory.html.md#an.characters.factory.EYE_CANVAS)       | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99). |
+| [`GAZE_PARTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.GAZE_PARTS)       | The parts a rig gains with `an character add-gaze`.                                                                                 |
 
 ### Functions
 
@@ -10342,6 +10497,59 @@ problem routes the way every other verifier’s does (an#78).
 | [`declare_mouth_variants`](_autosummary/an.characters.factory.html.md#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                            |
 | [`gaze_travel_for`](_autosummary/an.characters.factory.html.md#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                             |
 | [`new_character`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                    |
+| [`scale_part_files`](_autosummary/an.characters.factory.html.md#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                 |
+
+### Classes
+
+| [`BodyBuild`](_autosummary/an.characters.factory.html.md#an.characters.factory.BodyBuild)([torso_size, torso_radius, ...])   | The proportions of a synthesized body, in view_box units.   |
+|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+
+### an.characters.factory.BUILDS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [BodyBuild](_autosummary/an.characters.factory.html.md#an.characters.factory.BodyBuild)]* *= {'regular': BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), 'squat': BodyBuild(torso_size=(300, 220), torso_radius=80, torso_inset_bottom=4, arm_width=36, arm_length=140, hand_radius=18, limb_stroke=4, leg_width=50, leg_length=96, shoe_size=(34, 16), shoulder=(118, 168), hip_x=46, neck_height=214), 'stick': BodyBuild(torso_size=(170, 210), torso_radius=14, torso_inset_bottom=4, arm_width=10, arm_length=200, hand_radius=9, limb_stroke=3, leg_width=10, leg_length=230, shoe_size=(15, 7), shoulder=(82, 188), hip_x=28, neck_height=214), 'tall': BodyBuild(torso_size=(224, 320), torso_radius=36, torso_inset_bottom=4, arm_width=32, arm_length=320, hand_radius=18, limb_stroke=4, leg_width=36, leg_length=380, shoe_size=(30, 16), shoulder=(80, 304), hip_x=44, neck_height=324)}*
+
+Named builds. `regular` is today’s body, number for number.
+
+### *class* an.characters.factory.BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The proportions of a synthesized body, in view_box units.
+
+Every length that decides where a part hangs is here, so the bones the
+factory writes and the art it draws are derived from ONE record and cannot
+disagree — a leg’s art is exactly `leg_length` tall and its bone sits
+`leg_length` above the ground, so it hangs from the hip to the ground at
+every build (tests/test_rig_layout.py).
+
+#### arm_width *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 36*
+
+Sleeve thickness and the arm canvas’s length (sleeve + hand).
+
+#### hip_x *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 50*
+
+The hip joints’ distance from the centre line.
+
+#### neck_height *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 260*
+
+The neck’s height above the hip; the head hangs above it.
+
+#### shoulder *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (90, 240)*
+
+The shoulder joint (x from the centre line, height above the hip).
+
+#### torso_inset_bottom *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 20*
+
+The gap between the drawn body and the canvas bottom (the hip). The
+regular body’s 20 leaves a sliver between body and legs; the other
+builds close it.
+
+#### torso_size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (256, 256)*
+
+Torso canvas; the drawn body is inset 20 on every side, and the canvas
+bottom sits on the hip.
+
+### an.characters.factory.DFLT_HAND_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#f1c9a5'*
+
+Default hand, trouser and brow colours — the literals the factory always drew.
 
 ### an.characters.factory.EYE_CANVAS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[int](https://docs.python.org/3/builtins/functions.html#int), [int](https://docs.python.org/3/builtins/functions.html#int)]* *= (64, 32)*
 
@@ -10353,6 +10561,43 @@ the sclera, the pupil and the lid outline agree (an#99).
 The parts a rig gains with `an character add-gaze`. Optional — never in
 `REQUIRED_PARTS`: a pre-Wave-6 rig without them still renders, and gaze is
 a no-op on it.
+
+### an.characters.factory.HATS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('none', 'cap', 'beanie', 'bowler', 'bicorne')*
+
+The hats [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) can draw.
+
+### an.characters.factory.HEAD_ART_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'hair', 'skin'})*
+
+The roles a head’s own art carries. On a head the factory did not draw
+(DiceBear) they are left untagged everywhere, never half-tagged.
+
+### an.characters.factory.MAX_HEAD_SCALE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 2.5*
+
+The largest head scale accepted — past it the head no longer fits the
+1024-unit view box above a regular body.
+
+### an.characters.factory.OUTLINE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#222222'*
+
+it is the
+drawing’s ink, not a costume colour.
+
+* **Type:**
+  The outline every synthesized body part is stroked in. Untagged
+
+### an.characters.factory.PALETTE_ROLES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('skin', 'hair', 'clothing', 'leg', 'accessory')*
+
+The roles `new_character(palette=...)` takes. They are `StylePack` role
+names on purpose: a palette chosen at authoring time and a pack applied at
+compile time speak one vocabulary, and the factory records each as a colour
+role so the pack can reach what the palette drew.
+
+### an.characters.factory.PUPIL_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
+
+The pupil, in its own part (or the pre-gaze open eye). Role `pupil`.
+
+### an.characters.factory.SHOE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#1a1a1a'*
+
+The shoe, drawn in the leg part. Untagged.
 
 ### an.characters.factory.add_gaze(char_dir, , skin=None, overwrite_eyes=False)
 
@@ -10405,9 +10650,28 @@ inside the white at every angle without a runtime mask.
 {'x': 9.0, 'y': 5.0}
 ```
 
-### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True)
+### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False)
 
 Build a complete character on disk.
+
+**Variety knobs** (every default reproduces the pre-knob character byte for
+byte, which a golden test holds):
+
+- `palette` — `{role: "#rrggbb"}` over [`PALETTE_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.PALETTE_ROLES) (`skin`,
+  `hair`, `clothing`, `leg`, `accessory`) — the SAME role names a
+  [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack) uses. Unset roles keep the seed’s colours.
+  > `skin` also paints the hands and the gaze lid; `hair` the brows and
+  > the collar. On a DiceBear head only the body follows (its face is baked).
+- `build` — a key of [`BUILDS`](_autosummary/an.characters.factory.html.md#an.characters.factory.BUILDS): `regular`, `squat` (round body,
+  short legs), `tall`, `stick` (small blocky body, stick limbs).
+- `head_scale` — the head and its whole face (eyes, brows, mouths, their
+  offsets, the pupil travel) scaled together, so a big head keeps its face.
+- `hat` — a key of [`HATS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HATS) (offline head only), in `accessory`.
+- `sash` — a diagonal band across the torso, in `accessory`.
+
+Every colour the factory draws in a role is recorded in the descriptor’s
+`colour_roles` so a style pack can recolour it later (palette swapping,
+[`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)).
 
 `gaze` (an#99) adds the eye stack — sclera and pupil slots under each
 lid, a filled closed lid, the `gaze_travel` clamp — through
@@ -10440,6 +10704,15 @@ Raises [`FileExistsError`](https://docs.python.org/3/builtins/exceptions.html#Fi
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.characters.factory.scale_part_files(paths, scale)
+
+Rewrite each part SVG’s root size by `scale` (its drawing untouched):
+the compiler draws a part at its own raster size, so that IS its size on
+screen. Missing files are skipped.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.characters.html.md
@@ -10627,6 +10900,20 @@ happens to be one-to-one (9 keys, 9 attachments), but real mouth charts
 are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
 two namespaces makes the first shared drawing a schema change instead of
 a data change. Replaces `viseme_map` (schema 0.2.0).
+
+#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+Which colour literal in which part plays which `StylePack` role —
+`{part path: {"#rrggbb": role}}`, e.g.
+`{"parts/torso.svg": {"#a83249": "clothing"}}`. Written by the factory,
+which KNOWS what it drew as skin or clothing; read by the compiler, which
+rewrites the tagged literals under a pack (palette swapping — see
+[`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)). Empty = untagged art (hand-drawn,
+DiceBear): a pack cannot reach it and the compiler says so, because the
+alternative is inferring a role from a pixel (an#99’s wrong-tone lid).
+Additive: no schema bump, and a descriptor without it reads back as
+untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
+one a pack can set ([`an.styles.REACHABLE_ROLES`](_autosummary/an.styles.html.md#an.styles.REACHABLE_ROLES)).
 
 #### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -10875,9 +11162,28 @@ True
 ['mouth_a_happy']
 ```
 
-### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True)
+### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False)
 
 Build a complete character on disk.
+
+**Variety knobs** (every default reproduces the pre-knob character byte for
+byte, which a golden test holds):
+
+- `palette` — `{role: "#rrggbb"}` over `PALETTE_ROLES` (`skin`,
+  `hair`, `clothing`, `leg`, `accessory`) — the SAME role names a
+  [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack) uses. Unset roles keep the seed’s colours.
+  > `skin` also paints the hands and the gaze lid; `hair` the brows and
+  > the collar. On a DiceBear head only the body follows (its face is baked).
+- `build` — a key of `BUILDS`: `regular`, `squat` (round body,
+  short legs), `tall`, `stick` (small blocky body, stick limbs).
+- `head_scale` — the head and its whole face (eyes, brows, mouths, their
+  offsets, the pupil travel) scaled together, so a big head keeps its face.
+- `hat` — a key of `HATS` (offline head only), in `accessory`.
+- `sash` — a diagonal band across the torso, in `accessory`.
+
+Every colour the factory draws in a role is recorded in the descriptor’s
+`colour_roles` so a style pack can recolour it later (palette swapping,
+[`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)).
 
 `gaze` (an#99) adds the eye stack — sclera and pupil slots under each
 lid, a filled closed lid, the `gaze_travel` clamp — through
@@ -11050,19 +11356,20 @@ namespace as the default, so the output is a valid standalone SVG.
 
 ### Modules
 
-| [`cli`](_autosummary/an.characters.cli.html.md#module-an.characters.cli)               | User-facing character CLI subcommands.                                           |
-|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`dicebear`](_autosummary/an.characters.dicebear.html.md#module-an.characters.dicebear)     | DiceBear HTTP API client + best-effort post-processing.                          |
-| [`factory`](_autosummary/an.characters.factory.html.md#module-an.characters.factory)       | High-level entry points: build and inspect a character.                          |
-| [`idle`](_autosummary/an.characters.idle.html.md#module-an.characters.idle)             | Idle animation factories: breath, blink, weight-shift.                           |
-| [`licenses`](_autosummary/an.characters.licenses.html.md#module-an.characters.licenses)     | DiceBear per-style licences, as data.                                            |
-| [`mouth_set`](_autosummary/an.characters.mouth_set.html.md#module-an.characters.mouth_set)   | Generate the 9-shape default mouth set as parametric SVGs.                       |
-| [`play`](_autosummary/an.characters.play.html.md#module-an.characters.play)             | Resolve a `play` against a character descriptor — the renderer-free half (an#7). |
-| [`record`](_autosummary/an.characters.record.html.md#module-an.characters.record)         | Record a character's preview HTML to an mp4.                                     |
-| [`schema`](_autosummary/an.characters.schema.html.md#module-an.characters.schema)         | Character descriptor schema (Spine-shaped, Pydantic v2).                         |
-| [`silhouette`](_autosummary/an.characters.silhouette.html.md#module-an.characters.silhouette) | Silhouette rendering and comparison for the silhouette test.                     |
-| [`svg_utils`](_autosummary/an.characters.svg_utils.html.md#module-an.characters.svg_utils)   | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.          |
-| [`validate`](_autosummary/an.characters.validate.html.md#module-an.characters.validate)     | Whether an art package is one the compiler can actually render.                  |
+| [`cli`](_autosummary/an.characters.cli.html.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                           |
+|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…        |
+| [`dicebear`](_autosummary/an.characters.dicebear.html.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                          |
+| [`factory`](_autosummary/an.characters.factory.html.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                          |
+| [`idle`](_autosummary/an.characters.idle.html.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                           |
+| [`licenses`](_autosummary/an.characters.licenses.html.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                            |
+| [`mouth_set`](_autosummary/an.characters.mouth_set.html.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                       |
+| [`play`](_autosummary/an.characters.play.html.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7). |
+| [`record`](_autosummary/an.characters.record.html.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                     |
+| [`schema`](_autosummary/an.characters.schema.html.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                         |
+| [`silhouette`](_autosummary/an.characters.silhouette.html.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                     |
+| [`svg_utils`](_autosummary/an.characters.svg_utils.html.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.          |
+| [`validate`](_autosummary/an.characters.validate.html.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                  |
 
 
 # _autosummary/an.characters.idle.html.md
@@ -12066,6 +12373,20 @@ happens to be one-to-one (9 keys, 9 attachments), but real mouth charts
 are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
 two namespaces makes the first shared drawing a schema change instead of
 a data change. Replaces `viseme_map` (schema 0.2.0).
+
+#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+Which colour literal in which part plays which `StylePack` role —
+`{part path: {"#rrggbb": role}}`, e.g.
+`{"parts/torso.svg": {"#a83249": "clothing"}}`. Written by the factory,
+which KNOWS what it drew as skin or clothing; read by the compiler, which
+rewrites the tagged literals under a pack (palette swapping — see
+[`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)). Empty = untagged art (hand-drawn,
+DiceBear): a pack cannot reach it and the compiler says so, because the
+alternative is inferring a role from a pixel (an#99’s wrong-tone lid).
+Additive: no schema bump, and a descriptor without it reads back as
+untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
+one a pack can set ([`an.styles.REACHABLE_ROLES`](_autosummary/an.styles.html.md#an.styles.REACHABLE_ROLES)).
 
 #### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -14409,11 +14730,11 @@ has — leaves every colour exactly where it is, which is why adding this
 moved no corpus hash (an#112).
 
 A pack changes what the COMPILER decides: the character palette, the
-leg and pupil colours, the environment presets’ sky and ground. It does
-NOT recolour SVG art — that would need role tagging the descriptor does
-not have, and inferring a role from a pixel is what produced an#99’s
-wrong-tone lid. A rig whose art a pack cannot reach is WARNED about by
-name at compile.
+leg and pupil colours, the environment presets’ sky and ground — and SVG
+art whose descriptor tags its colours by role (`colour_roles`, written by
+`an character new`). Untagged art is never inferred (inferring a role
+from a pixel is what produced an#99’s wrong-tone lid); a rig a pack
+cannot reach is WARNED about by name at compile.
 
 ### *class* an.Project(root, mall, scene)
 
@@ -16764,11 +17085,11 @@ has — leaves every colour exactly where it is, which is why adding this
 moved no corpus hash (an#112).
 
 A pack changes what the COMPILER decides: the character palette, the
-leg and pupil colours, the environment presets’ sky and ground. It does
-NOT recolour SVG art — that would need role tagging the descriptor does
-not have, and inferring a role from a pixel is what produced an#99’s
-wrong-tone lid. A rig whose art a pack cannot reach is WARNED about by
-name at compile.
+leg and pupil colours, the environment presets’ sky and ground — and SVG
+art whose descriptor tags its colours by role (`colour_roles`, written by
+`an character new`). Untagged art is never inferred (inferring a role
+from a pixel is what produced an#99’s wrong-tone lid); a rig a pack
+cannot reach is WARNED about by name at compile.
 
 ### *class* an.ir.Resolution(\*\*data)
 
@@ -17543,11 +17864,11 @@ has — leaves every colour exactly where it is, which is why adding this
 moved no corpus hash (an#112).
 
 A pack changes what the COMPILER decides: the character palette, the
-leg and pupil colours, the environment presets’ sky and ground. It does
-NOT recolour SVG art — that would need role tagging the descriptor does
-not have, and inferring a role from a pixel is what produced an#99’s
-wrong-tone lid. A rig whose art a pack cannot reach is WARNED about by
-name at compile.
+leg and pupil colours, the environment presets’ sky and ground — and SVG
+art whose descriptor tags its colours by role (`colour_roles`, written by
+`an character new`). Untagged art is never inferred (inferring a role
+from a pixel is what produced an#99’s wrong-tone lid); a rig a pack
+cannot reach is WARNED about by name at compile.
 
 ### *class* an.ir.schema.Narration(\*\*data)
 
@@ -19978,24 +20299,17 @@ character factory, which carried *two disagreeing* palette tables. an#106
 retired `AssetRef(kind="style")` because it selected nothing. This is what the
 word was reserved for.
 
-**A pack does not recolour SVG art at compile time.** Four code-backed reasons,
-and they are the reason this module is small:
-
-1. It would break `src` content addressing and the asset-resolution ledger.
-2. The only substitution precedent in this package is a regex
-   (`_skin_fill_of`) — which is exactly what `bench/palette.py` had to abandon
-   for XML parsing.
-3. `CharacterDescriptor` has no role tagging, so a pack would have to infer a
-   role from a pixel; inferring a role from a pixel is what produced an#99’s
-   wrong-tone lid.
-4. `tint` occurs zero times in the runtime.
-
-**Nothing recolours SVG art today.** A pack seam in the character factory —
-which already owns the colour seams — is the obvious home for it and is NOT
-built; the compiler **warns**, naming the entities it could not reach, and says
-so rather than pointing at a flag that does not exist. Until then, an SVG rig
-is recoloured by editing its art or generating it in the colours you want. A pack that silently did nothing to an SVG rig would be the
-worst of the options.
+**A pack recolours SVG art only where the art says what its colours are.**
+The character factory records, per part, which literal it drew as which role
+(`CharacterDescriptor.colour_roles`, see [`an.characters.colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles)),
+and the compiler rewrites exactly those literals into a new, content-addressed
+inline texture — palette swapping. Untagged art (hand-drawn, DiceBear) is left
+alone and the compiler warns once, naming it: a pack would otherwise have to
+infer a role from a pixel, which is what produced an#99’s wrong-tone lid. So
+the four reasons this module once gave for never touching SVG reduce to one
+that still holds — no tags, no recolour. (The texture is inline, so staging and
+content addressing are unaffected; the substitution rewrites paint attributes
+only, never geometry or ids.)
 
 **A pack must not declare a role it cannot change.** `lip`, `mouth_fill`,
 `teeth`, `tongue` and the eye’s white are literals inside `runtime.js`; a role
@@ -20028,7 +20342,7 @@ representation doubles the surface on which the two can silently diverge.
 | [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack)(\*\*data)   | Art direction for a project.   |
 |------------------------------------------------------------------------|--------------------------------|
 
-### an.styles.REACHABLE_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky', 'stroke'})*
+### an.styles.REACHABLE_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'accessory', 'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky', 'stroke'})*
 
 Roles a pack can actually change, because the COMPILER decides them and
 stamps them into the document the runtime draws.
@@ -20039,6 +20353,9 @@ stamps them into the document the runtime draws.
 `stroke` is a stroked path’s default colour (`an.paths.DFLT_STROKE_COLOUR`,
 an#161) — the arrowhead is filled in the same colour, so it is not a second
 role. A path that names its own `color` is art and is left alone.
+`accessory` (a hat, a sash) exists only in role-tagged SVG art — the
+factory’s `colour_roles` — and reaches the document through the recoloured
+texture, as do the SVG rig’s `skin`, `clothing`, `hair`, `leg` and `pupil`.
 
 Every one of these is compiled with a marker colour and asserted to reach
 the document by `tests/test_styles.py`. `pupil` shipped in this set wired to
@@ -21513,20 +21830,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 04:56 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/a454d98ed747c6abf6d3843a804e176eac4fb9ea"><code>a454d98</code></a> on branch <code>main</code>, for **an 0.1.107** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 05:15 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/9a3f59976996a4cbcb51ee1ecf6a6ef46ccd284d"><code>9a3f599</code></a> on branch <code>main</code>, for **an 0.1.108** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.107) is ahead of the latest release on PyPI (0.1.106): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/a454d98ed747c6abf6d3843a804e176eac4fb9ea"><code>a454d98ed747c6abf6d3843a804e176eac4fb9ea</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/9a3f59976996a4cbcb51ee1ecf6a6ef46ccd284d"><code>9a3f59976996a4cbcb51ee1ecf6a6ef46ccd284d</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.107</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.108</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -21535,9 +21850,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36670899455">36670899455</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36672299767">36672299767</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>eb9951c4a2e6a05a950facb1629d8718134dcf3e</code> (in the history of the built commit) |
+| Event commit | <code>e7ef0910e20c1dfc75899eabc5bbe59604ac2273</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -21562,13 +21877,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.106/">0.1.106</a>, older than the documented version (0.1.107).
+Latest release: <a href="https://pypi.org/project/an/0.1.108/">0.1.108</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout a454d98ed747c6abf6d3843a804e176eac4fb9ea
+git checkout 9a3f59976996a4cbcb51ee1ecf6a6ef46ccd284d
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

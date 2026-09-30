@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../../../_static/documentation_options.js?v=7eceb120"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.107" />
+  <meta name="docsearch:version" content="0.1.108" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1572,11 +1572,11 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: moved no corpus hash (an#112).</span>
     <span class="c1">#:</span>
     <span class="c1">#: A pack changes what the COMPILER decides: the character palette, the</span>
-    <span class="c1">#: leg and pupil colours, the environment presets' sky and ground. It does</span>
-    <span class="c1">#: NOT recolour SVG art — that would need role tagging the descriptor does</span>
-    <span class="c1">#: not have, and inferring a role from a pixel is what produced an#99's</span>
-    <span class="c1">#: wrong-tone lid. A rig whose art a pack cannot reach is WARNED about by</span>
-    <span class="c1">#: name at compile.</span>
+    <span class="c1">#: leg and pupil colours, the environment presets' sky and ground — and SVG</span>
+    <span class="c1">#: art whose descriptor tags its colours by role (`colour_roles`, written by</span>
+    <span class="c1">#: `an character new`). Untagged art is never inferred (inferring a role</span>
+    <span class="c1">#: from a pixel is what produced an#99's wrong-tone lid); a rig a pack</span>
+    <span class="c1">#: cannot reach is WARNED about by name at compile.</span>
     <span class="n">style_pack</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1">#: The easing every authored ``tween`` that names none is drawn with</span>

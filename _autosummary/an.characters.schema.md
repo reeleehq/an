@@ -208,6 +208,20 @@ are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
 two namespaces makes the first shared drawing a schema change instead of
 a data change. Replaces `viseme_map` (schema 0.2.0).
 
+#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+Which colour literal in which part plays which `StylePack` role —
+`{part path: {"#rrggbb": role}}`, e.g.
+`{"parts/torso.svg": {"#a83249": "clothing"}}`. Written by the factory,
+which KNOWS what it drew as skin or clothing; read by the compiler, which
+rewrites the tagged literals under a pack (palette swapping — see
+[`an.characters.colour_roles`](an.characters.colour_roles.md#module-an.characters.colour_roles)). Empty = untagged art (hand-drawn,
+DiceBear): a pack cannot reach it and the compiler says so, because the
+alternative is inferring a role from a pixel (an#99’s wrong-tone lid).
+Additive: no schema bump, and a descriptor without it reads back as
+untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
+one a pack can set ([`an.styles.REACHABLE_ROLES`](an.styles.md#an.styles.REACHABLE_ROLES)).
+
 #### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How expression axes reach this rig (an#98), as a list of binding dicts —

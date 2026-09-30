@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../_static/documentation_options.js?v=7eceb120"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.captions" href="an.captions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.107" />
+  <meta name="docsearch:version" content="0.1.108" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -366,6 +366,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2 current active has-children"><a aria-current="page" class="current reference internal" href="#">an.characters</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
@@ -767,6 +768,22 @@ a data change. Replaces <code class="docutils literal notranslate"><span class="
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.CharacterDescriptor.colour_roles">
+<span class="sig-name descname"><span class="pre">colour_roles</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.characters.CharacterDescriptor.colour_roles" title="Link to this definition">#</a></dt>
+<dd><p>Which colour literal in which part plays which <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> role —
+<code class="docutils literal notranslate"><span class="pre">{part</span> <span class="pre">path:</span> <span class="pre">{&quot;#rrggbb&quot;:</span> <span class="pre">role}}</span></code>, e.g.
+<code class="docutils literal notranslate"><span class="pre">{&quot;parts/torso.svg&quot;:</span> <span class="pre">{&quot;#a83249&quot;:</span> <span class="pre">&quot;clothing&quot;}}</span></code>. Written by the factory,
+which KNOWS what it drew as skin or clothing; read by the compiler, which
+rewrites the tagged literals under a pack (palette swapping — see
+<a class="reference internal" href="an.characters.colour_roles.html#module-an.characters.colour_roles" title="an.characters.colour_roles"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.characters.colour_roles</span></code></a>). Empty = untagged art (hand-drawn,
+DiceBear): a pack cannot reach it and the compiler says so, because the
+alternative is inferring a role from a pixel (an#99’s wrong-tone lid).
+Additive: no schema bump, and a descriptor without it reads back as
+untagged. Keys are normalised to lowercase <code class="docutils literal notranslate"><span class="pre">#rrggbb</span></code>; a role must be
+one a pack can set (<a class="reference internal" href="an.styles.html#an.styles.REACHABLE_ROLES" title="an.styles.REACHABLE_ROLES"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.styles.REACHABLE_ROLES</span></code></a>).</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.characters.CharacterDescriptor.expression_binding">
 <span class="sig-name descname"><span class="pre">expression_binding</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.CharacterDescriptor.expression_binding" title="Link to this definition">#</a></dt>
 <dd><p>How expression axes reach this rig (an#98), as a list of binding dicts —
@@ -1060,8 +1077,29 @@ fails (network error, HTTP error, non-SVG response).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.characters.new_character">
-<span class="sig-prename descclassname"><span class="pre">an.characters.</span></span><span class="sig-name descname"><span class="pre">new_character</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lorelei'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dicebear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acknowledge_attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mouth_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#new_character"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.new_character" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.</span></span><span class="sig-name descname"><span class="pre">new_character</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lorelei'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dicebear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acknowledge_attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mouth_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#new_character"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.new_character" title="Link to this definition">#</a></dt>
 <dd><p>Build a complete character on disk.</p>
+<p><strong>Variety knobs</strong> (every default reproduces the pre-knob character byte for
+byte, which a golden test holds):</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">palette</span></code> — <code class="docutils literal notranslate"><span class="pre">{role:</span> <span class="pre">&quot;#rrggbb&quot;}</span></code> over <code class="xref py py-data docutils literal notranslate"><span class="pre">PALETTE_ROLES</span></code> (<code class="docutils literal notranslate"><span class="pre">skin</span></code>,
+<code class="docutils literal notranslate"><span class="pre">hair</span></code>, <code class="docutils literal notranslate"><span class="pre">clothing</span></code>, <code class="docutils literal notranslate"><span class="pre">leg</span></code>, <code class="docutils literal notranslate"><span class="pre">accessory</span></code>) — the SAME role names a
+<a class="reference internal" href="an.styles.html#an.styles.StylePack" title="an.styles.StylePack"><code class="xref py py-class docutils literal notranslate"><span class="pre">StylePack</span></code></a> uses. Unset roles keep the seed’s colours.</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">skin</span></code> also paints the hands and the gaze lid; <code class="docutils literal notranslate"><span class="pre">hair</span></code> the brows and
+the collar. On a DiceBear head only the body follows (its face is baked).</p>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">build</span></code> — a key of <code class="xref py py-data docutils literal notranslate"><span class="pre">BUILDS</span></code>: <code class="docutils literal notranslate"><span class="pre">regular</span></code>, <code class="docutils literal notranslate"><span class="pre">squat</span></code> (round body,
+short legs), <code class="docutils literal notranslate"><span class="pre">tall</span></code>, <code class="docutils literal notranslate"><span class="pre">stick</span></code> (small blocky body, stick limbs).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">head_scale</span></code> — the head and its whole face (eyes, brows, mouths, their
+offsets, the pupil travel) scaled together, so a big head keeps its face.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hat</span></code> — a key of <code class="xref py py-data docutils literal notranslate"><span class="pre">HATS</span></code> (offline head only), in <code class="docutils literal notranslate"><span class="pre">accessory</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sash</span></code> — a diagonal band across the torso, in <code class="docutils literal notranslate"><span class="pre">accessory</span></code>.</p></li>
+</ul>
+<p>Every colour the factory draws in a role is recorded in the descriptor’s
+<code class="docutils literal notranslate"><span class="pre">colour_roles</span></code> so a style pack can recolour it later (palette swapping,
+<a class="reference internal" href="an.characters.colour_roles.html#module-an.characters.colour_roles" title="an.characters.colour_roles"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.characters.colour_roles</span></code></a>).</p>
 <p><code class="docutils literal notranslate"><span class="pre">gaze</span></code> (an#99) adds the eye stack — sclera and pupil slots under each
 lid, a filled closed lid, the <code class="docutils literal notranslate"><span class="pre">gaze_travel</span></code> clamp — through
 <code class="xref py py-func docutils literal notranslate"><span class="pre">add_gaze()</span></code>, so <code class="code docutils literal notranslate"><span class="pre">gaze_x</span></code>/<code class="code docutils literal notranslate"><span class="pre">gaze_y</span></code> and the ambient saccades reach the
@@ -1266,37 +1304,40 @@ namespace as the default, so the output is a valid standalone SVG.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.characters.cli.html#module-an.characters.cli" title="an.characters.cli"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cli</span></code></a></p></td>
 <td><p>User-facing character CLI subcommands.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.dicebear.html#module-an.characters.dicebear" title="an.characters.dicebear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dicebear</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.colour_roles.html#module-an.characters.colour_roles" title="an.characters.colour_roles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colour_roles</span></code></a></p></td>
+<td><p>Colour roles: which colour literal in which part is skin, clothing, hair…</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.dicebear.html#module-an.characters.dicebear" title="an.characters.dicebear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dicebear</span></code></a></p></td>
 <td><p>DiceBear HTTP API client + best-effort post-processing.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.factory.html#module-an.characters.factory" title="an.characters.factory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">factory</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.factory.html#module-an.characters.factory" title="an.characters.factory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">factory</span></code></a></p></td>
 <td><p>High-level entry points: build and inspect a character.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.idle.html#module-an.characters.idle" title="an.characters.idle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">idle</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.idle.html#module-an.characters.idle" title="an.characters.idle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">idle</span></code></a></p></td>
 <td><p>Idle animation factories: breath, blink, weight-shift.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.licenses.html#module-an.characters.licenses" title="an.characters.licenses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">licenses</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.licenses.html#module-an.characters.licenses" title="an.characters.licenses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">licenses</span></code></a></p></td>
 <td><p>DiceBear per-style licences, as data.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.mouth_set.html#module-an.characters.mouth_set" title="an.characters.mouth_set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouth_set</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.mouth_set.html#module-an.characters.mouth_set" title="an.characters.mouth_set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouth_set</span></code></a></p></td>
 <td><p>Generate the 9-shape default mouth set as parametric SVGs.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.play.html#module-an.characters.play" title="an.characters.play"><code class="xref py py-obj docutils literal notranslate"><span class="pre">play</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.play.html#module-an.characters.play" title="an.characters.play"><code class="xref py py-obj docutils literal notranslate"><span class="pre">play</span></code></a></p></td>
 <td><p>Resolve a <code class="docutils literal notranslate"><span class="pre">play</span></code> against a character descriptor — the renderer-free half (an#7).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.record.html#module-an.characters.record" title="an.characters.record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.record.html#module-an.characters.record" title="an.characters.record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record</span></code></a></p></td>
 <td><p>Record a character's preview HTML to an mp4.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.schema.html#module-an.characters.schema" title="an.characters.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.schema.html#module-an.characters.schema" title="an.characters.schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">schema</span></code></a></p></td>
 <td><p>Character descriptor schema (Spine-shaped, Pydantic v2).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.silhouette.html#module-an.characters.silhouette" title="an.characters.silhouette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">silhouette</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.silhouette.html#module-an.characters.silhouette" title="an.characters.silhouette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">silhouette</span></code></a></p></td>
 <td><p>Silhouette rendering and comparison for the silhouette test.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.svg_utils.html#module-an.characters.svg_utils" title="an.characters.svg_utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">svg_utils</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.characters.svg_utils.html#module-an.characters.svg_utils" title="an.characters.svg_utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">svg_utils</span></code></a></p></td>
 <td><p>SVG manipulation: namespace-aware DOM helpers using stdlib <code class="docutils literal notranslate"><span class="pre">xml.etree</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.characters.validate.html#module-an.characters.validate" title="an.characters.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.characters.validate.html#module-an.characters.validate" title="an.characters.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a></p></td>
 <td><p>Whether an art package is one the compiler can actually render.</p></td>
 </tr>
 </tbody>
@@ -1369,6 +1410,7 @@ namespace as the default, so the output is a valid standalone SVG.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.asset_sets"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.asset_sets</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.colour_roles"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.colour_roles</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.expression_binding"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.expression_binding</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.face_overlay"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.face_overlay</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.gaze_travel"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.gaze_travel</span></code></a></li>

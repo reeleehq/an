@@ -182,6 +182,20 @@ are many-to-one — ~10 drawings carrying ~40 phonemes — and collapsing the
 two namespaces makes the first shared drawing a schema change instead of
 a data change. Replaces `viseme_map` (schema 0.2.0).
 
+#### colour_roles *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]*
+
+Which colour literal in which part plays which `StylePack` role —
+`{part path: {"#rrggbb": role}}`, e.g.
+`{"parts/torso.svg": {"#a83249": "clothing"}}`. Written by the factory,
+which KNOWS what it drew as skin or clothing; read by the compiler, which
+rewrites the tagged literals under a pack (palette swapping — see
+[`an.characters.colour_roles`](an.characters.colour_roles.md#module-an.characters.colour_roles)). Empty = untagged art (hand-drawn,
+DiceBear): a pack cannot reach it and the compiler says so, because the
+alternative is inferring a role from a pixel (an#99’s wrong-tone lid).
+Additive: no schema bump, and a descriptor without it reads back as
+untagged. Keys are normalised to lowercase `#rrggbb`; a role must be
+one a pack can set ([`an.styles.REACHABLE_ROLES`](an.styles.md#an.styles.REACHABLE_ROLES)).
+
 #### expression_binding *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How expression axes reach this rig (an#98), as a list of binding dicts —
@@ -429,9 +443,28 @@ True
 ['mouth_a_happy']
 ```
 
-### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True)
+### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False)
 
 Build a complete character on disk.
+
+**Variety knobs** (every default reproduces the pre-knob character byte for
+byte, which a golden test holds):
+
+- `palette` — `{role: "#rrggbb"}` over `PALETTE_ROLES` (`skin`,
+  `hair`, `clothing`, `leg`, `accessory`) — the SAME role names a
+  [`StylePack`](an.styles.md#an.styles.StylePack) uses. Unset roles keep the seed’s colours.
+  > `skin` also paints the hands and the gaze lid; `hair` the brows and
+  > the collar. On a DiceBear head only the body follows (its face is baked).
+- `build` — a key of `BUILDS`: `regular`, `squat` (round body,
+  short legs), `tall`, `stick` (small blocky body, stick limbs).
+- `head_scale` — the head and its whole face (eyes, brows, mouths, their
+  offsets, the pupil travel) scaled together, so a big head keeps its face.
+- `hat` — a key of `HATS` (offline head only), in `accessory`.
+- `sash` — a diagonal band across the torso, in `accessory`.
+
+Every colour the factory draws in a role is recorded in the descriptor’s
+`colour_roles` so a style pack can recolour it later (palette swapping,
+[`an.characters.colour_roles`](an.characters.colour_roles.md#module-an.characters.colour_roles)).
 
 `gaze` (an#99) adds the eye stack — sclera and pupil slots under each
 lid, a filled closed lid, the `gaze_travel` clamp — through
@@ -604,16 +637,17 @@ namespace as the default, so the output is a valid standalone SVG.
 
 ### Modules
 
-| [`cli`](an.characters.cli.md#module-an.characters.cli)               | User-facing character CLI subcommands.                                           |
-|---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`dicebear`](an.characters.dicebear.md#module-an.characters.dicebear)     | DiceBear HTTP API client + best-effort post-processing.                          |
-| [`factory`](an.characters.factory.md#module-an.characters.factory)       | High-level entry points: build and inspect a character.                          |
-| [`idle`](an.characters.idle.md#module-an.characters.idle)             | Idle animation factories: breath, blink, weight-shift.                           |
-| [`licenses`](an.characters.licenses.md#module-an.characters.licenses)     | DiceBear per-style licences, as data.                                            |
-| [`mouth_set`](an.characters.mouth_set.md#module-an.characters.mouth_set)   | Generate the 9-shape default mouth set as parametric SVGs.                       |
-| [`play`](an.characters.play.md#module-an.characters.play)             | Resolve a `play` against a character descriptor — the renderer-free half (an#7). |
-| [`record`](an.characters.record.md#module-an.characters.record)         | Record a character's preview HTML to an mp4.                                     |
-| [`schema`](an.characters.schema.md#module-an.characters.schema)         | Character descriptor schema (Spine-shaped, Pydantic v2).                         |
-| [`silhouette`](an.characters.silhouette.md#module-an.characters.silhouette) | Silhouette rendering and comparison for the silhouette test.                     |
-| [`svg_utils`](an.characters.svg_utils.md#module-an.characters.svg_utils)   | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.          |
-| [`validate`](an.characters.validate.md#module-an.characters.validate)     | Whether an art package is one the compiler can actually render.                  |
+| [`cli`](an.characters.cli.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                           |
+|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`colour_roles`](an.characters.colour_roles.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…        |
+| [`dicebear`](an.characters.dicebear.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                          |
+| [`factory`](an.characters.factory.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                          |
+| [`idle`](an.characters.idle.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                           |
+| [`licenses`](an.characters.licenses.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                            |
+| [`mouth_set`](an.characters.mouth_set.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                       |
+| [`play`](an.characters.play.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7). |
+| [`record`](an.characters.record.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                     |
+| [`schema`](an.characters.schema.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                         |
+| [`silhouette`](an.characters.silhouette.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                     |
+| [`svg_utils`](an.characters.svg_utils.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.          |
+| [`validate`](an.characters.validate.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                  |

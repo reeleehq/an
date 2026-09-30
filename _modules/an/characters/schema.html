@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../../../_static/documentation_options.js?v=7eceb120"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.107" />
+  <meta name="docsearch:version" content="0.1.108" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1085,6 +1085,45 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: circle, which keeps the whole pupil disc inside the white at every</span>
     <span class="c1">#: angle (a per-axis box pokes out at the diagonal) — no runtime mask.</span>
     <span class="n">gaze_travel</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1">#: Which colour literal in which part plays which `StylePack` role —</span>
+    <span class="c1">#: ``{part path: {"#rrggbb": role}}``, e.g.</span>
+    <span class="c1">#: ``{"parts/torso.svg": {"#a83249": "clothing"}}``. Written by the factory,</span>
+    <span class="c1">#: which KNOWS what it drew as skin or clothing; read by the compiler, which</span>
+    <span class="c1">#: rewrites the tagged literals under a pack (palette swapping — see</span>
+    <span class="c1">#: :mod:`an.characters.colour_roles`). Empty = untagged art (hand-drawn,</span>
+    <span class="c1">#: DiceBear): a pack cannot reach it and the compiler says so, because the</span>
+    <span class="c1">#: alternative is inferring a role from a pixel (an#99's wrong-tone lid).</span>
+    <span class="c1">#: Additive: no schema bump, and a descriptor without it reads back as</span>
+    <span class="c1">#: untagged. Keys are normalised to lowercase ``#rrggbb``; a role must be</span>
+    <span class="c1">#: one a pack can set (:data:`an.styles.REACHABLE_ROLES`).</span>
+    <span class="n">colour_roles</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"colour_roles"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_colour_roles</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.colour_roles</span><span class="w"> </span><span class="kn">import</span> <span class="n">normalise_hex</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">REACHABLE_ROLES</span>
+
+        <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">roles</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">part</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">literal</span><span class="p">,</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">roles</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">role</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">REACHABLE_ROLES</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"colour_roles[</span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2">][</span><span class="si">{</span><span class="n">literal</span><span class="si">!r}</span><span class="s2">] = </span><span class="si">{</span><span class="n">role</span><span class="si">!r}</span><span class="s2"> is not a role "</span>
+                        <span class="sa">f</span><span class="s2">"a style pack can set; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">REACHABLE_ROLES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="p">)</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="n">normalise_hex</span><span class="p">(</span><span class="n">literal</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">part</span> <span class="ow">and</span> <span class="n">part</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">!=</span> <span class="n">role</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"colour_roles[</span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2">] gives </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> two roles "</span>
+                        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">part</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">!r}</span><span class="s2">, </span><span class="si">{</span><span class="n">role</span><span class="si">!r}</span><span class="s2">); within one part each role "</span>
+                        <span class="s2">"needs its own literal — a swap cannot tell them apart"</span>
+                    <span class="p">)</span>
+                <span class="n">part</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">role</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">path</span><span class="p">]</span> <span class="o">=</span> <span class="n">part</span>
+        <span class="k">return</span> <span class="n">out</span>
 
     <span class="c1">#: Free-form metadata (dicebear style/seed, etc.). Schema-evolution</span>
     <span class="c1">#: friendly: anything an external tool wants to record can land here.</span>
