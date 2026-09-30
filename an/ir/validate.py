@@ -23,6 +23,7 @@ from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES
 from an.characters.play import (
     PRESET_SOURCE,
     art_exists_for,
+    play_extent_for,
     play_problems,
     play_source,
     preset_moved_node,
@@ -436,8 +437,37 @@ def _check_swap_references(
     # built once per shot, lazily, and only when a preset play is present.
     stage_nodes: set[str] | None = None
     stage_tried = False
+
+    def play_descriptor(entity_id: str) -> CharacterDescriptor | None:
+        # `play` resolves against a CHARACTER's animations. A prop has an
+        # `animations` field so the shared rig builder can read the same
+        # attribute on either document, but nothing seeds it and no author
+        # tool writes one — so a `play` on a prop resolves presets only,
+        # exactly as the compiler (which reads character descriptors
+        # alone) resolves it.
+        entity = rigs.get(entity_id)
+        doc = _rig_document(entity, stores) if entity is not None else None
+        is_character = entity is not None and entity.kind == "character"
+        return (
+            CharacterDescriptor.model_validate(doc)
+            if doc is not None and is_character
+            else None
+        )
+
+    def extent_descriptor(entity_id: str) -> CharacterDescriptor | None:
+        # Only to place a `sequence`'s later siblings, exactly as the compiler
+        # does; a descriptor that will not even parse is reported by the loop
+        # below, so it must not raise from inside `flatten`.
+        if entity_id in unchecked:
+            return None
+        try:
+            return play_descriptor(entity_id)
+        except ValidationError:
+            return None
+
+    play_extent = play_extent_for(extent_descriptor)
     for k, action in enumerate(shot.actions):
-        for flat in flatten(action):
+        for flat in flatten(action, play_extent=play_extent):
             leaf = flat.action
             if getattr(leaf, "kind", None) != "play":
                 continue
@@ -445,19 +475,8 @@ def _check_swap_references(
             if entity_id in unchecked:
                 continue
             entity = rigs.get(entity_id)
-            doc = _rig_document(entity, stores) if entity is not None else None
-            # `play` resolves against a CHARACTER's animations. A prop has an
-            # `animations` field so the shared rig builder can read the same
-            # attribute on either document, but nothing seeds it and no author
-            # tool writes one — so a `play` on a prop resolves presets only,
-            # exactly as the compiler (which reads character descriptors
-            # alone) resolves it.
             is_character = entity is not None and entity.kind == "character"
-            desc = (
-                CharacterDescriptor.model_validate(doc)
-                if doc is not None and is_character
-                else None
-            )
+            desc = play_descriptor(entity_id)
             problems = play_problems(
                 desc,
                 leaf.animation,

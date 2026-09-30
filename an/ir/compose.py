@@ -27,6 +27,7 @@ what tooling reasons about.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
@@ -110,13 +111,25 @@ def play(
     """Play a named animation of the target entity's descriptor (an#7).
 
     ``duration=None`` fills the animation's natural length — or the shot's
-    remainder for a looping one — but counts as **zero** in a ``sequence``,
-    so a sibling placed after it starts at the same instant:
+    remainder for a looping one. In a ``sequence`` a play with no ``duration``
+    occupies its **natural** length (a motion preset's own length divided by
+    ``speed``; a non-looping descriptor animation's likewise), so the sibling
+    after it starts when it ends; a looping one runs to the shot end and
+    occupies **zero**:
 
     >>> [f.start for f in flatten(sequence(play("a", "idle_breath"), delay(1.0), play("a", "blink")))]
     [0.0, 1.0]
     >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
     [0.0, 2.0]
+    >>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
+    [0.0, 0.5]
+    >>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
+    [0.0, 0.25]
+
+    (Bare ``flatten`` knows only the presets, by name; ``an validate`` and the
+    compiler pass the entity's descriptor too — :func:`an.characters.play.play_extent`
+    — so a descriptor animation that shares a preset's name is measured as the
+    descriptor's.)
 
     A name the descriptor does not declare falls back to a motion preset of
     :data:`an.motion.PRESETS`, with ``args`` as its parameters (an#166):
@@ -146,7 +159,7 @@ def expression(
     """Hold a facial expression on an entity (an#98).
 
     ``duration=None`` runs to the shot end and counts as **zero** in a
-    ``sequence``, like ``play``:
+    ``sequence``, as a looping ``play`` does:
 
     >>> [f.start for f in flatten(sequence(expression("a", "happy"), delay(1.0), expression("a", "sad")))]
     [0.0, 1.0]
@@ -195,8 +208,41 @@ def loop(action: Action, count: int) -> LoopAction:
 # -----------------------------------------------------------------------------
 
 
-def duration_of(action: Action) -> Seconds:
+#: ``PlayAction -> seconds`` a play WITHOUT an explicit ``duration`` occupies in
+#: a ``sequence``. The default is :func:`default_play_extent`; the compiler and
+#: ``an validate`` pass one bound to the entity's descriptor.
+PlayExtent = Callable[[PlayAction], Seconds]
+
+
+def default_play_extent(action: PlayAction) -> Seconds:
+    """A duration-less play's extent when no descriptor is known: a motion
+    preset's natural length over ``speed``, else ``0.0``.
+
+    The one resolver is :func:`an.characters.play.play_extent`; this is it with
+    ``desc=None``.
+
+    >>> default_play_extent(PlayAction(target="a", animation="hop"))
+    0.5
+    >>> default_play_extent(PlayAction(target="a", animation="not_a_preset"))
+    0.0
+    """
+    from an.characters.play import play_extent  # lazy: play imports the IR
+
+    return play_extent(None, action)
+
+
+def _extent_of_play(action: Any, play_extent: PlayExtent | None) -> Seconds:
+    if isinstance(action, ExpressionAction):
+        return action.duration if action.duration is not None else 0.0
+    if action.duration is not None:
+        return action.duration
+    return (play_extent or default_play_extent)(action)
+
+
+def duration_of(action: Action, *, play_extent: PlayExtent | None = None) -> Seconds:
     """Compute the total duration of an action tree without evaluating it.
+
+    ``play_extent`` resolves a duration-less ``play`` (see :data:`PlayExtent`).
 
     >>> duration_of(tween("a", "x", to=1.0, duration=2.0))
     2.0
@@ -214,15 +260,18 @@ def duration_of(action: Action) -> Seconds:
     if isinstance(action, TweenAction):
         return action.duration
     if isinstance(action, (PlayAction, ExpressionAction)):
-        return action.duration if action.duration is not None else 0.0
+        return _extent_of_play(action, play_extent)
     if isinstance(action, DelayAction):
         return action.duration
     if isinstance(action, SequenceAction):
-        return sum((duration_of(c) for c in action.children), 0.0)
+        return sum((duration_of(c, play_extent=play_extent) for c in action.children), 0.0)
     if isinstance(action, ParallelAction):
-        return max((duration_of(c) for c in action.children), default=0.0)
+        return max(
+            (duration_of(c, play_extent=play_extent) for c in action.children),
+            default=0.0,
+        )
     if isinstance(action, LoopAction):
-        return duration_of(action.child) * action.count
+        return duration_of(action.child, play_extent=play_extent) * action.count
     raise TypeError(f"Unknown action type: {type(action).__name__}")
 
 
@@ -247,19 +296,33 @@ class FlatAction:
     )
 
 
-def flatten(action: Action, *, start: Seconds = 0.0) -> list[FlatAction]:
+def flatten(
+    action: Action,
+    *,
+    start: Seconds = 0.0,
+    play_extent: PlayExtent | None = None,
+) -> list[FlatAction]:
     """Walk a composition tree, emitting leaf actions with absolute times.
+
+    A ``play`` without ``duration`` advances a ``sequence`` by ``play_extent``
+    (default :func:`default_play_extent`): its natural length, or zero for a
+    looping animation, which runs to the shot end.
 
     Delays are absorbed into the timeline (they don't appear in the output).
     Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
     runtime can re-roll for efficiency later.
     """
     out: list[FlatAction] = []
-    _flatten_into(action, start, out)
+    _flatten_into(action, start, out, play_extent)
     return out
 
 
-def _flatten_into(action: Action, t: Seconds, out: list[FlatAction]) -> Seconds:
+def _flatten_into(
+    action: Action,
+    t: Seconds,
+    out: list[FlatAction],
+    play_extent: PlayExtent | None = None,
+) -> Seconds:
     """Append leaf actions to ``out`` and return the new cursor time."""
     if isinstance(action, SetAction):
         # `at` is relative to enclosing scope; absolute start is t + at.
@@ -270,7 +333,7 @@ def _flatten_into(action: Action, t: Seconds, out: list[FlatAction]) -> Seconds:
         out.append(FlatAction(start=t, end=t + action.duration, action=action))
         return t + action.duration
     if isinstance(action, (PlayAction, ExpressionAction)):
-        d = action.duration if action.duration is not None else 0.0
+        d = _extent_of_play(action, play_extent)
         out.append(FlatAction(start=t, end=t + d, action=action))
         return t + d
     if isinstance(action, DelayAction):
@@ -278,18 +341,18 @@ def _flatten_into(action: Action, t: Seconds, out: list[FlatAction]) -> Seconds:
     if isinstance(action, SequenceAction):
         cursor = t
         for child in action.children:
-            cursor = _flatten_into(child, cursor, out)
+            cursor = _flatten_into(child, cursor, out, play_extent)
         return cursor
     if isinstance(action, ParallelAction):
         max_end = t
         for child in action.children:
-            child_end = _flatten_into(child, t, out)
+            child_end = _flatten_into(child, t, out, play_extent)
             if child_end > max_end:
                 max_end = child_end
         return max_end
     if isinstance(action, LoopAction):
         cursor = t
         for _ in range(action.count):
-            cursor = _flatten_into(action.child, cursor, out)
+            cursor = _flatten_into(action.child, cursor, out, play_extent)
         return cursor
     raise TypeError(f"Unknown action type: {type(action).__name__}")
