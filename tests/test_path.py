@@ -23,6 +23,7 @@ from an.adapters.cutout.compile import CutoutCompileError, compile_shot
 from an.adapters.cutout.path import (
     HEAD_STROKE_INSET,
     cumulative_lengths,
+    dash_spans,
     flatten_curve,
     path_geometry,
 )
@@ -156,11 +157,30 @@ def _battery() -> list[dict]:
         (1.0 / 3.0, 2.0 / 3.0),
     ]
     heads = [(0.0, 0.0), (20.0, 10.0), (1e6, 3.0)]
+    # (dash, gap, offset): solid, plain, an irrational period with a negative
+    # offset, a dash far longer than the path, and a hairline dash
+    dashes = [
+        (0.0, 0.0, 0.0),
+        (10.0, 15.0, 0.0),
+        (7.3, 2.9000000000000004, -13.7),
+        (1e6, 1.0, 5.0),
+        (0.5, 0.5, 1e5),
+    ]
     return [
-        {"pts": [list(p) for p in pts], "ts": ts, "te": te, "hl": hl, "hw": hw}
+        {
+            "pts": [list(p) for p in pts],
+            "ts": ts,
+            "te": te,
+            "hl": hl,
+            "hw": hw,
+            "dash": d,
+            "gap": g,
+            "off": o,
+        }
         for pts in rng_pts
         for ts, te in trims
         for hl, hw in heads
+        for d, g, o in dashes
     ]
 
 
@@ -183,6 +203,7 @@ _GEOMETRY_FUNCS = (
     "function pathSegmentAt",
     "function pathPointAt",
     "function pathTrim",
+    "function pathDashSpans",
     "function clamp01",
     "function pathGeometry",
 )
@@ -212,7 +233,7 @@ def test_the_runtime_geometry_equals_the_python_spec_exactly(tmp_path):
             "const cases = JSON.parse(require('fs').readFileSync("
             "process.argv[1], 'utf8'));",
             "console.log(JSON.stringify(cases.map(c => "
-            "pathGeometry(c.pts, c.ts, c.te, c.hl, c.hw))));",
+            "pathGeometry(c.pts, c.ts, c.te, c.hl, c.hw, c.dash, c.gap, c.off))));",
         ]
     )
     js = node_json(script, str(cases_file))
@@ -223,9 +244,65 @@ def test_the_runtime_geometry_equals_the_python_spec_exactly(tmp_path):
             case["te"],
             head_length=case["hl"],
             head_width=case["hw"],
+            dash=case["dash"],
+            gap=case["gap"],
+            dash_offset=case["off"],
         )
         want_json = json.loads(json.dumps(want))
         assert got == want_json, case
+
+
+# --- dashes (an#161) ------------------------------------------------------------
+
+
+def test_dashes_are_laid_from_the_path_start_and_clipped_to_the_trim():
+    assert dash_spans(0.0, 100.0, 10.0, 15.0, 0.0) == [
+        (0.0, 10.0), (25.0, 35.0), (50.0, 60.0), (75.0, 85.0),
+    ]
+    # a trim that starts mid-dash clips that dash; it does not restart the pattern
+    assert dash_spans(30.0, 60.0, 10.0, 15.0, 0.0) == [(30.0, 35.0), (50.0, 60.0)]
+
+
+def test_dashes_do_not_crawl_as_trim_end_grows():
+    """The acceptance line of the issue: revealing a dashed path must not move a
+    dash. Every dash of a shorter trim is a dash of a longer one, unchanged —
+    except the last, which is the one the tip is cutting into."""
+    pts = flatten_curve(
+        [(-200, 40), (-120, -160), (80, 180), (210, -30)], curve="cubic", samples=24
+    )
+    kw = dict(dash=12.0, gap=9.0, dash_offset=3.5)
+    previous = []
+    for i in range(1, 101):
+        now = path_geometry(pts, 0.0, i / 100, **kw)["dashes"]
+        assert now[: len(previous) - 1] == previous[:-1]
+        assert not previous or now[len(previous) - 1][0] == previous[-1][0]
+        previous = now
+    assert len(previous) > 20
+
+
+def test_moving_trim_start_does_not_move_a_dash_either():
+    full = path_geometry(L_POINTS, 0.0, 1.0, dash=10.0, gap=10.0)["dashes"]
+    cut = path_geometry(L_POINTS, 0.3, 1.0, dash=10.0, gap=10.0)["dashes"]
+    assert cut[-len(full) + 6 :] == full[6:]  # the untouched tail is identical
+
+
+def test_the_offset_slides_the_pattern_forward_along_the_path():
+    a = dash_spans(0.0, 60.0, 10.0, 10.0, 0.0)
+    b = dash_spans(0.0, 60.0, 10.0, 10.0, 5.0)
+    assert a[1] == (20.0, 30.0) and b[1] == (25.0, 35.0)
+    # one full period is the identity (marching ants loop seamlessly)
+    assert dash_spans(0.0, 60.0, 10.0, 10.0, 20.0) == a
+
+
+def test_a_dashed_stroke_ends_short_of_an_arrowhead_like_a_solid_one():
+    g = path_geometry(L_POINTS, 0.0, 1.0, head_length=20.0, head_width=10.0, dash=10.0, gap=5.0)
+    assert g["stroke"] == [] and g["head"] is not None
+    last = g["dashes"][-1][-1]
+    assert last[1] <= 60.0 - 20.0 * HEAD_STROKE_INSET + 1e-9  # stops inside the head
+
+
+def test_a_solid_path_has_no_dashes_key():
+    assert "dashes" not in path_geometry(L_POINTS, 0.0, 1.0)
 
 
 def test_the_python_lengths_are_exact_square_roots():
@@ -442,6 +519,100 @@ def test_a_trim_tween_with_no_from_starts_at_the_document_s_value():
     scene = _compile(_shot(actions=[tween]), {"trim_end": 0.0})
     (clip,) = scene.animations.values()
     assert [k.value for k in clip.channels[0].keyframes] == [0.0, 1.0]
+
+
+def test_a_dashed_path_reaches_the_wire_with_gap_defaulting_to_dash():
+    p = _compile(_shot(), {"dash": 12.0}).scene.children[0].visual.path
+    assert (p.dash, p.gap, p.dash_offset) == (12.0, 12.0, 0.0)
+    p = _compile(_shot(), {"dash": 12.0, "gap": 4.0, "dash_offset": 3.0})
+    p = p.scene.children[0].visual.path
+    assert (p.dash, p.gap, p.dash_offset) == (12.0, 4.0, 3.0)
+    assert _compile(_shot()).scene.children[0].visual.path.dash == 0.0
+
+
+def _march(**kw):
+    return TweenAction(
+        target="route", property="dash_offset", from_value=0.0, to_value=20.0,
+        duration=1.0, easing="linear", **kw,
+    )
+
+
+def test_marching_ants_is_an_ordinary_numeric_tween_on_dash_offset():
+    scene = _compile(_shot(actions=[_march()]), {"dash": 10.0})
+    (clip,) = scene.animations.values()
+    (ch,) = clip.channels
+    assert (ch.target, ch.property) == ("route", "dash_offset")
+    assert [k.value for k in ch.keyframes] == [0.0, 20.0]
+
+
+def test_a_dash_offset_tween_starts_at_the_documents_offset():
+    tween = TweenAction(target="route", property="dash_offset", to_value=20.0)
+    scene = _compile(_shot(actions=[tween]), {"dash": 10.0, "dash_offset": 7.0})
+    (clip,) = scene.animations.values()
+    assert [k.value for k in clip.channels[0].keyframes] == [7.0, 20.0]
+
+
+def test_dash_offset_on_a_solid_path_raises_and_validate_agrees():
+    shot = _shot(actions=[_march()])
+    with pytest.raises(CutoutCompileError, match="no dash pattern"):
+        _compile(shot)
+    assert not _validate(shot).passed
+    assert _validate(shot, {"dash": 10.0}).passed
+
+
+def test_dash_offset_on_a_character_is_refused_too():
+    shot = _shot(
+        actions=[SetAction(target="charlie", property="dash_offset", value=1.0)],
+        extra=[AssetRef(kind="character", id="charlie", store="characters", ref="c")],
+    )
+    with pytest.raises(CutoutCompileError, match="not a path node"):
+        _compile(shot)
+    assert not _validate(shot).passed
+
+
+def test_a_swap_set_may_not_be_named_dash_offset():
+    from an.base import swap_set_name_problem
+
+    assert swap_set_name_problem("dash_offset") is not None
+
+
+def test_the_descriptor_refuses_inert_or_sub_pixel_dashes():
+    import pydantic
+
+    with pytest.raises(pydantic.ValidationError, match="`dash` is not"):
+        PathDescriptor(name="x", points=L_POINTS, gap=4.0)
+    with pytest.raises(pydantic.ValidationError, match="`dash` is not"):
+        PathDescriptor(name="x", points=L_POINTS, dash_offset=4.0)
+    with pytest.raises(pydantic.ValidationError, match="below"):
+        PathDescriptor(name="x", points=L_POINTS, dash=0.2, gap=0.2)
+    with pytest.raises(pydantic.ValidationError):
+        PathDescriptor(name="x", points=L_POINTS, dash=-3.0)
+
+
+@requires_node
+def test_the_runtime_applies_dash_offset_and_throws_on_an_undashed_path():
+    script = "\n".join(
+        [
+            _FAKE_GRAPHICS,
+            _apply_property_source(),
+            "const out = {};",
+            "const g = new FakeGraphics();",
+            "g._anPath = {spec: {points: [[0,0],[100,0]], stroke_width: 4, color: '#ff0000',"
+            " head_length: 0, head_width: 0, dash: 10, gap: 10},"
+            " trim_start: 0, trim_end: 1, dash_offset: 0};",
+            "applyProperty({name: 'route', children: [g]}, 'dash_offset', 5);",
+            "out.moves = g.calls.filter(c => c[0] === 'moveTo').map(c => c[1]);",
+            "const solid = new FakeGraphics();",
+            "solid._anPath = {spec: {points: [[0,0],[100,0]], stroke_width: 4,"
+            " color: '#ff0000'}, trim_start: 0, trim_end: 1, dash_offset: 0};",
+            "try { applyProperty({name: 'route', children: [solid]}, 'dash_offset', 5);"
+            " out.err = 'no throw'; } catch (e) { out.err = String(e.message); }",
+            "console.log(JSON.stringify(out));",
+        ]
+    )
+    out = node_json(script)
+    assert out["moves"] == [5, 25, 45, 65, 85]  # a dash every 20 px, shifted by 5
+    assert "no dash pattern" in out["err"]
 
 
 # --- byte-identity ------------------------------------------------------------

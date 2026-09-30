@@ -182,11 +182,15 @@ TRANSFORM_PROPERTIES: frozenset[str] = frozenset(
         # visual is a path (the compiler refuses them anywhere else).
         "trim_start",
         "trim_end",
+        # an#161: the dash pattern's phase — path-only like the trims.
+        "dash_offset",
     }
 )
 
-#: The two path-only properties inside :data:`TRANSFORM_PROPERTIES` (an#160).
-TRIM_PROPERTIES: frozenset[str] = frozenset({"trim_start", "trim_end"})
+#: The path-only properties inside :data:`TRANSFORM_PROPERTIES` (an#160; the
+#: name predates `dash_offset`, an#161): trim and the dash phase. A node that
+#: draws no path refuses all of them.
+TRIM_PROPERTIES: frozenset[str] = frozenset({"trim_start", "trim_end", "dash_offset"})
 
 #: Characters within which a swap-set name is not addressable: ``/`` would read
 #: as a path segment and ``::`` is the runtime's pose-key separator.

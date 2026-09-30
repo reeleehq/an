@@ -41,7 +41,7 @@ ROOT = Path(__file__).resolve().parents[1]
 #: `test_no_scene_stays_exempt_from_the_hash_guard_once_it_has_a_row` went red
 #: on that very commit — which is how they got removed, and is the whole
 #: lifecycle working as designed rather than as a comment.
-NEW_IN_WAVE: set[str] = set()
+NEW_IN_WAVE: set[str] = {"path_draw"}  # an#161; no ledger row until the next `an bench` run is committed
 
 
 @pytest.fixture(scope="module")

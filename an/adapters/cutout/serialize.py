@@ -98,6 +98,12 @@ class PathJSON(_JSONModel):
     trim_end: float = 1.0
     head_length: float = 0.0
     head_width: float = 0.0
+    #: Dash pattern (an#161): ``dash > 0`` is on. ``dash_offset`` is the value
+    #: shown before a channel touches it. These are wire fields of path
+    #: visuals only, so they cannot move a non-path document's hash.
+    dash: float = 0.0
+    gap: float = 0.0
+    dash_offset: float = 0.0
 
 
 class VisualJSON(_JSONModel):

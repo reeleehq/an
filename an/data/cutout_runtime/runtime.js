@@ -323,11 +323,31 @@
 
     const PATH_HEAD_STROKE_INSET = 0.5;
 
+    // Dash k covers [offset + k*period, offset + k*period + dash], laid along
+    // the WHOLE path and clipped to [a, b] afterwards — so the trim moving
+    // never moves a dash (an#161). Mirror of path.py::dash_spans.
+    function pathDashSpans(a, b, dash, gap, offset) {
+        const period = dash + gap;
+        let k = Math.floor((a - offset - dash) / period);
+        const out = [];
+        for (;;) {
+            const start = offset + k * period;
+            if (!(start < b)) break;
+            const lo = a > start ? a : start;
+            const end = start + dash;
+            const hi = b < end ? b : end;
+            if (hi > lo) out.push([lo, hi]);
+            k += 1;
+        }
+        return out;
+    }
+
     function clamp01(v) {
         return v < 0 ? 0 : (v > 1 ? 1 : v);
     }
 
-    function pathGeometry(pts, trimStart, trimEnd, headLength, headWidth) {
+    function pathGeometry(pts, trimStart, trimEnd, headLength, headWidth,
+                          dash, gap, dashOffset) {
         const cum = pathLengths(pts);
         const total = cum[cum.length - 1];
         const lo = clamp01(Math.min(trimStart, trimEnd));
@@ -357,6 +377,12 @@
             head = [[tx, ty], [bx + nx, by + ny], [bx - nx, by - ny]];
             strokeEnd = b - hl * PATH_HEAD_STROKE_INSET;
         }
+        if (dash > 0) {
+            const spans = strokeEnd > a
+                ? pathDashSpans(a, strokeEnd, dash, gap, dashOffset || 0) : [];
+            const dashes = spans.map(sp => pathTrim(pts, cum, sp[0], sp[1]));
+            return { stroke: [], head: head, dashes: dashes };
+        }
         const stroke = strokeEnd > a ? pathTrim(pts, cum, a, strokeEnd) : [];
         return { stroke: stroke, head: head };
     }
@@ -366,11 +392,14 @@
         const spec = st.spec;
         const geo = pathGeometry(
             spec.points, st.trim_start, st.trim_end,
-            spec.head_length || 0, spec.head_width || 0
+            spec.head_length || 0, spec.head_width || 0,
+            spec.dash || 0, spec.gap || 0, st.dash_offset
         );
         const color = parseColor(spec.color);
         g.clear();
-        if (geo.stroke.length >= 2) {
+        const strokes = geo.dashes || [geo.stroke];
+        for (const line of strokes) {
+            if (line.length < 2) continue;
             g.lineStyle({
                 width: spec.stroke_width,
                 color: color,
@@ -378,9 +407,9 @@
                 cap: spec.cap || 'round',
                 join: spec.join || 'round',
             });
-            g.moveTo(geo.stroke[0][0], geo.stroke[0][1]);
-            for (let i = 1; i < geo.stroke.length; i++) {
-                g.lineTo(geo.stroke[i][0], geo.stroke[i][1]);
+            g.moveTo(line[0][0], line[0][1]);
+            for (let i = 1; i < line.length; i++) {
+                g.lineTo(line[i][0], line[i][1]);
             }
         }
         if (geo.head) {
@@ -405,6 +434,7 @@
             spec: spec,
             trim_start: spec.trim_start != null ? spec.trim_start : 0,
             trim_end: spec.trim_end != null ? spec.trim_end : 1,
+            dash_offset: spec.dash_offset != null ? spec.dash_offset : 0,
         };
         drawPath(g);
         return g;
@@ -416,6 +446,12 @@
             throw new Error(
                 'property ' + JSON.stringify(prop) + ' on ' + JSON.stringify(node.name) +
                 ': only a stroked path has a trim, and this node draws none.'
+            );
+        }
+        if (prop === 'dash_offset' && !(child._anPath.spec.dash > 0)) {
+            throw new Error(
+                'property "dash_offset" on ' + JSON.stringify(node.name) +
+                ': this path has no dash pattern, so an offset would draw nothing.'
             );
         }
         if (child._anPath[prop] === value) return;
@@ -642,7 +678,8 @@
             // an#160: a stroked path's visible span. Applied to the node's
             // path visual and redrawn; loud on a node without one.
             case 'trim_start':
-            case 'trim_end': applyTrim(node, prop, value); break;
+            case 'trim_end':
+            case 'dash_offset': applyTrim(node, prop, value); break;
             // an#62. Three numeric channels, not one colour: `evaluate` lerps
             // numbers and SNAPS everything else, and it has a Python twin kept
             // in step by a parity test — so a colour type here would be a third
@@ -687,7 +724,7 @@
                     ' on ' + JSON.stringify(node.name) + '. The runtime applies: ' +
                     'x, y, rotation, rotation_rad, scale_x, scale_y, skew_x, ' +
                     'skew_y, pivot_x, pivot_y, alpha, tint_r, tint_g, tint_b, ' +
-                    'trim_start, trim_end (paths only) ' +
+                    'trim_start, trim_end, dash_offset (paths only) ' +
                     '(author `tint` as a #rrggbb string; the compiler expands ' +
                     'it into the three) — plus this node\'s swap ' +
                     'sets: ' + JSON.stringify(Object.keys(sets).sort()) + '.'

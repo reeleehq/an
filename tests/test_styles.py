@@ -190,8 +190,14 @@ def test_every_role_declared_REACHABLE_actually_reaches_the_document(role):
         entities=[
             AssetRef(kind="environment", id="room", store="environments", ref="park"),
             AssetRef(kind="character", id="charlie", store="characters", ref="c"),
+            # `stroke` (an#161) reaches a stroked path's default colour, so the
+            # fixed scene has one — same change as the role, per the rule.
+            AssetRef(kind="prop", id="route", store="props", ref="route"),
         ],
     )
+    props = {
+        "route": {"kind": "PathDescriptor", "name": "route", "points": [[0, 0], [10, 0]]}
+    }
     if role == "leg":
         # The placeholder rig has no legs (`_PLACEHOLDER_PARTS`), so the role
         # needs a character that declares them — which is also why the leg
@@ -203,7 +209,7 @@ def test_every_role_declared_REACHABLE_actually_reaches_the_document(role):
         warnings.simplefilter("ignore", CutoutCompileWarning)
         scene = compile_shot(
             shot,
-            mall={"characters": store},
+            mall={"characters": store, "props": props},
             fps=24,
             width=W,
             height=H,
@@ -518,3 +524,67 @@ def test_an_empty_style_pack_name_is_not_a_pack_in_any_of_the_three_places():
     from an.ir.schema import SceneIR
 
     assert "style_pack" not in ir_to_markdown(SceneIR(meta=Meta(style_pack="")))
+
+
+# --- the `stroke` role (an#161) -------------------------------------------------
+
+
+def _path_scene(pack, *, document=None, entity="route"):
+    """Compile one stroked path under ``pack`` and return its visual's colour."""
+    import warnings
+
+    doc = {
+        "kind": "PathDescriptor",
+        "name": "route",
+        "points": [[0, 0], [10, 0]],
+        **(document or {}),
+    }
+    shot = Shot(
+        id="s1",
+        renderer="cutout",
+        duration=1.0,
+        entities=[AssetRef(kind="prop", id=entity, store="props", ref="route")],
+    )
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", CutoutCompileWarning)
+        scene = compile_shot(
+            shot, mall={"props": {"route": doc}}, fps=24, width=W, height=H,
+            style_pack=pack,
+        )
+    (node,) = scene.scene.children
+    assert node.visual.path.color == node.visual.color  # one colour, two carriers
+    return node.visual.color, [str(w.message) for w in caught]
+
+
+def test_the_stroke_role_replaces_a_paths_default_colour():
+    from an.paths import DFLT_STROKE_COLOUR
+
+    assert _path_scene(None)[0] == DFLT_STROKE_COLOUR
+    assert _path_scene(StylePack(name="p", roles={"skin": "#123456"}))[0] == DFLT_STROKE_COLOUR
+    colour, warned = _path_scene(StylePack(name="noir", roles={"stroke": "#101010"}))
+    assert colour == "#101010" and warned == []
+
+
+def test_a_path_that_names_its_own_colour_is_art_and_the_pack_says_so():
+    colour, warned = _path_scene(
+        StylePack(name="noir", roles={"stroke": "#101010"}),
+        document={"color": "#00ff00"},
+    )
+    assert colour == "#00ff00"
+    assert len(warned) == 1 and "noir" in warned[0] and "route" in warned[0]
+
+
+def test_a_per_entity_stroke_override_beats_both_the_role_and_the_document():
+    pack = StylePack(
+        name="noir", roles={"stroke": "#101010"}, entities={"route": {"stroke": "#eeeeee"}}
+    )
+    assert _path_scene(pack)[0] == "#eeeeee"
+    assert _path_scene(pack, document={"color": "#00ff00"})[0] == "#eeeeee"
+
+
+def test_the_arrowhead_is_filled_in_the_strokes_colour():
+    """Why there is no separate `arrowhead` role: the runtime fills the head
+    with `path.color`, the one colour the role decides."""
+    src = RUNTIME_JS.read_text(encoding="utf-8")
+    body = src[src.index("function drawPath") : src.index("function makePath")]
+    assert body.count("parseColor(") == 1 and "beginFill(color" in body

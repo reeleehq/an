@@ -167,7 +167,13 @@ def test_every_transform_property_is_stepped_not_just_x(prop):
             entities=[AssetRef(kind="prop", id="p", store="props", ref="p")],
             actions=[tween("p", prop, to=0.5, duration=1.0)],
         )
-        doc = {"kind": "PathDescriptor", "name": "p", "points": [[0, 0], [10, 0]]}
+        # dashed, so `dash_offset` (an#161) has a pattern to move
+        doc = {
+            "kind": "PathDescriptor",
+            "name": "p",
+            "points": [[0, 0], [10, 0]],
+            "dash": 2.0,
+        }
         scene = compile_shot(shot, mall={"props": {"p": doc}}, step_hz=10.0)
         kfs = _tween_channel(scene).keyframes
         assert len(kfs) == 11 and all(k.easing == "step" for k in kfs)

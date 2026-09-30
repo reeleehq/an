@@ -51,7 +51,10 @@ RUNTIME_MOUTH_COLOURS: tuple[int, ...] = (0x6B2B2B, 0x2A1010, 0xFAFAFA, 0xB04848
 RUNTIME_EYE_PUPIL_DEFAULT: str = "#1a1a1a"
 
 #: `visual.kind` values whose `visual.color` the runtime actually paints.
-COLOURED_KINDS: frozenset[str] = frozenset({"rect", "ellipse"})
+#: A stroked path (an#160) paints `path.color` — the compiler stamps the same
+#: value onto `visual.color` (asserted by `tests/test_styles.py`), so one read
+#: covers the stroke and the arrowhead, which is filled in that colour.
+COLOURED_KINDS: frozenset[str] = frozenset({"rect", "ellipse", "path"})
 
 #: `visual.kind` values whose `visual.color` is inert.
 INERT_COLOUR_KINDS: frozenset[str] = frozenset({"mouth", "svg_sprite", "sprite"})

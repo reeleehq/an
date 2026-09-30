@@ -1,0 +1,14 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "route",
+  "points": [[-120, 60], [-40, 60], [0, -70], [110, -50]],
+  "curve": "cubic",
+  "samples_per_segment": 32,
+  "width": 8,
+  "cap": "butt",
+  "dash": 14,
+  "gap": 10,
+  "arrowhead": true,
+  "trim_end": 0.0
+}
