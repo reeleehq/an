@@ -28,6 +28,7 @@ from an.characters.play import (
     preset_moved_node,
     preset_play_span,
 )
+from an.audio.effects import VoiceEffectError, voice_effects
 from an.characters.schema import CharacterDescriptor
 from an.expression.binding import expression_problems
 from an.ir.camera import CAMERA_MOVES, CameraError, camera_keys
@@ -677,6 +678,19 @@ def _descriptor_for(ref, available_characters) -> CharacterDescriptor | None:
     return None
 
 
+def _check_voice_effects(
+    report: "ValidationReport", path: str, k: int, voice_ref: str, voices
+) -> None:
+    """An unknown or out-of-range ``effects`` entry on a line's voice is an
+    error — rendering would raise the same ``VoiceEffectError``."""
+    try:
+        voice_effects({"voices": voices}, voice_ref)
+    except VoiceEffectError as exc:
+        report.add(
+            "error", f"{path}/dialogue/{k}/voice_ref", f"voice {voice_ref!r}: {exc}"
+        )
+
+
 def _check_camera(shot, path: str, report: "ValidationReport", stores=None) -> None:
     """Every way a camera can fail to render, reported for free (an#109).
 
@@ -1104,6 +1118,8 @@ def validate_semantic(
                         f"{path}/dialogue/{k}/voice_ref",
                         f"voice ref {line.voice_ref!r} not in voices store",
                     )
+                elif line.voice_ref is not None:
+                    _check_voice_effects(report, path, k, line.voice_ref, available_voices)
 
         for k, line in enumerate(shot.dialogue):
             if not line.text.strip():

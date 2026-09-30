@@ -14,6 +14,7 @@ import pytest
 import yaml
 
 from an.adapters.cutout.easing import EASING_FUNCS, apply_easing
+from an.audio.effects import normalize_effects
 from an.environments import EnvironmentDescriptor
 from an.ir.camera import CAMERA_MOVES
 from an.ir.schema import Meta, SoundCue, Transition
@@ -28,7 +29,7 @@ SPECS = sorted(SPEC_DIR.glob("*.yaml"))
 LIVE_KEYS = {
     "meta", "style_pack", "environment", "camera", "easing",
     "tween_duration_s", "shots", "characters", "motion_presets",
-    "transitions", "sound",
+    "transitions", "sound", "voice",
 }
 TOP_KEYS = {"style", "title", "cost_class", "cost_note", "live", "targets", "guidance"}
 COST_CLASSES = {"low", "low_to_medium", "medium", "high", "very_high"}
@@ -150,3 +151,18 @@ def test_sound_bed_is_a_valid_cue(spec):
     assert set(sound) <= {"bed"}
     cue = SoundCue(sound="bed", **sound["bed"])
     assert cue.loop  # a bed runs under the whole film
+
+
+def test_voice_effects_are_valid_voice_effects(spec):
+    """`live.voice.effects` is the `effects` of a voice document in the voices
+    store (an#163): `normalize_effects` refuses an unknown effect or range."""
+    voice = spec["live"].get("voice")
+    if voice is None:
+        return
+    assert set(voice) == {"effects"}
+    assert normalize_effects(voice["effects"])  # non-empty: a spec that says nothing omits the key
+
+
+def test_south_park_raises_its_voices():
+    fx = _load(SPEC_DIR / "south_park.yaml")["live"]["voice"]["effects"]
+    assert 0 < fx["pitch_semitones"] <= 12
