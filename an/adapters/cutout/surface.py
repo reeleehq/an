@@ -442,12 +442,37 @@ def grain_node(
     return NodeJSON(name=GRAIN_NODE, children=tiles)
 
 
+def _fades(channel) -> bool:
+    """Whether an ``alpha`` channel ever shows a value strictly between 0 and
+    1 — a FADE. A hide or a show (every key 0 or 1, stepped between) is not
+    one: the copies share the part's container, so its alpha hides or shows
+    them with the part, exactly (an#203 — a view's pose hiding the far arm
+    was reported as a fade).
+
+    >>> from an.adapters.cutout.serialize import ChannelJSON, KeyframeJSON as K
+    >>> hide = ChannelJSON(target="a", property="alpha", keyframes=[
+    ...     K(time=0, value=1.0, easing="step"), K(time=1, value=0.0, easing="step")])
+    >>> fade = ChannelJSON(target="a", property="alpha", keyframes=[
+    ...     K(time=0, value=1.0), K(time=1, value=0.0)])
+    >>> _fades(hide), _fades(fade)
+    (False, True)
+    """
+    keys = channel.keyframes
+    if any(0.0 < float(k.value) < 1.0 for k in keys):
+        return True
+    return any(
+        a.easing != "step" and float(a.value) != float(b.value)
+        for a, b in zip(keys, keys[1:])
+    )
+
+
 def faded_treated_targets(scene: NodeJSON, animations) -> list[str]:
-    """The ``alpha`` channel targets that fade a part carrying underlays.
+    """The ``alpha`` channel targets that FADE a part carrying underlays.
 
     A treated part's copies are drawn separately, so a fade shows them
     through the part instead of the background (see `an.styles.Outline`).
-    An alpha on the glow node only fades the glow, which is fine.
+    A hide or a show is not a fade (:func:`_fades`), and an alpha on the glow
+    node only fades the glow, which is fine.
     """
     treated: set[str] = set()
 
@@ -464,6 +489,6 @@ def faded_treated_targets(scene: NodeJSON, animations) -> list[str]:
         ch.target
         for clip in animations.values()
         for ch in clip.channels
-        if ch.property == "alpha" and ch.target in treated
+        if ch.property == "alpha" and ch.target in treated and _fades(ch)
     }
     return sorted(hits)

@@ -70,6 +70,7 @@ from an.characters.play import (
     play_source,
     primary_slot_per_bone,
     resolve_play,
+    resolve_turns,
     sampled_deviations,
     slot_node_path,
 )
@@ -105,6 +106,7 @@ from an.adapters.cutout.serialize import (
 from an.characters.schema import (
     CHARACTER_DOCUMENT_KIND,
     EYELID_CHANNEL,
+    SLOT_POSE_ANGLES,
     SLOT_POSE_FACTORS,
     SLOT_POSE_OFFSETS,
     MOUTH_SHAPES,
@@ -2948,7 +2950,8 @@ def _swap_pose_layer(
     descriptor's ``swap_poses`` put on its slots as each whole-character swap
     lands (an#197). A key poses the slots it lists; every other slot any key
     of that set poses is at rest. Offsets (``x``, ``y``) are view_box units,
-    scaled by the rig's k and added to the rest; factors (``scale_*``,
+    scaled by the rig's k and added to the rest; ``rotation`` is radians,
+    added unscaled; factors (``scale_*``,
     ``alpha``) multiply it; several posed sets compose the same way.
 
     A curve that never leaves the rest is dropped, and an entity nothing
@@ -2992,6 +2995,11 @@ def _swap_pose_layer(
                 poses = [p for p in poses if p is not None]
                 for prop in SLOT_POSE_OFFSETS:
                     value = float(getattr(rest, prop)) + k * sum(
+                        getattr(p, prop) for p in poses
+                    )
+                    curves.setdefault((path, prop), []).append((event.time, value))
+                for prop in SLOT_POSE_ANGLES:
+                    value = float(getattr(rest, prop)) + sum(
                         getattr(p, prop) for p in poses
                     )
                     curves.setdefault((path, prop), []).append((event.time, value))
@@ -3339,6 +3347,10 @@ def _expand_preset_plays(
     (``vocab.node_transforms``), so a move on ``x`` in a two-character shot
     stays centred on the laid-out ``-110`` without a ``rest=``; with no
     vocabulary (a unit test compiling bare actions) it is the identity pose.
+
+    A ``turn`` that does not say which way it faced opens from the side the
+    timeline before it left the entity facing (:func:`an.characters.play.
+    resolve_turns`, an#203) — the resolver ``an validate`` checks with.
     """
     from an.motion import IDENTITY_POSE, POSE_PROPERTIES
 
@@ -3350,6 +3362,11 @@ def _expand_preset_plays(
             return None
         return {p: float(getattr(transform, p)) for p in POSE_PROPERTIES}
 
+    flat_list = resolve_turns(
+        flat_list,
+        descriptor_of=lambda e: vocab.descriptors.get(e) if vocab is not None else None,
+        rest_of=rest_of,
+    ).flats
     out: list[FlatAction] = []
     for flat in flat_list:
         action = flat.action

@@ -628,6 +628,189 @@ def expand_preset_play(
     return out
 
 
+# --------------------------------------------------------- facing (an#203)
+
+#: The preset whose START depends on what came before it on the timeline: a
+#: turn opens from the side the character faces NOW, which only the timeline
+#: knows.
+TURN_PRESET = "turn"
+#: Slack for "at or before" on the timeline: a turn chained straight after
+#: another starts at the instant the first one settles.
+_FACING_SLACK: float = 1e-9
+
+
+@dataclass(frozen=True)
+class Facing:
+    """What an entity shows at one instant, read off a flat timeline.
+
+    ``view`` is the key of its view set last set on the ENTITY (``None``: not
+    set in this shot, so the rig's default — ``front`` on a factory
+    character); ``direction`` is ``"right"``/``"left"`` from the sign of the
+    last ``scale_x`` it was given (``None``: nothing set it, so its rest).
+    """
+
+    view: str | None = None
+    direction: str | None = None
+
+
+@dataclass(frozen=True)
+class TurnInference:
+    """One ``play`` of :data:`TURN_PRESET` and the state it starts from.
+
+    ``index`` is the play's position in the flat list it was read from;
+    ``declared`` is the ``from_direction`` the author passed (``None``: left
+    to the timeline).
+    """
+
+    index: int
+    start: float
+    entity: str
+    before: Facing
+    declared: str | None = None
+
+    @property
+    def contradicted(self) -> bool:
+        """The author's ``from_direction`` disagrees with the timeline — the
+        turn would jump to the other side before it squashes."""
+        return (
+            self.declared is not None
+            and self.before.direction is not None
+            and self.declared != self.before.direction
+        )
+
+
+@dataclass(frozen=True)
+class TurnResolution:
+    """:func:`resolve_turns`' result: ``flats`` is the input with each turn's
+    inferred ``from_direction`` filled in; ``turns`` says what each turn
+    started from; ``events`` is the timeline with every preset play expanded,
+    which :func:`facing_at` reads."""
+
+    flats: list
+    turns: list[TurnInference]
+    events: list
+
+
+def facing_at(events, entity: str, t: float, *, view_set: str = "view") -> Facing:
+    """What ``entity`` shows at time ``t``: the latest ``view_set`` swap set
+    on the entity and the sign of the latest ``scale_x`` it was given, at or
+    before ``t`` (a tween counts from its END, when its value has landed; at
+    one instant the one LATER in ``events`` wins — so pass them in authoring
+    order, as :func:`resolve_turns` does).
+
+    >>> from an.ir.compose import flatten, sequence
+    >>> from an.motion import turn
+    >>> flats = flatten(sequence(turn("ned", to="side", direction="left")))
+    >>> facing_at(flats, "ned", 0.0), facing_at(flats, "ned", 1.0)
+    (Facing(view=None, direction=None), Facing(view='side', direction='left'))
+    """
+    from an.ir.schema import SetAction, TweenAction
+
+    view: str | None = None
+    sx: float | None = None
+    stamped = []
+    for order, f in enumerate(events):
+        a = f.action
+        if getattr(a, "target", None) != entity:
+            continue
+        if isinstance(a, TweenAction) and a.property == "scale_x":
+            stamped.append((f.start + float(a.duration), order, "scale_x", a.to_value))
+        elif isinstance(a, SetAction) and a.property in ("scale_x", view_set):
+            stamped.append((f.start, order, a.property, a.value))
+    for time, _, prop, value in sorted(stamped, key=lambda e: (e[0], e[1])):
+        if time > t + _FACING_SLACK:
+            break
+        if prop != "scale_x":
+            view = value
+            continue
+        try:
+            sx = float(value)
+        except (TypeError, ValueError):
+            continue  # a value the compiler refuses; validate reports it elsewhere
+    direction = None if not sx else ("left" if sx < 0 else "right")
+    return Facing(view=view, direction=direction)
+
+
+def resolve_turns(
+    flat_list,
+    *,
+    descriptor_of: Callable[[str], CharacterDescriptor | None],
+    rest_of: Callable[[str], Mapping[str, float] | None],
+) -> TurnResolution:
+    """Fill in each turn's ``from_direction`` from the timeline before it
+    (an#203): a ``play`` of ``turn`` on an entity that does not pass one
+    opens from the side the latest earlier ``scale_x`` left the entity facing
+    — so ``side`` (``direction: left``) then ``back`` is two plays, with no
+    ``from_direction`` by hand. Turns are resolved in time order, each seeing
+    the ones before it expanded. THE resolver the compiler expands with and
+    ``an validate`` checks with.
+
+    An explicit ``from_direction`` is kept — ``turns`` records it with the
+    inferred state so ``an validate`` can say when the two disagree. A play
+    that cannot resolve is left for :func:`play_problems` to report.
+
+    >>> from an.ir.compose import flatten, sequence
+    >>> from an.ir.schema import PlayAction
+    >>> flats = flatten(sequence(
+    ...     PlayAction(target="ned", animation="turn", args={"to": "side", "direction": "left"}),
+    ...     PlayAction(target="ned", animation="turn", args={"to": "back"})))
+    >>> res = resolve_turns(flats, descriptor_of=lambda e: None,
+    ...                     rest_of=lambda p: {"scale_x": 1.0})
+    >>> res.flats[1].action.args["from_direction"], res.turns[1].before
+    ('left', Facing(view='side', direction='left'))
+    """
+    from an.ir.compose import FlatAction
+    from an.ir.schema import PlayAction
+
+    out = list(flat_list)
+    # (authoring position, sub-step) -> flat: an expanded play's leaves sit
+    # where the play was authored, so a tie at one instant goes to whatever
+    # was authored later, as the compiler orders it.
+    ordered = [
+        ((i, 0), f) for i, f in enumerate(flat_list) if not isinstance(f.action, PlayAction)
+    ]
+
+    def events() -> list:
+        return [f for _, f in sorted(ordered, key=lambda e: e[0])]
+
+    plays = sorted(
+        (
+            (i, f)
+            for i, f in enumerate(flat_list)
+            if isinstance(f.action, PlayAction)
+        ),
+        key=lambda p: (p[1].start, p[0]),
+    )
+    turns: list[TurnInference] = []
+    for i, f in plays:
+        action = f.action
+        entity = (action.target or "").split("/", 1)[0]
+        try:
+            if play_source(descriptor_of(entity), action.animation) != PRESET_SOURCE:
+                continue
+        except PlayResolutionError:
+            continue
+        args = dict(action.args or {})
+        if action.animation == TURN_PRESET and action.target == entity:
+            from an.motion import DFLT_TURN_SET
+
+            before = facing_at(
+                events(), entity, f.start, view_set=str(args.get("view_set", DFLT_TURN_SET))
+            )
+            declared = args.get("from_direction")
+            turns.append(TurnInference(i, f.start, entity, before, declared))
+            if declared is None and before.direction is not None:
+                args["from_direction"] = before.direction
+                action = action.model_copy(update={"args": args})
+                out[i] = FlatAction(start=f.start, end=f.end, action=action)
+        try:
+            leaves = expand_preset_play(action, start=f.start, rest_of=rest_of)
+        except (PlayResolutionError, TypeError, ValueError):
+            continue  # play_problems says why; the facing just learns nothing
+        ordered.extend(((i, n + 1), leaf) for n, leaf in enumerate(leaves))
+    return TurnResolution(flats=out, turns=turns, events=events())
+
+
 def resolve_play(
     desc: CharacterDescriptor,
     animation: str,
@@ -912,6 +1095,7 @@ __all__ = [
     "BONE_TRACK_PROPERTIES",
     "BoneTrack",
     "DESCRIPTOR_SOURCE",
+    "Facing",
     "HEAD_BONE",
     "PRESET_SOURCE",
     "PlayResolutionError",
@@ -920,10 +1104,14 @@ __all__ = [
     "ROOT_BONE",
     "ResolvedPlay",
     "SlotTrack",
+    "TURN_PRESET",
+    "TurnInference",
+    "TurnResolution",
     "active_skin",
     "art_exists_for",
     "drawn_attachment",
     "expand_preset_play",
+    "facing_at",
     "play_problems",
     "play_source",
     "preset_moved_node",
@@ -931,6 +1119,7 @@ __all__ = [
     "preset_problems",
     "primary_slot_per_bone",
     "resolve_play",
+    "resolve_turns",
     "sampled_deviations",
     "sine_sample_times",
     "slot_node_path",

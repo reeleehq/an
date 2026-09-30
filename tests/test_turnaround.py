@@ -21,6 +21,7 @@ set `alpha: 0` on nine face node paths guessed by trial. What this file holds:
 from __future__ import annotations
 
 import json
+import math
 import subprocess
 import tempfile
 import warnings
@@ -37,7 +38,9 @@ from an.adapters.cutout.serialize import to_dict
 from an.adapters.cutout.timeline import evaluate_timeline, timeline_from_scene
 from an.characters import new_character
 from an.characters.factory import (
+    BUILDS,
     FACE_SLOTS,
+    SIDE_FOOT_SPREAD,
     SIDE_EYE_SHIFT,
     SIDE_MOUTH_SHIFT,
     THREE_QUARTER_FACE_SHIFT,
@@ -54,6 +57,7 @@ from an.ir.schema import (
     PlayAction,
     SetAction,
     Shot,
+    TweenAction,
     VisemeKeyframe,
     VisemeTrack,
 )
@@ -505,3 +509,244 @@ def test_front_back_and_side_render_visibly_different(tmp_path):
     for a, b in (("front", "back"), ("front", "side"), ("side", "back")):
         changed = int((abs(frames[a] - frames[b]).max(axis=2) > STRONG_CHANGE).sum())
         assert changed > MIN_CHANGED, (a, b, changed)
+
+
+# --- 6. polish from the hi/bye re-renders (an#203) -------------------------------
+
+
+@pytest.fixture(scope="module")
+def builds():
+    """One offline character per build — a profile's legs are placed from the
+    build's own joints, so every build has to show two of them."""
+    with tempfile.TemporaryDirectory() as d:
+        root = init(Path(d) / "p")
+        for b in BUILDS:
+            new_character(root / "assets" / "characters", name=b, seed=b, use_dicebear=False, build=b)
+        yield root
+
+
+@pytest.mark.parametrize("build", sorted(BUILDS))
+def test_a_profile_shows_both_legs_overlapped_and_offset(builds, build):
+    """A side view used to slide both legs onto the centre line, where two
+    legs of one colour read as ONE (the Reiniger sheet). Now the near leg is
+    forward, the far leg back, overlapping at the hip and splayed so the feet
+    part — asserted on the compiled document, evaluated."""
+    body = BUILDS[build]
+    doc = _compile(builds, _shot([SetAction(target=build, property="view", value="side", at=0.0)], entities=(build,)))
+    pose = _pose_at(doc, 0.5)
+    far, near = f"{build}/leg_l", f"{build}/leg_r"
+    k = -_rest(doc, far).x / body.hip_x  # the rig's view_box -> scene px
+    width, length = body.leg_width * k, body.leg_length * k
+    x = {p: _value(doc, pose, p, "x") for p in (far, near)}
+    rot = {p: _value(doc, pose, p, "rotation") for p in (far, near)}
+    assert all(_value(doc, pose, p, "alpha") == 1.0 for p in (far, near))  # both drawn
+    assert x[far] < x[near] and x[near] - x[far] < width  # offset, overlapping at the hip
+    # A PixiJS rotation is clockwise: a hanging foot moves by -L*sin(angle).
+    foot = {p: x[p] - length * math.sin(rot[p]) for p in (far, near)}
+    assert foot[near] - foot[far] == pytest.approx(SIDE_FOOT_SPREAD * width)
+    assert foot[near] - foot[far] > width  # a gap between the feet: two legs
+    kids = [n.name for n in next(n for n in doc.scene.children if n.name == build).children]
+    assert kids.index("leg_r") > kids.index("leg_l")  # the near leg draws over the far one
+
+
+def test_front_after_a_profile_straightens_the_legs(project):
+    doc = _compile(project, _shot([
+        SetAction(target="ned", property="view", value="side", at=0.2),
+        SetAction(target="ned", property="view", value="front", at=1.0),
+    ]))
+    for leg in ("ned/leg_l", "ned/leg_r"):
+        assert _value(doc, _pose_at(doc, 0.5), leg, "rotation") != 0.0
+        assert _value(doc, _pose_at(doc, 1.5), leg, "rotation") == pytest.approx(_rest(doc, leg).rotation)
+
+
+def _turns(*plays, gap=0.2):
+    """Plays of `turn` in a sequence, `gap` seconds apart."""
+    steps = []
+    for args in plays:
+        steps += [delay(gap), PlayAction(target="ned", animation="turn", args=args)]
+    return sequence(*steps)
+
+
+def test_a_chained_turn_opens_from_where_the_last_one_left_off(project):
+    """front -> side (facing left) -> back: the second turn needs no
+    `from_direction` — it squashes from the mirrored profile, never jumping to
+    the other side first (an#203)."""
+    doc = _compile(project, _shot([_turns({"to": "side", "direction": "left"}, {"to": "back"})]))
+    s0 = _rest(doc, "ned").scale_x
+    # the first turn: 0.2 -> 0.5, settled mirrored; the second starts at 0.7.
+    assert _pose_at(doc, 0.6)[("ned", "scale_x")] == pytest.approx(-s0)
+    for t in (0.7, 0.7 + 1 / FPS, 0.7 + 2 / FPS):
+        assert -s0 <= _pose_at(doc, t)[("ned", "scale_x")] <= 0.0, t  # no flip to +s0
+    end = _pose_at(doc, 1.5)
+    assert end[("ned", "scale_x")] == pytest.approx(s0)
+    assert end[("ned/head", VIEW_CHANNEL)] == "back"
+
+
+def test_a_declared_from_direction_is_kept(project):
+    doc = _compile(project, _shot([_turns({"to": "side", "direction": "left"}, {"to": "back", "from_direction": "right"})]))
+    s0 = _rest(doc, "ned").scale_x
+    assert _pose_at(doc, 0.7)[("ned", "scale_x")] == pytest.approx(s0)  # what the author wrote
+
+
+def test_the_inference_sees_an_authored_flip_and_a_view_set(project):
+    """Not only an earlier turn: any `scale_x` the entity was given, and a
+    view set on it directly."""
+    from an.characters.play import resolve_turns
+
+    flats = flatten(sequence(
+        set_("ned", "scale_x", -1.0),
+        set_("ned", "view", "side"),
+        delay(0.5),
+        PlayAction(target="ned", animation="turn", args={"to": "front"}),
+    ))
+    res = resolve_turns(flats, descriptor_of=lambda e: None, rest_of=lambda p: {"scale_x": 1.0})
+    (t,) = res.turns
+    assert (t.before.view, t.before.direction, t.declared) == ("side", "left", None)
+    assert res.flats[-1].action.args["from_direction"] == "left"
+
+
+def _validate(root, *shots):
+    from an.ir.schema import Meta, SceneIR
+    from an.ir.validate import validate_semantic
+
+    scene = SceneIR(meta=Meta(title="t", duration=sum(s.duration for s in shots)), timeline=list(shots))
+    mall = load(root).mall
+    return validate_semantic(scene, available_characters=mall["characters"])
+
+
+def _said(report, severity, needle):
+    return [f.description for f in report.findings if f.severity == severity and needle in f.description]
+
+
+def test_validate_flags_a_from_direction_the_timeline_contradicts(project):
+    shot = _shot([_turns({"to": "side", "direction": "left"}, {"to": "back", "from_direction": "right"})])
+    (msg,) = _said(_validate(project, shot), "warning", "from_direction")
+    assert "'right'" in msg and "facing 'left'" in msg and "'side' view" in msg
+    agreeing = _shot([_turns({"to": "side", "direction": "left"}, {"to": "back", "from_direction": "left"})])
+    assert not _said(_validate(project, agreeing), "warning", "from_direction")
+    inferred = _shot([_turns({"to": "side", "direction": "left"}, {"to": "back"})])
+    assert not _said(_validate(project, inferred), "warning", "from_direction")
+
+
+def test_validate_says_add_views_for_a_view_on_a_character_without_views(tmp_path):
+    root = init(tmp_path / "q")
+    new_character(root / "assets" / "characters", name="old", use_dicebear=False, views=False)
+    set_view = _shot([SetAction(target="old", property="view", value="side", at=0.0)], entities=("old",))
+    assert _said(_validate(root, set_view), "error", "an character add-views")
+    turning = _shot(
+        [sequence(delay(0.2), PlayAction(target="old", animation="turn", args={"to": "back"}))],
+        entities=("old",),
+    )
+    assert _said(_validate(root, turning), "error", "add-views")
+
+
+def test_validate_warns_when_a_view_does_not_carry_across_a_cut(project):
+    """Shots are independent by design (each compiles alone), so a character
+    that ends a shot in profile starts the next one at its rest — said, with
+    the line that carries the view on (an#203)."""
+    turned = _shot([_turns({"to": "side", "direction": "left"})]).model_copy(update={"id": "a"})
+    cut = _shot().model_copy(update={"id": "b"})
+    (msg,) = _said(_validate(project, turned, cut), "warning", "does not carry")
+    assert "'side' view" in msg and "facing left" in msg
+    assert "{kind: set, target: ned, property: view, value: side, at: 0}" in msg
+    carried = _shot([
+        SetAction(target="ned", property="view", value="side", at=0.0),
+        SetAction(target="ned", property="scale_x", value=-1.0, at=0.0),
+    ]).model_copy(update={"id": "b"})
+    assert not _said(_validate(project, turned, carried), "warning", "does not carry")
+    # A shot the character is not in breaks the chain: nothing to continue.
+    other = _shot(entities=("carl",)).model_copy(update={"id": "c"})
+    assert not _said(_validate(project, turned, other, cut), "warning", "does not carry")
+
+
+def test_a_view_pose_hiding_a_treated_arm_is_not_a_fade(project):
+    """The side view hides the far arm with a stepped alpha 0; the outline
+    copies share the arm's container, so they hide with it — the compile
+    warning about FADING a treated part was spurious (south_park film2)."""
+    from an.adapters.cutout.surface import faded_treated_targets
+    from an.styles import StylePack
+
+    pack = StylePack(name="lined", surface={"outline": {"width": 3}})
+    shot = _shot([SetAction(target="ned", property="view", value="side", at=0.5)])
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        doc = compile_shot(shot, mall=load(project).mall, fps=FPS, style_pack=pack)
+    assert not [w for w in caught if "fades" in str(w.message)]
+    fade = _shot([
+        sequence(delay(0.5), TweenAction(target="ned/arm_l", property="alpha", to_value=0.3, duration=0.5)),
+    ])
+    with pytest.warns(Warning, match="fades"):
+        doc = compile_shot(fade, mall=load(project).mall, fps=FPS, style_pack=pack)
+    assert faded_treated_targets(doc.scene, doc.animations) == ["ned/arm_l"]  # a real fade still is
+
+
+def _silhouette_ink(view: str, work: Path):
+    """The ink mask of a black-tinted character on white — a silhouette, the
+    hardest case: two legs of one colour must still read as two."""
+    import numpy as np
+    from PIL import Image
+
+    from an.ir.schema import Meta, Resolution, SceneIR
+    from an.orchestrate import render_project
+
+    root = init(work / view)
+    new_character(root / "assets" / "characters", name="g", seed="g", use_dicebear=False)
+    proj = load(root)
+    proj.scene = SceneIR(
+        meta=Meta(title=view, duration=0.25, fps=12, resolution=Resolution(width=320, height=320)),
+        timeline=[Shot(
+            id="s1", renderer="cutout", duration=0.25,
+            entities=[AssetRef(kind="character", id="g", store="characters", ref="g", stage={"at": [0, 0], "scale": 1.0})],
+            actions=[
+                SetAction(target="g", property="view", value=view, at=0.0),
+                SetAction(target="g", property="tint", value="#000000", at=0.0),
+            ],
+        )],
+    )
+    proj.mall["scenes"]["main"] = proj.scene
+    mp4 = render_project(root, output_name="out")
+    png = work / f"{view}.png"
+    subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-i", str(mp4), "-vf", "select=eq(n\\,0)", "-vframes", "1", str(png)],
+        check=True, capture_output=True,
+    )
+    return np.asarray(Image.open(png).convert("L")) < 96
+
+
+def _runs(row) -> int:
+    """How many separate ink runs a row crosses."""
+    return int(row[0]) + int(((row[1:].astype(int) - row[:-1].astype(int)) == 1).sum())
+
+
+#: Rows of the lower legs, as a fraction of the character's ink height from
+#: its lowest pixel — above the shoes, below the body.
+LOWER_LEG_BAND: tuple[float, float] = (0.06, 0.2)
+
+
+@pytest.mark.browser
+@pytest.mark.ffmpeg
+def test_a_profile_silhouette_shows_two_legs(tmp_path):
+    ink = _silhouette_ink("side", tmp_path)
+    rows = [r for r in range(ink.shape[0]) if ink[r].any()]
+    top, bottom = rows[0], rows[-1]
+    h = bottom - top
+    band = range(bottom - int(LOWER_LEG_BAND[1] * h), bottom - int(LOWER_LEG_BAND[0] * h))
+    two = [r for r in band if _runs(ink[r]) == 2]
+    assert len(two) >= len(band) // 2, [(r, _runs(ink[r])) for r in band]
+
+
+def test_facing_ties_go_to_the_later_authored_action_and_bad_values_are_skipped():
+    """A set authored AFTER a turn, landing at the instant the turn settles,
+    wins — as the compiler orders it — and a non-numeric scale_x is not a
+    crash inside validate (review of an#203)."""
+    from an.characters.play import resolve_turns
+
+    flats = flatten(sequence(
+        PlayAction(target="ned", animation="turn", args={"to": "side", "direction": "left", "duration": 0.3}),
+    )) + flatten(sequence(delay(0.3), set_("ned", "scale_x", 1.0)))
+    res = resolve_turns(flats, descriptor_of=lambda e: None, rest_of=lambda p: {"scale_x": 1.0})
+    from an.characters.play import facing_at
+
+    assert facing_at(res.events, "ned", 5.0).direction == "right"
+    bad = flatten(set_("ned", "scale_x", "abc"))
+    assert facing_at(bad, "ned", 1.0).direction is None

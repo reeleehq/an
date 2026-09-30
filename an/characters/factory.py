@@ -18,6 +18,7 @@ problem routes the way every other verifier's does (an#78).
 from __future__ import annotations
 
 import hashlib
+import math
 import re
 import json
 import shutil
@@ -1389,9 +1390,15 @@ _NEAR_FACE_SLOTS: tuple[str, ...] = (
 SIDE_EYE_SHIFT: float = 14.0
 SIDE_MOUTH_SHIFT: float = 56.0
 SIDE_MOUTH_SQUASH: float = 0.6
-#: The fraction of the hip spread each leg moves toward the centre line in
-#: profile — the legs overlap, and a walk scissors them.
-SIDE_LEG_TUCK: float = 0.7
+#: Profile legs (facing right): both hang from under the body, the near leg
+#: (``leg_r``, drawn over the far one) a little forward and the far leg a
+#: little back, overlapping at the hip — each hip sits ``SIDE_LEG_OFFSET`` leg
+#: widths off the centre line — and splayed so the FEET part: the shoe centres
+#: land ``SIDE_FOOT_SPREAD`` leg widths apart, on every build (a stubby leg
+#: splays more). Both legs show, even as one silhouette, and a walk in profile
+#: has two legs to alternate (an#203).
+SIDE_LEG_OFFSET: float = 0.25
+SIDE_FOOT_SPREAD: float = 1.8
 #: Three-quarter (facing right): the whole face slides toward the facing side,
 #: the far eye narrows, the far arm tucks in toward the body and the legs in.
 THREE_QUARTER_FACE_SHIFT: float = 20.0
@@ -1399,6 +1406,28 @@ THREE_QUARTER_MOUTH_SHIFT: float = 24.0
 THREE_QUARTER_FAR_SQUASH: float = 0.85
 THREE_QUARTER_ARM_TUCK: float = 0.3
 THREE_QUARTER_LEG_TUCK: float = 0.25
+
+
+def _profile_legs(body: BodyBuild) -> tuple["SlotPose", "SlotPose"]:
+    """The far (``leg_l``) and near (``leg_r``) leg of a right-facing profile:
+    hips :data:`SIDE_LEG_OFFSET` leg widths either side of the centre line, and
+    each leg turned about its hip so the feet are :data:`SIDE_FOOT_SPREAD` leg
+    widths apart. The near leg reaches FORWARD (toward +x): a PixiJS rotation
+    is clockwise, which swings a hanging foot toward -x, so its angle is
+    negative.
+
+    >>> far, near = _profile_legs(BUILDS["regular"])
+    >>> far.x + near.x, far.rotation == -near.rotation > 0
+    (0.0, True)
+    """
+    from an.characters.schema import SlotPose
+
+    hip = SIDE_LEG_OFFSET * body.leg_width
+    reach = (SIDE_FOOT_SPREAD * body.leg_width / 2 - hip) / body.leg_length
+    angle = math.asin(max(-1.0, min(1.0, reach)))
+    far = SlotPose(x=body.hip_x - hip, rotation=angle)
+    near = SlotPose(x=-body.hip_x + hip, rotation=-angle)
+    return far, near
 
 
 def view_poses(
@@ -1430,8 +1459,7 @@ def view_poses(
     side["mouth"] = SlotPose(x=SIDE_MOUTH_SHIFT * s, scale_x=SIDE_MOUTH_SQUASH)
     side["arm_l"] = SlotPose(alpha=0.0)
     side["arm_r"] = SlotPose(x=-sx)
-    side["leg_l"] = SlotPose(x=SIDE_LEG_TUCK * body.hip_x)
-    side["leg_r"] = SlotPose(x=-SIDE_LEG_TUCK * body.hip_x)
+    side["leg_l"], side["leg_r"] = _profile_legs(body)
     shift = THREE_QUARTER_FACE_SHIFT * s
     tq: dict[str, SlotPose] = {
         n: SlotPose(x=shift, scale_x=THREE_QUARTER_FAR_SQUASH) for n in _FAR_FACE_SLOTS
