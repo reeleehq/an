@@ -1467,6 +1467,80 @@ def _build_transitions_and_sound(work: Path) -> Path:
     return _render(project)
 
 
+class _PacedWords:
+    """A `WordTimingProvider` that paces the transcript's words by their length
+    across the clip — the seam `muvid` feeds real alignments through
+    (`WordTimingsLipSync`). Deterministic and offline; with a real voice, pass
+    `--lipsync whisper` instead and the captions follow the voice."""
+
+    name = "paced-demo"
+
+    def words_for(self, audio, *, transcript=""):
+        words = transcript.split()
+        weights = [len(w) + 2 for w in words]  # a beat for the space
+        lead, span = 0.15, max(0.0, audio.duration - 0.3)
+        out, t = [], lead
+        for word, weight in zip(words, weights):
+            step = span * weight / sum(weights)
+            out.append((word, t, t + step * 0.85))
+            t += step
+        return out
+
+
+def _build_captions(work: Path) -> Path:
+    """Captions from word timings (an#175): two shots joined by a dissolve,
+    each line captioned at the bottom of the title-safe area with the spoken
+    word lit, and `output/main.srt` written beside the mp4 from the SAME cue
+    list — so its second cue starts 0.6 s earlier than the shots' lengths
+    alone would say, exactly as the picture does."""
+    from an.audio.injectable_lipsync import WordTimingsLipSync
+
+    w, h = DEMO_RESOLUTION
+    md = _scene(
+        f"""
+        # Captions
+
+        ```yaml meta
+        title: Captions
+        author: an
+        duration: 5.4
+        fps: {DEMO_FPS}
+        resolution:
+          width: {w}
+          height: {h}
+        default_renderer: cutout
+        captions:
+          color: "#1a1a1a"
+          highlight: "#c0392b"
+          size: 0.07
+        ```
+
+        ## Shot s1 (cutout)
+
+        ```yaml shot
+        duration: 3.0
+        ```
+        """
+    ) + (
+        "\n" + _entities("maya")
+        + "\n```dialogue\nmaya: Every word I say is on screen. In time.\n```\n"
+        + "\n## Shot s2 (cutout)\n\n```yaml shot\nduration: 3.0\n"
+        "transition:\n  kind: dissolve\n  duration: 0.6\n```\n"
+        + "\n" + _entities("charlie")
+        + "\n```dialogue\ncharlie: And the subtitles file agrees.\n```\n"
+    )
+    project = _project(work, scene_md=md, characters=("maya", "charlie"))
+    from an.project import load
+    from an.render import render
+
+    out = Path(
+        render(load(project), tts="offline", lipsync=WordTimingsLipSync(_PacedWords()))
+    )
+    # Beside the gallery's mp4 (`build_one` deletes `work`), as a player expects.
+    shutil.copy(out.with_suffix(".srt"), work.parents[1] / "captions.srt")
+    return out
+
+
 def _copy_example(rel: str) -> Callable[[Path], Path]:
     def build(work: Path) -> Path:
         src = REPO_ROOT / rel
@@ -2005,6 +2079,26 @@ DEMOS: tuple[Demo, ...] = (
             "Assembled by `an.assemble`."
         ),
         build=_build_transitions_and_sound,
+    ),
+    Demo(
+        slug="captions",
+        title="Captions from the lip-sync word timings",
+        shows=(
+            "Each line is captioned at the bottom of the title-safe area, paged by "
+            "sentence and by 42-character lines, with the word being spoken lit — "
+            "timed from the SAME word timings the mouth is lip-synced to. The two "
+            "shots are joined by a 0.6 s dissolve, which shortens the film, and "
+            "`output/main.srt` (written beside the mp4 through the `captions` "
+            "store) comes from the same cue list, so its second cue starts where "
+            "the picture's does."
+        ),
+        how=(
+            "`captions: {highlight: \"#c0392b\"}` in the meta block "
+            "(`an.ir.schema.Captions`); timings from any lip-sync provider that "
+            "keeps words (`--lipsync whisper`, or `WordTimingsLipSync` as here). "
+            "Built by `an.captions`."
+        ),
+        build=_build_captions,
     ),
     Demo(
         slug="impacts",

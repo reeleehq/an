@@ -2,7 +2,8 @@
 
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
-artifacts (audio, viseme tracks, per-shot mp4s), final output, and the agent's
+artifacts (audio, viseme tracks, per-shot mp4s), final output and its caption
+sidecar, and the agent's
 decision log — is keyed inside a store. Stores are dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
 
@@ -11,7 +12,7 @@ sites work against filesystem, SQLite, S3, etc.
 >>> with tempfile.TemporaryDirectory() as d:
 ...     mall = build_project_mall(d, ensure=True)
 ...     sorted(mall.keys()) == [
-...         'audio', 'characters', 'decisions', 'environments',
+...         'audio', 'captions', 'characters', 'decisions', 'environments',
 ...         'output', 'previews', 'props', 'scenes', 'shots',
 ...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
@@ -33,6 +34,7 @@ from an.stores.styles import StylesStore
 from an.stores.voices import VoicesStore
 from an.stores.artifacts import (
     AudioArtifactStore,
+    CaptionsStore,
     OutputStore,
     PreviewArtifactStore,
     ShotArtifactStore,
@@ -98,6 +100,11 @@ def build_project_mall(
         "shots": ShotArtifactStore(pdir / "artifacts" / "shots"),
         "previews": PreviewArtifactStore(pdir / "artifacts" / "previews"),
         "output": OutputStore(pdir / "output"),
+        # The SubRip sidecar of each delivered film (an#175), in the SAME
+        # directory as the mp4 so `output/main.srt` sits beside
+        # `output/main.mp4` — where a player looks for it. The two stores
+        # share a folder but not a key space: each lists only its extension.
+        "captions": CaptionsStore(pdir / "output"),
         "decisions": DecisionLogStore(pdir / ".an" / "decisions.jsonl"),
     }
     mall.update(overrides)

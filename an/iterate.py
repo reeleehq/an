@@ -189,6 +189,10 @@ The IR shape (relevant fields):
   - meta.sounds (optional): the same cue shape in FILM time — a music bed is
     {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks
     it under every dialogue line.
+  - meta.captions (optional): captions built at render time from the dialogue's
+    word timings — {} for the defaults, or {highlight: "#rrggbb", color,
+    size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add
+    caption text entities by hand: they are derived from the dialogue.
 
 Path syntax for patches: slash-delimited, list indices are integers. Examples:
 

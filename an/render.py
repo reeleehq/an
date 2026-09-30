@@ -262,10 +262,20 @@ def render(
         film_timeline(shots, fps=effective_fps)
     pool_size = _resolve_parallel(parallel, n_shots=len(shots))
 
+    # Captions (an#175): ONE page list, from which the burned-in picture and
+    # the sidecar are both derived, so they cannot disagree. Built before any
+    # browser launches, so a strict-captions refusal costs nothing.
+    captions = scene.meta.captions
+    pages = []
+    if captions is not None:
+        from an.captions import caption_pages
+
+        pages = caption_pages(scene, fps=effective_fps, captions=captions)
+
     # Resolve renderers up front so a missing one fails fast (before we spawn
     # workers).
     shot_renderers = []
-    for shot in shots:
+    for i, shot in enumerate(shots):
         r = _DEFAULT_REGISTRY.find_for(shot)
         if r is None:
             raise RenderError(
@@ -273,19 +283,24 @@ def render(
                 f"(renderer={shot.renderer!r}); registered: "
                 f"{list(_DEFAULT_REGISTRY.names())}"
             )
-        shot_renderers.append((shot, r))
+        shot_ctx = ctx
+        if captions is not None and captions.burn:
+            shot, shot_ctx = _burn_captions(
+                shot, i, pages, captions, ctx, project, fps=effective_fps
+            )
+        shot_renderers.append((shot, r, shot_ctx))
 
     if pool_size <= 1:
         shot_results = [
-            _render_one(shot, renderer, ctx, project)
-            for shot, renderer in shot_renderers
+            _render_one(shot, renderer, shot_ctx, project)
+            for shot, renderer, shot_ctx in shot_renderers
         ]
     else:
         results_by_id: dict[str, RenderResult] = {}
         with ThreadPoolExecutor(max_workers=pool_size) as ex:
             futures = {
-                ex.submit(_render_one, shot, renderer, ctx, project): shot.id
-                for shot, renderer in shot_renderers
+                ex.submit(_render_one, shot, renderer, shot_ctx, project): shot.id
+                for shot, renderer, shot_ctx in shot_renderers
             }
             for fut in as_completed(futures):
                 shot_id = futures[fut]
@@ -317,7 +332,45 @@ def render(
     with open(output_path, "rb") as f:
         project.mall["output"][output_name] = f.read()
 
+    if captions is not None and captions.sidecar:
+        # Beside the mp4, under the same key (`output/main.srt`), in FILM time
+        # on the timeline the picture was just laid out on.
+        from an.captions import srt_for_scene
+
+        srt = srt_for_scene(scene, fps=effective_fps, pages=pages)
+        project.mall["captions"][output_name] = srt.encode("utf-8")
+
     return output_path
+
+
+def _burn_captions(shot, index, pages, captions, ctx, project, *, fps):
+    """``shot`` with its caption pages added, and the context to render it in."""
+    import dataclasses
+    import warnings
+
+    from an.captions import CaptionWarning, captioned_shot
+
+    if not any(p.shot == index for p in pages):
+        return shot, ctx
+    if shot.renderer != "cutout":
+        warnings.warn(
+            f"shot {shot.id!r} is drawn by the {shot.renderer!r} renderer, which "
+            "has no overlay layer: its captions are in the sidecar only",
+            CaptionWarning,
+            stacklevel=3,
+        )
+        return shot, ctx
+    shot, mall = captioned_shot(
+        shot,
+        pages,
+        captions,
+        fps=fps,
+        mall=ctx.mall,
+        shot_index=index,
+        base_dir=project.root,
+        resolution=tuple(ctx.resolution),
+    )
+    return shot, dataclasses.replace(ctx, mall=mall)
 
 
 def _render_one(

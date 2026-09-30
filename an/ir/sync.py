@@ -542,6 +542,8 @@ def ir_to_markdown(scene: SceneIR) -> str:
         meta_dict["sounds"] = [
             c.model_dump(exclude_defaults=True) for c in scene.meta.sounds
         ]
+    if scene.meta.captions is not None:  # an#175, same rule
+        meta_dict["captions"] = scene.meta.captions.model_dump(exclude_defaults=True)
     parts.append("```yaml meta")
     parts.append(yaml.safe_dump(meta_dict, sort_keys=False).rstrip())
     parts.append("```\n")
