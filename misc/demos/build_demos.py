@@ -1840,6 +1840,51 @@ def _build_captions(work: Path) -> Path:
     return out
 
 
+def _build_dialogue_pause(work: Path) -> Path:
+    """A beat inside one shot (an#187): Charlie says hi, Maya holds a 1.5 s
+    pause — looking at him — and says bye, all in ONE shot. Before `(pause …)`
+    an author had to cut to a new shot for every beat. Captions make the
+    silent offline voice's timing visible in the GIF."""
+    from an.audio.injectable_lipsync import WordTimingsLipSync
+
+    w, h = DEMO_RESOLUTION
+    md = _scene(
+        f"""
+        # A pause inside a shot
+
+        ```yaml meta
+        title: A pause inside a shot
+        author: an
+        duration: 3.6
+        fps: {DEMO_FPS}
+        resolution:
+          width: {w}
+          height: {h}
+        default_renderer: cutout
+        captions:
+          color: "#1a1a1a"
+          size: 0.07
+        ```
+        """
+    ) + (
+        "\n"
+        + _shot("s1", 3.6)
+        + "\n"
+        + _entities("charlie", "maya")
+        + "\n```yaml actions\n"
+        "- kind: expression\n  target: maya\n  preset: skeptical\n"
+        "  axes:\n    gaze_x: -1.0\n  start: 0.7\n  duration: 1.5\n```\n"
+        + "\n```dialogue\ncharlie: Hi, Maya.\nmaya (pause 1.5): Bye.\n```\n"
+    )
+    project = _project(work, scene_md=md, characters=("charlie", "maya"))
+    from an.project import load
+    from an.render import render
+
+    return Path(
+        render(load(project), tts="offline", lipsync=WordTimingsLipSync(_PacedWords()))
+    )
+
+
 def _copy_example(rel: str) -> Callable[[Path], Path]:
     def build(work: Path) -> Path:
         src = REPO_ROOT / rel
@@ -2443,6 +2488,25 @@ DEMOS: tuple[Demo, ...] = (
             "Built by `an.captions`."
         ),
         build=_build_captions,
+    ),
+    Demo(
+        slug="dialogue-pause",
+        title="A pause inside a shot",
+        shows=(
+            "One shot: Charlie says hi, Maya holds a 1.5 s beat — looking at him, "
+            "skeptical — then says bye. The pause shifts her audio, her mouth, her "
+            "caption and any ducking together, because they all read the start the "
+            "audio pipeline derives. Before this, every beat was its own shot, "
+            "which pushed cut rates far past a style's target. The GIF is silent; "
+            "the captions show the timing."
+        ),
+        how=(
+            "`maya (pause 1.5): Bye.` in the ```dialogue block — or `(at 2.0)` to "
+            "pin a start in shot seconds (`Dialogue.pause` / `Dialogue.at`). "
+            "Stamped into `Dialogue.start` by `an.audio.pipeline` on every pass, "
+            "so editing a pause never re-synthesizes."
+        ),
+        build=_build_dialogue_pause,
     ),
     Demo(
         slug="impacts",

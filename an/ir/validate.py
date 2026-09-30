@@ -1259,6 +1259,28 @@ def validate_semantic(
 DIALOGUE_OVERRUN_TOLERANCE_S: float = 1 / 60
 
 
+def _dialogue_layout(shot: Any):
+    """``(k, line, start, end, estimated)`` for each dialogue line of ``shot``.
+
+    Where each line WILL play: the audio pipeline's own rule
+    (:meth:`an.ir.schema.Dialogue.planned_start`) over the real duration when
+    the line was synthesized, else the offline voice's estimate
+    (:func:`an.audio.offline_tts.estimate_speech_duration`). Never the stamped
+    ``start``, which a pause edited since the last synthesis has made stale.
+    """
+    from an.audio.offline_tts import estimate_speech_duration
+
+    cursor = 0.0
+    for k, line in enumerate(shot.dialogue):
+        estimated = line.duration is None
+        length = (
+            estimate_speech_duration(line.text) if estimated else float(line.duration)
+        )
+        start = line.planned_start(cursor)
+        cursor = start + length
+        yield k, line, start, cursor, estimated
+
+
 def _check_dialogue_fits(shot: Any, path: str, report: "ValidationReport") -> None:
     """Warn when a shot's dialogue runs past the shot's end.
 
@@ -1268,25 +1290,34 @@ def _check_dialogue_fits(shot: Any, path: str, report: "ValidationReport") -> No
     8.2 s shot holding 7.1 s of speech to 3.0 s and `an validate` said nothing).
 
     What is known depends on when this runs. After the audio pipeline, a line
-    carries its real ``start`` and ``duration`` and the check is exact. Before
-    it, the duration is the offline voice's estimate
+    carries its real ``duration`` and the check is exact. Before it, the
+    duration is the offline voice's estimate
     (:func:`an.audio.offline_tts.estimate_speech_duration` — exactly what an
-    offline render will give, and an under-estimate for a real voice), laid
-    out back to back from the shot start the way the pipeline lays them.
-    """
-    if not shot.dialogue:
-        return
-    from an.audio.offline_tts import estimate_speech_duration
+    offline render will give, and an under-estimate for a real voice). Either
+    way the lines are laid out by the pipeline's own rule,
+    :meth:`an.ir.schema.Dialogue.planned_start` — back to back from the shot
+    start, shifted by each line's ``pause`` or pinned by its ``at`` (an#187) —
+    so a pause edited after synthesis is judged where it will play, not where
+    the stale stamp says.
 
-    cursor = 0.0
-    for k, line in enumerate(shot.dialogue):
-        estimated = line.duration is None
-        length = (
-            estimate_speech_duration(line.text) if estimated else float(line.duration)
-        )
-        start = float(line.start) if line.start is not None else cursor
-        end = start + length
-        cursor = end
+    Also warns when a speaker's line starts before that speaker's previous
+    line ends: one mouth cannot say two lines (an ``at`` can do that; a
+    ``pause`` cannot). Two speakers talking over each other is legal.
+    """
+    speaking_until: dict[str, tuple[int, float]] = {}
+    for k, line, start, end, estimated in _dialogue_layout(shot):
+        previous = speaking_until.get(line.speaker)
+        if previous is not None and start < previous[1] - DIALOGUE_OVERRUN_TOLERANCE_S:
+            report.add(
+                "warning",
+                f"{path}/dialogue/{k}",
+                f"line {k} ({line.speaker}) starts at {start:.2f}s, before the "
+                f"same speaker's line {previous[0]} ends at {previous[1]:.2f}s"
+                + (" (at the offline voice's rate)" if estimated else "")
+                + ": one mouth cannot say both. Start it later (its `at`) or "
+                "give it a `pause` instead",
+            )
+        speaking_until[line.speaker] = (k, end)
         if end <= shot.duration + DIALOGUE_OVERRUN_TOLERANCE_S:
             continue
         how = (
@@ -1329,11 +1360,8 @@ def _check_assembly(
                 else 0.0
             )
             overlap_in = timeline.dissolve_in[i] / fps
-            for k, line in enumerate(shot.dialogue):
-                if line.start is None:
-                    continue
-                end = line.start + (line.duration or 0.0)
-                if (overlap_in and line.start < overlap_in) or (
+            for k, _line, start, end, _estimated in _dialogue_layout(shot):
+                if (overlap_in and start < overlap_in) or (
                     overlap_out and end > shot.duration - overlap_out
                 ):
                     report.add(

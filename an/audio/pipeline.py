@@ -108,17 +108,23 @@ def produce_audio_for_scene(
     """Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
     Mutates the ``scene`` in place AND returns it (for chaining).
-    Stamps ``Dialogue.duration``, ``Dialogue.start`` (if unset),
-    ``Dialogue.viseme_track``, and ``Dialogue.audio_ref`` (mall["audio"] key)
-    so the renderer can find the audio later. Lines with an existing
-    viseme_track AND audio_ref are skipped (idempotent).
+    Stamps ``Dialogue.duration``, ``Dialogue.viseme_track``, and
+    ``Dialogue.audio_ref`` (mall["audio"] key) so the renderer can find the
+    audio later. Lines with an existing viseme_track AND audio_ref are not
+    re-synthesized (idempotent).
+
+    ``Dialogue.start`` is DERIVED on every pass, synthesized or not, by
+    :meth:`Dialogue.planned_start`: the line's ``at`` if set, else the previous
+    line's end plus its ``pause`` (an#187). So editing a pause re-times the
+    shot without touching the audio, and every consumer of ``start`` — the
+    mux, the visemes, captions, ducking — follows. A ``start`` on a line that
+    was never synthesized is an authored start from before ``at`` existed,
+    and is kept as the line's ``at``.
     """
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
     voice_default = DEFAULT_VOICE
-    cursor = 0.0
     for shot in scene.timeline:
-        cursor = 0.0
         if shot.narration:
             # `Shot.narration` is fully modelled in the IR — text, voice_ref,
             # start, duration, viseme_track, audio_ref — and nothing has ever
@@ -136,6 +142,13 @@ def produce_audio_for_scene(
                 "https://github.com/thorwhalen/an/issues/9."
             )
         for line in shot.dialogue:
+            if (
+                line.start is not None
+                and line.audio_ref is None
+                and line.at is None
+                and line.pause is None
+            ):
+                line.at = line.start
             voice_id = line_voice_id(line, shot, mall, default=voice_default)
             effects = voice_effects(mall, voice_id)
             expected_audio_ref = audio_key(
@@ -163,27 +176,55 @@ def produce_audio_for_scene(
                 and (audio_store is None or expected_audio_ref in audio_store)
                 and (viseme_store is None or expected_viseme_ref in viseme_store)
             )
-            if already_done:
-                cursor = (line.start or cursor) + line.duration
-                continue
-            # Either never synthesized, or providers changed → full re-synth.
-            # If `audio_ref` was previously set (i.e. this is a re-synth, not
-            # a first-time synth), reset start to the running cursor: the
-            # stale start was computed against different audio durations and
-            # reusing it would overlap neighbours. First-time synth respects
-            # a user-supplied start.
-            was_synthesized = line.audio_ref is not None
-            audio, track = produce_audio_for_dialogue(
-                line, mall, tts=tts, lipsync=lipsync, effects=effects, voice_id=voice_id
-            )
-            line.duration = audio.duration
-            if was_synthesized or line.start is None:
-                line.start = cursor
-            line.viseme_track = _to_ir_viseme_track(track)
-            line.word_timings = _to_ir_word_timings(track)
-            line.audio_ref = expected_audio_ref
-            line.viseme_ref = expected_viseme_ref
-            cursor = line.start + audio.duration
+            if not already_done:
+                # Never synthesized, or the providers changed: synthesize (the
+                # content-keyed stores make a mere re-stamp free).
+                audio, track = produce_audio_for_dialogue(
+                    line, mall, tts=tts, lipsync=lipsync, effects=effects, voice_id=voice_id
+                )
+                line.duration = audio.duration
+                line.viseme_track = _to_ir_viseme_track(track)
+                line.word_timings = _to_ir_word_timings(track)
+                line.audio_ref = expected_audio_ref
+                line.viseme_ref = expected_viseme_ref
+    return retime_dialogue(scene)
+
+
+def retime_dialogue(scene: SceneIR, *, timed_shots_only: bool = False) -> SceneIR:
+    """Stamp every synthesized line's ``start`` from its ``pause`` / ``at``.
+
+    Pure — synthesizes nothing, reads no store — and idempotent. The audio
+    pipeline ends with it, and every path that skips the pipeline (``render``
+    with ``auto_audio=False``, ``an preview``) runs it too, so a pause edited
+    after synthesis is never played at the stale stamp (an#187). A shot is
+    re-timed up to its first line with no ``duration`` (never synthesized:
+    nothing after it has a known start). Mutates in place and returns
+    ``scene``.
+
+    ``timed_shots_only=True`` — what the paths that skip synthesis pass —
+    leaves a shot whose lines carry no ``pause``/``at`` exactly as stamped:
+    a hand-built scene may stamp ``start`` itself (a test, a fixture), and
+    without the pipeline there is no authority to say that stamp is stale.
+
+    >>> from an.ir.schema import Dialogue, SceneIR, Shot
+    >>> shot = Shot(id="s", dialogue=[
+    ...     Dialogue(speaker="a", text="hi", start=0.0, duration=0.5, audio_ref="k1"),
+    ...     Dialogue(speaker="b", text="bye", start=0.5, duration=0.4, audio_ref="k2",
+    ...              pause=1.5)])
+    >>> [d.start for d in retime_dialogue(SceneIR(timeline=[shot])).timeline[0].dialogue]
+    [0.0, 2.0]
+    """
+    for shot in scene.timeline:
+        if timed_shots_only and all(
+            line.pause is None and line.at is None for line in shot.dialogue
+        ):
+            continue
+        cursor = 0.0
+        for line in shot.dialogue:
+            if line.duration is None:
+                break
+            line.start = line.planned_start(cursor)
+            cursor = line.start + float(line.duration)
     return scene
 
 

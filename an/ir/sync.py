@@ -275,25 +275,109 @@ def _extract_yaml_block(text: str, label: str) -> dict[str, Any] | None:
 
 
 _DIALOGUE_LINE_RE = re.compile(
-    r"^\s*(?P<speaker>[\w-]+)(?:\s*\[(?P<emotion>[\w-]+)\])?\s*:\s*(?P<text>.*?)\s*$"
+    r"^\s*(?P<speaker>[\w-]+)"
+    r"(?P<mods>(?:\s*(?:\[[^\]]*\]|\([^)]*\)))*)"
+    r"\s*:\s*(?P<text>.*?)\s*$"
 )
+_DIALOGUE_MOD_RE = re.compile(r"\[(?P<bracket>[^\]]*)\]|\((?P<paren>[^)]*)\)")
+_EMOTION_RE = re.compile(r"[\w-]+")
+#: ``(pause 1.5)``, ``(pause 1.5s)``, ``(at 3)``, ``(at 3.0s)`` — the timing a
+#: dialogue line may carry in ``scene.md`` (an#187). Parentheses hold timing,
+#: square brackets hold the emotion.
+_DIALOGUE_TIMING_RE = re.compile(
+    r"^\s*(?P<key>pause|at)\s+(?P<value>\d+(?:\.\d*)?|\.\d+)\s*s?\s*$",
+    re.IGNORECASE,
+)
+_DIALOGUE_GRAMMAR = (
+    "`speaker [emotion] (pause 1.5): text` — the emotion in square brackets and "
+    "the timing in parentheses are each optional: `(pause <s>)` is silence "
+    "after the previous line, `(at <s>)` a start in shot seconds; speaker ids "
+    "are `[\\w-]+`"
+)
+
+
+def _parse_dialogue_line(line: str, *, where: str) -> Dialogue:
+    """One ``speaker [emotion] (timing): text`` line → a `Dialogue`."""
+
+    def refuse(why: str) -> SceneMarkdownError:
+        return SceneMarkdownError(
+            f"{where}dialogue line {line!r} {why}. The grammar is "
+            f"{_DIALOGUE_GRAMMAR}. A line that does not parse is refused rather "
+            "than dropped, so a typo cannot silence a character."
+        )
+
+    match = _DIALOGUE_LINE_RE.match(line)
+    if not match:
+        raise refuse("is not `speaker: text`")
+    kwargs: dict[str, Any] = {
+        "speaker": match.group("speaker").strip(),
+        "text": match.group("text").strip(),
+    }
+    for mod in _DIALOGUE_MOD_RE.finditer(match.group("mods")):
+        if mod.group("bracket") is not None:
+            emotion = mod.group("bracket").strip()
+            if not _EMOTION_RE.fullmatch(emotion):
+                raise refuse(f"has [{emotion}], which is not an emotion name")
+            if "emotion" in kwargs:
+                raise refuse("names two emotions")
+            kwargs["emotion"] = emotion.lower()
+            continue
+        timing = _DIALOGUE_TIMING_RE.match(mod.group("paren"))
+        if not timing:
+            raise refuse(
+                f"has ({mod.group('paren').strip()}), which is not a timing — "
+                "an emotion goes in square brackets"
+            )
+        if "pause" in kwargs or "at" in kwargs:
+            raise refuse("carries two timings; a line takes one `pause` or one `at`")
+        kwargs[timing.group("key").lower()] = float(timing.group("value"))
+    return Dialogue(**kwargs)
+
+
+def _format_dialogue_line(line: Dialogue) -> str:
+    """The `scene.md` spelling of ``line`` — `_parse_dialogue_line`'s inverse."""
+    head = line.speaker
+    if line.emotion:
+        head += f" [{line.emotion}]"
+    for key in ("pause", "at"):
+        value = getattr(line, key, None)
+        if value is not None:
+            head += f" ({key} {_format_seconds(value)})"
+    return f"{head}: {line.text}"
+
+
+def _format_seconds(value: float) -> str:
+    """The shortest exact spelling `_DIALOGUE_TIMING_RE` reads back — no exponent.
+
+    >>> [_format_seconds(v) for v in (1.5, 3.0, 1e-05, 1e16, 0.1 + 0.2)]
+    ['1.5', '3', '0.00001', '10000000000000000', '0.30000000000000004']
+    """
+    from decimal import Decimal
+
+    text = format(Decimal(repr(float(value))), "f")
+    return text[:-2] if text.endswith(".0") else text
 
 
 def _extract_dialogue_block(text: str, *, shot_id: str | None = None) -> list[Dialogue]:
     """Parse a ```dialogue block.
 
-    Each non-empty, non-comment line follows ``speaker[emotion]: text`` where
-    the bracketed emotion is optional. Examples:
+    Each non-empty, non-comment line follows ``speaker [emotion] (timing): text``
+    where the bracketed emotion and the parenthesised timing are optional, in
+    either order. Examples:
 
         charlie: Hello.
         charlie [happy]: Hello!
-        maya [skeptical]: Sure.
+        maya [skeptical] (pause 1.5): Sure.
+        maya (at 4): Goodbye.
 
-    A line that matches none of those shapes is a **parse error**, not a skip:
-    this parser used to drop it silently, and ``examples/promote_demo`` was mute
-    for months because its one line read ``maya (warm): …`` (an#96).
+    ``(pause <s>)`` is silence after the previous line ends; ``(at <s>)`` starts
+    the line at that shot time (an#187). A line that matches none of those
+    shapes is a **parse error**, not a skip: this parser used to drop it
+    silently, and ``examples/promote_demo`` was mute for months because its one
+    line read ``maya (warm): …`` (an#96).
     """
     out: list[Dialogue] = []
+    where = f"shot {shot_id!r}: " if shot_id else ""
     for m in _FENCE_RE.finditer(text):
         lang, _lbl, body = m.group(1), m.group(2), m.group(3)
         if lang != "dialogue":
@@ -302,23 +386,7 @@ def _extract_dialogue_block(text: str, *, shot_id: str | None = None) -> list[Di
             line = raw.strip()
             if not line or line.startswith("#"):
                 continue
-            match = _DIALOGUE_LINE_RE.match(line)
-            if not match:
-                where = f"shot {shot_id!r}: " if shot_id else ""
-                raise SceneMarkdownError(
-                    f"{where}dialogue line {line!r} is not `speaker: text` or "
-                    "`speaker [emotion]: text` — speaker ids are `[\\w-]+`, and "
-                    "the emotion goes in square brackets. A line that does not "
-                    "parse is refused rather than dropped, so a typo cannot "
-                    "silence a character."
-                )
-            kwargs: dict[str, Any] = {
-                "speaker": match.group("speaker").strip(),
-                "text": match.group("text").strip(),
-            }
-            if match.group("emotion"):
-                kwargs["emotion"] = match.group("emotion").strip().lower()
-            out.append(Dialogue(**kwargs))
+            out.append(_parse_dialogue_line(line, where=where))
     return out
 
 
@@ -586,10 +654,7 @@ def ir_to_markdown(scene: SceneIR) -> str:
         if shot.dialogue:
             parts.append("```dialogue")
             for line in shot.dialogue:
-                if line.emotion:
-                    parts.append(f"{line.speaker} [{line.emotion}]: {line.text}")
-                else:
-                    parts.append(f"{line.speaker}: {line.text}")
+                parts.append(_format_dialogue_line(line))
             parts.append("```\n")
 
     return "\n".join(parts).rstrip() + "\n"

@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from an.ir.sync import _DIALOGUE_LINE_RE, markdown_to_ir
+from an.ir.sync import SceneMarkdownError, _parse_dialogue_line, markdown_to_ir
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -106,7 +106,11 @@ def test_every_committed_scene_md_dialogue_line_parses():
         for block in fence.finditer(md.read_text(encoding="utf-8")):
             for raw in block.group(1).splitlines():
                 line = raw.strip()
-                if line and not line.startswith("#") and not _DIALOGUE_LINE_RE.match(line):
+                if not line or line.startswith("#"):
+                    continue
+                try:
+                    _parse_dialogue_line(line, where="")
+                except SceneMarkdownError:
                     offenders.append(f"{md.relative_to(ROOT)}: {line[:60]}")
     assert not offenders, offenders
 
