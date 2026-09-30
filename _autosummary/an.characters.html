@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=9dead672"></script>
+    <script src="../_static/documentation_options.js?v=aa125c18"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.captions" href="an.captions.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.111" />
+  <meta name="docsearch:version" content="0.1.112" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -871,6 +871,29 @@ extracted from. Useful for re-slicing.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.CharacterDescriptor.swap_poses">
+<span class="sig-name descname"><span class="pre">swap_poses</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="an.characters.schema.html#an.characters.schema.SlotPose" title="an.characters.schema.SlotPose"><span class="pre">SlotPose</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.characters.CharacterDescriptor.swap_poses" title="Link to this definition">#</a></dt>
+<dd><p>{slot:
+SlotPose}}}`` (an#197). A <code class="docutils literal notranslate"><span class="pre">set</span></code> of a swap set on the ENTITY itself
+(<code class="docutils literal notranslate"><span class="pre">{kind:</span> <span class="pre">set,</span> <span class="pre">target:</span> <span class="pre">maya,</span> <span class="pre">property:</span> <span class="pre">view,</span> <span class="pre">value:</span> <span class="pre">side}</span></code>) fans the
+key out to every slot the set projects onto AND poses the slots listed
+under that key; a slot listed under another key of the set returns to
+rest. That is how one key turns a whole character: the head and torso
+swap art, the far eye and arm hide, the mouth slides to the profile
+edge — while blinks, gaze and lip-sync keep running on what is visible
+(the face solver folds a pose into its own channels). Additive: no
+schema bump, and a descriptor without it reads back unposed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How slots are POSED while a swap key shows — <a href="#id1"><span class="problematic" id="id2">``</span></a>{set</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>{key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.characters.CharacterDescriptor.voice_ref">
 <span class="sig-name descname"><span class="pre">voice_ref</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.CharacterDescriptor.voice_ref" title="Link to this definition">#</a></dt>
 <dd><p>Voice-store id or path used by the audio pipeline. Optional; the scene
@@ -1078,7 +1101,7 @@ fails (network error, HTTP error, non-SVG response).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.characters.new_character">
-<span class="sig-prename descclassname"><span class="pre">an.characters.</span></span><span class="sig-name descname"><span class="pre">new_character</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lorelei'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dicebear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acknowledge_attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mouth_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#new_character"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.new_character" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.</span></span><span class="sig-name descname"><span class="pre">new_character</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lorelei'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_dicebear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acknowledge_attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mouth_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">views</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/factory.html#new_character"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.new_character" title="Link to this definition">#</a></dt>
 <dd><p>Build a complete character on disk.</p>
 <p><strong>Variety knobs</strong> (every default reproduces the pre-knob character byte for
 byte, which a golden test holds):</p>
@@ -1097,6 +1120,15 @@ short legs), <code class="docutils literal notranslate"><span class="pre">tall</
 offsets, the pupil travel) scaled together, so a big head keeps its face.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hat</span></code> — a key of <code class="xref py py-data docutils literal notranslate"><span class="pre">HATS</span></code> (offline head only), in <code class="docutils literal notranslate"><span class="pre">accessory</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sash</span></code> — a diagonal band across the torso, in <code class="docutils literal notranslate"><span class="pre">accessory</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">views</span></code> (an#197) — draw the turnaround: <code class="docutils literal notranslate"><span class="pre">back</span></code>, <code class="docutils literal notranslate"><span class="pre">side</span></code> (a profile
+facing the viewer’s right) and <code class="docutils literal notranslate"><span class="pre">three_quarter</span></code> beside the front, as a
+<code class="docutils literal notranslate"><span class="pre">view</span></code> swap set with a pose per view (<code class="xref py py-func docutils literal notranslate"><span class="pre">add_views()</span></code>), so
+<a class="reference internal" href="an.motion.html#an.motion.turn" title="an.motion.turn"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.motion.turn()</span></code></a> can turn the character around. Offline head only</p>
+<blockquote>
+<div><p>(a DiceBear face is baked into its art); ignored for a DiceBear head.</p>
+</div></blockquote>
+<p>Additive: a shot that never sets a view renders exactly as without it.</p>
+</li>
 </ul>
 <p>Every colour the factory draws in a role is recorded in the descriptor’s
 <code class="docutils literal notranslate"><span class="pre">colour_roles</span></code> so a style pack can recolour it later (palette swapping,
@@ -1420,6 +1452,7 @@ namespace as the default, so the output is a valid standalone SVG.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.model_post_init"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.model_post_init()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.source"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.source_svg"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source_svg</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.swap_poses"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.swap_poses</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.CharacterDescriptor.voice_ref"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.voice_ref</span></code></a></li>
 </ul>
 </li>

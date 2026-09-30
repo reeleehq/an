@@ -268,6 +268,30 @@ quietly stops being carried. Pinned by test.
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
+#### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](an.characters.schema.md#an.characters.schema.SlotPose)]]]*
+
+{slot:
+SlotPose}}}\`\` (an#197). A `set` of a swap set on the ENTITY itself
+(`{kind: set, target: maya, property: view, value: side}`) fans the
+key out to every slot the set projects onto AND poses the slots listed
+under that key; a slot listed under another key of the set returns to
+rest. That is how one key turns a whole character: the head and torso
+swap art, the far eye and arm hide, the mouth slides to the profile
+edge — while blinks, gaze and lip-sync keep running on what is visible
+(the face solver folds a pose into its own channels). Additive: no
+schema bump, and a descriptor without it reads back unposed.
+
+* **Type:**
+  How slots are POSED while a swap key shows — 
+
+  ```
+  ``
+  ```
+
+  {set
+* **Type:**
+  {key
+
 #### voice_ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Voice-store id or path used by the audio pipeline. Optional; the scene
@@ -443,7 +467,7 @@ True
 ['mouth_a_happy']
 ```
 
-### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False)
+### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True)
 
 Build a complete character on disk.
 
@@ -461,6 +485,13 @@ byte, which a golden test holds):
   offsets, the pupil travel) scaled together, so a big head keeps its face.
 - `hat` — a key of `HATS` (offline head only), in `accessory`.
 - `sash` — a diagonal band across the torso, in `accessory`.
+- `views` (an#197) — draw the turnaround: `back`, `side` (a profile
+  facing the viewer’s right) and `three_quarter` beside the front, as a
+  `view` swap set with a pose per view (`add_views()`), so
+  [`an.motion.turn()`](an.motion.md#an.motion.turn) can turn the character around. Offline head only
+  > (a DiceBear face is baked into its art); ignored for a DiceBear head.
+
+  Additive: a shot that never sets a view renders exactly as without it.
 
 Every colour the factory draws in a role is recorded in the descriptor’s
 `colour_roles` so a style pack can recolour it later (palette swapping,

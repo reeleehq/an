@@ -19,16 +19,22 @@ an.characters.factory
       BUILDS
       EYE_CANVAS
       GAZE_PARTS
+      FACE_SLOTS
+      SIDE_EYE_SHIFT
+      SIDE_LEG_TUCK
+      THREE_QUARTER_FACE_SHIFT
    
    .. rubric:: Functions
 
    .. autosummary::
    
       add_gaze
+      add_views
       declare_mouth_variants
       gaze_travel_for
       new_character
       scale_part_files
+      view_poses
    
    .. rubric:: Classes
 

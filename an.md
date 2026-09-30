@@ -1,4 +1,4 @@
-> built 2026-09-30 11:10 UTC from e4a7901 (main) · an 0.1.111. Details: build_info.json
+> built 2026-09-30 12:46 UTC from b50d035 (main) · an 0.1.112. Details: build_info.json
 
 # index.html.md
 
@@ -6503,7 +6503,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse', 'mouth', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'mouth', 'ellipse', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -10531,6 +10531,7 @@ and returns a string for terminal display.
 Subcommands (used as `an character <verb> ...`):
 
 - `new`       — generate a fresh character from DiceBear or fallback art.
+- `add-views` — give an offline character its turnaround (an#197).
 - `mouths`    — regenerate the 9-shape default mouth set.
 - `validate`  — completeness check.
 - `silhouette`— rasterize silhouettes; for two characters, also IoU.
@@ -10540,6 +10541,7 @@ Subcommands (used as `an character <verb> ...`):
 
 | [`add_gaze`](_autosummary/an.characters.cli.html.md#an.characters.cli.add_gaze)(name[, out_dir, overwrite_eyes])         | Give `name` the eye stack (an#99): sclera and pupil slots under each lid, a filled closed lid, and the `gaze_travel` clamp — so `gaze_x` / `gaze_y` and the ambient saccades move its pupils.   |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`add_views`](_autosummary/an.characters.cli.html.md#an.characters.cli.add_views)(name[, out_dir])                        | Give `name` its turnaround (an#197): back, side and three-quarter head and torso art, a `view` swap set, and a pose per view — so `play: turn` and `set <name> view <key>` turn it.             |
 | [`contract`](_autosummary/an.characters.cli.html.md#an.characters.cli.contract)()                                        | Print the art-package contract an illustrator must satisfy.                                                                                                                                     |
 | [`mouths`](_autosummary/an.characters.cli.html.md#an.characters.cli.mouths)(name[, out_dir, palette, variants])        | Regenerate the default 9-shape mouth set for `name`, plus its `viseme@<form>` variants, and declare them in the descriptor.                                                                     |
 | [`new`](_autosummary/an.characters.cli.html.md#an.characters.cli.new)(name[, out_dir, seed, style, voice_ref, ...]) | Create a new character at `out_dir`/`name`.                                                                                                                                                     |
@@ -10561,6 +10563,20 @@ overwrite_eyes: replace hand-drawn eye parts with the synthesized outline
 
 > and filled lid (refused otherwise — a promoted rig’s eyes are not the
 > factory’s to redraw)
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.characters.cli.add_views(name, out_dir='')
+
+Give `name` its turnaround (an#197): back, side and three-quarter head
+and torso art, a `view` swap set, and a pose per view — so `play: turn`
+and `set <name> view <key>` turn it. The expand step for an offline
+character made before views; idempotent. Refused for a DiceBear head or a
+hand-drawn rig, whose views are an illustrator’s to draw.
+
+name: character id
+out_dir: parent directory; defaults to ./assets/characters
+
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
@@ -10593,7 +10609,7 @@ variants: comma-separated mouth forms (see `an character new`); “” = none
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False)
+### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False, views=True)
 
 Create a new character at `out_dir`/`name`.
 
@@ -10627,7 +10643,10 @@ hat: none, cap, beanie, bowler or bicorne (offline head only), in the
 > accessory colour
 
 sash: a diagonal band across the torso, in the accessory colour
+views: draw the turnaround — back, side (a profile facing right) and
 
+> three_quarter beside the front, as a `view` swap set (offline head
+> only), so `play: turn` can turn the character (an#197)
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
@@ -10947,27 +10966,33 @@ problem routes the way every other verifier’s does (an#78).
 
 ### Module Attributes
 
-| [`PALETTE_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.PALETTE_ROLES)    | The roles `new_character(palette=...)` takes.                                                                                       |
-|-------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| [`HEAD_ART_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.HEAD_ART_ROLES)   | The roles a head's own art carries.                                                                                                 |
-| [`OUTLINE_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.OUTLINE_COLOUR)   | it is the drawing's ink, not a costume colour.                                                                                      |
-| [`SHOE_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.SHOE_COLOUR)      | The shoe, drawn in the leg part.                                                                                                    |
-| [`PUPIL_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.PUPIL_COLOUR)     | The pupil, in its own part (or the pre-gaze open eye).                                                                              |
-| [`DFLT_HAND_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.DFLT_HAND_COLOUR) | Default hand, trouser and brow colours — the literals the factory always drew.                                                      |
-| [`HATS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HATS)             | The hats [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) can draw.                                                 |
-| [`MAX_HEAD_SCALE`](_autosummary/an.characters.factory.html.md#an.characters.factory.MAX_HEAD_SCALE)   | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                      |
-| [`BUILDS`](_autosummary/an.characters.factory.html.md#an.characters.factory.BUILDS)           | Named builds.                                                                                                                       |
-| [`EYE_CANVAS`](_autosummary/an.characters.factory.html.md#an.characters.factory.EYE_CANVAS)       | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99). |
-| [`GAZE_PARTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.GAZE_PARTS)       | The parts a rig gains with `an character add-gaze`.                                                                                 |
+| [`PALETTE_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.PALETTE_ROLES)            | The roles `new_character(palette=...)` takes.                                                                                                                         |
+|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`HEAD_ART_ROLES`](_autosummary/an.characters.factory.html.md#an.characters.factory.HEAD_ART_ROLES)           | The roles a head's own art carries.                                                                                                                                   |
+| [`OUTLINE_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.OUTLINE_COLOUR)           | it is the drawing's ink, not a costume colour.                                                                                                                        |
+| [`SHOE_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.SHOE_COLOUR)              | The shoe, drawn in the leg part.                                                                                                                                      |
+| [`PUPIL_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.PUPIL_COLOUR)             | The pupil, in its own part (or the pre-gaze open eye).                                                                                                                |
+| [`DFLT_HAND_COLOUR`](_autosummary/an.characters.factory.html.md#an.characters.factory.DFLT_HAND_COLOUR)         | Default hand, trouser and brow colours — the literals the factory always drew.                                                                                        |
+| [`HATS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HATS)                     | The hats [`new_character()`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character) can draw.                                                                                   |
+| [`MAX_HEAD_SCALE`](_autosummary/an.characters.factory.html.md#an.characters.factory.MAX_HEAD_SCALE)           | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                                                        |
+| [`BUILDS`](_autosummary/an.characters.factory.html.md#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                         |
+| [`EYE_CANVAS`](_autosummary/an.characters.factory.html.md#an.characters.factory.EYE_CANVAS)               | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).                                   |
+| [`GAZE_PARTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.GAZE_PARTS)               | The parts a rig gains with `an character add-gaze`.                                                                                                                   |
+| [`FACE_SLOTS`](_autosummary/an.characters.factory.html.md#an.characters.factory.FACE_SLOTS)               | The face slots of the default rig with the eye stack (an#99).                                                                                                         |
+| [`SIDE_EYE_SHIFT`](_autosummary/an.characters.factory.html.md#an.characters.factory.SIDE_EYE_SHIFT)           | how far the near eye, its stack and brow slide toward the face's edge, and the mouth with them (view_box units at head_scale 1); the mouth is narrowed, seen edge-on. |
+| [`SIDE_LEG_TUCK`](_autosummary/an.characters.factory.html.md#an.characters.factory.SIDE_LEG_TUCK)            | The fraction of the hip spread each leg moves toward the centre line in profile — the legs overlap, and a walk scissors them.                                         |
+| [`THREE_QUARTER_FACE_SHIFT`](_autosummary/an.characters.factory.html.md#an.characters.factory.THREE_QUARTER_FACE_SHIFT) | the whole face slides toward the facing side, the far eye narrows, the far arm tucks in toward the body and the legs in.                                              |
 
 ### Functions
 
-| [`add_gaze`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_gaze)(char_dir, \*[, skin, overwrite_eyes])   | Give a character the eye stack (an#99): three sibling slots per eye under the head — `<side>_sclera` (white fill) below `<side>_pupil` below `<side>_eye` (the existing slot, now the lid, drawn above the pupil) — with synthesized parts, an outline-only open eye, a FILLED closed lid, the `gaze_travel` clamp, and draw orders that put the lid over the pupil.   |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`declare_mouth_variants`](_autosummary/an.characters.factory.html.md#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                            |
-| [`gaze_travel_for`](_autosummary/an.characters.factory.html.md#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                             |
-| [`new_character`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                    |
-| [`scale_part_files`](_autosummary/an.characters.factory.html.md#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                 |
+| [`add_gaze`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_gaze)(char_dir, \*[, skin, overwrite_eyes])   | Give a character the eye stack (an#99): three sibling slots per eye under the head — `<side>_sclera` (white fill) below `<side>_pupil` below `<side>_eye` (the existing slot, now the lid, drawn above the pupil) — with synthesized parts, an outline-only open eye, a FILLED closed lid, the `gaze_travel` clamp, and draw orders that put the lid over the pupil.                            |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`add_views`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_views)(char_dir)                              | Give a factory character its turnaround (an#197): `back`, `side` and `three_quarter` head and torso art beside the front, a `view` swap set projected onto those two slots, and a pose per view (`swap_poses`) — so `{kind: set, target: <entity>, property: view, value: side}` or [`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) turns the whole character. |
+| [`declare_mouth_variants`](_autosummary/an.characters.factory.html.md#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                                                     |
+| [`gaze_travel_for`](_autosummary/an.characters.factory.html.md#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                                                      |
+| [`new_character`](_autosummary/an.characters.factory.html.md#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                                             |
+| [`scale_part_files`](_autosummary/an.characters.factory.html.md#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                                          |
+| [`view_poses`](_autosummary/an.characters.factory.html.md#an.characters.factory.view_poses)([body, head_scale, slots])            | `{view: {slot: SlotPose}}` for the factory's rig built as `body` — what a view does besides swapping art: the back hides the face, the side hides the far eye and arm and slides the near eye and mouth to the profile edge.                                                                                                                                                                    |
 
 ### Classes
 
@@ -11026,6 +11051,10 @@ Default hand, trouser and brow colours — the literals the factory always drew.
 The eye’s geometry in its 64x32 canvas, shared by the four synthesizers so
 the sclera, the pupil and the lid outline agree (an#99).
 
+### an.characters.factory.FACE_SLOTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left_eye', 'right_eye', 'left_sclera', 'right_sclera', 'left_pupil', 'right_pupil', 'mouth', 'left_brow', 'right_brow')*
+
+The face slots of the default rig with the eye stack (an#99).
+
 ### an.characters.factory.GAZE_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sclera_l', 'sclera_r', 'pupil_l', 'pupil_r')*
 
 The parts a rig gains with `an character add-gaze`. Optional — never in
@@ -11069,6 +11098,28 @@ The pupil, in its own part (or the pre-gaze open eye). Role `pupil`.
 
 The shoe, drawn in the leg part. Untagged.
 
+### an.characters.factory.SIDE_EYE_SHIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 14.0*
+
+how far the near eye, its stack and brow slide toward
+the face’s edge, and the mouth with them (view_box units at head_scale 1);
+the mouth is narrowed, seen edge-on.
+
+* **Type:**
+  Profile (facing right)
+
+### an.characters.factory.SIDE_LEG_TUCK *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.7*
+
+The fraction of the hip spread each leg moves toward the centre line in
+profile — the legs overlap, and a walk scissors them.
+
+### an.characters.factory.THREE_QUARTER_FACE_SHIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 20.0*
+
+the whole face slides toward the facing side,
+the far eye narrows, the far arm tucks in toward the body and the legs in.
+
+* **Type:**
+  Three-quarter (facing right)
+
 ### an.characters.factory.add_gaze(char_dir, , skin=None, overwrite_eyes=False)
 
 Give a character the eye stack (an#99): three sibling slots per eye under
@@ -11090,6 +11141,29 @@ This is the **expand** step for a pre-Wave-6 descriptor: no migration
 inserts pupil slots, because their art would be absent and absent art is
 fatal under `strict_assets` — every existing character would stop
 rendering on the bench.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.characters.factory.add_views(char_dir)
+
+Give a factory character its turnaround (an#197): `back`, `side` and
+`three_quarter` head and torso art beside the front, a `view` swap set
+projected onto those two slots, and a pose per view (`swap_poses`) — so
+`{kind: set, target: <entity>, property: view, value: side}` or
+[`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) turns the whole character. Idempotent. Returns the
+descriptor path.
+
+The views are REDRAWN from the recorded knobs (seed, palette, build, hat,
+sash, head scale), so it refuses a rig whose head is not this factory’s
+drawing for them — a DiceBear head (its face is baked, and there is no
+back of it to draw), a promoted hand rig, or an edited head: its views are
+an illustrator’s to draw, declared the same way (a `view` set whose keys
+name attachments on the head and torso slots, and `swap_poses`).
+
+Every colour is role-tagged like the front’s, so a StylePack recolours the
+views exactly as it recolours the front (an#191). The existing art is not
+touched: a shot that never sets a view renders byte-identically.
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
@@ -11120,7 +11194,7 @@ inside the white at every angle without a runtime mask.
 {'x': 9.0, 'y': 5.0}
 ```
 
-### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False)
+### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True)
 
 Build a complete character on disk.
 
@@ -11138,6 +11212,13 @@ byte, which a golden test holds):
   offsets, the pupil travel) scaled together, so a big head keeps its face.
 - `hat` — a key of [`HATS`](_autosummary/an.characters.factory.html.md#an.characters.factory.HATS) (offline head only), in `accessory`.
 - `sash` — a diagonal band across the torso, in `accessory`.
+- `views` (an#197) — draw the turnaround: `back`, `side` (a profile
+  facing the viewer’s right) and `three_quarter` beside the front, as a
+  `view` swap set with a pose per view ([`add_views()`](_autosummary/an.characters.factory.html.md#an.characters.factory.add_views)), so
+  [`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) can turn the character around. Offline head only
+  > (a DiceBear face is baked into its art); ignored for a DiceBear head.
+
+  Additive: a shot that never sets a view renders exactly as without it.
 
 Every colour the factory draws in a role is recorded in the descriptor’s
 `colour_roles` so a style pack can recolour it later (palette swapping,
@@ -11183,6 +11264,27 @@ screen. Missing files are skipped.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.characters.factory.view_poses(body=BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), , head_scale=1.0, slots=None)
+
+`{view: {slot: SlotPose}}` for the factory’s rig built as `body` — what
+a view does besides swapping art: the back hides the face, the side hides
+the far eye and arm and slides the near eye and mouth to the profile edge.
+
+Face offsets scale with `head_scale` (the face was drawn at it), limb
+offsets come from the build’s own joints. `slots` limits the poses to the
+slots a rig has (a rig without the eye stack has no pupils to pose).
+
+* **Return type:**
+  dict[str, dict[str, ‘SlotPose’]]
+
+```pycon
+>>> poses = view_poses()
+>>> sorted(poses)
+['back', 'front', 'side', 'three_quarter']
+>>> poses["front"], poses["back"]["mouth"].alpha, poses["side"]["arm_r"].x
+({}, 0.0, -90.0)
+```
 
 
 # _autosummary/an.characters.html.md
@@ -11457,6 +11559,30 @@ quietly stops being carried. Pinned by test.
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
+#### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
+
+{slot:
+SlotPose}}}\`\` (an#197). A `set` of a swap set on the ENTITY itself
+(`{kind: set, target: maya, property: view, value: side}`) fans the
+key out to every slot the set projects onto AND poses the slots listed
+under that key; a slot listed under another key of the set returns to
+rest. That is how one key turns a whole character: the head and torso
+swap art, the far eye and arm hide, the mouth slides to the profile
+edge — while blinks, gaze and lip-sync keep running on what is visible
+(the face solver folds a pose into its own channels). Additive: no
+schema bump, and a descriptor without it reads back unposed.
+
+* **Type:**
+  How slots are POSED while a swap key shows — 
+
+  ```
+  ``
+  ```
+
+  {set
+* **Type:**
+  {key
+
 #### voice_ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Voice-store id or path used by the audio pipeline. Optional; the scene
@@ -11632,7 +11758,7 @@ True
 ['mouth_a_happy']
 ```
 
-### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False)
+### an.characters.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True)
 
 Build a complete character on disk.
 
@@ -11650,6 +11776,13 @@ byte, which a golden test holds):
   offsets, the pupil travel) scaled together, so a big head keeps its face.
 - `hat` — a key of `HATS` (offline head only), in `accessory`.
 - `sash` — a diagonal band across the torso, in `accessory`.
+- `views` (an#197) — draw the turnaround: `back`, `side` (a profile
+  facing the viewer’s right) and `three_quarter` beside the front, as a
+  `view` swap set with a pose per view (`add_views()`), so
+  [`an.motion.turn()`](_autosummary/an.motion.html.md#an.motion.turn) can turn the character around. Offline head only
+  > (a DiceBear face is baked into its art); ignored for a DiceBear head.
+
+  Additive: a shot that never sets a view renders exactly as without it.
 
 Every colour the factory draws in a role is recorded in the descriptor’s
 `colour_roles` so a style pack can recolour it later (palette swapping,
@@ -12226,7 +12359,7 @@ the caller reads off the built scene, so an author never passes `rest`.
 >>> play_problems(desc, "walk")
 ["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no
   motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
-  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'waddle'])"]
+  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle'])"]
 >>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
 ('preset', 'preset', 'descriptor')
 ```
@@ -12685,19 +12818,23 @@ several slots.
 
 ### Module Attributes
 
-| [`CHARACTER_DOCUMENT_KIND`](_autosummary/an.characters.schema.html.md#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                     |
-|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
-| [`MOUTH_SHAPES`](_autosummary/an.characters.schema.html.md#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                           |
-| [`DEFAULT_VISEME_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                         |
-| [`VISEME_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                               |
-| [`EYELID_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                  |
-| [`DEFAULT_EYELID_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                       |
-| [`REQUIRED_PARTS`](_autosummary/an.characters.schema.html.md#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                            |
-| [`DEFAULT_VIEW_BOX`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                 |
-| [`LEG_LENGTH`](_autosummary/an.characters.schema.html.md#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                            |
-| [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                         |
-| [`REFERENCE_HEAD_HEIGHT`](_autosummary/an.characters.schema.html.md#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024. |
-| [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                       |
+| [`CHARACTER_DOCUMENT_KIND`](_autosummary/an.characters.schema.html.md#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                                                                       |
+|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`MOUTH_SHAPES`](_autosummary/an.characters.schema.html.md#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                                                                             |
+| [`DEFAULT_VISEME_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                                                                           |
+| [`VISEME_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                                                                                 |
+| [`EYELID_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                                                                    |
+| [`DEFAULT_EYELID_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                                                                         |
+| [`VIEW_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEW_CHANNEL)              | one KEY per drawn view, projected onto the slots whose art changes with the view (the factory draws the head and the torso), each slot carrying attachments NAMED after the keys. |
+| [`VIEWS`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEWS)                     | The views the factory draws, in turnaround order.                                                                                                                                 |
+| [`DFLT_VIEW`](_autosummary/an.characters.schema.html.md#an.characters.schema.DFLT_VIEW)                 | its default attachments ARE this view.                                                                                                                                            |
+| [`REQUIRED_PARTS`](_autosummary/an.characters.schema.html.md#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                                                                              |
+| [`DEFAULT_VIEW_BOX`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                                                                   |
+| [`SLOT_POSE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.SLOT_POSE_OFFSETS)         | The transform properties a [`SlotPose`](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose) sets, and whether each is an OFFSET added to the rest (in view_box units) or a FACTOR on it. |
+| [`LEG_LENGTH`](_autosummary/an.characters.schema.html.md#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                                                                              |
+| [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                                                                           |
+| [`REFERENCE_HEAD_HEIGHT`](_autosummary/an.characters.schema.html.md#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024.                                                   |
+| [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                                                                         |
 
 ### Functions
 
@@ -12715,6 +12852,7 @@ several slots.
 | [`IdleAnimation`](_autosummary/an.characters.schema.html.md#an.characters.schema.IdleAnimation)(\*\*data)       | A named idle loop (e.g., breath, blink).                                |
 | [`Skin`](_autosummary/an.characters.schema.html.md#an.characters.schema.Skin)(\*\*data)                | A named outfit/variant: maps slot → {attachment_name → Attachment}.     |
 | [`Slot`](_autosummary/an.characters.schema.html.md#an.characters.schema.Slot)(\*\*data)                | A draw-order slot bound to a bone, displaying one attachment at a time. |
+| [`SlotPose`](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)(\*\*data)            | How one slot is posed while a swap key is shown (`swap_poses`, an#197). |
 
 ### *class* an.characters.schema.AnimationTrack(\*\*data)
 
@@ -12930,6 +13068,30 @@ quietly stops being carried. Pinned by test.
 Optional source SVG (relative path) that the parts/ folder was
 extracted from. Useful for re-slicing.
 
+#### swap_poses *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SlotPose](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose)]]]*
+
+{slot:
+SlotPose}}}\`\` (an#197). A `set` of a swap set on the ENTITY itself
+(`{kind: set, target: maya, property: view, value: side}`) fans the
+key out to every slot the set projects onto AND poses the slots listed
+under that key; a slot listed under another key of the set returns to
+rest. That is how one key turns a whole character: the head and torso
+swap art, the far eye and arm hide, the mouth slides to the profile
+edge — while blinks, gaze and lip-sync keep running on what is visible
+(the face solver folds a pose into its own channels). Additive: no
+schema bump, and a descriptor without it reads back unposed.
+
+* **Type:**
+  How slots are POSED while a swap key shows — 
+
+  ```
+  ``
+  ```
+
+  {set
+* **Type:**
+  {key
+
 #### voice_ref *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 Voice-store id or path used by the audio pipeline. Optional; the scene
@@ -12952,6 +13114,13 @@ viewBox without a calibration step.
 
 Default Rhubarb-letter → mouth-attachment-name mapping. Uppercase keys
 because Rhubarb emits A-X; lowercase attachment names by convention.
+
+### an.characters.schema.DFLT_VIEW *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'front'*
+
+its default attachments ARE this view.
+
+* **Type:**
+  The view a character shows at rest
 
 ### an.characters.schema.EYELID_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'eyelid'*
 
@@ -13020,6 +13189,11 @@ head art at this height, so [`FACE_OFFSETS`](_autosummary/an.characters.schema.h
 Required body parts. A character missing any of these can’t be rendered
 as a full puppet; `validate_character` flags the gap.
 
+### an.characters.schema.SLOT_POSE_OFFSETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('x', 'y')*
+
+The transform properties a [`SlotPose`](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose) sets, and whether each is an
+OFFSET added to the rest (in view_box units) or a FACTOR on it.
+
 ### *class* an.characters.schema.Skin(\*\*data)
 
 Bases: `_CharModel`
@@ -13056,6 +13230,44 @@ via animation tracks targeting `slot:<name>.attachment`.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.characters.schema.SlotPose(\*\*data)
+
+Bases: `_CharModel`
+
+How one slot is posed while a swap key is shown (`swap_poses`, an#197).
+
+Relative to the slot’s REST, so one pose serves every placement: `x`/`y`
+are added (view_box units, like an attachment offset), `scale_x`,
+`scale_y` and `alpha` multiply. `alpha: 0` is how a view HIDES a slot
+— the back view hides the face — which is a property of the view, never an
+author’s alpha hack on node paths guessed by trial.
+
+```pycon
+>>> SlotPose(alpha=0).alpha, SlotPose().x
+(0.0, 0.0)
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.characters.schema.VIEWS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('front', 'three_quarter', 'side', 'back')*
+
+The views the factory draws, in turnaround order. `side` is a profile
+facing the viewer’s RIGHT at a positive `scale_x`; a negative `scale_x`
+(`an.motion.turn(direction="left")`) mirrors it to face left.
+
+### an.characters.schema.VIEW_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'view'*
+
+one KEY per drawn view, projected
+onto the slots whose art changes with the view (the factory draws the head
+and the torso), each slot carrying attachments NAMED after the keys. A
+conventional name, like `viseme` — nothing in the compiler or the runtime
+reads it; `an.motion.turn` is the one writer that defaults to it.
+
+* **Type:**
+  The swap set a turnaround rides (an#197)
 
 ### an.characters.schema.VISEME_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'viseme'*
 
@@ -19164,8 +19376,8 @@ False
 Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 
 `pop_in`, `hop`, `shake`, `nod`, `point`, `slide_in`, `slide_out`,
-`squash_stretch` and `waddle` each EXPAND to ordinary `tween` actions on
-transform properties, composed with [`sequence()`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence) and
+`squash_stretch`, `waddle` and `turn` each EXPAND to ordinary `tween`
+actions on transform properties (`turn` adds one swap `set`), composed with [`sequence()`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence) and
 [`parallel()`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel). Called from Python, nothing downstream
 learns a preset exists: the flat timeline, `an validate`, the verifiers and
 the renderer see the same tweens an author could have written by hand. Played
@@ -19232,8 +19444,9 @@ length divided by `speed`, so two in a row run one after the other.
 
 ### Functions
 
-| [`as_leaves`](_autosummary/an.motion.html.md#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
+| [`face_toward`](_autosummary/an.motion.html.md#an.motion.face_toward)(shot, who, other, \*[, view, ...])   | [`turn()`](_autosummary/an.motion.html.md#an.motion.turn) `who` to `view`, facing `other` — the direction read off the stage, so a profile looks at the other character wherever the layout put them.                                                                                  |
 |---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`as_leaves`](_autosummary/an.motion.html.md#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
 | [`hop`](_autosummary/an.motion.html.md#an.motion.hop)(target, \*[, height, duration, rest])        | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                                                                     |
 | [`nod`](_autosummary/an.motion.html.md#an.motion.nod)(target, \*[, part, angle, duration, ...])    | Dip the head `count` times (a rotation of `<target>/<part>`).                                                                                                                                                                                                                        |
 | [`point`](_autosummary/an.motion.html.md#an.motion.point)(target, \*[, angle, raise_duration, ...])  | Swing an arm out to point, hold it, and lower it again.                                                                                                                                                                                                                              |
@@ -19244,6 +19457,7 @@ length divided by `speed`, so two in a row run one after the other.
 | [`slide_in`](_autosummary/an.motion.html.md#an.motion.slide_in)(target, \*[, from_side, distance, ...]) | Whip in from `distance` pixels off to one side, overshoot, and settle.                                                                                                                                                                                                               |
 | [`slide_out`](_autosummary/an.motion.html.md#an.motion.slide_out)(target, \*[, to_side, distance, ...])  | Exit `distance` pixels off to one side, accelerating (an exit).                                                                                                                                                                                                                      |
 | [`squash_stretch`](_autosummary/an.motion.html.md#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
+| [`turn`](_autosummary/an.motion.html.md#an.motion.turn)(target, \*[, to, direction, ...])           | Turn a character to the view `to` — the classic cut-out turn (an#197).                                                                                                                                                                                                               |
 | [`waddle`](_autosummary/an.motion.html.md#an.motion.waddle)(target, \*[, steps, step_duration, ...])  | A walk cycle for a rig with no legs to animate: rock and bob per step.                                                                                                                                                                                                               |
 
 ### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
@@ -19256,7 +19470,7 @@ A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'waddle': <function waddle>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
 fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source), an#166) read.
@@ -19281,6 +19495,23 @@ A `set` keeps its absolute time in `at` instead of a wrapper.
 ['SequenceAction', 'SequenceAction', 'SetAction']
 >>> [round(f.start, 3) for a in leaves for f in flatten(a)]  # each from 0
 [1.0, 1.25, 1.5]
+```
+
+### an.motion.face_toward(shot, who, other, , view='side', from_direction=None, duration=0.3, mall=None)
+
+[`turn()`](_autosummary/an.motion.html.md#an.motion.turn) `who` to `view`, facing `other` — the direction read
+off the stage, so a profile looks at the other character wherever the
+layout put them.
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> from an.ir.schema import AssetRef
+>>> two = Shot(id="s", entities=[
+...     AssetRef(kind="character", id=n, store="characters", ref=n) for n in ("a", "b")])
+>>> [f.action.to_value for f in _tweens(face_toward(two, "b", "a"))]
+[0.0, -1.0]
 ```
 
 ### an.motion.hop(target, , height=40.0, duration=0.5, rest=None)
@@ -19438,6 +19669,37 @@ compiler’s) matter to text, whose line breaks depend on the frame.
 >>> poses = stage_poses(one)
 >>> "c/right_arm" in poses, poses["c/head"]["y"]
 (True, -55.0)
+```
+
+### an.motion.turn(target, , to='back', direction='right', from_direction=None, duration=0.3, view_set='view', rest=None)
+
+Turn a character to the view `to` — the classic cut-out turn (an#197).
+
+`scale_x` squashes to 0 (the character edge-on), the view swaps at that
+midpoint, and `scale_x` opens again to the rest scale — mirrored when
+`direction="left"`: a `side` view is drawn facing the viewer’s right,
+so `direction` is which way the character FACES after the turn.
+`from_direction` is which way it faced before — by default the sign of
+the rest `scale_x` (a character staged mirrored faces left); the preset
+cannot see an EARLIER turn, so turning back from a left-facing profile is
+`turn(to="front", from_direction="left")`.
+
+`to` is a key of the character’s `view` set — `front`, `back`,
+`side` or `three_quarter` on a factory character
+(`an character new --offline`); the swap is a `set` on the ENTITY,
+which the compiler fans out to the head and torso and which poses the face
+(the back hides it, the profile keeps one eye). `rest` is the entity’s:
+its `scale_x` magnitude is where the turn opens to.
+
+* **Return type:**
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> def lands(a):  # a tween's end value, a set's value
+...     return a.to_value if a.kind == "tween" else a.value
+>>> [(round(f.start, 2), f.action.property, lands(f.action))
+...  for f in flatten(turn("ned", to="side", direction="left"))]
+[(0.0, 'scale_x', 0.0), (0.15, 'view', 'side'), (0.15, 'scale_x', -1.0), (0.3, 'scale_x', -1.0)]
 ```
 
 ### an.motion.waddle(target, , steps=4, step_duration=0.3, angle=0.1, lift=6.0, travel=0.0, rest=None)
@@ -22573,20 +22835,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 11:10 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/e4a790165b1bb1ca931abeff23f6e5fb93aa7130"><code>e4a7901</code></a> on branch <code>main</code>, for **an 0.1.111** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 12:46 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b50d03584db48cc667a2ac0daef3a3b1316fd415"><code>b50d035</code></a> on branch <code>main</code>, for **an 0.1.112** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.111) is ahead of the latest release on PyPI (0.1.110): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/e4a790165b1bb1ca931abeff23f6e5fb93aa7130"><code>e4a790165b1bb1ca931abeff23f6e5fb93aa7130</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/b50d03584db48cc667a2ac0daef3a3b1316fd415"><code>b50d03584db48cc667a2ac0daef3a3b1316fd415</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.111</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.112</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -22595,9 +22855,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36706457331">36706457331</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36716519213">36716519213</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>0927f3266e67c2d322a164d4d4186f0a67303b04</code> (in the history of the built commit) |
+| Event commit | <code>8be0213f601b44e9cad1b34bc287676a1d055da6</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -22622,13 +22882,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.110/">0.1.110</a>, older than the documented version (0.1.111).
+Latest release: <a href="https://pypi.org/project/an/0.1.112/">0.1.112</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout e4a790165b1bb1ca931abeff23f6e5fb93aa7130
+git checkout b50d03584db48cc667a2ac0daef3a3b1316fd415
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
@@ -22724,7 +22984,7 @@ Source: [`.claude/skills/an-dev-stage`](https://github.com/thorwhalen/an/tree/HE
 
 ### `an-dev-swap-channels`
 
-How swap channels work in the `an` repo — the one generic replacement-animation mechanism (an#87) that viseme, eyelid, hands, body_facing and every future set ride. Use when touching `asset_sets`, the per-slot projection in `compile.py`, `applySwap`/`applyProperty` in `runtime.js`, `VisualJSON.asset_sets`, swap validation, texture aliases, or when adding a new swap set or authoring swaps from scene.md. Triggers on “swap channel”, “asset set”, “attachment swap”, “texture swap”, “viseme special case”, “the mouth doesn’t change”, “unknown swap key”, “add a hands set”, “turnaround”, “body_facing”, “eyelid”.
+How swap channels work in the `an` repo — the one generic replacement-animation mechanism (an#87) that viseme, eyelid, hands, body_facing, view and every future set ride, plus whole-character swaps and `swap_poses` (an#197). Use when touching `asset_sets`, the per-slot projection in `compile.py`, `applySwap`/`applyProperty` in `runtime.js`, `VisualJSON.asset_sets`, swap validation, texture aliases, or when adding a new swap set or authoring swaps from scene.md. Triggers on “swap channel”, “asset set”, “attachment swap”, “texture swap”, “viseme special case”, “the mouth doesn’t change”, “unknown swap key”, “add a hands set”, “turnaround”, “body_facing”, “eyelid”.
 
 Source: [`.claude/skills/an-dev-swap-channels`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-swap-channels).
 

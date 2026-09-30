@@ -3,8 +3,8 @@
 Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 
 `pop_in`, `hop`, `shake`, `nod`, `point`, `slide_in`, `slide_out`,
-`squash_stretch` and `waddle` each EXPAND to ordinary `tween` actions on
-transform properties, composed with [`sequence()`](an.ir.compose.html.md#an.ir.compose.sequence) and
+`squash_stretch`, `waddle` and `turn` each EXPAND to ordinary `tween`
+actions on transform properties (`turn` adds one swap `set`), composed with [`sequence()`](an.ir.compose.html.md#an.ir.compose.sequence) and
 [`parallel()`](an.ir.compose.html.md#an.ir.compose.parallel). Called from Python, nothing downstream
 learns a preset exists: the flat timeline, `an validate`, the verifiers and
 the renderer see the same tweens an author could have written by hand. Played
@@ -71,8 +71,9 @@ length divided by `speed`, so two in a row run one after the other.
 
 ### Functions
 
-| [`as_leaves`](#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
+| [`face_toward`](#an.motion.face_toward)(shot, who, other, \*[, view, ...])   | [`turn()`](#an.motion.turn) `who` to `view`, facing `other` — the direction read off the stage, so a profile looks at the other character wherever the layout put them.                                                                                  |
 |---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`as_leaves`](#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
 | [`hop`](#an.motion.hop)(target, \*[, height, duration, rest])        | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                                                                     |
 | [`nod`](#an.motion.nod)(target, \*[, part, angle, duration, ...])    | Dip the head `count` times (a rotation of `<target>/<part>`).                                                                                                                                                                                                                        |
 | [`point`](#an.motion.point)(target, \*[, angle, raise_duration, ...])  | Swing an arm out to point, hold it, and lower it again.                                                                                                                                                                                                                              |
@@ -83,6 +84,7 @@ length divided by `speed`, so two in a row run one after the other.
 | [`slide_in`](#an.motion.slide_in)(target, \*[, from_side, distance, ...]) | Whip in from `distance` pixels off to one side, overshoot, and settle.                                                                                                                                                                                                               |
 | [`slide_out`](#an.motion.slide_out)(target, \*[, to_side, distance, ...])  | Exit `distance` pixels off to one side, accelerating (an exit).                                                                                                                                                                                                                      |
 | [`squash_stretch`](#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
+| [`turn`](#an.motion.turn)(target, \*[, to, direction, ...])           | Turn a character to the view `to` — the classic cut-out turn (an#197).                                                                                                                                                                                                               |
 | [`waddle`](#an.motion.waddle)(target, \*[, steps, step_duration, ...])  | A walk cycle for a rig with no legs to animate: rock and bob per step.                                                                                                                                                                                                               |
 
 ### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
@@ -95,7 +97,7 @@ A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'waddle': <function waddle>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
 fallback ([`an.characters.play.play_source()`](an.characters.play.html.md#an.characters.play.play_source), an#166) read.
@@ -120,6 +122,23 @@ A `set` keeps its absolute time in `at` instead of a wrapper.
 ['SequenceAction', 'SequenceAction', 'SetAction']
 >>> [round(f.start, 3) for a in leaves for f in flatten(a)]  # each from 0
 [1.0, 1.25, 1.5]
+```
+
+### an.motion.face_toward(shot, who, other, , view='side', from_direction=None, duration=0.3, mall=None)
+
+[`turn()`](#an.motion.turn) `who` to `view`, facing `other` — the direction read
+off the stage, so a profile looks at the other character wherever the
+layout put them.
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> from an.ir.schema import AssetRef
+>>> two = Shot(id="s", entities=[
+...     AssetRef(kind="character", id=n, store="characters", ref=n) for n in ("a", "b")])
+>>> [f.action.to_value for f in _tweens(face_toward(two, "b", "a"))]
+[0.0, -1.0]
 ```
 
 ### an.motion.hop(target, , height=40.0, duration=0.5, rest=None)
@@ -277,6 +296,37 @@ compiler’s) matter to text, whose line breaks depend on the frame.
 >>> poses = stage_poses(one)
 >>> "c/right_arm" in poses, poses["c/head"]["y"]
 (True, -55.0)
+```
+
+### an.motion.turn(target, , to='back', direction='right', from_direction=None, duration=0.3, view_set='view', rest=None)
+
+Turn a character to the view `to` — the classic cut-out turn (an#197).
+
+`scale_x` squashes to 0 (the character edge-on), the view swaps at that
+midpoint, and `scale_x` opens again to the rest scale — mirrored when
+`direction="left"`: a `side` view is drawn facing the viewer’s right,
+so `direction` is which way the character FACES after the turn.
+`from_direction` is which way it faced before — by default the sign of
+the rest `scale_x` (a character staged mirrored faces left); the preset
+cannot see an EARLIER turn, so turning back from a left-facing profile is
+`turn(to="front", from_direction="left")`.
+
+`to` is a key of the character’s `view` set — `front`, `back`,
+`side` or `three_quarter` on a factory character
+(`an character new --offline`); the swap is a `set` on the ENTITY,
+which the compiler fans out to the head and torso and which poses the face
+(the back hides it, the profile keeps one eye). `rest` is the entity’s:
+its `scale_x` magnitude is where the turn opens to.
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.html.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> def lands(a):  # a tween's end value, a set's value
+...     return a.to_value if a.kind == "tween" else a.value
+>>> [(round(f.start, 2), f.action.property, lands(f.action))
+...  for f in flatten(turn("ned", to="side", direction="left"))]
+[(0.0, 'scale_x', 0.0), (0.15, 'view', 'side'), (0.15, 'scale_x', -1.0), (0.3, 'scale_x', -1.0)]
 ```
 
 ### an.motion.waddle(target, , steps=4, step_duration=0.3, angle=0.1, lift=6.0, travel=0.0, rest=None)

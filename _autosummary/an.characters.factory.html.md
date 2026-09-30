@@ -20,27 +20,33 @@ problem routes the way every other verifier’s does (an#78).
 
 ### Module Attributes
 
-| [`PALETTE_ROLES`](#an.characters.factory.PALETTE_ROLES)    | The roles `new_character(palette=...)` takes.                                                                                       |
-|-------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| [`HEAD_ART_ROLES`](#an.characters.factory.HEAD_ART_ROLES)   | The roles a head's own art carries.                                                                                                 |
-| [`OUTLINE_COLOUR`](#an.characters.factory.OUTLINE_COLOUR)   | it is the drawing's ink, not a costume colour.                                                                                      |
-| [`SHOE_COLOUR`](#an.characters.factory.SHOE_COLOUR)      | The shoe, drawn in the leg part.                                                                                                    |
-| [`PUPIL_COLOUR`](#an.characters.factory.PUPIL_COLOUR)     | The pupil, in its own part (or the pre-gaze open eye).                                                                              |
-| [`DFLT_HAND_COLOUR`](#an.characters.factory.DFLT_HAND_COLOUR) | Default hand, trouser and brow colours — the literals the factory always drew.                                                      |
-| [`HATS`](#an.characters.factory.HATS)             | The hats [`new_character()`](#an.characters.factory.new_character) can draw.                                                 |
-| [`MAX_HEAD_SCALE`](#an.characters.factory.MAX_HEAD_SCALE)   | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                      |
-| [`BUILDS`](#an.characters.factory.BUILDS)           | Named builds.                                                                                                                       |
-| [`EYE_CANVAS`](#an.characters.factory.EYE_CANVAS)       | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99). |
-| [`GAZE_PARTS`](#an.characters.factory.GAZE_PARTS)       | The parts a rig gains with `an character add-gaze`.                                                                                 |
+| [`PALETTE_ROLES`](#an.characters.factory.PALETTE_ROLES)            | The roles `new_character(palette=...)` takes.                                                                                                                         |
+|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`HEAD_ART_ROLES`](#an.characters.factory.HEAD_ART_ROLES)           | The roles a head's own art carries.                                                                                                                                   |
+| [`OUTLINE_COLOUR`](#an.characters.factory.OUTLINE_COLOUR)           | it is the drawing's ink, not a costume colour.                                                                                                                        |
+| [`SHOE_COLOUR`](#an.characters.factory.SHOE_COLOUR)              | The shoe, drawn in the leg part.                                                                                                                                      |
+| [`PUPIL_COLOUR`](#an.characters.factory.PUPIL_COLOUR)             | The pupil, in its own part (or the pre-gaze open eye).                                                                                                                |
+| [`DFLT_HAND_COLOUR`](#an.characters.factory.DFLT_HAND_COLOUR)         | Default hand, trouser and brow colours — the literals the factory always drew.                                                                                        |
+| [`HATS`](#an.characters.factory.HATS)                     | The hats [`new_character()`](#an.characters.factory.new_character) can draw.                                                                                   |
+| [`MAX_HEAD_SCALE`](#an.characters.factory.MAX_HEAD_SCALE)           | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                                                        |
+| [`BUILDS`](#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                         |
+| [`EYE_CANVAS`](#an.characters.factory.EYE_CANVAS)               | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).                                   |
+| [`GAZE_PARTS`](#an.characters.factory.GAZE_PARTS)               | The parts a rig gains with `an character add-gaze`.                                                                                                                   |
+| [`FACE_SLOTS`](#an.characters.factory.FACE_SLOTS)               | The face slots of the default rig with the eye stack (an#99).                                                                                                         |
+| [`SIDE_EYE_SHIFT`](#an.characters.factory.SIDE_EYE_SHIFT)           | how far the near eye, its stack and brow slide toward the face's edge, and the mouth with them (view_box units at head_scale 1); the mouth is narrowed, seen edge-on. |
+| [`SIDE_LEG_TUCK`](#an.characters.factory.SIDE_LEG_TUCK)            | The fraction of the hip spread each leg moves toward the centre line in profile — the legs overlap, and a walk scissors them.                                         |
+| [`THREE_QUARTER_FACE_SHIFT`](#an.characters.factory.THREE_QUARTER_FACE_SHIFT) | the whole face slides toward the facing side, the far eye narrows, the far arm tucks in toward the body and the legs in.                                              |
 
 ### Functions
 
-| [`add_gaze`](#an.characters.factory.add_gaze)(char_dir, \*[, skin, overwrite_eyes])   | Give a character the eye stack (an#99): three sibling slots per eye under the head — `<side>_sclera` (white fill) below `<side>_pupil` below `<side>_eye` (the existing slot, now the lid, drawn above the pupil) — with synthesized parts, an outline-only open eye, a FILLED closed lid, the `gaze_travel` clamp, and draw orders that put the lid over the pupil.   |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`declare_mouth_variants`](#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                            |
-| [`gaze_travel_for`](#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                             |
-| [`new_character`](#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                    |
-| [`scale_part_files`](#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                 |
+| [`add_gaze`](#an.characters.factory.add_gaze)(char_dir, \*[, skin, overwrite_eyes])   | Give a character the eye stack (an#99): three sibling slots per eye under the head — `<side>_sclera` (white fill) below `<side>_pupil` below `<side>_eye` (the existing slot, now the lid, drawn above the pupil) — with synthesized parts, an outline-only open eye, a FILLED closed lid, the `gaze_travel` clamp, and draw orders that put the lid over the pupil.                            |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`add_views`](#an.characters.factory.add_views)(char_dir)                              | Give a factory character its turnaround (an#197): `back`, `side` and `three_quarter` head and torso art beside the front, a `view` swap set projected onto those two slots, and a pose per view (`swap_poses`) — so `{kind: set, target: <entity>, property: view, value: side}` or [`an.motion.turn()`](an.motion.html.md#an.motion.turn) turns the whole character. |
+| [`declare_mouth_variants`](#an.characters.factory.declare_mouth_variants)(descriptor, variants)     | Declare a `viseme@<form>` set per variant on `descriptor` — the set's keys map to `mouth_<shape>_<form>` attachments, which are added to the default skin's `mouth` slot with the neutral mouth's geometry.                                                                                                                                                                                     |
+| [`gaze_travel_for`](#an.characters.factory.gaze_travel_for)([rx, ry, pupil_r])               | The pupil's travel per axis, in view-box units: the sclera's clearance minus the pupil's radius — the semi-axes of the inner ellipse the gaze axes' unit circle maps onto.                                                                                                                                                                                                                      |
+| [`new_character`](#an.characters.factory.new_character)(out_dir, \*, name[, seed, ...])    | Build a complete character on disk.                                                                                                                                                                                                                                                                                                                                                             |
+| [`scale_part_files`](#an.characters.factory.scale_part_files)(paths, scale)                   | Rewrite each part SVG's root size by `scale` (its drawing untouched): the compiler draws a part at its own raster size, so that IS its size on screen.                                                                                                                                                                                                                                          |
+| [`view_poses`](#an.characters.factory.view_poses)([body, head_scale, slots])            | `{view: {slot: SlotPose}}` for the factory's rig built as `body` — what a view does besides swapping art: the back hides the face, the side hides the far eye and arm and slides the near eye and mouth to the profile edge.                                                                                                                                                                    |
 
 ### Classes
 
@@ -99,6 +105,10 @@ Default hand, trouser and brow colours — the literals the factory always drew.
 The eye’s geometry in its 64x32 canvas, shared by the four synthesizers so
 the sclera, the pupil and the lid outline agree (an#99).
 
+### an.characters.factory.FACE_SLOTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('left_eye', 'right_eye', 'left_sclera', 'right_sclera', 'left_pupil', 'right_pupil', 'mouth', 'left_brow', 'right_brow')*
+
+The face slots of the default rig with the eye stack (an#99).
+
 ### an.characters.factory.GAZE_PARTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('sclera_l', 'sclera_r', 'pupil_l', 'pupil_r')*
 
 The parts a rig gains with `an character add-gaze`. Optional — never in
@@ -142,6 +152,28 @@ The pupil, in its own part (or the pre-gaze open eye). Role `pupil`.
 
 The shoe, drawn in the leg part. Untagged.
 
+### an.characters.factory.SIDE_EYE_SHIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 14.0*
+
+how far the near eye, its stack and brow slide toward
+the face’s edge, and the mouth with them (view_box units at head_scale 1);
+the mouth is narrowed, seen edge-on.
+
+* **Type:**
+  Profile (facing right)
+
+### an.characters.factory.SIDE_LEG_TUCK *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.7*
+
+The fraction of the hip spread each leg moves toward the centre line in
+profile — the legs overlap, and a walk scissors them.
+
+### an.characters.factory.THREE_QUARTER_FACE_SHIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 20.0*
+
+the whole face slides toward the facing side,
+the far eye narrows, the far arm tucks in toward the body and the legs in.
+
+* **Type:**
+  Three-quarter (facing right)
+
 ### an.characters.factory.add_gaze(char_dir, , skin=None, overwrite_eyes=False)
 
 Give a character the eye stack (an#99): three sibling slots per eye under
@@ -163,6 +195,29 @@ This is the **expand** step for a pre-Wave-6 descriptor: no migration
 inserts pupil slots, because their art would be absent and absent art is
 fatal under `strict_assets` — every existing character would stop
 rendering on the bench.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.characters.factory.add_views(char_dir)
+
+Give a factory character its turnaround (an#197): `back`, `side` and
+`three_quarter` head and torso art beside the front, a `view` swap set
+projected onto those two slots, and a pose per view (`swap_poses`) — so
+`{kind: set, target: <entity>, property: view, value: side}` or
+[`an.motion.turn()`](an.motion.html.md#an.motion.turn) turns the whole character. Idempotent. Returns the
+descriptor path.
+
+The views are REDRAWN from the recorded knobs (seed, palette, build, hat,
+sash, head scale), so it refuses a rig whose head is not this factory’s
+drawing for them — a DiceBear head (its face is baked, and there is no
+back of it to draw), a promoted hand rig, or an edited head: its views are
+an illustrator’s to draw, declared the same way (a `view` set whose keys
+name attachments on the head and torso slots, and `swap_poses`).
+
+Every colour is role-tagged like the front’s, so a StylePack recolours the
+views exactly as it recolours the front (an#191). The existing art is not
+touched: a shot that never sets a view renders byte-identically.
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
@@ -193,7 +248,7 @@ inside the white at every angle without a runtime mask.
 {'x': 9.0, 'y': 5.0}
 ```
 
-### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False)
+### an.characters.factory.new_character(out_dir, , name, seed=None, style='lorelei', voice_ref=None, use_dicebear=True, acknowledge_attribution=False, overwrite=False, mouth_variants=None, gaze=True, palette=None, build='regular', head_scale=1.0, hat='none', sash=False, views=True)
 
 Build a complete character on disk.
 
@@ -211,6 +266,13 @@ byte, which a golden test holds):
   offsets, the pupil travel) scaled together, so a big head keeps its face.
 - `hat` — a key of [`HATS`](#an.characters.factory.HATS) (offline head only), in `accessory`.
 - `sash` — a diagonal band across the torso, in `accessory`.
+- `views` (an#197) — draw the turnaround: `back`, `side` (a profile
+  facing the viewer’s right) and `three_quarter` beside the front, as a
+  `view` swap set with a pose per view ([`add_views()`](#an.characters.factory.add_views)), so
+  [`an.motion.turn()`](an.motion.html.md#an.motion.turn) can turn the character around. Offline head only
+  > (a DiceBear face is baked into its art); ignored for a DiceBear head.
+
+  Additive: a shot that never sets a view renders exactly as without it.
 
 Every colour the factory draws in a role is recorded in the descriptor’s
 `colour_roles` so a style pack can recolour it later (palette swapping,
@@ -256,3 +318,24 @@ screen. Missing files are skipped.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.characters.factory.view_poses(body=BodyBuild(torso_size=(256, 256), torso_radius=40, torso_inset_bottom=20, arm_width=36, arm_length=256, hand_radius=20, limb_stroke=4, leg_width=40, leg_length=300.0, shoe_size=(32, 18), shoulder=(90, 240), hip_x=50, neck_height=260), , head_scale=1.0, slots=None)
+
+`{view: {slot: SlotPose}}` for the factory’s rig built as `body` — what
+a view does besides swapping art: the back hides the face, the side hides
+the far eye and arm and slides the near eye and mouth to the profile edge.
+
+Face offsets scale with `head_scale` (the face was drawn at it), limb
+offsets come from the build’s own joints. `slots` limits the poses to the
+slots a rig has (a rig without the eye stack has no pupils to pose).
+
+* **Return type:**
+  dict[str, dict[str, ‘SlotPose’]]
+
+```pycon
+>>> poses = view_poses()
+>>> sorted(poses)
+['back', 'front', 'side', 'three_quarter']
+>>> poses["front"], poses["back"]["mouth"].alpha, poses["side"]["arm_r"].x
+({}, 0.0, -90.0)
+```

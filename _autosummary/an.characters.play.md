@@ -51,7 +51,7 @@ the caller reads off the built scene, so an author never passes `rest`.
 >>> play_problems(desc, "walk")
 ["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no
   motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
-  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'waddle'])"]
+  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle'])"]
 >>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
 ('preset', 'preset', 'descriptor')
 ```

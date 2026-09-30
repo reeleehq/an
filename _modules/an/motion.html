@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=9dead672"></script>
+    <script src="../../_static/documentation_options.js?v=aa125c18"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.111" />
+  <meta name="docsearch:version" content="0.1.112" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -713,8 +713,8 @@ window.runMermaid = runMermaid;</script>
 <span></span><span class="sd">"""Motion presets: a named vocabulary of cut-out moves, as authoring macros.</span>
 
 <span class="sd">``pop_in``, ``hop``, ``shake``, ``nod``, ``point``, ``slide_in``, ``slide_out``,</span>
-<span class="sd">``squash_stretch`` and ``waddle`` each EXPAND to ordinary ``tween`` actions on</span>
-<span class="sd">transform properties, composed with :func:`~an.ir.compose.sequence` and</span>
+<span class="sd">``squash_stretch``, ``waddle`` and ``turn`` each EXPAND to ordinary ``tween``</span>
+<span class="sd">actions on transform properties (``turn`` adds one swap ``set``), composed with :func:`~an.ir.compose.sequence` and</span>
 <span class="sd">:func:`~an.ir.compose.parallel`. Called from Python, nothing downstream</span>
 <span class="sd">learns a preset exists: the flat timeline, ``an validate``, the verifiers and</span>
 <span class="sd">the renderer see the same tweens an author could have written by hand. Played</span>
@@ -822,6 +822,10 @@ window.runMermaid = runMermaid;</script>
 <span class="n">DFLT_WADDLE_STEP_DURATION</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.3</span>
 <span class="n">DFLT_WADDLE_ANGLE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># radians</span>
 <span class="n">DFLT_WADDLE_LIFT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">6.0</span>  <span class="c1"># scene px</span>
+<span class="n">DFLT_TURN_DURATION</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.3</span>
+<span class="c1">#: The swap set a turn swaps: the factory's turnaround (an#197).</span>
+<span class="n">DFLT_TURN_SET</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"view"</span>
+<span class="n">DFLT_TURN_TO</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"back"</span>
 
 <span class="c1">#: The properties a preset may read a rest value for.</span>
 <span class="n">POSE_PROPERTIES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"rotation"</span><span class="p">,</span> <span class="s2">"scale_x"</span><span class="p">,</span> <span class="s2">"scale_y"</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">)</span>
@@ -1258,6 +1262,130 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="n">_FACINGS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"right"</span><span class="p">,</span> <span class="s2">"left"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_facing_sign</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_FACINGS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be one of </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">_FACINGS</span><span class="p">)</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="s2">"left"</span> <span class="k">else</span> <span class="mf">1.0</span>
+
+
+<div class="viewcode-block" id="turn">
+<a class="viewcode-back" href="../../_autosummary/an.motion.html#an.motion.turn">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">turn</span><span class="p">(</span>
+    <span class="n">target</span><span class="p">:</span> <span class="n">PathStr</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">to</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_TURN_TO</span><span class="p">,</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"right"</span><span class="p">,</span>
+    <span class="n">from_direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">DFLT_TURN_DURATION</span><span class="p">,</span>
+    <span class="n">view_set</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_TURN_SET</span><span class="p">,</span>
+    <span class="n">rest</span><span class="p">:</span> <span class="n">Rest</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Action</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Turn a character to the view ``to`` — the classic cut-out turn (an#197).</span>
+
+<span class="sd">    ``scale_x`` squashes to 0 (the character edge-on), the view swaps at that</span>
+<span class="sd">    midpoint, and ``scale_x`` opens again to the rest scale — mirrored when</span>
+<span class="sd">    ``direction="left"``: a ``side`` view is drawn facing the viewer's right,</span>
+<span class="sd">    so ``direction`` is which way the character FACES after the turn.</span>
+<span class="sd">    ``from_direction`` is which way it faced before — by default the sign of</span>
+<span class="sd">    the rest ``scale_x`` (a character staged mirrored faces left); the preset</span>
+<span class="sd">    cannot see an EARLIER turn, so turning back from a left-facing profile is</span>
+<span class="sd">    ``turn(to="front", from_direction="left")``.</span>
+
+<span class="sd">    ``to`` is a key of the character's ``view`` set — ``front``, ``back``,</span>
+<span class="sd">    ``side`` or ``three_quarter`` on a factory character</span>
+<span class="sd">    (``an character new --offline``); the swap is a ``set`` on the ENTITY,</span>
+<span class="sd">    which the compiler fans out to the head and torso and which poses the face</span>
+<span class="sd">    (the back hides it, the profile keeps one eye). ``rest`` is the entity's:</span>
+<span class="sd">    its ``scale_x`` magnitude is where the turn opens to.</span>
+
+<span class="sd">    &gt;&gt;&gt; def lands(a):  # a tween's end value, a set's value</span>
+<span class="sd">    ...     return a.to_value if a.kind == "tween" else a.value</span>
+<span class="sd">    &gt;&gt;&gt; [(round(f.start, 2), f.action.property, lands(f.action))</span>
+<span class="sd">    ...  for f in flatten(turn("ned", to="side", direction="left"))]</span>
+<span class="sd">    [(0.0, 'scale_x', 0.0), (0.15, 'view', 'side'), (0.15, 'scale_x', -1.0), (0.3, 'scale_x', -1.0)]</span>
+<span class="sd">    """</span>
+    <span class="n">_positive</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">to</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">to</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"to must name a view (a key of the </span><span class="si">{</span><span class="n">view_set</span><span class="si">!r}</span><span class="s2"> set), got </span><span class="si">{</span><span class="n">to</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">rest_sx</span> <span class="o">=</span> <span class="n">_rest</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="s2">"scale_x"</span><span class="p">)</span>
+    <span class="n">s0</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">rest_sx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">from_direction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">from_direction</span> <span class="o">=</span> <span class="s2">"left"</span> <span class="k">if</span> <span class="n">rest_sx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"right"</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="n">_facing_sign</span><span class="p">(</span><span class="s2">"from_direction"</span><span class="p">,</span> <span class="n">from_direction</span><span class="p">)</span> <span class="o">*</span> <span class="n">s0</span>
+    <span class="n">after</span> <span class="o">=</span> <span class="n">_facing_sign</span><span class="p">(</span><span class="s2">"direction"</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span> <span class="o">*</span> <span class="n">s0</span>
+    <span class="n">half</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="k">return</span> <span class="n">sequence</span><span class="p">(</span>
+        <span class="n">tween</span><span class="p">(</span>
+            <span class="n">target</span><span class="p">,</span>
+            <span class="s2">"scale_x"</span><span class="p">,</span>
+            <span class="n">to</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="n">half</span><span class="p">,</span>
+            <span class="n">from_</span><span class="o">=</span><span class="n">before</span><span class="p">,</span>
+            <span class="n">easing</span><span class="o">=</span><span class="n">DFLT_IN_EASING</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">parallel</span><span class="p">(</span>
+            <span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">view_set</span><span class="p">,</span> <span class="n">to</span><span class="p">),</span>
+            <span class="n">_settled</span><span class="p">(</span>
+                <span class="n">target</span><span class="p">,</span>
+                <span class="s2">"scale_x"</span><span class="p">,</span>
+                <span class="n">after</span><span class="p">,</span>
+                <span class="n">tween</span><span class="p">(</span>
+                    <span class="n">target</span><span class="p">,</span>
+                    <span class="s2">"scale_x"</span><span class="p">,</span>
+                    <span class="n">to</span><span class="o">=</span><span class="n">after</span><span class="p">,</span>
+                    <span class="n">duration</span><span class="o">=</span><span class="n">half</span><span class="p">,</span>
+                    <span class="n">from_</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">easing</span><span class="o">=</span><span class="n">DFLT_OUT_EASING</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="face_toward">
+<a class="viewcode-back" href="../../_autosummary/an.motion.html#an.motion.face_toward">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">face_toward</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">who</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">other</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">view</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"side"</span><span class="p">,</span>
+    <span class="n">from_direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">DFLT_TURN_DURATION</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Action</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">""":func:`turn` ``who`` to ``view``, facing ``other`` — the direction read</span>
+<span class="sd">    off the stage, so a profile looks at the other character wherever the</span>
+<span class="sd">    layout put them.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import AssetRef</span>
+<span class="sd">    &gt;&gt;&gt; two = Shot(id="s", entities=[</span>
+<span class="sd">    ...     AssetRef(kind="character", id=n, store="characters", ref=n) for n in ("a", "b")])</span>
+<span class="sd">    &gt;&gt;&gt; [f.action.to_value for f in _tweens(face_toward(two, "b", "a"))]</span>
+<span class="sd">    [0.0, -1.0]</span>
+<span class="sd">    """</span>
+    <span class="n">poses</span> <span class="o">=</span> <span class="n">stage_poses</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="n">who</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">poses</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no entity </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> in the shot; built: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">poses</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">direction</span> <span class="o">=</span> <span class="s2">"right"</span> <span class="k">if</span> <span class="n">poses</span><span class="p">[</span><span class="n">other</span><span class="p">][</span><span class="s2">"x"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">poses</span><span class="p">[</span><span class="n">who</span><span class="p">][</span><span class="s2">"x"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">"left"</span>
+    <span class="k">return</span> <span class="n">turn</span><span class="p">(</span>
+        <span class="n">who</span><span class="p">,</span>
+        <span class="n">to</span><span class="o">=</span><span class="n">view</span><span class="p">,</span>
+        <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+        <span class="n">from_direction</span><span class="o">=</span><span class="n">from_direction</span><span class="p">,</span>
+        <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+        <span class="n">rest</span><span class="o">=</span><span class="n">poses</span><span class="p">[</span><span class="n">who</span><span class="p">],</span>
+    <span class="p">)</span></div>
+
+
+
 <span class="c1">#: Every preset by name — the one list the skill, the demo and the ``play``</span>
 <span class="c1">#: fallback (:func:`an.characters.play.play_source`, an#166) read.</span>
 <span class="n">PRESETS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Action</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
@@ -1272,6 +1400,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">slide_out</span><span class="p">,</span>
         <span class="n">squash_stretch</span><span class="p">,</span>
         <span class="n">waddle</span><span class="p">,</span>
+        <span class="n">turn</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">}</span>
 
@@ -1397,6 +1526,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"IDENTITY_POSE"</span><span class="p">,</span>
+    <span class="s2">"face_toward"</span><span class="p">,</span>
     <span class="s2">"OVERSHOOT"</span><span class="p">,</span>
     <span class="s2">"PRESETS"</span><span class="p">,</span>
     <span class="s2">"as_leaves"</span><span class="p">,</span>
@@ -1410,6 +1540,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"slide_in"</span><span class="p">,</span>
     <span class="s2">"slide_out"</span><span class="p">,</span>
     <span class="s2">"squash_stretch"</span><span class="p">,</span>
+    <span class="s2">"turn"</span><span class="p">,</span>
     <span class="s2">"waddle"</span><span class="p">,</span>
 <span class="p">]</span>
 </pre></div>

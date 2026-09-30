@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=9dead672"></script>
+    <script src="../../../_static/documentation_options.js?v=aa125c18"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.111" />
+  <meta name="docsearch:version" content="0.1.112" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -719,6 +719,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">Subcommands (used as ``an character &lt;verb&gt; ...``):</span>
 
 <span class="sd">- ``new``       — generate a fresh character from DiceBear or fallback art.</span>
+<span class="sd">- ``add-views`` — give an offline character its turnaround (an#197).</span>
 <span class="sd">- ``mouths``    — regenerate the 9-shape default mouth set.</span>
 <span class="sd">- ``validate``  — completeness check.</span>
 <span class="sd">- ``silhouette``— rasterize silhouettes; for two characters, also IoU.</span>
@@ -768,6 +769,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">head_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
     <span class="n">hat</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"none"</span><span class="p">,</span>
     <span class="n">sash</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">views</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Create a new character at ``out_dir``/``name``.</span>
 
@@ -793,6 +795,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    hat: none, cap, beanie, bowler or bicorne (offline head only), in the</span>
 <span class="sd">        accessory colour</span>
 <span class="sd">    sash: a diagonal band across the torso, in the accessory colour</span>
+<span class="sd">    views: draw the turnaround — back, side (a profile facing right) and</span>
+<span class="sd">        three_quarter beside the front, as a `view` swap set (offline head</span>
+<span class="sd">        only), so `play: turn` can turn the character (an#197)</span>
 <span class="sd">    """</span>
     <span class="n">target</span> <span class="o">=</span> <span class="n">_resolve_target</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span>
     <span class="n">target</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -819,6 +824,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">head_scale</span><span class="o">=</span><span class="n">head_scale</span><span class="p">,</span>
             <span class="n">hat</span><span class="o">=</span><span class="n">hat</span><span class="p">,</span>
             <span class="n">sash</span><span class="o">=</span><span class="n">sash</span><span class="p">,</span>
+            <span class="n">views</span><span class="o">=</span><span class="n">views</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="c1"># A licence refusal is a message for a human, not a traceback. The</span>
@@ -826,7 +832,16 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># gate added below the CLI without a flag above it made every CC BY</span>
         <span class="c1"># style unreachable AND ugly.</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">"created character at </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> (descriptor: </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)"</span></div>
+    <span class="n">note</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">"; no views: a DiceBear head's face is baked, so its back and profile "</span>
+        <span class="s2">"cannot be drawn (use --offline to turn it)"</span>
+        <span class="k">if</span> <span class="n">views</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">offline</span>
+        <span class="ow">and</span> <span class="s2">"view"</span>
+        <span class="ow">not</span> <span class="ow">in</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">))</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"asset_sets"</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">else</span> <span class="s2">""</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"created character at </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> (descriptor: </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)</span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">"</span></div>
 
 
 
@@ -906,6 +921,31 @@ window.runMermaid = runMermaid;</script>
     <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"added the eye stack to </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> (descriptor: </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)"</span></div>
+
+
+
+<div class="viewcode-block" id="add_views">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.cli.html#an.characters.cli.add_views">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_views</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Give ``name`` its turnaround (an#197): back, side and three-quarter head</span>
+<span class="sd">    and torso art, a `view` swap set, and a pose per view — so `play: turn`</span>
+<span class="sd">    and `set &lt;name&gt; view &lt;key&gt;` turn it. The expand step for an offline</span>
+<span class="sd">    character made before views; idempotent. Refused for a DiceBear head or a</span>
+<span class="sd">    hand-drawn rig, whose views are an illustrator's to draw.</span>
+
+<span class="sd">    name: character id</span>
+<span class="sd">    out_dir: parent directory; defaults to ./assets/characters</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_views</span> <span class="k">as</span> <span class="n">_add_views</span>
+
+    <span class="n">char_dir</span> <span class="o">=</span> <span class="n">_resolve_target</span><span class="p">(</span><span class="n">out_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">name</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">char_dir</span> <span class="o">/</span> <span class="s2">"character.json"</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"no character at </span><span class="si">{</span><span class="n">char_dir</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">_add_views</span><span class="p">(</span><span class="n">char_dir</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"added the views to </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">parent</span><span class="si">}</span><span class="s2"> (descriptor: </span><span class="si">{</span><span class="n">desc</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">)"</span></div>
 
 
 
@@ -1237,6 +1277,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">new</span><span class="p">,</span>
     <span class="n">mouths</span><span class="p">,</span>
     <span class="n">add_gaze</span><span class="p">,</span>
+    <span class="n">add_views</span><span class="p">,</span>
     <span class="n">validate</span><span class="p">,</span>
     <span class="n">contract</span><span class="p">,</span>
     <span class="n">silhouette</span><span class="p">,</span>

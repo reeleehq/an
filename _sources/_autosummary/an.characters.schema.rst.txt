@@ -14,8 +14,12 @@ an.characters.schema
       VISEME_CHANNEL
       EYELID_CHANNEL
       DEFAULT_EYELID_MAP
+      VIEW_CHANNEL
+      VIEWS
+      DFLT_VIEW
       REQUIRED_PARTS
       DEFAULT_VIEW_BOX
+      SLOT_POSE_OFFSETS
       LEG_LENGTH
       HEAD_ANCHOR
       REFERENCE_HEAD_HEIGHT
@@ -39,4 +43,5 @@ an.characters.schema
       IdleAnimation
       Skin
       Slot
+      SlotPose
    

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=9dead672"></script>
+    <script src="../_static/documentation_options.js?v=aa125c18"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.record" href="an.characters.record.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.111" />
+  <meta name="docsearch:version" content="0.1.112" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -583,11 +583,23 @@ several slots.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.DEFAULT_EYELID_MAP" title="an.characters.schema.DEFAULT_EYELID_MAP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_EYELID_MAP</span></code></a></p></td>
 <td><p>Default eyelid-state → attachment-name mapping, shared by both eye slots.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.REQUIRED_PARTS" title="an.characters.schema.REQUIRED_PARTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REQUIRED_PARTS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.VIEW_CHANNEL" title="an.characters.schema.VIEW_CHANNEL"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VIEW_CHANNEL</span></code></a></p></td>
+<td><p>one KEY per drawn view, projected onto the slots whose art changes with the view (the factory draws the head and the torso), each slot carrying attachments NAMED after the keys.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.VIEWS" title="an.characters.schema.VIEWS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VIEWS</span></code></a></p></td>
+<td><p>The views the factory draws, in turnaround order.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.DFLT_VIEW" title="an.characters.schema.DFLT_VIEW"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_VIEW</span></code></a></p></td>
+<td><p>its default attachments ARE this view.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.REQUIRED_PARTS" title="an.characters.schema.REQUIRED_PARTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REQUIRED_PARTS</span></code></a></p></td>
 <td><p>Required body parts.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.DEFAULT_VIEW_BOX" title="an.characters.schema.DEFAULT_VIEW_BOX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_VIEW_BOX</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.DEFAULT_VIEW_BOX" title="an.characters.schema.DEFAULT_VIEW_BOX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_VIEW_BOX</span></code></a></p></td>
 <td><p>1024x1024 with feet near y≈980.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.SLOT_POSE_OFFSETS" title="an.characters.schema.SLOT_POSE_OFFSETS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SLOT_POSE_OFFSETS</span></code></a></p></td>
+<td><p>The transform properties a <a class="reference internal" href="#an.characters.schema.SlotPose" title="an.characters.schema.SlotPose"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlotPose</span></code></a> sets, and whether each is an OFFSET added to the rest (in view_box units) or a FACTOR on it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.LEG_LENGTH" title="an.characters.schema.LEG_LENGTH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LEG_LENGTH</span></code></a></p></td>
 <td><p>Hip to ground in the default rig, in view_box units.</p></td>
@@ -639,6 +651,9 @@ several slots.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.Slot" title="an.characters.schema.Slot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Slot</span></code></a>(**data)</p></td>
 <td><p>A draw-order slot bound to a bone, displaying one attachment at a time.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.SlotPose" title="an.characters.schema.SlotPose"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SlotPose</span></code></a>(**data)</p></td>
+<td><p>How one slot is posed while a swap key is shown (<code class="docutils literal notranslate"><span class="pre">swap_poses</span></code>, an#197).</p></td>
 </tr>
 </tbody>
 </table>
@@ -895,6 +910,29 @@ extracted from. Useful for re-slicing.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.swap_poses">
+<span class="sig-name descname"><span class="pre">swap_poses</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#an.characters.schema.SlotPose" title="an.characters.schema.SlotPose"><span class="pre">SlotPose</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.swap_poses" title="Link to this definition">#</a></dt>
+<dd><p>{slot:
+SlotPose}}}`` (an#197). A <code class="docutils literal notranslate"><span class="pre">set</span></code> of a swap set on the ENTITY itself
+(<code class="docutils literal notranslate"><span class="pre">{kind:</span> <span class="pre">set,</span> <span class="pre">target:</span> <span class="pre">maya,</span> <span class="pre">property:</span> <span class="pre">view,</span> <span class="pre">value:</span> <span class="pre">side}</span></code>) fans the
+key out to every slot the set projects onto AND poses the slots listed
+under that key; a slot listed under another key of the set returns to
+rest. That is how one key turns a whole character: the head and torso
+swap art, the far eye and arm hide, the mouth slides to the profile
+edge — while blinks, gaze and lip-sync keep running on what is visible
+(the face solver folds a pose into its own channels). Additive: no
+schema bump, and a descriptor without it reads back unposed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How slots are POSED while a swap key shows — <a href="#id1"><span class="problematic" id="id2">``</span></a>{set</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>{key</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.voice_ref">
 <span class="sig-name descname"><span class="pre">voice_ref</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.voice_ref" title="Link to this definition">#</a></dt>
 <dd><p>Voice-store id or path used by the audio pipeline. Optional; the scene
@@ -927,6 +965,17 @@ viewBox without a calibration step.</p>
 <span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_VISEME_MAP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'A':</span> <span class="pre">'mouth_a',</span> <span class="pre">'B':</span> <span class="pre">'mouth_b',</span> <span class="pre">'C':</span> <span class="pre">'mouth_c',</span> <span class="pre">'D':</span> <span class="pre">'mouth_d',</span> <span class="pre">'E':</span> <span class="pre">'mouth_e',</span> <span class="pre">'F':</span> <span class="pre">'mouth_f',</span> <span class="pre">'G':</span> <span class="pre">'mouth_g',</span> <span class="pre">'H':</span> <span class="pre">'mouth_h',</span> <span class="pre">'X':</span> <span class="pre">'mouth_x'}</span></span><a class="headerlink" href="#an.characters.schema.DEFAULT_VISEME_MAP" title="Link to this definition">#</a></dt>
 <dd><p>Default Rhubarb-letter → mouth-attachment-name mapping. Uppercase keys
 because Rhubarb emits A-X; lowercase attachment names by convention.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.DFLT_VIEW">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">DFLT_VIEW</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'front'</span></span><a class="headerlink" href="#an.characters.schema.DFLT_VIEW" title="Link to this definition">#</a></dt>
+<dd><p>its default attachments ARE this view.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The view a character shows at rest</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py data">
@@ -1015,6 +1064,13 @@ head art at this height, so <a class="reference internal" href="#an.characters.s
 as a full puppet; <code class="docutils literal notranslate"><span class="pre">validate_character</span></code> flags the gap.</p>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.SLOT_POSE_OFFSETS">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">SLOT_POSE_OFFSETS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('x',</span> <span class="pre">'y')</span></span><a class="headerlink" href="#an.characters.schema.SLOT_POSE_OFFSETS" title="Link to this definition">#</a></dt>
+<dd><p>The transform properties a <a class="reference internal" href="#an.characters.schema.SlotPose" title="an.characters.schema.SlotPose"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlotPose</span></code></a> sets, and whether each is an
+OFFSET added to the rest (in view_box units) or a FACTOR on it.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.characters.schema.Skin">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">Skin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#Skin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.Skin" title="Link to this definition">#</a></dt>
@@ -1060,6 +1116,53 @@ via animation tracks targeting <code class="docutils literal notranslate"><span 
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.characters.schema.SlotPose">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">SlotPose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#SlotPose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.SlotPose" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CharModel</span></code></p>
+<p>How one slot is posed while a swap key is shown (<code class="docutils literal notranslate"><span class="pre">swap_poses</span></code>, an#197).</p>
+<p>Relative to the slot’s REST, so one pose serves every placement: <code class="docutils literal notranslate"><span class="pre">x</span></code>/<code class="docutils literal notranslate"><span class="pre">y</span></code>
+are added (view_box units, like an attachment offset), <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>,
+<code class="docutils literal notranslate"><span class="pre">scale_y</span></code> and <code class="docutils literal notranslate"><span class="pre">alpha</span></code> multiply. <code class="docutils literal notranslate"><span class="pre">alpha:</span> <span class="pre">0</span></code> is how a view HIDES a slot
+— the back view hides the face — which is a property of the view, never an
+author’s alpha hack on node paths guessed by trial.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">SlotPose</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="n">SlotPose</span><span class="p">()</span><span class="o">.</span><span class="n">x</span>
+<span class="go">(0.0, 0.0)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.SlotPose.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.characters.schema.SlotPose.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.VIEWS">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">VIEWS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('front',</span> <span class="pre">'three_quarter',</span> <span class="pre">'side',</span> <span class="pre">'back')</span></span><a class="headerlink" href="#an.characters.schema.VIEWS" title="Link to this definition">#</a></dt>
+<dd><p>The views the factory draws, in turnaround order. <code class="docutils literal notranslate"><span class="pre">side</span></code> is a profile
+facing the viewer’s RIGHT at a positive <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>; a negative <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>
+(<code class="docutils literal notranslate"><span class="pre">an.motion.turn(direction=&quot;left&quot;)</span></code>) mirrors it to face left.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.VIEW_CHANNEL">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">VIEW_CHANNEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'view'</span></span><a class="headerlink" href="#an.characters.schema.VIEW_CHANNEL" title="Link to this definition">#</a></dt>
+<dd><p>one KEY per drawn view, projected
+onto the slots whose art changes with the view (the factory draws the head
+and the torso), each slot carrying attachments NAMED after the keys. A
+conventional name, like <code class="code docutils literal notranslate"><span class="pre">viseme</span></code> — nothing in the compiler or the runtime
+reads it; <code class="code docutils literal notranslate"><span class="pre">an.motion.turn</span></code> is the one writer that defaults to it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The swap set a turnaround rides (an#197)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py data">
@@ -1191,12 +1294,14 @@ first, which is why this walks in declaration order rather than by index.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.model_post_init"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.model_post_init()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.source"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.source_svg"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source_svg</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.swap_poses"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.swap_poses</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.voice_ref"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.voice_ref</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.DEFAULT_EYELID_MAP"><code class="docutils literal notranslate"><span class="pre">DEFAULT_EYELID_MAP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.DEFAULT_VIEW_BOX"><code class="docutils literal notranslate"><span class="pre">DEFAULT_VIEW_BOX</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.DEFAULT_VISEME_MAP"><code class="docutils literal notranslate"><span class="pre">DEFAULT_VISEME_MAP</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.DFLT_VIEW"><code class="docutils literal notranslate"><span class="pre">DFLT_VIEW</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.EYELID_CHANNEL"><code class="docutils literal notranslate"><span class="pre">EYELID_CHANNEL</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.FACE_OFFSETS"><code class="docutils literal notranslate"><span class="pre">FACE_OFFSETS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.HEAD_ANCHOR"><code class="docutils literal notranslate"><span class="pre">HEAD_ANCHOR</span></code></a></li>
@@ -1208,6 +1313,7 @@ first, which is why this walks in declaration order rather than by index.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.MOUTH_SHAPES"><code class="docutils literal notranslate"><span class="pre">MOUTH_SHAPES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.REFERENCE_HEAD_HEIGHT"><code class="docutils literal notranslate"><span class="pre">REFERENCE_HEAD_HEIGHT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.REQUIRED_PARTS"><code class="docutils literal notranslate"><span class="pre">REQUIRED_PARTS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.SLOT_POSE_OFFSETS"><code class="docutils literal notranslate"><span class="pre">SLOT_POSE_OFFSETS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Skin"><code class="docutils literal notranslate"><span class="pre">Skin</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Skin.model_config"><code class="docutils literal notranslate"><span class="pre">Skin.model_config</span></code></a></li>
 </ul>
@@ -1217,6 +1323,12 @@ first, which is why this walks in declaration order rather than by index.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Slot.model_config"><code class="docutils literal notranslate"><span class="pre">Slot.model_config</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.SlotPose"><code class="docutils literal notranslate"><span class="pre">SlotPose</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.SlotPose.model_config"><code class="docutils literal notranslate"><span class="pre">SlotPose.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.VIEWS"><code class="docutils literal notranslate"><span class="pre">VIEWS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.VIEW_CHANNEL"><code class="docutils literal notranslate"><span class="pre">VIEW_CHANNEL</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.VISEME_CHANNEL"><code class="docutils literal notranslate"><span class="pre">VISEME_CHANNEL</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.bones_from_pivots"><code class="docutils literal notranslate"><span class="pre">bones_from_pivots()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.default_asset_sets"><code class="docutils literal notranslate"><span class="pre">default_asset_sets()</span></code></a></li>

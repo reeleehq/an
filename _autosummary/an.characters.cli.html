@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=9dead672"></script>
+    <script src="../_static/documentation_options.js?v=aa125c18"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters" href="an.characters.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.111" />
+  <meta name="docsearch:version" content="0.1.112" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -527,6 +527,7 @@ and returns a string for terminal display.</p>
 <p>Subcommands (used as <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">&lt;verb&gt;</span> <span class="pre">...</span></code>):</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">new</span></code>       — generate a fresh character from DiceBear or fallback art.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add-views</span></code> — give an offline character its turnaround (an#197).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mouths</span></code>    — regenerate the 9-shape default mouth set.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">validate</span></code>  — completeness check.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">silhouette</span></code>— rasterize silhouettes; for two characters, also IoU.</p></li>
@@ -538,25 +539,28 @@ and returns a string for terminal display.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.cli.add_gaze" title="an.characters.cli.add_gaze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_gaze</span></code></a>(name[, out_dir, overwrite_eyes])</p></td>
 <td><p>Give <code class="docutils literal notranslate"><span class="pre">name</span></code> the eye stack (an#99): sclera and pupil slots under each lid, a filled closed lid, and the <code class="docutils literal notranslate"><span class="pre">gaze_travel</span></code> clamp — so <code class="code docutils literal notranslate"><span class="pre">gaze_x</span></code> / <code class="code docutils literal notranslate"><span class="pre">gaze_y</span></code> and the ambient saccades move its pupils.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.cli.contract" title="an.characters.cli.contract"><code class="xref py py-obj docutils literal notranslate"><span class="pre">contract</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.cli.add_views" title="an.characters.cli.add_views"><code class="xref py py-obj docutils literal notranslate"><span class="pre">add_views</span></code></a>(name[, out_dir])</p></td>
+<td><p>Give <code class="docutils literal notranslate"><span class="pre">name</span></code> its turnaround (an#197): back, side and three-quarter head and torso art, a <code class="code docutils literal notranslate"><span class="pre">view</span></code> swap set, and a pose per view — so <code class="code docutils literal notranslate"><span class="pre">play:</span> <span class="pre">turn</span></code> and <code class="code docutils literal notranslate"><span class="pre">set</span> <span class="pre">&lt;name&gt;</span> <span class="pre">view</span> <span class="pre">&lt;key&gt;</span></code> turn it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.cli.contract" title="an.characters.cli.contract"><code class="xref py py-obj docutils literal notranslate"><span class="pre">contract</span></code></a>()</p></td>
 <td><p>Print the art-package contract an illustrator must satisfy.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.cli.mouths" title="an.characters.cli.mouths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouths</span></code></a>(name[, out_dir, palette, variants])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.cli.mouths" title="an.characters.cli.mouths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mouths</span></code></a>(name[, out_dir, palette, variants])</p></td>
 <td><p>Regenerate the default 9-shape mouth set for <code class="docutils literal notranslate"><span class="pre">name</span></code>, plus its <code class="code docutils literal notranslate"><span class="pre">viseme&#64;&lt;form&gt;</span></code> variants, and declare them in the descriptor.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.cli.new" title="an.characters.cli.new"><code class="xref py py-obj docutils literal notranslate"><span class="pre">new</span></code></a>(name[, out_dir, seed, style, voice_ref, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.cli.new" title="an.characters.cli.new"><code class="xref py py-obj docutils literal notranslate"><span class="pre">new</span></code></a>(name[, out_dir, seed, style, voice_ref, ...])</p></td>
 <td><p>Create a new character at <code class="docutils literal notranslate"><span class="pre">out_dir</span></code>/<code class="docutils literal notranslate"><span class="pre">name</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.cli.preview" title="an.characters.cli.preview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview</span></code></a>(name[, out_dir, open_browser])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.cli.preview" title="an.characters.cli.preview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preview</span></code></a>(name[, out_dir, open_browser])</p></td>
 <td><p>Render a small HTML viewer that previews all visemes + idle animation.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.cli.record" title="an.characters.cli.record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record</span></code></a>(name[, out_dir, output, duration, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.cli.record" title="an.characters.cli.record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record</span></code></a>(name[, out_dir, output, duration, ...])</p></td>
 <td><p>Record a character's preview HTML to mp4.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.cli.silhouette" title="an.characters.cli.silhouette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">silhouette</span></code></a>(name[, other, out_dir, output, size])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.cli.silhouette" title="an.characters.cli.silhouette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">silhouette</span></code></a>(name[, other, out_dir, output, size])</p></td>
 <td><p>Render a black silhouette for <code class="docutils literal notranslate"><span class="pre">name</span></code> (and optionally compare to <code class="docutils literal notranslate"><span class="pre">other</span></code>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.cli.validate" title="an.characters.cli.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(name[, out_dir])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.cli.validate" title="an.characters.cli.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(name[, out_dir])</p></td>
 <td><p>Validate a character's directory structure and descriptor.</p></td>
 </tr>
 </tbody>
@@ -576,6 +580,23 @@ overwrite_eyes: replace hand-drawn eye parts with the synthesized outline</p>
 <div><p>and filled lid (refused otherwise — a promoted rig’s eyes are not the
 factory’s to redraw)</p>
 </div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.cli.add_views">
+<span class="sig-prename descclassname"><span class="pre">an.characters.cli.</span></span><span class="sig-name descname"><span class="pre">add_views</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/cli.html#add_views"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.cli.add_views" title="Link to this definition">#</a></dt>
+<dd><p>Give <code class="docutils literal notranslate"><span class="pre">name</span></code> its turnaround (an#197): back, side and three-quarter head
+and torso art, a <code class="code docutils literal notranslate"><span class="pre">view</span></code> swap set, and a pose per view — so <code class="code docutils literal notranslate"><span class="pre">play:</span> <span class="pre">turn</span></code>
+and <code class="code docutils literal notranslate"><span class="pre">set</span> <span class="pre">&lt;name&gt;</span> <span class="pre">view</span> <span class="pre">&lt;key&gt;</span></code> turn it. The expand step for an offline
+character made before views; idempotent. Refused for a DiceBear head or a
+hand-drawn rig, whose views are an illustrator’s to draw.</p>
+<p>name: character id
+out_dir: parent directory; defaults to ./assets/characters</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -619,7 +640,7 @@ variants: comma-separated mouth forms (see <code class="code docutils literal no
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.characters.cli.new">
-<span class="sig-prename descclassname"><span class="pre">an.characters.cli.</span></span><span class="sig-name descname"><span class="pre">new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lorelei'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acknowledge_attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mouth_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'happy,sad'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/cli.html#new"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.cli.new" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.characters.cli.</span></span><span class="sig-name descname"><span class="pre">new</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lorelei'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_ref</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offline</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">acknowledge_attribution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mouth_variants</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'happy,sad'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">palette</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'regular'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">views</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/cli.html#new"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.cli.new" title="Link to this definition">#</a></dt>
 <dd><p>Create a new character at <code class="docutils literal notranslate"><span class="pre">out_dir</span></code>/<code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
 <p>name: character id (used as the directory name and descriptor ‘name’)
 out_dir: parent directory; defaults to ./assets/characters
@@ -650,7 +671,12 @@ hat: none, cap, beanie, bowler or bicorne (offline head only), in the</p>
 <blockquote>
 <div><p>accessory colour</p>
 </div></blockquote>
-<p>sash: a diagonal band across the torso, in the accessory colour</p>
+<p>sash: a diagonal band across the torso, in the accessory colour
+views: draw the turnaround — back, side (a profile facing right) and</p>
+<blockquote>
+<div><p>three_quarter beside the front, as a <code class="code docutils literal notranslate"><span class="pre">view</span></code> swap set (offline head
+only), so <code class="code docutils literal notranslate"><span class="pre">play:</span> <span class="pre">turn</span></code> can turn the character (an#197)</p>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -775,6 +801,7 @@ out_dir: parent directory; defaults to ./assets/characters</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.cli.add_gaze"><code class="docutils literal notranslate"><span class="pre">add_gaze()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.cli.add_views"><code class="docutils literal notranslate"><span class="pre">add_views()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.cli.contract"><code class="docutils literal notranslate"><span class="pre">contract()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.cli.mouths"><code class="docutils literal notranslate"><span class="pre">mouths()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.cli.new"><code class="docutils literal notranslate"><span class="pre">new()</span></code></a></li>

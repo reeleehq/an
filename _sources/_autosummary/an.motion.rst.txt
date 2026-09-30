@@ -16,6 +16,7 @@ an.motion
 
    .. autosummary::
    
+      face_toward
       as_leaves
       hop
       nod
@@ -27,5 +28,6 @@ an.motion
       slide_in
       slide_out
       squash_stretch
+      turn
       waddle
    

@@ -85,7 +85,7 @@ Source: [`.claude/skills/an-dev-stage`](https://github.com/thorwhalen/an/tree/HE
 
 ### `an-dev-swap-channels`
 
-How swap channels work in the `an` repo — the one generic replacement-animation mechanism (an#87) that viseme, eyelid, hands, body_facing and every future set ride. Use when touching `asset_sets`, the per-slot projection in `compile.py`, `applySwap`/`applyProperty` in `runtime.js`, `VisualJSON.asset_sets`, swap validation, texture aliases, or when adding a new swap set or authoring swaps from scene.md. Triggers on "swap channel", "asset set", "attachment swap", "texture swap", "viseme special case", "the mouth doesn't change", "unknown swap key", "add a hands set", "turnaround", "body_facing", "eyelid".
+How swap channels work in the `an` repo — the one generic replacement-animation mechanism (an#87) that viseme, eyelid, hands, body_facing, view and every future set ride, plus whole-character swaps and `swap_poses` (an#197). Use when touching `asset_sets`, the per-slot projection in `compile.py`, `applySwap`/`applyProperty` in `runtime.js`, `VisualJSON.asset_sets`, swap validation, texture aliases, or when adding a new swap set or authoring swaps from scene.md. Triggers on "swap channel", "asset set", "attachment swap", "texture swap", "viseme special case", "the mouth doesn't change", "unknown swap key", "add a hands set", "turnaround", "body_facing", "eyelid".
 
 Source: [`.claude/skills/an-dev-swap-channels`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-swap-channels).
 

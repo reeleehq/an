@@ -9,6 +9,7 @@ an.characters.cli
    .. autosummary::
    
       add_gaze
+      add_views
       contract
       mouths
       new

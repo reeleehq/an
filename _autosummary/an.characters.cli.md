@@ -9,6 +9,7 @@ and returns a string for terminal display.
 Subcommands (used as `an character <verb> ...`):
 
 - `new`       — generate a fresh character from DiceBear or fallback art.
+- `add-views` — give an offline character its turnaround (an#197).
 - `mouths`    — regenerate the 9-shape default mouth set.
 - `validate`  — completeness check.
 - `silhouette`— rasterize silhouettes; for two characters, also IoU.
@@ -18,6 +19,7 @@ Subcommands (used as `an character <verb> ...`):
 
 | [`add_gaze`](#an.characters.cli.add_gaze)(name[, out_dir, overwrite_eyes])         | Give `name` the eye stack (an#99): sclera and pupil slots under each lid, a filled closed lid, and the `gaze_travel` clamp — so `gaze_x` / `gaze_y` and the ambient saccades move its pupils.   |
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`add_views`](#an.characters.cli.add_views)(name[, out_dir])                        | Give `name` its turnaround (an#197): back, side and three-quarter head and torso art, a `view` swap set, and a pose per view — so `play: turn` and `set <name> view <key>` turn it.             |
 | [`contract`](#an.characters.cli.contract)()                                        | Print the art-package contract an illustrator must satisfy.                                                                                                                                     |
 | [`mouths`](#an.characters.cli.mouths)(name[, out_dir, palette, variants])        | Regenerate the default 9-shape mouth set for `name`, plus its `viseme@<form>` variants, and declare them in the descriptor.                                                                     |
 | [`new`](#an.characters.cli.new)(name[, out_dir, seed, style, voice_ref, ...]) | Create a new character at `out_dir`/`name`.                                                                                                                                                     |
@@ -39,6 +41,20 @@ overwrite_eyes: replace hand-drawn eye parts with the synthesized outline
 
 > and filled lid (refused otherwise — a promoted rig’s eyes are not the
 > factory’s to redraw)
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.characters.cli.add_views(name, out_dir='')
+
+Give `name` its turnaround (an#197): back, side and three-quarter head
+and torso art, a `view` swap set, and a pose per view — so `play: turn`
+and `set <name> view <key>` turn it. The expand step for an offline
+character made before views; idempotent. Refused for a DiceBear head or a
+hand-drawn rig, whose views are an illustrator’s to draw.
+
+name: character id
+out_dir: parent directory; defaults to ./assets/characters
+
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
@@ -71,7 +87,7 @@ variants: comma-separated mouth forms (see `an character new`); “” = none
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False)
+### an.characters.cli.new(name, out_dir='', seed='', style='lorelei', voice_ref='', offline=False, acknowledge_attribution=False, overwrite=False, mouth_variants='happy,sad', palette='', build='regular', head_scale=1.0, hat='none', sash=False, views=True)
 
 Create a new character at `out_dir`/`name`.
 
@@ -105,7 +121,10 @@ hat: none, cap, beanie, bowler or bicorne (offline head only), in the
 > accessory colour
 
 sash: a diagonal band across the torso, in the accessory colour
+views: draw the turnaround — back, side (a profile facing right) and
 
+> three_quarter beside the front, as a `view` swap set (offline head
+> only), so `play: turn` can turn the character (an#197)
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
