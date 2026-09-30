@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=6aa50845"></script>
+    <script src="../../../_static/documentation_options.js?v=a12c9888"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.103" />
+  <meta name="docsearch:version" content="0.1.104" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -787,7 +787,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -804,7 +804,12 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"StyleLintResult"</span><span class="p">,</span>
     <span class="s2">"StyleLintVerifier"</span><span class="p">,</span>
     <span class="s2">"measure_style"</span><span class="p">,</span>
+    <span class="s2">"measure_shots"</span><span class="p">,</span>
     <span class="s2">"measure_video"</span><span class="p">,</span>
+    <span class="s2">"film_shots"</span><span class="p">,</span>
+    <span class="s2">"project_of_render"</span><span class="p">,</span>
+    <span class="s2">"ShotMetrics"</span><span class="p">,</span>
+    <span class="s2">"SHOT_METRICS"</span><span class="p">,</span>
     <span class="s2">"check_targets"</span><span class="p">,</span>
     <span class="s2">"load_style_spec"</span><span class="p">,</span>
     <span class="s2">"style_lint"</span><span class="p">,</span>
@@ -835,6 +840,9 @@ window.runMermaid = runMermaid;</script>
 <span class="n">CUT_MEAN_DIFF</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">8.0</span>
 <span class="n">CUT_DEDUPE_FRAMES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">HISTOGRAM_BITS_DROPPED</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1"># 8 bins per channel over 0..255</span>
+<span class="c1">#: Frames a shot list may disagree with the decoded video by before the lint</span>
+<span class="c1">#: says the two do not describe the same film (rounding per shot, a trailing frame).</span>
+<span class="n">SHOT_LIST_FRAME_SLACK</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="c1">#: Gaps between changes longer than this are holds, not cadence.</span>
 <span class="n">MAX_CADENCE_INTERVAL</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">12</span>
 <span class="c1">#: Palette statistics use every Nth frame.</span>
@@ -911,6 +919,88 @@ window.runMermaid = runMermaid;</script>
     <span class="p">),</span>
 <span class="p">}</span>
 
+<span class="c1">#: The fixes for a style whose spec SETS ``step_hz`` (its ``live.meta``): the</span>
+<span class="c1">#: knob is the style's, so no fix may drop it or move it. ``{step_hz}`` is the</span>
+<span class="c1">#: spec's value. Only the metrics whose generic fix touches ``step_hz`` differ.</span>
+<span class="n">_FIXES_STEPPED</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"identical_frame_share"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"hold more: check `step_hz: </span><span class="si">{step_hz}</span><span class="s2">` is set as the style says, then "</span>
+        <span class="s2">"shorter tweens with real holds between them and fewer simultaneous moves"</span><span class="p">,</span>
+        <span class="s2">"move more while characters talk: gesture beats of 0.2-0.3 s on arms and "</span>
+        <span class="s2">"head, closer framing (`stage.scale`), fewer dead holds; keep `step_hz` "</span>
+        <span class="s2">"at the style's </span><span class="si">{step_hz}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"pose_changes_per_s"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"add motion: more gesture beats and closer framing; keep `step_hz` at "</span>
+        <span class="s2">"the style's </span><span class="si">{step_hz}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"hold more: fewer simultaneous tweens and longer holds between beats; "</span>
+        <span class="s2">"keep `step_hz` at the style's </span><span class="si">{step_hz}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"one_frame_interval_share"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"only unstepped motion changes on ones here (the camera, blinks, mouth "</span>
+        <span class="s2">"swaps, `play` clips); a camera move or more talking raises it, and "</span>
+        <span class="s2">"`step_hz` stays at the style's </span><span class="si">{step_hz}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"check `step_hz: </span><span class="si">{step_hz}</span><span class="s2">` is set as the style says, and move bodies with "</span>
+        <span class="s2">"tweens (which it steps) rather than `play` clips or the camera"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"two_frame_interval_share"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"check `step_hz: </span><span class="si">{step_hz}</span><span class="s2">` is set as the style says, and move bodies with "</span>
+        <span class="s2">"tweens (which it steps) rather than `play` clips or the camera"</span><span class="p">,</span>
+        <span class="s2">"more holds between moves, so fewer changes land two frames apart; keep "</span>
+        <span class="s2">"`step_hz` at the style's </span><span class="si">{step_hz}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"three_plus_interval_share"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"leave real holds (a few frames) between moves; keep `step_hz` at the "</span>
+        <span class="s2">"style's </span><span class="si">{step_hz}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"fewer, shorter holds between moves; keep `step_hz` at the style's </span><span class="si">{step_hz}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+<span class="c1">#: The fixes for a style whose spec leaves ``step_hz`` UNSET: it runs on ones,</span>
+<span class="c1">#: so no fix may tell the author to step it.</span>
+<span class="n">_FIXES_UNSTEPPED</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"identical_frame_share"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"hold more: shorter bursts (tweens in the style's range) with real holds "</span>
+        <span class="s2">"between them; leave `step_hz` unset, as the style says"</span><span class="p">,</span>
+        <span class="s2">"move more: more or longer tweens, gesture bursts while characters talk, "</span>
+        <span class="s2">"closer framing; check `step_hz` is unset, as the style says"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"pose_changes_per_s"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"add motion: more or longer tweens, gesture bursts, closer framing"</span><span class="p">,</span>
+        <span class="s2">"hold more: fewer simultaneous tweens, longer holds between bursts"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"one_frame_interval_share"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"check `step_hz` is unset, as the style says; then short tweens between "</span>
+        <span class="s2">"holds, so each burst changes every frame"</span><span class="p">,</span>
+        <span class="s2">"more holds between bursts, so some changes land further apart"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"two_frame_interval_share"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"this style runs on ones, so two-frame gaps come only from very short "</span>
+        <span class="s2">"holds; accept the miss rather than stepping the tweens"</span><span class="p">,</span>
+        <span class="s2">"check `step_hz` is unset, as the style says"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"three_plus_interval_share"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"leave longer holds between bursts; `step_hz` stays unset"</span><span class="p">,</span>
+        <span class="s2">"fewer, shorter holds between bursts; `step_hz` stays unset"</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fix_for</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">low</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">live</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The fix to suggest for a miss on ``name``, respecting the style's own</span>
+<span class="sd">    ``live`` settings: a spec that sets ``step_hz`` never hears "drop it", and</span>
+<span class="sd">    one that leaves it unset never hears "set it". With no ``live`` section (a</span>
+<span class="sd">    bare targets mapping) the generic fix is all there is."""</span>
+    <span class="n">table</span><span class="p">,</span> <span class="n">fmt</span> <span class="o">=</span> <span class="n">_FIXES</span><span class="p">,</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">live</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">step_hz</span> <span class="o">=</span> <span class="p">(</span><span class="n">live</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"meta"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"step_hz"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">step_hz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">table</span><span class="p">,</span> <span class="n">fmt</span> <span class="o">=</span> <span class="n">_FIXES_STEPPED</span><span class="p">,</span> <span class="p">{</span><span class="s2">"step_hz"</span><span class="p">:</span> <span class="n">step_hz</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">_FIXES_UNSTEPPED</span>
+    <span class="n">fix</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">_FIXES</span><span class="p">[</span><span class="n">name</span><span class="p">])[</span><span class="mi">0</span> <span class="k">if</span> <span class="n">low</span> <span class="k">else</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">fix</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">fmt</span><span class="p">)</span> <span class="k">if</span> <span class="n">fmt</span> <span class="k">else</span> <span class="n">fix</span>
+
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="c1"># Measurement (pure)</span>
@@ -918,7 +1008,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="StyleMetrics">
-<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.StyleMetrics">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.StyleMetrics">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">StyleMetrics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The statistics :data:`METRICS` names, measured on one clip."""</span>
@@ -980,8 +1070,54 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">sat</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="n">dark</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_r3</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_step_changes</span><span class="p">(</span><span class="n">frames</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(step_diff, changed, threshold)`` over the frame-to-frame steps: the</span>
+<span class="sd">    mean absolute grey difference of each step, whether it counts as a change,</span>
+<span class="sd">    and the clip's change threshold (see the module docstring)."""</span>
+    <span class="n">grey</span> <span class="o">=</span> <span class="n">frames</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">step_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">grey</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">grey</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">noise_floor</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+        <span class="n">NOISE_FLOOR_CAP</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">step_diff</span><span class="p">,</span> <span class="n">NOISE_FLOOR_PERCENTILE</span><span class="p">))</span>
+    <span class="p">)</span>
+    <span class="n">threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">MIN_CHANGE_THRESHOLD</span><span class="p">,</span> <span class="n">NOISE_FLOOR_MULTIPLIER</span> <span class="o">*</span> <span class="n">noise_floor</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">step_diff</span><span class="p">,</span> <span class="n">step_diff</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">threshold</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cadence</span><span class="p">(</span><span class="n">changed</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">cut_steps</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The hold and cadence statistics of one run of steps (a clip or a shot).</span>
+
+<span class="sd">    Cadence ignores the step INTO a cut: that is an edit, not a pose change.</span>
+<span class="sd">    """</span>
+    <span class="n">n_steps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">changed</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">changed</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cut_steps</span><span class="p">]</span>
+    <span class="n">gaps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+    <span class="n">gaps</span> <span class="o">=</span> <span class="n">gaps</span><span class="p">[</span><span class="n">gaps</span> <span class="o">&lt;=</span> <span class="n">MAX_CADENCE_INTERVAL</span><span class="p">]</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gaps</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">runs</span><span class="p">,</span> <span class="n">run</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">changed</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span><span class="p">:</span>
+            <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+            <span class="n">run</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">run</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_steps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">fps</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">identical_frame_share</span><span class="o">=</span><span class="n">_r3</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">changed</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">n_steps</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+        <span class="n">pose_changes_per_s</span><span class="o">=</span><span class="n">_r3</span><span class="p">(</span><span class="n">changed</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">duration</span><span class="p">),</span>
+        <span class="n">one_frame_interval_share</span><span class="o">=</span><span class="n">_r3</span><span class="p">((</span><span class="n">gaps</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">total</span><span class="p">),</span>
+        <span class="n">two_frame_interval_share</span><span class="o">=</span><span class="n">_r3</span><span class="p">((</span><span class="n">gaps</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">total</span><span class="p">),</span>
+        <span class="n">three_plus_interval_share</span><span class="o">=</span><span class="n">_r3</span><span class="p">((</span><span class="n">gaps</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">total</span><span class="p">),</span>
+        <span class="n">max_hold_frames</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">runs</span><span class="p">)),</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="measure_style">
-<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.measure_style">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.measure_style">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">measure_style</span><span class="p">(</span>
     <span class="n">frames</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1011,13 +1147,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">fps</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"fps must be positive; got </span><span class="si">{</span><span class="n">fps</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-    <span class="n">grey</span> <span class="o">=</span> <span class="n">frames</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-    <span class="n">step_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">grey</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">grey</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-    <span class="n">noise_floor</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
-        <span class="n">NOISE_FLOOR_CAP</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">step_diff</span><span class="p">,</span> <span class="n">NOISE_FLOOR_PERCENTILE</span><span class="p">))</span>
-    <span class="p">)</span>
-    <span class="n">threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">MIN_CHANGE_THRESHOLD</span><span class="p">,</span> <span class="n">NOISE_FLOOR_MULTIPLIER</span> <span class="o">*</span> <span class="n">noise_floor</span><span class="p">)</span>
-    <span class="n">changed</span> <span class="o">=</span> <span class="n">step_diff</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+    <span class="n">step_diff</span><span class="p">,</span> <span class="n">changed</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="n">_step_changes</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">shot_durations</span><span class="p">:</span>
         <span class="n">cuts</span> <span class="o">=</span> <span class="n">_cut_frames_from_shots</span><span class="p">(</span><span class="n">shot_durations</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
@@ -1029,34 +1159,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">cuts</span><span class="p">,</span> <span class="n">n</span><span class="p">]</span>
     <span class="n">shots</span> <span class="o">=</span> <span class="p">[(</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">fps</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">:])]</span>
 
-    <span class="c1"># Cadence ignores the step INTO a cut: that is an edit, not a pose change.</span>
-    <span class="n">cut_steps</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cuts</span><span class="p">}</span>
-    <span class="n">idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">changed</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cut_steps</span><span class="p">]</span>
-    <span class="n">gaps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-    <span class="n">gaps</span> <span class="o">=</span> <span class="n">gaps</span><span class="p">[</span><span class="n">gaps</span> <span class="o">&lt;=</span> <span class="n">MAX_CADENCE_INTERVAL</span><span class="p">]</span>
-    <span class="n">total</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gaps</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
-
-    <span class="n">runs</span><span class="p">,</span> <span class="n">run</span> <span class="o">=</span> <span class="p">[],</span> <span class="mi">1</span>
-    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">changed</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">c</span><span class="p">:</span>
-            <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
-            <span class="n">run</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">run</span> <span class="o">+=</span> <span class="mi">1</span>
-    <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="p">)</span>
-
+    <span class="n">cadence</span> <span class="o">=</span> <span class="n">_cadence</span><span class="p">(</span><span class="n">changed</span><span class="p">,</span> <span class="n">cut_steps</span><span class="o">=</span><span class="p">{</span><span class="n">c</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cuts</span><span class="p">},</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
     <span class="n">sat</span><span class="p">,</span> <span class="n">dark</span><span class="p">,</span> <span class="n">top16</span> <span class="o">=</span> <span class="n">_palette_stats</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
-    <span class="n">r3</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>  <span class="c1"># noqa: E731</span>
+    <span class="n">r3</span> <span class="o">=</span> <span class="n">_r3</span>
     <span class="k">return</span> <span class="n">StyleMetrics</span><span class="p">(</span>
         <span class="n">fps</span><span class="o">=</span><span class="n">r3</span><span class="p">(</span><span class="n">fps</span><span class="p">),</span>
         <span class="n">frames</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
         <span class="n">duration_s</span><span class="o">=</span><span class="n">r3</span><span class="p">(</span><span class="n">duration</span><span class="p">),</span>
-        <span class="n">identical_frame_share</span><span class="o">=</span><span class="n">r3</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">changed</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span>
-        <span class="n">pose_changes_per_s</span><span class="o">=</span><span class="n">r3</span><span class="p">(</span><span class="n">changed</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">duration</span><span class="p">),</span>
-        <span class="n">one_frame_interval_share</span><span class="o">=</span><span class="n">r3</span><span class="p">((</span><span class="n">gaps</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">total</span><span class="p">),</span>
-        <span class="n">two_frame_interval_share</span><span class="o">=</span><span class="n">r3</span><span class="p">((</span><span class="n">gaps</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">total</span><span class="p">),</span>
-        <span class="n">three_plus_interval_share</span><span class="o">=</span><span class="n">r3</span><span class="p">((</span><span class="n">gaps</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="n">total</span><span class="p">),</span>
-        <span class="n">max_hold_frames</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">runs</span><span class="p">)),</span>
+        <span class="o">**</span><span class="n">cadence</span><span class="p">,</span>
         <span class="n">cuts</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">),</span>
         <span class="n">cuts_per_min</span><span class="o">=</span><span class="n">r3</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cuts</span><span class="p">)</span> <span class="o">/</span> <span class="n">duration</span> <span class="o">*</span> <span class="mi">60</span><span class="p">),</span>
         <span class="n">mean_shot_s</span><span class="o">=</span><span class="n">r3</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">shots</span><span class="p">)),</span>
@@ -1066,6 +1176,121 @@ window.runMermaid = runMermaid;</script>
         <span class="n">cut_source</span><span class="o">=</span><span class="n">cut_source</span><span class="p">,</span>
         <span class="n">change_threshold</span><span class="o">=</span><span class="n">r3</span><span class="p">(</span><span class="n">threshold</span><span class="p">),</span>
     <span class="p">)</span></div>
+
+
+
+<span class="c1">#: The per-shot statistics: the cadence ones, which a single static shot (a date</span>
+<span class="c1">#: card, a held map) can swing for the whole clip.</span>
+<span class="n">SHOT_METRICS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"identical_frame_share"</span><span class="p">,</span>
+    <span class="s2">"pose_changes_per_s"</span><span class="p">,</span>
+    <span class="s2">"one_frame_interval_share"</span><span class="p">,</span>
+    <span class="s2">"two_frame_interval_share"</span><span class="p">,</span>
+    <span class="s2">"three_plus_interval_share"</span><span class="p">,</span>
+    <span class="s2">"max_hold_frames"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="ShotMetrics">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.ShotMetrics">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ShotMetrics</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The cadence of one shot, measured with the WHOLE clip's change</span>
+<span class="sd">    threshold so a shot's numbers add up to the clip's."""</span>
+
+    <span class="n">shot</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">start_s</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">duration_s</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">identical_frame_share</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">pose_changes_per_s</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">one_frame_interval_share</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">two_frame_interval_share</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">three_plus_interval_share</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">max_hold_frames</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">asdict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="measure_shots">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.measure_shots">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">measure_shots</span><span class="p">(</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">shot_durations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">shot_ids</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ShotMetrics</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Per-shot cadence (:data:`SHOT_METRICS`) of ``frames``, one row per shot.</span>
+
+<span class="sd">    The shots are ``shot_durations`` (seconds, in order) when given, else the</span>
+<span class="sd">    pixel cut detector's. The step INTO each shot is the cut, not a pose</span>
+<span class="sd">    change, so it belongs to no shot. A one-frame shot has no step of its own</span>
+<span class="sd">    and measures as all-identical.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; still = np.zeros((4, 8, 8, 3), np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; moving = np.stack([still[0] + 10 * i for i in range(4)])</span>
+<span class="sd">    &gt;&gt;&gt; rows = measure_shots(np.concatenate([still, moving]), fps=4.0,</span>
+<span class="sd">    ...                      shot_durations=[1.0, 1.0], shot_ids=["card", "map"])</span>
+<span class="sd">    &gt;&gt;&gt; [(r.shot, r.identical_frame_share) for r in rows]</span>
+<span class="sd">    [('card', 1.0), ('map', 0.0)]</span>
+<span class="sd">    """</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">changed</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_step_changes</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">shot_durations</span><span class="p">:</span>
+        <span class="n">cuts</span> <span class="o">=</span> <span class="n">_cut_frames_from_shots</span><span class="p">(</span><span class="n">shot_durations</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cuts</span> <span class="o">=</span> <span class="n">_cut_frames_from_pixels</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">_step_changes</span><span class="p">(</span><span class="n">frames</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">cuts</span><span class="p">,</span> <span class="n">n</span><span class="p">]</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">shot_ids</span> <span class="ow">or</span> <span class="p">[])</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">bounds</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">:])):</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="n">changed</span><span class="p">[</span><span class="n">a</span> <span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">ShotMetrics</span><span class="p">(</span>
+                <span class="n">shot</span><span class="o">=</span><span class="n">ids</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">if</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"shot</span><span class="si">{</span><span class="n">k</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">start_s</span><span class="o">=</span><span class="n">_r3</span><span class="p">(</span><span class="n">a</span> <span class="o">/</span> <span class="n">fps</span><span class="p">),</span>
+                <span class="n">duration_s</span><span class="o">=</span><span class="n">_r3</span><span class="p">((</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span> <span class="o">/</span> <span class="n">fps</span><span class="p">),</span>
+                <span class="n">frames</span><span class="o">=</span><span class="n">b</span> <span class="o">-</span> <span class="n">a</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">_cadence</span><span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="n">cut_steps</span><span class="o">=</span><span class="nb">set</span><span class="p">(),</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">rows</span></div>
+
+
+
+<div class="viewcode-block" id="film_shots">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.film_shots">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">film_shots</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(shot id, seconds on screen)`` per shot of an ``an`` render, in order.</span>
+
+<span class="sd">    What the lint needs to place the cuts exactly. It is the shot durations,</span>
+<span class="sd">    except where a dissolve overlaps two shots: the film is that much shorter</span>
+<span class="sd">    than their sum (:func:`an.assemble.film_timeline`), and each shot is</span>
+<span class="sd">    counted from where its frames start in the film.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Shot, Transition</span>
+<span class="sd">    &gt;&gt;&gt; film_shots(SceneIR(timeline=[</span>
+<span class="sd">    ...     Shot(id="a", duration=2.0),</span>
+<span class="sd">    ...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))]))</span>
+<span class="sd">    [('a', 1.5), ('b', 2.0)]</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">film_timeline</span>
+
+    <span class="n">shots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shots</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">fps</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+    <span class="n">tl</span> <span class="o">=</span> <span class="n">film_timeline</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
+    <span class="n">ends</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">tl</span><span class="o">.</span><span class="n">starts</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">tl</span><span class="o">.</span><span class="n">total_frames</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="n">fps</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">shot</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">tl</span><span class="o">.</span><span class="n">starts</span><span class="p">,</span> <span class="n">ends</span><span class="p">)</span>
+    <span class="p">]</span></div>
 
 
 
@@ -1090,14 +1315,25 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="check_targets">
-<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.check_targets">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.check_targets">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">check_targets</span><span class="p">(</span>
     <span class="n">metrics</span><span class="p">:</span> <span class="n">StyleMetrics</span><span class="p">,</span>
     <span class="n">targets</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">miss_severity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"warning"</span><span class="p">,</span>
+    <span class="n">live</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Finding</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""One :class:`Finding` per target the metrics miss; ``[]`` when all hit.</span>
+
+<span class="sd">    ``live`` is the style spec's ``live`` section. Given, each suggested fix</span>
+<span class="sd">    respects it — a style that sets ``step_hz`` is never told to drop it, one</span>
+<span class="sd">    that leaves it unset is never told to set it:</span>
+
+<span class="sd">    &gt;&gt;&gt; m = measure_style(np.zeros((8, 4, 4, 3), np.uint8), fps=8.0, shot_durations=[1.0])</span>
+<span class="sd">    &gt;&gt;&gt; (f,) = check_targets(m, {"identical_frame_share": [0.5, 0.7]},</span>
+<span class="sd">    ...                      live={"meta": {"fps": 24, "step_hz": 12}})</span>
+<span class="sd">    &gt;&gt;&gt; "drop `step_hz`" in f.suggested_fix, "keep `step_hz` at the style's 12" in f.suggested_fix</span>
+<span class="sd">    (False, True)</span>
 
 <span class="sd">    Raises ``ValueError`` for a target :data:`METRICS` does not name, or a range</span>
 <span class="sd">    that is not ``[low, high]`` with ``low &lt;= high``.</span>
@@ -1118,7 +1354,7 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="s1">'below'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">low</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'above'</span><span class="si">}</span><span class="s2"> the "</span>
                     <span class="sa">f</span><span class="s2">"style's range [</span><span class="si">{</span><span class="n">lo</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">hi</span><span class="si">}</span><span class="s2">] (</span><span class="si">{</span><span class="n">METRICS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span>
                 <span class="p">),</span>
-                <span class="n">suggested_fix</span><span class="o">=</span><span class="n">_FIXES</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="mi">0</span> <span class="k">if</span> <span class="n">low</span> <span class="k">else</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="n">suggested_fix</span><span class="o">=</span><span class="n">_fix_for</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">live</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">findings</span></div>
@@ -1203,7 +1439,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="measure_video">
-<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.measure_video">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.measure_video">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">measure_video</span><span class="p">(</span>
     <span class="n">mp4</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
@@ -1224,7 +1460,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="load_style_spec">
-<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.load_style_spec">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.load_style_spec">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">load_style_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""A style spec as a dict: a mapping is passed through, a path is read as YAML."""</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
@@ -1238,12 +1474,64 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_targets_of</span><span class="p">(</span><span class="n">spec_or_targets</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""``(style name, targets)`` from a spec (path or mapping) or a bare targets mapping."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_spec_parts</span><span class="p">(</span>
+    <span class="n">spec_or_targets</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(style name, targets, live)`` from a spec (path or mapping) or a bare</span>
+<span class="sd">    targets mapping (whose ``live`` is ``None``: nothing to respect)."""</span>
     <span class="n">spec</span> <span class="o">=</span> <span class="n">load_style_spec</span><span class="p">(</span><span class="n">spec_or_targets</span><span class="p">)</span>
     <span class="k">if</span> <span class="s2">"targets"</span> <span class="ow">in</span> <span class="n">spec</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"style"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)),</span> <span class="nb">dict</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{})</span>
-    <span class="k">return</span> <span class="s2">""</span><span class="p">,</span> <span class="n">spec</span>
+        <span class="n">live</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"live"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"style"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">spec</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{}),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">live</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">live</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="s2">""</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_targets_of</span><span class="p">(</span><span class="n">spec_or_targets</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(style name, targets)`` from a spec (path or mapping) or a bare targets mapping."""</span>
+    <span class="n">style</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_spec_parts</span><span class="p">(</span><span class="n">spec_or_targets</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">style</span><span class="p">,</span> <span class="n">targets</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_scene</span><span class="p">(</span><span class="n">project_or_scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">SceneIR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A scene from a project directory (its ``ir/scene.json``), a ``scene.json``</span>
+<span class="sd">    file, or a `SceneIR` passed through."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project_or_scene</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">project_or_scene</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">scene_from_json_doc</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">project_or_scene</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span> <span class="o">/</span> <span class="n">PROJECT_SCENE_JSON</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">StyleLintError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no scene at </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: pass a project directory (with </span><span class="si">{</span><span class="n">PROJECT_SCENE_JSON</span><span class="si">}</span><span class="s2">) "</span>
+            <span class="s2">"or a scene.json"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">scene_from_json_doc</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)))</span>
+
+
+<span class="c1">#: Where a project keeps its scene, relative to the project directory.</span>
+<span class="n">PROJECT_SCENE_JSON</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ir/scene.json"</span>
+
+
+<div class="viewcode-block" id="project_of_render">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.project_of_render">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">project_of_render</span><span class="p">(</span><span class="n">mp4</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The project directory an ``an`` render sits in — ``&lt;project&gt;/output/x.mp4``</span>
+<span class="sd">    beside ``&lt;project&gt;/ir/scene.json`` — or ``None`` for any other video."""</span>
+    <span class="n">mp4</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">mp4</span><span class="p">)</span>
+    <span class="n">candidate</span> <span class="o">=</span> <span class="n">mp4</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">mp4</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">"output"</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">candidate</span> <span class="o">/</span> <span class="n">PROJECT_SCENE_JSON</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">candidate</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -1252,40 +1540,81 @@ window.runMermaid = runMermaid;</script>
 
 
 <div class="viewcode-block" id="StyleLintResult">
-<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.StyleLintResult">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.StyleLintResult">[docs]</a>
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">StyleLintResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""What one lint run measured, and what it found."""</span>
+<span class="w">    </span><span class="sd">"""What one lint run measured, and what it found.</span>
+
+<span class="sd">    ``per_shot`` is the cadence of each shot (:class:`ShotMetrics`) — the</span>
+<span class="sd">    breakdown that finds which shot is holding a whole clip's share up (a</span>
+<span class="sd">    static date card is 90% identical frames on its own)."""</span>
 
     <span class="n">metrics</span><span class="p">:</span> <span class="n">StyleMetrics</span> <span class="o">|</span> <span class="kc">None</span>
-    <span class="n">report</span><span class="p">:</span> <span class="n">VerificationReport</span></div>
+    <span class="n">report</span><span class="p">:</span> <span class="n">VerificationReport</span>
+    <span class="n">per_shot</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ShotMetrics</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="style_lint">
-<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style_lint">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.style_lint">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">style_lint</span><span class="p">(</span>
     <span class="n">mp4</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">spec_or_targets</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">shot_durations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">SceneIR</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">miss_severity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"warning"</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StyleLintResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Measure ``mp4`` and compare it to a style spec's ``targets``.</span>
+
+<span class="sd">    The cuts are exact when the shots are known: pass ``scene`` (a project</span>
+<span class="sd">    directory, a ``scene.json``, or a `SceneIR`; dissolve overlaps are</span>
+<span class="sd">    accounted for) or ``shot_durations``. Without either, cuts are detected</span>
+<span class="sd">    from pixels, which misses a cut between two shots on the same backdrop and</span>
+<span class="sd">    every dissolve — the lint says so in its report.</span>
+
+<span class="sd">    Suggested fixes respect the spec's ``live`` settings (:func:`check_targets`).</span>
 
 <span class="sd">    A decode or probe failure is reported at</span>
 <span class="sd">    :data:`an.verify.vision.FAILURE_SEVERITY`, never as ``info`` — a lint that</span>
 <span class="sd">    could not run must not read as a clean one. A malformed spec raises: that is</span>
 <span class="sd">    the caller's error, not the video's.</span>
 <span class="sd">    """</span>
-    <span class="n">style</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="n">_targets_of</span><span class="p">(</span><span class="n">spec_or_targets</span><span class="p">)</span>
+    <span class="n">style</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">live</span> <span class="o">=</span> <span class="n">_spec_parts</span><span class="p">(</span><span class="n">spec_or_targets</span><span class="p">)</span>
     <span class="c1"># Validate the spec before touching the video, so a bad spec fails loudly.</span>
     <span class="n">_validate_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
 
     <span class="n">report</span> <span class="o">=</span> <span class="n">VerificationReport</span><span class="p">()</span>
     <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"style </span><span class="si">{</span><span class="n">style</span><span class="si">!r}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">style</span> <span class="k">else</span> <span class="s2">"style targets"</span>
+
+    <span class="n">shot_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">scene</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">shot_durations</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># A scene that cannot be read (corrupt JSON, a transition the assembler</span>
+        <span class="c1"># refuses) is a lint that could not run — never a traceback that exits</span>
+        <span class="c1"># like a missed target.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">shots</span> <span class="o">=</span> <span class="n">film_shots</span><span class="p">(</span><span class="n">_load_scene</span><span class="p">(</span><span class="n">scene</span><span class="p">))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">FAILURE_SEVERITY</span><span class="p">,</span>
+                <span class="s2">"&lt;style&gt;"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"style lint could not read the shot list of </span><span class="si">{</span><span class="n">scene</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">suggested_fix</span><span class="o">=</span><span class="s2">"check the project's ir/scene.json (`an validate`), "</span>
+                <span class="s2">"or lint without --project to detect cuts from pixels"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">StyleLintResult</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
+        <span class="n">shot_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">sid</span> <span class="k">for</span> <span class="n">sid</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">shots</span><span class="p">]</span>
+        <span class="n">shot_durations</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">shots</span><span class="p">]</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">metrics</span> <span class="o">=</span> <span class="n">measure_video</span><span class="p">(</span><span class="n">mp4</span><span class="p">,</span> <span class="n">shot_durations</span><span class="o">=</span><span class="n">shot_durations</span><span class="p">)</span>
+        <span class="n">mp4</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">mp4</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mp4</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">StyleLintError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no such video: </span><span class="si">{</span><span class="n">mp4</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="n">_decode_frames</span><span class="p">(</span><span class="n">mp4</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">DECODE_WIDTH</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">DECODE_HEIGHT</span><span class="p">)</span>
+        <span class="n">fps</span> <span class="o">=</span> <span class="n">_probe_fps</span><span class="p">(</span><span class="n">mp4</span><span class="p">)</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="n">measure_style</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">shot_durations</span><span class="o">=</span><span class="n">shot_durations</span><span class="p">)</span>
+        <span class="n">per_shot</span> <span class="o">=</span> <span class="n">measure_shots</span><span class="p">(</span>
+            <span class="n">frames</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">shot_durations</span><span class="o">=</span><span class="n">shot_durations</span><span class="p">,</span> <span class="n">shot_ids</span><span class="o">=</span><span class="n">shot_ids</span>
+        <span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="n">StyleLintError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
             <span class="n">FAILURE_SEVERITY</span><span class="p">,</span>
@@ -1295,6 +1624,19 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">StyleLintResult</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">shot_durations</span><span class="p">:</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">shot_durations</span><span class="p">)</span> <span class="o">*</span> <span class="n">fps</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">expected</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">SHOT_LIST_FRAME_SLACK</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="s2">"&lt;style&gt;/cuts_per_min"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"the shot list totals </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="n">shot_durations</span><span class="p">)</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> s but the video is "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fps</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> s, so they do not describe the same film "</span>
+                <span class="s2">"(a scene edited since the render?); the cut statistics and the "</span>
+                <span class="s2">"per-shot table are placed by the shot list and may be wrong"</span><span class="p">,</span>
+                <span class="n">suggested_fix</span><span class="o">=</span><span class="s2">"re-render, or lint against the scene the video was rendered from"</span><span class="p">,</span>
+            <span class="p">)</span>
+
     <span class="n">measured</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">METRICS</span><span class="p">)</span>
     <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
         <span class="s2">"info"</span><span class="p">,</span>
@@ -1303,6 +1645,15 @@ window.runMermaid = runMermaid;</script>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">cut_source</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">measured</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">shot_targets</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"cuts_per_min"</span><span class="p">,</span> <span class="s2">"mean_shot_s"</span><span class="p">}</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">shot_targets</span> <span class="ow">and</span> <span class="n">metrics</span><span class="o">.</span><span class="n">cut_source</span> <span class="o">==</span> <span class="s2">"pixels"</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"info"</span><span class="p">,</span>
+            <span class="s2">"&lt;style&gt;/cuts_per_min"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"cuts were detected from pixels (</span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">cuts</span><span class="si">}</span><span class="s2"> found), which misses "</span>
+            <span class="s2">"a cut between two shots on the same backdrop and every dissolve, so "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">shot_targets</span><span class="p">)</span><span class="si">}</span><span class="s2"> may be wrong; pass the project "</span>
+            <span class="s2">"(`--project DIR`, or `scene=` in Python) for the authored shot list"</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="n">shot_targets</span> <span class="ow">and</span> <span class="n">metrics</span><span class="o">.</span><span class="n">duration_s</span> <span class="o">&lt;</span> <span class="n">SHORT_CLIP_S</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
             <span class="s2">"info"</span><span class="p">,</span>
@@ -1311,21 +1662,22 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"cuts_per_min by </span><span class="si">{</span><span class="mi">60</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">metrics</span><span class="o">.</span><span class="n">duration_s</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">; "</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">shot_targets</span><span class="p">)</span><span class="si">}</span><span class="s2"> are coarse on a clip this short"</span><span class="p">,</span>
         <span class="p">)</span>
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">check_targets</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">miss_severity</span><span class="o">=</span><span class="n">miss_severity</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">check_targets</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">miss_severity</span><span class="o">=</span><span class="n">miss_severity</span><span class="p">,</span> <span class="n">live</span><span class="o">=</span><span class="n">live</span><span class="p">):</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">severity</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">ir_path</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">suggested_fix</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">StyleLintResult</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">StyleLintResult</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">per_shot</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="StyleLintVerifier">
-<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.StyleLintVerifier">[docs]</a>
+<a class="viewcode-back" href="../../../_autosummary/an.verify.style.html#an.verify.style.StyleLintVerifier">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">StyleLintVerifier</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Compare a render to a style spec's ``targets``. Implements ``Verifier``.</span>
 
-<span class="sd">    Shot boundaries come from the IR (every shot boundary is a hard cut in an</span>
-<span class="sd">    ``an`` render), so ``cuts_per_min`` and ``mean_shot_s`` are exact rather</span>
-<span class="sd">    than detected. Pre-render (``render is None``) it reports ``info`` and</span>
-<span class="sd">    passes: it has nothing to measure yet.</span>
+<span class="sd">    Shot boundaries come from the IR (every shot boundary is a cut in an ``an``</span>
+<span class="sd">    render, and a dissolve's overlap is accounted for), so ``cuts_per_min`` and</span>
+<span class="sd">    ``mean_shot_s`` are exact rather than detected. Pre-render</span>
+<span class="sd">    (``render is None``) it reports ``info`` and passes: it has nothing to</span>
+<span class="sd">    measure yet.</span>
 <span class="sd">    """</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"style_lint"</span>
@@ -1336,7 +1688,7 @@ window.runMermaid = runMermaid;</script>
         <span class="o">*</span><span class="p">,</span>
         <span class="n">miss_severity</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"warning"</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span> <span class="o">=</span> <span class="n">_targets_of</span><span class="p">(</span><span class="n">spec_or_targets</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">live</span> <span class="o">=</span> <span class="n">_spec_parts</span><span class="p">(</span><span class="n">spec_or_targets</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">miss_severity</span> <span class="o">=</span> <span class="n">miss_severity</span>
         <span class="c1"># Refuse a bad spec at construction, not at the end of a render.</span>
         <span class="n">_validate_targets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">)</span>
@@ -1346,34 +1698,135 @@ window.runMermaid = runMermaid;</script>
             <span class="n">report</span> <span class="o">=</span> <span class="n">VerificationReport</span><span class="p">()</span>
             <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"info"</span><span class="p">,</span> <span class="s2">"&lt;style&gt;"</span><span class="p">,</span> <span class="s2">"no render result; skipping style lint"</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">report</span>
-        <span class="n">shots</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ir</span><span class="o">.</span><span class="n">timeline</span><span class="p">]</span> <span class="k">if</span> <span class="n">ir</span><span class="o">.</span><span class="n">timeline</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">spec</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"style"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">live</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">spec</span><span class="p">[</span><span class="s2">"live"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">live</span>
         <span class="k">return</span> <span class="n">style_lint</span><span class="p">(</span>
             <span class="n">render</span><span class="o">.</span><span class="n">mp4_path</span><span class="p">,</span>
-            <span class="p">{</span><span class="s2">"style"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">style</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">targets</span><span class="p">},</span>
-            <span class="n">shot_durations</span><span class="o">=</span><span class="n">shots</span><span class="p">,</span>
+            <span class="n">spec</span><span class="p">,</span>
+            <span class="n">scene</span><span class="o">=</span><span class="n">ir</span> <span class="k">if</span> <span class="n">ir</span><span class="o">.</span><span class="n">timeline</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">miss_severity</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">miss_severity</span><span class="p">,</span>
         <span class="p">)</span><span class="o">.</span><span class="n">report</span></div>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_main</span><span class="p">(</span><span class="n">argv</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""``python -m an.verify.style VIDEO SPEC.yaml`` — print metrics and findings as JSON.</span>
-
-<span class="sd">    Exit status 0 when every target hits, 1 on a miss, 2 when it could not measure.</span>
-<span class="sd">    """</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">"usage: python -m an.verify.style VIDEO SPEC.yaml"</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
-        <span class="k">return</span> <span class="mi">2</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">style_lint</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="nb">print</span><span class="p">(</span>
-        <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="s2">"metrics"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">metrics</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="s2">"findings"</span><span class="p">:</span> <span class="p">[</span><span class="n">asdict</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">findings</span><span class="p">],</span>
-            <span class="p">},</span>
-            <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_format_text</span><span class="p">(</span>
+    <span class="n">result</span><span class="p">:</span> <span class="n">StyleLintResult</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The human-readable report: metrics beside targets, findings, per shot."""</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">metrics</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">duration_s</span><span class="si">}</span><span class="s2"> s at </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">fps</span><span class="si">}</span><span class="s2"> fps, </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">cuts</span><span class="si">}</span><span class="s2"> cut(s) from </span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">cut_source</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'metric'</span><span class="si">:</span><span class="s2">28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'value'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  target"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">METRICS</span><span class="p">:</span>
+            <span class="n">rng</span> <span class="o">=</span> <span class="n">targets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">mark</span> <span class="o">=</span> <span class="s2">""</span>
+            <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mark</span> <span class="o">=</span> <span class="s2">"  ok"</span> <span class="k">if</span> <span class="n">rng</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">rng</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">else</span> <span class="s2">"  MISS"</span>
+            <span class="n">tgt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">rng</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">rng</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">]"</span> <span class="k">if</span> <span class="n">rng</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">""</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">value</span><span class="si">!s:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">tgt</span><span class="si">}{</span><span class="n">mark</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">per_shot</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"per shot:"</span><span class="p">)</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"start_s"</span><span class="p">,</span> <span class="s2">"duration_s"</span><span class="p">,</span> <span class="o">*</span><span class="n">SHOT_METRICS</span><span class="p">)</span>
+        <span class="n">short</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"identical_frame_share"</span><span class="p">:</span> <span class="s2">"identical"</span><span class="p">,</span>
+            <span class="s2">"pose_changes_per_s"</span><span class="p">:</span> <span class="s2">"changes/s"</span><span class="p">,</span>
+            <span class="s2">"one_frame_interval_share"</span><span class="p">:</span> <span class="s2">"ones"</span><span class="p">,</span>
+            <span class="s2">"two_frame_interval_share"</span><span class="p">:</span> <span class="s2">"twos"</span><span class="p">,</span>
+            <span class="s2">"three_plus_interval_share"</span><span class="p">:</span> <span class="s2">"threes+"</span><span class="p">,</span>
+            <span class="s2">"max_hold_frames"</span><span class="p">:</span> <span class="s2">"max_hold"</span><span class="p">,</span>
+            <span class="s2">"start_s"</span><span class="p">:</span> <span class="s2">"start"</span><span class="p">,</span>
+            <span class="s2">"duration_s"</span><span class="p">:</span> <span class="s2">"dur"</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">shot</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">per_shot</span><span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'shot'</span><span class="si">:{</span><span class="n">width</span><span class="si">}}</span><span class="s2"> "</span> <span class="o">+</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">short</span><span class="p">[</span><span class="n">c</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">per_shot</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">shot</span><span class="si">:{</span><span class="n">width</span><span class="si">}}</span><span class="s2"> "</span> <span class="o">+</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">c</span><span class="p">)</span><span class="si">!s:</span><span class="s2">&gt;10</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">)</span>
+            <span class="p">)</span>
+    <span class="n">notes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">f</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">findings</span>
+        <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">severity</span> <span class="o">!=</span> <span class="s2">"info"</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">ir_path</span> <span class="o">!=</span> <span class="s2">"&lt;style&gt;"</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">notes</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">notes</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">severity</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">suggested_fix</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  fix: </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">suggested_fix</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_main</span><span class="p">(</span><span class="n">argv</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``python -m an.verify.style VIDEO SPEC.yaml [--project DIR] [--json]``.</span>
+
+<span class="sd">    Prints the metrics beside the targets, one line per finding with its fix,</span>
+<span class="sd">    and the per-shot cadence. The shots come from ``--project`` (a project</span>
+<span class="sd">    directory or a ``scene.json``); without it, a video at</span>
+<span class="sd">    ``&lt;project&gt;/output/*.mp4`` finds its own project, and anything else falls</span>
+<span class="sd">    back to detecting cuts from pixels — with a warning, because that misses</span>
+<span class="sd">    cuts. Exit status 0 when every target hits, 1 on a miss, 2 when it could not</span>
+<span class="sd">    measure.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">prog</span><span class="o">=</span><span class="s2">"python -m an.verify.style"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"Measure a render against a style spec's targets."</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"video"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"the rendered mp4"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"spec"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"a style spec YAML (an-style skill: styles/&lt;name&gt;.yaml)"</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--project"</span><span class="p">,</span>
+        <span class="s2">"--scene"</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">"project"</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"the project directory (or its ir/scene.json) the video was rendered "</span>
+        <span class="s2">"from, for exact cuts; found automatically for &lt;project&gt;/output/*.mp4"</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--json"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"print JSON instead of text"</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">argv</span><span class="p">))</span>
+
+    <span class="n">project</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">project</span> <span class="ow">or</span> <span class="n">project_of_render</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">video</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">"warning: no project given and none found beside the video, so cuts are "</span>
+            <span class="s2">"detected from pixels (misses cuts between shots on one backdrop, and "</span>
+            <span class="s2">"dissolves); pass --project DIR"</span><span class="p">,</span>
+            <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"using the shot list of </span><span class="si">{</span><span class="n">project</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">style_lint</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">video</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">spec</span><span class="p">,</span> <span class="n">scene</span><span class="o">=</span><span class="n">project</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">StyleLintError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">json</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"metrics"</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">metrics</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">"per_shot"</span><span class="p">:</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">per_shot</span><span class="p">],</span>
+                    <span class="s2">"findings"</span><span class="p">:</span> <span class="p">[</span><span class="n">asdict</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">findings</span><span class="p">],</span>
+                <span class="p">},</span>
+                <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">_format_text</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">_targets_of</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">spec</span><span class="p">)[</span><span class="mi">1</span><span class="p">]))</span>
     <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">metrics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="mi">2</span>
     <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">severity</span> <span class="o">==</span> <span class="s2">"info"</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">findings</span><span class="p">)</span> <span class="k">else</span> <span class="mi">1</span>

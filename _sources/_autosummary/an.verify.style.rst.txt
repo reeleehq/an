@@ -9,13 +9,17 @@ an.verify.style
    .. autosummary::
    
       METRICS
+      SHOT_METRICS
    
    .. rubric:: Functions
 
    .. autosummary::
    
       measure_style
+      measure_shots
       measure_video
+      film_shots
+      project_of_render
       check_targets
       load_style_spec
       style_lint
@@ -27,4 +31,5 @@ an.verify.style
       StyleMetrics
       StyleLintResult
       StyleLintVerifier
+      ShotMetrics
    

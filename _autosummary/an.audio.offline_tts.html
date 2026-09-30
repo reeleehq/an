@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=6aa50845"></script>
+    <script src="../_static/documentation_options.js?v=a12c9888"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.offline_lipsync" href="an.audio.offline_lipsync.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.103" />
+  <meta name="docsearch:version" content="0.1.104" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -531,6 +531,15 @@ end-to-end without any API setup.</p>
 <span class="go">'Hello, world!'</span>
 </pre></div>
 </div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.offline_tts.estimate_speech_duration" title="an.audio.offline_tts.estimate_speech_duration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">estimate_speech_duration</span></code></a>(text, *[, ...])</p></td>
+<td><p>Seconds the offline voice takes to say <code class="docutils literal notranslate"><span class="pre">text</span></code> — a leading pad plus a per-character rate over the non-space characters, clamped.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -548,6 +557,26 @@ end-to-end without any API setup.</p>
 <p>Implements the <code class="docutils literal notranslate"><span class="pre">TTSProvider</span></code> protocol.</p>
 <dl class="field-list simple">
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.offline_tts.estimate_speech_duration">
+<span class="sig-prename descclassname"><span class="pre">an.audio.offline_tts.</span></span><span class="sig-name descname"><span class="pre">estimate_speech_duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds_per_char</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/offline_tts.html#estimate_speech_duration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.offline_tts.estimate_speech_duration" title="Link to this definition">#</a></dt>
+<dd><p>Seconds the offline voice takes to say <code class="docutils literal notranslate"><span class="pre">text</span></code> — a leading pad plus a
+per-character rate over the non-space characters, clamped.</p>
+<p>It is exactly what an offline render gives a line, so <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> uses
+it to warn about a shot too short for its dialogue BEFORE anything is
+synthesized. A real voice is usually a little slower, so for one this is an
+under-estimate: a line it says overruns will overrun.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">estimate_speech_duration</span><span class="p">(</span><span class="s2">"It only takes exact change."</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">1.43</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -600,6 +629,7 @@ end-to-end without any API setup.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.offline_tts.OfflineTTS"><code class="docutils literal notranslate"><span class="pre">OfflineTTS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.offline_tts.estimate_speech_duration"><code class="docutils literal notranslate"><span class="pre">estimate_speech_duration()</span></code></a></li>
 </ul>
   </nav></div>
 

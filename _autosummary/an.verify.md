@@ -2,6 +2,11 @@
 
 Verification protocol — same interface for human, lint, vision-LM, MoVer.
 
+`StyleLintVerifier` is imported on first use, not here: `an.verify.style` is
+also a script (`python -m an.verify.style`), and a package that imports the
+module it is about to run as `__main__` makes `runpy` warn that it is
+already in `sys.modules`.
+
 ### Classes
 
 | [`Verifier`](#an.verify.Verifier)(\*args, \*\*kwargs)                    | Pluggable verifier.                            |
@@ -12,7 +17,7 @@ Verification protocol — same interface for human, lint, vision-LM, MoVer.
 | [`HumanInTheLoopVerifier`](#an.verify.HumanInTheLoopVerifier)(\*[, prompt])            | Open the mp4, prompt the user to approve.      |
 | [`MediaQualityVerifier`](#an.verify.MediaQualityVerifier)(\*[, max_db_floor, ...])   | Post-render quality checks.                    |
 | [`VisionLMVerifier`](#an.verify.VisionLMVerifier)(\*[, model, frame_count, ...]) | Claude vision Verifier (skip-if-missing-deps). |
-| [`StyleLintVerifier`](#an.verify.StyleLintVerifier)(spec_or_targets, \*[, ...])   | Compare a render to a style spec's `targets`.  |
+| `StyleLintVerifier`(spec_or_targets, \*[, ...])                                                  | Compare a render to a style spec's `targets`.  |
 
 ### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None)
 
@@ -40,17 +45,6 @@ Cheap IR-only verifier. Implements `Verifier`.
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Post-render quality checks. Implements `Verifier`.
-
-### *class* an.verify.StyleLintVerifier(spec_or_targets, , miss_severity='warning')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-Compare a render to a style spec’s `targets`. Implements `Verifier`.
-
-Shot boundaries come from the IR (every shot boundary is a hard cut in an
-`an` render), so `cuts_per_min` and `mean_shot_s` are exact rather
-than detected. Pre-render (`render is None`) it reports `info` and
-passes: it has nothing to measure yet.
 
 ### *class* an.verify.VerificationReport(passed=True, findings=<factory>)
 

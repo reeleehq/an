@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=6aa50845"></script>
+    <script src="../_static/documentation_options.js?v=a12c9888"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.schema" href="an.ir.schema.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.103" />
+  <meta name="docsearch:version" content="0.1.104" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -539,6 +539,9 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.RETIRED_CAMERA_KEYS" title="an.ir.validate.RETIRED_CAMERA_KEYS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RETIRED_CAMERA_KEYS</span></code></a></p></td>
 <td><p>an#109's removed camera fields.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S" title="an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></code></a></p></td>
+<td><p>a frame at 60 fps.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -566,6 +569,17 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.016666666666666666</span></span><a class="headerlink" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S" title="Link to this definition">#</a></dt>
+<dd><p>a frame at 60 fps.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Slack before a line counts as running past its shot</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.validate.RETIRED_CAMERA_KEYS">
 <span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">RETIRED_CAMERA_KEYS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'focal_length',</span> <span class="pre">'position',</span> <span class="pre">'target'})</span></span><a class="headerlink" href="#an.ir.validate.RETIRED_CAMERA_KEYS" title="Link to this definition">#</a></dt>
@@ -709,6 +723,7 @@ always passes it).</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S"><code class="docutils literal notranslate"><span class="pre">DIALOGUE_OVERRUN_TOLERANCE_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.RETIRED_CAMERA_KEYS"><code class="docutils literal notranslate"><span class="pre">RETIRED_CAMERA_KEYS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.RETIRED_KEYS"><code class="docutils literal notranslate"><span class="pre">RETIRED_KEYS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.RIG_STORES"><code class="docutils literal notranslate"><span class="pre">RIG_STORES</span></code></a></li>

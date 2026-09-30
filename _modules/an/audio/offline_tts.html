@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=6aa50845"></script>
+    <script src="../../../_static/documentation_options.js?v=a12c9888"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.103" />
+  <meta name="docsearch:version" content="0.1.104" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -748,6 +748,28 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_LEADING_SILENCE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>  <span class="c1"># tiny pad for natural feel</span>
 
 
+<div class="viewcode-block" id="estimate_speech_duration">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.offline_tts.html#an.audio.estimate_speech_duration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">estimate_speech_duration</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">seconds_per_char</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_SECONDS_PER_CHAR</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Seconds the offline voice takes to say ``text`` — a leading pad plus a</span>
+<span class="sd">    per-character rate over the non-space characters, clamped.</span>
+
+<span class="sd">    It is exactly what an offline render gives a line, so ``an validate`` uses</span>
+<span class="sd">    it to warn about a shot too short for its dialogue BEFORE anything is</span>
+<span class="sd">    synthesized. A real voice is usually a little slower, so for one this is an</span>
+<span class="sd">    under-estimate: a line it says overruns will overrun.</span>
+
+<span class="sd">    &gt;&gt;&gt; round(estimate_speech_duration("It only takes exact change."), 3)</span>
+<span class="sd">    1.43</span>
+<span class="sd">    """</span>
+    <span class="n">meaningful</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ch</span><span class="o">.</span><span class="n">isspace</span><span class="p">())</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">_LEADING_SILENCE_S</span> <span class="o">+</span> <span class="n">meaningful</span> <span class="o">*</span> <span class="n">seconds_per_char</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">_MIN_DURATION_S</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">_MAX_DURATION_S</span><span class="p">,</span> <span class="n">raw</span><span class="p">))</span></div>
+
+
+
 <div class="viewcode-block" id="OfflineTTS">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.offline_tts.html#an.audio.OfflineTTS">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OfflineTTS</span><span class="p">:</span>
@@ -808,9 +830,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_estimate_duration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Approximate duration: leading pad + per-char accumulation, clamped."""</span>
-        <span class="n">meaningful</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">ch</span><span class="o">.</span><span class="n">isspace</span><span class="p">())</span>
-        <span class="n">raw</span> <span class="o">=</span> <span class="n">_LEADING_SILENCE_S</span> <span class="o">+</span> <span class="n">meaningful</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">seconds_per_char</span>
-        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">_MIN_DURATION_S</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">_MAX_DURATION_S</span><span class="p">,</span> <span class="n">raw</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">estimate_speech_duration</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">seconds_per_char</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">seconds_per_char</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_silent_wav_bytes_for_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Build a valid WAV file (in-memory) of pure silence with ``n_frames`` samples."""</span>

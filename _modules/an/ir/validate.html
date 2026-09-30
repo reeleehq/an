@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=6aa50845"></script>
+    <script src="../../../_static/documentation_options.js?v=a12c9888"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.103" />
+  <meta name="docsearch:version" content="0.1.104" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1857,10 +1857,61 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/speaker"</span><span class="p">,</span>
                     <span class="s2">"dialogue requires a speaker"</span><span class="p">,</span>
                 <span class="p">)</span>
+        <span class="n">_check_dialogue_fits</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
 
     <span class="n">_check_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">sounds</span><span class="o">=</span><span class="n">available_sounds</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">report</span></div>
 
+
+
+<span class="c1">#: Slack before a line counts as running past its shot: a frame at 60 fps.</span>
+<span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">60</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_dialogue_fits</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Warn when a shot's dialogue runs past the shot's end.</span>
+
+<span class="sd">    The audio is cut at the shot end (each shot's mix is trimmed to its</span>
+<span class="sd">    duration), and the lines play back to back, so a shot shortened below its</span>
+<span class="sd">    dialogue loses the tail of it — silently, until now (an e2e run shrank an</span>
+<span class="sd">    8.2 s shot holding 7.1 s of speech to 3.0 s and `an validate` said nothing).</span>
+
+<span class="sd">    What is known depends on when this runs. After the audio pipeline, a line</span>
+<span class="sd">    carries its real ``start`` and ``duration`` and the check is exact. Before</span>
+<span class="sd">    it, the duration is the offline voice's estimate</span>
+<span class="sd">    (:func:`an.audio.offline_tts.estimate_speech_duration` — exactly what an</span>
+<span class="sd">    offline render will give, and an under-estimate for a real voice), laid</span>
+<span class="sd">    out back to back from the shot start the way the pipeline lays them.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">estimate_speech_duration</span>
+
+    <span class="n">cursor</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
+        <span class="n">estimated</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">estimate_speech_duration</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="n">estimated</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">cursor</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">length</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">end</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">+</span> <span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">how</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">"at the offline voice's rate (a real voice is usually slower)"</span>
+            <span class="k">if</span> <span class="n">estimated</span>
+            <span class="k">else</span> <span class="s2">"as synthesized"</span>
+        <span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"line </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">}</span><span class="s2">) ends at </span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s </span><span class="si">{</span><span class="n">how</span><span class="si">}</span><span class="s2">, past the shot's "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s end, so its last </span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s are "</span>
+            <span class="s2">"cut off: the shot's audio stops where the shot does. Lengthen the "</span>
+            <span class="sa">f</span><span class="s2">"shot to at least </span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, shorten the line, or move it to the "</span>
+            <span class="s2">"next shot"</span><span class="p">,</span>
+        <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_assembly</span><span class="p">(</span>

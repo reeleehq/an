@@ -14,10 +14,11 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 ### Module Attributes
 
-| [`RIG_STORES`](#an.ir.validate.RIG_STORES)          | Entity kind → (the mall store holding its rig, the descriptor `kind` tag that store's documents carry).   |
-|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| [`RETIRED_KEYS`](#an.ir.validate.RETIRED_KEYS)        | Keys an#106 retired, and what to write instead.                                                           |
-| [`RETIRED_CAMERA_KEYS`](#an.ir.validate.RETIRED_CAMERA_KEYS) | an#109's removed camera fields.                                                                           |
+| [`RIG_STORES`](#an.ir.validate.RIG_STORES)                   | Entity kind → (the mall store holding its rig, the descriptor `kind` tag that store's documents carry).   |
+|-------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| [`RETIRED_KEYS`](#an.ir.validate.RETIRED_KEYS)                 | Keys an#106 retired, and what to write instead.                                                           |
+| [`RETIRED_CAMERA_KEYS`](#an.ir.validate.RETIRED_CAMERA_KEYS)          | an#109's removed camera fields.                                                                           |
+| [`DIALOGUE_OVERRUN_TOLERANCE_S`](#an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S) | a frame at 60 fps.                                                                                        |
 
 ### Functions
 
@@ -30,6 +31,13 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 | [`ValidationFinding`](#an.ir.validate.ValidationFinding)(severity, ir_path, description)   | A single validation issue with a path into the IR.   |
 |------------------------------------------------------------------------------------------------------|------------------------------------------------------|
 | [`ValidationReport`](#an.ir.validate.ValidationReport)([passed, findings])                | Result of running one or more validators.            |
+
+### an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
+
+a frame at 60 fps.
+
+* **Type:**
+  Slack before a line counts as running past its shot
 
 ### an.ir.validate.RETIRED_CAMERA_KEYS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'focal_length', 'position', 'target'})*
 

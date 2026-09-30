@@ -4,6 +4,12 @@ an.audio.offline\_tts
 .. automodule:: an.audio.offline_tts
 
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      estimate_speech_duration
+   
    .. rubric:: Classes
 
    .. autosummary::

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=6aa50845"></script>
+    <script src="../../../_static/documentation_options.js?v=a12c9888"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.103" />
+  <meta name="docsearch:version" content="0.1.104" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -850,6 +850,37 @@ window.runMermaid = runMermaid;</script>
     <span class="n">KINDS</span><span class="p">[</span><span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">kind</span>
     <span class="k">return</span> <span class="n">kind</span></div>
 
+
+
+<span class="c1">#: Keys a document's dump always carries, set or not: what kind it is and which</span>
+<span class="c1">#: version wrote it — the two things a reader needs before it can read the rest.</span>
+<span class="n">DOCUMENT_IDENTITY_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"kind"</span><span class="p">,</span> <span class="s2">"schema_version"</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">omit_unset</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``data`` (a model's serialized dict) minus every field its author did not set.</span>
+
+<span class="sd">    For an on-disk document whose validation reads ``model_fields_set`` — a</span>
+<span class="sd">    `PathDescriptor` refuses a SET ``gap`` with no ``dash``, and a StylePack's</span>
+<span class="sd">    ``stroke`` role reaches only a path whose ``color`` was never set. A full</span>
+<span class="sd">    dump writes every default back as if the author had typed it, so the</span>
+<span class="sd">    document refused its own output (``model_dump_json()`` then</span>
+<span class="sd">    ``model_validate_json()`` raised) and a round trip silently changed which</span>
+<span class="sd">    colour a pack could reach. Omitting what was never set makes the dump the</span>
+<span class="sd">    document the author wrote, plus its identity (:data:`DOCUMENT_IDENTITY_FIELDS`).</span>
+
+<span class="sd">    &gt;&gt;&gt; from pydantic import BaseModel</span>
+<span class="sd">    &gt;&gt;&gt; class Doc(BaseModel):</span>
+<span class="sd">    ...     kind: str = "Doc"</span>
+<span class="sd">    ...     a: int = 1</span>
+<span class="sd">    ...     b: int = 2</span>
+<span class="sd">    &gt;&gt;&gt; omit_unset(Doc(b=5), Doc(b=5).model_dump())</span>
+<span class="sd">    {'kind': 'Doc', 'b': 5}</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">data</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">model_fields_set</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">DOCUMENT_IDENTITY_FIELDS</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">}</span>
 
 
 <span class="n">SCENE_IR</span><span class="p">:</span> <span class="n">DocumentKind</span> <span class="o">=</span> <span class="n">register_kind</span><span class="p">(</span>

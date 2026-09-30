@@ -11,6 +11,7 @@ an.ir.validate
       RIG_STORES
       RETIRED_KEYS
       RETIRED_CAMERA_KEYS
+      DIALOGUE_OVERRUN_TOLERANCE_S
    
    .. rubric:: Functions
 
