@@ -165,7 +165,7 @@ def dash_spans(
     >>> dash_spans(30.0, 60.0, 10.0, 15.0, 0.0)  # clipped, not re-anchored
     [(30.0, 35.0), (50.0, 60.0)]
     >>> dash_spans(0.0, 30.0, 10.0, 10.0, 5.0)  # offset slides the pattern forward
-    [(0.0, 5.0), (15.0, 25.0)]
+    [(5.0, 15.0), (25.0, 30.0)]
     """
     period = dash + gap
     k = math.floor((a - offset - dash) / period)
