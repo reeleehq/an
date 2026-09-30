@@ -875,8 +875,9 @@ def _capture_frames_canvas(
 
     Per round trip the page seeks up to ``batch`` frames' instants **in frame
     order, samples in the order given** — the order the screenshot path seeks
-    them, which matters because the runtime's pose is not yet a pure function of
-    ``t`` (an#185) — and returns each frame's canvas as PNG data URLs. The decode,
+    them. Since an#185 the pose is a pure function of ``t``, so the order no
+    longer decides the picture; it is kept because the page echoes frame numbers
+    in it — and returns each frame's canvas as PNG data URLs. The decode,
     opacity check, supersample and temporal resolve, and RGB re-encode
     (:func:`~an.adapters.cutout.canvas_capture.canvas_frame_png`) run on a
     small thread pool while the page renders the next batch.
