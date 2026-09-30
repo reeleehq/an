@@ -3,7 +3,7 @@
 Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 
 `pop_in`, `hop`, `shake`, `nod`, `point`, `slide_in`, `slide_out`,
-`squash_stretch`, `waddle` and `turn` each EXPAND to ordinary `tween`
+`squash_stretch`, `waddle`, `turn` and `walk` each EXPAND to ordinary `tween`
 actions on transform properties (`turn` adds one swap `set`), composed with [`sequence()`](an.ir.compose.md#an.ir.compose.sequence) and
 [`parallel()`](an.ir.compose.md#an.ir.compose.parallel). Called from Python, nothing downstream
 learns a preset exists: the flat timeline, `an validate`, the verifiers and
@@ -75,21 +75,22 @@ length divided by `speed`, so two in a row run one after the other.
 
 ### Functions
 
-| [`face_toward`](#an.motion.face_toward)(shot, who, other, \*[, view, ...])   | [`turn()`](#an.motion.turn) `who` to `view`, facing `other` — the direction read off the stage, so a profile looks at the other character wherever the layout put them.                                                                                  |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`as_leaves`](#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
-| [`hop`](#an.motion.hop)(target, \*[, height, duration, rest])        | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                                                                     |
-| [`nod`](#an.motion.nod)(target, \*[, part, angle, duration, ...])    | Dip the head `count` times (a rotation of `<target>/<part>`).                                                                                                                                                                                                                        |
-| [`point`](#an.motion.point)(target, \*[, angle, raise_duration, ...])  | Swing an arm out to point, hold it, and lower it again.                                                                                                                                                                                                                              |
-| [`pop_in`](#an.motion.pop_in)(target, \*[, duration, easing, rest])     | Grow from nothing to full size, overshooting and settling (an entrance).                                                                                                                                                                                                             |
-| [`rest_pose`](#an.motion.rest_pose)(shot, target, \*[, mall])              | The rest values of `target`'s node as the compiler builds `shot`.                                                                                                                                                                                                                    |
-| [`shake`](#an.motion.shake)(target, \*[, amplitude, duration, ...])    | Tremble side to side `cycles` times and come back to rest (on `x`).                                                                                                                                                                                                                  |
-| [`stage_poses`](#an.motion.stage_poses)(shot, \*[, mall, width, height])     | `{node path: rest pose}` for every node the compiler builds for `shot`'s stage — what [`rest_pose()`](#an.motion.rest_pose) reads one entry of, and what `an validate` checks a preset `play`'s node and every `set`/`tween` target against (an#166, an#193). |
-| [`slide_in`](#an.motion.slide_in)(target, \*[, from_side, distance, ...]) | Whip in from `distance` pixels off to one side, overshoot, and settle.                                                                                                                                                                                                               |
-| [`slide_out`](#an.motion.slide_out)(target, \*[, to_side, distance, ...])  | Exit `distance` pixels off to one side, accelerating (an exit).                                                                                                                                                                                                                      |
-| [`squash_stretch`](#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
-| [`turn`](#an.motion.turn)(target, \*[, to, direction, ...])           | Turn a character to the view `to` — the classic cut-out turn (an#197).                                                                                                                                                                                                               |
-| [`waddle`](#an.motion.waddle)(target, \*[, steps, step_duration, ...])  | A walk cycle for a rig with no legs to animate: rock and bob per step.                                                                                                                                                                                                               |
+| [`face_toward`](#an.motion.face_toward)(shot, who, other, \*[, view, ...])     | [`turn()`](#an.motion.turn) `who` to `view`, facing `other` — the direction read off the stage, so a profile looks at the other character wherever the layout put them.                                                                                  |
+|-----------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`as_leaves`](#an.motion.as_leaves)(action, \*[, start])                     | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                                                         |
+| [`hop`](#an.motion.hop)(target, \*[, height, duration, rest])          | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                                                                     |
+| [`nod`](#an.motion.nod)(target, \*[, part, angle, duration, ...])      | Dip the head `count` times (a rotation of `<target>/<part>`).                                                                                                                                                                                                                        |
+| [`point`](#an.motion.point)(target, \*[, angle, raise_duration, ...])    | Swing an arm out to point, hold it, and lower it again.                                                                                                                                                                                                                              |
+| [`pop_in`](#an.motion.pop_in)(target, \*[, duration, easing, rest])       | Grow from nothing to full size, overshooting and settling (an entrance).                                                                                                                                                                                                             |
+| [`rest_pose`](#an.motion.rest_pose)(shot, target, \*[, mall])                | The rest values of `target`'s node as the compiler builds `shot`.                                                                                                                                                                                                                    |
+| [`shake`](#an.motion.shake)(target, \*[, amplitude, duration, ...])      | Tremble side to side `cycles` times and come back to rest (on `x`).                                                                                                                                                                                                                  |
+| [`stage_poses`](#an.motion.stage_poses)(shot, \*[, mall, width, height])       | `{node path: rest pose}` for every node the compiler builds for `shot`'s stage — what [`rest_pose()`](#an.motion.rest_pose) reads one entry of, and what `an validate` checks a preset `play`'s node and every `set`/`tween` target against (an#166, an#193). |
+| [`slide_in`](#an.motion.slide_in)(target, \*[, from_side, distance, ...])   | Whip in from `distance` pixels off to one side, overshoot, and settle.                                                                                                                                                                                                               |
+| [`slide_out`](#an.motion.slide_out)(target, \*[, to_side, distance, ...])    | Exit `distance` pixels off to one side, accelerating (an exit).                                                                                                                                                                                                                      |
+| [`squash_stretch`](#an.motion.squash_stretch)(target, \*[, amount, ...])          | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
+| [`turn`](#an.motion.turn)(target, \*[, to, direction, ...])             | Turn a character to the view `to` — the classic cut-out turn (an#197).                                                                                                                                                                                                               |
+| [`waddle`](#an.motion.waddle)(target, \*[, steps, step_duration, ...])    | A walk cycle for a rig with no legs to animate: rock and bob per step.                                                                                                                                                                                                               |
+| [`walk`](#an.motion.walk)(target, \*[, to_x, distance, direction, ...]) | Walk: the body travels on `x` and bobs once per step while the legs alternate and the arms swing against them (an#214).                                                                                                                                                              |
 
 ### an.motion.HOME_PRESETS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'pop_in', 'slide_in'})*
 
@@ -109,7 +110,7 @@ A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.md#an.ir.schema.SetAction) | [TweenAction](an.ir.schema.md#an.ir.schema.TweenAction) | [PlayAction](an.ir.schema.md#an.ir.schema.PlayAction) | [ExpressionAction](an.ir.schema.md#an.ir.schema.ExpressionAction) | [SequenceAction](an.ir.schema.md#an.ir.schema.SequenceAction) | [ParallelAction](an.ir.schema.md#an.ir.schema.ParallelAction) | [DelayAction](an.ir.schema.md#an.ir.schema.DelayAction) | [LoopAction](an.ir.schema.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](an.ir.schema.md#an.ir.schema.SetAction) | [TweenAction](an.ir.schema.md#an.ir.schema.TweenAction) | [PlayAction](an.ir.schema.md#an.ir.schema.PlayAction) | [ExpressionAction](an.ir.schema.md#an.ir.schema.ExpressionAction) | [SequenceAction](an.ir.schema.md#an.ir.schema.SequenceAction) | [ParallelAction](an.ir.schema.md#an.ir.schema.ParallelAction) | [DelayAction](an.ir.schema.md#an.ir.schema.DelayAction) | [LoopAction](an.ir.schema.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
 fallback ([`an.characters.play.play_source()`](an.characters.play.md#an.characters.play.play_source), an#166) read.
@@ -361,4 +362,55 @@ so it is the one that needs `rest` in a multi-character shot.
 ['rotation', 'x', 'y']
 >>> max(f.end for f in w)
 0.6
+```
+
+### an.motion.walk(target, , to_x=None, distance=None, direction=None, steps=None, step_s=0.4, step_length=80.0, stride=0.35, lift=10.0, bob=6.0, arm_swing=0.3, rock=0.06, view=None, legs=None, arms=None, parts=None, rest=None)
+
+Walk: the body travels on `x` and bobs once per step while the legs
+alternate and the arms swing against them (an#214).
+
+**Where to.** `to_x` (absolute scene x) or `distance` (signed px; with
+`direction` `"left"`/`"right"` its sign is the direction’s), or
+neither to walk on the spot. The walk starts where the entity IS —
+played by name, `rest` is its pose at the play’s start (an#212), so
+`set x -800` then `walk to_x: -100` walks in from off-screen.
+
+**How many steps.** `steps`, else `|distance| / step_length`, else
+`DFLT_WALK_STEPS` — never counted from the start position, so the
+walk’s length (`steps × step_s`) is known before it is placed and a
+`sequence` waits for exactly that long.
+
+**Legs, by view.** In a view in `WALK_SWING_VIEWS` (`side`,
+`three_quarter`) each leg swings `stride` radians either side of its
+rest about the hip, the two in opposition; in any other view (`front`,
+`back`, or none) the stepping leg rises `lift` px and sets down again,
+the two alternating. Played by name, `view` is the one in force on the
+timeline at the play’s start (the view the last `turn` or `set` left);
+pass it to override. `legs`/`arms` name the two limb nodes; by
+default the first pair in `WALK_LEG_NAMES` / `WALK_ARM_NAMES`
+that the rig builds (`parts`: the entity’s built parts with their pose
+at the start, filled in by the compiler). A figure with no legs (a robe,
+a blob) walks on the bob and a `rock` of the body instead. Limbs land on
+their rest with a `WALK_LANDING_S` constant tween, not a settling
+`set`: a `set`’s hold would outrank the view’s pose channel and keep a
+profile’s splay after a later turn to the front.
+
+The walk does not turn the character: in a side view, face the way it
+walks first (`turn`, `direction`) — the classic walk-off is `turn`
+then `walk`.
+
+* **Return type:**
+  `Union`[[`SetAction`](an.ir.schema.md#an.ir.schema.SetAction), [`TweenAction`](an.ir.schema.md#an.ir.schema.TweenAction), [`PlayAction`](an.ir.schema.md#an.ir.schema.PlayAction), [`ExpressionAction`](an.ir.schema.md#an.ir.schema.ExpressionAction), [`SequenceAction`](an.ir.schema.md#an.ir.schema.SequenceAction), [`ParallelAction`](an.ir.schema.md#an.ir.schema.ParallelAction), [`DelayAction`](an.ir.schema.md#an.ir.schema.DelayAction), [`LoopAction`](an.ir.schema.md#an.ir.schema.LoopAction)]
+
+```pycon
+>>> w = walk("bob", distance=160, steps=2, step_s=0.5)
+>>> sorted({(f.action.target, f.action.property) for f in _tweens(w)})
+[('bob', 'x'), ('bob', 'y'), ('bob/arm_l', 'rotation'), ('bob/arm_r', 'rotation'), ('bob/leg_l', 'y'), ('bob/leg_r', 'y')]
+>>> max(f.end for f in flatten(w)), [f.action.to_value for f in _tweens(w) if f.action.property == "x"]
+(1.0, [160.0])
+>>> sorted({f.action.property for f in _tweens(walk("bob", distance=80, view="side"))
+...         if f.action.target == "bob/leg_l"})
+['rotation']
+>>> sorted({f.action.target for f in _tweens(walk("blob", steps=2, legs=(), arms=()))})
+['blob']
 ```

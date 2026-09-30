@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=30baa6be"></script>
+    <script src="../../../_static/documentation_options.js?v=07422cd4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.121" />
+  <meta name="docsearch:version" content="0.1.122" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -756,10 +756,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">caller reads off the built scene and the timeline before the play (an#212),</span>
 <span class="sd">so an author never passes ``rest``.</span>
 
-<span class="sd">&gt;&gt;&gt; play_problems(desc, "walk")  # doctest: +NORMALIZE_WHITESPACE</span>
-<span class="sd">["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no</span>
+<span class="sd">&gt;&gt;&gt; play_problems(desc, "moonwalk")  # doctest: +NORMALIZE_WHITESPACE</span>
+<span class="sd">["no animation 'moonwalk': the descriptor declares ['blink', 'idle_breath'] and no</span>
 <span class="sd">  motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',</span>
-<span class="sd">  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle'])"]</span>
+<span class="sd">  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle', 'walk'])"]</span>
 <span class="sd">&gt;&gt;&gt; play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")</span>
 <span class="sd">('preset', 'preset', 'descriptor')</span>
 <span class="sd">"""</span>
@@ -767,7 +767,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
@@ -986,7 +986,27 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1">#: Preset parameters an author may NOT pass through ``args``: the target is</span>
 <span class="c1">#: the play's own, and the rest pose is read off the built scene.</span>
-<span class="n">RESERVED_PRESET_ARGS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"target"</span><span class="p">,</span> <span class="s2">"rest"</span><span class="p">})</span>
+<span class="n">RESERVED_PRESET_ARGS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"target"</span><span class="p">,</span> <span class="s2">"rest"</span><span class="p">,</span> <span class="s2">"parts"</span><span class="p">})</span>
+<span class="c1">#: The keyword a preset that moves SEVERAL nodes of an entity (``walk``, an#214)</span>
+<span class="c1">#: takes its built parts in: ``{part path relative to the entity: pose}``.</span>
+<span class="n">PARTS_ARG</span> <span class="o">=</span> <span class="s2">"parts"</span>
+<span class="c1">#: The keyword a preset whose move depends on the view in force takes it in;</span>
+<span class="c1">#: played by name, the compiler fills it from the timeline when not given.</span>
+<span class="n">VIEW_ARG</span> <span class="o">=</span> <span class="s2">"view"</span>
+
+
+<div class="viewcode-block" id="preset_takes">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.play.html#an.characters.play.preset_takes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">preset_takes</span><span class="p">(</span><span class="n">animation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether the motion preset ``animation`` has the keyword ``name``.</span>
+
+<span class="sd">    &gt;&gt;&gt; preset_takes("walk", "parts"), preset_takes("hop", "parts")</span>
+<span class="sd">    (True, False)</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+
+    <span class="k">return</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">_presets</span><span class="p">()[</span><span class="n">animation</span><span class="p">])</span><span class="o">.</span><span class="n">parameters</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_presets</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]:</span>
@@ -1109,6 +1129,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="o">+</span> <span class="p">(</span>
                     <span class="s2">"the rest pose is read off the built scene"</span>
                     <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"rest"</span>
+                    <span class="k">else</span> <span class="s2">"the parts are read off the built scene"</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">PARTS_ARG</span>
                     <span class="k">else</span> <span class="s2">"the target is the play's own `target`"</span>
                 <span class="p">)</span>
             <span class="p">)</span>
@@ -1376,11 +1398,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; preset_moved_node("charlie", "nod"), preset_moved_node("charlie", "hop")</span>
 <span class="sd">    ('charlie/head', 'charlie')</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
-
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">animation</span><span class="p">](</span><span class="n">action_target</span><span class="p">,</span> <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{}))</span>
-    <span class="n">moved</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">tree</span><span class="p">)})</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">moved</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># every shipped preset moves one node; a new one must too</span>
+    <span class="k">if</span> <span class="n">preset_takes</span><span class="p">(</span><span class="n">animation</span><span class="p">,</span> <span class="n">PARTS_ARG</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">action_target</span>  <span class="c1"># a multi-node preset reads its parts separately</span>
+    <span class="n">moved</span> <span class="o">=</span> <span class="n">preset_moved_nodes</span><span class="p">(</span><span class="n">action_target</span><span class="p">,</span> <span class="n">animation</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">moved</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># a preset moves one node, or takes `parts` for several</span>
         <span class="k">raise</span> <span class="n">PlayResolutionError</span><span class="p">(</span>
             <span class="n">animation</span><span class="p">,</span>
             <span class="p">[</span>
@@ -1391,6 +1412,34 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="preset_moved_nodes">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.play.html#an.characters.play.preset_moved_nodes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">preset_moved_nodes</span><span class="p">(</span>
+    <span class="n">action_target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">animation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">parts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Every node path a preset play moves. ``parts`` (the entity's built part</span>
+<span class="sd">    paths, relative to it) is what a multi-node preset chooses its limbs from;</span>
+<span class="sd">    ``None`` lets it assume the rig contract's names.</span>
+
+<span class="sd">    &gt;&gt;&gt; preset_moved_nodes("bob", "walk", {"distance": 80}, parts=["torso", "left_leg", "right_leg"])</span>
+<span class="sd">    ['bob', 'bob/left_leg', 'bob/right_leg']</span>
+<span class="sd">    &gt;&gt;&gt; preset_moved_nodes("charlie", "nod")</span>
+<span class="sd">    ['charlie/head']</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
+
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">parts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">preset_takes</span><span class="p">(</span><span class="n">animation</span><span class="p">,</span> <span class="n">PARTS_ARG</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="n">PARTS_ARG</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">}</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">animation</span><span class="p">](</span><span class="n">action_target</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">tree</span><span class="p">)})</span></div>
+
+
+
 <div class="viewcode-block" id="expand_preset_play">
 <a class="viewcode-back" href="../../../_autosummary/an.characters.play.html#an.characters.play.expand_preset_play">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">expand_preset_play</span><span class="p">(</span>
@@ -1398,6 +1447,7 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">rest_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">parts_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""A preset ``play`` as the flat tweens and settling ``set``s it stands</span>
 <span class="sd">    for, at absolute times from ``start`` (an#166).</span>
@@ -1409,6 +1459,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    what the runtime would otherwise do mid-render. ``duration`` stretches the</span>
 <span class="sd">    move to that length; ``speed`` divides it. Assumes</span>
 <span class="sd">    :func:`preset_problems` came back empty.</span>
+
+<span class="sd">    A preset that moves several nodes of the entity (it takes ``parts``,</span>
+<span class="sd">    :data:`PARTS_ARG` — ``walk``) gets ``parts_of(entity)``'s paths with their</span>
+<span class="sd">    ``rest_of`` poses, and every node its expansion moves is checked.</span>
 
 <span class="sd">    &gt;&gt;&gt; from an.ir.schema import PlayAction</span>
 <span class="sd">    &gt;&gt;&gt; flats = expand_preset_play(</span>
@@ -1424,17 +1478,32 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">preset</span> <span class="o">=</span> <span class="n">_presets</span><span class="p">()[</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">]</span>
     <span class="n">args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{})</span>
-    <span class="n">node</span> <span class="o">=</span> <span class="n">preset_moved_node</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
-    <span class="n">rest</span> <span class="o">=</span> <span class="n">rest_of</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">rest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">PlayResolutionError</span><span class="p">(</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">unbuilt</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlayResolutionError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">PlayResolutionError</span><span class="p">(</span>
             <span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span>
             <span class="p">[</span>
                 <span class="sa">f</span><span class="s2">"motion preset </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="si">!r}</span><span class="s2"> on </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2"> moves "</span>
                 <span class="sa">f</span><span class="s2">"node </span><span class="si">{</span><span class="n">node</span><span class="si">!r}</span><span class="s2">, which the built scene does not carry"</span>
             <span class="p">],</span>
         <span class="p">)</span>
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">preset</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="n">rest</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+
+    <span class="n">node</span> <span class="o">=</span> <span class="n">preset_moved_node</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+    <span class="n">rest</span> <span class="o">=</span> <span class="n">rest_of</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">unbuilt</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">preset_takes</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span> <span class="n">PARTS_ARG</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">parts_of</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="si">}</span><span class="s2">/"</span>
+            <span class="n">args</span><span class="p">[</span><span class="n">PARTS_ARG</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">p</span><span class="p">:</span> <span class="n">rest_of</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">p</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts_of</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">preset</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="n">rest</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">moved</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">tree</span><span class="p">)}):</span>
+            <span class="k">if</span> <span class="n">rest_of</span><span class="p">(</span><span class="n">moved</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">unbuilt</span><span class="p">(</span><span class="n">moved</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">preset</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="n">rest</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
     <span class="n">natural</span> <span class="o">=</span> <span class="n">duration_of</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">natural</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">scale</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span> <span class="o">/</span> <span class="n">natural</span>
@@ -1968,6 +2037,8 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"play_problems"</span><span class="p">,</span>
     <span class="s2">"play_source"</span><span class="p">,</span>
     <span class="s2">"preset_moved_node"</span><span class="p">,</span>
+    <span class="s2">"preset_moved_nodes"</span><span class="p">,</span>
+    <span class="s2">"preset_takes"</span><span class="p">,</span>
     <span class="s2">"preset_play_span"</span><span class="p">,</span>
     <span class="s2">"preset_problems"</span><span class="p">,</span>
     <span class="s2">"primary_slot_per_bone"</span><span class="p">,</span>

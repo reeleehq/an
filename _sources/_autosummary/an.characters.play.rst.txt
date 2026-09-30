@@ -29,6 +29,8 @@ an.characters.play
       play_problems
       play_source
       preset_moved_node
+      preset_moved_nodes
+      preset_takes
       preset_play_span
       preset_problems
       primary_slot_per_bone

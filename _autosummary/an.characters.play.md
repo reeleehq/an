@@ -49,10 +49,10 @@ caller reads off the built scene and the timeline before the play (an#212),
 so an author never passes `rest`.
 
 ```pycon
->>> play_problems(desc, "walk")
-["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no
+>>> play_problems(desc, "moonwalk")
+["no animation 'moonwalk': the descriptor declares ['blink', 'idle_breath'] and no
   motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
-  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle'])"]
+  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle', 'walk'])"]
 >>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
 ('preset', 'preset', 'descriptor')
 ```
@@ -80,6 +80,8 @@ so an author never passes `rest`.
 | [`play_problems`](#an.characters.play.play_problems)(desc, animation, \*[, ...])        | Every reason `play(<entity>, animation, ...)` cannot resolve — empty when it can.                                                                                                                                                                                                                                                                                      |
 | [`play_source`](#an.characters.play.play_source)(desc, animation)                     | Which library a `play` of `animation` resolves in — [`DESCRIPTOR_SOURCE`](#an.characters.play.DESCRIPTOR_SOURCE) when `desc` declares it (the descriptor WINS a name a preset also has), else [`PRESET_SOURCE`](#an.characters.play.PRESET_SOURCE) when a motion preset has it.                                                                        |
 | [`preset_moved_node`](#an.characters.play.preset_moved_node)(action_target, animation)      | The ONE node path a preset play moves — `<target>/head` for a `nod`, the target itself for the rest.                                                                                                                                                                                                                                                                   |
+| [`preset_moved_nodes`](#an.characters.play.preset_moved_nodes)(action_target, animation)     | Every node path a preset play moves.                                                                                                                                                                                                                                                                                                                                   |
+| [`preset_takes`](#an.characters.play.preset_takes)(animation, name)                    | Whether the motion preset `animation` has the keyword `name`.                                                                                                                                                                                                                                                                                                          |
 | [`preset_play_span`](#an.characters.play.preset_play_span)(action)                         | How long a preset `play` runs, in seconds: its `duration` when set, else the preset's natural length divided by `speed`.                                                                                                                                                                                                                                               |
 | [`preset_problems`](#an.characters.play.preset_problems)(animation, \*[, args, ...])      | Why a `play` of the motion preset `animation` cannot expand.                                                                                                                                                                                                                                                                                                           |
 | [`primary_slot_per_bone`](#an.characters.play.primary_slot_per_bone)(desc)                      | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                                                                                                                                                            |
@@ -155,7 +157,7 @@ Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueEr
 
 A `play` that cannot resolve; `problems` lists every reason found.
 
-### an.characters.play.RESERVED_PRESET_ARGS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'rest', 'target'})*
+### an.characters.play.RESERVED_PRESET_ARGS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'parts', 'rest', 'target'})*
 
 the target is
 the play’s own, and the rest pose is read off the built scene.
@@ -244,7 +246,7 @@ The `(name, attachment)` a slot draws by default, or `None`.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Attachment`](an.characters.schema.md#an.characters.schema.Attachment)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.characters.play.expand_preset_play(action, , start, rest_of)
+### an.characters.play.expand_preset_play(action, , start, rest_of, parts_of=None)
 
 A preset `play` as the flat tweens and settling `set``s it stands
 for, at absolute times from ``start` (an#166).
@@ -256,6 +258,10 @@ built scene carries no such node — then this raises naming it, which is
 what the runtime would otherwise do mid-render. `duration` stretches the
 move to that length; `speed` divides it. Assumes
 [`preset_problems()`](#an.characters.play.preset_problems) came back empty.
+
+A preset that moves several nodes of the entity (it takes `parts`,
+`PARTS_ARG` — `walk`) gets `parts_of(entity)`’s paths with their
+`rest_of` poses, and every node its expansion moves is checked.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
@@ -333,6 +339,22 @@ restated per preset, so a preset added later needs no entry here.
 ('charlie/head', 'charlie')
 ```
 
+### an.characters.play.preset_moved_nodes(action_target, animation, args=None, , parts=None)
+
+Every node path a preset play moves. `parts` (the entity’s built part
+paths, relative to it) is what a multi-node preset chooses its limbs from;
+`None` lets it assume the rig contract’s names.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> preset_moved_nodes("bob", "walk", {"distance": 80}, parts=["torso", "left_leg", "right_leg"])
+['bob', 'bob/left_leg', 'bob/right_leg']
+>>> preset_moved_nodes("charlie", "nod")
+['charlie/head']
+```
+
 ### an.characters.play.preset_play_span(action)
 
 How long a preset `play` runs, in seconds: its `duration` when set,
@@ -361,6 +383,18 @@ building it (at the identity pose), so a value the preset itself refuses —
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.characters.play.preset_takes(animation, name)
+
+Whether the motion preset `animation` has the keyword `name`.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> preset_takes("walk", "parts"), preset_takes("hop", "parts")
+(True, False)
+```
 
 ### an.characters.play.primary_slot_per_bone(desc)
 

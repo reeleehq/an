@@ -31,4 +31,5 @@ an.motion
       squash_stretch
       turn
       waddle
+      walk
    
