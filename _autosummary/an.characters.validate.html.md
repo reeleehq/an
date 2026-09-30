@@ -22,6 +22,7 @@ that cannot land.
 
 | [`PROHIBITED_ELEMENTS`](#an.characters.validate.PROHIBITED_ELEMENTS)   | Elements an art package may not contain.                        |
 |------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`PART_SUFFIXES`](#an.characters.validate.PART_SUFFIXES)         | SVG, or raster with the suffixes `an.raster` reads (an#211).    |
 | [`DRAWABLE_ELEMENTS`](#an.characters.validate.DRAWABLE_ELEMENTS)     | Elements that put ink on the canvas.                            |
 | [`BLOCKING`](#an.characters.validate.BLOCKING)              | Severity for a problem that stops the part rendering correctly. |
 | [`ADVISORY`](#an.characters.validate.ADVISORY)              | Severity for a problem worth fixing that still renders.         |
@@ -46,7 +47,16 @@ Severity for a problem that stops the part rendering correctly.
 Elements that put ink on the canvas. A part containing none of these is
 blank, whatever else it contains.
 
-### an.characters.validate.PROHIBITED_ELEMENTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'foreignObject': 'embeds non-SVG content that most rasterisers drop', 'image': 'raster embed; inline it or ship it as its own part', 'script': 'executable content; a part is a drawing, not a program'}*
+### an.characters.validate.PART_SUFFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.svg', '.png', '.jpg', '.jpeg', '.webp')*
+
+SVG, or raster with the
+suffixes `an.raster` reads (an#211). Order is the lookup order for a
+required part, so an SVG wins when both exist.
+
+* **Type:**
+  The part file formats an art package may ship
+
+### an.characters.validate.PROHIBITED_ELEMENTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'foreignObject': 'embeds non-SVG content that most rasterisers drop', 'image': 'raster embed; ship the raster as its own part instead (parts/<name>.png, with alpha — an#211)', 'script': 'executable content; a part is a drawing, not a program'}*
 
 Elements an art package may not contain.
 

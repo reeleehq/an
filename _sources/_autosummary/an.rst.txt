@@ -71,6 +71,7 @@
    preview
    project
    props
+   raster
    render
    sounds
    stores

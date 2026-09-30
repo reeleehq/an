@@ -47,13 +47,18 @@ what keeps `an` from shipping unattributed work in the meantime.
 
 ### Module Attributes
 
-| [`ATTRIBUTION_REQUIRING_LICENSES`](#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES)   | Licence codes that oblige the *user of the output* to credit someone.   |
-|-----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`PRIVATE_STUDY`](#an.ir.assets.PRIVATE_STUDY)                  | The recognised code for material its owner has not licensed at all — frames or art carved out of a film, a show, a book — that a user may study privately but must not publish (an#211).   |
+|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PUBLIC_DOMAIN`](#an.ir.assets.PUBLIC_DOMAIN)                  | The recognised code for the public domain — no rights to clear, nothing owed (an#211).                                                                                                     |
+| [`LicenseClass`](#an.ir.assets.LicenseClass)                   | What a licence means for shipping the video it ends up in.                                                                                                                                 |
+| [`ATTRIBUTION_REQUIRING_LICENSES`](#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES) | Licence codes that oblige the *user of the output* to credit someone.                                                                                                                      |
 
 ### Functions
 
-| [`requires_attribution`](#an.ir.assets.requires_attribution)(source)   | Whether shipping this asset obliges the user to credit someone.   |
-|---------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| [`license_class`](#an.ir.assets.license_class)(source)        | What this asset's licence means for shipping the video (an#211).   |
+|-------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`normalise_license`](#an.ir.assets.normalise_license)(code)      | A licence code folded to lowercase words joined by `-`.            |
+| [`requires_attribution`](#an.ir.assets.requires_attribution)(source) | Whether shipping this asset obliges the user to credit someone.    |
 
 ### Classes
 
@@ -89,13 +94,75 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### an.ir.assets.LicenseClass
+
+What a licence means for shipping the video it ends up in.
+
+- `attribution` — shippable, with a credit that MUST be displayed;
+- `free` — shippable, nothing owed (public domain, CC0, MIT-shaped);
+- `private` — NOT shippable: all rights reserved, private study only;
+- `unknown` — not classified, which is not the same as free.
+
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘attribution’, ‘free’, ‘private’, ‘unknown’]
+
+### an.ir.assets.PRIVATE_STUDY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'all-rights-reserved-private-study'*
+
+The recognised code for material its owner has not licensed at all — frames
+or art carved out of a film, a show, a book — that a user may study
+privately but must not publish (an#211). Any code that normalises to one
+starting with `all-rights-reserved` or `private-study` is this class,
+so `"All rights reserved - private study only"` is recognised too.
+
+### an.ir.assets.PUBLIC_DOMAIN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'public-domain'*
+
+The recognised code for the public domain — no rights to clear, nothing
+owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
+`cc-pdm-1.0` and `cc0-*` are all this class.
+
+### an.ir.assets.license_class(source)
+
+What this asset’s licence means for shipping the video (an#211).
+
+* **Return type:**
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
+
+```pycon
+>>> license_class(AssetSource(provider="p", license="pd"))
+'free'
+>>> license_class(AssetSource(provider="p", license="all-rights-reserved"))
+'private'
+>>> license_class(AssetSource(provider="p", license="cc-by-4.0"))
+'attribution'
+>>> license_class(AssetSource(provider="p", license="bespoke"))
+'unknown'
+```
+
+### an.ir.assets.normalise_license(code)
+
+A licence code folded to lowercase words joined by `-`.
+
+Free text is what people actually write in a licence field, so the
+classifier reads through punctuation and spacing:
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> normalise_license("All rights reserved - private study only; never publish")
+'all-rights-reserved-private-study-only-never-publish'
+>>> normalise_license(" CC-BY-4.0 ")
+'cc-by-4-0'
+```
+
 ### an.ir.assets.requires_attribution(source)
 
 Whether shipping this asset obliges the user to credit someone.
 
 Returns `None` for an unrecognised or absent licence: “we do not know” is a
 distinct answer from “no”, and collapsing them is how an obligation gets
-silently dropped.
+silently dropped. Private-study material (all rights reserved) also answers
+`None` here — the question is not whom to credit but that it may not ship
+at all; [`license_class()`](#an.ir.assets.license_class) says so (`"private"`).
 
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)

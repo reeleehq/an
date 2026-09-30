@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.coarticulate" href="an.adapters.cutout.coarticulate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -424,6 +424,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -589,7 +590,7 @@ mall). It reads only.</p>
 <td><p>The <code class="code docutils literal notranslate"><span class="pre">assets.textures</span></code> <code class="code docutils literal notranslate"><span class="pre">src</span></code> prefix an environment plate is addressed under.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.compile.PLANE_FILL_SPAN" title="an.adapters.cutout.compile.PLANE_FILL_SPAN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PLANE_FILL_SPAN</span></code></a></p></td>
-<td><p>A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> plane with no declared size covers the canvas at any camera scale.</p></td>
+<td><p>A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> plane with no declared size covers the canvas at any camera scale — defined beside the schema (<code class="code docutils literal notranslate"><span class="pre">an.environments.PLANE_FILL_SPAN</span></code>) so the IR layer's framing check reads the same number, re-exported here.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.compile.FOREGROUND_SUFFIX" title="an.adapters.cutout.compile.FOREGROUND_SUFFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FOREGROUND_SUFFIX</span></code></a></p></td>
 <td><p>Suffix for the container holding an environment's FOREGROUND planes.</p></td>
@@ -791,9 +792,9 @@ the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal).</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.compile.PLANE_FILL_SPAN">
 <span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.compile.</span></span><span class="sig-name descname"><span class="pre">PLANE_FILL_SPAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4000.0</span></span><a class="headerlink" href="#an.adapters.cutout.compile.PLANE_FILL_SPAN" title="Link to this definition">#</a></dt>
-<dd><p>A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> plane with no declared size covers the canvas at any camera scale.
-The same 4000 the preset backdrop uses, and for the same reason — the runtime
-centres <code class="code docutils literal notranslate"><span class="pre">root</span></code> and applies camera scale, so a huge rect always covers.</p>
+<dd><p>A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> plane with no declared size covers the canvas at any camera scale
+— defined beside the schema (<code class="code docutils literal notranslate"><span class="pre">an.environments.PLANE_FILL_SPAN</span></code>) so the IR
+layer’s framing check reads the same number, re-exported here.</p>
 </dd></dl>
 
 <dl class="py data">

@@ -255,6 +255,16 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
+#### asset_geometry *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Per-texture geometry for a swap key drawn differently from the built
+one (an#211): `{asset_id: {"width", "height", "anchor_x", "anchor_y",
+"x", "y"}}` — the box the key is fitted into, its anchor, and its
+offset from the node (scene pixels). A swap used to carry the texture
+only, so every key drew in the DEFAULT attachment’s box: a closed mouth
+on a thin canvas squashed every open mouth to a fraction of a pixel. Only
+keys whose geometry differs are listed; `None` = every key shares it.
+
 #### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `"add"` for a

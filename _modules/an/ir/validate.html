@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1877,6 +1877,141 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_framing</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">stores</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Warn when a camera pose shows past the edge of the stage (an#211).</span>
+
+<span class="sd">    A close-up on a plate that only just fills the frame shows its edge — a</span>
+<span class="sd">    band of background colour, the top of a tree cut off — and renders</span>
+<span class="sd">    happily. The check is the compiler's geometry evaluated at every camera</span>
+<span class="sd">    key (or the resting frame when there is no move): the region the pose</span>
+<span class="sd">    frames (`an.environments.frame_rect`) against the union of every plane's</span>
+<span class="sd">    drawn rect with its parallax compensation at that pose</span>
+<span class="sd">    (`an.environments.plane_rect`).</span>
+
+<span class="sd">    **Keys suffice for a move without roll.** Between two keys x, y and zoom</span>
+<span class="sd">    share one eased parameter; a plane edge minus a frame edge is then a</span>
+<span class="sd">    linear term plus ``±canvas/(2·zoom)``, which is convex in it, so the</span>
+<span class="sd">    worst gap on each side is at a key. Two stated limits: an easing that</span>
+<span class="sd">    OVERSHOOTS (a cubic Bézier outside [0, 1]) can pass a key, and a gap</span>
+<span class="sd">    BETWEEN two plates crossed mid-move is seen only if a key frames it. A</span>
+<span class="sd">    rolling camera is checked at its keys, conservatively.</span>
+
+<span class="sd">    Silent — not "covered" — when it cannot know: no environments store, an</span>
+<span class="sd">    environment that is not a plane descriptor (a preset draws 4000-pixel</span>
+<span class="sd">    bands, which cover), a shot with no environment, or a plane whose drawn</span>
+<span class="sd">    size depends on art that cannot be measured.</span>
+<span class="sd">    """</span>
+    <span class="n">env_store</span> <span class="o">=</span> <span class="p">(</span><span class="n">stores</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"environments"</span><span class="p">)</span>
+    <span class="n">envs</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">env_store</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">envs</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">width</span> <span class="ow">and</span> <span class="n">height</span><span class="p">):</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
+        <span class="n">EnvironmentDescriptor</span><span class="p">,</span>
+        <span class="n">frame_rect</span><span class="p">,</span>
+        <span class="n">plane_rect</span><span class="p">,</span>
+        <span class="n">uncovered_part</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">planes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">env_store</span><span class="p">,</span> <span class="s2">"_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">envs</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">raw</span> <span class="o">=</span> <span class="n">env_store</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+            <span class="k">return</span>  <span class="c1"># a preset or the default backdrop: huge bands, covered</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span>
+        <span class="p">):</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">env</span> <span class="o">=</span> <span class="n">EnvironmentDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span>
+                <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span> <span class="n">kind</span><span class="o">=</span><span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — a malformed descriptor is another check's</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span><span class="p">:</span>
+            <span class="k">return</span>  <span class="c1"># compiles to the preset backdrop</span>
+        <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span><span class="p">:</span>
+            <span class="n">planes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">plane</span><span class="p">,</span> <span class="n">_plane_art_size</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span> <span class="n">plane</span><span class="p">)))</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="n">camera_keys</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">CameraError</span><span class="p">:</span>
+        <span class="k">return</span>  <span class="c1"># `_check_camera` reports it</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CameraKey</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">CameraKey</span><span class="p">()]</span>  <span class="c1"># no move: the resting frame</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="n">rects</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">plane_rect</span><span class="p">(</span><span class="n">plane</span><span class="p">,</span> <span class="n">art</span><span class="p">,</span> <span class="n">camera</span><span class="o">=</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">x</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">y</span><span class="p">)))</span>
+            <span class="k">for</span> <span class="n">plane</span><span class="p">,</span> <span class="n">art</span> <span class="ow">in</span> <span class="n">planes</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rects</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="n">frame_rect</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">x</span><span class="p">),</span>
+            <span class="n">y</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">y</span><span class="p">),</span>
+            <span class="n">zoom</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">zoom</span><span class="p">),</span>
+            <span class="n">rotation</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">rotation</span><span class="p">),</span>
+            <span class="n">width</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">),</span>
+            <span class="n">height</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">hole</span> <span class="o">=</span> <span class="n">uncovered_part</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="n">rects</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+        <span class="k">if</span> <span class="n">hole</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">sides</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">name</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">gap</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="p">(</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">hole</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">view</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="p">(</span><span class="s2">"top"</span><span class="p">,</span> <span class="n">hole</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">view</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                <span class="p">(</span><span class="s2">"right"</span><span class="p">,</span> <span class="n">hole</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">view</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                <span class="p">(</span><span class="s2">"bottom"</span><span class="p">,</span> <span class="n">hole</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">view</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">gap</span>
+        <span class="p">]</span>
+        <span class="n">pose</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the camera key at </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">at</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s (x </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">x</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"y </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">y</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, zoom </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">zoom</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">camera</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+            <span class="k">else</span> <span class="s2">"the resting frame"</span>
+        <span class="p">)</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/camera"</span> <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">camera</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pose</span><span class="si">}</span><span class="s2"> shows scene region "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_fmt_rect</span><span class="p">(</span><span class="n">view</span><span class="p">)</span><span class="si">}</span><span class="s2"> but the environment planes leave "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_fmt_rect</span><span class="p">(</span><span class="n">hole</span><span class="p">)</span><span class="si">}</span><span class="s2"> uncovered"</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" (the </span><span class="si">{</span><span class="s1">'/'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sides</span><span class="p">)</span><span class="si">}</span><span class="s2"> edge)"</span> <span class="k">if</span> <span class="n">sides</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">": the edge of the plate shows as background colour. Make the "</span>
+            <span class="s2">"plate bigger (`size`), move it (`offset`), or frame less."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span>  <span class="c1"># one finding per shot: the first pose that shows an edge</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_plane_art_size</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">plane</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The measured extent of an image plane's art, or ``None``."""</span>
+    <span class="k">if</span> <span class="n">plane</span><span class="o">.</span><span class="n">art</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"image"</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">plane</span><span class="o">.</span><span class="n">art</span><span class="o">.</span><span class="n">src</span> <span class="ow">or</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">art_size</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="nb">str</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span> <span class="o">/</span> <span class="n">plane</span><span class="o">.</span><span class="n">art</span><span class="o">.</span><span class="n">src</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fmt_rect</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s2">"x </span><span class="si">{:g}</span><span class="s2">..</span><span class="si">{:g}</span><span class="s2">, y </span><span class="si">{:g}</span><span class="s2">..</span><span class="si">{:g}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="nb">round</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">round</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_renderable</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">stores</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Report, at validate time, what compile and render will refuse.</span>
 
@@ -2127,6 +2262,14 @@ window.runMermaid = runMermaid;</script>
             <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/duration"</span><span class="p">,</span> <span class="s2">"shot duration must be &gt; 0"</span><span class="p">)</span>
 
         <span class="n">_check_renderable</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">stores</span><span class="o">=</span><span class="n">rig_stores</span><span class="p">)</span>
+        <span class="n">_check_framing</span><span class="p">(</span>
+            <span class="n">shot</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">,</span>
+            <span class="n">report</span><span class="p">,</span>
+            <span class="n">rig_stores</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">_check_swap_references</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span>
         <span class="n">turn_resolutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_turn_resolution</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">))</span>
         <span class="n">_check_turns</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">turn_resolutions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>

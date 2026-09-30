@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1978,8 +1978,9 @@ window.runMermaid = runMermaid;</script>
 <span class="p">}</span>
 
 <span class="c1">#: The head (skin) and hair of each non-front view, in the offline head's 80x80</span>
-<span class="c1">#: drawing — the SAME canvas as the front, because a swap carries texture only</span>
-<span class="c1">#: and is fitted into the front's box (an#87). ``{skin}``/``{hair}``/``{ink}``.</span>
+<span class="c1">#: drawing — the SAME canvas as the front, so a turn swaps texture only and</span>
+<span class="c1">#: emits no per-key geometry (an#87; a key on another canvas would carry its</span>
+<span class="c1">#: own box since an#211, but one canvas keeps the document unchanged). ``{skin}``/``{hair}``/``{ink}``.</span>
 <span class="c1">#: The ear is outlined in ink: skin on skin would not show.</span>
 <span class="n">_VIEW_HEAD_SVG</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="c1"># From behind: the hair covers the head down to the nape; the ears show.</span>

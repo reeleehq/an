@@ -9,6 +9,7 @@ an.characters.validate
    .. autosummary::
    
       PROHIBITED_ELEMENTS
+      PART_SUFFIXES
       DRAWABLE_ELEMENTS
       BLOCKING
       ADVISORY

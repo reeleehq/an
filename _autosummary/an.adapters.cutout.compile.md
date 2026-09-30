@@ -52,7 +52,7 @@ mall). It reads only.
 | [`DFLT_TARGET_SUGGESTIONS`](#an.adapters.cutout.compile.DFLT_TARGET_SUGGESTIONS)    | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                                                                                                              |
 | [`CAMERA_NODE`](#an.adapters.cutout.compile.CAMERA_NODE)                | indexed by the runtime, absent from the tree.                                                                                                                                                                                                                                                                |
 | [`ENVIRONMENT_ART_PREFIX`](#an.adapters.cutout.compile.ENVIRONMENT_ART_PREFIX)     | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                                                                                                                  |
-| [`PLANE_FILL_SPAN`](#an.adapters.cutout.compile.PLANE_FILL_SPAN)            | A `fill` plane with no declared size covers the canvas at any camera scale.                                                                                                                                                                                                                                  |
+| [`PLANE_FILL_SPAN`](#an.adapters.cutout.compile.PLANE_FILL_SPAN)            | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here.                                                                                          |
 | [`FOREGROUND_SUFFIX`](#an.adapters.cutout.compile.FOREGROUND_SUFFIX)          | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                                                                                                         |
 | [`SCENE_PX_PER_VIEW_BOX`](#an.adapters.cutout.compile.SCENE_PX_PER_VIEW_BOX)      | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                                                                                                         |
 | [`CONTAIN_FIT`](#an.adapters.cutout.compile.CONTAIN_FIT)                | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                |
@@ -187,9 +187,9 @@ the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal).
 
 ### an.adapters.cutout.compile.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
 
-A `fill` plane with no declared size covers the canvas at any camera scale.
-The same 4000 the preset backdrop uses, and for the same reason — the runtime
-centres `root` and applies camera scale, so a huge rect always covers.
+A `fill` plane with no declared size covers the canvas at any camera scale
+— defined beside the schema (`an.environments.PLANE_FILL_SPAN`) so the IR
+layer’s framing check reads the same number, re-exported here.
 
 ### an.adapters.cutout.compile.PROCEDURAL_MOUTH_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'H': 'H', 'X': 'X'}*
 

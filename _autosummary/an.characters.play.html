@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.mouth_set" href="an.characters.mouth_set.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -424,6 +424,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -562,8 +563,9 @@ to <a class="reference internal" href="an.motion.html#an.motion.PRESETS" title="
 ships its own <code class="docutils literal notranslate"><span class="pre">hop</span></code> means that one. <a class="reference internal" href="#an.characters.play.play_source" title="an.characters.play.play_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">play_source()</span></code></a> makes that call and
 <a class="reference internal" href="#an.characters.play.play_problems" title="an.characters.play.play_problems"><code class="xref py py-func docutils literal notranslate"><span class="pre">play_problems()</span></code></a> gives the whole verdict, for <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> and the
 compiler alike. A preset resolves to tweens, not a clip:
-<a class="reference internal" href="#an.characters.play.expand_preset_play" title="an.characters.play.expand_preset_play"><code class="xref py py-func docutils literal notranslate"><span class="pre">expand_preset_play()</span></code></a> builds them at the moved node’s REST pose, which
-the caller reads off the built scene, so an author never passes <code class="docutils literal notranslate"><span class="pre">rest</span></code>.</p>
+<a class="reference internal" href="#an.characters.play.expand_preset_play" title="an.characters.play.expand_preset_play"><code class="xref py py-func docutils literal notranslate"><span class="pre">expand_preset_play()</span></code></a> builds them at the moved node’s pose, which the
+caller reads off the built scene and the timeline before the play (an#212),
+so an author never passes <code class="docutils literal notranslate"><span class="pre">rest</span></code>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">play_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"walk"</span><span class="p">)</span>
 <span class="go">["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no</span>
 <span class="go">  motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',</span>
@@ -895,8 +897,9 @@ exactly as the rig builder’s part probe does.</p>
 <span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">expand_preset_play</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_of</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#expand_preset_play"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.expand_preset_play" title="Link to this definition">#</a></dt>
 <dd><p>A preset <code class="docutils literal notranslate"><span class="pre">play</span></code> as the flat tweens and settling <code class="docutils literal notranslate"><span class="pre">set``s</span> <span class="pre">it</span> <span class="pre">stands</span>
 <span class="pre">for,</span> <span class="pre">at</span> <span class="pre">absolute</span> <span class="pre">times</span> <span class="pre">from</span> <span class="pre">``start</span></code> (an#166).</p>
-<p><code class="docutils literal notranslate"><span class="pre">rest_of(node_path)</span></code> returns that node’s built rest pose (<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>,
-<code class="docutils literal notranslate"><span class="pre">rotation</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_y</span></code>, <code class="docutils literal notranslate"><span class="pre">alpha</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code> when the
+<p><code class="docutils literal notranslate"><span class="pre">rest_of(node_path)</span></code> returns the pose to build that node’s move from
+(<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">rotation</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_y</span></code>, <code class="docutils literal notranslate"><span class="pre">alpha</span></code> — the
+compiler passes the pose the node HAS at <code class="docutils literal notranslate"><span class="pre">start</span></code>, an#212), or <code class="docutils literal notranslate"><span class="pre">None</span></code> when the
 built scene carries no such node — then this raises naming it, which is
 what the runtime would otherwise do mid-render. <code class="docutils literal notranslate"><span class="pre">duration</span></code> stretches the
 move to that length; <code class="docutils literal notranslate"><span class="pre">speed</span></code> divides it. Assumes

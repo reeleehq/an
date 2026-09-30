@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -758,11 +758,62 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"AssetSource"</span><span class="p">,</span> <span class="s2">"ATTRIBUTION_REQUIRING_LICENSES"</span><span class="p">,</span> <span class="s2">"requires_attribution"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"AssetSource"</span><span class="p">,</span>
+    <span class="s2">"ATTRIBUTION_REQUIRING_LICENSES"</span><span class="p">,</span>
+    <span class="s2">"LicenseClass"</span><span class="p">,</span>
+    <span class="s2">"PRIVATE_STUDY"</span><span class="p">,</span>
+    <span class="s2">"PUBLIC_DOMAIN"</span><span class="p">,</span>
+    <span class="s2">"license_class"</span><span class="p">,</span>
+    <span class="s2">"normalise_license"</span><span class="p">,</span>
+    <span class="s2">"requires_attribution"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: The recognised code for material its owner has not licensed at all — frames</span>
+<span class="c1">#: or art carved out of a film, a show, a book — that a user may study</span>
+<span class="c1">#: privately but must not publish (an#211). Any code that normalises to one</span>
+<span class="c1">#: starting with ``all-rights-reserved`` or ``private-study`` is this class,</span>
+<span class="c1">#: so ``"All rights reserved - private study only"`` is recognised too.</span>
+<span class="n">PRIVATE_STUDY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"all-rights-reserved-private-study"</span>
+
+<span class="c1">#: The recognised code for the public domain — no rights to clear, nothing</span>
+<span class="c1">#: owed (an#211). ``pd``, ``pd-us``, ``pdm-1.0``, ``public-domain``,</span>
+<span class="c1">#: ``cc-pdm-1.0`` and ``cc0-*`` are all this class.</span>
+<span class="n">PUBLIC_DOMAIN</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"public-domain"</span>
+
+<span class="c1">#: What a licence means for shipping the video it ends up in.</span>
+<span class="c1">#:</span>
+<span class="c1">#: - ``attribution`` — shippable, with a credit that MUST be displayed;</span>
+<span class="c1">#: - ``free`` — shippable, nothing owed (public domain, CC0, MIT-shaped);</span>
+<span class="c1">#: - ``private`` — NOT shippable: all rights reserved, private study only;</span>
+<span class="c1">#: - ``unknown`` — not classified, which is not the same as free.</span>
+<span class="n">LicenseClass</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"attribution"</span><span class="p">,</span> <span class="s2">"free"</span><span class="p">,</span> <span class="s2">"private"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">]</span>
+
+<span class="c1">#: Normalised phrases that mean "all rights reserved" ANYWHERE in the code —</span>
+<span class="c1">#: "(c) Studio. All rights reserved" is the usual way it is written.</span>
+<span class="n">_PRIVATE_PHRASES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"all-rights-reserved"</span><span class="p">,</span> <span class="s2">"private-study"</span><span class="p">)</span>
+<span class="c1">#: …and whole normalised codes that mean it.</span>
+<span class="n">_PRIVATE_EXACT</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"arr"</span><span class="p">})</span>
+
+<span class="c1">#: Normalised codes that mean "no rights to clear", matched as whole leading</span>
+<span class="c1">#: WORDS (``code == w`` or ``code.startswith(w + "-")``), never as bare string</span>
+<span class="c1">#: prefixes — ``mitigated`` is not MIT.</span>
+<span class="n">_FREE_WORDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"cc0"</span><span class="p">,</span>
+    <span class="s2">"pd"</span><span class="p">,</span>
+    <span class="s2">"pdm"</span><span class="p">,</span>
+    <span class="s2">"publicdomain"</span><span class="p">,</span>
+    <span class="s2">"public-domain"</span><span class="p">,</span>
+    <span class="s2">"cc-pdm"</span><span class="p">,</span>
+    <span class="s2">"mit"</span><span class="p">,</span>
+    <span class="s2">"apache"</span><span class="p">,</span>
+    <span class="s2">"bsd"</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="c1">#: Licence codes that oblige the *user of the output* to credit someone.</span>
 <span class="c1">#:</span>
@@ -832,6 +883,51 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="normalise_license">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.assets.html#an.ir.assets.normalise_license">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalise_license</span><span class="p">(</span><span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A licence code folded to lowercase words joined by ``-``.</span>
+
+<span class="sd">    Free text is what people actually write in a licence field, so the</span>
+<span class="sd">    classifier reads through punctuation and spacing:</span>
+
+<span class="sd">    &gt;&gt;&gt; normalise_license("All rights reserved - private study only; never publish")</span>
+<span class="sd">    'all-rights-reserved-private-study-only-never-publish'</span>
+<span class="sd">    &gt;&gt;&gt; normalise_license(" CC-BY-4.0 ")</span>
+<span class="sd">    'cc-by-4-0'</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="s2">"-"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[a-z0-9]+"</span><span class="p">,</span> <span class="n">code</span><span class="o">.</span><span class="n">lower</span><span class="p">()))</span></div>
+
+
+
+<div class="viewcode-block" id="license_class">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.assets.html#an.ir.assets.license_class">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">license_class</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LicenseClass</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What this asset's licence means for shipping the video (an#211).</span>
+
+<span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="p", license="pd"))</span>
+<span class="sd">    'free'</span>
+<span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="p", license="all-rights-reserved"))</span>
+<span class="sd">    'private'</span>
+<span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="p", license="cc-by-4.0"))</span>
+<span class="sd">    'attribution'</span>
+<span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="p", license="bespoke"))</span>
+<span class="sd">    'unknown'</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"unknown"</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">ATTRIBUTION_REQUIRING_LICENSES</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"attribution"</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">normalise_license</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">_PRIVATE_EXACT</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span> <span class="ow">in</span> <span class="n">code</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_PRIVATE_PHRASES</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"private"</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">w</span> <span class="ow">or</span> <span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">w</span> <span class="o">+</span> <span class="s2">"-"</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">_FREE_WORDS</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"free"</span>
+    <span class="k">return</span> <span class="s2">"unknown"</span></div>
+
+
+
 <div class="viewcode-block" id="requires_attribution">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.assets.html#an.ir.assets.requires_attribution">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">requires_attribution</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -839,16 +935,11 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    Returns ``None`` for an unrecognised or absent licence: "we do not know" is a</span>
 <span class="sd">    distinct answer from "no", and collapsing them is how an obligation gets</span>
-<span class="sd">    silently dropped.</span>
+<span class="sd">    silently dropped. Private-study material (all rights reserved) also answers</span>
+<span class="sd">    ``None`` here — the question is not whom to credit but that it may not ship</span>
+<span class="sd">    at all; :func:`license_class` says so (``"private"``).</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="n">code</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">ATTRIBUTION_REQUIRING_LICENSES</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">True</span>
-    <span class="k">if</span> <span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"cc0"</span><span class="p">,</span> <span class="s2">"public-domain"</span><span class="p">,</span> <span class="s2">"mit"</span><span class="p">,</span> <span class="s2">"apache"</span><span class="p">,</span> <span class="s2">"bsd"</span><span class="p">)):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"attribution"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"free"</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">license_class</span><span class="p">(</span><span class="n">source</span><span class="p">))</span></div>
 
 </pre></div>
 

@@ -11,6 +11,7 @@ an.motion
       OVERSHOOT
       IDENTITY_POSE
       PRESETS
+      HOME_PRESETS
    
    .. rubric:: Functions
 

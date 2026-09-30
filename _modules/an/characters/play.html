@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -752,8 +752,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">ships its own ``hop`` means that one. :func:`play_source` makes that call and</span>
 <span class="sd">:func:`play_problems` gives the whole verdict, for ``an validate`` and the</span>
 <span class="sd">compiler alike. A preset resolves to tweens, not a clip:</span>
-<span class="sd">:func:`expand_preset_play` builds them at the moved node's REST pose, which</span>
-<span class="sd">the caller reads off the built scene, so an author never passes ``rest``.</span>
+<span class="sd">:func:`expand_preset_play` builds them at the moved node's pose, which the</span>
+<span class="sd">caller reads off the built scene and the timeline before the play (an#212),</span>
+<span class="sd">so an author never passes ``rest``.</span>
 
 <span class="sd">&gt;&gt;&gt; play_problems(desc, "walk")  # doctest: +NORMALIZE_WHITESPACE</span>
 <span class="sd">["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no</span>
@@ -1401,8 +1402,9 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""A preset ``play`` as the flat tweens and settling ``set``s it stands</span>
 <span class="sd">    for, at absolute times from ``start`` (an#166).</span>
 
-<span class="sd">    ``rest_of(node_path)`` returns that node's built rest pose (``x``, ``y``,</span>
-<span class="sd">    ``rotation``, ``scale_x``, ``scale_y``, ``alpha``), or ``None`` when the</span>
+<span class="sd">    ``rest_of(node_path)`` returns the pose to build that node's move from</span>
+<span class="sd">    (``x``, ``y``, ``rotation``, ``scale_x``, ``scale_y``, ``alpha`` — the</span>
+<span class="sd">    compiler passes the pose the node HAS at ``start``, an#212), or ``None`` when the</span>
 <span class="sd">    built scene carries no such node — then this raises naming it, which is</span>
 <span class="sd">    what the runtime would otherwise do mid-render. ``duration`` stretches the</span>
 <span class="sd">    move to that length; ``speed`` divides it. Assumes</span>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="API reference" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -424,6 +424,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1332,28 +1333,31 @@ always passes it).</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.props.html#module-an.props" title="an.props"><code class="xref py py-obj docutils literal notranslate"><span class="pre">props</span></code></a></p></td>
 <td><p>Props: a rig whose art is not a person.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.render.html#module-an.render" title="an.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.raster.html#module-an.raster" title="an.raster"><code class="xref py py-obj docutils literal notranslate"><span class="pre">raster</span></code></a></p></td>
+<td><p>Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.render.html#module-an.render" title="an.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
 <td><p>Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.sounds.html#module-an.sounds" title="an.sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.sounds.html#module-an.sounds" title="an.sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds</span></code></a></p></td>
 <td><p>Sound assets: what the sound layer plays, where it came from, and a synthesizer.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.html#module-an.stores" title="an.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stores.html#module-an.stores" title="an.stores"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stores</span></code></a></p></td>
 <td><p>Project mall: a dict of dol-backed <code class="code docutils literal notranslate"><span class="pre">MutableMapping</span></code> stores.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.styles.html#module-an.styles" title="an.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.styles.html#module-an.styles" title="an.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
 <td><p>StylePack: art direction as a document, and the first reader the styles store has had.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.text.html#module-an.text" title="an.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.text.html#module-an.text" title="an.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
 <td><p>Words on screen: title cards, labels, and text you can animate word by word.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.tools.html#module-an.tools" title="an.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.tools.html#module-an.tools" title="an.tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tools</span></code></a></p></td>
 <td><p>User-facing utility functions, plus the SSOT list for CLI dispatch.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.util.html#module-an.util" title="an.util"><code class="xref py py-obj docutils literal notranslate"><span class="pre">util</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.util.html#module-an.util" title="an.util"><code class="xref py py-obj docutils literal notranslate"><span class="pre">util</span></code></a></p></td>
 <td><p>Internal helpers: file I/O, hashing, time arithmetic, light path utilities.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.verify.html#module-an.verify" title="an.verify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.verify.html#module-an.verify" title="an.verify"><code class="xref py py-obj docutils literal notranslate"><span class="pre">verify</span></code></a></p></td>
 <td><p>Verification protocol — same interface for human, lint, vision-LM, MoVer.</p></td>
 </tr>
 </tbody>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1065,6 +1065,23 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_write_caption_sidecar</span><span class="p">(</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
     <span class="p">)</span>
+    <span class="c1"># Last, so it is the last word about the file (an#211): a render that used</span>
+    <span class="c1"># all-rights-reserved, private-study material must not read as shippable.</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">CreditsWarning</span><span class="p">,</span> <span class="n">credits_for_scene</span><span class="p">,</span> <span class="n">warn_if_private_study</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">credits_for_scene</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — never fail a finished render</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2"> was rendered, but its credits could not be checked "</span>
+            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); run `an credits` before sharing it."</span><span class="p">,</span>
+            <span class="n">CreditsWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">warn_if_private_study</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output_path</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">output_path</span></div>
 
 

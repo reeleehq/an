@@ -10,10 +10,18 @@ an.credits
    
       collect_credits
       credits_for_project
+      credits_for_scene
+      warn_if_private_study
    
    .. rubric:: Classes
 
    .. autosummary::
    
       CreditsReport
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      PrivateStudyWarning
    

@@ -47,8 +47,17 @@ that share a depth.
 
 ### Module Attributes
 
-| [`ENVIRONMENT_DOCUMENT_KIND`](#an.environments.ENVIRONMENT_DOCUMENT_KIND)   | Its own versioned document, registered from the module that owns the schema — the rule `CharacterDescriptor` and `PropDescriptor` both follow, and the reason the registry is keyed per KIND (an#77).   |
-|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PLANE_FILL_SPAN`](#an.environments.PLANE_FILL_SPAN)           | A `fill` plane with no declared size covers the canvas at any camera scale.                                                                                                                           |
+|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Rect`](#an.environments.Rect)                      | `(left, top, right, bottom)` in scene pixels, `y` down (the stage's axes).                                                                                                                            |
+| [`ENVIRONMENT_DOCUMENT_KIND`](#an.environments.ENVIRONMENT_DOCUMENT_KIND) | Its own versioned document, registered from the module that owns the schema — the rule `CharacterDescriptor` and `PropDescriptor` both follow, and the reason the registry is keyed per KIND (an#77). |
+
+### Functions
+
+| [`frame_rect`](#an.environments.frame_rect)(\*, x, y, zoom, rotation, width, ...)   | The scene region a camera pose shows: centred on the camera, the canvas divided by the zoom, grown to the axis-aligned box of a rolled frame — CONSERVATIVE under roll (the box contains corners the rotated frame does not show, so a plate that covers a rolled view can still be flagged).   |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`plane_rect`](#an.environments.plane_rect)(plane, art_size, \*[, camera])          | Where `plane` is drawn, in scene pixels, with the camera at `camera`.                                                                                                                                                                                                                           |
+| [`uncovered_part`](#an.environments.uncovered_part)(view, covers)                       | The bounding box of the part of `view` no rect in `covers` covers.                                                                                                                                                                                                                              |
 
 ### Classes
 
@@ -132,6 +141,14 @@ Where this art came from and what its licence obliges. Not decoration:
 environments art is the PR that closes that hole — otherwise
 `an credits` becomes an affirmative false statement about plates.
 
+### an.environments.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
+
+A `fill` plane with no declared size covers the canvas at any camera scale.
+The same 4000 the preset backdrop uses, and for the same reason — the runtime
+centres `root` and applies camera scale, so a huge rect always covers. Lives
+here (the schema) so the IR layer’s framing check and the compiler read one
+number; `an.adapters.cutout.compile` re-exports it.
+
 ### *class* an.environments.Plane(\*\*data)
 
 Bases: `BaseModel`
@@ -198,6 +215,16 @@ not vertically. `None` means `(depth, depth)`.
 #### size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `None` = the art’s own extent. A `fill` with no size covers the canvas.
+The box the art is fitted into, in scene pixels. **A declared size wins**
+(an#211); `None` = the art’s own extent — an SVG’s `width`/`height`, a
+raster’s pixel size. A `fill` with no size covers the canvas.
+
+#### source *: [AssetSource](an.ir.assets.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where THIS plane’s art came from, when it is not the environment’s —
+a composite stage of a carved plate and a CC0 prop credits both
+(an#211). `None` = the environment’s `source` covers it. Omitted from
+the stored document when unset.
 
 ### *class* an.environments.PlaneArt(\*\*data)
 
@@ -210,7 +237,12 @@ What a plane is made of.
 '#cfe9ff'
 >>> PlaneArt(kind="image", src="plates/forest.svg").src
 'plates/forest.svg'
+>>> PlaneArt(kind="image", src="plates/street.png").src
+'plates/street.png'
 ```
+
+An `image` is SVG or raster — PNG, JPEG or WebP (an#211): the compiler
+sizes it from its header and PixiJS loads it natively.
 
 Two kinds ship, and the omission is deliberate rather than partial:
 `gradient` and `generated` would each need a runtime that can draw them,
@@ -232,7 +264,73 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### src *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 a path under the environment’s own folder in the store,
-exactly as a character attachment’s `path` is.
+exactly as a character attachment’s `path` is — `.svg`, `.png`,
+`.jpg`/`.jpeg` or `.webp`.
 
 * **Type:**
   `image` only
+
+### an.environments.Rect
+
+`(left, top, right, bottom)` in scene pixels, `y` down (the stage’s axes).
+
+alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.environments.frame_rect(, x, y, zoom, rotation, width, height)
+
+The scene region a camera pose shows: centred on the camera, the canvas
+divided by the zoom, grown to the axis-aligned box of a rolled frame —
+CONSERVATIVE under roll (the box contains corners the rotated frame does
+not show, so a plate that covers a rolled view can still be flagged).
+
+`root.pivot` is the camera and `root.scale` the zoom, composed about the
+canvas centre, so a pose shows `camera ± canvas / (2 · zoom)`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> frame_rect(x=0, y=0, zoom=1.25, rotation=0, width=320, height=240)
+(-128.0, -96.0, 128.0, 96.0)
+```
+
+### an.environments.plane_rect(plane, art_size, , camera=(0.0, 0.0))
+
+Where `plane` is drawn, in scene pixels, with the camera at `camera`.
+
+The compiler’s own geometry, restated for a pre-flight: the box is the
+declared `size` or the art’s extent (`art_size`), the art is fitted into
+it by `fit`, placed by `anchor` at `offset`, and the plane’s parallax
+compensation moves it by `(1 − f) · camera` per axis. `None` when the
+extent cannot be known (an image whose art cannot be measured and whose
+`fit` makes the drawn size depend on it) — an unknown, not a hole.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"),
+...                  size=(100.0, 50.0), fit="stretch"), None)
+(-50.0, -25.0, 50.0, 25.0)
+>>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"), depth=0.0),
+...            (200.0, 100.0), camera=(40.0, 0.0))
+(-60.0, -50.0, 140.0, 50.0)
+```
+
+### an.environments.uncovered_part(view, covers)
+
+The bounding box of the part of `view` no rect in `covers` covers.
+
+`None` when the union covers the whole view. Exact for axis-aligned
+rects: the view is cut into cells at every cover edge, and a cell is
+covered or not as a whole.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> uncovered_part((0, 0, 10, 10), [(0, 0, 10, 8)])
+(0, 8, 10, 10)
+>>> uncovered_part((0, 0, 10, 10), [(0, 0, 6, 10), (5, 0, 10, 10)]) is None
+True
+```

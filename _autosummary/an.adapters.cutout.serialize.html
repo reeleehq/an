@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.runtime_files" href="an.adapters.cutout.runtime_files.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -424,6 +424,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1025,6 +1026,18 @@ may leave slack on one axis; that slack is the correct rendering, not a bug.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.VisualJSON.asset_geometry">
+<span class="sig-name descname"><span class="pre">asset_geometry</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.serialize.VisualJSON.asset_geometry" title="Link to this definition">#</a></dt>
+<dd><p>Per-texture geometry for a swap key drawn differently from the built
+one (an#211): <code class="docutils literal notranslate"><span class="pre">{asset_id:</span> <span class="pre">{&quot;width&quot;,</span> <span class="pre">&quot;height&quot;,</span> <span class="pre">&quot;anchor_x&quot;,</span> <span class="pre">&quot;anchor_y&quot;,</span>
+<span class="pre">&quot;x&quot;,</span> <span class="pre">&quot;y&quot;}}</span></code> — the box the key is fitted into, its anchor, and its
+offset from the node (scene pixels). A swap used to carry the texture
+only, so every key drew in the DEFAULT attachment’s box: a closed mouth
+on a thin canvas squashed every open mouth to a fraction of a pixel. Only
+keys whose geometry differs are listed; <code class="docutils literal notranslate"><span class="pre">None</span></code> = every key shares it.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.cutout.serialize.VisualJSON.blend">
 <span class="sig-name descname"><span class="pre">blend</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'add'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'multiply'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.serialize.VisualJSON.blend" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">&quot;add&quot;</span></code> for a
@@ -1214,6 +1227,7 @@ take them; the runtime refuses any other kind.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON"><code class="docutils literal notranslate"><span class="pre">VisualJSON</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.asset_geometry"><code class="docutils literal notranslate"><span class="pre">VisualJSON.asset_geometry</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.blend"><code class="docutils literal notranslate"><span class="pre">VisualJSON.blend</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.fit"><code class="docutils literal notranslate"><span class="pre">VisualJSON.fit</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.model_config"><code class="docutils literal notranslate"><span class="pre">VisualJSON.model_config</span></code></a></li>

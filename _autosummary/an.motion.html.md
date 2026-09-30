@@ -52,8 +52,11 @@ compiler’s own scene builder rather than restating its layout.
 
 **scene.md: play a preset by name** (an#166). `{kind: play, target:
 charlie, animation: hop, args: {height: 30}, start: 1.0}` expands to exactly
-this module’s tweens at compile, with the rest pose read off the built scene —
-no `rest=` — and `args` as the preset’s keyword arguments. A character
+this module’s tweens at compile, with `rest` the pose the node HAS at the
+play’s start — the built scene’s (stage placement, layout) overridden by the
+sets and tweens before it (an#212) — so no `rest=`, and a preset after a move
+starts where the move left it (an entrance in [`HOME_PRESETS`](#an.motion.HOME_PRESETS) lands on the
+built pose instead); `args` are the preset’s keyword arguments. A character
 descriptor animation of the same name WINS; `an validate` and the compiler
 decide both through [`an.characters.play.play_problems()`](an.characters.play.html.md#an.characters.play.play_problems). `duration`
 stretches the move and `speed` divides it; `loop` is refused. In a
@@ -68,6 +71,7 @@ length divided by `speed`, so two in a row run one after the other.
 |----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`IDENTITY_POSE`](#an.motion.IDENTITY_POSE) | `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.                                                                                                                                                         |
 | [`PRESETS`](#an.motion.PRESETS)       | Every preset by name — the one list the skill, the demo and the `play` fallback ([`an.characters.play.play_source()`](an.characters.play.html.md#an.characters.play.play_source), an#166) read. |
+| [`HOME_PRESETS`](#an.motion.HOME_PRESETS)  | Presets whose `rest` is the node's HOME — where an entrance LANDS — rather than where the node is when the move starts.                                                                                          |
 
 ### Functions
 
@@ -86,6 +90,14 @@ length divided by `speed`, so two in a row run one after the other.
 | [`squash_stretch`](#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
 | [`turn`](#an.motion.turn)(target, \*[, to, direction, ...])           | Turn a character to the view `to` — the classic cut-out turn (an#197).                                                                                                                                                                                                               |
 | [`waddle`](#an.motion.waddle)(target, \*[, steps, step_duration, ...])  | A walk cycle for a rig with no legs to animate: rock and bob per step.                                                                                                                                                                                                               |
+
+### an.motion.HOME_PRESETS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'pop_in', 'slide_in'})*
+
+Presets whose `rest` is the node’s HOME — where an entrance LANDS — rather
+than where the node is when the move starts. Played by name these read the
+BUILT pose (`slide_out` then `slide_in` comes back home; `pop_in` after a
+`set` of the scales to 0 grows to full size); every other preset moves
+relative to where the node IS at its start (an#212).
 
 ### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
 

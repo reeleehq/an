@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -747,6 +747,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">CharacterDescriptor</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.svg_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">SVG_NS</span><span class="p">,</span> <span class="n">extract_pivots</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">RASTER_SUFFIXES</span><span class="p">,</span> <span class="n">has_alpha</span><span class="p">,</span> <span class="n">image_size</span><span class="p">,</span> <span class="n">is_raster</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Finding</span><span class="p">,</span> <span class="n">VerificationReport</span>
 
 <span class="c1">#: Elements an art package may not contain.</span>
@@ -758,8 +759,16 @@ window.runMermaid = runMermaid;</script>
 <span class="n">PROHIBITED_ELEMENTS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"script"</span><span class="p">:</span> <span class="s2">"executable content; a part is a drawing, not a program"</span><span class="p">,</span>
     <span class="s2">"foreignObject"</span><span class="p">:</span> <span class="s2">"embeds non-SVG content that most rasterisers drop"</span><span class="p">,</span>
-    <span class="s2">"image"</span><span class="p">:</span> <span class="s2">"raster embed; inline it or ship it as its own part"</span><span class="p">,</span>
+    <span class="s2">"image"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"raster embed; ship the raster as its own part instead "</span>
+        <span class="s2">"(parts/&lt;name&gt;.png, with alpha — an#211)"</span>
+    <span class="p">),</span>
 <span class="p">}</span>
+
+<span class="c1">#: The part file formats an art package may ship: SVG, or raster with the</span>
+<span class="c1">#: suffixes `an.raster` reads (an#211). Order is the lookup order for a</span>
+<span class="c1">#: required part, so an SVG wins when both exist.</span>
+<span class="n">PART_SUFFIXES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">".svg"</span><span class="p">,</span> <span class="o">*</span><span class="n">RASTER_SUFFIXES</span><span class="p">)</span>
 
 <span class="c1">#: Elements that put ink on the canvas. A part containing none of these is</span>
 <span class="c1">#: blank, whatever else it contains.</span>
@@ -779,17 +788,85 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_iter_parts</span><span class="p">(</span><span class="n">char_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">"""``(relative name, path)`` for every part SVG an art package ships."""</span>
+<span class="w">    </span><span class="sd">"""``(relative name, path)`` for every part an art package ships — SVG or</span>
+<span class="sd">    raster (an#211)."""</span>
     <span class="n">parts</span> <span class="o">=</span> <span class="n">char_dir</span> <span class="o">/</span> <span class="s2">"parts"</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">parts</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
         <span class="k">return</span>
-    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*.svg"</span><span class="p">)):</span>
-        <span class="k">yield</span> <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">(),</span> <span class="n">path</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">parts</span><span class="o">.</span><span class="n">rglob</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">PART_SUFFIXES</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">path</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">(),</span> <span class="n">path</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_part_file</span><span class="p">(</span><span class="n">parts_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">stem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The file a part named ``stem`` ships as, in any accepted format."""</span>
+    <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="n">PART_SUFFIXES</span><span class="p">:</span>
+        <span class="n">candidate</span> <span class="o">=</span> <span class="n">parts_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">stem</span><span class="si">}{</span><span class="n">suffix</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">candidate</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_raster_part</span><span class="p">(</span><span class="n">rel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">VerificationReport</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A raster part (an#211): readable, transparent around the art, not blank.</span>
+
+<span class="sd">    The same three questions an SVG part answers, asked of pixels: can the</span>
+<span class="sd">    loader read it (BLOCKING — an unreadable texture fails the load), does it</span>
+<span class="sd">    draw anything (BLOCKING — a fully transparent part is the invisible-art</span>
+<span class="sd">    failure `DRAWABLE_ELEMENTS` exists for), and is it a cut-out at all</span>
+<span class="sd">    (ADVISORY — a part with no alpha draws its whole rectangle, background</span>
+<span class="sd">    included, which is legitimate for a plate and almost never for a limb).</span>
+<span class="sd">    """</span>
+    <span class="n">ir_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"parts/</span><span class="si">{</span><span class="n">rel</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">image_size</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">BLOCKING</span><span class="p">,</span>
+            <span class="n">ir_path</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">rel</span><span class="si">}</span><span class="s2"> is not a readable PNG/JPEG/WebP: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="s2">"Re-export it as a PNG with an alpha channel."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="n">has_alpha</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">alpha</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">ADVISORY</span><span class="p">,</span>
+            <span class="n">ir_path</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">rel</span><span class="si">}</span><span class="s2"> has no alpha channel, so it draws its whole rectangle — "</span>
+            <span class="s2">"background and all — over whatever is behind it"</span><span class="p">,</span>
+            <span class="s2">"Cut it out: export a PNG with a transparent background."</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">alpha</span> <span class="ow">and</span> <span class="n">_fully_transparent</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">BLOCKING</span><span class="p">,</span>
+            <span class="n">ir_path</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">rel</span><span class="si">}</span><span class="s2"> is fully transparent: it draws nothing"</span><span class="p">,</span>
+            <span class="s2">"Put the art in it, or delete the part and the slot that names it. "</span>
+            <span class="s2">"A blank part renders invisibly with no error anywhere."</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fully_transparent</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether every pixel's alpha is 0. ``False`` when it cannot be decoded</span>
+<span class="sd">    here (Pillow absent) — an unrun check is not a finding."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover — Pillow arrives with tituli</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">im</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">im</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGBA"</span><span class="p">)</span><span class="o">.</span><span class="n">getchannel</span><span class="p">(</span><span class="s2">"A"</span><span class="p">)</span><span class="o">.</span><span class="n">getbbox</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_part</span><span class="p">(</span><span class="n">rel</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">VerificationReport</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Open one part and report what would go wrong at render time."""</span>
     <span class="n">ir_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"parts/</span><span class="si">{</span><span class="n">rel</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="n">is_raster</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="n">_check_raster_part</span><span class="p">(</span><span class="n">rel</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
+        <span class="k">return</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
     <span class="k">except</span> <span class="n">ET</span><span class="o">.</span><span class="n">ParseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -928,7 +1005,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">parts_dir</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="s2">"parts"</span>
     <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">REQUIRED_PARTS</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">_part_file</span><span class="p">(</span><span class="n">parts_dir</span><span class="p">,</span> <span class="n">part</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                 <span class="n">BLOCKING</span><span class="p">,</span>
                 <span class="sa">f</span><span class="s2">"parts/</span><span class="si">{</span><span class="n">part</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">,</span>
@@ -936,7 +1013,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"Draw it, or drop the slot that names it from the descriptor."</span><span class="p">,</span>
             <span class="p">)</span>
     <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">MOUTH_SHAPES</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"mouth"</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"mouth_</span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">_part_file</span><span class="p">(</span><span class="n">parts_dir</span> <span class="o">/</span> <span class="s2">"mouth"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"mouth_</span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                 <span class="n">BLOCKING</span><span class="p">,</span>
                 <span class="sa">f</span><span class="s2">"parts/mouth/mouth_</span><span class="si">{</span><span class="n">shape</span><span class="si">}</span><span class="s2">.svg"</span><span class="p">,</span>
@@ -948,6 +1025,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">_check_part</span><span class="p">(</span><span class="n">rel</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
 
     <span class="n">_check_asset_sets</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
+    <span class="n">_check_raster_colour_roles</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
     <span class="n">_check_swap_poses</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
 
     <span class="n">_check_mouth_variants</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
@@ -988,11 +1066,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    - **A key whose attachment resolves but whose FILE is missing** —</span>
 <span class="sd">      ADVISORY, the inventory-gap class (`a rig without a blink still</span>
 <span class="sd">      renders`); it escalates only when a shot actually uses the key.</span>
-<span class="sd">    - **Attachments within one set+slot that declare differing geometry**</span>
-<span class="sd">      (anchor / offset / explicit box) — ADVISORY, because the swap carries</span>
-<span class="sd">      texture only: the node's transform and fit box are baked from the</span>
-<span class="sd">      default attachment, so a key drawn at a different anchor lands</span>
-<span class="sd">      somewhere its author did not put it.</span>
+
+<span class="sd">    Differing geometry between a set's keys is NOT a finding any more: each</span>
+<span class="sd">    key carries its own box, anchor and offset through to the runtime</span>
+<span class="sd">    (an#211). It used to be an advisory about DECLARED geometry only, which</span>
+<span class="sd">    missed the case that actually broke — keys drawn on canvases of different</span>
+<span class="sd">    sizes, fitted into the default key's box (a thin closed mouth squashed</span>
+<span class="sd">    every open mouth to a fraction of a pixel).</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">descriptor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
@@ -1059,26 +1139,28 @@ window.runMermaid = runMermaid;</script>
                         <span class="p">),</span>
                         <span class="s2">"Draw the file, or drop the key from the set."</span><span class="p">,</span>
                     <span class="p">)</span>
-        <span class="c1"># Geometry consistency, per slot the channel projects onto.</span>
-        <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">in_set</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">attachments</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">key_map</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">attachments</span>
-            <span class="p">]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">in_set</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">geometries</span> <span class="o">=</span> <span class="p">{(</span><span class="n">a</span><span class="o">.</span><span class="n">anchor</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">height</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">in_set</span><span class="p">}</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                    <span class="n">ADVISORY</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"character.json#asset_sets.</span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">'s </span><span class="si">{</span><span class="n">channel</span><span class="si">!r}</span><span class="s2"> set attachments in slot "</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slot_name</span><span class="si">!r}</span><span class="s2"> declare differing geometry "</span>
-                    <span class="s2">"(anchor/offset/box) — a swap carries texture only, so "</span>
-                    <span class="s2">"every key renders with the DEFAULT attachment's "</span>
-                    <span class="s2">"placement and fit box"</span><span class="p">,</span>
-                    <span class="s2">"Give the set's attachments identical geometry, or "</span>
-                    <span class="s2">"accept that per-key placement is not yet expressible."</span><span class="p">,</span>
-                <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_raster_colour_roles</span><span class="p">(</span>
+    <span class="n">descriptor</span><span class="p">:</span> <span class="n">CharacterDescriptor</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">VerificationReport</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">who</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A colour role on a raster part does nothing (an#211) — ADVISORY.</span>
+
+<span class="sd">    A StylePack recolours SVG art by rewriting the literals `colour_roles`</span>
+<span class="sd">    tags; a raster's colours are pixels, so the compiler skips the entry and</span>
+<span class="sd">    the part renders as drawn.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">descriptor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">rel_path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">descriptor</span><span class="o">.</span><span class="n">colour_roles</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">is_raster</span><span class="p">(</span><span class="n">rel_path</span><span class="p">):</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="n">ADVISORY</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"character.json#colour_roles.</span><span class="si">{</span><span class="n">rel_path</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2"> tags colour roles on </span><span class="si">{</span><span class="n">rel_path</span><span class="si">}</span><span class="s2">, a raster part — a style "</span>
+                <span class="s2">"pack cannot recolour pixels, so the roles do nothing"</span><span class="p">,</span>
+                <span class="s2">"Drop the entry, or ship that part as SVG if it must follow a pack."</span><span class="p">,</span>
+            <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_swap_poses</span><span class="p">(</span>
@@ -1275,8 +1357,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">pivots</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">extract_pivots</span><span class="p">(</span><span class="n">canonical</span><span class="p">))</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ParseError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
         <span class="k">return</span>
-    <span class="n">part_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">stem</span> <span class="k">for</span> <span class="n">stem</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">_iter_parts</span><span class="p">(</span><span class="n">directory</span><span class="p">)}</span>
-    <span class="n">part_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">".svg"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">part_ids</span><span class="p">}</span>
+    <span class="n">part_ids</span> <span class="o">=</span> <span class="p">{</span><span class="n">Path</span><span class="p">(</span><span class="n">rel</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span> <span class="k">for</span> <span class="n">rel</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">_iter_parts</span><span class="p">(</span><span class="n">directory</span><span class="p">)}</span>
     <span class="k">for</span> <span class="n">clash</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pivots</span> <span class="o">&amp;</span> <span class="n">part_ids</span><span class="p">):</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
             <span class="n">ADVISORY</span><span class="p">,</span>
@@ -1327,7 +1408,7 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"    &lt;name&gt;/"</span><span class="p">,</span>
         <span class="s2">"      character.json        the descriptor: bones, slots, skins, asset_sets"</span><span class="p">,</span>
         <span class="s2">"      &lt;name&gt;.svg            the canonical drawing, with a &lt;g id='skeleton'&gt;"</span><span class="p">,</span>
-        <span class="s2">"      parts/                one SVG per attachment"</span><span class="p">,</span>
+        <span class="s2">"      parts/                one SVG (or PNG) per attachment"</span><span class="p">,</span>
         <span class="s2">"        mouth/              the viseme set"</span><span class="p">,</span>
         <span class="s2">""</span><span class="p">,</span>
         <span class="s2">"## Coordinate space"</span><span class="p">,</span>
@@ -1380,6 +1461,26 @@ window.runMermaid = runMermaid;</script>
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">why</span> <span class="ow">in</span> <span class="n">PROHIBITED_ELEMENTS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      &lt;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&gt; — </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"## Raster parts"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"A part may instead be raster: "</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">RASTER_SUFFIXES</span><span class="p">)</span> <span class="o">+</span> <span class="s2">" (an#211) —"</span><span class="p">,</span>
+        <span class="s2">"art carved from a scan or a frame keeps its shading. Point the"</span><span class="p">,</span>
+        <span class="s2">"attachment's `path` at it (`parts/head.png`); a required part may ship"</span><span class="p">,</span>
+        <span class="s2">"in any of these formats. Every raster part"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"  - has an alpha channel (a PNG with transparency), or it draws its"</span><span class="p">,</span>
+        <span class="s2">"    whole rectangle, background and all"</span><span class="p">,</span>
+        <span class="s2">"  - draws something (not fully transparent)"</span><span class="p">,</span>
+        <span class="s2">"  - is drawn at its pixel size x the rig's one uniform scale, like an"</span><span class="p">,</span>
+        <span class="s2">"    SVG part at its width/height"</span><span class="p">,</span>
+        <span class="s2">"  - is NOT recoloured by a style pack (its colours are pixels); outline"</span><span class="p">,</span>
+        <span class="s2">"    and shadow treatments still apply"</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"Swap keys (visemes, eyelids, views) may be drawn on canvases of"</span><span class="p">,</span>
+        <span class="s2">"different sizes: each key is placed with its own box, anchor and offset."</span><span class="p">,</span>
+    <span class="p">]</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_VIEW</span><span class="p">,</span> <span class="n">VIEW_CHANNEL</span><span class="p">,</span> <span class="n">VIEWS</span>
 
     <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span>
@@ -1391,7 +1492,8 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"a negative scale_x mirrors it) and whose values are attachment names"</span><span class="p">,</span>
         <span class="s2">"carried by every slot whose art changes with the view (the head and"</span><span class="p">,</span>
         <span class="sa">f</span><span class="s2">"torso, typically; `</span><span class="si">{</span><span class="n">DFLT_VIEW</span><span class="si">}</span><span class="s2">` names the slot's default art). Draw each"</span><span class="p">,</span>
-        <span class="s2">"view on the SAME canvas as the default part: a swap carries texture only."</span><span class="p">,</span>
+        <span class="s2">"view on the same canvas as the default part where you can (a key on another"</span><span class="p">,</span>
+        <span class="s2">"canvas is placed by its own box, anchor and offset — an#211)."</span><span class="p">,</span>
         <span class="s2">"Then say what else each view does in `swap_poses` —"</span><span class="p">,</span>
         <span class="sa">f</span><span class="s1">'`</span><span class="se">{{</span><span class="s1">"</span><span class="si">{</span><span class="n">VIEW_CHANNEL</span><span class="si">}</span><span class="s1">": </span><span class="se">{{</span><span class="s1">"back": </span><span class="se">{{</span><span class="s1">"mouth": </span><span class="se">{{</span><span class="s1">"alpha": 0</span><span class="se">}}}}}}}}</span><span class="s1">`:'</span><span class="p">,</span>
         <span class="s2">"x/y offsets (view_box units), scale_x/scale_y/alpha factors, per slot."</span><span class="p">,</span>

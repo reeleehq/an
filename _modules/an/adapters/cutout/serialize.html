@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -901,10 +901,18 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: glow, ``"multiply"`` for the paper grain. PixiJS 7 does both in the</span>
     <span class="c1">#: blend equation — no filter, no render texture. ``None`` = normal.</span>
     <span class="n">blend</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"add"</span><span class="p">,</span> <span class="s2">"multiply"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: Per-texture geometry for a swap key drawn differently from the built</span>
+    <span class="c1">#: one (an#211): ``{asset_id: {"width", "height", "anchor_x", "anchor_y",</span>
+    <span class="c1">#: "x", "y"}}`` — the box the key is fitted into, its anchor, and its</span>
+    <span class="c1">#: offset from the node (scene pixels). A swap used to carry the texture</span>
+    <span class="c1">#: only, so every key drew in the DEFAULT attachment's box: a closed mouth</span>
+    <span class="c1">#: on a thin canvas squashed every open mouth to a fraction of a pixel. Only</span>
+    <span class="c1">#: keys whose geometry differs are listed; ``None`` = every key shares it.</span>
+    <span class="n">asset_geometry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Serialize ``path: null`` (and ``underlays``/``blend``) out of existence.</span>
+<span class="w">        </span><span class="sd">"""Serialize ``path: null`` (and ``underlays``/``blend``/``asset_geometry``) out of existence.</span>
 
 <span class="sd">        Written in the same commit as each field (the an#112 rule): `to_dict`</span>
 <span class="sd">        prunes no `None`s and the bench's scene contract hashes the whole</span>
@@ -913,7 +921,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        """</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"path"</span><span class="p">,</span> <span class="s2">"underlays"</span><span class="p">,</span> <span class="s2">"blend"</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"path"</span><span class="p">,</span> <span class="s2">"underlays"</span><span class="p">,</span> <span class="s2">"blend"</span><span class="p">,</span> <span class="s2">"asset_geometry"</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>

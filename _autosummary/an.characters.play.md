@@ -44,8 +44,9 @@ to [`an.motion.PRESETS`](an.motion.md#an.motion.PRESETS). The DESCRIPTOR WINS a 
 ships its own `hop` means that one. [`play_source()`](#an.characters.play.play_source) makes that call and
 [`play_problems()`](#an.characters.play.play_problems) gives the whole verdict, for `an validate` and the
 compiler alike. A preset resolves to tweens, not a clip:
-[`expand_preset_play()`](#an.characters.play.expand_preset_play) builds them at the moved node’s REST pose, which
-the caller reads off the built scene, so an author never passes `rest`.
+[`expand_preset_play()`](#an.characters.play.expand_preset_play) builds them at the moved node’s pose, which the
+caller reads off the built scene and the timeline before the play (an#212),
+so an author never passes `rest`.
 
 ```pycon
 >>> play_problems(desc, "walk")
@@ -248,8 +249,9 @@ The `(name, attachment)` a slot draws by default, or `None`.
 A preset `play` as the flat tweens and settling `set``s it stands
 for, at absolute times from ``start` (an#166).
 
-`rest_of(node_path)` returns that node’s built rest pose (`x`, `y`,
-`rotation`, `scale_x`, `scale_y`, `alpha`), or `None` when the
+`rest_of(node_path)` returns the pose to build that node’s move from
+(`x`, `y`, `rotation`, `scale_x`, `scale_y`, `alpha` — the
+compiler passes the pose the node HAS at `start`, an#212), or `None` when the
 built scene carries no such node — then this raises naming it, which is
 what the runtime would otherwise do mid-render. `duration` stretches the
 move to that length; `speed` divides it. Assumes

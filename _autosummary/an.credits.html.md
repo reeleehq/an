@@ -11,23 +11,38 @@ So this module walks a project’s reachable assets and answers three questions 
 user actually has:
 
 - what third-party work is in this video?
+- may I ship it at all? (an#211 — material that is all rights reserved, used
+  for private study only, is recognised and said LOUDLY: the report opens with
+  it, and a render that uses it ends with a warning that it is not
+  publishable);
 - what must I display, verbatim, to ship it?
 - is anything in here unverified?
 
-The third is the one that matters most and is easiest to lose. An asset with no
+The last is the one that matters most and is easiest to lose. An asset with no
 licence is reported as **UNKNOWN**, never as “nothing owed”: those are different
 answers, and collapsing them is exactly how an obligation goes missing.
 
+Public domain (`pd`, `public-domain`, `cc-pdm-1.0`, `cc0-*`) is recognised as
+nothing owed, and an environment’s planes may each carry their own `source`,
+so a composite stage — a carved plate plus a CC0 prop — credits both.
+
 ### Functions
 
-| [`collect_credits`](#an.credits.collect_credits)(mall)            | Walk a project mall and gather every recorded `AssetSource`.   |
-|-----------------------------------------------------------------------------------|----------------------------------------------------------------|
-| [`credits_for_project`](#an.credits.credits_for_project)(project_dir) | Credits for the project at `project_dir`.                      |
+| [`collect_credits`](#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.    |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`credits_for_project`](#an.credits.credits_for_project)(project_dir)            | Credits for the project at `project_dir`.                       |
+| [`credits_for_scene`](#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211). |
+| [`warn_if_private_study`](#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.       |
 
 ### Classes
 
 | [`CreditsReport`](#an.credits.CreditsReport)([entries])   | Everything a project owes, split by whether we actually know.   |
 |-----------------------------------------------------------------------------|-----------------------------------------------------------------|
+
+### Exceptions
+
+| [`PrivateStudyWarning`](#an.credits.PrivateStudyWarning)   | A render used material that is all rights reserved, private study only.   |
+|------------------------------------------------------------------------|---------------------------------------------------------------------------|
 
 ### *class* an.credits.CreditsReport(entries=<factory>)
 
@@ -46,6 +61,19 @@ Human-readable, and honest about what it does not know.
 
 Entries that definitely require an attribution.
 
+#### *property* private *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
+
+all rights reserved, private
+study only (an#211). A video containing any of them is not shippable,
+whatever else it credits.
+
+* **Type:**
+  Entries that may NOT be published
+
+#### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+`False` when any entry is private-study material.
+
 #### *property* unverified *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
 Entries whose licence we could not classify.
@@ -55,9 +83,21 @@ them in cries wolf; folding them into “nothing owed” hides a real
 obligation. Neither is honest, so they are counted separately — the same
 reason `priv`’s upkeep keeps `unavailable` apart from `findings`.
 
-### an.credits.collect_credits(mall)
+### *exception* an.credits.PrivateStudyWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A render used material that is all rights reserved, private study only.
+
+Raised as a warning at the END of a render (an#211), so the last thing the
+author reads about the mp4 is that it must not be published.
+
+### an.credits.collect_credits(mall, , only=None)
 
 Walk a project mall and gather every recorded `AssetSource`.
+
+`only` restricts the walk to those `store/key` names (what a render
+used, [`credits_for_scene()`](#an.credits.credits_for_scene)) — nothing else is read.
 
 Four stores carry provenance: characters, **props** (an#108),
 **environments** (an#110) and **sounds**. Each was added by the PR that gave that store
@@ -80,3 +120,25 @@ Credits for the project at `project_dir`.
 
 * **Return type:**
   [`CreditsReport`](#an.credits.CreditsReport)
+
+### an.credits.credits_for_scene(mall, scene)
+
+Credits for exactly the assets `scene` draws or plays (an#211).
+
+[`collect_credits()`](#an.credits.collect_credits) walks the whole project; a render owes only what it
+used, and a private-study plate sitting unused in the store must not make
+an unrelated render “not publishable”. Kept: every entry under a
+`store/ref` some shot’s entity names, and every sound a cue names.
+
+* **Return type:**
+  [`CreditsReport`](#an.credits.CreditsReport)
+
+### an.credits.warn_if_private_study(report, , output=None)
+
+Warn, loudly, when `report` holds private-study material.
+
+Returns whether it warned. Called at the end of a render, so the warning is
+the last word about the file; `output` names it.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.conftest" href="an.conftest.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -424,6 +424,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -527,20 +528,33 @@ displayed is not compliance** — it is a note to oneself.</p>
 user actually has:</p>
 <ul class="simple">
 <li><p>what third-party work is in this video?</p></li>
+<li><p>may I ship it at all? (an#211 — material that is all rights reserved, used
+for private study only, is recognised and said LOUDLY: the report opens with
+it, and a render that uses it ends with a warning that it is not
+publishable);</p></li>
 <li><p>what must I display, verbatim, to ship it?</p></li>
 <li><p>is anything in here unverified?</p></li>
 </ul>
-<p>The third is the one that matters most and is easiest to lose. An asset with no
+<p>The last is the one that matters most and is easiest to lose. An asset with no
 licence is reported as <strong>UNKNOWN</strong>, never as “nothing owed”: those are different
 answers, and collapsing them is exactly how an obligation goes missing.</p>
+<p>Public domain (<code class="code docutils literal notranslate"><span class="pre">pd</span></code>, <code class="code docutils literal notranslate"><span class="pre">public-domain</span></code>, <code class="code docutils literal notranslate"><span class="pre">cc-pdm-1.0</span></code>, <code class="code docutils literal notranslate"><span class="pre">cc0-*</span></code>) is recognised as
+nothing owed, and an environment’s planes may each carry their own <code class="code docutils literal notranslate"><span class="pre">source</span></code>,
+so a composite stage — a carved plate plus a CC0 prop — credits both.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.credits.collect_credits" title="an.credits.collect_credits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collect_credits</span></code></a>(mall)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.credits.collect_credits" title="an.credits.collect_credits"><code class="xref py py-obj docutils literal notranslate"><span class="pre">collect_credits</span></code></a>(mall, *[, only])</p></td>
 <td><p>Walk a project mall and gather every recorded <code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.credits.credits_for_project" title="an.credits.credits_for_project"><code class="xref py py-obj docutils literal notranslate"><span class="pre">credits_for_project</span></code></a>(project_dir)</p></td>
 <td><p>Credits for the project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.credits.credits_for_scene" title="an.credits.credits_for_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">credits_for_scene</span></code></a>(mall, scene)</p></td>
+<td><p>Credits for exactly the assets <code class="docutils literal notranslate"><span class="pre">scene</span></code> draws or plays (an#211).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.credits.warn_if_private_study" title="an.credits.warn_if_private_study"><code class="xref py py-obj docutils literal notranslate"><span class="pre">warn_if_private_study</span></code></a>(report, *[, output])</p></td>
+<td><p>Warn, loudly, when <code class="docutils literal notranslate"><span class="pre">report</span></code> holds private-study material.</p></td>
 </tr>
 </tbody>
 </table>
@@ -550,6 +564,15 @@ answers, and collapsing them is exactly how an obligation goes missing.</p>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.credits.CreditsReport" title="an.credits.CreditsReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CreditsReport</span></code></a>([entries])</p></td>
 <td><p>Everything a project owes, split by whether we actually know.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.credits.PrivateStudyWarning" title="an.credits.PrivateStudyWarning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PrivateStudyWarning</span></code></a></p></td>
+<td><p>A render used material that is all rights reserved, private study only.</p></td>
 </tr>
 </tbody>
 </table>
@@ -579,6 +602,25 @@ answers, and collapsing them is exactly how an obligation goes missing.</p>
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="an.credits.CreditsReport.private">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">private</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">CreditEntry</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.credits.CreditsReport.private" title="Link to this definition">#</a></dt>
+<dd><p>all rights reserved, private
+study only (an#211). A video containing any of them is not shippable,
+whatever else it credits.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Entries that may NOT be published</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="an.credits.CreditsReport.publishable">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">publishable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#an.credits.CreditsReport.publishable" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">False</span></code> when any entry is private-study material.</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="an.credits.CreditsReport.unverified">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">unverified</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">CreditEntry</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.credits.CreditsReport.unverified" title="Link to this definition">#</a></dt>
 <dd><p>Entries whose licence we could not classify.</p>
@@ -590,10 +632,21 @@ reason <code class="code docutils literal notranslate"><span class="pre">priv</s
 
 </dd></dl>
 
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.credits.PrivateStudyWarning">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">PrivateStudyWarning</span></span><a class="reference internal" href="../_modules/an/credits.html#PrivateStudyWarning"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.PrivateStudyWarning" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#UserWarning" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">UserWarning</span></code></a></p>
+<p>A render used material that is all rights reserved, private study only.</p>
+<p>Raised as a warning at the END of a render (an#211), so the last thing the
+author reads about the mp4 is that it must not be published.</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="an.credits.collect_credits">
-<span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">collect_credits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#collect_credits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.collect_credits" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">collect_credits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#collect_credits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.collect_credits" title="Link to this definition">#</a></dt>
 <dd><p>Walk a project mall and gather every recorded <code class="xref py py-class docutils literal notranslate"><span class="pre">AssetSource</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">only</span></code> restricts the walk to those <code class="docutils literal notranslate"><span class="pre">store/key</span></code> names (what a render
+used, <a class="reference internal" href="#an.credits.credits_for_scene" title="an.credits.credits_for_scene"><code class="xref py py-func docutils literal notranslate"><span class="pre">credits_for_scene()</span></code></a>) — nothing else is read.</p>
 <p>Four stores carry provenance: characters, <strong>props</strong> (an#108),
 <strong>environments</strong> (an#110) and <strong>sounds</strong>. Each was added by the PR that gave that store
 real art, which is the rule rather than a coincidence — a walk that skips a
@@ -618,6 +671,34 @@ record from <code class="code docutils literal notranslate"><span class="pre">me
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.credits.CreditsReport" title="an.credits.CreditsReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">CreditsReport</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.credits.credits_for_scene">
+<span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">credits_for_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#credits_for_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.credits_for_scene" title="Link to this definition">#</a></dt>
+<dd><p>Credits for exactly the assets <code class="docutils literal notranslate"><span class="pre">scene</span></code> draws or plays (an#211).</p>
+<p><a class="reference internal" href="#an.credits.collect_credits" title="an.credits.collect_credits"><code class="xref py py-func docutils literal notranslate"><span class="pre">collect_credits()</span></code></a> walks the whole project; a render owes only what it
+used, and a private-study plate sitting unused in the store must not make
+an unrelated render “not publishable”. Kept: every entry under a
+<code class="docutils literal notranslate"><span class="pre">store/ref</span></code> some shot’s entity names, and every sound a cue names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.credits.CreditsReport" title="an.credits.CreditsReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">CreditsReport</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.credits.warn_if_private_study">
+<span class="sig-prename descclassname"><span class="pre">an.credits.</span></span><span class="sig-name descname"><span class="pre">warn_if_private_study</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">report</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/credits.html#warn_if_private_study"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.credits.warn_if_private_study" title="Link to this definition">#</a></dt>
+<dd><p>Warn, loudly, when <code class="docutils literal notranslate"><span class="pre">report</span></code> holds private-study material.</p>
+<p>Returns whether it warned. Called at the end of a render, so the warning is
+the last word about the file; <code class="docutils literal notranslate"><span class="pre">output</span></code> names it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -674,11 +755,16 @@ record from <code class="code docutils literal notranslate"><span class="pre">me
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.CreditsReport"><code class="docutils literal notranslate"><span class="pre">CreditsReport</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.CreditsReport.format"><code class="docutils literal notranslate"><span class="pre">CreditsReport.format()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.CreditsReport.owed"><code class="docutils literal notranslate"><span class="pre">CreditsReport.owed</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.CreditsReport.private"><code class="docutils literal notranslate"><span class="pre">CreditsReport.private</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.CreditsReport.publishable"><code class="docutils literal notranslate"><span class="pre">CreditsReport.publishable</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.CreditsReport.unverified"><code class="docutils literal notranslate"><span class="pre">CreditsReport.unverified</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.PrivateStudyWarning"><code class="docutils literal notranslate"><span class="pre">PrivateStudyWarning</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.collect_credits"><code class="docutils literal notranslate"><span class="pre">collect_credits()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.credits_for_project"><code class="docutils literal notranslate"><span class="pre">credits_for_project()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.credits_for_scene"><code class="docutils literal notranslate"><span class="pre">credits_for_scene()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.credits.warn_if_private_study"><code class="docutils literal notranslate"><span class="pre">warn_if_private_study()</span></code></a></li>
 </ul>
   </nav></div>
 

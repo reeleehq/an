@@ -8,12 +8,17 @@ an.ir.assets
 
    .. autosummary::
    
+      PRIVATE_STUDY
+      PUBLIC_DOMAIN
+      LicenseClass
       ATTRIBUTION_REQUIRING_LICENSES
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      license_class
+      normalise_license
       requires_attribution
    
    .. rubric:: Classes

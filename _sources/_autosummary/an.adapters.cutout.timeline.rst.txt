@@ -14,6 +14,7 @@ an.adapters.cutout.timeline
 
    .. autosummary::
    
+      clip_from_json
       evaluate_timeline
       screen_position
       timeline_from_scene

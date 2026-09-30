@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.live_api" href="an.live_api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -424,6 +424,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -564,8 +565,11 @@ wants <code class="docutils literal notranslate"><span class="pre">rest=rest_pos
 compiler’s own scene builder rather than restating its layout.</p>
 <p><strong>scene.md: play a preset by name</strong> (an#166). <code class="docutils literal notranslate"><span class="pre">{kind:</span> <span class="pre">play,</span> <span class="pre">target:</span>
 <span class="pre">charlie,</span> <span class="pre">animation:</span> <span class="pre">hop,</span> <span class="pre">args:</span> <span class="pre">{height:</span> <span class="pre">30},</span> <span class="pre">start:</span> <span class="pre">1.0}</span></code> expands to exactly
-this module’s tweens at compile, with the rest pose read off the built scene —
-no <code class="docutils literal notranslate"><span class="pre">rest=</span></code> — and <code class="docutils literal notranslate"><span class="pre">args</span></code> as the preset’s keyword arguments. A character
+this module’s tweens at compile, with <code class="docutils literal notranslate"><span class="pre">rest</span></code> the pose the node HAS at the
+play’s start — the built scene’s (stage placement, layout) overridden by the
+sets and tweens before it (an#212) — so no <code class="docutils literal notranslate"><span class="pre">rest=</span></code>, and a preset after a move
+starts where the move left it (an entrance in <a class="reference internal" href="#an.motion.HOME_PRESETS" title="an.motion.HOME_PRESETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">HOME_PRESETS</span></code></a> lands on the
+built pose instead); <code class="docutils literal notranslate"><span class="pre">args</span></code> are the preset’s keyword arguments. A character
 descriptor animation of the same name WINS; <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> and the compiler
 decide both through <a class="reference internal" href="an.characters.play.html#an.characters.play.play_problems" title="an.characters.play.play_problems"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.characters.play.play_problems()</span></code></a>. <code class="docutils literal notranslate"><span class="pre">duration</span></code>
 stretches the move and <code class="docutils literal notranslate"><span class="pre">speed</span></code> divides it; <code class="docutils literal notranslate"><span class="pre">loop</span></code> is refused. In a
@@ -584,6 +588,9 @@ length divided by <code class="docutils literal notranslate"><span class="pre">s
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.motion.PRESETS" title="an.motion.PRESETS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PRESETS</span></code></a></p></td>
 <td><p>Every preset by name — the one list the skill, the demo and the <code class="docutils literal notranslate"><span class="pre">play</span></code> fallback (<a class="reference internal" href="an.characters.play.html#an.characters.play.play_source" title="an.characters.play.play_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.characters.play.play_source()</span></code></a>, an#166) read.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.motion.HOME_PRESETS" title="an.motion.HOME_PRESETS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HOME_PRESETS</span></code></a></p></td>
+<td><p>Presets whose <code class="docutils literal notranslate"><span class="pre">rest</span></code> is the node's HOME — where an entrance LANDS — rather than where the node is when the move starts.</p></td>
 </tr>
 </tbody>
 </table>
@@ -636,6 +643,16 @@ length divided by <code class="docutils literal notranslate"><span class="pre">s
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.motion.HOME_PRESETS">
+<span class="sig-prename descclassname"><span class="pre">an.motion.</span></span><span class="sig-name descname"><span class="pre">HOME_PRESETS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'pop_in',</span> <span class="pre">'slide_in'})</span></span><a class="headerlink" href="#an.motion.HOME_PRESETS" title="Link to this definition">#</a></dt>
+<dd><p>Presets whose <code class="docutils literal notranslate"><span class="pre">rest</span></code> is the node’s HOME — where an entrance LANDS — rather
+than where the node is when the move starts. Played by name these read the
+BUILT pose (<code class="docutils literal notranslate"><span class="pre">slide_out</span></code> then <code class="docutils literal notranslate"><span class="pre">slide_in</span></code> comes back home; <code class="docutils literal notranslate"><span class="pre">pop_in</span></code> after a
+<code class="docutils literal notranslate"><span class="pre">set</span></code> of the scales to 0 grows to full size); every other preset moves
+relative to where the node IS at its start (an#212).</p>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.motion.IDENTITY_POSE">
 <span class="sig-prename descclassname"><span class="pre">an.motion.</span></span><span class="sig-name descname"><span class="pre">IDENTITY_POSE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'alpha':</span> <span class="pre">1.0,</span> <span class="pre">'rotation':</span> <span class="pre">0.0,</span> <span class="pre">'scale_x':</span> <span class="pre">1.0,</span> <span class="pre">'scale_y':</span> <span class="pre">1.0,</span> <span class="pre">'x':</span> <span class="pre">0.0,</span> <span class="pre">'y':</span> <span class="pre">0.0}</span></span><a class="headerlink" href="#an.motion.IDENTITY_POSE" title="Link to this definition">#</a></dt>
@@ -987,6 +1004,7 @@ so it is the one that needs <code class="docutils literal notranslate"><span cla
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.motion.HOME_PRESETS"><code class="docutils literal notranslate"><span class="pre">HOME_PRESETS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.motion.IDENTITY_POSE"><code class="docutils literal notranslate"><span class="pre">IDENTITY_POSE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.motion.OVERSHOOT"><code class="docutils literal notranslate"><span class="pre">OVERSHOOT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.motion.PRESETS"><code class="docutils literal notranslate"><span class="pre">PRESETS</span></code></a></li>

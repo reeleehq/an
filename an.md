@@ -1,4 +1,4 @@
-> built 2026-09-30 16:47 UTC from a41eeb2 (main) · an 0.1.118. Details: build_info.json
+> built 2026-09-30 17:11 UTC from bc8f57f (main) · an 0.1.119. Details: build_info.json
 
 # index.html.md
 
@@ -950,7 +950,7 @@ mall). It reads only.
 | [`DFLT_TARGET_SUGGESTIONS`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.DFLT_TARGET_SUGGESTIONS)    | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                                                                                                              |
 | [`CAMERA_NODE`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.CAMERA_NODE)                | indexed by the runtime, absent from the tree.                                                                                                                                                                                                                                                                |
 | [`ENVIRONMENT_ART_PREFIX`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.ENVIRONMENT_ART_PREFIX)     | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                                                                                                                  |
-| [`PLANE_FILL_SPAN`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.PLANE_FILL_SPAN)            | A `fill` plane with no declared size covers the canvas at any camera scale.                                                                                                                                                                                                                                  |
+| [`PLANE_FILL_SPAN`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.PLANE_FILL_SPAN)            | A `fill` plane with no declared size covers the canvas at any camera scale — defined beside the schema (`an.environments.PLANE_FILL_SPAN`) so the IR layer's framing check reads the same number, re-exported here.                                                                                          |
 | [`FOREGROUND_SUFFIX`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.FOREGROUND_SUFFIX)          | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                                                                                                         |
 | [`SCENE_PX_PER_VIEW_BOX`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.SCENE_PX_PER_VIEW_BOX)      | Scene-graph pixels spanned by a descriptor's full `view_box` height.                                                                                                                                                                                                                                         |
 | [`CONTAIN_FIT`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.CONTAIN_FIT)                | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                |
@@ -1085,9 +1085,9 @@ the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal).
 
 ### an.adapters.cutout.compile.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
 
-A `fill` plane with no declared size covers the canvas at any camera scale.
-The same 4000 the preset backdrop uses, and for the same reason — the runtime
-centres `root` and applies camera scale, so a huge rect always covers.
+A `fill` plane with no declared size covers the canvas at any camera scale
+— defined beside the schema (`an.environments.PLANE_FILL_SPAN`) so the IR
+layer’s framing check reads the same number, re-exported here.
 
 ### an.adapters.cutout.compile.PROCEDURAL_MOUTH_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'A': 'A', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'F': 'F', 'G': 'G', 'H': 'H', 'X': 'X'}*
 
@@ -1867,6 +1867,16 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 `width`/`height` are the box the art is fitted **into**, not the size it
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
+
+#### asset_geometry *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Per-texture geometry for a swap key drawn differently from the built
+one (an#211): `{asset_id: {"width", "height", "anchor_x", "anchor_y",
+"x", "y"}}` — the box the key is fitted into, its anchor, and its
+offset from the node (scene pixels). A swap used to carry the texture
+only, so every key drew in the DEFAULT attachment’s box: a closed mouth
+on a thin canvas squashed every open mouth to a fraction of a pixel. Only
+keys whose geometry differs are listed; `None` = every key shares it.
 
 #### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -2871,6 +2881,16 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
+#### asset_geometry *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Per-texture geometry for a swap key drawn differently from the built
+one (an#211): `{asset_id: {"width", "height", "anchor_x", "anchor_y",
+"x", "y"}}` — the box the key is fitted into, its anchor, and its
+offset from the node (scene pixels). A swap used to carry the texture
+only, so every key drew in the DEFAULT attachment’s box: a closed mouth
+on a thin canvas squashed every open mouth to a fraction of a pixel. Only
+keys whose geometry differs are listed; `None` = every key shares it.
+
 #### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `"add"` for a
@@ -3488,8 +3508,9 @@ Evaluation semantics in Phase 2A:
 
 ### Functions
 
-| [`evaluate_timeline`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t)                  | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                     |
+| [`clip_from_json`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.clip_from_json)(anim, \*[, name])                | One compiled animation (`AnimationClipJSON`) as an evaluable `Clip`.                                    |
 |--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| [`evaluate_timeline`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t)                  | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                     |
 | [`screen_position`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                              |
 | [`timeline_from_scene`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as this module's `Timeline`.                               |
 | [`transform_of`](_autosummary/an.adapters.cutout.timeline.html.md#an.adapters.cutout.timeline.transform_of)(node[, pose])                      | A node's transform, with `pose` overriding what the document declares.                                  |
@@ -3585,6 +3606,20 @@ The inverse of [`apply()`](_autosummary/an.adapters.cutout.timeline.html.md#an.a
 >>> round(t.unapply(t.apply((7.0, -2.0)))[0], 9)
 7.0
 ```
+
+### an.adapters.cutout.timeline.clip_from_json(anim, , name=None)
+
+One compiled animation (`AnimationClipJSON`) as an evaluable `Clip`.
+
+Two fields are carried rather than defaulted, and both have cost a bug:
+`loop_mode` (without it every loop evaluated as `once` — an#7) and a
+list-valued `easing`, which is a cubic-bezier control quadruple and must
+stay a tuple for `Keyframe`. The compiler reads a from-less tween’s
+start through this too (an#212), so it evaluates exactly what the
+runtime will.
+
+* **Return type:**
+  [`Clip`](_autosummary/an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.Clip)
 
 ### an.adapters.cutout.timeline.evaluate_timeline(timeline, t)
 
@@ -6912,7 +6947,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'eye', 'ellipse', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'mouth', 'eye', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -12769,8 +12804,9 @@ to [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS). The 
 ships its own `hop` means that one. [`play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source) makes that call and
 [`play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems) gives the whole verdict, for `an validate` and the
 compiler alike. A preset resolves to tweens, not a clip:
-[`expand_preset_play()`](_autosummary/an.characters.play.html.md#an.characters.play.expand_preset_play) builds them at the moved node’s REST pose, which
-the caller reads off the built scene, so an author never passes `rest`.
+[`expand_preset_play()`](_autosummary/an.characters.play.html.md#an.characters.play.expand_preset_play) builds them at the moved node’s pose, which the
+caller reads off the built scene and the timeline before the play (an#212),
+so an author never passes `rest`.
 
 ```pycon
 >>> play_problems(desc, "walk")
@@ -12973,8 +13009,9 @@ The `(name, attachment)` a slot draws by default, or `None`.
 A preset `play` as the flat tweens and settling `set``s it stands
 for, at absolute times from ``start` (an#166).
 
-`rest_of(node_path)` returns that node’s built rest pose (`x`, `y`,
-`rotation`, `scale_x`, `scale_y`, `alpha`), or `None` when the
+`rest_of(node_path)` returns the pose to build that node’s move from
+(`x`, `y`, `rotation`, `scale_x`, `scale_y`, `alpha` — the
+compiler passes the pose the node HAS at `start`, an#212), or `None` when the
 built scene carries no such node — then this raises naming it, which is
 what the runtime would otherwise do mid-render. `duration` stretches the
 move to that length; `speed` divides it. Assumes
@@ -14061,6 +14098,7 @@ that cannot land.
 
 | [`PROHIBITED_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.PROHIBITED_ELEMENTS)   | Elements an art package may not contain.                        |
 |------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`PART_SUFFIXES`](_autosummary/an.characters.validate.html.md#an.characters.validate.PART_SUFFIXES)         | SVG, or raster with the suffixes `an.raster` reads (an#211).    |
 | [`DRAWABLE_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.DRAWABLE_ELEMENTS)     | Elements that put ink on the canvas.                            |
 | [`BLOCKING`](_autosummary/an.characters.validate.html.md#an.characters.validate.BLOCKING)              | Severity for a problem that stops the part rendering correctly. |
 | [`ADVISORY`](_autosummary/an.characters.validate.html.md#an.characters.validate.ADVISORY)              | Severity for a problem worth fixing that still renders.         |
@@ -14085,7 +14123,16 @@ Severity for a problem that stops the part rendering correctly.
 Elements that put ink on the canvas. A part containing none of these is
 blank, whatever else it contains.
 
-### an.characters.validate.PROHIBITED_ELEMENTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'foreignObject': 'embeds non-SVG content that most rasterisers drop', 'image': 'raster embed; inline it or ship it as its own part', 'script': 'executable content; a part is a drawing, not a program'}*
+### an.characters.validate.PART_SUFFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.svg', '.png', '.jpg', '.jpeg', '.webp')*
+
+SVG, or raster with the
+suffixes `an.raster` reads (an#211). Order is the lookup order for a
+required part, so an SVG wins when both exist.
+
+* **Type:**
+  The part file formats an art package may ship
+
+### an.characters.validate.PROHIBITED_ELEMENTS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'foreignObject': 'embeds non-SVG content that most rasterisers drop', 'image': 'raster embed; ship the raster as its own part instead (parts/<name>.png, with alpha — an#211)', 'script': 'executable content; a part is a drawing, not a program'}*
 
 Elements an art package may not contain.
 
@@ -14176,23 +14223,38 @@ So this module walks a project’s reachable assets and answers three questions 
 user actually has:
 
 - what third-party work is in this video?
+- may I ship it at all? (an#211 — material that is all rights reserved, used
+  for private study only, is recognised and said LOUDLY: the report opens with
+  it, and a render that uses it ends with a warning that it is not
+  publishable);
 - what must I display, verbatim, to ship it?
 - is anything in here unverified?
 
-The third is the one that matters most and is easiest to lose. An asset with no
+The last is the one that matters most and is easiest to lose. An asset with no
 licence is reported as **UNKNOWN**, never as “nothing owed”: those are different
 answers, and collapsing them is exactly how an obligation goes missing.
 
+Public domain (`pd`, `public-domain`, `cc-pdm-1.0`, `cc0-*`) is recognised as
+nothing owed, and an environment’s planes may each carry their own `source`,
+so a composite stage — a carved plate plus a CC0 prop — credits both.
+
 ### Functions
 
-| [`collect_credits`](_autosummary/an.credits.html.md#an.credits.collect_credits)(mall)            | Walk a project mall and gather every recorded `AssetSource`.   |
-|-----------------------------------------------------------------------------------|----------------------------------------------------------------|
-| [`credits_for_project`](_autosummary/an.credits.html.md#an.credits.credits_for_project)(project_dir) | Credits for the project at `project_dir`.                      |
+| [`collect_credits`](_autosummary/an.credits.html.md#an.credits.collect_credits)(mall, \*[, only])           | Walk a project mall and gather every recorded `AssetSource`.    |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`credits_for_project`](_autosummary/an.credits.html.md#an.credits.credits_for_project)(project_dir)            | Credits for the project at `project_dir`.                       |
+| [`credits_for_scene`](_autosummary/an.credits.html.md#an.credits.credits_for_scene)(mall, scene)              | Credits for exactly the assets `scene` draws or plays (an#211). |
+| [`warn_if_private_study`](_autosummary/an.credits.html.md#an.credits.warn_if_private_study)(report, \*[, output]) | Warn, loudly, when `report` holds private-study material.       |
 
 ### Classes
 
 | [`CreditsReport`](_autosummary/an.credits.html.md#an.credits.CreditsReport)([entries])   | Everything a project owes, split by whether we actually know.   |
 |-----------------------------------------------------------------------------|-----------------------------------------------------------------|
+
+### Exceptions
+
+| [`PrivateStudyWarning`](_autosummary/an.credits.html.md#an.credits.PrivateStudyWarning)   | A render used material that is all rights reserved, private study only.   |
+|------------------------------------------------------------------------|---------------------------------------------------------------------------|
 
 ### *class* an.credits.CreditsReport(entries=<factory>)
 
@@ -14211,6 +14273,19 @@ Human-readable, and honest about what it does not know.
 
 Entries that definitely require an attribution.
 
+#### *property* private *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
+
+all rights reserved, private
+study only (an#211). A video containing any of them is not shippable,
+whatever else it credits.
+
+* **Type:**
+  Entries that may NOT be published
+
+#### *property* publishable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+`False` when any entry is private-study material.
+
 #### *property* unverified *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[CreditEntry]*
 
 Entries whose licence we could not classify.
@@ -14220,9 +14295,21 @@ them in cries wolf; folding them into “nothing owed” hides a real
 obligation. Neither is honest, so they are counted separately — the same
 reason `priv`’s upkeep keeps `unavailable` apart from `findings`.
 
-### an.credits.collect_credits(mall)
+### *exception* an.credits.PrivateStudyWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A render used material that is all rights reserved, private study only.
+
+Raised as a warning at the END of a render (an#211), so the last thing the
+author reads about the mp4 is that it must not be published.
+
+### an.credits.collect_credits(mall, , only=None)
 
 Walk a project mall and gather every recorded `AssetSource`.
+
+`only` restricts the walk to those `store/key` names (what a render
+used, [`credits_for_scene()`](_autosummary/an.credits.html.md#an.credits.credits_for_scene)) — nothing else is read.
 
 Four stores carry provenance: characters, **props** (an#108),
 **environments** (an#110) and **sounds**. Each was added by the PR that gave that store
@@ -14245,6 +14332,28 @@ Credits for the project at `project_dir`.
 
 * **Return type:**
   [`CreditsReport`](_autosummary/an.credits.html.md#an.credits.CreditsReport)
+
+### an.credits.credits_for_scene(mall, scene)
+
+Credits for exactly the assets `scene` draws or plays (an#211).
+
+[`collect_credits()`](_autosummary/an.credits.html.md#an.credits.collect_credits) walks the whole project; a render owes only what it
+used, and a private-study plate sitting unused in the store must not make
+an unrelated render “not publishable”. Kept: every entry under a
+`store/ref` some shot’s entity names, and every sound a cue names.
+
+* **Return type:**
+  [`CreditsReport`](_autosummary/an.credits.html.md#an.credits.CreditsReport)
+
+### an.credits.warn_if_private_study(report, , output=None)
+
+Warn, loudly, when `report` holds private-study material.
+
+Returns whether it warned. Called at the end of a render, so the warning is
+the last word about the file; `output` names it.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
 
 
 # _autosummary/an.data.cutout_runtime.html.md
@@ -14423,8 +14532,17 @@ that share a depth.
 
 ### Module Attributes
 
-| [`ENVIRONMENT_DOCUMENT_KIND`](_autosummary/an.environments.html.md#an.environments.ENVIRONMENT_DOCUMENT_KIND)   | Its own versioned document, registered from the module that owns the schema — the rule `CharacterDescriptor` and `PropDescriptor` both follow, and the reason the registry is keyed per KIND (an#77).   |
-|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PLANE_FILL_SPAN`](_autosummary/an.environments.html.md#an.environments.PLANE_FILL_SPAN)           | A `fill` plane with no declared size covers the canvas at any camera scale.                                                                                                                           |
+|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Rect`](_autosummary/an.environments.html.md#an.environments.Rect)                      | `(left, top, right, bottom)` in scene pixels, `y` down (the stage's axes).                                                                                                                            |
+| [`ENVIRONMENT_DOCUMENT_KIND`](_autosummary/an.environments.html.md#an.environments.ENVIRONMENT_DOCUMENT_KIND) | Its own versioned document, registered from the module that owns the schema — the rule `CharacterDescriptor` and `PropDescriptor` both follow, and the reason the registry is keyed per KIND (an#77). |
+
+### Functions
+
+| [`frame_rect`](_autosummary/an.environments.html.md#an.environments.frame_rect)(\*, x, y, zoom, rotation, width, ...)   | The scene region a camera pose shows: centred on the camera, the canvas divided by the zoom, grown to the axis-aligned box of a rolled frame — CONSERVATIVE under roll (the box contains corners the rotated frame does not show, so a plate that covers a rolled view can still be flagged).   |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`plane_rect`](_autosummary/an.environments.html.md#an.environments.plane_rect)(plane, art_size, \*[, camera])          | Where `plane` is drawn, in scene pixels, with the camera at `camera`.                                                                                                                                                                                                                           |
+| [`uncovered_part`](_autosummary/an.environments.html.md#an.environments.uncovered_part)(view, covers)                       | The bounding box of the part of `view` no rect in `covers` covers.                                                                                                                                                                                                                              |
 
 ### Classes
 
@@ -14508,6 +14626,14 @@ Where this art came from and what its licence obliges. Not decoration:
 environments art is the PR that closes that hole — otherwise
 `an credits` becomes an affirmative false statement about plates.
 
+### an.environments.PLANE_FILL_SPAN *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 4000.0*
+
+A `fill` plane with no declared size covers the canvas at any camera scale.
+The same 4000 the preset backdrop uses, and for the same reason — the runtime
+centres `root` and applies camera scale, so a huge rect always covers. Lives
+here (the schema) so the IR layer’s framing check and the compiler read one
+number; `an.adapters.cutout.compile` re-exports it.
+
 ### *class* an.environments.Plane(\*\*data)
 
 Bases: `BaseModel`
@@ -14574,6 +14700,16 @@ not vertically. `None` means `(depth, depth)`.
 #### size *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 `None` = the art’s own extent. A `fill` with no size covers the canvas.
+The box the art is fitted into, in scene pixels. **A declared size wins**
+(an#211); `None` = the art’s own extent — an SVG’s `width`/`height`, a
+raster’s pixel size. A `fill` with no size covers the canvas.
+
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where THIS plane’s art came from, when it is not the environment’s —
+a composite stage of a carved plate and a CC0 prop credits both
+(an#211). `None` = the environment’s `source` covers it. Omitted from
+the stored document when unset.
 
 ### *class* an.environments.PlaneArt(\*\*data)
 
@@ -14586,7 +14722,12 @@ What a plane is made of.
 '#cfe9ff'
 >>> PlaneArt(kind="image", src="plates/forest.svg").src
 'plates/forest.svg'
+>>> PlaneArt(kind="image", src="plates/street.png").src
+'plates/street.png'
 ```
+
+An `image` is SVG or raster — PNG, JPEG or WebP (an#211): the compiler
+sizes it from its header and PixiJS loads it natively.
 
 Two kinds ship, and the omission is deliberate rather than partial:
 `gradient` and `generated` would each need a runtime that can draw them,
@@ -14608,10 +14749,76 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### src *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 a path under the environment’s own folder in the store,
-exactly as a character attachment’s `path` is.
+exactly as a character attachment’s `path` is — `.svg`, `.png`,
+`.jpg`/`.jpeg` or `.webp`.
 
 * **Type:**
   `image` only
+
+### an.environments.Rect
+
+`(left, top, right, bottom)` in scene pixels, `y` down (the stage’s axes).
+
+alias of [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.environments.frame_rect(, x, y, zoom, rotation, width, height)
+
+The scene region a camera pose shows: centred on the camera, the canvas
+divided by the zoom, grown to the axis-aligned box of a rolled frame —
+CONSERVATIVE under roll (the box contains corners the rotated frame does
+not show, so a plate that covers a rolled view can still be flagged).
+
+`root.pivot` is the camera and `root.scale` the zoom, composed about the
+canvas centre, so a pose shows `camera ± canvas / (2 · zoom)`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> frame_rect(x=0, y=0, zoom=1.25, rotation=0, width=320, height=240)
+(-128.0, -96.0, 128.0, 96.0)
+```
+
+### an.environments.plane_rect(plane, art_size, , camera=(0.0, 0.0))
+
+Where `plane` is drawn, in scene pixels, with the camera at `camera`.
+
+The compiler’s own geometry, restated for a pre-flight: the box is the
+declared `size` or the art’s extent (`art_size`), the art is fitted into
+it by `fit`, placed by `anchor` at `offset`, and the plane’s parallax
+compensation moves it by `(1 − f) · camera` per axis. `None` when the
+extent cannot be known (an image whose art cannot be measured and whose
+`fit` makes the drawn size depend on it) — an unknown, not a hole.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"),
+...                  size=(100.0, 50.0), fit="stretch"), None)
+(-50.0, -25.0, 50.0, 25.0)
+>>> plane_rect(Plane(name="p", art=PlaneArt(kind="image", src="a.png"), depth=0.0),
+...            (200.0, 100.0), camera=(40.0, 0.0))
+(-60.0, -50.0, 140.0, 50.0)
+```
+
+### an.environments.uncovered_part(view, covers)
+
+The bounding box of the part of `view` no rect in `covers` covers.
+
+`None` when the union covers the whole view. Exact for axis-aligned
+rects: the view is cut into cells at every cover edge, and a cell is
+covered or not as a whole.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> uncovered_part((0, 0, 10, 10), [(0, 0, 10, 8)])
+(0, 8, 10, 10)
+>>> uncovered_part((0, 0, 10, 10), [(0, 0, 6, 10), (5, 0, 10, 10)]) is None
+True
+```
 
 
 # _autosummary/an.expression.axes.html.md
@@ -16315,6 +16522,7 @@ always passes it).
 | [`preview`](_autosummary/an.preview.html.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit. |
 | [`project`](_autosummary/an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                         |
 | [`props`](_autosummary/an.props.html.md#module-an.props)               | Props: a rig whose art is not a person.                                                |
+| [`raster`](_autosummary/an.raster.html.md#module-an.raster)             | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                |
 | [`render`](_autosummary/an.render.html.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.        |
 | [`sounds`](_autosummary/an.sounds.html.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.       |
 | [`stores`](_autosummary/an.stores.html.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                            |
@@ -17693,13 +17901,18 @@ what keeps `an` from shipping unattributed work in the meantime.
 
 ### Module Attributes
 
-| [`ATTRIBUTION_REQUIRING_LICENSES`](_autosummary/an.ir.assets.html.md#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES)   | Licence codes that oblige the *user of the output* to credit someone.   |
-|-----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`PRIVATE_STUDY`](_autosummary/an.ir.assets.html.md#an.ir.assets.PRIVATE_STUDY)                  | The recognised code for material its owner has not licensed at all — frames or art carved out of a film, a show, a book — that a user may study privately but must not publish (an#211).   |
+|---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PUBLIC_DOMAIN`](_autosummary/an.ir.assets.html.md#an.ir.assets.PUBLIC_DOMAIN)                  | The recognised code for the public domain — no rights to clear, nothing owed (an#211).                                                                                                     |
+| [`LicenseClass`](_autosummary/an.ir.assets.html.md#an.ir.assets.LicenseClass)                   | What a licence means for shipping the video it ends up in.                                                                                                                                 |
+| [`ATTRIBUTION_REQUIRING_LICENSES`](_autosummary/an.ir.assets.html.md#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES) | Licence codes that oblige the *user of the output* to credit someone.                                                                                                                      |
 
 ### Functions
 
-| [`requires_attribution`](_autosummary/an.ir.assets.html.md#an.ir.assets.requires_attribution)(source)   | Whether shipping this asset obliges the user to credit someone.   |
-|---------------------------------------------------------------------------------|-------------------------------------------------------------------|
+| [`license_class`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_class)(source)        | What this asset's licence means for shipping the video (an#211).   |
+|-------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`normalise_license`](_autosummary/an.ir.assets.html.md#an.ir.assets.normalise_license)(code)      | A licence code folded to lowercase words joined by `-`.            |
+| [`requires_attribution`](_autosummary/an.ir.assets.html.md#an.ir.assets.requires_attribution)(source) | Whether shipping this asset obliges the user to credit someone.    |
 
 ### Classes
 
@@ -17735,13 +17948,75 @@ True
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### an.ir.assets.LicenseClass
+
+What a licence means for shipping the video it ends up in.
+
+- `attribution` — shippable, with a credit that MUST be displayed;
+- `free` — shippable, nothing owed (public domain, CC0, MIT-shaped);
+- `private` — NOT shippable: all rights reserved, private study only;
+- `unknown` — not classified, which is not the same as free.
+
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘attribution’, ‘free’, ‘private’, ‘unknown’]
+
+### an.ir.assets.PRIVATE_STUDY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'all-rights-reserved-private-study'*
+
+The recognised code for material its owner has not licensed at all — frames
+or art carved out of a film, a show, a book — that a user may study
+privately but must not publish (an#211). Any code that normalises to one
+starting with `all-rights-reserved` or `private-study` is this class,
+so `"All rights reserved - private study only"` is recognised too.
+
+### an.ir.assets.PUBLIC_DOMAIN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'public-domain'*
+
+The recognised code for the public domain — no rights to clear, nothing
+owed (an#211). `pd`, `pd-us`, `pdm-1.0`, `public-domain`,
+`cc-pdm-1.0` and `cc0-*` are all this class.
+
+### an.ir.assets.license_class(source)
+
+What this asset’s licence means for shipping the video (an#211).
+
+* **Return type:**
+  [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[`'attribution'`, `'free'`, `'private'`, `'unknown'`]
+
+```pycon
+>>> license_class(AssetSource(provider="p", license="pd"))
+'free'
+>>> license_class(AssetSource(provider="p", license="all-rights-reserved"))
+'private'
+>>> license_class(AssetSource(provider="p", license="cc-by-4.0"))
+'attribution'
+>>> license_class(AssetSource(provider="p", license="bespoke"))
+'unknown'
+```
+
+### an.ir.assets.normalise_license(code)
+
+A licence code folded to lowercase words joined by `-`.
+
+Free text is what people actually write in a licence field, so the
+classifier reads through punctuation and spacing:
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> normalise_license("All rights reserved - private study only; never publish")
+'all-rights-reserved-private-study-only-never-publish'
+>>> normalise_license(" CC-BY-4.0 ")
+'cc-by-4-0'
+```
+
 ### an.ir.assets.requires_attribution(source)
 
 Whether shipping this asset obliges the user to credit someone.
 
 Returns `None` for an unrecognised or absent licence: “we do not know” is a
 distinct answer from “no”, and collapsing them is how an obligation gets
-silently dropped.
+silently dropped. Private-study material (all rights reserved) also answers
+`None` here — the question is not whom to credit but that it may not ship
+at all; [`license_class()`](_autosummary/an.ir.assets.html.md#an.ir.assets.license_class) says so (`"private"`).
 
 * **Return type:**
   [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
@@ -19967,8 +20242,11 @@ compiler’s own scene builder rather than restating its layout.
 
 **scene.md: play a preset by name** (an#166). `{kind: play, target:
 charlie, animation: hop, args: {height: 30}, start: 1.0}` expands to exactly
-this module’s tweens at compile, with the rest pose read off the built scene —
-no `rest=` — and `args` as the preset’s keyword arguments. A character
+this module’s tweens at compile, with `rest` the pose the node HAS at the
+play’s start — the built scene’s (stage placement, layout) overridden by the
+sets and tweens before it (an#212) — so no `rest=`, and a preset after a move
+starts where the move left it (an entrance in [`HOME_PRESETS`](_autosummary/an.motion.html.md#an.motion.HOME_PRESETS) lands on the
+built pose instead); `args` are the preset’s keyword arguments. A character
 descriptor animation of the same name WINS; `an validate` and the compiler
 decide both through [`an.characters.play.play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems). `duration`
 stretches the move and `speed` divides it; `loop` is refused. In a
@@ -19983,6 +20261,7 @@ length divided by `speed`, so two in a row run one after the other.
 |----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`IDENTITY_POSE`](_autosummary/an.motion.html.md#an.motion.IDENTITY_POSE) | `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.                                                                                                                                                         |
 | [`PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS)       | Every preset by name — the one list the skill, the demo and the `play` fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source), an#166) read. |
+| [`HOME_PRESETS`](_autosummary/an.motion.html.md#an.motion.HOME_PRESETS)  | Presets whose `rest` is the node's HOME — where an entrance LANDS — rather than where the node is when the move starts.                                                                                          |
 
 ### Functions
 
@@ -20001,6 +20280,14 @@ length divided by `speed`, so two in a row run one after the other.
 | [`squash_stretch`](_autosummary/an.motion.html.md#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                                                                     |
 | [`turn`](_autosummary/an.motion.html.md#an.motion.turn)(target, \*[, to, direction, ...])           | Turn a character to the view `to` — the classic cut-out turn (an#197).                                                                                                                                                                                                               |
 | [`waddle`](_autosummary/an.motion.html.md#an.motion.waddle)(target, \*[, steps, step_duration, ...])  | A walk cycle for a rig with no legs to animate: rock and bob per step.                                                                                                                                                                                                               |
+
+### an.motion.HOME_PRESETS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'pop_in', 'slide_in'})*
+
+Presets whose `rest` is the node’s HOME — where an entrance LANDS — rather
+than where the node is when the move starts. Played by name these read the
+BUILT pose (`slide_out` then `slide_in` comes back home; `pop_in` after a
+`set` of the scales to 0 grows to full size); every other preset moves
+relative to where the node IS at its start (an#212).
 
 ### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
 
@@ -20847,6 +21134,184 @@ One slot on that bone.
 ```pycon
 >>> [(s.name, s.bone, s.draw_order) for s in default_prop_slots()]
 [('body', 'root', 0)]
+```
+
+
+# _autosummary/an.raster.html.md
+
+# an.raster
+
+Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).
+
+Every piece of art the cutout renderer drew was SVG, and the size probe said
+so: `an.characters.svg_utils.raster_size` parses its input as XML, so a PNG
+plate died in the compiler with `ParseError: not well-formed (invalid token):
+line 1, column 0` — the error a user sees for “I gave it a picture”. Art carved
+out of footage, a scanned drawing, a photographed paper cut-out: those are
+raster, and tracing them to SVG throws away the shading that made them worth
+carving.
+
+PixiJS loads PNG, JPEG and WebP natively (its `loadTextures` parser, chosen by
+the file’s extension), so the renderer needed nothing new. What the COMPILER
+needed was three answers it previously got only from an SVG:
+
+- **how big is it** — [`image_size()`](_autosummary/an.raster.html.md#an.raster.image_size), read from the header (no decode, no
+  dependency: the four formats state their pixel size in the first few dozen
+  bytes, and a header parse is the same cost as the SVG probe it sits beside);
+- **what size does this art draw at, whatever it is** — [`art_size()`](_autosummary/an.raster.html.md#an.raster.art_size), the
+  one probe the compiler, the fidelity check and `an validate` call;
+- **what exactly is it** — [`content_digest()`](_autosummary/an.raster.html.md#an.raster.content_digest), because a raster texture is
+  addressed by its bytes: a re-carved part is a different texture (the runtime’s
+  loader ignores a re-added alias on hot reload, an#155) and a different
+  compiled contract, so the contract hash covers the pixels it will draw.
+
+**Known limit: EXIF orientation.** The header size is the stored size. A
+JPEG whose EXIF says “rotate 90°” (a phone photo) is decoded upright by
+Chromium, so its box would be transposed — export such art rotated.
+
+**Why a raster part is never recoloured.** A StylePack recolours SVG art by
+rewriting the literal colours its descriptor tags (`colour_roles`). A raster
+has no literals — its colours are pixels, and inferring a role from a pixel is
+exactly what caused an#99’s wrong-tone lid — so it renders as drawn, and the
+compiler says so once.
+
+```pycon
+>>> is_raster("parts/head.png"), is_raster("parts/head.svg")
+(True, False)
+```
+
+### Module Attributes
+
+| [`RASTER_SUFFIXES`](_autosummary/an.raster.html.md#an.raster.RASTER_SUFFIXES)   | The raster formats a plate or a part may be, by file suffix.   |
+|--------------------------------------------------------------------|----------------------------------------------------------------|
+
+### Functions
+
+| [`art_size`](_autosummary/an.raster.html.md#an.raster.art_size)(source)           | The size a piece of art rasterises at, whatever format it is.        |
+|-----------------------------------------------------------------------------|----------------------------------------------------------------------|
+| [`content_digest`](_autosummary/an.raster.html.md#an.raster.content_digest)(path)       | The hex sha256 of a file's bytes, cached by (path, mtime, size).     |
+| [`has_alpha`](_autosummary/an.raster.html.md#an.raster.has_alpha)(source)          | Whether the image can be transparent anywhere; `None` if unknown.    |
+| [`image_size`](_autosummary/an.raster.html.md#an.raster.image_size)(source)         | `(width, height)` in pixels of a PNG, JPEG or WebP, from its header. |
+| [`is_raster`](_autosummary/an.raster.html.md#an.raster.is_raster)(src)             | Whether `src` names raster art, by its suffix (case-insensitive).    |
+| [`strip_version`](_autosummary/an.raster.html.md#an.raster.strip_version)(src)         | The file path a (possibly versioned) texture `src` names.            |
+| [`versioned_src`](_autosummary/an.raster.html.md#an.raster.versioned_src)(src, digest) | `src` with its content digest as a query string.                     |
+
+### Exceptions
+
+| [`RasterFormatError`](_autosummary/an.raster.html.md#an.raster.RasterFormatError)   | A file named as raster art whose header this module cannot read.   |
+|----------------------------------------------------------------------|--------------------------------------------------------------------|
+
+### an.raster.RASTER_SUFFIXES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.png', '.jpg', '.jpeg', '.webp')*
+
+The raster formats a plate or a part may be, by file suffix. PixiJS 7’s
+`loadTextures` picks its parser by extension and accepts exactly these
+(plus AVIF, left out because Chromium’s AVIF decode is the one of the four
+whose output is not specified bit-exactly and the render is a contract).
+
+### *exception* an.raster.RasterFormatError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A file named as raster art whose header this module cannot read.
+
+A `ValueError`, so the compiler’s size probe treats it exactly like a
+malformed SVG: the art is declared (and fails loudly at load) rather than
+silently dropped.
+
+### an.raster.art_size(source)
+
+The size a piece of art rasterises at, whatever format it is.
+
+SVG: its declared `width`/`height` (else its viewBox), as the browser
+does — [`an.characters.svg_utils.raster_size()`](_autosummary/an.characters.svg_utils.html.md#an.characters.svg_utils.raster_size). Raster: its pixel size.
+The ONE probe the compiler, the fidelity check and `an validate` share, so
+none of them can size a PNG as if it were XML again.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.raster.content_digest(path)
+
+The hex sha256 of a file’s bytes, cached by (path, mtime, size).
+
+The ENCODED bytes, not the pixels: re-saving the same image with another
+encoder changes the digest (and so the alias and the contract hash) —
+which is the conservative direction for a contract.
+
+Cached because a rig registers every attachment of every slot and a scene
+compiles each shot separately; keyed on the stat so an edited file is
+re-read, which is what makes the digest safe to put in a texture alias.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.raster.has_alpha(source)
+
+Whether the image can be transparent anywhere; `None` if unknown.
+
+A PNG says so in its header (colour type 4 or 6) or with a `tRNS` chunk;
+a JPEG never can; a WebP says so in its `VP8X` flags or by being lossless
+with an alpha bit. A cut-out part without alpha is a rectangle — the whole
+canvas draws, background and all — which is what `an character validate`
+uses this for.
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.raster.image_size(source)
+
+`(width, height)` in pixels of a PNG, JPEG or WebP, from its header.
+
+`source` is a path or the file’s bytes.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> import struct, zlib
+>>> ihdr = struct.pack(">IIBBBBB", 3, 2, 8, 6, 0, 0, 0)
+>>> png = (b"\x89PNG\r\n\x1a\n" + struct.pack(">I", 13) + b"IHDR" + ihdr
+...        + struct.pack(">I", zlib.crc32(b"IHDR" + ihdr)))
+>>> image_size(png)
+(3.0, 2.0)
+```
+
+### an.raster.is_raster(src)
+
+Whether `src` names raster art, by its suffix (case-insensitive).
+
+* **Return type:**
+  [`bool`](https://docs.python.org/3/builtins/functions.html#bool)
+
+```pycon
+>>> is_raster("plates/Street.JPG")
+True
+>>> is_raster("data:image/svg+xml;base64,AAAA")
+False
+```
+
+### an.raster.strip_version(src)
+
+The file path a (possibly versioned) texture `src` names.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> strip_version("props/lamp/parts/on.png?v=abc123")
+'props/lamp/parts/on.png'
+```
+
+### an.raster.versioned_src(src, digest)
+
+`src` with its content digest as a query string.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> versioned_src("props/lamp/parts/on.png", "abc123")
+'props/lamp/parts/on.png?v=abc123'
 ```
 
 
@@ -23379,20 +23844,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 16:47 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/a41eeb21c56bd0c24ef6cb156c4bbcfb426f04e5"><code>a41eeb2</code></a> on branch <code>main</code>, for **an 0.1.118** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 17:11 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/bc8f57f0045043a9da90a02355ba61a7a4654e70"><code>bc8f57f</code></a> on branch <code>main</code>, for **an 0.1.119** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.118) is ahead of the latest release on PyPI (0.1.117): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/a41eeb21c56bd0c24ef6cb156c4bbcfb426f04e5"><code>a41eeb21c56bd0c24ef6cb156c4bbcfb426f04e5</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/bc8f57f0045043a9da90a02355ba61a7a4654e70"><code>bc8f57f0045043a9da90a02355ba61a7a4654e70</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.118</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.119</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -23401,9 +23864,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36746265796">36746265796</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36749134286">36749134286</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>ef736a8c1d932f477017687189ee93f60db57889</code> (in the history of the built commit) |
+| Event commit | <code>19df295ab84b412df8a2672e304063fce882fab3</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -23428,13 +23891,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.117/">0.1.117</a>, older than the documented version (0.1.118).
+Latest release: <a href="https://pypi.org/project/an/0.1.119/">0.1.119</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout a41eeb21c56bd0c24ef6cb156c4bbcfb426f04e5
+git checkout bc8f57f0045043a9da90a02355ba61a7a4654e70
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

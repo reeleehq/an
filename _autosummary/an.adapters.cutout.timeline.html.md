@@ -35,8 +35,9 @@ Evaluation semantics in Phase 2A:
 
 ### Functions
 
-| [`evaluate_timeline`](#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t)                  | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                     |
+| [`clip_from_json`](#an.adapters.cutout.timeline.clip_from_json)(anim, \*[, name])                | One compiled animation (`AnimationClipJSON`) as an evaluable `Clip`.                                    |
 |--------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| [`evaluate_timeline`](#an.adapters.cutout.timeline.evaluate_timeline)(timeline, t)                  | Evaluate `timeline` at time `t`, merging poses across tracks/clips.                                     |
 | [`screen_position`](#an.adapters.cutout.timeline.screen_position)(scene, path, \*[, pose, point]) | Where `point` in `path`'s local space lands on the canvas.                                              |
 | [`timeline_from_scene`](#an.adapters.cutout.timeline.timeline_from_scene)(scene)                      | The compiled scene's `timeline`/`animations` as this module's `Timeline`.                               |
 | [`transform_of`](#an.adapters.cutout.timeline.transform_of)(node[, pose])                      | A node's transform, with `pose` overriding what the document declares.                                  |
@@ -132,6 +133,20 @@ The inverse of [`apply()`](#an.adapters.cutout.timeline.Transform2D.apply) — a
 >>> round(t.unapply(t.apply((7.0, -2.0)))[0], 9)
 7.0
 ```
+
+### an.adapters.cutout.timeline.clip_from_json(anim, , name=None)
+
+One compiled animation (`AnimationClipJSON`) as an evaluable `Clip`.
+
+Two fields are carried rather than defaulted, and both have cost a bug:
+`loop_mode` (without it every loop evaluated as `once` — an#7) and a
+list-valued `easing`, which is a cubic-bezier control quadruple and must
+stay a tuple for `Keyframe`. The compiler reads a from-less tween’s
+start through this too (an#212), so it evaluates exactly what the
+runtime will.
+
+* **Return type:**
+  [`Clip`](an.adapters.cutout.clip.html.md#an.adapters.cutout.clip.Clip)
 
 ### an.adapters.cutout.timeline.evaluate_timeline(timeline, t)
 

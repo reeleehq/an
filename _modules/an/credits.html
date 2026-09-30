@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -721,12 +721,20 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">user actually has:</span>
 
 <span class="sd">- what third-party work is in this video?</span>
+<span class="sd">- may I ship it at all? (an#211 — material that is all rights reserved, used</span>
+<span class="sd">  for private study only, is recognised and said LOUDLY: the report opens with</span>
+<span class="sd">  it, and a render that uses it ends with a warning that it is not</span>
+<span class="sd">  publishable);</span>
 <span class="sd">- what must I display, verbatim, to ship it?</span>
 <span class="sd">- is anything in here unverified?</span>
 
-<span class="sd">The third is the one that matters most and is easiest to lose. An asset with no</span>
+<span class="sd">The last is the one that matters most and is easiest to lose. An asset with no</span>
 <span class="sd">licence is reported as **UNKNOWN**, never as "nothing owed": those are different</span>
 <span class="sd">answers, and collapsing them is exactly how an obligation goes missing.</span>
+
+<span class="sd">Public domain (`pd`, `public-domain`, `cc-pdm-1.0`, `cc0-*`) is recognised as</span>
+<span class="sd">nothing owed, and an environment's planes may each carry their own `source`,</span>
+<span class="sd">so a composite stage — a carved plate plus a CC0 prop — credits both.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -738,9 +746,16 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span><span class="p">,</span> <span class="n">requires_attribution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span><span class="p">,</span> <span class="n">LicenseClass</span><span class="p">,</span> <span class="n">license_class</span><span class="p">,</span> <span class="n">requires_attribution</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"CreditsReport"</span><span class="p">,</span> <span class="s2">"collect_credits"</span><span class="p">,</span> <span class="s2">"credits_for_project"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"CreditsReport"</span><span class="p">,</span>
+    <span class="s2">"PrivateStudyWarning"</span><span class="p">,</span>
+    <span class="s2">"collect_credits"</span><span class="p">,</span>
+    <span class="s2">"credits_for_project"</span><span class="p">,</span>
+    <span class="s2">"credits_for_scene"</span><span class="p">,</span>
+    <span class="s2">"warn_if_private_study"</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -755,6 +770,11 @@ window.runMermaid = runMermaid;</script>
 <span class="w">        </span><span class="sd">"""``None`` means unknown — which is not the same as ``False``."""</span>
         <span class="k">return</span> <span class="n">requires_attribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">license_class</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LicenseClass</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""``attribution`` / ``free`` / ``private`` / ``unknown`` (an#211)."""</span>
+        <span class="k">return</span> <span class="n">license_class</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="CreditsReport">
 <a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.CreditsReport">[docs]</a>
@@ -767,7 +787,19 @@ window.runMermaid = runMermaid;</script>
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">owed</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Entries that definitely require an attribution."""</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">attribution_required</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"attribution"</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">private</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Entries that may NOT be published: all rights reserved, private</span>
+<span class="sd">        study only (an#211). A video containing any of them is not shippable,</span>
+<span class="sd">        whatever else it credits."""</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"private"</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">publishable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""``False`` when any entry is private-study material."""</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">unverified</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
@@ -778,7 +810,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        obligation. Neither is honest, so they are counted separately — the same</span>
 <span class="sd">        reason `priv`'s upkeep keeps `unavailable` apart from `findings`.</span>
 <span class="sd">        """</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">attribution_required</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"unknown"</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">{</span>
@@ -790,6 +822,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">{</span><span class="s2">"asset"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="p">,</span> <span class="s2">"text"</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">attribution</span><span class="p">}</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">owed</span>
             <span class="p">],</span>
             <span class="s2">"unverified"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unverified</span><span class="p">],</span>
+            <span class="s2">"private_study"</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">],</span>
+            <span class="s2">"publishable"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">publishable</span><span class="p">,</span>
         <span class="p">}</span>
 
 <div class="viewcode-block" id="CreditsReport.format">
@@ -799,6 +833,15 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">"credits: no third-party assets recorded."</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"credits: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">)</span><span class="si">}</span><span class="s2"> third-party asset(s)."</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"NOT PUBLISHABLE — </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">)</span><span class="si">}</span><span class="s2"> asset(s) are all rights "</span>
+                <span class="s2">"reserved, for PRIVATE STUDY ONLY. A video containing them must "</span>
+                <span class="s2">"not be published, uploaded or shared, credited or not:"</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">private</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_private_label</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">owed</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"MUST BE DISPLAYED to ship this video:"</span><span class="p">)</span>
@@ -816,7 +859,7 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unverified</span><span class="p">:</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="si">}</span><span class="s2">: license=</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">clear</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">attribution_required</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">]</span>
+        <span class="n">clear</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"free"</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">clear</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No attribution required (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">clear</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
@@ -827,14 +870,35 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_private_label</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">where</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">source_page_url</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">url</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">id</span> <span class="ow">or</span> <span class="n">source</span><span class="o">.</span><span class="n">provider</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"license=</span><span class="si">{</span><span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="si">!r}</span><span class="s2">, from </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span>
+
+
 <span class="k">class</span><span class="w"> </span><span class="nc">CreditsWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A credits walk could not read something it was asked to read."""</span>
 
 
+<div class="viewcode-block" id="PrivateStudyWarning">
+<a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.PrivateStudyWarning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PrivateStudyWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A render used material that is all rights reserved, private study only.</span>
+
+<span class="sd">    Raised as a warning at the END of a render (an#211), so the last thing the</span>
+<span class="sd">    author reads about the mp4 is that it must not be published.</span>
+<span class="sd">    """</span></div>
+
+
+
 <div class="viewcode-block" id="collect_credits">
 <a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.collect_credits">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">collect_credits</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">CreditsReport</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">collect_credits</span><span class="p">(</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">only</span><span class="p">:</span> <span class="s2">"set[str] | None"</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CreditsReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Walk a project mall and gather every recorded :class:`AssetSource`.</span>
+
+<span class="sd">    ``only`` restricts the walk to those ``store/key`` names (what a render</span>
+<span class="sd">    used, :func:`credits_for_scene`) — nothing else is read.</span>
 
 <span class="sd">    Four stores carry provenance: characters, **props** (an#108),</span>
 <span class="sd">    **environments** (an#110) and **sounds**. Each was added by the PR that gave that store</span>
@@ -854,7 +918,19 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="n">store</span>
+                <span class="k">if</span> <span class="n">only</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="p">(</span>
+                    <span class="n">k</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span>
+                        <span class="n">u</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">only</span>
+                        <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">store_name</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">store</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — see below</span>
             <span class="c1"># The ITERATION, not just the per-key read. an#110 took this walk</span>
             <span class="c1"># from one store to three, so an unreadable backing store went from</span>
@@ -878,14 +954,114 @@ window.runMermaid = runMermaid;</script>
             <span class="n">source</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="s2">"source"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
                 <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
-                <span class="n">source</span> <span class="o">=</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="k">if</span> <span class="n">raw</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="n">source</span> <span class="o">=</span> <span class="n">_source_or_unknown</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">if</span> <span class="n">raw</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">store_name</span> <span class="o">==</span> <span class="s2">"characters"</span><span class="p">:</span>
                 <span class="n">source</span> <span class="o">=</span> <span class="n">_reconstruct_legacy_source</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="n">CreditEntry</span><span class="p">(</span><span class="n">asset</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store_name</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
                 <span class="p">)</span>
+            <span class="k">if</span> <span class="n">store_name</span> <span class="o">==</span> <span class="s2">"environments"</span><span class="p">:</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_plane_credits</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">report</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_source_or_unknown</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">asset</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AssetSource</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``raw`` as an `AssetSource`; a malformed one is reported UNVERIFIED.</span>
+
+<span class="sd">    A `source` that is not a record (a bare string, a list) is still a claim</span>
+<span class="sd">    somebody wrote about provenance. Raising would make a credits walk — and</span>
+<span class="sd">    the check at the end of every render — fail on an asset the render may</span>
+<span class="sd">    not even use; dropping it would be a false clean bill. Unknown is honest.</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">AssetSource</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">asset</span><span class="si">}</span><span class="s2">: its `source` is not an AssetSource record (</span><span class="si">{</span><span class="n">raw</span><span class="si">!r}</span><span class="s2">); it is "</span>
+            <span class="s2">"reported with an UNKNOWN licence."</span><span class="p">,</span>
+            <span class="n">CreditsWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">AssetSource</span><span class="p">(</span><span class="n">provider</span><span class="o">=</span><span class="s2">"unknown"</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="p">{</span><span class="s2">"raw"</span><span class="p">:</span> <span class="n">raw</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_plane_credits</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""One entry per plane that declares its OWN `source` (an#211).</span>
+
+<span class="sd">    A composite stage — a plate carved from a film under one licence, a CC0</span>
+<span class="sd">    prop under another — cannot be described by one environment `source`, and</span>
+<span class="sd">    a credits walk that reads only that one silently drops the second.</span>
+<span class="sd">    """</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">descriptor</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CreditEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"planes"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">plane</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">plane</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">_source_or_unknown</span><span class="p">(</span>
+            <span class="n">plane</span><span class="p">[</span><span class="s2">"source"</span><span class="p">],</span> <span class="sa">f</span><span class="s2">"environments/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">/planes/</span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">CreditEntry</span><span class="p">(</span>
+                <span class="n">asset</span><span class="o">=</span><span class="sa">f</span><span class="s2">"environments/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">/planes/</span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<div class="viewcode-block" id="credits_for_scene">
+<a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.credits_for_scene">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">credits_for_scene</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">scene</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CreditsReport</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Credits for exactly the assets ``scene`` draws or plays (an#211).</span>
+
+<span class="sd">    :func:`collect_credits` walks the whole project; a render owes only what it</span>
+<span class="sd">    used, and a private-study plate sitting unused in the store must not make</span>
+<span class="sd">    an unrelated render "not publishable". Kept: every entry under a</span>
+<span class="sd">    ``store/ref`` some shot's entity names, and every sound a cue names.</span>
+<span class="sd">    """</span>
+    <span class="n">used</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
+        <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">store</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">:</span>
+                <span class="n">used</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">store</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="s2">"sounds"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
+            <span class="n">used</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sounds/</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">cue</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"meta"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">"sounds"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]:</span>
+        <span class="n">used</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sounds/</span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">full</span> <span class="o">=</span> <span class="n">collect_credits</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">only</span><span class="o">=</span><span class="n">used</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">CreditsReport</span><span class="p">(</span>
+        <span class="n">entries</span><span class="o">=</span><span class="p">[</span>
+            <span class="n">e</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">full</span><span class="o">.</span><span class="n">entries</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="o">==</span> <span class="n">u</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">u</span> <span class="o">+</span> <span class="s2">"/"</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">used</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="warn_if_private_study">
+<a class="viewcode-back" href="../../_autosummary/an.credits.html#an.credits.warn_if_private_study">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">warn_if_private_study</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="n">CreditsReport</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">output</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Warn, loudly, when ``report`` holds private-study material.</span>
+
+<span class="sd">    Returns whether it warned. Called at the end of a render, so the warning is</span>
+<span class="sd">    the last word about the file; ``output`` names it.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">report</span><span class="o">.</span><span class="n">publishable</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">what</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">output</span><span class="si">}</span><span class="s2"> "</span> <span class="k">if</span> <span class="n">output</span> <span class="k">else</span> <span class="s2">"this render "</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">is NOT PUBLISHABLE: it contains </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">report</span><span class="o">.</span><span class="n">private</span><span class="p">)</span><span class="si">}</span><span class="s2"> asset(s) "</span>
+        <span class="s2">"that are all rights reserved, for private study only — "</span>
+        <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">report</span><span class="o">.</span><span class="n">private</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s2">". Keep it private; do not upload, publish or share it. "</span>
+        <span class="s2">"`an credits &lt;project&gt;` lists them."</span><span class="p">,</span>
+        <span class="n">PrivateStudyWarning</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
 
 
 

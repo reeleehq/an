@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.text" href="an.adapters.cutout.text.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -424,6 +424,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -561,19 +562,22 @@ decides what to do with the ramps. Additive blending lands in 2B.</p></li>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.evaluate_timeline" title="an.adapters.cutout.timeline.evaluate_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_timeline</span></code></a>(timeline, t)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.clip_from_json" title="an.adapters.cutout.timeline.clip_from_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">clip_from_json</span></code></a>(anim, *[, name])</p></td>
+<td><p>One compiled animation (<code class="docutils literal notranslate"><span class="pre">AnimationClipJSON</span></code>) as an evaluable <code class="xref py py-class docutils literal notranslate"><span class="pre">Clip</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.evaluate_timeline" title="an.adapters.cutout.timeline.evaluate_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">evaluate_timeline</span></code></a>(timeline, t)</p></td>
 <td><p>Evaluate <code class="docutils literal notranslate"><span class="pre">timeline</span></code> at time <code class="docutils literal notranslate"><span class="pre">t</span></code>, merging poses across tracks/clips.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.screen_position" title="an.adapters.cutout.timeline.screen_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">screen_position</span></code></a>(scene, path, *[, pose, point])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.screen_position" title="an.adapters.cutout.timeline.screen_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">screen_position</span></code></a>(scene, path, *[, pose, point])</p></td>
 <td><p>Where <code class="docutils literal notranslate"><span class="pre">point</span></code> in <code class="docutils literal notranslate"><span class="pre">path</span></code>'s local space lands on the canvas.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.timeline_from_scene" title="an.adapters.cutout.timeline.timeline_from_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline_from_scene</span></code></a>(scene)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.timeline_from_scene" title="an.adapters.cutout.timeline.timeline_from_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline_from_scene</span></code></a>(scene)</p></td>
 <td><p>The compiled scene's <code class="code docutils literal notranslate"><span class="pre">timeline</span></code>/<code class="code docutils literal notranslate"><span class="pre">animations</span></code> as this module's <code class="code docutils literal notranslate"><span class="pre">Timeline</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.transform_of" title="an.adapters.cutout.timeline.transform_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_of</span></code></a>(node[, pose])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.transform_of" title="an.adapters.cutout.timeline.transform_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_of</span></code></a>(node[, pose])</p></td>
 <td><p>A node's transform, with <code class="docutils literal notranslate"><span class="pre">pose</span></code> overriding what the document declares.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.write_group" title="an.adapters.cutout.timeline.write_group"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_group</span></code></a>(prop)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.timeline.write_group" title="an.adapters.cutout.timeline.write_group"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_group</span></code></a>(prop)</p></td>
 <td><p>What <code class="docutils literal notranslate"><span class="pre">prop</span></code> writes on its node — see <a class="reference internal" href="#an.adapters.cutout.timeline.SWAP_WRITE_GROUP" title="an.adapters.cutout.timeline.SWAP_WRITE_GROUP"><code class="xref py py-data docutils literal notranslate"><span class="pre">SWAP_WRITE_GROUP</span></code></a>.</p></td>
 </tr>
 </tbody>
@@ -699,6 +703,23 @@ moves everything the node contains, in the opposite direction.</p>
 </div>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.adapters.cutout.timeline.clip_from_json">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.timeline.</span></span><span class="sig-name descname"><span class="pre">clip_from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">anim</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/timeline.html#clip_from_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.timeline.clip_from_json" title="Link to this definition">#</a></dt>
+<dd><p>One compiled animation (<code class="docutils literal notranslate"><span class="pre">AnimationClipJSON</span></code>) as an evaluable <code class="xref py py-class docutils literal notranslate"><span class="pre">Clip</span></code>.</p>
+<p>Two fields are carried rather than defaulted, and both have cost a bug:
+<code class="docutils literal notranslate"><span class="pre">loop_mode</span></code> (without it every loop evaluated as <code class="docutils literal notranslate"><span class="pre">once</span></code> — an#7) and a
+list-valued <code class="docutils literal notranslate"><span class="pre">easing</span></code>, which is a cubic-bezier control quadruple and must
+stay a tuple for <code class="docutils literal notranslate"><span class="pre">Keyframe</span></code>. The compiler reads a from-less tween’s
+start through this too (an#212), so it evaluates exactly what the
+runtime will.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.adapters.cutout.clip.html#an.adapters.cutout.clip.Clip" title="an.adapters.cutout.clip.Clip"><code class="xref py py-class docutils literal notranslate"><span class="pre">Clip</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -910,6 +931,7 @@ every keyframe instead of an offset from it.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.Transform2D.unapply"><code class="docutils literal notranslate"><span class="pre">Transform2D.unapply()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.clip_from_json"><code class="docutils literal notranslate"><span class="pre">clip_from_json()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.evaluate_timeline"><code class="docutils literal notranslate"><span class="pre">evaluate_timeline()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.screen_position"><code class="docutils literal notranslate"><span class="pre">screen_position()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.timeline.timeline_from_scene"><code class="docutils literal notranslate"><span class="pre">timeline_from_scene()</span></code></a></li>

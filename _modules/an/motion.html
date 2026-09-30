@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -760,8 +760,11 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">**scene.md: play a preset by name** (an#166). ``{kind: play, target:</span>
 <span class="sd">charlie, animation: hop, args: {height: 30}, start: 1.0}`` expands to exactly</span>
-<span class="sd">this module's tweens at compile, with the rest pose read off the built scene —</span>
-<span class="sd">no ``rest=`` — and ``args`` as the preset's keyword arguments. A character</span>
+<span class="sd">this module's tweens at compile, with ``rest`` the pose the node HAS at the</span>
+<span class="sd">play's start — the built scene's (stage placement, layout) overridden by the</span>
+<span class="sd">sets and tweens before it (an#212) — so no ``rest=``, and a preset after a move</span>
+<span class="sd">starts where the move left it (an entrance in :data:`HOME_PRESETS` lands on the</span>
+<span class="sd">built pose instead); ``args`` are the preset's keyword arguments. A character</span>
 <span class="sd">descriptor animation of the same name WINS; ``an validate`` and the compiler</span>
 <span class="sd">decide both through :func:`an.characters.play.play_problems`. ``duration``</span>
 <span class="sd">stretches the move and ``speed`` divides it; ``loop`` is refused. In a</span>
@@ -1407,6 +1410,14 @@ window.runMermaid = runMermaid;</script>
 <span class="p">}</span>
 
 
+<span class="c1">#: Presets whose ``rest`` is the node's HOME — where an entrance LANDS — rather</span>
+<span class="c1">#: than where the node is when the move starts. Played by name these read the</span>
+<span class="c1">#: BUILT pose (``slide_out`` then ``slide_in`` comes back home; ``pop_in`` after a</span>
+<span class="c1">#: ``set`` of the scales to 0 grows to full size); every other preset moves</span>
+<span class="c1">#: relative to where the node IS at its start (an#212).</span>
+<span class="n">HOME_PRESETS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"pop_in"</span><span class="p">,</span> <span class="s2">"slide_in"</span><span class="p">})</span>
+
+
 <span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="c1"># Rest from the built scene, and scene.md-friendly leaves</span>
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -1527,6 +1538,7 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"HOME_PRESETS"</span><span class="p">,</span>
     <span class="s2">"IDENTITY_POSE"</span><span class="p">,</span>
     <span class="s2">"face_toward"</span><span class="p">,</span>
     <span class="s2">"OVERSHOOT"</span><span class="p">,</span>

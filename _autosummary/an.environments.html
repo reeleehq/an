@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.determinism" href="an.determinism.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -424,6 +424,7 @@
 <li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -576,8 +577,29 @@ that share a depth.</p>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.environments.PLANE_FILL_SPAN" title="an.environments.PLANE_FILL_SPAN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PLANE_FILL_SPAN</span></code></a></p></td>
+<td><p>A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> plane with no declared size covers the canvas at any camera scale.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.environments.Rect" title="an.environments.Rect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rect</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">top,</span> <span class="pre">right,</span> <span class="pre">bottom)</span></code> in scene pixels, <code class="code docutils literal notranslate"><span class="pre">y</span></code> down (the stage's axes).</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.environments.ENVIRONMENT_DOCUMENT_KIND" title="an.environments.ENVIRONMENT_DOCUMENT_KIND"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ENVIRONMENT_DOCUMENT_KIND</span></code></a></p></td>
 <td><p>Its own versioned document, registered from the module that owns the schema — the rule <code class="code docutils literal notranslate"><span class="pre">CharacterDescriptor</span></code> and <code class="code docutils literal notranslate"><span class="pre">PropDescriptor</span></code> both follow, and the reason the registry is keyed per KIND (an#77).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.environments.frame_rect" title="an.environments.frame_rect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_rect</span></code></a>(*, x, y, zoom, rotation, width, ...)</p></td>
+<td><p>The scene region a camera pose shows: centred on the camera, the canvas divided by the zoom, grown to the axis-aligned box of a rolled frame — CONSERVATIVE under roll (the box contains corners the rotated frame does not show, so a plate that covers a rolled view can still be flagged).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.environments.plane_rect" title="an.environments.plane_rect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plane_rect</span></code></a>(plane, art_size, *[, camera])</p></td>
+<td><p>Where <code class="docutils literal notranslate"><span class="pre">plane</span></code> is drawn, in scene pixels, with the camera at <code class="docutils literal notranslate"><span class="pre">camera</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.environments.uncovered_part" title="an.environments.uncovered_part"><code class="xref py py-obj docutils literal notranslate"><span class="pre">uncovered_part</span></code></a>(view, covers)</p></td>
+<td><p>The bounding box of the part of <code class="docutils literal notranslate"><span class="pre">view</span></code> no rect in <code class="docutils literal notranslate"><span class="pre">covers</span></code> covers.</p></td>
 </tr>
 </tbody>
 </table>
@@ -685,6 +707,16 @@ environments art is the PR that closes that hole — otherwise
 
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.environments.PLANE_FILL_SPAN">
+<span class="sig-prename descclassname"><span class="pre">an.environments.</span></span><span class="sig-name descname"><span class="pre">PLANE_FILL_SPAN</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4000.0</span></span><a class="headerlink" href="#an.environments.PLANE_FILL_SPAN" title="Link to this definition">#</a></dt>
+<dd><p>A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> plane with no declared size covers the canvas at any camera scale.
+The same 4000 the preset backdrop uses, and for the same reason — the runtime
+centres <code class="code docutils literal notranslate"><span class="pre">root</span></code> and applies camera scale, so a huge rect always covers. Lives
+here (the schema) so the IR layer’s framing check and the compiler read one
+number; <code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.compile</span></code> re-exports it.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.environments.Plane">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.environments.</span></span><span class="sig-name descname"><span class="pre">Plane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/environments.html#Plane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.environments.Plane" title="Link to this definition">#</a></dt>
@@ -765,7 +797,19 @@ not vertically. <code class="code docutils literal notranslate"><span class="pre
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.environments.Plane.size">
 <span class="sig-name descname"><span class="pre">size</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.environments.Plane.size" title="Link to this definition">#</a></dt>
-<dd><p><code class="code docutils literal notranslate"><span class="pre">None</span></code> = the art’s own extent. A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> with no size covers the canvas.</p>
+<dd><p><code class="code docutils literal notranslate"><span class="pre">None</span></code> = the art’s own extent. A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> with no size covers the canvas.
+The box the art is fitted into, in scene pixels. <strong>A declared size wins</strong>
+(an#211); <code class="code docutils literal notranslate"><span class="pre">None</span></code> = the art’s own extent — an SVG’s <code class="code docutils literal notranslate"><span class="pre">width</span></code>/<code class="code docutils literal notranslate"><span class="pre">height</span></code>, a
+raster’s pixel size. A <code class="code docutils literal notranslate"><span class="pre">fill</span></code> with no size covers the canvas.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.environments.Plane.source">
+<span class="sig-name descname"><span class="pre">source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><span class="pre">AssetSource</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.environments.Plane.source" title="Link to this definition">#</a></dt>
+<dd><p>Where THIS plane’s art came from, when it is not the environment’s —
+a composite stage of a carved plate and a CC0 prop credits both
+(an#211). <code class="code docutils literal notranslate"><span class="pre">None</span></code> = the environment’s <code class="code docutils literal notranslate"><span class="pre">source</span></code> covers it. Omitted from
+the stored document when unset.</p>
 </dd></dl>
 
 </dd></dl>
@@ -779,8 +823,12 @@ not vertically. <code class="code docutils literal notranslate"><span class="pre
 <span class="go">'#cfe9ff'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">PlaneArt</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"image"</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="s2">"plates/forest.svg"</span><span class="p">)</span><span class="o">.</span><span class="n">src</span>
 <span class="go">'plates/forest.svg'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">PlaneArt</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"image"</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="s2">"plates/street.png"</span><span class="p">)</span><span class="o">.</span><span class="n">src</span>
+<span class="go">'plates/street.png'</span>
 </pre></div>
 </div>
+<p>An <code class="code docutils literal notranslate"><span class="pre">image</span></code> is SVG or raster — PNG, JPEG or WebP (an#211): the compiler
+sizes it from its header and PixiJS loads it natively.</p>
 <p>Two kinds ship, and the omission is deliberate rather than partial:
 <code class="code docutils literal notranslate"><span class="pre">gradient</span></code> and <code class="code docutils literal notranslate"><span class="pre">generated</span></code> would each need a runtime that can draw them,
 and this package’s standing rule is that schema without a consumer is
@@ -809,7 +857,8 @@ an#110 is the same call made the same way.</p>
 <dt class="sig sig-object py" id="an.environments.PlaneArt.src">
 <span class="sig-name descname"><span class="pre">src</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.environments.PlaneArt.src" title="Link to this definition">#</a></dt>
 <dd><p>a path under the environment’s own folder in the store,
-exactly as a character attachment’s <code class="code docutils literal notranslate"><span class="pre">path</span></code> is.</p>
+exactly as a character attachment’s <code class="code docutils literal notranslate"><span class="pre">path</span></code> is — <code class="code docutils literal notranslate"><span class="pre">.svg</span></code>, <code class="code docutils literal notranslate"><span class="pre">.png</span></code>,
+<code class="code docutils literal notranslate"><span class="pre">.jpg</span></code>/<code class="code docutils literal notranslate"><span class="pre">.jpeg</span></code> or <code class="code docutils literal notranslate"><span class="pre">.webp</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="code docutils literal notranslate"><span class="pre">image</span></code> only</p>
@@ -817,6 +866,78 @@ exactly as a character attachment’s <code class="code docutils literal notrans
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.environments.Rect">
+<span class="sig-prename descclassname"><span class="pre">an.environments.</span></span><span class="sig-name descname"><span class="pre">Rect</span></span><a class="headerlink" href="#an.environments.Rect" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(left,</span> <span class="pre">top,</span> <span class="pre">right,</span> <span class="pre">bottom)</span></code> in scene pixels, <code class="code docutils literal notranslate"><span class="pre">y</span></code> down (the stage’s axes).</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.environments.frame_rect">
+<span class="sig-prename descclassname"><span class="pre">an.environments.</span></span><span class="sig-name descname"><span class="pre">frame_rect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/environments.html#frame_rect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.environments.frame_rect" title="Link to this definition">#</a></dt>
+<dd><p>The scene region a camera pose shows: centred on the camera, the canvas
+divided by the zoom, grown to the axis-aligned box of a rolled frame —
+CONSERVATIVE under roll (the box contains corners the rotated frame does
+not show, so a plate that covers a rolled view can still be flagged).</p>
+<p><code class="code docutils literal notranslate"><span class="pre">root.pivot</span></code> is the camera and <code class="code docutils literal notranslate"><span class="pre">root.scale</span></code> the zoom, composed about the
+canvas centre, so a pose shows <code class="docutils literal notranslate"><span class="pre">camera</span> <span class="pre">±</span> <span class="pre">canvas</span> <span class="pre">/</span> <span class="pre">(2</span> <span class="pre">·</span> <span class="pre">zoom)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">frame_rect</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">zoom</span><span class="o">=</span><span class="mf">1.25</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">320</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">240</span><span class="p">)</span>
+<span class="go">(-128.0, -96.0, 128.0, 96.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.environments.plane_rect">
+<span class="sig-prename descclassname"><span class="pre">an.environments.</span></span><span class="sig-name descname"><span class="pre">plane_rect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plane</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">art_size</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">camera</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.0,</span> <span class="pre">0.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/environments.html#plane_rect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.environments.plane_rect" title="Link to this definition">#</a></dt>
+<dd><p>Where <code class="docutils literal notranslate"><span class="pre">plane</span></code> is drawn, in scene pixels, with the camera at <code class="docutils literal notranslate"><span class="pre">camera</span></code>.</p>
+<p>The compiler’s own geometry, restated for a pre-flight: the box is the
+declared <code class="code docutils literal notranslate"><span class="pre">size</span></code> or the art’s extent (<code class="docutils literal notranslate"><span class="pre">art_size</span></code>), the art is fitted into
+it by <code class="code docutils literal notranslate"><span class="pre">fit</span></code>, placed by <code class="code docutils literal notranslate"><span class="pre">anchor</span></code> at <code class="code docutils literal notranslate"><span class="pre">offset</span></code>, and the plane’s parallax
+compensation moves it by <code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">−</span> <span class="pre">f)</span> <span class="pre">·</span> <span class="pre">camera</span></code> per axis. <code class="docutils literal notranslate"><span class="pre">None</span></code> when the
+extent cannot be known (an image whose art cannot be measured and whose
+<code class="code docutils literal notranslate"><span class="pre">fit</span></code> makes the drawn size depend on it) — an unknown, not a hole.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">plane_rect</span><span class="p">(</span><span class="n">Plane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">art</span><span class="o">=</span><span class="n">PlaneArt</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"image"</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="s2">"a.png"</span><span class="p">),</span>
+<span class="gp">... </span>                 <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mf">100.0</span><span class="p">,</span> <span class="mf">50.0</span><span class="p">),</span> <span class="n">fit</span><span class="o">=</span><span class="s2">"stretch"</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
+<span class="go">(-50.0, -25.0, 50.0, 25.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plane_rect</span><span class="p">(</span><span class="n">Plane</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"p"</span><span class="p">,</span> <span class="n">art</span><span class="o">=</span><span class="n">PlaneArt</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"image"</span><span class="p">,</span> <span class="n">src</span><span class="o">=</span><span class="s2">"a.png"</span><span class="p">),</span> <span class="n">depth</span><span class="o">=</span><span class="mf">0.0</span><span class="p">),</span>
+<span class="gp">... </span>           <span class="p">(</span><span class="mf">200.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">),</span> <span class="n">camera</span><span class="o">=</span><span class="p">(</span><span class="mf">40.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">))</span>
+<span class="go">(-60.0, -50.0, 140.0, 50.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.environments.uncovered_part">
+<span class="sig-prename descclassname"><span class="pre">an.environments.</span></span><span class="sig-name descname"><span class="pre">uncovered_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">view</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/environments.html#uncovered_part"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.environments.uncovered_part" title="Link to this definition">#</a></dt>
+<dd><p>The bounding box of the part of <code class="docutils literal notranslate"><span class="pre">view</span></code> no rect in <code class="docutils literal notranslate"><span class="pre">covers</span></code> covers.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> when the union covers the whole view. Exact for axis-aligned
+rects: the view is cut into cells at every cover edge, and a cell is
+covered or not as a whole.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">uncovered_part</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">8</span><span class="p">)])</span>
+<span class="go">(0, 8, 10, 10)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uncovered_part</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)])</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -877,6 +998,7 @@ exactly as a character attachment’s <code class="code docutils literal notrans
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.EnvironmentDescriptor.source"><code class="docutils literal notranslate"><span class="pre">EnvironmentDescriptor.source</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.PLANE_FILL_SPAN"><code class="docutils literal notranslate"><span class="pre">PLANE_FILL_SPAN</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.Plane"><code class="docutils literal notranslate"><span class="pre">Plane</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.Plane.anchor"><code class="docutils literal notranslate"><span class="pre">Plane.anchor</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.Plane.depth"><code class="docutils literal notranslate"><span class="pre">Plane.depth</span></code></a></li>
@@ -886,6 +1008,7 @@ exactly as a character attachment’s <code class="code docutils literal notrans
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.Plane.offset"><code class="docutils literal notranslate"><span class="pre">Plane.offset</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.Plane.parallax"><code class="docutils literal notranslate"><span class="pre">Plane.parallax</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.Plane.size"><code class="docutils literal notranslate"><span class="pre">Plane.size</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.Plane.source"><code class="docutils literal notranslate"><span class="pre">Plane.source</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.PlaneArt"><code class="docutils literal notranslate"><span class="pre">PlaneArt</span></code></a><ul class="nav section-nav flex-column">
@@ -894,6 +1017,10 @@ exactly as a character attachment’s <code class="code docutils literal notrans
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.PlaneArt.src"><code class="docutils literal notranslate"><span class="pre">PlaneArt.src</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.Rect"><code class="docutils literal notranslate"><span class="pre">Rect</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.frame_rect"><code class="docutils literal notranslate"><span class="pre">frame_rect()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.plane_rect"><code class="docutils literal notranslate"><span class="pre">plane_rect()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.environments.uncovered_part"><code class="docutils literal notranslate"><span class="pre">uncovered_part()</span></code></a></li>
 </ul>
   </nav></div>
 

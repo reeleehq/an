@@ -598,6 +598,7 @@ always passes it).
 | [`preview`](an.preview.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit. |
 | [`project`](an.project.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                         |
 | [`props`](an.props.md#module-an.props)               | Props: a rig whose art is not a person.                                                |
+| [`raster`](an.raster.md#module-an.raster)             | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                |
 | [`render`](an.render.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.        |
 | [`sounds`](an.sounds.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.       |
 | [`stores`](an.stores.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                            |

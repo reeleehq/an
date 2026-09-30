@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=1a016164"></script>
+    <script src="../../../../_static/documentation_options.js?v=be79e57d"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.118" />
+  <meta name="docsearch:version" content="0.1.119" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -829,10 +829,11 @@ window.runMermaid = runMermaid;</script>
     <span class="n">Skin</span><span class="p">,</span>
     <span class="n">Slot</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.svg_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">raster_size</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span><span class="p">,</span> <span class="n">is_raster</span><span class="p">,</span> <span class="n">short_digest</span><span class="p">,</span> <span class="n">versioned_src</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span><span class="p">,</span> <span class="n">PAN_FRACTION</span><span class="p">,</span> <span class="n">CameraError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">camera_keys</span> <span class="k">as</span> <span class="n">_camera_keys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">migrate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.environments</span><span class="w"> </span><span class="kn">import</span> <span class="n">PLANE_FILL_SPAN</span> <span class="k">as</span> <span class="n">_PLANE_FILL_SPAN</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.environments</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ENVIRONMENT_DOCUMENT_KIND</span><span class="p">,</span>
     <span class="n">EnvironmentDescriptor</span><span class="p">,</span>
@@ -983,6 +984,54 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_has_raster_parts</span><span class="p">(</span><span class="n">desc_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether any attachment of any skin of a rig document is raster art."""</span>
+    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="p">(</span><span class="n">desc_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"skins"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="p">((</span><span class="n">skin</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="p">(</span><span class="n">attachments</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">att</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">is_raster</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_note_raster_rig</span><span class="p">(</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="n">AssetRef</span><span class="p">,</span>
+    <span class="n">desc_data</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span><span class="p">,</span>
+    <span class="n">raster</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Record a rig with raster parts that a colour-setting pack is applied to."""</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">raster</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">pack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">pack</span><span class="o">.</span><span class="n">roles</span> <span class="ow">or</span> <span class="n">pack</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">_has_raster_parts</span><span class="p">(</span><span class="n">desc_data</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="n">raster</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_warn_raster_parts_not_recoloured</span><span class="p">(</span>
+    <span class="n">pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span><span class="p">,</span> <span class="n">raster</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Say ONCE that a pack's colours do not reach raster parts (an#211).</span>
+
+<span class="sd">    A raster part's colours are pixels, not literals a descriptor can tag, so</span>
+<span class="sd">    a StylePack leaves it exactly as drawn. Stable text (the pack and the rigs,</span>
+<span class="sd">    nothing shot-specific), so Python's registry shows it once per process per</span>
+<span class="sd">    distinct set, like the untagged-art warning beside it.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">pack</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">raster</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"style pack </span><span class="si">{</span><span class="n">pack</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">raster</span><span class="p">)</span><span class="si">}</span><span class="s2"> carry raster (PNG/JPEG/WebP) "</span>
+        <span class="s2">"parts, which a pack cannot recolour — their colours are pixels, not "</span>
+        <span class="s2">"tagged literals — so those parts render as drawn. Surface treatments "</span>
+        <span class="s2">"(outline, shadow, glow) still reach them."</span><span class="p">,</span>
+        <span class="n">CutoutCompileWarning</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
 <span class="c1">#: Roles every character has somewhere (a body is skin, a costume, hair). A</span>
 <span class="c1">#: TAGGED rig missing one of these that a pack sets is half-reached — a</span>
 <span class="c1">#: DiceBear head keeps its own skin while the rest follows the pack — and is</span>
@@ -1037,6 +1086,10 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">rel_path</span><span class="p">,</span> <span class="n">roles</span> <span class="ow">in</span> <span class="n">roles_by_part</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">is_raster</span><span class="p">(</span><span class="n">rel_path</span><span class="p">):</span>
+            <span class="c1"># Pixels, not literals: nothing to rewrite (an#211). The caller</span>
+            <span class="c1"># warns once, by rig, via `_raster_parts`.</span>
+            <span class="k">continue</span>
         <span class="n">swaps</span> <span class="o">=</span> <span class="n">role_recolouring</span><span class="p">(</span>
             <span class="n">roles</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">role</span><span class="p">:</span> <span class="n">pack</span><span class="o">.</span><span class="n">colour_for</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
         <span class="p">)</span>
@@ -1200,8 +1253,9 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_property_rest_values</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Rest ("identity") value per animatable property, derived from the schema.</span>
 
-<span class="sd">    A tween that declares no ``from_value`` starts from its property's rest</span>
-<span class="sd">    value. This is not cosmetic: offsets and rotations rest at 0.0, but the</span>
+<span class="sd">    A tween that declares no ``from_value`` starts from the value its property</span>
+<span class="sd">    has at that moment (an#212, :func:`_value_at`) — and with nothing placed or</span>
+<span class="sd">    animated before it, that is this rest value. This is not cosmetic: offsets and rotations rest at 0.0, but the</span>
 <span class="sd">    *multiplicative* properties rest at 1.0, and defaulting all of them to 0.0</span>
 <span class="sd">    silently breaks the two most obvious uses of a tween — a fade-out (``alpha``</span>
 <span class="sd">    starting at 0 is already invisible, so the fade never happens and the</span>
@@ -1288,7 +1342,8 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_rest_value_for</span><span class="p">(</span><span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The implicit start of a tween on ``prop``, or refuse to invent one.</span>
+<span class="w">    </span><span class="sd">"""The identity of ``prop`` — the implicit start of a tween on a node</span>
+<span class="sd">    nothing has placed or moved (:func:`_built_value`) — or refuse to invent one.</span>
 
 <span class="sd">    A property with no numeric identity — a viseme code, a colour — has no</span>
 <span class="sd">    meaningful "start from rest". Substituting 0.0 does not mean "unchanged", it</span>
@@ -1905,6 +1960,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">in_front</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">reached</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">skipped</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">raster</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">:</span>
             <span class="n">node</span><span class="p">,</span> <span class="n">front</span> <span class="o">=</span> <span class="n">_build_environment_subtree</span><span class="p">(</span>
@@ -1929,6 +1985,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack</span><span class="p">,</span>
                 <span class="n">reached</span><span class="o">=</span><span class="n">reached</span><span class="p">,</span>
                 <span class="n">skipped</span><span class="o">=</span><span class="n">skipped</span><span class="p">,</span>
+                <span class="n">raster</span><span class="o">=</span><span class="n">raster</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">sub</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
             <span class="n">_apply_stage_placement</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
@@ -1961,6 +2018,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">resolutions</span><span class="o">=</span><span class="n">resolutions</span><span class="p">,</span>
                 <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack</span><span class="p">,</span>
                 <span class="n">reached</span><span class="o">=</span><span class="n">reached</span><span class="p">,</span>
+                <span class="n">raster</span><span class="o">=</span><span class="n">raster</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">_apply_stage_placement</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
             <span class="n">_warn_surface</span><span class="p">(</span>
@@ -1974,6 +2032,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># …and last, the foreground planes, over everything.</span>
     <span class="n">children</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">in_front</span><span class="p">)</span>
     <span class="n">_warn_about_art_a_pack_cannot_reach</span><span class="p">(</span><span class="n">style_pack</span><span class="p">,</span> <span class="n">reached</span><span class="p">,</span> <span class="n">skipped</span><span class="p">)</span>
+    <span class="n">_warn_raster_parts_not_recoloured</span><span class="p">(</span><span class="n">style_pack</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">NodeJSON</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"root"</span><span class="p">,</span> <span class="n">children</span><span class="o">=</span><span class="n">children</span><span class="p">)</span>
 
 
@@ -2145,10 +2204,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    every fallback.</span>
 <span class="sd">    """</span>
     <span class="n">probe</span> <span class="o">=</span> <span class="n">_part_probe</span><span class="p">(</span><span class="n">env_store</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">ENVIRONMENT_ART_PREFIX</span><span class="p">)</span>
+    <span class="n">digest</span> <span class="o">=</span> <span class="n">_raster_digest</span><span class="p">(</span><span class="n">env_store</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">ENVIRONMENT_ART_PREFIX</span><span class="p">)</span>
     <span class="n">ref</span> <span class="o">=</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span> <span class="ow">or</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span>
     <span class="n">nodes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NodeJSON</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">plane</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">planes</span><span class="p">:</span>
-        <span class="n">node</span> <span class="o">=</span> <span class="n">_plane_node</span><span class="p">(</span><span class="n">plane</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">textures</span><span class="o">=</span><span class="n">textures</span><span class="p">,</span> <span class="n">probe</span><span class="o">=</span><span class="n">probe</span><span class="p">)</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">_plane_node</span><span class="p">(</span>
+            <span class="n">plane</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">ref</span><span class="p">,</span> <span class="n">textures</span><span class="o">=</span><span class="n">textures</span><span class="p">,</span> <span class="n">probe</span><span class="o">=</span><span class="n">probe</span><span class="p">,</span> <span class="n">digest</span><span class="o">=</span><span class="n">digest</span>
+        <span class="p">)</span>
         <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">resolutions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">resolutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -2189,10 +2251,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The `assets.textures` `src` prefix an environment plate is addressed under.</span>
 <span class="n">ENVIRONMENT_ART_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"environments/"</span>
 
-<span class="c1">#: A `fill` plane with no declared size covers the canvas at any camera scale.</span>
-<span class="c1">#: The same 4000 the preset backdrop uses, and for the same reason — the runtime</span>
-<span class="c1">#: centres `root` and applies camera scale, so a huge rect always covers.</span>
-<span class="n">PLANE_FILL_SPAN</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4000.0</span>
+<span class="c1">#: A `fill` plane with no declared size covers the canvas at any camera scale</span>
+<span class="c1">#: — defined beside the schema (`an.environments.PLANE_FILL_SPAN`) so the IR</span>
+<span class="c1">#: layer's framing check reads the same number, re-exported here.</span>
+<span class="n">PLANE_FILL_SPAN</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">_PLANE_FILL_SPAN</span>
 
 
 <span class="c1">#: Suffix for the container holding an environment's FOREGROUND planes.</span>
@@ -2277,12 +2339,19 @@ window.runMermaid = runMermaid;</script>
     <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">textures</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetJSON</span><span class="p">],</span>
     <span class="n">probe</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">digest</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NodeJSON</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""One plane as a scene node, or ``None`` when its art cannot be drawn.</span>
 
 <span class="sd">    ``None`` rather than a placeholder: an environment plate that is not on</span>
 <span class="sd">    disk has no stand-in that is not a lie about the picture (an#33), and the</span>
 <span class="sd">    caller records it as a fallback so `strict_assets` can decide.</span>
+
+<span class="sd">    **A declared `size` is the box; the art's own extent is only the default**</span>
+<span class="sd">    (an#211). It was the other way round, so a plate's on-screen size came</span>
+<span class="sd">    from its SVG's `width`/`height` and `Plane.size` was read only for art</span>
+<span class="sd">    that could not be measured — the author had to rewrite the file to resize</span>
+<span class="sd">    the plane. The art is fitted into the box by `fit`.</span>
 <span class="sd">    """</span>
     <span class="n">art</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">art</span>
     <span class="n">ox</span><span class="p">,</span> <span class="n">oy</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">offset</span>
@@ -2301,8 +2370,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">src</span> <span class="o">=</span> <span class="n">_svg_asset_src</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">art</span><span class="o">.</span><span class="n">src</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">ENVIRONMENT_ART_PREFIX</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">probe</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">probe</span><span class="p">(</span><span class="n">src</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="n">alias</span> <span class="o">=</span> <span class="n">_register_texture</span><span class="p">(</span><span class="n">textures</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
-    <span class="n">extent</span> <span class="o">=</span> <span class="p">(</span><span class="n">probe</span><span class="p">(</span><span class="n">src</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">probe</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">plane</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">alias</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+    <span class="n">extent</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">size</span> <span class="ow">or</span> <span class="p">(</span><span class="n">probe</span><span class="p">(</span><span class="n">src</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">probe</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">sha</span> <span class="o">=</span> <span class="n">digest</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="k">if</span> <span class="n">digest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">sha</span><span class="p">:</span>
+        <span class="n">alias</span> <span class="o">+=</span> <span class="s2">"."</span> <span class="o">+</span> <span class="n">sha</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">versioned_src</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">sha</span><span class="p">)</span>
+    <span class="n">alias</span> <span class="o">=</span> <span class="n">_register_texture</span><span class="p">(</span><span class="n">textures</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
     <span class="n">ax</span><span class="p">,</span> <span class="n">ay</span> <span class="o">=</span> <span class="n">plane</span><span class="o">.</span><span class="n">anchor</span>
     <span class="k">return</span> <span class="n">NodeJSON</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="n">plane</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -2534,6 +2608,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">resolutions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">style_pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">reached</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">raster</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NodeJSON</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Build the subtree for one prop, through the SAME rig builder.</span>
 
@@ -2591,7 +2666,9 @@ window.runMermaid = runMermaid;</script>
             <span class="n">resolved</span><span class="o">=</span><span class="s2">"descriptor"</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">_build_svg_character_subtree</span><span class="p">(</span>
+    <span class="n">_note_raster_rig</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">meta</span><span class="p">,</span> <span class="n">style_pack</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
+    <span class="n">already</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">resolutions</span><span class="p">)</span>
+    <span class="n">node</span> <span class="o">=</span> <span class="n">_build_svg_character_subtree</span><span class="p">(</span>
         <span class="n">entity</span><span class="p">,</span>
         <span class="n">meta</span><span class="p">,</span>
         <span class="n">textures</span><span class="o">=</span><span class="n">textures</span> <span class="k">if</span> <span class="n">textures</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{},</span>
@@ -2600,7 +2677,37 @@ window.runMermaid = runMermaid;</script>
         <span class="n">art_prefix</span><span class="o">=</span><span class="n">PROP_ART_PREFIX</span><span class="p">,</span>
         <span class="n">descriptor_model</span><span class="o">=</span><span class="n">PropDescriptor</span><span class="p">,</span>
         <span class="n">document_kind</span><span class="o">=</span><span class="n">PROP_DOCUMENT_KIND</span><span class="p">,</span>
+        <span class="n">digest</span><span class="o">=</span><span class="n">_raster_digest</span><span class="p">(</span><span class="n">props_store</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">PROP_ART_PREFIX</span><span class="p">),</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_draws_anything</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">fallback</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">resolutions</span><span class="p">[</span><span class="n">already</span><span class="p">:]):</span>
+        <span class="c1"># Nothing on disk is MISSING — the document simply names no art (no</span>
+        <span class="c1"># skin, or slots with no attachment) — so `_record_missing_parts` has</span>
+        <span class="c1"># nothing to say, and the prop used to vanish with `strict_assets`</span>
+        <span class="c1"># silent (an#211). It is a hole in the picture like any other.</span>
+        <span class="n">slots</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"name"</span><span class="p">,</span> <span class="s2">"?"</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"slots"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span> <span class="ow">or</span> <span class="p">[</span><span class="s2">"body"</span><span class="p">]</span>
+        <span class="n">resolutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">AssetResolutionJSON</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="n">kind</span><span class="o">=</span><span class="s2">"prop"</span><span class="p">,</span>
+                <span class="n">store</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">store</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">,</span>
+                <span class="n">resolved</span><span class="o">=</span><span class="s2">"empty"</span><span class="p">,</span>
+                <span class="n">fallback</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">detail</span><span class="o">=</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"prop </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> draws NOTHING: none of its slot(s) "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">slots</span><span class="si">}</span><span class="s2"> resolves to an attachment in its `skins` (no skin, "</span>
+                    <span class="s2">"or a slot whose `attachment` names none the skin has). "</span>
+                    <span class="s1">'Add a skin, e.g. {"default": {"slots": '</span>
+                    <span class="s1">'{"body": {"body": {"path": "parts/body.png"}}}}}'</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">node</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_draws_anything</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">NodeJSON</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether any node in the subtree carries a visual."""</span>
+    <span class="k">return</span> <span class="n">node</span><span class="o">.</span><span class="n">visual</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">_draws_anything</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">children</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_build_path_subtree</span><span class="p">(</span>
@@ -2786,6 +2893,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">style_pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">reached</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">skipped</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">raster</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NodeJSON</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Build a NodeJSON subtree for one character.</span>
 
@@ -2827,6 +2935,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">if</span> <span class="n">char_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"CharacterDescriptor"</span><span class="p">:</span>
         <span class="n">_record</span><span class="p">(</span><span class="s2">"descriptor"</span><span class="p">)</span>
+        <span class="n">_note_raster_rig</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">char_meta</span><span class="p">,</span> <span class="n">style_pack</span><span class="p">,</span> <span class="n">raster</span><span class="p">)</span>
         <span class="c1"># An SVG rig's colours live inside its drawings. A pack reaches the</span>
         <span class="c1"># ones the descriptor TAGS (`colour_roles`); an untagged rig is</span>
         <span class="c1"># recorded so the compiler can say which it could not reach, by name.</span>
@@ -2847,6 +2956,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">probe</span><span class="o">=</span><span class="n">_part_probe</span><span class="p">(</span><span class="n">characters_store</span><span class="p">),</span>
             <span class="n">resolutions</span><span class="o">=</span><span class="n">resolutions</span><span class="p">,</span>
             <span class="n">texture_srcs</span><span class="o">=</span><span class="n">srcs</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">digest</span><span class="o">=</span><span class="n">_raster_digest</span><span class="p">(</span><span class="n">characters_store</span><span class="p">),</span>
         <span class="p">)</span>
 
     <span class="n">declared_parts</span> <span class="o">=</span> <span class="n">char_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"parts"</span><span class="p">)</span>
@@ -3072,7 +3182,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    no parts rather than all of them.</span>
 
 <span class="sd">    Size is read from the SVG root's ``width``/``height``, falling back to the</span>
-<span class="sd">    viewBox extent as a browser does: a header parse, not a render.</span>
+<span class="sd">    viewBox extent as a browser does — or, for PNG/JPEG/WebP art, from the</span>
+<span class="sd">    image header (an#211): a header parse, not a render, either way. Before</span>
+<span class="sd">    an#211 a PNG was parsed AS SVG here and the compile died on an XML error.</span>
 <span class="sd">    """</span>
     <span class="n">root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">characters_store</span><span class="p">,</span> <span class="s2">"_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -3087,13 +3199,41 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">raster_size</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="n">art_size</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
             <span class="c1"># Present but unreadable or malformed. Still declared, so the</span>
             <span class="c1"># failure is loud at load rather than an absence nobody sees.</span>
             <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">probe</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_raster_digest</span><span class="p">(</span>
+    <span class="n">store</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">art_prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">CHARACTER_ART_PREFIX</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``digest(src)``: a short content digest for RASTER art, else ``None``.</span>
+
+<span class="sd">    A raster texture is addressed by its bytes (an#211): the digest goes into</span>
+<span class="sd">    the texture's alias, so a re-carved part is a different texture — the</span>
+<span class="sd">    runtime's loader ignores a re-added alias on hot reload (an#155) — and a</span>
+<span class="sd">    different compiled contract, whose hash then covers the pixels drawn. SVG</span>
+<span class="sd">    art keeps its plain alias, which is what keeps every existing document</span>
+<span class="sd">    byte-identical.</span>
+<span class="sd">    """</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">digest</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_raster</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">src</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">art_prefix</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="o">/</span> <span class="n">src</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">art_prefix</span><span class="p">)</span> <span class="p">:]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">short_digest</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># absent art is the probe's business, not this one's</span>
+
+    <span class="k">return</span> <span class="n">digest</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_bone_positions</span><span class="p">(</span><span class="n">desc</span><span class="p">:</span> <span class="n">CharacterDescriptor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
@@ -3208,8 +3348,22 @@ window.runMermaid = runMermaid;</script>
     <span class="n">descriptor_model</span><span class="p">:</span> <span class="nb">type</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="p">,</span>
     <span class="n">document_kind</span><span class="p">:</span> <span class="n">DocumentKind</span> <span class="o">=</span> <span class="n">CHARACTER_DOCUMENT_KIND</span><span class="p">,</span>
     <span class="n">texture_srcs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">digest</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NodeJSON</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Build the scene subtree for a character, **from its descriptor's rig**.</span>
+
+<span class="sd">    A part may be SVG or raster (PNG/JPEG/WebP, an#211): the probe measures</span>
+<span class="sd">    either, and ``digest(src)`` — a content digest for raster art, ``None``</span>
+<span class="sd">    for SVG — is appended to a raster texture's alias so the texture is</span>
+<span class="sd">    addressed by its bytes.</span>
+
+<span class="sd">    **Every swap key keeps its own geometry** (an#211). A swap re-textures the</span>
+<span class="sd">    sprite, and the box, anchor and offset were the DEFAULT attachment's, so a</span>
+<span class="sd">    key drawn on a different canvas was fitted into the wrong box — a closed</span>
+<span class="sd">    mouth on a thin canvas squashed every open mouth to a fraction of a pixel.</span>
+<span class="sd">    A key whose box, anchor or offset differs from the drawn attachment's is</span>
+<span class="sd">    listed in ``VisualJSON.asset_geometry`` and the runtime applies it with the</span>
+<span class="sd">    texture; a rig whose keys share a canvas emits nothing new.</span>
 
 <span class="sd">    ``texture_srcs`` maps a part path to the ``src`` its texture loads from</span>
 <span class="sd">    instead of the stored file — a style pack's recoloured art</span>
@@ -3271,9 +3425,22 @@ window.runMermaid = runMermaid;</script>
         <span class="n">src</span> <span class="o">=</span> <span class="p">(</span><span class="n">texture_srcs</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attachment</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">src</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">src</span> <span class="o">=</span> <span class="n">_svg_asset_src</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">attachment</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">art_prefix</span><span class="p">)</span>
+            <span class="n">sha</span> <span class="o">=</span> <span class="n">digest</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="k">if</span> <span class="n">digest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">sha</span><span class="p">:</span>
+                <span class="n">alias</span> <span class="o">+=</span> <span class="s2">"."</span> <span class="o">+</span> <span class="n">sha</span>
+                <span class="n">src</span> <span class="o">=</span> <span class="n">versioned_src</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">sha</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">alias</span> <span class="o">+=</span> <span class="s2">"."</span> <span class="o">+</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"ascii"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">12</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">_register_texture</span><span class="p">(</span><span class="n">textures</span><span class="p">,</span> <span class="n">alias</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_box_of</span><span class="p">(</span><span class="n">attachment</span><span class="p">:</span> <span class="n">Attachment</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># The art's own extent (from its header), else the declared box.</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">_svg_asset_src</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">attachment</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">art_prefix</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">probe</span><span class="p">(</span><span class="n">src</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">probe</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">attachment</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">attachment</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">attachment</span><span class="o">.</span><span class="n">width</span> <span class="ow">and</span> <span class="n">attachment</span><span class="o">.</span><span class="n">height</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
 
     <span class="c1"># Every attachment in the skin is registered, not just the active one, so a</span>
     <span class="c1"># swap has its texture already loaded when the key changes.</span>
@@ -3326,12 +3493,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">bone_x</span> <span class="o">+=</span> <span class="n">attachment</span><span class="o">.</span><span class="n">x</span>
         <span class="n">bone_y</span> <span class="o">+=</span> <span class="n">attachment</span><span class="o">.</span><span class="n">y</span>
 
-        <span class="n">src</span> <span class="o">=</span> <span class="n">_svg_asset_src</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">attachment</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">art_prefix</span><span class="o">=</span><span class="n">art_prefix</span><span class="p">)</span>
-        <span class="n">extent</span> <span class="o">=</span> <span class="p">(</span><span class="n">probe</span><span class="p">(</span><span class="n">src</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">probe</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">attachment</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">attachment</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">attachment</span><span class="o">.</span><span class="n">width</span> <span class="ow">and</span> <span class="n">attachment</span><span class="o">.</span><span class="n">height</span>
-            <span class="k">else</span> <span class="kc">None</span>
-        <span class="p">)</span>
+        <span class="n">extent</span> <span class="o">=</span> <span class="n">_box_of</span><span class="p">(</span><span class="n">attachment</span><span class="p">)</span>
         <span class="n">visual</span> <span class="o">=</span> <span class="n">VisualJSON</span><span class="p">(</span>
             <span class="n">kind</span><span class="o">=</span><span class="s2">"svg_sprite"</span><span class="p">,</span>
             <span class="n">asset_id</span><span class="o">=</span><span class="n">aliases</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">attachment_name</span><span class="p">],</span>
@@ -3361,6 +3523,17 @@ window.runMermaid = runMermaid;</script>
         <span class="p">}</span>
         <span class="k">if</span> <span class="n">projected</span><span class="p">:</span>
             <span class="n">visual</span><span class="o">.</span><span class="n">asset_sets</span> <span class="o">=</span> <span class="n">projected</span>
+            <span class="n">geometry</span> <span class="o">=</span> <span class="n">_swap_key_geometry</span><span class="p">(</span>
+                <span class="n">projected</span><span class="p">,</span>
+                <span class="n">aliases</span><span class="p">[</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+                <span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">{}),</span>
+                <span class="n">drawn</span><span class="o">=</span><span class="n">attachment</span><span class="p">,</span>
+                <span class="n">built</span><span class="o">=</span><span class="n">extent</span><span class="p">,</span>
+                <span class="n">box_of</span><span class="o">=</span><span class="n">_box_of</span><span class="p">,</span>
+                <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">geometry</span><span class="p">:</span>
+                <span class="n">visual</span><span class="o">.</span><span class="n">asset_geometry</span> <span class="o">=</span> <span class="n">geometry</span>
 
         <span class="n">node</span> <span class="o">=</span> <span class="n">NodeJSON</span><span class="p">(</span>
             <span class="n">name</span><span class="o">=</span><span class="n">slot</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -3381,6 +3554,71 @@ window.runMermaid = runMermaid;</script>
         <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(),</span>
         <span class="n">children</span><span class="o">=</span><span class="n">children_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="p">[]),</span>
     <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_swap_key_geometry</span><span class="p">(</span>
+    <span class="n">projected</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+    <span class="n">alias_of</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="n">attachments</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Attachment</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">drawn</span><span class="p">:</span> <span class="n">Attachment</span><span class="p">,</span>
+    <span class="n">built</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">box_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Attachment</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``{asset_id: geometry}`` for each swap key drawn unlike the built one.</span>
+
+<span class="sd">    The geometry is the key's own fit box (its art's extent × ``k``, the rig's</span>
+<span class="sd">    one uniform scale), its anchor, and its offset from the drawn attachment</span>
+<span class="sd">    in scene pixels — so every key is placed and scaled exactly as it would be</span>
+<span class="sd">    if it were the slot's default. A key whose art cannot be measured keeps</span>
+<span class="sd">    the built box: there is nothing better to say about it.</span>
+
+<span class="sd">    &gt;&gt;&gt; a = Attachment(path="parts/m_x.svg", width=100, height=10)</span>
+<span class="sd">    &gt;&gt;&gt; b = Attachment(path="parts/m_a.svg", width=100, height=60, y=5)</span>
+<span class="sd">    &gt;&gt;&gt; _swap_key_geometry({"viseme": {"X": "c.m.x", "A": "c.m.a"}},</span>
+<span class="sd">    ...                    {"x": "c.m.x", "a": "c.m.a"}, {"x": a, "a": b},</span>
+<span class="sd">    ...                    drawn=a, built=(100, 10),</span>
+<span class="sd">    ...                    box_of=lambda att: (att.width, att.height), k=0.5)</span>
+<span class="sd">    {'c.m.a': {'width': 50.0, 'height': 30.0, 'anchor_x': 0.5, 'anchor_y': 0.5, 'x': 0.0, 'y': 2.5}}</span>
+<span class="sd">    """</span>
+    <span class="n">name_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">alias</span><span class="p">:</span> <span class="n">name</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">alias_of</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">built_geometry</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">built</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">built</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">k</span><span class="p">)</span> <span class="k">if</span> <span class="n">built</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">drawn</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">drawn</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>
+        <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key_map</span> <span class="ow">in</span> <span class="n">projected</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">key_map</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">alias</span> <span class="ow">in</span> <span class="n">out</span> <span class="ow">or</span> <span class="n">alias</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name_of</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">att</span> <span class="o">=</span> <span class="n">attachments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name_of</span><span class="p">[</span><span class="n">alias</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">att</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">box</span> <span class="o">=</span> <span class="n">box_of</span><span class="p">(</span><span class="n">att</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">box</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">geometry</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">k</span><span class="p">),</span>
+                <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">anchor</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>
+                <span class="p">(</span>
+                    <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">drawn</span><span class="o">.</span><span class="n">x</span><span class="p">))</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span>
+                    <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">drawn</span><span class="o">.</span><span class="n">y</span><span class="p">))</span> <span class="o">*</span> <span class="n">k</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">geometry</span> <span class="o">==</span> <span class="n">built_geometry</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">ay</span><span class="p">),</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span> <span class="o">=</span> <span class="n">geometry</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">alias</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"width"</span><span class="p">:</span> <span class="n">w</span><span class="p">,</span>
+                <span class="s2">"height"</span><span class="p">:</span> <span class="n">h</span><span class="p">,</span>
+                <span class="s2">"anchor_x"</span><span class="p">:</span> <span class="n">ax</span><span class="p">,</span>
+                <span class="s2">"anchor_y"</span><span class="p">:</span> <span class="n">ay</span><span class="p">,</span>
+                <span class="s2">"x"</span><span class="p">:</span> <span class="n">dx</span><span class="p">,</span>
+                <span class="s2">"y"</span><span class="p">:</span> <span class="n">dy</span><span class="p">,</span>
+            <span class="p">}</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -3444,14 +3682,22 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
         <span class="n">flat_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">extent</span><span class="p">))</span>
-    <span class="n">flat_list</span> <span class="o">=</span> <span class="n">_expand_preset_plays</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">)</span>
+    <span class="c1"># BEFORE the swap dispatch: `tint` is not in the transform vocabulary, so a</span>
+    <span class="c1"># leaf still spelling it would be read as an asset-set name (an#62). And</span>
+    <span class="c1"># before the timeline pass below, so a from-less tint tween starts from</span>
+    <span class="c1"># the tint in force per channel (an#212).</span>
+    <span class="n">flat_list</span> <span class="o">=</span> <span class="n">_expand_tint_actions</span><span class="p">(</span><span class="n">flat_list</span><span class="p">)</span>
+    <span class="n">flat_list</span> <span class="o">=</span> <span class="n">_expand_preset_plays</span><span class="p">(</span>
+        <span class="n">flat_list</span><span class="p">,</span>
+        <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
+        <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="c1"># `expression` leaves (an#98) are the face solver's input, not clips of</span>
     <span class="c1"># their own: `_add_face_clips` sums them per (node, property).</span>
     <span class="n">flat_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flat_list</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">ExpressionAction</span><span class="p">)]</span>
-    <span class="c1"># BEFORE the swap dispatch: `tint` is not in the transform vocabulary, so a</span>
-    <span class="c1"># leaf still spelling it would be read as an asset-set name (an#62).</span>
-    <span class="n">flat_list</span> <span class="o">=</span> <span class="n">_expand_tint_actions</span><span class="p">(</span><span class="n">flat_list</span><span class="p">)</span>
     <span class="c1"># AFTER the tint expansion, like the swap dispatch: a `tint` set on a</span>
     <span class="c1"># character root is a colour, not a whole-character swap (an#197 review).</span>
     <span class="n">flat_list</span> <span class="o">=</span> <span class="n">_fan_out_entity_swaps</span><span class="p">(</span>
@@ -3522,15 +3768,7 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># the tween clips in the track mask the tween for the whole shot —</span>
         <span class="c1"># measured, and the most common authoring shape ("set the start</span>
         <span class="c1"># pose, then animate") was a no-op tween (an#87 review).</span>
-        <span class="n">runs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">runs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
-                <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="n">flat</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaries</span>
-            <span class="p">):</span>
-                <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">flat</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">_set_runs</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">):</span>
             <span class="n">first</span> <span class="o">=</span> <span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
             <span class="n">end</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaries</span> <span class="k">if</span> <span class="n">b</span> <span class="o">&gt;=</span> <span class="n">first</span><span class="p">),</span> <span class="n">shot_duration</span><span class="p">)</span>
             <span class="n">anim_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"__set__</span><span class="si">{</span><span class="n">ordinal</span><span class="si">}</span><span class="s2">"</span>
@@ -3582,6 +3820,24 @@ window.runMermaid = runMermaid;</script>
         <span class="k">for</span> <span class="n">root</span><span class="p">,</span> <span class="n">clips</span> <span class="ow">in</span> <span class="n">placed_by_track</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="n">animations</span><span class="p">,</span> <span class="n">tracks</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_set_runs</span><span class="p">(</span>
+    <span class="n">sets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">],</span> <span class="n">tween_starts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``sets`` (sorted by start) cut into runs that each compile to ONE hold</span>
+<span class="sd">    clip: a set joins the run before it unless a tween on the same (target,</span>
+<span class="sd">    property) starts in between — see :func:`_compile_actions`. Shared with</span>
+<span class="sd">    :func:`_value_at`, so a from-less tween reads the holds the runtime plays."""</span>
+    <span class="n">runs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">sets</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">runs</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="n">b</span> <span class="o">&lt;=</span> <span class="n">flat</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">tween_starts</span>
+        <span class="p">):</span>
+            <span class="n">runs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">runs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">flat</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">runs</span>
 
 
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -4079,27 +4335,45 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_expand_preset_plays</span><span class="p">(</span>
-    <span class="n">flat_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">flat_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
+    <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Replace each ``play`` of a motion preset with the flat tweens and sets</span>
-<span class="sd">    it expands to (an#166); descriptor plays pass through to</span>
-<span class="sd">    :func:`_resolve_play`.</span>
+<span class="sd">    it expands to (an#166), and give every from-less tween its start (an#212);</span>
+<span class="sd">    descriptor plays pass through to :func:`_resolve_play`.</span>
 
 <span class="sd">    Every ``play`` — both sources — is checked here by</span>
 <span class="sd">    :func:`an.characters.play.play_problems`, the verdict ``an validate``</span>
 <span class="sd">    reports, so the two cannot disagree about a name, an argument or a</span>
-<span class="sd">    source. The preset's rest pose is the moved node's BUILT transform</span>
-<span class="sd">    (``vocab.node_transforms``), so a move on ``x`` in a two-character shot</span>
-<span class="sd">    stays centred on the laid-out ``-110`` without a ``rest=``; with no</span>
-<span class="sd">    vocabulary (a unit test compiling bare actions) it is the identity pose.</span>
+<span class="sd">    source.</span>
+
+<span class="sd">    **Both read the pose the timeline has AT their start** (an#212): the</span>
+<span class="sd">    moved node's BUILT transform (``vocab.node_transforms`` — the stage</span>
+<span class="sd">    placement included; the identity with no vocabulary), overridden by the</span>
+<span class="sd">    authored ``set``s and tweens before it on the same (target, property), as</span>
+<span class="sd">    the runtime evaluates them (:func:`_value_at`). So a ``tween`` with no</span>
+<span class="sd">    ``from`` continues from where the entity stands — its ``stage`` ``at``, the</span>
+<span class="sd">    end of the tween before it, a ``set`` at the same instant — instead of</span>
+<span class="sd">    jumping to the property's identity value, and a preset played after a move</span>
+<span class="sd">    (a ``hop`` after a walk) starts where the move left it. Leaves are</span>
+<span class="sd">    resolved in time order (authoring order at one instant), each seeing the</span>
+<span class="sd">    ones before it resolved; the output keeps authoring order, which is what</span>
+<span class="sd">    the tracks' later-wins reads. Descriptor ``play`` clips and the compiled</span>
+<span class="sd">    face, blink and lip-sync channels are not part of that pose: they write</span>
+<span class="sd">    their own nodes, which authored motion does not tween.</span>
 
 <span class="sd">    A ``turn`` that does not say which way it faced opens from the side the</span>
 <span class="sd">    timeline before it left the entity facing (:func:`an.characters.play.</span>
 <span class="sd">    resolve_turns`, an#203) — the resolver ``an validate`` checks with.</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.motion</span><span class="w"> </span><span class="kn">import</span> <span class="n">IDENTITY_POSE</span><span class="p">,</span> <span class="n">POSE_PROPERTIES</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_group</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.motion</span><span class="w"> </span><span class="kn">import</span> <span class="n">HOME_PRESETS</span><span class="p">,</span> <span class="n">IDENTITY_POSE</span><span class="p">,</span> <span class="n">POSE_PROPERTIES</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">rest_of</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">built_rest</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">IDENTITY_POSE</span><span class="p">)</span>
         <span class="n">transform</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">node_transforms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
@@ -4110,17 +4384,15 @@ window.runMermaid = runMermaid;</script>
     <span class="n">flat_list</span> <span class="o">=</span> <span class="n">resolve_turns</span><span class="p">(</span>
         <span class="n">flat_list</span><span class="p">,</span>
         <span class="n">descriptor_of</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">rest_of</span><span class="o">=</span><span class="n">rest_of</span><span class="p">,</span>
+        <span class="n">rest_of</span><span class="o">=</span><span class="n">built_rest</span><span class="p">,</span>
     <span class="p">)</span><span class="o">.</span><span class="n">flats</span>
-    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flat_list</span><span class="p">:</span>
+    <span class="n">presets</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">flat</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flat_list</span><span class="p">):</span>
         <span class="n">action</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">PlayAction</span><span class="p">):</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">entity_id</span> <span class="o">=</span> <span class="n">_track_root_of</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
         <span class="n">desc</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"play of </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="si">!r}</span><span class="s2"> on </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2">"</span>
         <span class="n">problems</span> <span class="o">=</span> <span class="n">play_problems</span><span class="p">(</span>
             <span class="n">desc</span><span class="p">,</span>
             <span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span>
@@ -4131,22 +4403,199 @@ window.runMermaid = runMermaid;</script>
             <span class="n">loop</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">loop</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">problems</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">problems</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">play_source</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">)</span> <span class="o">!=</span> <span class="n">PRESET_SOURCE</span><span class="p">:</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
-            <span class="k">continue</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">expand_preset_play</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">rest_of</span><span class="o">=</span><span class="n">rest_of</span><span class="p">))</span>
-        <span class="k">except</span> <span class="n">PlayResolutionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">built</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-                <span class="n">p</span>
-                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">paths</span> <span class="k">if</span> <span class="n">vocab</span> <span class="k">else</span> <span class="p">())</span>
-                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">entity_id</span>
-            <span class="p">)</span>
             <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">problems</span><span class="p">)</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">" (built: </span><span class="si">{</span><span class="n">built</span><span class="si">}</span><span class="s2">)"</span>
-            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-    <span class="k">return</span> <span class="n">out</span>
+                <span class="sa">f</span><span class="s2">"play of </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="si">!r}</span><span class="s2"> on </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2">: "</span>
+                <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">problems</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">play_source</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">)</span> <span class="o">==</span> <span class="n">PRESET_SOURCE</span><span class="p">:</span>
+            <span class="n">presets</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="n">history</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">FlatAction</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">placed</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">value_at</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_value_at</span><span class="p">(</span>
+            <span class="n">history</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">target</span><span class="p">,</span> <span class="n">write_group</span><span class="p">(</span><span class="n">prop</span><span class="p">)),</span> <span class="p">[]),</span>
+            <span class="n">prop</span><span class="p">,</span>
+            <span class="n">t</span><span class="p">,</span>
+            <span class="n">base</span><span class="p">,</span>
+            <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span>
+            <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+            <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
+            <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">pose_at</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">rest</span> <span class="o">=</span> <span class="n">built_rest</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rest</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="n">value_at</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">rest</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flat_list</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">flat_list</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">k</span><span class="p">)):</span>
+        <span class="n">flat</span> <span class="o">=</span> <span class="n">flat_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">presets</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">leaves</span> <span class="o">=</span> <span class="n">expand_preset_play</span><span class="p">(</span>
+                    <span class="n">action</span><span class="p">,</span>
+                    <span class="n">start</span><span class="o">=</span><span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                    <span class="n">rest_of</span><span class="o">=</span><span class="p">(</span>
+                        <span class="n">built_rest</span>
+                        <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">animation</span> <span class="ow">in</span> <span class="n">HOME_PRESETS</span>
+                        <span class="k">else</span> <span class="k">lambda</span> <span class="n">path</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">:</span> <span class="n">pose_at</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="n">PlayResolutionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">entity_id</span> <span class="o">=</span> <span class="n">_track_root_of</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+                <span class="n">built</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                    <span class="n">p</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">paths</span> <span class="k">if</span> <span class="n">vocab</span> <span class="k">else</span> <span class="p">())</span>
+                    <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">entity_id</span>
+                <span class="p">)</span>
+                <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"play of </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="si">!r}</span><span class="s2"> on </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2">: "</span>
+                    <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">problems</span><span class="p">)</span>
+                    <span class="o">+</span> <span class="sa">f</span><span class="s2">" (built: </span><span class="si">{</span><span class="n">built</span><span class="si">}</span><span class="s2">)"</span>
+                <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">elif</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">action</span><span class="o">.</span><span class="n">from_value</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">action</span><span class="o">.</span><span class="n">property</span> <span class="ow">in</span> <span class="n">_PROPERTY_REST_VALUES</span>
+        <span class="p">):</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="n">_built_value</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">)</span>
+            <span class="n">start_value</span> <span class="o">=</span> <span class="n">value_at</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">base</span><span class="p">)</span>
+            <span class="n">leaves</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                    <span class="n">flat</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"from_value"</span><span class="p">:</span> <span class="n">start_value</span><span class="p">})</span>
+                <span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">leaves</span> <span class="o">=</span> <span class="p">[</span><span class="n">flat</span><span class="p">]</span>
+        <span class="n">placed</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaves</span>
+        <span class="k">for</span> <span class="n">sub</span><span class="p">,</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">leaves</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="p">(</span><span class="n">SetAction</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">)):</span>
+                <span class="c1"># Keyed by what the property WRITES: `rotation_rad` is `rotation`.</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">write_group</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">))</span>
+                <span class="n">history</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">i</span><span class="p">,</span> <span class="n">sub</span><span class="p">),</span> <span class="n">leaf</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">leaf</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flat_list</span><span class="p">))</span> <span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="n">placed</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_built_value</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What ``target``'s ``prop`` shows before anything animates it: its BUILT</span>
+<span class="sd">    transform (a ``stage`` placement, a laid-out ``x``), a path's own trim, or</span>
+<span class="sd">    the property's identity (:data:`_PROPERTY_REST_VALUES`)."""</span>
+    <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">trim</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">path_trims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">trim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">trim</span><span class="p">)</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">node_transforms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="n">field_name</span> <span class="o">=</span> <span class="s2">"rotation"</span> <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="s2">"rotation_rad"</span> <span class="k">else</span> <span class="n">prop</span>
+        <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">TransformJSON</span><span class="o">.</span><span class="n">model_fields</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">field_name</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">_rest_value_for</span><span class="p">(</span><span class="n">prop</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_value_at</span><span class="p">(</span>
+    <span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">FlatAction</span><span class="p">]],</span>
+    <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">base</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The value one (target, property) shows at ``t``, from the ``set``s and</span>
+<span class="sd">    tweens in ``entries`` that start at or before it — compiled the way</span>
+<span class="sd">    :func:`_compile_actions` compiles them (sets as step holds cut by</span>
+<span class="sd">    :func:`_set_runs`, placed first; tweens after, in authoring order) and</span>
+<span class="sd">    evaluated by the executable spec of the runtime,</span>
+<span class="sd">    :func:`~an.adapters.cutout.timeline.evaluate_timeline`, so the answer is</span>
+<span class="sd">    the runtime's by construction: an active tween governs, otherwise the</span>
+<span class="sd">    latest write holds. ``base`` when nothing has written it yet (an#212).</span>
+
+<span class="sd">    ``entries`` are one node's writes of ``prop``'s write group (``rotation``</span>
+<span class="sd">    and ``rotation_rad`` are one). Only the writes that can still show at ``t``</span>
+<span class="sd">    are compiled — the latest set and whatever did not end before it or before</span>
+<span class="sd">    the latest-ending finished tween — so a long chain on one property costs</span>
+<span class="sd">    one short evaluation per tween, not the whole history each time.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">PlacedClip</span><span class="p">,</span>
+        <span class="n">Timeline</span><span class="p">,</span>
+        <span class="n">Track</span><span class="p">,</span>
+        <span class="n">clip_from_json</span><span class="p">,</span>
+        <span class="n">evaluate_timeline</span><span class="p">,</span>
+        <span class="n">write_group</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">earlier</span> <span class="o">=</span> <span class="p">[(</span><span class="n">k</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">entries</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="n">t</span> <span class="o">+</span> <span class="mf">1e-12</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">earlier</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">base</span>
+    <span class="c1"># Prune what cannot show at t: before the latest set (it holds from there,</span>
+    <span class="c1"># or is cut by a tween that is itself kept), and any tween that ended</span>
+    <span class="c1"># before the latest-ending one that has ended (a held end loses to a later</span>
+    <span class="c1"># end). Ties are kept, so later-wins still decides between them.</span>
+    <span class="n">last_set</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">earlier</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">)),</span>
+        <span class="n">default</span><span class="o">=-</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ended</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">end</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">earlier</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">)</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">end</span> <span class="o">&lt;</span> <span class="n">t</span><span class="p">),</span>
+        <span class="n">default</span><span class="o">=-</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">cutoff</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">last_set</span><span class="p">,</span> <span class="n">ended</span><span class="p">)</span>
+    <span class="n">earlier</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">earlier</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;=</span> <span class="n">last_set</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">)</span> <span class="k">else</span> <span class="n">f</span><span class="o">.</span><span class="n">end</span> <span class="o">&gt;=</span> <span class="n">cutoff</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">tweens</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">earlier</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">)]</span>
+    <span class="n">sets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">f</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">earlier</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">)),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span><span class="o">.</span><span class="n">start</span>
+    <span class="p">)</span>
+    <span class="n">boundaries</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tweens</span><span class="p">)</span>
+    <span class="n">placed</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PlacedClip</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">prop</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="n">_set_runs</span><span class="p">(</span><span class="n">sets</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">):</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaries</span> <span class="k">if</span> <span class="n">b</span> <span class="o">&gt;=</span> <span class="n">first</span><span class="p">),</span> <span class="n">t</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">target</span><span class="p">,</span> <span class="n">prop</span> <span class="o">=</span> <span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">run</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">property</span>
+        <span class="n">anim</span> <span class="o">=</span> <span class="n">AnimationClipJSON</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">"_hold"</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">end</span> <span class="o">-</span> <span class="n">first</span><span class="p">),</span>
+            <span class="n">channels</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">ChannelJSON</span><span class="p">(</span>
+                    <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+                    <span class="nb">property</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span>
+                    <span class="n">keyframes</span><span class="o">=</span><span class="p">[</span>
+                        <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">first</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"step"</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">run</span>
+                    <span class="p">],</span>
+                <span class="p">)</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">placed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PlacedClip</span><span class="p">(</span><span class="n">clip_from_json</span><span class="p">(</span><span class="n">anim</span><span class="p">),</span> <span class="n">start_time</span><span class="o">=</span><span class="n">first</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">tweens</span><span class="p">:</span>
+        <span class="n">target</span><span class="p">,</span> <span class="n">prop</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">property</span>
+        <span class="n">anim</span> <span class="o">=</span> <span class="n">_build_anim_for</span><span class="p">(</span>
+            <span class="n">f</span><span class="p">,</span>
+            <span class="s2">"_tween"</span><span class="p">,</span>
+            <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span>
+            <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+            <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
+            <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">placed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PlacedClip</span><span class="p">(</span><span class="n">clip_from_json</span><span class="p">(</span><span class="n">anim</span><span class="p">),</span> <span class="n">start_time</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">))</span>
+    <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">Timeline</span><span class="p">(</span><span class="n">t</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">,</span> <span class="p">[</span><span class="n">Track</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">placed</span><span class="p">)]),</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">write_group</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+    <span class="c1"># One key of the group survives the evaluation — the most recently written.</span>
+    <span class="n">shown</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">p</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pose</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="n">target</span> <span class="ow">and</span> <span class="n">write_group</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">==</span> <span class="n">group</span><span class="p">]</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">pose</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="n">shown</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">shown</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">base</span>  <span class="c1"># a value the compiler refuses later, where it says why</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_play</span><span class="p">(</span>
