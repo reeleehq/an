@@ -5104,7 +5104,9 @@ def _add_face_clips(
         has_pupils = desc is not None and bool(_pupil_paths(vocab, entity.id))
         pose = (poses or {}).get(entity.id)
         entity_views = (view_spans or {}).get(entity.id)
-        if (not spans and not has_pupils and not pose and not entity_views) or desc is None:
+        if (
+            not spans and not has_pupils and not pose and not entity_views
+        ) or desc is None:
             if spans and desc is None:
                 warnings.warn(
                     f"shot {shot.id!r}: {entity.id!r} has no descriptor (a procedural "
