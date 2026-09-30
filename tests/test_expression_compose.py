@@ -36,12 +36,12 @@ ROOT = Path(__file__).resolve().parents[1]
 #: the exemption outlived its wave, and three later PRs claimed "all eight,
 #: no exemption" while the only guard checked seven).
 #:
-#: `prop_swap` and `stage_pan` were here for exactly one release each. an#111
+#: `prop_swap`, `stage_pan` and `path_draw` were here for exactly one release each. an#111
 #: committed a ledger row covering both, and
 #: `test_no_scene_stays_exempt_from_the_hash_guard_once_it_has_a_row` went red
 #: on that very commit — which is how they got removed, and is the whole
 #: lifecycle working as designed rather than as a comment.
-NEW_IN_WAVE: set[str] = {"path_draw"}  # an#161; no ledger row until the next `an bench` run is committed
+NEW_IN_WAVE: set[str] = set()  # `path_draw` (an#161) left when an#173 committed the first row covering it
 
 
 @pytest.fixture(scope="module")
@@ -150,6 +150,7 @@ def test_every_corpus_contract_hash_equals_the_committed_ledger_row():
     `bench-compare` refuses rows whose hash moved."""
     from an.bench import contract
     from an.bench.capture import stage_copy
+    from an.adapters.cutout.compile import style_pack_for
     from an.bench.corpus import DFLT_FIXTURES
 
     # The newest CLEAN row — by its own timestamp, not its filename (a stale
@@ -168,7 +169,7 @@ def test_every_corpus_contract_hash_equals_the_committed_ledger_row():
             proj = load(work)
             scene = proj.scene
             docs = [
-                to_dict(compile_shot(s, mall=proj.mall, fps=scene.meta.fps, width=scene.meta.resolution.width, height=scene.meta.resolution.height, strict_assets=True))
+                to_dict(compile_shot(s, mall=proj.mall, fps=scene.meta.fps, width=scene.meta.resolution.width, height=scene.meta.resolution.height, strict_assets=True, style_pack=style_pack_for(scene.meta, proj.mall.get("styles") or {}), default_easing=scene.meta.default_easing))
                 for s in scene.timeline
             ]
         assert contract.scenes_contract_sha256(docs) == row["scenes"][name]["provenance"]["scene_contract_sha256"], name
