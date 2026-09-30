@@ -318,7 +318,7 @@ def test_the_grain_png_is_the_seeded_palette_exactly():
     assert im.mode == "P" and im.size == (32, 32)
     greys = grain_greys(0.1)
     expected = [greys[i] for i in grain_indices(3, 32)]
-    assert list(im.convert("L").getdata()) == expected
+    assert list(im.convert("L").tobytes()) == expected
     assert min(greys) == round(255 * 0.9) and max(greys) == 255
 
 
@@ -418,11 +418,11 @@ def test_in_pixels_an_svg_parts_outline_ring_follows_a_swap(tmp_path):
         actions = []
         if variant == "drawn":
             meta = root / "chars" / "gale" / "character.json"
-            doc = json.loads(meta.read_text())
+            doc = json.loads(meta.read_text(encoding="utf-8"))
             for slot in doc["slots"]:
                 if slot["name"] == "left_hand":
                     slot["attachment"] = "point"
-            meta.write_text(json.dumps(doc))
+            meta.write_text(json.dumps(doc), encoding="utf-8")
         else:
             actions = [SetAction(kind="set", target="gale/left_hand", property="hands",
                                  value="point", start=0.2)]
