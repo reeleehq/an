@@ -706,15 +706,19 @@ def _turn_resolution(
     resolution = resolve_turns(
         flats,
         descriptor_of=descriptor_of,
-        rest_of=lambda _p: {"x": 0.0, "y": 0.0, "rotation": 0.0,
-                            "scale_x": 1.0, "scale_y": 1.0, "alpha": 1.0},
+        rest_of=lambda _p: {
+            "x": 0.0,
+            "y": 0.0,
+            "rotation": 0.0,
+            "scale_x": 1.0,
+            "scale_y": 1.0,
+            "alpha": 1.0,
+        },
     )
     return resolution, origin
 
 
-def _check_turns(
-    shot, path: str, report: "ValidationReport", resolved
-) -> None:
+def _check_turns(shot, path: str, report: "ValidationReport", resolved) -> None:
     """A ``turn`` whose declared ``from_direction`` contradicts the side the
     timeline before it left the character facing (an#203): the compiler
     keeps what the author wrote, so the character flips to the other side
@@ -793,8 +797,7 @@ def _check_view_continuity(
                 "purpose, set the view there anyway.",
             )
         previous = {
-            e: (shot.id, facing_at(events, e, float(shot.duration)))
-            for e in ids
+            e: (shot.id, facing_at(events, e, float(shot.duration))) for e in ids
         }
 
 

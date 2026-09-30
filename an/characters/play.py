@@ -767,18 +767,16 @@ def resolve_turns(
     # where the play was authored, so a tie at one instant goes to whatever
     # was authored later, as the compiler orders it.
     ordered = [
-        ((i, 0), f) for i, f in enumerate(flat_list) if not isinstance(f.action, PlayAction)
+        ((i, 0), f)
+        for i, f in enumerate(flat_list)
+        if not isinstance(f.action, PlayAction)
     ]
 
     def events() -> list:
         return [f for _, f in sorted(ordered, key=lambda e: e[0])]
 
     plays = sorted(
-        (
-            (i, f)
-            for i, f in enumerate(flat_list)
-            if isinstance(f.action, PlayAction)
-        ),
+        ((i, f) for i, f in enumerate(flat_list) if isinstance(f.action, PlayAction)),
         key=lambda p: (p[1].start, p[0]),
     )
     turns: list[TurnInference] = []
@@ -795,7 +793,10 @@ def resolve_turns(
             from an.motion import DFLT_TURN_SET
 
             before = facing_at(
-                events(), entity, f.start, view_set=str(args.get("view_set", DFLT_TURN_SET))
+                events(),
+                entity,
+                f.start,
+                view_set=str(args.get("view_set", DFLT_TURN_SET)),
             )
             declared = args.get("from_direction")
             turns.append(TurnInference(i, f.start, entity, before, declared))
