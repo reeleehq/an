@@ -155,7 +155,9 @@ def _compile_scene_to(
     scene = project.scene
     from an.audio.pipeline import retime_dialogue
 
-    retime_dialogue(scene, timed_shots_only=True)  # an edited pause plays where it says (an#187)
+    retime_dialogue(
+        scene, timed_shots_only=True
+    )  # an edited pause plays where it says (an#187)
     if not scene.timeline:
         raise PreviewError(
             "scene has no shots — add at least one shot to scene.md and save"

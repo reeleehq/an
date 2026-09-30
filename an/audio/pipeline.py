@@ -180,7 +180,12 @@ def produce_audio_for_scene(
                 # Never synthesized, or the providers changed: synthesize (the
                 # content-keyed stores make a mere re-stamp free).
                 audio, track = produce_audio_for_dialogue(
-                    line, mall, tts=tts, lipsync=lipsync, effects=effects, voice_id=voice_id
+                    line,
+                    mall,
+                    tts=tts,
+                    lipsync=lipsync,
+                    effects=effects,
+                    voice_id=voice_id,
                 )
                 line.duration = audio.duration
                 line.viseme_track = _to_ir_viseme_track(track)
