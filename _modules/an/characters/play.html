@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../../../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1391,6 +1391,205 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="c1"># --------------------------------------------------------- facing (an#203)</span>
+
+<span class="c1">#: The preset whose START depends on what came before it on the timeline: a</span>
+<span class="c1">#: turn opens from the side the character faces NOW, which only the timeline</span>
+<span class="c1">#: knows.</span>
+<span class="n">TURN_PRESET</span> <span class="o">=</span> <span class="s2">"turn"</span>
+<span class="c1">#: Slack for "at or before" on the timeline: a turn chained straight after</span>
+<span class="c1">#: another starts at the instant the first one settles.</span>
+<span class="n">_FACING_SLACK</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+
+<div class="viewcode-block" id="Facing">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.play.html#an.characters.play.Facing">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Facing</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What an entity shows at one instant, read off a flat timeline.</span>
+
+<span class="sd">    ``view`` is the key of its view set last set on the ENTITY (``None``: not</span>
+<span class="sd">    set in this shot, so the rig's default — ``front`` on a factory</span>
+<span class="sd">    character); ``direction`` is ``"right"``/``"left"`` from the sign of the</span>
+<span class="sd">    last ``scale_x`` it was given (``None``: nothing set it, so its rest).</span>
+<span class="sd">    """</span>
+
+    <span class="n">view</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="TurnInference">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.play.html#an.characters.play.TurnInference">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TurnInference</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One ``play`` of :data:`TURN_PRESET` and the state it starts from.</span>
+
+<span class="sd">    ``index`` is the play's position in the flat list it was read from;</span>
+<span class="sd">    ``declared`` is the ``from_direction`` the author passed (``None``: left</span>
+<span class="sd">    to the timeline).</span>
+<span class="sd">    """</span>
+
+    <span class="n">index</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">before</span><span class="p">:</span> <span class="n">Facing</span>
+    <span class="n">declared</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">contradicted</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The author's ``from_direction`` disagrees with the timeline — the</span>
+<span class="sd">        turn would jump to the other side before it squashes."""</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">declared</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">direction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">declared</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">direction</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="TurnResolution">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.play.html#an.characters.play.TurnResolution">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TurnResolution</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">""":func:`resolve_turns`' result: ``flats`` is the input with each turn's</span>
+<span class="sd">    inferred ``from_direction`` filled in; ``turns`` says what each turn</span>
+<span class="sd">    started from; ``events`` is the timeline with every preset play expanded,</span>
+<span class="sd">    which :func:`facing_at` reads."""</span>
+
+    <span class="n">flats</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="n">turns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TurnInference</span><span class="p">]</span>
+    <span class="n">events</span><span class="p">:</span> <span class="nb">list</span></div>
+
+
+
+<div class="viewcode-block" id="facing_at">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.play.html#an.characters.play.facing_at">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">facing_at</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">view_set</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"view"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Facing</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What ``entity`` shows at time ``t``: the latest ``view_set`` swap set</span>
+<span class="sd">    on the entity and the sign of the latest ``scale_x`` it was given, at or</span>
+<span class="sd">    before ``t`` (a tween counts from its END, when its value has landed; at</span>
+<span class="sd">    one instant the one LATER in ``events`` wins — so pass them in authoring</span>
+<span class="sd">    order, as :func:`resolve_turns` does).</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.compose import flatten, sequence</span>
+<span class="sd">    &gt;&gt;&gt; from an.motion import turn</span>
+<span class="sd">    &gt;&gt;&gt; flats = flatten(sequence(turn("ned", to="side", direction="left")))</span>
+<span class="sd">    &gt;&gt;&gt; facing_at(flats, "ned", 0.0), facing_at(flats, "ned", 1.0)</span>
+<span class="sd">    (Facing(view=None, direction=None), Facing(view='side', direction='left'))</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SetAction</span><span class="p">,</span> <span class="n">TweenAction</span>
+
+    <span class="n">view</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">sx</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">stamped</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">order</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">events</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="n">entity</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">)</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">property</span> <span class="o">==</span> <span class="s2">"scale_x"</span><span class="p">:</span>
+            <span class="n">stamped</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">duration</span><span class="p">),</span> <span class="n">order</span><span class="p">,</span> <span class="s2">"scale_x"</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">to_value</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">)</span> <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">property</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"scale_x"</span><span class="p">,</span> <span class="n">view_set</span><span class="p">):</span>
+            <span class="n">stamped</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">order</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">property</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">time</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">prop</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">stamped</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="n">time</span> <span class="o">&gt;</span> <span class="n">t</span> <span class="o">+</span> <span class="n">_FACING_SLACK</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="k">if</span> <span class="n">prop</span> <span class="o">!=</span> <span class="s2">"scale_x"</span><span class="p">:</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sx</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">continue</span>  <span class="c1"># a value the compiler refuses; validate reports it elsewhere</span>
+    <span class="n">direction</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">sx</span> <span class="k">else</span> <span class="p">(</span><span class="s2">"left"</span> <span class="k">if</span> <span class="n">sx</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"right"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Facing</span><span class="p">(</span><span class="n">view</span><span class="o">=</span><span class="n">view</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="resolve_turns">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.play.html#an.characters.play.resolve_turns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">resolve_turns</span><span class="p">(</span>
+    <span class="n">flat_list</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">descriptor_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">CharacterDescriptor</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">rest_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TurnResolution</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Fill in each turn's ``from_direction`` from the timeline before it</span>
+<span class="sd">    (an#203): a ``play`` of ``turn`` on an entity that does not pass one</span>
+<span class="sd">    opens from the side the latest earlier ``scale_x`` left the entity facing</span>
+<span class="sd">    — so ``side`` (``direction: left``) then ``back`` is two plays, with no</span>
+<span class="sd">    ``from_direction`` by hand. Turns are resolved in time order, each seeing</span>
+<span class="sd">    the ones before it expanded. THE resolver the compiler expands with and</span>
+<span class="sd">    ``an validate`` checks with.</span>
+
+<span class="sd">    An explicit ``from_direction`` is kept — ``turns`` records it with the</span>
+<span class="sd">    inferred state so ``an validate`` can say when the two disagree. A play</span>
+<span class="sd">    that cannot resolve is left for :func:`play_problems` to report.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.compose import flatten, sequence</span>
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import PlayAction</span>
+<span class="sd">    &gt;&gt;&gt; flats = flatten(sequence(</span>
+<span class="sd">    ...     PlayAction(target="ned", animation="turn", args={"to": "side", "direction": "left"}),</span>
+<span class="sd">    ...     PlayAction(target="ned", animation="turn", args={"to": "back"})))</span>
+<span class="sd">    &gt;&gt;&gt; res = resolve_turns(flats, descriptor_of=lambda e: None,</span>
+<span class="sd">    ...                     rest_of=lambda p: {"scale_x": 1.0})</span>
+<span class="sd">    &gt;&gt;&gt; res.flats[1].action.args["from_direction"], res.turns[1].before</span>
+<span class="sd">    ('left', Facing(view='side', direction='left'))</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlatAction</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlayAction</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">flat_list</span><span class="p">)</span>
+    <span class="c1"># (authoring position, sub-step) -&gt; flat: an expanded play's leaves sit</span>
+    <span class="c1"># where the play was authored, so a tie at one instant goes to whatever</span>
+    <span class="c1"># was authored later, as the compiler orders it.</span>
+    <span class="n">ordered</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flat_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">PlayAction</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">events</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ordered</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+
+    <span class="n">plays</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flat_list</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">PlayAction</span><span class="p">)),</span>
+        <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+    <span class="p">)</span>
+    <span class="n">turns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TurnInference</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">plays</span><span class="p">:</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">play_source</span><span class="p">(</span><span class="n">descriptor_of</span><span class="p">(</span><span class="n">entity</span><span class="p">),</span> <span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">)</span> <span class="o">!=</span> <span class="n">PRESET_SOURCE</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">except</span> <span class="n">PlayResolutionError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">animation</span> <span class="o">==</span> <span class="n">TURN_PRESET</span> <span class="ow">and</span> <span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="n">entity</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">an.motion</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_TURN_SET</span>
+
+            <span class="n">before</span> <span class="o">=</span> <span class="n">facing_at</span><span class="p">(</span>
+                <span class="n">events</span><span class="p">(),</span>
+                <span class="n">entity</span><span class="p">,</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                <span class="n">view_set</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"view_set"</span><span class="p">,</span> <span class="n">DFLT_TURN_SET</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">declared</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"from_direction"</span><span class="p">)</span>
+            <span class="n">turns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TurnInference</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">entity</span><span class="p">,</span> <span class="n">before</span><span class="p">,</span> <span class="n">declared</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">declared</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">before</span><span class="o">.</span><span class="n">direction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="s2">"from_direction"</span><span class="p">]</span> <span class="o">=</span> <span class="n">before</span><span class="o">.</span><span class="n">direction</span>
+                <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"args"</span><span class="p">:</span> <span class="n">args</span><span class="p">})</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">FlatAction</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">leaves</span> <span class="o">=</span> <span class="n">expand_preset_play</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">rest_of</span><span class="o">=</span><span class="n">rest_of</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">PlayResolutionError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">continue</span>  <span class="c1"># play_problems says why; the facing just learns nothing</span>
+        <span class="n">ordered</span><span class="o">.</span><span class="n">extend</span><span class="p">(((</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">leaf</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">leaves</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">TurnResolution</span><span class="p">(</span><span class="n">flats</span><span class="o">=</span><span class="n">out</span><span class="p">,</span> <span class="n">turns</span><span class="o">=</span><span class="n">turns</span><span class="p">,</span> <span class="n">events</span><span class="o">=</span><span class="n">events</span><span class="p">())</span></div>
+
+
+
 <div class="viewcode-block" id="resolve_play">
 <a class="viewcode-back" href="../../../_autosummary/an.characters.play.html#an.characters.play.resolve_play">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">resolve_play</span><span class="p">(</span>
@@ -1684,6 +1883,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"BONE_TRACK_PROPERTIES"</span><span class="p">,</span>
     <span class="s2">"BoneTrack"</span><span class="p">,</span>
     <span class="s2">"DESCRIPTOR_SOURCE"</span><span class="p">,</span>
+    <span class="s2">"Facing"</span><span class="p">,</span>
     <span class="s2">"HEAD_BONE"</span><span class="p">,</span>
     <span class="s2">"PRESET_SOURCE"</span><span class="p">,</span>
     <span class="s2">"PlayResolutionError"</span><span class="p">,</span>
@@ -1692,10 +1892,14 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"ROOT_BONE"</span><span class="p">,</span>
     <span class="s2">"ResolvedPlay"</span><span class="p">,</span>
     <span class="s2">"SlotTrack"</span><span class="p">,</span>
+    <span class="s2">"TURN_PRESET"</span><span class="p">,</span>
+    <span class="s2">"TurnInference"</span><span class="p">,</span>
+    <span class="s2">"TurnResolution"</span><span class="p">,</span>
     <span class="s2">"active_skin"</span><span class="p">,</span>
     <span class="s2">"art_exists_for"</span><span class="p">,</span>
     <span class="s2">"drawn_attachment"</span><span class="p">,</span>
     <span class="s2">"expand_preset_play"</span><span class="p">,</span>
+    <span class="s2">"facing_at"</span><span class="p">,</span>
     <span class="s2">"play_problems"</span><span class="p">,</span>
     <span class="s2">"play_source"</span><span class="p">,</span>
     <span class="s2">"preset_moved_node"</span><span class="p">,</span>
@@ -1703,6 +1907,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"preset_problems"</span><span class="p">,</span>
     <span class="s2">"primary_slot_per_bone"</span><span class="p">,</span>
     <span class="s2">"resolve_play"</span><span class="p">,</span>
+    <span class="s2">"resolve_turns"</span><span class="p">,</span>
     <span class="s2">"sampled_deviations"</span><span class="p">,</span>
     <span class="s2">"sine_sample_times"</span><span class="p">,</span>
     <span class="s2">"slot_node_path"</span><span class="p">,</span>

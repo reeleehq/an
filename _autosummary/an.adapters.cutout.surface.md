@@ -45,7 +45,7 @@ when unset.
 | [`grain_greys`](#an.adapters.cutout.surface.grain_greys)(amount)                                | The palette: level `n` multiplies the frame by `grey/255`, from white (level 0) down to `1 − amount` (the last level). |
 | [`grain_png`](#an.adapters.cutout.surface.grain_png)(\*, seed, amount, tile)                  | The grain tile as a 4-bit palette PNG: opaque and lossless.                                                            |
 | [`grain_node`](#an.adapters.cutout.surface.grain_node)(grain, \*, width, height, textures)     | The grain layer: one tile texture, tiled over the frame in frame pixels.                                               |
-| [`faded_treated_targets`](#an.adapters.cutout.surface.faded_treated_targets)(scene, animations)           | The `alpha` channel targets that fade a part carrying underlays.                                                       |
+| [`faded_treated_targets`](#an.adapters.cutout.surface.faded_treated_targets)(scene, animations)           | The `alpha` channel targets that FADE a part carrying underlays.                                                       |
 
 ### an.adapters.cutout.surface.GLOW_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_glow'*
 
@@ -116,11 +116,12 @@ about arbitrary documents.
 
 ### an.adapters.cutout.surface.faded_treated_targets(scene, animations)
 
-The `alpha` channel targets that fade a part carrying underlays.
+The `alpha` channel targets that FADE a part carrying underlays.
 
 A treated part’s copies are drawn separately, so a fade shows them
 through the part instead of the background (see `an.styles.Outline`).
-An alpha on the glow node only fades the glow, which is fine.
+A hide or a show is not a fade (`_fades()`), and an alpha on the glow
+node only fades the glow, which is fine.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

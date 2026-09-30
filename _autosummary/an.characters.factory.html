@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.dicebear" href="an.characters.dicebear.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -576,8 +576,8 @@ problem routes the way every other verifier’s does (an#78).</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.SIDE_EYE_SHIFT" title="an.characters.factory.SIDE_EYE_SHIFT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIDE_EYE_SHIFT</span></code></a></p></td>
 <td><p>how far the near eye, its stack and brow slide toward the face's edge, and the mouth with them (view_box units at head_scale 1); the mouth is narrowed, seen edge-on.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.SIDE_LEG_TUCK" title="an.characters.factory.SIDE_LEG_TUCK"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIDE_LEG_TUCK</span></code></a></p></td>
-<td><p>The fraction of the hip spread each leg moves toward the centre line in profile — the legs overlap, and a walk scissors them.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.factory.SIDE_LEG_OFFSET" title="an.characters.factory.SIDE_LEG_OFFSET"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SIDE_LEG_OFFSET</span></code></a></p></td>
+<td><p>both hang from under the body, the near leg (<code class="docutils literal notranslate"><span class="pre">leg_r</span></code>, drawn over the far one) a little forward and the far leg a little back, overlapping at the hip — each hip sits <code class="docutils literal notranslate"><span class="pre">SIDE_LEG_OFFSET</span></code> leg widths off the centre line — and splayed so the FEET part: the shoe centres land <code class="docutils literal notranslate"><span class="pre">SIDE_FOOT_SPREAD</span></code> leg widths apart, on every build (a stubby leg splays more).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.factory.THREE_QUARTER_FACE_SHIFT" title="an.characters.factory.THREE_QUARTER_FACE_SHIFT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">THREE_QUARTER_FACE_SHIFT</span></code></a></p></td>
 <td><p>the whole face slides toward the facing side, the far eye narrows, the far arm tucks in toward the body and the legs in.</p></td>
@@ -774,10 +774,20 @@ the mouth is narrowed, seen edge-on.</p>
 </dd></dl>
 
 <dl class="py data">
-<dt class="sig sig-object py" id="an.characters.factory.SIDE_LEG_TUCK">
-<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">SIDE_LEG_TUCK</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7</span></span><a class="headerlink" href="#an.characters.factory.SIDE_LEG_TUCK" title="Link to this definition">#</a></dt>
-<dd><p>The fraction of the hip spread each leg moves toward the centre line in
-profile — the legs overlap, and a walk scissors them.</p>
+<dt class="sig sig-object py" id="an.characters.factory.SIDE_LEG_OFFSET">
+<span class="sig-prename descclassname"><span class="pre">an.characters.factory.</span></span><span class="sig-name descname"><span class="pre">SIDE_LEG_OFFSET</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.25</span></span><a class="headerlink" href="#an.characters.factory.SIDE_LEG_OFFSET" title="Link to this definition">#</a></dt>
+<dd><p>both hang from under the body, the near leg
+(<code class="docutils literal notranslate"><span class="pre">leg_r</span></code>, drawn over the far one) a little forward and the far leg a
+little back, overlapping at the hip — each hip sits <code class="docutils literal notranslate"><span class="pre">SIDE_LEG_OFFSET</span></code> leg
+widths off the centre line — and splayed so the FEET part: the shoe centres
+land <code class="docutils literal notranslate"><span class="pre">SIDE_FOOT_SPREAD</span></code> leg widths apart, on every build (a stubby leg
+splays more). Both legs show, even as one silhouette, and a walk in profile
+has two legs to alternate (an#203).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Profile legs (facing right)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py data">
@@ -1050,7 +1060,7 @@ slots a rig has (a rig without the eye stack has no pupils to pose).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.PUPIL_COLOUR"><code class="docutils literal notranslate"><span class="pre">PUPIL_COLOUR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.SHOE_COLOUR"><code class="docutils literal notranslate"><span class="pre">SHOE_COLOUR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.SIDE_EYE_SHIFT"><code class="docutils literal notranslate"><span class="pre">SIDE_EYE_SHIFT</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.SIDE_LEG_TUCK"><code class="docutils literal notranslate"><span class="pre">SIDE_LEG_TUCK</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.SIDE_LEG_OFFSET"><code class="docutils literal notranslate"><span class="pre">SIDE_LEG_OFFSET</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.THREE_QUARTER_FACE_SHIFT"><code class="docutils literal notranslate"><span class="pre">THREE_QUARTER_FACE_SHIFT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.add_gaze"><code class="docutils literal notranslate"><span class="pre">add_gaze()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.factory.add_views"><code class="docutils literal notranslate"><span class="pre">add_views()</span></code></a></li>

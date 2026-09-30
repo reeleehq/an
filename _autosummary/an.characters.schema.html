@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.record" href="an.characters.record.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -599,7 +599,7 @@ several slots.</p>
 <td><p>1024x1024 with feet near y≈980.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.SLOT_POSE_OFFSETS" title="an.characters.schema.SLOT_POSE_OFFSETS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SLOT_POSE_OFFSETS</span></code></a></p></td>
-<td><p>The transform properties a <a class="reference internal" href="#an.characters.schema.SlotPose" title="an.characters.schema.SlotPose"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlotPose</span></code></a> sets, and whether each is an OFFSET added to the rest (in view_box units) or a FACTOR on it.</p></td>
+<td><p>The transform properties a <a class="reference internal" href="#an.characters.schema.SlotPose" title="an.characters.schema.SlotPose"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlotPose</span></code></a> sets, and whether each is an OFFSET added to the rest (in view_box units, so scaled by the rig), an ANGLE added to it (radians, never scaled) or a FACTOR on it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.LEG_LENGTH" title="an.characters.schema.LEG_LENGTH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LEG_LENGTH</span></code></a></p></td>
 <td><p>Hip to ground in the default rig, in view_box units.</p></td>
@@ -1068,7 +1068,8 @@ as a full puppet; <code class="docutils literal notranslate"><span class="pre">v
 <dt class="sig sig-object py" id="an.characters.schema.SLOT_POSE_OFFSETS">
 <span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">SLOT_POSE_OFFSETS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('x',</span> <span class="pre">'y')</span></span><a class="headerlink" href="#an.characters.schema.SLOT_POSE_OFFSETS" title="Link to this definition">#</a></dt>
 <dd><p>The transform properties a <a class="reference internal" href="#an.characters.schema.SlotPose" title="an.characters.schema.SlotPose"><code class="xref py py-class docutils literal notranslate"><span class="pre">SlotPose</span></code></a> sets, and whether each is an
-OFFSET added to the rest (in view_box units) or a FACTOR on it.</p>
+OFFSET added to the rest (in view_box units, so scaled by the rig), an
+ANGLE added to it (radians, never scaled) or a FACTOR on it.</p>
 </dd></dl>
 
 <dl class="py class">
@@ -1124,12 +1125,14 @@ via animation tracks targeting <code class="docutils literal notranslate"><span 
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CharModel</span></code></p>
 <p>How one slot is posed while a swap key is shown (<code class="docutils literal notranslate"><span class="pre">swap_poses</span></code>, an#197).</p>
 <p>Relative to the slot’s REST, so one pose serves every placement: <code class="docutils literal notranslate"><span class="pre">x</span></code>/<code class="docutils literal notranslate"><span class="pre">y</span></code>
-are added (view_box units, like an attachment offset), <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>,
-<code class="docutils literal notranslate"><span class="pre">scale_y</span></code> and <code class="docutils literal notranslate"><span class="pre">alpha</span></code> multiply. <code class="docutils literal notranslate"><span class="pre">alpha:</span> <span class="pre">0</span></code> is how a view HIDES a slot
-— the back view hides the face — which is a property of the view, never an
-author’s alpha hack on node paths guessed by trial.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">SlotPose</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="n">SlotPose</span><span class="p">()</span><span class="o">.</span><span class="n">x</span>
-<span class="go">(0.0, 0.0)</span>
+are added (view_box units, like an attachment offset), <code class="docutils literal notranslate"><span class="pre">rotation</span></code> is
+added too (radians, about the slot’s own pivot — how a profile splays its
+legs so both show), <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_y</span></code> and <code class="docutils literal notranslate"><span class="pre">alpha</span></code> multiply.
+<code class="docutils literal notranslate"><span class="pre">alpha:</span> <span class="pre">0</span></code> is how a view HIDES a slot — the back view hides the face —
+which is a property of the view, never an author’s alpha hack on node
+paths guessed by trial.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">SlotPose</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span> <span class="n">SlotPose</span><span class="p">()</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">SlotPose</span><span class="p">()</span><span class="o">.</span><span class="n">rotation</span>
+<span class="go">(0.0, 0.0, 0.0)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.supersample" href="an.adapters.cutout.supersample.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -591,7 +591,7 @@ when unset.</p>
 <td><p>The grain layer: one tile texture, tiled over the frame in frame pixels.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.surface.faded_treated_targets" title="an.adapters.cutout.surface.faded_treated_targets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">faded_treated_targets</span></code></a>(scene, animations)</p></td>
-<td><p>The <code class="docutils literal notranslate"><span class="pre">alpha</span></code> channel targets that fade a part carrying underlays.</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">alpha</span></code> channel targets that FADE a part carrying underlays.</p></td>
 </tr>
 </tbody>
 </table>
@@ -671,10 +671,11 @@ about arbitrary documents.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.surface.faded_treated_targets">
 <span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.surface.</span></span><span class="sig-name descname"><span class="pre">faded_treated_targets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animations</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/surface.html#faded_treated_targets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.surface.faded_treated_targets" title="Link to this definition">#</a></dt>
-<dd><p>The <code class="docutils literal notranslate"><span class="pre">alpha</span></code> channel targets that fade a part carrying underlays.</p>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">alpha</span></code> channel targets that FADE a part carrying underlays.</p>
 <p>A treated part’s copies are drawn separately, so a fade shows them
 through the part instead of the background (see <code class="code docutils literal notranslate"><span class="pre">an.styles.Outline</span></code>).
-An alpha on the glow node only fades the glow, which is fine.</p>
+A hide or a show is not a fade (<code class="xref py py-func docutils literal notranslate"><span class="pre">_fades()</span></code>), and an alpha on the glow
+node only fades the glow, which is fine.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>

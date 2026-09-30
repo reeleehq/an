@@ -49,23 +49,23 @@ several slots.
 
 ### Module Attributes
 
-| [`CHARACTER_DOCUMENT_KIND`](#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                                                                       |
-|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`MOUTH_SHAPES`](#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                                                                             |
-| [`DEFAULT_VISEME_MAP`](#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                                                                           |
-| [`VISEME_CHANNEL`](#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                                                                                 |
-| [`EYELID_CHANNEL`](#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                                                                    |
-| [`DEFAULT_EYELID_MAP`](#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                                                                         |
-| [`VIEW_CHANNEL`](#an.characters.schema.VIEW_CHANNEL)              | one KEY per drawn view, projected onto the slots whose art changes with the view (the factory draws the head and the torso), each slot carrying attachments NAMED after the keys. |
-| [`VIEWS`](#an.characters.schema.VIEWS)                     | The views the factory draws, in turnaround order.                                                                                                                                 |
-| [`DFLT_VIEW`](#an.characters.schema.DFLT_VIEW)                 | its default attachments ARE this view.                                                                                                                                            |
-| [`REQUIRED_PARTS`](#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                                                                              |
-| [`DEFAULT_VIEW_BOX`](#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                                                                   |
-| [`SLOT_POSE_OFFSETS`](#an.characters.schema.SLOT_POSE_OFFSETS)         | The transform properties a [`SlotPose`](#an.characters.schema.SlotPose) sets, and whether each is an OFFSET added to the rest (in view_box units) or a FACTOR on it. |
-| [`LEG_LENGTH`](#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                                                                              |
-| [`HEAD_ANCHOR`](#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                                                                           |
-| [`REFERENCE_HEAD_HEIGHT`](#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024.                                                   |
-| [`FACE_OFFSETS`](#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                                                                         |
+| [`CHARACTER_DOCUMENT_KIND`](#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                                                                                                                                           |
+|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`MOUTH_SHAPES`](#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                                                                                                                                                 |
+| [`DEFAULT_VISEME_MAP`](#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                                                                                                                                               |
+| [`VISEME_CHANNEL`](#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                                                                                                                                                     |
+| [`EYELID_CHANNEL`](#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                                                                                                                                        |
+| [`DEFAULT_EYELID_MAP`](#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                                                                                                                                             |
+| [`VIEW_CHANNEL`](#an.characters.schema.VIEW_CHANNEL)              | one KEY per drawn view, projected onto the slots whose art changes with the view (the factory draws the head and the torso), each slot carrying attachments NAMED after the keys.                                                                     |
+| [`VIEWS`](#an.characters.schema.VIEWS)                     | The views the factory draws, in turnaround order.                                                                                                                                                                                                     |
+| [`DFLT_VIEW`](#an.characters.schema.DFLT_VIEW)                 | its default attachments ARE this view.                                                                                                                                                                                                                |
+| [`REQUIRED_PARTS`](#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                                                                                                                                                  |
+| [`DEFAULT_VIEW_BOX`](#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                                                                                                                                       |
+| [`SLOT_POSE_OFFSETS`](#an.characters.schema.SLOT_POSE_OFFSETS)         | The transform properties a [`SlotPose`](#an.characters.schema.SlotPose) sets, and whether each is an OFFSET added to the rest (in view_box units, so scaled by the rig), an ANGLE added to it (radians, never scaled) or a FACTOR on it. |
+| [`LEG_LENGTH`](#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                                                                                                                                                  |
+| [`HEAD_ANCHOR`](#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                                                                                                                                               |
+| [`REFERENCE_HEAD_HEIGHT`](#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024.                                                                                                                       |
+| [`FACE_OFFSETS`](#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                                                                                                                                             |
 
 ### Functions
 
@@ -423,7 +423,8 @@ as a full puppet; `validate_character` flags the gap.
 ### an.characters.schema.SLOT_POSE_OFFSETS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('x', 'y')*
 
 The transform properties a [`SlotPose`](#an.characters.schema.SlotPose) sets, and whether each is an
-OFFSET added to the rest (in view_box units) or a FACTOR on it.
+OFFSET added to the rest (in view_box units, so scaled by the rig), an
+ANGLE added to it (radians, never scaled) or a FACTOR on it.
 
 ### *class* an.characters.schema.Skin(\*\*data)
 
@@ -469,14 +470,16 @@ Bases: `_CharModel`
 How one slot is posed while a swap key is shown (`swap_poses`, an#197).
 
 Relative to the slot’s REST, so one pose serves every placement: `x`/`y`
-are added (view_box units, like an attachment offset), `scale_x`,
-`scale_y` and `alpha` multiply. `alpha: 0` is how a view HIDES a slot
-— the back view hides the face — which is a property of the view, never an
-author’s alpha hack on node paths guessed by trial.
+are added (view_box units, like an attachment offset), `rotation` is
+added too (radians, about the slot’s own pivot — how a profile splays its
+legs so both show), `scale_x`, `scale_y` and `alpha` multiply.
+`alpha: 0` is how a view HIDES a slot — the back view hides the face —
+which is a property of the view, never an author’s alpha hack on node
+paths guessed by trial.
 
 ```pycon
->>> SlotPose(alpha=0).alpha, SlotPose().x
-(0.0, 0.0)
+>>> SlotPose(alpha=0).alpha, SlotPose().x, SlotPose().rotation
+(0.0, 0.0, 0.0)
 ```
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*

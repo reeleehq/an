@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.live_api" href="an.live_api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -890,9 +890,11 @@ midpoint, and <code class="docutils literal notranslate"><span class="pre">scale
 <code class="docutils literal notranslate"><span class="pre">direction=&quot;left&quot;</span></code>: a <code class="docutils literal notranslate"><span class="pre">side</span></code> view is drawn facing the viewer’s right,
 so <code class="docutils literal notranslate"><span class="pre">direction</span></code> is which way the character FACES after the turn.
 <code class="docutils literal notranslate"><span class="pre">from_direction</span></code> is which way it faced before — by default the sign of
-the rest <code class="docutils literal notranslate"><span class="pre">scale_x</span></code> (a character staged mirrored faces left); the preset
-cannot see an EARLIER turn, so turning back from a left-facing profile is
-<code class="docutils literal notranslate"><span class="pre">turn(to=&quot;front&quot;,</span> <span class="pre">from_direction=&quot;left&quot;)</span></code>.</p>
+the rest <code class="docutils literal notranslate"><span class="pre">scale_x</span></code> (a character staged mirrored faces left). Called from
+Python the preset cannot see an EARLIER turn, so turning back from a
+left-facing profile is <code class="docutils literal notranslate"><span class="pre">turn(to=&quot;front&quot;,</span> <span class="pre">from_direction=&quot;left&quot;)</span></code>; PLAYED
+by name (<code class="docutils literal notranslate"><span class="pre">{kind:</span> <span class="pre">play,</span> <span class="pre">animation:</span> <span class="pre">turn}</span></code>) the compiler fills it in from
+the timeline before it (<a class="reference internal" href="an.characters.play.html#an.characters.play.resolve_turns" title="an.characters.play.resolve_turns"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.characters.play.resolve_turns()</span></code></a>, an#203).</p>
 <p><code class="docutils literal notranslate"><span class="pre">to</span></code> is a key of the character’s <code class="docutils literal notranslate"><span class="pre">view</span></code> set — <code class="docutils literal notranslate"><span class="pre">front</span></code>, <code class="docutils literal notranslate"><span class="pre">back</span></code>,
 <code class="docutils literal notranslate"><span class="pre">side</span></code> or <code class="docutils literal notranslate"><span class="pre">three_quarter</span></code> on a factory character
 (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span> <span class="pre">new</span> <span class="pre">--offline</span></code>); the swap is a <code class="docutils literal notranslate"><span class="pre">set</span></code> on the ENTITY,

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../../../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -730,6 +730,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
@@ -2119,9 +2120,15 @@ window.runMermaid = runMermaid;</script>
 <span class="n">SIDE_EYE_SHIFT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">14.0</span>
 <span class="n">SIDE_MOUTH_SHIFT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">56.0</span>
 <span class="n">SIDE_MOUTH_SQUASH</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.6</span>
-<span class="c1">#: The fraction of the hip spread each leg moves toward the centre line in</span>
-<span class="c1">#: profile — the legs overlap, and a walk scissors them.</span>
-<span class="n">SIDE_LEG_TUCK</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.7</span>
+<span class="c1">#: Profile legs (facing right): both hang from under the body, the near leg</span>
+<span class="c1">#: (``leg_r``, drawn over the far one) a little forward and the far leg a</span>
+<span class="c1">#: little back, overlapping at the hip — each hip sits ``SIDE_LEG_OFFSET`` leg</span>
+<span class="c1">#: widths off the centre line — and splayed so the FEET part: the shoe centres</span>
+<span class="c1">#: land ``SIDE_FOOT_SPREAD`` leg widths apart, on every build (a stubby leg</span>
+<span class="c1">#: splays more). Both legs show, even as one silhouette, and a walk in profile</span>
+<span class="c1">#: has two legs to alternate (an#203).</span>
+<span class="n">SIDE_LEG_OFFSET</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="n">SIDE_FOOT_SPREAD</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.8</span>
 <span class="c1">#: Three-quarter (facing right): the whole face slides toward the facing side,</span>
 <span class="c1">#: the far eye narrows, the far arm tucks in toward the body and the legs in.</span>
 <span class="n">THREE_QUARTER_FACE_SHIFT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">20.0</span>
@@ -2129,6 +2136,28 @@ window.runMermaid = runMermaid;</script>
 <span class="n">THREE_QUARTER_FAR_SQUASH</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.85</span>
 <span class="n">THREE_QUARTER_ARM_TUCK</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span>
 <span class="n">THREE_QUARTER_LEG_TUCK</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_profile_legs</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="n">BodyBuild</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="s2">"SlotPose"</span><span class="p">,</span> <span class="s2">"SlotPose"</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The far (``leg_l``) and near (``leg_r``) leg of a right-facing profile:</span>
+<span class="sd">    hips :data:`SIDE_LEG_OFFSET` leg widths either side of the centre line, and</span>
+<span class="sd">    each leg turned about its hip so the feet are :data:`SIDE_FOOT_SPREAD` leg</span>
+<span class="sd">    widths apart. The near leg reaches FORWARD (toward +x): a PixiJS rotation</span>
+<span class="sd">    is clockwise, which swings a hanging foot toward -x, so its angle is</span>
+<span class="sd">    negative.</span>
+
+<span class="sd">    &gt;&gt;&gt; far, near = _profile_legs(BUILDS["regular"])</span>
+<span class="sd">    &gt;&gt;&gt; far.x + near.x, far.rotation == -near.rotation &gt; 0</span>
+<span class="sd">    (0.0, True)</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SlotPose</span>
+
+    <span class="n">hip</span> <span class="o">=</span> <span class="n">SIDE_LEG_OFFSET</span> <span class="o">*</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_width</span>
+    <span class="n">reach</span> <span class="o">=</span> <span class="p">(</span><span class="n">SIDE_FOOT_SPREAD</span> <span class="o">*</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_width</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="n">hip</span><span class="p">)</span> <span class="o">/</span> <span class="n">body</span><span class="o">.</span><span class="n">leg_length</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">asin</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">reach</span><span class="p">)))</span>
+    <span class="n">far</span> <span class="o">=</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">body</span><span class="o">.</span><span class="n">hip_x</span> <span class="o">-</span> <span class="n">hip</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="n">angle</span><span class="p">)</span>
+    <span class="n">near</span> <span class="o">=</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">x</span><span class="o">=-</span><span class="n">body</span><span class="o">.</span><span class="n">hip_x</span> <span class="o">+</span> <span class="n">hip</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=-</span><span class="n">angle</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">far</span><span class="p">,</span> <span class="n">near</span>
 
 
 <div class="viewcode-block" id="view_poses">
@@ -2162,8 +2191,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">side</span><span class="p">[</span><span class="s2">"mouth"</span><span class="p">]</span> <span class="o">=</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">SIDE_MOUTH_SHIFT</span> <span class="o">*</span> <span class="n">s</span><span class="p">,</span> <span class="n">scale_x</span><span class="o">=</span><span class="n">SIDE_MOUTH_SQUASH</span><span class="p">)</span>
     <span class="n">side</span><span class="p">[</span><span class="s2">"arm_l"</span><span class="p">]</span> <span class="o">=</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
     <span class="n">side</span><span class="p">[</span><span class="s2">"arm_r"</span><span class="p">]</span> <span class="o">=</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">x</span><span class="o">=-</span><span class="n">sx</span><span class="p">)</span>
-    <span class="n">side</span><span class="p">[</span><span class="s2">"leg_l"</span><span class="p">]</span> <span class="o">=</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">SIDE_LEG_TUCK</span> <span class="o">*</span> <span class="n">body</span><span class="o">.</span><span class="n">hip_x</span><span class="p">)</span>
-    <span class="n">side</span><span class="p">[</span><span class="s2">"leg_r"</span><span class="p">]</span> <span class="o">=</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">x</span><span class="o">=-</span><span class="n">SIDE_LEG_TUCK</span> <span class="o">*</span> <span class="n">body</span><span class="o">.</span><span class="n">hip_x</span><span class="p">)</span>
+    <span class="n">side</span><span class="p">[</span><span class="s2">"leg_l"</span><span class="p">],</span> <span class="n">side</span><span class="p">[</span><span class="s2">"leg_r"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_profile_legs</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
     <span class="n">shift</span> <span class="o">=</span> <span class="n">THREE_QUARTER_FACE_SHIFT</span> <span class="o">*</span> <span class="n">s</span>
     <span class="n">tq</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">SlotPose</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">n</span><span class="p">:</span> <span class="n">SlotPose</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">shift</span><span class="p">,</span> <span class="n">scale_x</span><span class="o">=</span><span class="n">THREE_QUARTER_FAR_SQUASH</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">_FAR_FACE_SLOTS</span>

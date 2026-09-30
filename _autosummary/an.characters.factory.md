@@ -20,22 +20,22 @@ problem routes the way every other verifier’s does (an#78).
 
 ### Module Attributes
 
-| [`PALETTE_ROLES`](#an.characters.factory.PALETTE_ROLES)            | The roles `new_character(palette=...)` takes.                                                                                                                         |
-|---------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`HEAD_ART_ROLES`](#an.characters.factory.HEAD_ART_ROLES)           | The roles a head's own art carries.                                                                                                                                   |
-| [`OUTLINE_COLOUR`](#an.characters.factory.OUTLINE_COLOUR)           | it is the drawing's ink, not a costume colour.                                                                                                                        |
-| [`SHOE_COLOUR`](#an.characters.factory.SHOE_COLOUR)              | The shoe, drawn in the leg part.                                                                                                                                      |
-| [`PUPIL_COLOUR`](#an.characters.factory.PUPIL_COLOUR)             | The pupil, in its own part (or the pre-gaze open eye).                                                                                                                |
-| [`DFLT_HAND_COLOUR`](#an.characters.factory.DFLT_HAND_COLOUR)         | Default hand, trouser and brow colours — the literals the factory always drew.                                                                                        |
-| [`HATS`](#an.characters.factory.HATS)                     | The hats [`new_character()`](#an.characters.factory.new_character) can draw.                                                                                   |
-| [`MAX_HEAD_SCALE`](#an.characters.factory.MAX_HEAD_SCALE)           | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                                                        |
-| [`BUILDS`](#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                         |
-| [`EYE_CANVAS`](#an.characters.factory.EYE_CANVAS)               | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).                                   |
-| [`GAZE_PARTS`](#an.characters.factory.GAZE_PARTS)               | The parts a rig gains with `an character add-gaze`.                                                                                                                   |
-| [`FACE_SLOTS`](#an.characters.factory.FACE_SLOTS)               | The face slots of the default rig with the eye stack (an#99).                                                                                                         |
-| [`SIDE_EYE_SHIFT`](#an.characters.factory.SIDE_EYE_SHIFT)           | how far the near eye, its stack and brow slide toward the face's edge, and the mouth with them (view_box units at head_scale 1); the mouth is narrowed, seen edge-on. |
-| [`SIDE_LEG_TUCK`](#an.characters.factory.SIDE_LEG_TUCK)            | The fraction of the hip spread each leg moves toward the centre line in profile — the legs overlap, and a walk scissors them.                                         |
-| [`THREE_QUARTER_FACE_SHIFT`](#an.characters.factory.THREE_QUARTER_FACE_SHIFT) | the whole face slides toward the facing side, the far eye narrows, the far arm tucks in toward the body and the legs in.                                              |
+| [`PALETTE_ROLES`](#an.characters.factory.PALETTE_ROLES)            | The roles `new_character(palette=...)` takes.                                                                                                                                                                                                                                                                                                               |
+|---------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`HEAD_ART_ROLES`](#an.characters.factory.HEAD_ART_ROLES)           | The roles a head's own art carries.                                                                                                                                                                                                                                                                                                                         |
+| [`OUTLINE_COLOUR`](#an.characters.factory.OUTLINE_COLOUR)           | it is the drawing's ink, not a costume colour.                                                                                                                                                                                                                                                                                                              |
+| [`SHOE_COLOUR`](#an.characters.factory.SHOE_COLOUR)              | The shoe, drawn in the leg part.                                                                                                                                                                                                                                                                                                                            |
+| [`PUPIL_COLOUR`](#an.characters.factory.PUPIL_COLOUR)             | The pupil, in its own part (or the pre-gaze open eye).                                                                                                                                                                                                                                                                                                      |
+| [`DFLT_HAND_COLOUR`](#an.characters.factory.DFLT_HAND_COLOUR)         | Default hand, trouser and brow colours — the literals the factory always drew.                                                                                                                                                                                                                                                                              |
+| [`HATS`](#an.characters.factory.HATS)                     | The hats [`new_character()`](#an.characters.factory.new_character) can draw.                                                                                                                                                                                                                                                                         |
+| [`MAX_HEAD_SCALE`](#an.characters.factory.MAX_HEAD_SCALE)           | The largest head scale accepted — past it the head no longer fits the 1024-unit view box above a regular body.                                                                                                                                                                                                                                              |
+| [`BUILDS`](#an.characters.factory.BUILDS)                   | Named builds.                                                                                                                                                                                                                                                                                                                                               |
+| [`EYE_CANVAS`](#an.characters.factory.EYE_CANVAS)               | The eye's geometry in its 64x32 canvas, shared by the four synthesizers so the sclera, the pupil and the lid outline agree (an#99).                                                                                                                                                                                                                         |
+| [`GAZE_PARTS`](#an.characters.factory.GAZE_PARTS)               | The parts a rig gains with `an character add-gaze`.                                                                                                                                                                                                                                                                                                         |
+| [`FACE_SLOTS`](#an.characters.factory.FACE_SLOTS)               | The face slots of the default rig with the eye stack (an#99).                                                                                                                                                                                                                                                                                               |
+| [`SIDE_EYE_SHIFT`](#an.characters.factory.SIDE_EYE_SHIFT)           | how far the near eye, its stack and brow slide toward the face's edge, and the mouth with them (view_box units at head_scale 1); the mouth is narrowed, seen edge-on.                                                                                                                                                                                       |
+| [`SIDE_LEG_OFFSET`](#an.characters.factory.SIDE_LEG_OFFSET)          | both hang from under the body, the near leg (`leg_r`, drawn over the far one) a little forward and the far leg a little back, overlapping at the hip — each hip sits `SIDE_LEG_OFFSET` leg widths off the centre line — and splayed so the FEET part: the shoe centres land `SIDE_FOOT_SPREAD` leg widths apart, on every build (a stubby leg splays more). |
+| [`THREE_QUARTER_FACE_SHIFT`](#an.characters.factory.THREE_QUARTER_FACE_SHIFT) | the whole face slides toward the facing side, the far eye narrows, the far arm tucks in toward the body and the legs in.                                                                                                                                                                                                                                    |
 
 ### Functions
 
@@ -161,10 +161,18 @@ the mouth is narrowed, seen edge-on.
 * **Type:**
   Profile (facing right)
 
-### an.characters.factory.SIDE_LEG_TUCK *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.7*
+### an.characters.factory.SIDE_LEG_OFFSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.25*
 
-The fraction of the hip spread each leg moves toward the centre line in
-profile — the legs overlap, and a walk scissors them.
+both hang from under the body, the near leg
+(`leg_r`, drawn over the far one) a little forward and the far leg a
+little back, overlapping at the hip — each hip sits `SIDE_LEG_OFFSET` leg
+widths off the centre line — and splayed so the FEET part: the shoe centres
+land `SIDE_FOOT_SPREAD` leg widths apart, on every build (a stubby leg
+splays more). Both legs show, even as one silhouette, and a walk in profile
+has two legs to alternate (an#203).
+
+* **Type:**
+  Profile legs (facing right)
 
 ### an.characters.factory.THREE_QUARTER_FACE_SHIFT *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 20.0*
 

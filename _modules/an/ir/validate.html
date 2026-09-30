@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../../../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -734,16 +734,20 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">AUTHORABLE_PROPERTIES</span><span class="p">,</span> <span class="n">TRANSFORM_PROPERTIES</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.play</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">PRESET_SOURCE</span><span class="p">,</span>
+    <span class="n">Facing</span><span class="p">,</span>
+    <span class="n">TurnResolution</span><span class="p">,</span>
     <span class="n">art_exists_for</span><span class="p">,</span>
+    <span class="n">facing_at</span><span class="p">,</span>
     <span class="n">play_extent_for</span><span class="p">,</span>
     <span class="n">play_problems</span><span class="p">,</span>
     <span class="n">play_source</span><span class="p">,</span>
     <span class="n">preset_moved_node</span><span class="p">,</span>
     <span class="n">preset_play_span</span><span class="p">,</span>
+    <span class="n">resolve_turns</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoiceEffectError</span><span class="p">,</span> <span class="n">voice_effects</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">speaker_voice_ref</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterDescriptor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_VIEW</span><span class="p">,</span> <span class="n">VIEW_CHANNEL</span><span class="p">,</span> <span class="n">CharacterDescriptor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.binding</span><span class="w"> </span><span class="kn">import</span> <span class="n">expression_problems</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span><span class="p">,</span> <span class="n">CameraError</span><span class="p">,</span> <span class="n">camera_keys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
@@ -1335,7 +1339,13 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                 <span class="sa">f</span><span class="s2">"property </span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> names no declared asset set of "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity_id</span><span class="si">!r}</span><span class="s2"> (it has: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">declared</span><span class="p">)</span><span class="si">}</span><span class="s2">) — compiling "</span>
-                <span class="s2">"this shot raises."</span><span class="p">,</span>
+                <span class="s2">"this shot raises."</span>
+                <span class="o">+</span> <span class="p">(</span>
+                    <span class="s2">" A character made before an#197 has no views: "</span>
+                    <span class="s2">"`an character add-views` draws them."</span>
+                    <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="n">VIEW_CHANNEL</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span>
+                    <span class="k">else</span> <span class="s2">""</span>
+                <span class="p">),</span>
             <span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="n">declared</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
@@ -1380,6 +1390,136 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> set (it has: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span><span class="si">}</span><span class="s2">) — compiling "</span>
                     <span class="s2">"this shot raises."</span><span class="p">,</span>
                 <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_turn_resolution</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TurnResolution</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The shot's flat timeline with its turns resolved the way the compiler</span>
+<span class="sd">    resolves them (:func:`an.characters.play.resolve_turns`, an#203), and the</span>
+<span class="sd">    top-level action index each flat came from. ``None`` without a characters</span>
+<span class="sd">    store — the check did not run, which is not the same as passing.</span>
+
+<span class="sd">    The rest pose is the identity: validate builds no stage. A facing is only</span>
+<span class="sd">    the SIGN of ``scale_x``, so this is exact unless a character is staged</span>
+<span class="sd">    mirrored and a preset settles it back to its rest — then validate reads</span>
+<span class="sd">    it facing right where compile has it facing left (a known, narrow gap).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">rigs</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">descriptor_of</span><span class="p">(</span><span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CharacterDescriptor</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span> <span class="k">if</span> <span class="n">doc</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">ValidationError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># reported by the play check</span>
+
+    <span class="n">extent</span> <span class="o">=</span> <span class="n">play_extent_for</span><span class="p">(</span><span class="n">descriptor_of</span><span class="p">)</span>
+    <span class="n">origin</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">flats</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">extent</span><span class="p">):</span>
+            <span class="n">flats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
+            <span class="n">origin</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+    <span class="n">resolution</span> <span class="o">=</span> <span class="n">resolve_turns</span><span class="p">(</span>
+        <span class="n">flats</span><span class="p">,</span>
+        <span class="n">descriptor_of</span><span class="o">=</span><span class="n">descriptor_of</span><span class="p">,</span>
+        <span class="n">rest_of</span><span class="o">=</span><span class="k">lambda</span> <span class="n">_p</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"x"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"y"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"rotation"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"scale_x"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s2">"scale_y"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s2">"alpha"</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">resolution</span><span class="p">,</span> <span class="n">origin</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_turns</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">resolved</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A ``turn`` whose declared ``from_direction`` contradicts the side the</span>
+<span class="sd">    timeline before it left the character facing (an#203): the compiler</span>
+<span class="sd">    keeps what the author wrote, so the character flips to the other side</span>
+<span class="sd">    before it squashes — a visible jump."""</span>
+    <span class="k">if</span> <span class="n">resolved</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">resolution</span><span class="p">,</span> <span class="n">origin</span> <span class="o">=</span> <span class="n">resolved</span>
+    <span class="k">for</span> <span class="n">turn</span> <span class="ow">in</span> <span class="n">resolution</span><span class="o">.</span><span class="n">turns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">turn</span><span class="o">.</span><span class="n">contradicted</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">origin</span><span class="p">[</span><span class="n">turn</span><span class="o">.</span><span class="n">index</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"`turn` on </span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">entity</span><span class="si">!r}</span><span class="s2"> at t=</span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">start</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s declares "</span>
+            <span class="sa">f</span><span class="s2">"from_direction </span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">declared</span><span class="si">!r}</span><span class="s2">, but the timeline before it left "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">entity</span><span class="si">!r}</span><span class="s2"> facing </span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">direction</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" in its </span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">view</span><span class="si">!r}</span><span class="s2"> view"</span> <span class="k">if</span> <span class="n">turn</span><span class="o">.</span><span class="n">before</span><span class="o">.</span><span class="n">view</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">", so it jumps to the other side before it turns. Drop "</span>
+            <span class="s2">"`from_direction`: a turn infers it from the timeline."</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_view_continuity</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">resolved</span><span class="p">:</span> <span class="nb">list</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A character that ends one shot turned (a view other than the default,</span>
+<span class="sd">    or facing left) and appears in the very next shot starts that shot at its rest</span>
+<span class="sd">    — shots are independent by design (each compiles alone; the per-shot</span>
+<span class="sd">    archive and `render_project` depend on it), so a view does not carry</span>
+<span class="sd">    across a cut (an#203). Said as a warning, with the one line that carries</span>
+<span class="sd">    it on; the next shot setting the view (or ``scale_x``) at t=0 is taken as</span>
+<span class="sd">    the author's decision either way. ``resolved`` is</span>
+<span class="sd">    :func:`_turn_resolution` per shot.</span>
+<span class="sd">    """</span>
+    <span class="n">previous</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Facing</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">shot_resolved</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">resolved</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">shot_resolved</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>  <span class="c1"># no characters store: the check did not run</span>
+        <span class="n">events</span> <span class="o">=</span> <span class="n">shot_resolved</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">events</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">previous</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">prev_shot</span><span class="p">,</span> <span class="n">ended</span> <span class="o">=</span> <span class="n">previous</span><span class="p">[</span><span class="n">entity_id</span><span class="p">]</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">facing_at</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">turned_view</span> <span class="o">=</span> <span class="n">ended</span><span class="o">.</span><span class="n">view</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">DFLT_VIEW</span><span class="p">)</span> <span class="ow">and</span> <span class="n">start</span><span class="o">.</span><span class="n">view</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="n">turned_left</span> <span class="o">=</span> <span class="n">ended</span><span class="o">.</span><span class="n">direction</span> <span class="o">==</span> <span class="s2">"left"</span> <span class="ow">and</span> <span class="n">start</span><span class="o">.</span><span class="n">direction</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">turned_view</span> <span class="ow">or</span> <span class="n">turned_left</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">bit</span>
+                <span class="k">for</span> <span class="n">bit</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"in its </span><span class="si">{</span><span class="n">ended</span><span class="o">.</span><span class="n">view</span><span class="si">!r}</span><span class="s2"> view"</span> <span class="k">if</span> <span class="n">turned_view</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
+                    <span class="s2">"facing left"</span> <span class="k">if</span> <span class="n">turned_left</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">bit</span>
+            <span class="p">)</span>
+            <span class="n">fix</span> <span class="o">=</span> <span class="s2">" and "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">bit</span>
+                <span class="k">for</span> <span class="n">bit</span> <span class="ow">in</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"`</span><span class="se">{{</span><span class="s2">kind: set, target: </span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">, property: view, value: "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ended</span><span class="o">.</span><span class="n">view</span><span class="si">}</span><span class="s2">, at: 0</span><span class="se">}}</span><span class="s2">`"</span>
+                    <span class="k">if</span> <span class="n">turned_view</span>
+                    <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
+                    <span class="s2">"a negative `scale_x` set at 0"</span> <span class="k">if</span> <span class="n">turned_left</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">bit</span>
+            <span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity_id</span><span class="si">!r}</span><span class="s2"> ends shot </span><span class="si">{</span><span class="n">prev_shot</span><span class="si">!r}</span><span class="s2"> </span><span class="si">{</span><span class="n">state</span><span class="si">}</span><span class="s2">, and shot "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> starts it at its rest — a view does not carry "</span>
+                <span class="sa">f</span><span class="s2">"across a cut (each shot compiles alone). To continue the "</span>
+                <span class="sa">f</span><span class="s2">"turn, open shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> with </span><span class="si">{</span><span class="n">fix</span><span class="si">}</span><span class="s2">; to reset it on "</span>
+                <span class="s2">"purpose, set the view there anyway."</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">previous</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">e</span><span class="p">:</span> <span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">facing_at</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)))</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">ids</span>
+        <span class="p">}</span>
 
 
 <span class="c1">#: Leaf kinds whose ``target`` is a NODE path the runtime animates. `play` and</span>
@@ -1847,6 +1987,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
     <span class="n">seen_shot_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">turn_resolutions</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
         <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span>
         <span class="n">_check_step_hz</span><span class="p">(</span>
@@ -1863,6 +2004,8 @@ window.runMermaid = runMermaid;</script>
 
         <span class="n">_check_renderable</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">stores</span><span class="o">=</span><span class="n">rig_stores</span><span class="p">)</span>
         <span class="n">_check_swap_references</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span>
+        <span class="n">turn_resolutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_turn_resolution</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">))</span>
+        <span class="n">_check_turns</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">turn_resolutions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">_check_trim_targets</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span>
         <span class="n">text_ids</span> <span class="o">=</span> <span class="n">_check_text_blocks</span><span class="p">(</span>
             <span class="n">shot</span><span class="p">,</span>
@@ -1974,6 +2117,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
         <span class="n">_check_dialogue_fits</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
 
+    <span class="n">_check_view_continuity</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">turn_resolutions</span><span class="p">)</span>
     <span class="n">_check_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">sounds</span><span class="o">=</span><span class="n">available_sounds</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">report</span></div>
 

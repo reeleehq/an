@@ -21,7 +21,7 @@ an.characters.factory
       GAZE_PARTS
       FACE_SLOTS
       SIDE_EYE_SHIFT
-      SIDE_LEG_TUCK
+      SIDE_LEG_OFFSET
       THREE_QUARTER_FACE_SHIFT
    
    .. rubric:: Functions

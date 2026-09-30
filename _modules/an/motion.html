@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1290,9 +1290,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``direction="left"``: a ``side`` view is drawn facing the viewer's right,</span>
 <span class="sd">    so ``direction`` is which way the character FACES after the turn.</span>
 <span class="sd">    ``from_direction`` is which way it faced before — by default the sign of</span>
-<span class="sd">    the rest ``scale_x`` (a character staged mirrored faces left); the preset</span>
-<span class="sd">    cannot see an EARLIER turn, so turning back from a left-facing profile is</span>
-<span class="sd">    ``turn(to="front", from_direction="left")``.</span>
+<span class="sd">    the rest ``scale_x`` (a character staged mirrored faces left). Called from</span>
+<span class="sd">    Python the preset cannot see an EARLIER turn, so turning back from a</span>
+<span class="sd">    left-facing profile is ``turn(to="front", from_direction="left")``; PLAYED</span>
+<span class="sd">    by name (``{kind: play, animation: turn}``) the compiler fills it in from</span>
+<span class="sd">    the timeline before it (:func:`an.characters.play.resolve_turns`, an#203).</span>
 
 <span class="sd">    ``to`` is a key of the character's ``view`` set — ``front``, ``back``,</span>
 <span class="sd">    ``side`` or ``three_quarter`` on a factory character</span>

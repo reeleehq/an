@@ -15,6 +15,7 @@ an.characters.play
       DESCRIPTOR_SOURCE
       PRESET_SOURCE
       RESERVED_PRESET_ARGS
+      TURN_PRESET
    
    .. rubric:: Functions
 
@@ -24,6 +25,7 @@ an.characters.play
       art_exists_for
       drawn_attachment
       expand_preset_play
+      facing_at
       play_problems
       play_source
       preset_moved_node
@@ -31,6 +33,7 @@ an.characters.play
       preset_problems
       primary_slot_per_bone
       resolve_play
+      resolve_turns
       sampled_deviations
       sine_sample_times
       slot_node_path
@@ -42,8 +45,11 @@ an.characters.play
    .. autosummary::
    
       BoneTrack
+      Facing
       ResolvedPlay
       SlotTrack
+      TurnInference
+      TurnResolution
    
    .. rubric:: Exceptions
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../../../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -954,26 +954,31 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""How one slot is posed while a swap key is shown (``swap_poses``, an#197).</span>
 
 <span class="sd">    Relative to the slot's REST, so one pose serves every placement: ``x``/``y``</span>
-<span class="sd">    are added (view_box units, like an attachment offset), ``scale_x``,</span>
-<span class="sd">    ``scale_y`` and ``alpha`` multiply. ``alpha: 0`` is how a view HIDES a slot</span>
-<span class="sd">    — the back view hides the face — which is a property of the view, never an</span>
-<span class="sd">    author's alpha hack on node paths guessed by trial.</span>
+<span class="sd">    are added (view_box units, like an attachment offset), ``rotation`` is</span>
+<span class="sd">    added too (radians, about the slot's own pivot — how a profile splays its</span>
+<span class="sd">    legs so both show), ``scale_x``, ``scale_y`` and ``alpha`` multiply.</span>
+<span class="sd">    ``alpha: 0`` is how a view HIDES a slot — the back view hides the face —</span>
+<span class="sd">    which is a property of the view, never an author's alpha hack on node</span>
+<span class="sd">    paths guessed by trial.</span>
 
-<span class="sd">    &gt;&gt;&gt; SlotPose(alpha=0).alpha, SlotPose().x</span>
-<span class="sd">    (0.0, 0.0)</span>
+<span class="sd">    &gt;&gt;&gt; SlotPose(alpha=0).alpha, SlotPose().x, SlotPose().rotation</span>
+<span class="sd">    (0.0, 0.0, 0.0)</span>
 <span class="sd">    """</span>
 
     <span class="n">x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">scale_x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
     <span class="n">scale_y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
-    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">rotation</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span></div>
 
 
 
 <span class="c1">#: The transform properties a :class:`SlotPose` sets, and whether each is an</span>
-<span class="c1">#: OFFSET added to the rest (in view_box units) or a FACTOR on it.</span>
+<span class="c1">#: OFFSET added to the rest (in view_box units, so scaled by the rig), an</span>
+<span class="c1">#: ANGLE added to it (radians, never scaled) or a FACTOR on it.</span>
 <span class="n">SLOT_POSE_OFFSETS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)</span>
+<span class="n">SLOT_POSE_ANGLES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"rotation"</span><span class="p">,)</span>
 <span class="n">SLOT_POSE_FACTORS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"scale_x"</span><span class="p">,</span> <span class="s2">"scale_y"</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">)</span>
 
 

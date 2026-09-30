@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=aa125c18"></script>
+    <script src="../../../../_static/documentation_options.js?v=0e6ad801"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.112" />
+  <meta name="docsearch:version" content="0.1.113" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -782,6 +782,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">play_source</span><span class="p">,</span>
     <span class="n">primary_slot_per_bone</span><span class="p">,</span>
     <span class="n">resolve_play</span><span class="p">,</span>
+    <span class="n">resolve_turns</span><span class="p">,</span>
     <span class="n">sampled_deviations</span><span class="p">,</span>
     <span class="n">slot_node_path</span><span class="p">,</span>
 <span class="p">)</span>
@@ -817,6 +818,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">CHARACTER_DOCUMENT_KIND</span><span class="p">,</span>
     <span class="n">EYELID_CHANNEL</span><span class="p">,</span>
+    <span class="n">SLOT_POSE_ANGLES</span><span class="p">,</span>
     <span class="n">SLOT_POSE_FACTORS</span><span class="p">,</span>
     <span class="n">SLOT_POSE_OFFSETS</span><span class="p">,</span>
     <span class="n">MOUTH_SHAPES</span><span class="p">,</span>
@@ -3687,7 +3689,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    descriptor's ``swap_poses`` put on its slots as each whole-character swap</span>
 <span class="sd">    lands (an#197). A key poses the slots it lists; every other slot any key</span>
 <span class="sd">    of that set poses is at rest. Offsets (``x``, ``y``) are view_box units,</span>
-<span class="sd">    scaled by the rig's k and added to the rest; factors (``scale_*``,</span>
+<span class="sd">    scaled by the rig's k and added to the rest; ``rotation`` is radians,</span>
+<span class="sd">    added unscaled; factors (``scale_*``,</span>
 <span class="sd">    ``alpha``) multiply it; several posed sets compose the same way.</span>
 
 <span class="sd">    A curve that never leaves the rest is dropped, and an entity nothing</span>
@@ -3731,6 +3734,11 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">poses</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">poses</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">SLOT_POSE_OFFSETS</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span>
+                        <span class="nb">getattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">poses</span>
+                    <span class="p">)</span>
+                    <span class="n">curves</span><span class="o">.</span><span class="n">setdefault</span><span class="p">((</span><span class="n">path</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">event</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">SLOT_POSE_ANGLES</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">rest</span><span class="p">,</span> <span class="n">prop</span><span class="p">))</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span>
                         <span class="nb">getattr</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">prop</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">poses</span>
                     <span class="p">)</span>
                     <span class="n">curves</span><span class="o">.</span><span class="n">setdefault</span><span class="p">((</span><span class="n">path</span><span class="p">,</span> <span class="n">prop</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">event</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
@@ -4084,6 +4092,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    (``vocab.node_transforms``), so a move on ``x`` in a two-character shot</span>
 <span class="sd">    stays centred on the laid-out ``-110`` without a ``rest=``; with no</span>
 <span class="sd">    vocabulary (a unit test compiling bare actions) it is the identity pose.</span>
+
+<span class="sd">    A ``turn`` that does not say which way it faced opens from the side the</span>
+<span class="sd">    timeline before it left the entity facing (:func:`an.characters.play.</span>
+<span class="sd">    resolve_turns`, an#203) — the resolver ``an validate`` checks with.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.motion</span><span class="w"> </span><span class="kn">import</span> <span class="n">IDENTITY_POSE</span><span class="p">,</span> <span class="n">POSE_PROPERTIES</span>
 
@@ -4095,6 +4107,11 @@ window.runMermaid = runMermaid;</script>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">POSE_PROPERTIES</span><span class="p">}</span>
 
+    <span class="n">flat_list</span> <span class="o">=</span> <span class="n">resolve_turns</span><span class="p">(</span>
+        <span class="n">flat_list</span><span class="p">,</span>
+        <span class="n">descriptor_of</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">rest_of</span><span class="o">=</span><span class="n">rest_of</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">flats</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flat_list</span><span class="p">:</span>
         <span class="n">action</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>

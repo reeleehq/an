@@ -66,33 +66,39 @@ the caller reads off the built scene, so an author never passes `rest`.
 | [`DESCRIPTOR_SOURCE`](#an.characters.play.DESCRIPTOR_SOURCE)       | the entity descriptor's own `animations`…                                                                                           |
 | [`PRESET_SOURCE`](#an.characters.play.PRESET_SOURCE)           | …or, for a name it does not declare, [`an.motion.PRESETS`](an.motion.html.md#an.motion.PRESETS) (an#166). |
 | [`RESERVED_PRESET_ARGS`](#an.characters.play.RESERVED_PRESET_ARGS)    | the target is the play's own, and the rest pose is read off the built scene.                                                        |
+| [`TURN_PRESET`](#an.characters.play.TURN_PRESET)             | a turn opens from the side the character faces NOW, which only the timeline knows.                                                  |
 
 ### Functions
 
-| [`active_skin`](#an.characters.play.active_skin)(desc)                               | The skin the rig draws: `default`, else the first declared, else empty.                                                                                                                                                                                                                         |
-|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`art_exists_for`](#an.characters.play.art_exists_for)(characters_store, ref)           | `rel_path -> is the art on disk`, for a character in a filesystem store; `None` when the store has no root to look under (a dict, a fake) — a store that can answer nothing must assume presence, not absence, exactly as the rig builder's part probe does.                                    |
-| [`drawn_attachment`](#an.characters.play.drawn_attachment)(desc, skin, slot)              | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                                                                                    |
-| [`expand_preset_play`](#an.characters.play.expand_preset_play)(action, \*, start, rest_of)  | A preset `play` as the flat tweens and settling `set``s it stands for, at absolute times from ``start` (an#166).                                                                                                                                                                                |
-| [`play_problems`](#an.characters.play.play_problems)(desc, animation, \*[, ...])       | Every reason `play(<entity>, animation, ...)` cannot resolve — empty when it can.                                                                                                                                                                                                               |
-| [`play_source`](#an.characters.play.play_source)(desc, animation)                    | Which library a `play` of `animation` resolves in — [`DESCRIPTOR_SOURCE`](#an.characters.play.DESCRIPTOR_SOURCE) when `desc` declares it (the descriptor WINS a name a preset also has), else [`PRESET_SOURCE`](#an.characters.play.PRESET_SOURCE) when a motion preset has it. |
-| [`preset_moved_node`](#an.characters.play.preset_moved_node)(action_target, animation)     | The ONE node path a preset play moves — `<target>/head` for a `nod`, the target itself for the rest.                                                                                                                                                                                            |
-| [`preset_play_span`](#an.characters.play.preset_play_span)(action)                        | How long a preset `play` runs, in seconds: its `duration` when set, else the preset's natural length divided by `speed`.                                                                                                                                                                        |
-| [`preset_problems`](#an.characters.play.preset_problems)(animation, \*[, args, ...])     | Why a `play` of the motion preset `animation` cannot expand.                                                                                                                                                                                                                                    |
-| [`primary_slot_per_bone`](#an.characters.play.primary_slot_per_bone)(desc)                     | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                                                                                     |
-| [`resolve_play`](#an.characters.play.resolve_play)(desc, animation, \*[, art_exists]) | Resolve `animation` of `desc` into renderer-ready tracks, or raise [`PlayResolutionError`](#an.characters.play.PlayResolutionError) listing every problem found.                                                                                                                            |
-| [`sampled_deviations`](#an.characters.play.sampled_deviations)(track, duration, fps)        | `(time, deviation)` pairs for a sine bone track at the frame rate — [`an.characters.idle.evaluate_track()`](an.characters.idle.html.md#an.characters.idle.evaluate_track)'s formula, sampled, so the descriptor's own evaluator stays the one definition of a sine track.      |
-| [`sine_sample_times`](#an.characters.play.sine_sample_times)(duration, fps)                | Frame-rate sample times for a sine track, ALWAYS ending at `duration`.                                                                                                                                                                                                                          |
-| [`slot_node_path`](#an.characters.play.slot_node_path)(desc, slot_name)                 | The node path of a slot RELATIVE to its entity (`head/left_eye`, `torso`) — the rig builder's nesting rule, stated once.                                                                                                                                                                        |
-| [`slot_parent`](#an.characters.play.slot_parent)(desc, slot)                         | The slot `slot` nests under, or `None` when it is a direct child.                                                                                                                                                                                                                               |
-| [`suppressed_slots`](#an.characters.play.suppressed_slots)(desc)                          | Slots the rig builder never builds: with the face baked into the head art (`face_overlay=false`), every slot nested under the HEAD BONE's primary slot — keyed on the bone, not on a slot named "head".                                                                                         |
+| [`active_skin`](#an.characters.play.active_skin)(desc)                                | The skin the rig draws: `default`, else the first declared, else empty.                                                                                                                                                                                                                                                                                                |
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`art_exists_for`](#an.characters.play.art_exists_for)(characters_store, ref)            | `rel_path -> is the art on disk`, for a character in a filesystem store; `None` when the store has no root to look under (a dict, a fake) — a store that can answer nothing must assume presence, not absence, exactly as the rig builder's part probe does.                                                                                                           |
+| [`drawn_attachment`](#an.characters.play.drawn_attachment)(desc, skin, slot)               | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                                                                                                                                                           |
+| [`expand_preset_play`](#an.characters.play.expand_preset_play)(action, \*, start, rest_of)   | A preset `play` as the flat tweens and settling `set``s it stands for, at absolute times from ``start` (an#166).                                                                                                                                                                                                                                                       |
+| [`facing_at`](#an.characters.play.facing_at)(events, entity, t, \*[, view_set])     | What `entity` shows at time `t`: the latest `view_set` swap set on the entity and the sign of the latest `scale_x` it was given, at or before `t` (a tween counts from its END, when its value has landed; at one instant the one LATER in `events` wins — so pass them in authoring order, as [`resolve_turns()`](#an.characters.play.resolve_turns) does). |
+| [`play_problems`](#an.characters.play.play_problems)(desc, animation, \*[, ...])        | Every reason `play(<entity>, animation, ...)` cannot resolve — empty when it can.                                                                                                                                                                                                                                                                                      |
+| [`play_source`](#an.characters.play.play_source)(desc, animation)                     | Which library a `play` of `animation` resolves in — [`DESCRIPTOR_SOURCE`](#an.characters.play.DESCRIPTOR_SOURCE) when `desc` declares it (the descriptor WINS a name a preset also has), else [`PRESET_SOURCE`](#an.characters.play.PRESET_SOURCE) when a motion preset has it.                                                                        |
+| [`preset_moved_node`](#an.characters.play.preset_moved_node)(action_target, animation)      | The ONE node path a preset play moves — `<target>/head` for a `nod`, the target itself for the rest.                                                                                                                                                                                                                                                                   |
+| [`preset_play_span`](#an.characters.play.preset_play_span)(action)                         | How long a preset `play` runs, in seconds: its `duration` when set, else the preset's natural length divided by `speed`.                                                                                                                                                                                                                                               |
+| [`preset_problems`](#an.characters.play.preset_problems)(animation, \*[, args, ...])      | Why a `play` of the motion preset `animation` cannot expand.                                                                                                                                                                                                                                                                                                           |
+| [`primary_slot_per_bone`](#an.characters.play.primary_slot_per_bone)(desc)                      | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                                                                                                                                                            |
+| [`resolve_play`](#an.characters.play.resolve_play)(desc, animation, \*[, art_exists])  | Resolve `animation` of `desc` into renderer-ready tracks, or raise [`PlayResolutionError`](#an.characters.play.PlayResolutionError) listing every problem found.                                                                                                                                                                                                   |
+| [`resolve_turns`](#an.characters.play.resolve_turns)(flat_list, \*, descriptor_of, ...) | Fill in each turn's `from_direction` from the timeline before it (an#203): a `play` of `turn` on an entity that does not pass one opens from the side the latest earlier `scale_x` left the entity facing — so `side` (`direction: left`) then `back` is two plays, with no `from_direction` by hand.                                                                  |
+| [`sampled_deviations`](#an.characters.play.sampled_deviations)(track, duration, fps)         | `(time, deviation)` pairs for a sine bone track at the frame rate — [`an.characters.idle.evaluate_track()`](an.characters.idle.html.md#an.characters.idle.evaluate_track)'s formula, sampled, so the descriptor's own evaluator stays the one definition of a sine track.                                                                             |
+| [`sine_sample_times`](#an.characters.play.sine_sample_times)(duration, fps)                 | Frame-rate sample times for a sine track, ALWAYS ending at `duration`.                                                                                                                                                                                                                                                                                                 |
+| [`slot_node_path`](#an.characters.play.slot_node_path)(desc, slot_name)                  | The node path of a slot RELATIVE to its entity (`head/left_eye`, `torso`) — the rig builder's nesting rule, stated once.                                                                                                                                                                                                                                               |
+| [`slot_parent`](#an.characters.play.slot_parent)(desc, slot)                          | The slot `slot` nests under, or `None` when it is a direct child.                                                                                                                                                                                                                                                                                                      |
+| [`suppressed_slots`](#an.characters.play.suppressed_slots)(desc)                           | Slots the rig builder never builds: with the face baked into the head art (`face_overlay=false`), every slot nested under the HEAD BONE's primary slot — keyed on the bone, not on a slot named "head".                                                                                                                                                                |
 
 ### Classes
 
-| [`BoneTrack`](#an.characters.play.BoneTrack)(track, slot, property, unit, ...)   | A resolved `bone:<name>.<prop>` track.                              |
-|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| [`ResolvedPlay`](#an.characters.play.ResolvedPlay)(animation, tracks)               |                                                                     |
-| [`SlotTrack`](#an.characters.play.SlotTrack)(track, slot, set_name, frames)      | A resolved `slot:<name>.attachment` track: one set, frames as KEYS. |
+| [`BoneTrack`](#an.characters.play.BoneTrack)(track, slot, property, unit, ...)   | A resolved `bone:<name>.<prop>` track.                                                                                                                                                                                                                                                                                             |
+|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Facing`](#an.characters.play.Facing)([view, direction])                     | What an entity shows at one instant, read off a flat timeline.                                                                                                                                                                                                                                                                     |
+| [`ResolvedPlay`](#an.characters.play.ResolvedPlay)(animation, tracks)               |                                                                                                                                                                                                                                                                                                                                    |
+| [`SlotTrack`](#an.characters.play.SlotTrack)(track, slot, set_name, frames)      | A resolved `slot:<name>.attachment` track: one set, frames as KEYS.                                                                                                                                                                                                                                                                |
+| [`TurnInference`](#an.characters.play.TurnInference)(index, start, entity, before)   | One `play` of [`TURN_PRESET`](#an.characters.play.TURN_PRESET) and the state it starts from.                                                                                                                                                                                                                           |
+| [`TurnResolution`](#an.characters.play.TurnResolution)(flats, turns, events)          | [`resolve_turns()`](#an.characters.play.resolve_turns)' result: `flats` is the input with each turn's inferred `from_direction` filled in; `turns` says what each turn started from; `events` is the timeline with every preset play expanded, which [`facing_at()`](#an.characters.play.facing_at) reads. |
 
 ### Exceptions
 
@@ -121,6 +127,17 @@ the entity descriptor’s own `animations`…
 
 * **Type:**
   Where a `play` resolves
+
+### *class* an.characters.play.Facing(view=None, direction=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What an entity shows at one instant, read off a flat timeline.
+
+`view` is the key of its view set last set on the ENTITY (`None`: not
+set in this shot, so the rig’s default — `front` on a factory
+character); `direction` is `"right"`/`"left"` from the sign of the
+last `scale_x` it was given (`None`: nothing set it, so its rest).
 
 ### an.characters.play.HEAD_BONE *= 'head'*
 
@@ -168,6 +185,39 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A resolved `slot:<name>.attachment` track: one set, frames as KEYS.
+
+### an.characters.play.TURN_PRESET *= 'turn'*
+
+a
+turn opens from the side the character faces NOW, which only the timeline
+knows.
+
+* **Type:**
+  The preset whose START depends on what came before it on the timeline
+
+### *class* an.characters.play.TurnInference(index, start, entity, before, declared=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One `play` of [`TURN_PRESET`](#an.characters.play.TURN_PRESET) and the state it starts from.
+
+`index` is the play’s position in the flat list it was read from;
+`declared` is the `from_direction` the author passed (`None`: left
+to the timeline).
+
+#### *property* contradicted *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+The author’s `from_direction` disagrees with the timeline — the
+turn would jump to the other side before it squashes.
+
+### *class* an.characters.play.TurnResolution(flats, turns, events)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+[`resolve_turns()`](#an.characters.play.resolve_turns)’ result: `flats` is the input with each turn’s
+inferred `from_direction` filled in; `turns` says what each turn
+started from; `events` is the timeline with every preset play expanded,
+which [`facing_at()`](#an.characters.play.facing_at) reads.
 
 ### an.characters.play.active_skin(desc)
 
@@ -217,6 +267,25 @@ move to that length; `speed` divides it. Assumes
 [(1.0, 'TweenAction', 'y'), (1.25, 'TweenAction', 'y'), (1.5, 'SetAction', 'y')]
 >>> flats[0].action.to_value
 -5.0
+```
+
+### an.characters.play.facing_at(events, entity, t, , view_set='view')
+
+What `entity` shows at time `t`: the latest `view_set` swap set
+on the entity and the sign of the latest `scale_x` it was given, at or
+before `t` (a tween counts from its END, when its value has landed; at
+one instant the one LATER in `events` wins — so pass them in authoring
+order, as [`resolve_turns()`](#an.characters.play.resolve_turns) does).
+
+* **Return type:**
+  [`Facing`](#an.characters.play.Facing)
+
+```pycon
+>>> from an.ir.compose import flatten, sequence
+>>> from an.motion import turn
+>>> flats = flatten(sequence(turn("ned", to="side", direction="left")))
+>>> facing_at(flats, "ned", 0.0), facing_at(flats, "ned", 1.0)
+(Facing(view=None, direction=None), Facing(view='side', direction='left'))
 ```
 
 ### an.characters.play.play_problems(desc, animation, , art_exists=None, args=None, duration=None, speed=1.0, loop=None)
@@ -322,6 +391,35 @@ without a filesystem root).
 
 * **Return type:**
   [`ResolvedPlay`](#an.characters.play.ResolvedPlay)
+
+### an.characters.play.resolve_turns(flat_list, , descriptor_of, rest_of)
+
+Fill in each turn’s `from_direction` from the timeline before it
+(an#203): a `play` of `turn` on an entity that does not pass one
+opens from the side the latest earlier `scale_x` left the entity facing
+— so `side` (`direction: left`) then `back` is two plays, with no
+`from_direction` by hand. Turns are resolved in time order, each seeing
+the ones before it expanded. THE resolver the compiler expands with and
+`an validate` checks with.
+
+An explicit `from_direction` is kept — `turns` records it with the
+inferred state so `an validate` can say when the two disagree. A play
+that cannot resolve is left for [`play_problems()`](#an.characters.play.play_problems) to report.
+
+* **Return type:**
+  [`TurnResolution`](#an.characters.play.TurnResolution)
+
+```pycon
+>>> from an.ir.compose import flatten, sequence
+>>> from an.ir.schema import PlayAction
+>>> flats = flatten(sequence(
+...     PlayAction(target="ned", animation="turn", args={"to": "side", "direction": "left"}),
+...     PlayAction(target="ned", animation="turn", args={"to": "back"})))
+>>> res = resolve_turns(flats, descriptor_of=lambda e: None,
+...                     rest_of=lambda p: {"scale_x": 1.0})
+>>> res.flats[1].action.args["from_direction"], res.turns[1].before
+('left', Facing(view='side', direction='left'))
+```
 
 ### an.characters.play.sampled_deviations(track, duration, fps)
 

@@ -307,9 +307,11 @@ midpoint, and `scale_x` opens again to the rest scale — mirrored when
 `direction="left"`: a `side` view is drawn facing the viewer’s right,
 so `direction` is which way the character FACES after the turn.
 `from_direction` is which way it faced before — by default the sign of
-the rest `scale_x` (a character staged mirrored faces left); the preset
-cannot see an EARLIER turn, so turning back from a left-facing profile is
-`turn(to="front", from_direction="left")`.
+the rest `scale_x` (a character staged mirrored faces left). Called from
+Python the preset cannot see an EARLIER turn, so turning back from a
+left-facing profile is `turn(to="front", from_direction="left")`; PLAYED
+by name (`{kind: play, animation: turn}`) the compiler fills it in from
+the timeline before it ([`an.characters.play.resolve_turns()`](an.characters.play.md#an.characters.play.resolve_turns), an#203).
 
 `to` is a key of the character’s `view` set — `front`, `back`,
 `side` or `three_quarter` on a factory character
