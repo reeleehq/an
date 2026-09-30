@@ -603,6 +603,9 @@ def stage_poses(
             walk(child, child_prefix)
 
     walk(doc.scene, "")
+    if doc.overlay is not None:  # an#155: overlay text is addressable too
+        for child in doc.overlay.children:
+            walk(child, "")
     return found
 
 

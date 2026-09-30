@@ -327,6 +327,11 @@ class CutoutSceneMetaJSON(_JSONModel):
     #: **serialized only when non-empty** — a pre-Wave-6 rig has no pupils and
     #: its compiled document, the bench's scene contract, must not move.
     gaze_seeds: dict[str, int] = Field(default_factory=dict)
+    #: Per text block, the face that set it (an#155): entity id ->
+    #: ``"<family> <style> [(embedded)] sha256:<digest>"`` — identity by the
+    #: font's BYTES, since a family name is not one. Provenance, inert to the
+    #: runtime (the glyphs are already SVG). **Serialized only when non-empty.**
+    fonts: dict[str, str] = Field(default_factory=dict)
 
     @model_serializer(mode="wrap")
     def _omit_unset_step_hz(self, handler):
@@ -342,6 +347,9 @@ class CutoutSceneMetaJSON(_JSONModel):
         # is the counter-example this rule exists because of.
         if isinstance(data, dict) and not data.get("style_pack"):
             data.pop("style_pack", None)
+        # an#155, in the same commit as the field (the an#112 rule).
+        if isinstance(data, dict) and not data.get("fonts"):
+            data.pop("fonts", None)
         return data
 
 
@@ -361,6 +369,26 @@ class CutoutSceneJSON(_JSONModel):
     #: :class:`AssetResolutionJSON`. Inert to the runtime; read by the bench
     #: harness and the golden-corpus bless to assert WHICH render path ran.
     asset_resolution: list[AssetResolutionJSON] = Field(default_factory=list)
+    #: The camera-immune layer (an#155): a second top-level container the
+    #: runtime centres on the canvas and never indexes, so no channel — the
+    #: camera's `root.pivot`/`root.scale` included — can reach it. Its
+    #: children are indexed by their own paths exactly like `scene`'s, so an
+    #: overlay title's words tween like anything else. ``None`` when the shot
+    #: has no overlay, and then omitted from the serialized document.
+    overlay: NodeJSON | None = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_overlay(self, handler):
+        """Serialize ``overlay: null`` out of existence.
+
+        Written with the field (the an#112 rule): the bench's scene contract
+        hashes the whole document, so a defaulted `overlay` on every scene
+        would move every corpus hash for a layer no corpus scene uses.
+        """
+        data = handler(self)
+        if isinstance(data, dict) and data.get("overlay") is None:
+            data.pop("overlay", None)
+        return data
 
 
 # Resolve forward refs for nested NodeJSON.children

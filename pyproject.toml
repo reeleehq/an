@@ -49,6 +49,17 @@ dependencies = [
     "typer",
     "pyyaml",
     "numpy",
+    # Text (an#155, epic #9 Wave 8). `tituli` (MIT, a sibling package) is the
+    # typesetter — shaping, metrics, wrapping, the title-safe area; it brings
+    # Pillow (MIT-CMU), whose embedded Aileron (CC0) is the default face, so no
+    # typeface is vendored here. fontTools (MIT) is what `tituli.run_outline`
+    # needs for glyph contours; it is tituli's `outlines` extra, declared here
+    # BY NAME rather than as `tituli[outlines]` because the licence perimeter
+    # reads requirement names and drops extras — an extra would be a
+    # dependency it never looked at. Needs tituli >= 0.0.7 (`run_outline`,
+    # `EMBEDDED`); unversioned per the local-package convention.
+    "tituli",
+    "fonttools",
 ]
 
 [project.scripts]

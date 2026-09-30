@@ -302,6 +302,17 @@ def screen_position(
     >>> screen_position(scene, "hill", pose={("root", "pivot_x"): 25.0})
     (175.0, 120.0)
     """
+    overlay = getattr(scene, "overlay", None)
+    if overlay is not None and path.split("/", 1)[0] in {
+        c.name for c in overlay.children
+    }:
+        # The overlay (an#155): the runtime centres it like `root` but never
+        # indexes it, so NO pose — the camera's included — reaches its
+        # container. Only the path's own nodes compose.
+        at = point
+        for node, node_path in reversed(_node_chain(overlay, path)[1:]):
+            at = transform_of(node, _pose_for(pose, node_path)).apply(at)
+        return at[0] + scene.meta.width / 2.0, at[1] + scene.meta.height / 2.0
     chain = _node_chain(scene.scene, path)
     at = point
     for node, node_path in reversed(chain[1:]):

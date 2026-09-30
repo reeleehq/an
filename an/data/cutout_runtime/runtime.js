@@ -870,6 +870,33 @@
             }
         }
 
+        // The overlay (an#155): a SECOND top-level container, centred like
+        // `root` but deliberately NOT indexed — no channel can name it, so the
+        // camera (which is `root.pivot` + `root.scale`) cannot reach it, and a
+        // title card holds still through a push-in. Its children ARE indexed,
+        // under their own paths ('title/word_0'), so they animate like
+        // anything else. Added after `root`, so it draws over the scene.
+        if (scene.overlay) {
+            const overlay = new PIXI.Container();
+            overlay.x = width / 2;
+            overlay.y = height / 2;
+            overlay.name = 'overlay';
+            app.stage.addChild(overlay);
+            for (const child of (scene.overlay.children || [])) {
+                // One index for both layers: an overlay entity that shares a
+                // path with the scene (or is called 'root', the camera's node)
+                // would overwrite it. The compiler refuses both; this is the
+                // loud backstop for a hand-written document.
+                if (nodeIndex[child.name]) {
+                    throw new Error(
+                        'anLoadScene: overlay entity ' + JSON.stringify(child.name) +
+                        ' collides with an indexed scene path'
+                    );
+                }
+                buildSceneTree(child, overlay, '');
+            }
+        }
+
         app.render();
         pixiReady = true;
         return true;
