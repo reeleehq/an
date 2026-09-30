@@ -1,4 +1,4 @@
-> built 2026-09-30 01:40 UTC from 8b41908 (main) · an 0.1.95. Details: build_info.json
+> built 2026-09-30 02:01 UTC from 52cd053 (main) · an 0.1.96. Details: build_info.json
 
 # index.html.md
 
@@ -979,9 +979,14 @@ own boundary contract: every failure out of `compile_shot` is one type.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
-### an.adapters.cutout.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None)
+### an.adapters.cutout.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
 
 Compile a single cutout-style `Shot` to its JS-runtime JSON form.
+
+`default_easing` (an#166) is the scene’s `meta.default_easing`: the
+curve of every authored tween that names none (tween > this > the built-in
+`"ease_in_out"`, [`resolved_easing()`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction.resolved_easing)).
+`None` leaves the document byte-identical to before the knob existed.
 
 `expression_provider` (an#98) is the seam that turns authored
 `expression` leaves and dialogue `[emotion]` sugar into per-axis
@@ -1654,9 +1659,14 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
 
-### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None)
+### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
 
 Compile a single cutout-style `Shot` to its JS-runtime JSON form.
+
+`default_easing` (an#166) is the scene’s `meta.default_easing`: the
+curve of every authored tween that names none (tween > this > the built-in
+`"ease_in_out"`, [`resolved_easing()`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction.resolved_easing)).
+`None` leaves the document byte-identical to before the knob existed.
 
 `expression_provider` (an#98) is the seam that turns authored
 `expression` leaves and dialogue `[emotion]` sugar into per-axis
@@ -2953,7 +2963,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).
 
-### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, frame_samples=None, extra=<factory>)
+### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, extra=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -2962,6 +2972,17 @@ Everything a renderer needs that isn’t on the Shot itself.
 `mall` carries the project’s stores so the renderer can resolve assets
 by reference. `work_dir` is a scratch space; the renderer must clean up
 after itself or treat it as ephemeral.
+
+#### default_easing *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
+
+the curve of every
+authored tween that names none. `None` = the built-in
+`"ease_in_out"`, and a compiled document byte-identical to before the
+field existed; set, it changes keyframes, so the contract hash moves
+with it — as it should.
+
+* **Type:**
+  The scene’s `meta.default_easing` (an#166)
 
 #### fps *: [int](https://docs.python.org/3/builtins/functions.html#int) | [float](https://docs.python.org/3/builtins/functions.html#float)*
 
@@ -5138,7 +5159,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'ellipse', 'eye', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'eye', 'ellipse', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -10138,32 +10159,56 @@ helpers rather than restating them, so the two cannot drift:
 >>> resolved = resolve_play(desc, "blink")
 >>> [(t.slot, t.set_name) for t in resolved.tracks]
 [('left_eye', 'eyelid'), ('right_eye', 'eyelid')]
+```
+
+**Motion presets (an#166).** A name the descriptor does not declare — or any
+name on an entity with no descriptor (a procedural rig, a prop) — falls back
+to [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS). The DESCRIPTOR WINS a name both know: a rig that
+ships its own `hop` means that one. [`play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source) makes that call and
+[`play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems) gives the whole verdict, for `an validate` and the
+compiler alike. A preset resolves to tweens, not a clip:
+[`expand_preset_play()`](_autosummary/an.characters.play.html.md#an.characters.play.expand_preset_play) builds them at the moved node’s REST pose, which
+the caller reads off the built scene, so an author never passes `rest`.
+
+```pycon
 >>> play_problems(desc, "walk")
-["the descriptor declares no animation 'walk' (it has: ['blink', 'idle_breath'])"]
+["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no
+  motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
+  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'waddle'])"]
+>>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
+('preset', 'preset', 'descriptor')
 ```
 
 ### Module Attributes
 
-| [`BONE_TRACK_PROPERTIES`](_autosummary/an.characters.play.html.md#an.characters.play.BONE_TRACK_PROPERTIES)   | Descriptor bone-track properties → `(runtime property, unit factor)`.                                                          |
-|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
-| [`RIG_SCALED_PROPERTIES`](_autosummary/an.characters.play.html.md#an.characters.play.RIG_SCALED_PROPERTIES)   | Bone-track properties whose values are view-box LENGTHS, so a renderer scales them by the rig's view-box → scene-pixel factor. |
-| [`ROOT_BONE`](_autosummary/an.characters.play.html.md#an.characters.play.ROOT_BONE)               | a track on it animates the entity's container node rather than any slot.                                                       |
-| [`HEAD_BONE`](_autosummary/an.characters.play.html.md#an.characters.play.HEAD_BONE)               | The bone whose primary slot's nested slots are the FACE — what `face_overlay=false` suppresses.                                |
+| [`BONE_TRACK_PROPERTIES`](_autosummary/an.characters.play.html.md#an.characters.play.BONE_TRACK_PROPERTIES)   | Descriptor bone-track properties → `(runtime property, unit factor)`.                                                               |
+|--------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| [`RIG_SCALED_PROPERTIES`](_autosummary/an.characters.play.html.md#an.characters.play.RIG_SCALED_PROPERTIES)   | Bone-track properties whose values are view-box LENGTHS, so a renderer scales them by the rig's view-box → scene-pixel factor.      |
+| [`ROOT_BONE`](_autosummary/an.characters.play.html.md#an.characters.play.ROOT_BONE)               | a track on it animates the entity's container node rather than any slot.                                                            |
+| [`HEAD_BONE`](_autosummary/an.characters.play.html.md#an.characters.play.HEAD_BONE)               | The bone whose primary slot's nested slots are the FACE — what `face_overlay=false` suppresses.                                     |
+| [`DESCRIPTOR_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.DESCRIPTOR_SOURCE)       | the entity descriptor's own `animations`…                                                                                           |
+| [`PRESET_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.PRESET_SOURCE)           | …or, for a name it does not declare, [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) (an#166). |
+| [`RESERVED_PRESET_ARGS`](_autosummary/an.characters.play.html.md#an.characters.play.RESERVED_PRESET_ARGS)    | the target is the play's own, and the rest pose is read off the built scene.                                                        |
 
 ### Functions
 
-| [`active_skin`](_autosummary/an.characters.play.html.md#an.characters.play.active_skin)(desc)                                | The skin the rig draws: `default`, else the first declared, else empty.                                                                                                                                                                                                                    |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`art_exists_for`](_autosummary/an.characters.play.html.md#an.characters.play.art_exists_for)(characters_store, ref)            | `rel_path -> is the art on disk`, for a character in a filesystem store; `None` when the store has no root to look under (a dict, a fake) — a store that can answer nothing must assume presence, not absence, exactly as the rig builder's part probe does.                               |
-| [`drawn_attachment`](_autosummary/an.characters.play.html.md#an.characters.play.drawn_attachment)(desc, skin, slot)               | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                                                                               |
-| [`play_problems`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems)(desc, animation, \*[, art_exists]) | Every reason `play(<entity>, animation)` cannot resolve — empty when it can.                                                                                                                                                                                                               |
-| [`primary_slot_per_bone`](_autosummary/an.characters.play.html.md#an.characters.play.primary_slot_per_bone)(desc)                      | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                                                                                |
-| [`resolve_play`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_play)(desc, animation, \*[, art_exists])  | Resolve `animation` of `desc` into renderer-ready tracks, or raise [`PlayResolutionError`](_autosummary/an.characters.play.html.md#an.characters.play.PlayResolutionError) listing every problem found.                                                                                                                       |
-| [`sampled_deviations`](_autosummary/an.characters.play.html.md#an.characters.play.sampled_deviations)(track, duration, fps)         | `(time, deviation)` pairs for a sine bone track at the frame rate — [`an.characters.idle.evaluate_track()`](_autosummary/an.characters.idle.html.md#an.characters.idle.evaluate_track)'s formula, sampled, so the descriptor's own evaluator stays the one definition of a sine track. |
-| [`sine_sample_times`](_autosummary/an.characters.play.html.md#an.characters.play.sine_sample_times)(duration, fps)                 | Frame-rate sample times for a sine track, ALWAYS ending at `duration`.                                                                                                                                                                                                                     |
-| [`slot_node_path`](_autosummary/an.characters.play.html.md#an.characters.play.slot_node_path)(desc, slot_name)                  | The node path of a slot RELATIVE to its entity (`head/left_eye`, `torso`) — the rig builder's nesting rule, stated once.                                                                                                                                                                   |
-| [`slot_parent`](_autosummary/an.characters.play.html.md#an.characters.play.slot_parent)(desc, slot)                          | The slot `slot` nests under, or `None` when it is a direct child.                                                                                                                                                                                                                          |
-| [`suppressed_slots`](_autosummary/an.characters.play.html.md#an.characters.play.suppressed_slots)(desc)                           | Slots the rig builder never builds: with the face baked into the head art (`face_overlay=false`), every slot nested under the HEAD BONE's primary slot — keyed on the bone, not on a slot named "head".                                                                                    |
+| [`active_skin`](_autosummary/an.characters.play.html.md#an.characters.play.active_skin)(desc)                               | The skin the rig draws: `default`, else the first declared, else empty.                                                                                                                                                                                                                         |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`art_exists_for`](_autosummary/an.characters.play.html.md#an.characters.play.art_exists_for)(characters_store, ref)           | `rel_path -> is the art on disk`, for a character in a filesystem store; `None` when the store has no root to look under (a dict, a fake) — a store that can answer nothing must assume presence, not absence, exactly as the rig builder's part probe does.                                    |
+| [`drawn_attachment`](_autosummary/an.characters.play.html.md#an.characters.play.drawn_attachment)(desc, skin, slot)              | The `(name, attachment)` a slot draws by default, or `None`.                                                                                                                                                                                                                                    |
+| [`expand_preset_play`](_autosummary/an.characters.play.html.md#an.characters.play.expand_preset_play)(action, \*, start, rest_of)  | A preset `play` as the flat tweens and settling `set``s it stands for, at absolute times from ``start` (an#166).                                                                                                                                                                                |
+| [`play_problems`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems)(desc, animation, \*[, ...])       | Every reason `play(<entity>, animation, ...)` cannot resolve — empty when it can.                                                                                                                                                                                                               |
+| [`play_source`](_autosummary/an.characters.play.html.md#an.characters.play.play_source)(desc, animation)                    | Which library a `play` of `animation` resolves in — [`DESCRIPTOR_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.DESCRIPTOR_SOURCE) when `desc` declares it (the descriptor WINS a name a preset also has), else [`PRESET_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.PRESET_SOURCE) when a motion preset has it. |
+| [`preset_moved_node`](_autosummary/an.characters.play.html.md#an.characters.play.preset_moved_node)(action_target, animation)     | The ONE node path a preset play moves — `<target>/head` for a `nod`, the target itself for the rest.                                                                                                                                                                                            |
+| [`preset_play_span`](_autosummary/an.characters.play.html.md#an.characters.play.preset_play_span)(action)                        | How long a preset `play` runs, in seconds: its `duration` when set, else the preset's natural length divided by `speed`.                                                                                                                                                                        |
+| [`preset_problems`](_autosummary/an.characters.play.html.md#an.characters.play.preset_problems)(animation, \*[, args, ...])     | Why a `play` of the motion preset `animation` cannot expand.                                                                                                                                                                                                                                    |
+| [`primary_slot_per_bone`](_autosummary/an.characters.play.html.md#an.characters.play.primary_slot_per_bone)(desc)                     | `{bone name: the slot that IS that bone}`, when one exists.                                                                                                                                                                                                                                     |
+| [`resolve_play`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_play)(desc, animation, \*[, art_exists]) | Resolve `animation` of `desc` into renderer-ready tracks, or raise [`PlayResolutionError`](_autosummary/an.characters.play.html.md#an.characters.play.PlayResolutionError) listing every problem found.                                                                                                                            |
+| [`sampled_deviations`](_autosummary/an.characters.play.html.md#an.characters.play.sampled_deviations)(track, duration, fps)        | `(time, deviation)` pairs for a sine bone track at the frame rate — [`an.characters.idle.evaluate_track()`](_autosummary/an.characters.idle.html.md#an.characters.idle.evaluate_track)'s formula, sampled, so the descriptor's own evaluator stays the one definition of a sine track.      |
+| [`sine_sample_times`](_autosummary/an.characters.play.html.md#an.characters.play.sine_sample_times)(duration, fps)                | Frame-rate sample times for a sine track, ALWAYS ending at `duration`.                                                                                                                                                                                                                          |
+| [`slot_node_path`](_autosummary/an.characters.play.html.md#an.characters.play.slot_node_path)(desc, slot_name)                 | The node path of a slot RELATIVE to its entity (`head/left_eye`, `torso`) — the rig builder's nesting rule, stated once.                                                                                                                                                                        |
+| [`slot_parent`](_autosummary/an.characters.play.html.md#an.characters.play.slot_parent)(desc, slot)                         | The slot `slot` nests under, or `None` when it is a direct child.                                                                                                                                                                                                                               |
+| [`suppressed_slots`](_autosummary/an.characters.play.html.md#an.characters.play.suppressed_slots)(desc)                          | Slots the rig builder never builds: with the face baked into the head art (`face_overlay=false`), every slot nested under the HEAD BONE's primary slot — keyed on the bone, not on a slot named "head".                                                                                         |
 
 ### Classes
 
@@ -10193,16 +10238,35 @@ the entity container (`bone:root`). `property` is the RUNTIME name;
 values are `rest + deviation * unit` (times the rig’s pixel factor when
 `rig_scaled`).
 
+### an.characters.play.DESCRIPTOR_SOURCE *= 'descriptor'*
+
+the entity descriptor’s own `animations`…
+
+* **Type:**
+  Where a `play` resolves
+
 ### an.characters.play.HEAD_BONE *= 'head'*
 
 The bone whose primary slot’s nested slots are the FACE — what
 `face_overlay=false` suppresses.
+
+### an.characters.play.PRESET_SOURCE *= 'preset'*
+
+…or, for a name it does not declare, [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) (an#166).
 
 ### *exception* an.characters.play.PlayResolutionError(animation, problems)
 
 Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
 
 A `play` that cannot resolve; `problems` lists every reason found.
+
+### an.characters.play.RESERVED_PRESET_ARGS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'rest', 'target'})*
+
+the target is
+the play’s own, and the rest pose is read off the built scene.
+
+* **Type:**
+  Preset parameters an author may NOT pass through `args`
 
 ### an.characters.play.RIG_SCALED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'x', 'y'})*
 
@@ -10252,10 +10316,101 @@ The `(name, attachment)` a slot draws by default, or `None`.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Attachment`](_autosummary/an.characters.schema.html.md#an.characters.schema.Attachment)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
-### an.characters.play.play_problems(desc, animation, , art_exists=None)
+### an.characters.play.expand_preset_play(action, , start, rest_of)
 
-Every reason `play(<entity>, animation)` cannot resolve — empty when
-it can. The validate-facing spelling of [`resolve_play()`](_autosummary/an.characters.play.html.md#an.characters.play.resolve_play).
+A preset `play` as the flat tweens and settling `set``s it stands
+for, at absolute times from ``start` (an#166).
+
+`rest_of(node_path)` returns that node’s built rest pose (`x`, `y`,
+`rotation`, `scale_x`, `scale_y`, `alpha`), or `None` when the
+built scene carries no such node — then this raises naming it, which is
+what the runtime would otherwise do mid-render. `duration` stretches the
+move to that length; `speed` divides it. Assumes
+[`preset_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.preset_problems) came back empty.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
+
+```pycon
+>>> from an.ir.schema import PlayAction
+>>> flats = expand_preset_play(
+...     PlayAction(target="a", animation="hop", args={"height": 10}),
+...     start=1.0, rest_of=lambda p: {"y": 5.0})
+>>> [(round(f.start, 3), type(f.action).__name__, f.action.property) for f in flats]
+[(1.0, 'TweenAction', 'y'), (1.25, 'TweenAction', 'y'), (1.5, 'SetAction', 'y')]
+>>> flats[0].action.to_value
+-5.0
+```
+
+### an.characters.play.play_problems(desc, animation, , art_exists=None, args=None, duration=None, speed=1.0, loop=None)
+
+Every reason `play(<entity>, animation, ...)` cannot resolve — empty
+when it can. THE verdict `an validate` reports and the compiler raises
+on, for both sources (an#7, an#166).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> play_problems(None, "hop", args={"heigth": 3})
+["motion preset 'hop' has no parameter 'heigth' (it takes: [...])"]
+>>> play_problems(None, "hop", loop=True)
+["motion preset 'hop' is a one-shot: `loop: true` ...
+```
+
+### an.characters.play.play_source(desc, animation)
+
+Which library a `play` of `animation` resolves in —
+[`DESCRIPTOR_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.DESCRIPTOR_SOURCE) when `desc` declares it (the descriptor WINS a
+name a preset also has), else [`PRESET_SOURCE`](_autosummary/an.characters.play.html.md#an.characters.play.PRESET_SOURCE) when a motion preset
+has it. `desc=None` is an entity with no descriptor: presets only.
+
+Raises [`PlayResolutionError`](_autosummary/an.characters.play.html.md#an.characters.play.PlayResolutionError) naming BOTH vocabularies when neither
+has the name.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.characters.play.preset_moved_node(action_target, animation, args=None)
+
+The ONE node path a preset play moves — `<target>/head` for a `nod`,
+the target itself for the rest. Read off the expansion rather than
+restated per preset, so a preset added later needs no entry here.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> preset_moved_node("charlie", "nod"), preset_moved_node("charlie", "hop")
+('charlie/head', 'charlie')
+```
+
+### an.characters.play.preset_play_span(action)
+
+How long a preset `play` runs, in seconds: its `duration` when set,
+else the preset’s natural length divided by `speed`. A play with no
+`duration` is still ZERO-width inside a `sequence` (the rule every
+`play` follows, because `flatten` cannot know which source wins); this
+is the span it actually animates.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> from an.ir.schema import PlayAction
+>>> preset_play_span(PlayAction(target="a", animation="hop"))
+0.5
+>>> preset_play_span(PlayAction(target="a", animation="hop", speed=2.0))
+0.25
+```
+
+### an.characters.play.preset_problems(animation, , args=None, duration=None, speed=1.0, loop=None)
+
+Why a `play` of the motion preset `animation` cannot expand.
+
+The parameters are checked by NAME against the preset’s signature, then by
+building it (at the identity pose), so a value the preset itself refuses —
+`cycles: 0`, a string height — is reported in the preset’s own words.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
@@ -12926,6 +13081,19 @@ Bases: `_IRModel`
 
 Scene metadata.
 
+#### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The easing every authored `tween` that names none is drawn with
+(an#166) — `"linear"` for a snappy South Park cadence, an overshooting
+cubic-Bezier for a bouncy one. Precedence is \*\*tween > this > the
+built-in `"ease_in_out"``** (:meth:`TweenAction.resolved_easing`).
+``None` — the default and what every existing document has — changes
+nothing, and is omitted from JSON like `style_pack`, so no committed
+scene and no compiled document moves. It reaches authored tweens ONLY:
+a motion preset writes its own easings, the camera’s named moves supply
+theirs, and blinks, `play` clips and swap channels have none to
+inherit. There is no per-shot override yet — style is a scene’s.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -13147,7 +13315,7 @@ Run all children at once. Total duration = max of child durations.
 * **Return type:**
   [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
 
-### an.play(target, animation, , duration=None, speed=1.0, loop=None)
+### an.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
 
 Play a named animation of the target entity’s descriptor (an#7).
 
@@ -13163,6 +13331,14 @@ so a sibling placed after it starts at the same instant:
 [0.0, 1.0]
 >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
 [0.0, 2.0]
+```
+
+A name the descriptor does not declare falls back to a motion preset of
+[`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
+
+```pycon
+>>> play("charlie", "hop", args={"height": 30}).args
+{'height': 30}
 ```
 
 ### an.save(project)
@@ -13186,12 +13362,22 @@ Discrete property set at time `at` (relative to its enclosing scope).
 * **Return type:**
   [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)
 
-### an.tween(target, property, to, duration, , from_=None, easing='ease_in_out')
+### an.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
 Animate a property from `from_` (or its current value) to `to`.
 
+`easing` left out inherits the scene’s `meta.default_easing` (else
+`"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
+
 * **Return type:**
   [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
+
+```pycon
+>>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
+False
+>>> tween("a", "x", to=1.0, duration=1.0, easing="linear").easing
+'linear'
+```
 
 ### an.validate_schema(doc)
 
@@ -14813,6 +14999,11 @@ what tooling reasons about.
 [(0.0, 2.0), (0.0, 3.0)]
 ```
 
+### Module Attributes
+
+| [`INHERIT`](_autosummary/an.ir.compose.html.md#an.ir.compose.INHERIT)   | `tween(..., easing=INHERIT)` — the default — leaves the easing UNSET, so the scene's `meta.default_easing` applies, else `"ease_in_out"` (an#166).   |
+|------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
 | [`delay`](_autosummary/an.ir.compose.html.md#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                     |
@@ -14841,6 +15032,12 @@ A leaf action with its absolute start and end times.
 The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
+
+### an.ir.compose.INHERIT *= INHERIT*
+
+`tween(..., easing=INHERIT)` — the default — leaves the easing UNSET, so
+the scene’s `meta.default_easing` applies, else `"ease_in_out"` (an#166).
+A sentinel rather than `None` because `None` already means linear.
 
 ### an.ir.compose.delay(duration)
 
@@ -14911,7 +15108,7 @@ Run all children at once. Total duration = max of child durations.
 * **Return type:**
   [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
 
-### an.ir.compose.play(target, animation, , duration=None, speed=1.0, loop=None)
+### an.ir.compose.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
 
 Play a named animation of the target entity’s descriptor (an#7).
 
@@ -14929,6 +15126,14 @@ so a sibling placed after it starts at the same instant:
 [0.0, 2.0]
 ```
 
+A name the descriptor does not declare falls back to a motion preset of
+[`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
+
+```pycon
+>>> play("charlie", "hop", args={"height": 30}).args
+{'height': 30}
+```
+
 ### an.ir.compose.sequence(\*actions)
 
 Run children one after the other. Total duration = sum of child durations.
@@ -14943,12 +15148,22 @@ Discrete property set at time `at` (relative to its enclosing scope).
 * **Return type:**
   [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)
 
-### an.ir.compose.tween(target, property, to, duration, , from_=None, easing='ease_in_out')
+### an.ir.compose.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
 Animate a property from `from_` (or its current value) to `to`.
 
+`easing` left out inherits the scene’s `meta.default_easing` (else
+`"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
+
 * **Return type:**
   [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
+
+```pycon
+>>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
+False
+>>> tween("a", "x", to=1.0, duration=1.0, easing="linear").easing
+'linear'
+```
 
 
 # _autosummary/an.ir.html.md
@@ -15136,6 +15351,19 @@ appear in the flat form — they’re collapsed into time offsets.
 Bases: `_IRModel`
 
 Scene metadata.
+
+#### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The easing every authored `tween` that names none is drawn with
+(an#166) — `"linear"` for a snappy South Park cadence, an overshooting
+cubic-Bezier for a bouncy one. Precedence is \*\*tween > this > the
+built-in `"ease_in_out"``** (:meth:`TweenAction.resolved_easing`).
+``None` — the default and what every existing document has — changes
+nothing, and is omitted from JSON like `style_pack`, so no committed
+scene and no compiled document moves. It reaches authored tweens ONLY:
+a motion preset writes its own easings, the camera’s named moves supply
+theirs, and blinks, `play` clips and swap channels have none to
+inherit. There is no per-shot override yet — style is a scene’s.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
@@ -15375,7 +15603,7 @@ Run all children at once. Total duration = max of child durations.
 * **Return type:**
   [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
 
-### an.ir.play(target, animation, , duration=None, speed=1.0, loop=None)
+### an.ir.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
 
 Play a named animation of the target entity’s descriptor (an#7).
 
@@ -15391,6 +15619,14 @@ so a sibling placed after it starts at the same instant:
 [0.0, 1.0]
 >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
 [0.0, 2.0]
+```
+
+A name the descriptor does not declare falls back to a motion preset of
+[`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
+
+```pycon
+>>> play("charlie", "hop", args={"height": 30}).args
+{'height': 30}
 ```
 
 ### an.ir.register_kind(kind)
@@ -15447,12 +15683,22 @@ user is told never to do — but we warn instead of silently overwriting).
 * **Return type:**
   `SyncResult`
 
-### an.ir.tween(target, property, to, duration, , from_=None, easing='ease_in_out')
+### an.ir.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
 Animate a property from `from_` (or its current value) to `to`.
 
+`easing` left out inherits the scene’s `meta.default_easing` (else
+`"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
+
 * **Return type:**
   [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction)
+
+```pycon
+>>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
+False
+>>> tween("a", "x", to=1.0, duration=1.0, easing="linear").easing
+'linear'
+```
 
 ### an.ir.validate_schema(doc)
 
@@ -15775,6 +16021,19 @@ Bases: `_IRModel`
 
 Scene metadata.
 
+#### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The easing every authored `tween` that names none is drawn with
+(an#166) — `"linear"` for a snappy South Park cadence, an overshooting
+cubic-Bezier for a bouncy one. Precedence is \*\*tween > this > the
+built-in `"ease_in_out"``** (:meth:`TweenAction.resolved_easing`).
+``None` — the default and what every existing document has — changes
+nothing, and is omitted from JSON like `style_pack`, so no committed
+scene and no compiled document moves. It reaches authored tweens ONLY:
+a motion preset writes its own easings, the camera’s named moves supply
+theirs, and blinks, `play` clips and swap channels have none to
+inherit. There is no per-shot override yet — style is a scene’s.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -15838,7 +16097,16 @@ Play a named animation of the target entity’s descriptor (an#7).
 
 `animation` names an entry of `CharacterDescriptor.animations` (the
 seeded `idle_breath` and `blink`, or anything an author adds); the
-compiler resolves its tracks into channels on the entity’s nodes.
+compiler resolves its tracks into channels on the entity’s nodes. A name
+the descriptor does NOT declare — or any name on an entity with no
+descriptor (a procedural rig, a prop) — falls back to the motion presets
+of [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) (`hop`, `nod`, …), which expand to
+ordinary tweens at the target’s built rest pose; a descriptor animation of
+the same name wins (an#166). Both halves are decided by
+[`an.characters.play.play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems), the one resolver `an validate`
+and the compiler share. For a preset, `args` are its parameters,
+`duration` stretches the whole move to that length, `speed` divides
+it, and `loop: true` is refused (a preset is a one-shot).
 `duration` widens/narrows the placement window; `None` means the
 animation’s own duration — or, when the resolved `loop` is true, the
 rest of the shot, because a loop bounded by its own natural duration
@@ -15846,6 +16114,14 @@ never loops. `loop` overrides the animation’s declared `loop`
 (`None` = use the descriptor’s). Inside a `sequence` a play with
 `duration=None` has ZERO width ([`an.ir.compose.duration_of()`](_autosummary/an.ir.compose.html.md#an.ir.compose.duration_of)):
 the next sibling starts at the same instant.
+
+#### args *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Parameters of a MOTION PRESET (an#166) — `{"height": 30}` for a
+`hop` — passed to its [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS) function as keyword
+arguments. `None` (the default, omitted from JSON) means the preset’s
+own defaults. A descriptor animation takes none, and one given to it is
+refused; `rest` is never one — it is read off the built scene.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
@@ -15998,9 +16274,66 @@ Bases: `_ActionBase`
 
 Animate a property from a start value to an end value over a duration.
 
+#### easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a
+tween that does not name an easing takes the scene’s
+[`Meta.default_easing`](_autosummary/an.ir.schema.html.md#an.ir.schema.Meta.default_easing), and only when that is unset too the
+built-in `"ease_in_out"` this default spells. “Unset” is
+`"easing" not in model_fields_set` — the default stays the literal so
+every reader of `.easing` still sees the curve a scene without a
+default draws — and the serializer below omits an unset easing, so the
+distinction survives `scene.json`. `None` is an explicit LINEAR
+ramp (the evaluators’ reading of a null easing), not “unset”.
+
+* **Type:**
+  The curve. \*\*Unset is not the same as 
+
+  ```
+  ``
+  ```
+
+  ”ease_in_out”
+
+  ```
+  ``
+  ```
+
+  \*\* (an#166)
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### resolved_easing(default=None)
+
+The easing this tween draws with under a scene default of
+`default` — the ONE statement of the precedence \*\*tween > scene
+(`Meta.default_easing`) > built-in 
+
+```
+``
+```
+
+”ease_in_out”
+
+```
+``
+```
+
+\*\* (an#166).
+
+```pycon
+>>> TweenAction(target="a", property="x", to_value=1).resolved_easing("linear")
+'linear'
+>>> TweenAction(target="a", property="x", to_value=1, easing="ease_in_out").resolved_easing("linear")
+'ease_in_out'
+>>> TweenAction(target="a", property="x", to_value=1).resolved_easing(None)
+'ease_in_out'
+```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### *class* an.ir.schema.VisemeKeyframe(\*\*data)
 
@@ -16370,10 +16703,13 @@ Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 `pop_in`, `hop`, `shake`, `nod`, `point`, `slide_in`, `slide_out`,
 `squash_stretch` and `waddle` each EXPAND to ordinary `tween` actions on
 transform properties, composed with [`sequence()`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence) and
-[`parallel()`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel). Nothing downstream learns a preset exists: the
-flat timeline, `an validate`, the verifiers and the renderer see the same
-tweens an author could have written by hand, so no IR field, no runtime
-change, and no compiled document that does not use a preset moves by a byte.
+[`parallel()`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel). Called from Python, nothing downstream
+learns a preset exists: the flat timeline, `an validate`, the verifiers and
+the renderer see the same tweens an author could have written by hand. Played
+by NAME from `scene.md` (an#166, below), the compiler expands the `play`
+into those same tweens before anything else looks; `PlayAction.args` is the
+one IR field that added. No runtime change either way, and no compiled
+document that does not use a preset moves by a byte.
 
 ```pycon
 >>> from an.ir.compose import flatten, sequence
@@ -16412,33 +16748,39 @@ placement — but an entity’s `x` is laid out across the shot (`-110` and
 wants `rest=rest_pose(shot, "charlie")`, which reads the value off the
 compiler’s own scene builder rather than restating its layout.
 
-**scene.md.** A preset is a composition tree, and `scene.md` round-trips
-only leaves with a `start`. [`as_leaves()`](_autosummary/an.motion.html.md#an.motion.as_leaves) converts a preset into exactly
-those, for a scene that must survive a `scene.md` edit; a `play` of a
-preset NAME from `scene.md` is not wired (the `play` resolver reads a
-character descriptor’s own animations only).
+**scene.md: play a preset by name** (an#166). `{kind: play, target:
+charlie, animation: hop, args: {height: 30}, start: 1.0}` expands to exactly
+this module’s tweens at compile, with the rest pose read off the built scene —
+no `rest=` — and `args` as the preset’s keyword arguments. A character
+descriptor animation of the same name WINS; `an validate` and the compiler
+decide both through [`an.characters.play.play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems). `duration`
+stretches the move and `speed` divides it; `loop` is refused. Like every
+`play` without a `duration`, it is zero-width inside a `sequence`.
+[`as_leaves()`](_autosummary/an.motion.html.md#an.motion.as_leaves) remains for a preset composed in Python and written into
+`scene.md` as plain tweens (a composition tree does not round-trip).
 
 ### Module Attributes
 
-| [`OVERSHOOT`](_autosummary/an.motion.html.md#an.motion.OVERSHOOT)     | A cubic-Bézier that overshoots its target by about 10% and settles back (CSS "easeOutBack").   |
-|----------------------------------------------------------------|------------------------------------------------------------------------------------------------|
-| [`IDENTITY_POSE`](_autosummary/an.motion.html.md#an.motion.IDENTITY_POSE) | `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.                                       |
-| [`PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS)       | Every preset by name — the one list the skill, the demo and a future `play` fallback read.     |
+| [`OVERSHOOT`](_autosummary/an.motion.html.md#an.motion.OVERSHOOT)     | A cubic-Bézier that overshoots its target by about 10% and settles back (CSS "easeOutBack").                                                                                                                     |
+|----------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`IDENTITY_POSE`](_autosummary/an.motion.html.md#an.motion.IDENTITY_POSE) | `x = y = rotation = 0`, `scale_x = scale_y = alpha = 1`.                                                                                                                                                         |
+| [`PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS)       | Every preset by name — the one list the skill, the demo and the `play` fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source), an#166) read. |
 
 ### Functions
 
-| [`as_leaves`](_autosummary/an.motion.html.md#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.             |
-|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| [`hop`](_autosummary/an.motion.html.md#an.motion.hop)(target, \*[, height, duration, rest])        | Jump up by `height` scene pixels and land back where it started.         |
-| [`nod`](_autosummary/an.motion.html.md#an.motion.nod)(target, \*[, part, angle, duration, ...])    | Dip the head `count` times (a rotation of `<target>/<part>`).            |
-| [`point`](_autosummary/an.motion.html.md#an.motion.point)(target, \*[, angle, raise_duration, ...])  | Swing an arm out to point, hold it, and lower it again.                  |
-| [`pop_in`](_autosummary/an.motion.html.md#an.motion.pop_in)(target, \*[, duration, easing, rest])     | Grow from nothing to full size, overshooting and settling (an entrance). |
-| [`rest_pose`](_autosummary/an.motion.html.md#an.motion.rest_pose)(shot, target, \*[, mall])              | The rest values of `target`'s node as the compiler builds `shot`.        |
-| [`shake`](_autosummary/an.motion.html.md#an.motion.shake)(target, \*[, amplitude, duration, ...])    | Tremble side to side `cycles` times and come back to rest (on `x`).      |
-| [`slide_in`](_autosummary/an.motion.html.md#an.motion.slide_in)(target, \*[, from_side, distance, ...]) | Whip in from `distance` pixels off to one side, overshoot, and settle.   |
-| [`slide_out`](_autosummary/an.motion.html.md#an.motion.slide_out)(target, \*[, to_side, distance, ...])  | Exit `distance` pixels off to one side, accelerating (an exit).          |
-| [`squash_stretch`](_autosummary/an.motion.html.md#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.         |
-| [`waddle`](_autosummary/an.motion.html.md#an.motion.waddle)(target, \*[, steps, step_duration, ...])  | A walk cycle for a rig with no legs to animate: rock and bob per step.   |
+| [`as_leaves`](_autosummary/an.motion.html.md#an.motion.as_leaves)(action, \*[, start])                   | `action` as top-level leaves that `scene.md` can round-trip.                                                                                                                                                                                  |
+|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`hop`](_autosummary/an.motion.html.md#an.motion.hop)(target, \*[, height, duration, rest])        | Jump up by `height` scene pixels and land back where it started.                                                                                                                                                                              |
+| [`nod`](_autosummary/an.motion.html.md#an.motion.nod)(target, \*[, part, angle, duration, ...])    | Dip the head `count` times (a rotation of `<target>/<part>`).                                                                                                                                                                                 |
+| [`point`](_autosummary/an.motion.html.md#an.motion.point)(target, \*[, angle, raise_duration, ...])  | Swing an arm out to point, hold it, and lower it again.                                                                                                                                                                                       |
+| [`pop_in`](_autosummary/an.motion.html.md#an.motion.pop_in)(target, \*[, duration, easing, rest])     | Grow from nothing to full size, overshooting and settling (an entrance).                                                                                                                                                                      |
+| [`rest_pose`](_autosummary/an.motion.html.md#an.motion.rest_pose)(shot, target, \*[, mall])              | The rest values of `target`'s node as the compiler builds `shot`.                                                                                                                                                                             |
+| [`shake`](_autosummary/an.motion.html.md#an.motion.shake)(target, \*[, amplitude, duration, ...])    | Tremble side to side `cycles` times and come back to rest (on `x`).                                                                                                                                                                           |
+| [`stage_poses`](_autosummary/an.motion.html.md#an.motion.stage_poses)(shot, \*[, mall])                    | `{node path: rest pose}` for every node the compiler builds for `shot`'s stage — what [`rest_pose()`](_autosummary/an.motion.html.md#an.motion.rest_pose) reads one entry of, and what `an validate` checks a preset `play`'s node against (an#166). |
+| [`slide_in`](_autosummary/an.motion.html.md#an.motion.slide_in)(target, \*[, from_side, distance, ...]) | Whip in from `distance` pixels off to one side, overshoot, and settle.                                                                                                                                                                        |
+| [`slide_out`](_autosummary/an.motion.html.md#an.motion.slide_out)(target, \*[, to_side, distance, ...])  | Exit `distance` pixels off to one side, accelerating (an exit).                                                                                                                                                                               |
+| [`squash_stretch`](_autosummary/an.motion.html.md#an.motion.squash_stretch)(target, \*[, amount, ...])        | Squash (wide and short), stretch (narrow and tall), then settle.                                                                                                                                                                              |
+| [`waddle`](_autosummary/an.motion.html.md#an.motion.waddle)(target, \*[, steps, step_duration, ...])  | A walk cycle for a rig with no legs to animate: rock and bob per step.                                                                                                                                                                        |
 
 ### an.motion.IDENTITY_POSE *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= {'alpha': 1.0, 'rotation': 0.0, 'scale_x': 1.0, 'scale_y': 1.0, 'x': 0.0, 'y': 0.0}*
 
@@ -16452,8 +16794,8 @@ Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
 ### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'waddle': <function waddle>}*
 
-Every preset by name — the one list the skill, the demo and a future
-`play` fallback read.
+Every preset by name — the one list the skill, the demo and the `play`
+fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source), an#166) read.
 
 ### an.motion.as_leaves(action, , start=0.0)
 
@@ -16613,6 +16955,23 @@ centre). Volume is roughly kept: one axis grows by what the other loses.
 >>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
 ...   if f.action.property == p] for p in ("scale_x", "scale_y")]
 [[1.2, 0.9, 1.0], [0.8, 1.1, 1.0]]
+```
+
+### an.motion.stage_poses(shot, , mall=None)
+
+`{node path: rest pose}` for every node the compiler builds for
+`shot`’s stage — what [`rest_pose()`](_autosummary/an.motion.html.md#an.motion.rest_pose) reads one entry of, and what
+`an validate` checks a preset `play`’s node against (an#166).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+```pycon
+>>> from an.ir.schema import AssetRef
+>>> one = Shot(id="s", entities=[AssetRef(kind="character", id="c", store="characters", ref="c")])
+>>> poses = stage_poses(one)
+>>> "c/right_arm" in poses, poses["c/head"]["y"]
+(True, -55.0)
 ```
 
 ### an.motion.waddle(target, , steps=4, step_duration=0.3, angle=0.1, lift=6.0, travel=0.0, rest=None)
@@ -18873,7 +19232,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 01:40 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/8b41908cb029ddfc67a1a4b0095c8f611bde3b82"><code>8b41908</code></a> on branch <code>main</code>, for **an 0.1.95** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 02:01 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/52cd0531e8322d01305c8275ef3bb3390ba3238e"><code>52cd053</code></a> on branch <code>main</code>, for **an 0.1.96** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -18882,9 +19241,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/8b41908cb029ddfc67a1a4b0095c8f611bde3b82"><code>8b41908cb029ddfc67a1a4b0095c8f611bde3b82</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/52cd0531e8322d01305c8275ef3bb3390ba3238e"><code>52cd0531e8322d01305c8275ef3bb3390ba3238e</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.95</code>                                                                                                                                  |
+| Tags at this commit | <code>0.1.96</code>                                                                                                                                  |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -18893,9 +19252,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36655946941">36655946941</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36657612398">36657612398</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>d322fea723dadb31282d195d36c3a4764eef4ea2</code> (in the history of the built commit) |
+| Event commit | <code>378a6744aae8bb1654381ff1b7b3fac1f7b02602</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -18920,13 +19279,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.95/">0.1.95</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.96/">0.1.96</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 8b41908cb029ddfc67a1a4b0095c8f611bde3b82
+git checkout 52cd0531e8322d01305c8275ef3bb3390ba3238e
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

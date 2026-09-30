@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=726fce2c"></script>
+    <script src="../../../_static/documentation_options.js?v=45974446"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.95" />
+  <meta name="docsearch:version" content="0.1.96" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -770,6 +770,19 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">_Inherit</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The type of :data:`INHERIT`."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"INHERIT"</span>
+
+
+<span class="c1">#: ``tween(..., easing=INHERIT)`` — the default — leaves the easing UNSET, so</span>
+<span class="c1">#: the scene's ``meta.default_easing`` applies, else ``"ease_in_out"`` (an#166).</span>
+<span class="c1">#: A sentinel rather than ``None`` because ``None`` already means linear.</span>
+<span class="n">INHERIT</span> <span class="o">=</span> <span class="n">_Inherit</span><span class="p">()</span>
+
+
 <div class="viewcode-block" id="tween">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.compose.html#an.tween">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">tween</span><span class="p">(</span>
@@ -779,16 +792,26 @@ window.runMermaid = runMermaid;</script>
     <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">from_</span><span class="p">:</span> <span class="n">Any</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">easing</span><span class="p">:</span> <span class="n">EasingSpec</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">"ease_in_out"</span><span class="p">,</span>
+    <span class="n">easing</span><span class="p">:</span> <span class="n">EasingSpec</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">_Inherit</span> <span class="o">=</span> <span class="n">INHERIT</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TweenAction</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Animate a property from ``from_`` (or its current value) to ``to``."""</span>
+<span class="w">    </span><span class="sd">"""Animate a property from ``from_`` (or its current value) to ``to``.</span>
+
+<span class="sd">    ``easing`` left out inherits the scene's ``meta.default_easing`` (else</span>
+<span class="sd">    ``"ease_in_out"``); naming one — ``"ease_in_out"`` included — pins it.</span>
+
+<span class="sd">    &gt;&gt;&gt; "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set</span>
+<span class="sd">    False</span>
+<span class="sd">    &gt;&gt;&gt; tween("a", "x", to=1.0, duration=1.0, easing="linear").easing</span>
+<span class="sd">    'linear'</span>
+<span class="sd">    """</span>
+    <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">easing</span> <span class="ow">is</span> <span class="n">INHERIT</span> <span class="k">else</span> <span class="p">{</span><span class="s2">"easing"</span><span class="p">:</span> <span class="n">easing</span><span class="p">}</span>
     <span class="k">return</span> <span class="n">TweenAction</span><span class="p">(</span>
         <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
         <span class="nb">property</span><span class="o">=</span><span class="nb">property</span><span class="p">,</span>
         <span class="n">to_value</span><span class="o">=</span><span class="n">to</span><span class="p">,</span>
         <span class="n">from_value</span><span class="o">=</span><span class="n">from_</span><span class="p">,</span>
         <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
-        <span class="n">easing</span><span class="o">=</span><span class="n">easing</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -802,6 +825,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
     <span class="n">loop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlayAction</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Play a named animation of the target entity's descriptor (an#7).</span>
 
@@ -813,6 +837,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    [0.0, 1.0]</span>
 <span class="sd">    &gt;&gt;&gt; [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]</span>
 <span class="sd">    [0.0, 2.0]</span>
+
+<span class="sd">    A name the descriptor does not declare falls back to a motion preset of</span>
+<span class="sd">    :data:`an.motion.PRESETS`, with ``args`` as its parameters (an#166):</span>
+
+<span class="sd">    &gt;&gt;&gt; play("charlie", "hop", args={"height": 30}).args</span>
+<span class="sd">    {'height': 30}</span>
 <span class="sd">    """</span>
     <span class="k">return</span> <span class="n">PlayAction</span><span class="p">(</span>
         <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
@@ -820,6 +850,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
         <span class="n">speed</span><span class="o">=</span><span class="n">speed</span><span class="p">,</span>
         <span class="n">loop</span><span class="o">=</span><span class="n">loop</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 

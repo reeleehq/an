@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=726fce2c"></script>
+    <script src="../_static/documentation_options.js?v=45974446"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.impacts.truth" href="an.impacts.truth.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.95" />
+  <meta name="docsearch:version" content="0.1.96" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -780,6 +780,21 @@ appear in the flat form — they’re collapsed into time offsets.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.Meta.default_easing">
+<span class="sig-name descname"><span class="pre">default_easing</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.ir.Meta.default_easing" title="Link to this definition">#</a></dt>
+<dd><p>The easing every authored <code class="docutils literal notranslate"><span class="pre">tween</span></code> that names none is drawn with
+(an#166) — <code class="docutils literal notranslate"><span class="pre">&quot;linear&quot;</span></code> for a snappy South Park cadence, an overshooting
+cubic-Bezier for a bouncy one. Precedence is **tween &gt; this &gt; the
+built-in <code class="docutils literal notranslate"><span class="pre">&quot;ease_in_out&quot;``**</span> <span class="pre">(:meth:`TweenAction.resolved_easing`).</span>
+<span class="pre">``None</span></code> — the default and what every existing document has — changes
+nothing, and is omitted from JSON like <code class="docutils literal notranslate"><span class="pre">style_pack</span></code>, so no committed
+scene and no compiled document moves. It reaches authored tweens ONLY:
+a motion preset writes its own easings, the camera’s named moves supply
+theirs, and blinks, <code class="docutils literal notranslate"><span class="pre">play</span></code> clips and swap channels have none to
+inherit. There is no per-shot override yet — style is a scene’s.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.Meta.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.Meta.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
@@ -1075,7 +1090,7 @@ path exists between the source and target versions.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.play">
-<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">play</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#play"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.play" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">play</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#play"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.play" title="Link to this definition">#</a></dt>
 <dd><p>Play a named animation of the target entity’s descriptor (an#7).</p>
 <p><code class="docutils literal notranslate"><span class="pre">duration=None</span></code> fills the animation’s natural length — or the shot’s
 remainder for a looping one — but counts as <strong>zero</strong> in a <code class="docutils literal notranslate"><span class="pre">sequence</span></code>,
@@ -1089,6 +1104,12 @@ so a sibling placed after it starts at the same instant:</p>
 <span class="go">[0.0, 1.0]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">sequence</span><span class="p">(</span><span class="n">play</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"idle_breath"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span> <span class="n">play</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"blink"</span><span class="p">)))]</span>
 <span class="go">[0.0, 2.0]</span>
+</pre></div>
+</div>
+<p>A name the descriptor does not declare falls back to a motion preset of
+<a class="reference internal" href="an.motion.html#an.motion.PRESETS" title="an.motion.PRESETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.motion.PRESETS</span></code></a>, with <code class="docutils literal notranslate"><span class="pre">args</span></code> as its parameters (an#166):</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">play</span><span class="p">(</span><span class="s2">"charlie"</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">"height"</span><span class="p">:</span> <span class="mi">30</span><span class="p">})</span><span class="o">.</span><span class="n">args</span>
+<span class="go">{'height': 30}</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -1166,13 +1187,21 @@ user is told never to do — but we warn instead of silently overwriting).</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.tween">
-<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">tween</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ease_in_out'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#tween"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.tween" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">tween</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">INHERIT</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#tween"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.tween" title="Link to this definition">#</a></dt>
 <dd><p>Animate a property from <code class="docutils literal notranslate"><span class="pre">from_</span></code> (or its current value) to <code class="docutils literal notranslate"><span class="pre">to</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">easing</span></code> left out inherits the scene’s <code class="docutils literal notranslate"><span class="pre">meta.default_easing</span></code> (else
+<code class="docutils literal notranslate"><span class="pre">&quot;ease_in_out&quot;</span></code>); naming one — <code class="docutils literal notranslate"><span class="pre">&quot;ease_in_out&quot;</span></code> included — pins it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.TweenAction" title="an.ir.schema.TweenAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">TweenAction</span></code></a></span></p>
 </dd>
 </dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="s2">"easing"</span> <span class="ow">in</span> <span class="n">tween</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">model_fields_set</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tween</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"linear"</span><span class="p">)</span><span class="o">.</span><span class="n">easing</span>
+<span class="go">'linear'</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1309,6 +1338,7 @@ always passes it).</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.FlatAction"><code class="docutils literal notranslate"><span class="pre">FlatAction</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta"><code class="docutils literal notranslate"><span class="pre">Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.default_easing"><code class="docutils literal notranslate"><span class="pre">Meta.default_easing</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.model_config"><code class="docutils literal notranslate"><span class="pre">Meta.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.step_hz"><code class="docutils literal notranslate"><span class="pre">Meta.step_hz</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.style_pack"><code class="docutils literal notranslate"><span class="pre">Meta.style_pack</span></code></a></li>

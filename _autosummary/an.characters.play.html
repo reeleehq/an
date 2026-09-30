@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=726fce2c"></script>
+    <script src="../_static/documentation_options.js?v=45974446"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.mouth_set" href="an.characters.mouth_set.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.95" />
+  <meta name="docsearch:version" content="0.1.96" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -545,8 +545,22 @@ not as “no set resolves it”.</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">resolved</span> <span class="o">=</span> <span class="n">resolve_play</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"blink"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">t</span><span class="o">.</span><span class="n">slot</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">set_name</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">resolved</span><span class="o">.</span><span class="n">tracks</span><span class="p">]</span>
 <span class="go">[('left_eye', 'eyelid'), ('right_eye', 'eyelid')]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">play_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"walk"</span><span class="p">)</span>
-<span class="go">["the descriptor declares no animation 'walk' (it has: ['blink', 'idle_breath'])"]</span>
+</pre></div>
+</div>
+<p><strong>Motion presets (an#166).</strong> A name the descriptor does not declare — or any
+name on an entity with no descriptor (a procedural rig, a prop) — falls back
+to <a class="reference internal" href="an.motion.html#an.motion.PRESETS" title="an.motion.PRESETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.motion.PRESETS</span></code></a>. The DESCRIPTOR WINS a name both know: a rig that
+ships its own <code class="docutils literal notranslate"><span class="pre">hop</span></code> means that one. <a class="reference internal" href="#an.characters.play.play_source" title="an.characters.play.play_source"><code class="xref py py-func docutils literal notranslate"><span class="pre">play_source()</span></code></a> makes that call and
+<a class="reference internal" href="#an.characters.play.play_problems" title="an.characters.play.play_problems"><code class="xref py py-func docutils literal notranslate"><span class="pre">play_problems()</span></code></a> gives the whole verdict, for <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> and the
+compiler alike. A preset resolves to tweens, not a clip:
+<a class="reference internal" href="#an.characters.play.expand_preset_play" title="an.characters.play.expand_preset_play"><code class="xref py py-func docutils literal notranslate"><span class="pre">expand_preset_play()</span></code></a> builds them at the moved node’s REST pose, which
+the caller reads off the built scene, so an author never passes <code class="docutils literal notranslate"><span class="pre">rest</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">play_problems</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"walk"</span><span class="p">)</span>
+<span class="go">["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no</span>
+<span class="go">  motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',</span>
+<span class="go">  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'waddle'])"]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">play_source</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">),</span> <span class="n">play_source</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">),</span> <span class="n">play_source</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="s2">"blink"</span><span class="p">)</span>
+<span class="go">('preset', 'preset', 'descriptor')</span>
 </pre></div>
 </div>
 <p class="rubric">Module Attributes</p>
@@ -564,6 +578,15 @@ not as “no set resolves it”.</p></li>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.HEAD_BONE" title="an.characters.play.HEAD_BONE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">HEAD_BONE</span></code></a></p></td>
 <td><p>The bone whose primary slot's nested slots are the FACE — what <code class="docutils literal notranslate"><span class="pre">face_overlay=false</span></code> suppresses.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.DESCRIPTOR_SOURCE" title="an.characters.play.DESCRIPTOR_SOURCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DESCRIPTOR_SOURCE</span></code></a></p></td>
+<td><p>the entity descriptor's own <code class="docutils literal notranslate"><span class="pre">animations</span></code>…</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.PRESET_SOURCE" title="an.characters.play.PRESET_SOURCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PRESET_SOURCE</span></code></a></p></td>
+<td><p>…or, for a name it does not declare, <a class="reference internal" href="an.motion.html#an.motion.PRESETS" title="an.motion.PRESETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.motion.PRESETS</span></code></a> (an#166).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.RESERVED_PRESET_ARGS" title="an.characters.play.RESERVED_PRESET_ARGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RESERVED_PRESET_ARGS</span></code></a></p></td>
+<td><p>the target is the play's own, and the rest pose is read off the built scene.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -579,28 +602,43 @@ not as “no set resolves it”.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.drawn_attachment" title="an.characters.play.drawn_attachment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">drawn_attachment</span></code></a>(desc, skin, slot)</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">attachment)</span></code> a slot draws by default, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.play_problems" title="an.characters.play.play_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">play_problems</span></code></a>(desc, animation, *[, art_exists])</p></td>
-<td><p>Every reason <code class="docutils literal notranslate"><span class="pre">play(&lt;entity&gt;,</span> <span class="pre">animation)</span></code> cannot resolve — empty when it can.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.expand_preset_play" title="an.characters.play.expand_preset_play"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expand_preset_play</span></code></a>(action, *, start, rest_of)</p></td>
+<td><p>A preset <code class="docutils literal notranslate"><span class="pre">play</span></code> as the flat tweens and settling <code class="docutils literal notranslate"><span class="pre">set``s</span> <span class="pre">it</span> <span class="pre">stands</span> <span class="pre">for,</span> <span class="pre">at</span> <span class="pre">absolute</span> <span class="pre">times</span> <span class="pre">from</span> <span class="pre">``start</span></code> (an#166).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.primary_slot_per_bone" title="an.characters.play.primary_slot_per_bone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">primary_slot_per_bone</span></code></a>(desc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.play_problems" title="an.characters.play.play_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">play_problems</span></code></a>(desc, animation, *[, ...])</p></td>
+<td><p>Every reason <code class="docutils literal notranslate"><span class="pre">play(&lt;entity&gt;,</span> <span class="pre">animation,</span> <span class="pre">...)</span></code> cannot resolve — empty when it can.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.play_source" title="an.characters.play.play_source"><code class="xref py py-obj docutils literal notranslate"><span class="pre">play_source</span></code></a>(desc, animation)</p></td>
+<td><p>Which library a <code class="docutils literal notranslate"><span class="pre">play</span></code> of <code class="docutils literal notranslate"><span class="pre">animation</span></code> resolves in — <a class="reference internal" href="#an.characters.play.DESCRIPTOR_SOURCE" title="an.characters.play.DESCRIPTOR_SOURCE"><code class="xref py py-data docutils literal notranslate"><span class="pre">DESCRIPTOR_SOURCE</span></code></a> when <code class="docutils literal notranslate"><span class="pre">desc</span></code> declares it (the descriptor WINS a name a preset also has), else <a class="reference internal" href="#an.characters.play.PRESET_SOURCE" title="an.characters.play.PRESET_SOURCE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PRESET_SOURCE</span></code></a> when a motion preset has it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.preset_moved_node" title="an.characters.play.preset_moved_node"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preset_moved_node</span></code></a>(action_target, animation)</p></td>
+<td><p>The ONE node path a preset play moves — <code class="docutils literal notranslate"><span class="pre">&lt;target&gt;/head</span></code> for a <code class="docutils literal notranslate"><span class="pre">nod</span></code>, the target itself for the rest.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.preset_play_span" title="an.characters.play.preset_play_span"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preset_play_span</span></code></a>(action)</p></td>
+<td><p>How long a preset <code class="docutils literal notranslate"><span class="pre">play</span></code> runs, in seconds: its <code class="docutils literal notranslate"><span class="pre">duration</span></code> when set, else the preset's natural length divided by <code class="docutils literal notranslate"><span class="pre">speed</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.preset_problems" title="an.characters.play.preset_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">preset_problems</span></code></a>(animation, *[, args, ...])</p></td>
+<td><p>Why a <code class="docutils literal notranslate"><span class="pre">play</span></code> of the motion preset <code class="docutils literal notranslate"><span class="pre">animation</span></code> cannot expand.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.primary_slot_per_bone" title="an.characters.play.primary_slot_per_bone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">primary_slot_per_bone</span></code></a>(desc)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{bone</span> <span class="pre">name:</span> <span class="pre">the</span> <span class="pre">slot</span> <span class="pre">that</span> <span class="pre">IS</span> <span class="pre">that</span> <span class="pre">bone}</span></code>, when one exists.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.resolve_play" title="an.characters.play.resolve_play"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_play</span></code></a>(desc, animation, *[, art_exists])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.resolve_play" title="an.characters.play.resolve_play"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_play</span></code></a>(desc, animation, *[, art_exists])</p></td>
 <td><p>Resolve <code class="docutils literal notranslate"><span class="pre">animation</span></code> of <code class="docutils literal notranslate"><span class="pre">desc</span></code> into renderer-ready tracks, or raise <a class="reference internal" href="#an.characters.play.PlayResolutionError" title="an.characters.play.PlayResolutionError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlayResolutionError</span></code></a> listing every problem found.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.sampled_deviations" title="an.characters.play.sampled_deviations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sampled_deviations</span></code></a>(track, duration, fps)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.sampled_deviations" title="an.characters.play.sampled_deviations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sampled_deviations</span></code></a>(track, duration, fps)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(time,</span> <span class="pre">deviation)</span></code> pairs for a sine bone track at the frame rate — <a class="reference internal" href="an.characters.idle.html#an.characters.idle.evaluate_track" title="an.characters.idle.evaluate_track"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.characters.idle.evaluate_track()</span></code></a>'s formula, sampled, so the descriptor's own evaluator stays the one definition of a sine track.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.sine_sample_times" title="an.characters.play.sine_sample_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sine_sample_times</span></code></a>(duration, fps)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.sine_sample_times" title="an.characters.play.sine_sample_times"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sine_sample_times</span></code></a>(duration, fps)</p></td>
 <td><p>Frame-rate sample times for a sine track, ALWAYS ending at <code class="docutils literal notranslate"><span class="pre">duration</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.slot_node_path" title="an.characters.play.slot_node_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_node_path</span></code></a>(desc, slot_name)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.slot_node_path" title="an.characters.play.slot_node_path"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_node_path</span></code></a>(desc, slot_name)</p></td>
 <td><p>The node path of a slot RELATIVE to its entity (<code class="docutils literal notranslate"><span class="pre">head/left_eye</span></code>, <code class="docutils literal notranslate"><span class="pre">torso</span></code>) — the rig builder's nesting rule, stated once.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.slot_parent" title="an.characters.play.slot_parent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_parent</span></code></a>(desc, slot)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.slot_parent" title="an.characters.play.slot_parent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slot_parent</span></code></a>(desc, slot)</p></td>
 <td><p>The slot <code class="docutils literal notranslate"><span class="pre">slot</span></code> nests under, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when it is a direct child.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.play.suppressed_slots" title="an.characters.play.suppressed_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suppressed_slots</span></code></a>(desc)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.play.suppressed_slots" title="an.characters.play.suppressed_slots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suppressed_slots</span></code></a>(desc)</p></td>
 <td><p>Slots the rig builder never builds: with the face baked into the head art (<code class="docutils literal notranslate"><span class="pre">face_overlay=false</span></code>), every slot nested under the HEAD BONE's primary slot — keyed on the bone, not on a slot named &quot;head&quot;.</p></td>
 </tr>
 </tbody>
@@ -651,10 +689,27 @@ values are <code class="docutils literal notranslate"><span class="pre">rest</sp
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.characters.play.DESCRIPTOR_SOURCE">
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">DESCRIPTOR_SOURCE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'descriptor'</span></span><a class="headerlink" href="#an.characters.play.DESCRIPTOR_SOURCE" title="Link to this definition">#</a></dt>
+<dd><p>the entity descriptor’s own <code class="docutils literal notranslate"><span class="pre">animations</span></code>…</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Where a <code class="docutils literal notranslate"><span class="pre">play</span></code> resolves</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.characters.play.HEAD_BONE">
 <span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">HEAD_BONE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'head'</span></span><a class="headerlink" href="#an.characters.play.HEAD_BONE" title="Link to this definition">#</a></dt>
 <dd><p>The bone whose primary slot’s nested slots are the FACE — what
 <code class="docutils literal notranslate"><span class="pre">face_overlay=false</span></code> suppresses.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.play.PRESET_SOURCE">
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">PRESET_SOURCE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'preset'</span></span><a class="headerlink" href="#an.characters.play.PRESET_SOURCE" title="Link to this definition">#</a></dt>
+<dd><p>…or, for a name it does not declare, <a class="reference internal" href="an.motion.html#an.motion.PRESETS" title="an.motion.PRESETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.motion.PRESETS</span></code></a> (an#166).</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -663,6 +718,18 @@ values are <code class="docutils literal notranslate"><span class="pre">rest</sp
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>A <code class="docutils literal notranslate"><span class="pre">play</span></code> that cannot resolve; <code class="docutils literal notranslate"><span class="pre">problems</span></code> lists every reason found.</p>
 <dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.play.RESERVED_PRESET_ARGS">
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">RESERVED_PRESET_ARGS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'rest',</span> <span class="pre">'target'})</span></span><a class="headerlink" href="#an.characters.play.RESERVED_PRESET_ARGS" title="Link to this definition">#</a></dt>
+<dd><p>the target is
+the play’s own, and the rest pose is read off the built scene.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Preset parameters an author may NOT pass through <code class="docutils literal notranslate"><span class="pre">args</span></code></p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -740,10 +807,114 @@ exactly as the rig builder’s part probe does.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.characters.play.expand_preset_play">
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">expand_preset_play</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest_of</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#expand_preset_play"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.expand_preset_play" title="Link to this definition">#</a></dt>
+<dd><p>A preset <code class="docutils literal notranslate"><span class="pre">play</span></code> as the flat tweens and settling <code class="docutils literal notranslate"><span class="pre">set``s</span> <span class="pre">it</span> <span class="pre">stands</span>
+<span class="pre">for,</span> <span class="pre">at</span> <span class="pre">absolute</span> <span class="pre">times</span> <span class="pre">from</span> <span class="pre">``start</span></code> (an#166).</p>
+<p><code class="docutils literal notranslate"><span class="pre">rest_of(node_path)</span></code> returns that node’s built rest pose (<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>,
+<code class="docutils literal notranslate"><span class="pre">rotation</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_x</span></code>, <code class="docutils literal notranslate"><span class="pre">scale_y</span></code>, <code class="docutils literal notranslate"><span class="pre">alpha</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code> when the
+built scene carries no such node — then this raises naming it, which is
+what the runtime would otherwise do mid-render. <code class="docutils literal notranslate"><span class="pre">duration</span></code> stretches the
+move to that length; <code class="docutils literal notranslate"><span class="pre">speed</span></code> divides it. Assumes
+<a class="reference internal" href="#an.characters.play.preset_problems" title="an.characters.play.preset_problems"><code class="xref py py-func docutils literal notranslate"><span class="pre">preset_problems()</span></code></a> came back empty.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlayAction</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flats</span> <span class="o">=</span> <span class="n">expand_preset_play</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">PlayAction</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="s2">"hop"</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">"height"</span><span class="p">:</span> <span class="mi">10</span><span class="p">}),</span>
+<span class="gp">... </span>    <span class="n">start</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">rest_of</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="p">{</span><span class="s2">"y"</span><span class="p">:</span> <span class="mf">5.0</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="nb">round</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flats</span><span class="p">]</span>
+<span class="go">[(1.0, 'TweenAction', 'y'), (1.25, 'TweenAction', 'y'), (1.5, 'SetAction', 'y')]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flats</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">to_value</span>
+<span class="go">-5.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.characters.play.play_problems">
-<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">play_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">art_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#play_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.play_problems" title="Link to this definition">#</a></dt>
-<dd><p>Every reason <code class="docutils literal notranslate"><span class="pre">play(&lt;entity&gt;,</span> <span class="pre">animation)</span></code> cannot resolve — empty when
-it can. The validate-facing spelling of <a class="reference internal" href="#an.characters.play.resolve_play" title="an.characters.play.resolve_play"><code class="xref py py-func docutils literal notranslate"><span class="pre">resolve_play()</span></code></a>.</p>
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">play_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">art_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#play_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.play_problems" title="Link to this definition">#</a></dt>
+<dd><p>Every reason <code class="docutils literal notranslate"><span class="pre">play(&lt;entity&gt;,</span> <span class="pre">animation,</span> <span class="pre">...)</span></code> cannot resolve — empty
+when it can. THE verdict <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> reports and the compiler raises
+on, for both sources (an#7, an#166).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">play_problems</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">"heigth"</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
+<span class="go">["motion preset 'hop' has no parameter 'heigth' (it takes: [...])"]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">play_problems</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">,</span> <span class="n">loop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="go">["motion preset 'hop' is a one-shot: `loop: true` ...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.play.play_source">
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">play_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#play_source"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.play_source" title="Link to this definition">#</a></dt>
+<dd><p>Which library a <code class="docutils literal notranslate"><span class="pre">play</span></code> of <code class="docutils literal notranslate"><span class="pre">animation</span></code> resolves in —
+<a class="reference internal" href="#an.characters.play.DESCRIPTOR_SOURCE" title="an.characters.play.DESCRIPTOR_SOURCE"><code class="xref py py-data docutils literal notranslate"><span class="pre">DESCRIPTOR_SOURCE</span></code></a> when <code class="docutils literal notranslate"><span class="pre">desc</span></code> declares it (the descriptor WINS a
+name a preset also has), else <a class="reference internal" href="#an.characters.play.PRESET_SOURCE" title="an.characters.play.PRESET_SOURCE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PRESET_SOURCE</span></code></a> when a motion preset
+has it. <code class="docutils literal notranslate"><span class="pre">desc=None</span></code> is an entity with no descriptor: presets only.</p>
+<p>Raises <a class="reference internal" href="#an.characters.play.PlayResolutionError" title="an.characters.play.PlayResolutionError"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlayResolutionError</span></code></a> naming BOTH vocabularies when neither
+has the name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.play.preset_moved_node">
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">preset_moved_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action_target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#preset_moved_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.preset_moved_node" title="Link to this definition">#</a></dt>
+<dd><p>The ONE node path a preset play moves — <code class="docutils literal notranslate"><span class="pre">&lt;target&gt;/head</span></code> for a <code class="docutils literal notranslate"><span class="pre">nod</span></code>,
+the target itself for the rest. Read off the expansion rather than
+restated per preset, so a preset added later needs no entry here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">preset_moved_node</span><span class="p">(</span><span class="s2">"charlie"</span><span class="p">,</span> <span class="s2">"nod"</span><span class="p">),</span> <span class="n">preset_moved_node</span><span class="p">(</span><span class="s2">"charlie"</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">)</span>
+<span class="go">('charlie/head', 'charlie')</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.play.preset_play_span">
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">preset_play_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#preset_play_span"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.preset_play_span" title="Link to this definition">#</a></dt>
+<dd><p>How long a preset <code class="docutils literal notranslate"><span class="pre">play</span></code> runs, in seconds: its <code class="docutils literal notranslate"><span class="pre">duration</span></code> when set,
+else the preset’s natural length divided by <code class="docutils literal notranslate"><span class="pre">speed</span></code>. A play with no
+<code class="docutils literal notranslate"><span class="pre">duration</span></code> is still ZERO-width inside a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> (the rule every
+<code class="docutils literal notranslate"><span class="pre">play</span></code> follows, because <code class="docutils literal notranslate"><span class="pre">flatten</span></code> cannot know which source wins); this
+is the span it actually animates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlayAction</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preset_play_span</span><span class="p">(</span><span class="n">PlayAction</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="s2">"hop"</span><span class="p">))</span>
+<span class="go">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">preset_play_span</span><span class="p">(</span><span class="n">PlayAction</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">animation</span><span class="o">=</span><span class="s2">"hop"</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mf">2.0</span><span class="p">))</span>
+<span class="go">0.25</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.play.preset_problems">
+<span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">preset_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#preset_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.preset_problems" title="Link to this definition">#</a></dt>
+<dd><p>Why a <code class="docutils literal notranslate"><span class="pre">play</span></code> of the motion preset <code class="docutils literal notranslate"><span class="pre">animation</span></code> cannot expand.</p>
+<p>The parameters are checked by NAME against the preset’s signature, then by
+building it (at the identity pose), so a value the preset itself refuses —
+<code class="docutils literal notranslate"><span class="pre">cycles:</span> <span class="pre">0</span></code>, a string height — is reported in the preset’s own words.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
@@ -921,8 +1092,11 @@ primary slot — keyed on the bone, not on a slot named “head”.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.BONE_TRACK_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">BONE_TRACK_PROPERTIES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.BoneTrack"><code class="docutils literal notranslate"><span class="pre">BoneTrack</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.DESCRIPTOR_SOURCE"><code class="docutils literal notranslate"><span class="pre">DESCRIPTOR_SOURCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.HEAD_BONE"><code class="docutils literal notranslate"><span class="pre">HEAD_BONE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.PRESET_SOURCE"><code class="docutils literal notranslate"><span class="pre">PRESET_SOURCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.PlayResolutionError"><code class="docutils literal notranslate"><span class="pre">PlayResolutionError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.RESERVED_PRESET_ARGS"><code class="docutils literal notranslate"><span class="pre">RESERVED_PRESET_ARGS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.RIG_SCALED_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">RIG_SCALED_PROPERTIES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.ROOT_BONE"><code class="docutils literal notranslate"><span class="pre">ROOT_BONE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.ResolvedPlay"><code class="docutils literal notranslate"><span class="pre">ResolvedPlay</span></code></a></li>
@@ -930,7 +1104,12 @@ primary slot — keyed on the bone, not on a slot named “head”.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.active_skin"><code class="docutils literal notranslate"><span class="pre">active_skin()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.art_exists_for"><code class="docutils literal notranslate"><span class="pre">art_exists_for()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.drawn_attachment"><code class="docutils literal notranslate"><span class="pre">drawn_attachment()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.expand_preset_play"><code class="docutils literal notranslate"><span class="pre">expand_preset_play()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.play_problems"><code class="docutils literal notranslate"><span class="pre">play_problems()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.play_source"><code class="docutils literal notranslate"><span class="pre">play_source()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.preset_moved_node"><code class="docutils literal notranslate"><span class="pre">preset_moved_node()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.preset_play_span"><code class="docutils literal notranslate"><span class="pre">preset_play_span()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.preset_problems"><code class="docutils literal notranslate"><span class="pre">preset_problems()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.primary_slot_per_bone"><code class="docutils literal notranslate"><span class="pre">primary_slot_per_bone()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.resolve_play"><code class="docutils literal notranslate"><span class="pre">resolve_play()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.play.sampled_deviations"><code class="docutils literal notranslate"><span class="pre">sampled_deviations()</span></code></a></li>

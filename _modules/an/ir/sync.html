@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=726fce2c"></script>
+    <script src="../../../_static/documentation_options.js?v=45974446"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.95" />
+  <meta name="docsearch:version" content="0.1.96" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1043,6 +1043,18 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">out</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_play_args</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A ``play``'s ``args:`` — a mapping of motion-preset parameters, or absent."""</span>
+    <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">SceneMarkdownError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"actions[</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">].args must be a mapping of motion-preset "</span>
+            <span class="sa">f</span><span class="s2">"parameters (e.g. `args: </span><span class="se">{{</span><span class="s2">height: 30</span><span class="se">}}</span><span class="s2">`); got </span><span class="si">{</span><span class="n">raw</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_actions_block</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Parse a ```yaml actions block: a list of leaf-action dicts.</span>
 
@@ -1051,9 +1063,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">      - ``{kind: set,   target, property, value, [at]}`` — `at`, never</span>
 <span class="sd">        `start`: a `set` is instantaneous, and `start` on one RAISES rather</span>
 <span class="sd">        than being silently dropped as it was before an#108.</span>
-<span class="sd">      - ``{kind: play,  target, animation, [duration], [speed], [loop], [start]}``</span>
+<span class="sd">      - ``{kind: play,  target, animation, [duration], [speed], [loop], [args], [start]}``</span>
 <span class="sd">        — resolved at compile against the target entity's descriptor</span>
-<span class="sd">        ``animations`` (an#7). ``loop`` omitted means the animation's own.</span>
+<span class="sd">        ``animations`` (an#7), falling back to the motion presets of</span>
+<span class="sd">        ``an.motion.PRESETS`` for a name the descriptor does not declare, with</span>
+<span class="sd">        ``args`` as the preset's parameters (an#166). ``loop`` omitted means</span>
+<span class="sd">        the animation's own.</span>
 
 <span class="sd">    A leaf action with a ``start`` key is wrapped in ``sequence(delay(start),</span>
 <span class="sd">    action)`` so flatten yields the correct absolute time. ``set`` uses ``at``</span>
@@ -1081,14 +1096,16 @@ window.runMermaid = runMermaid;</script>
             <span class="n">to</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"to"</span><span class="p">]</span>
             <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">])</span>
             <span class="n">from_</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"from_"</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"from_"</span> <span class="ow">in</span> <span class="n">item</span> <span class="k">else</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"from"</span><span class="p">)</span>
-            <span class="n">easing</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"easing"</span><span class="p">,</span> <span class="s2">"ease_in_out"</span><span class="p">)</span>
+            <span class="c1"># An `easing:` key the author did not write stays UNSET, so the</span>
+            <span class="c1"># scene's `default_easing` reaches it (an#166); `easing: null` is</span>
+            <span class="c1"># an explicit linear ramp, so presence — not truthiness — decides.</span>
             <span class="n">action</span> <span class="o">=</span> <span class="n">_compose</span><span class="o">.</span><span class="n">tween</span><span class="p">(</span>
                 <span class="n">target</span><span class="p">,</span>
                 <span class="n">property_</span><span class="p">,</span>
                 <span class="n">to</span><span class="o">=</span><span class="n">to</span><span class="p">,</span>
                 <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
                 <span class="n">from_</span><span class="o">=</span><span class="n">from_</span><span class="p">,</span>
-                <span class="n">easing</span><span class="o">=</span><span class="n">easing</span><span class="p">,</span>
+                <span class="n">easing</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">"easing"</span><span class="p">]</span> <span class="k">if</span> <span class="s2">"easing"</span> <span class="ow">in</span> <span class="n">item</span> <span class="k">else</span> <span class="n">_compose</span><span class="o">.</span><span class="n">INHERIT</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"set"</span><span class="p">:</span>
             <span class="k">if</span> <span class="s2">"start"</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
@@ -1131,6 +1148,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">),</span>
                 <span class="n">speed</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"speed"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span>
                 <span class="n">loop</span><span class="o">=</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"loop"</span><span class="p">])</span> <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"loop"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="n">args</span><span class="o">=</span><span class="n">_play_args</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"args"</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">i</span><span class="p">),</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"expression"</span><span class="p">:</span>
             <span class="c1"># `{kind: expression, target, [preset], [axes], [intensity],</span>
@@ -1223,6 +1241,11 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># thing that catches it (an#112).</span>
     <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">style_pack</span><span class="p">:</span>
         <span class="n">meta_dict</span><span class="p">[</span><span class="s2">"style_pack"</span><span class="p">]</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">style_pack</span>
+    <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># an#166, same rule</span>
+        <span class="n">easing</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span>
+        <span class="n">meta_dict</span><span class="p">[</span><span class="s2">"default_easing"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">easing</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">easing</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">easing</span>
+        <span class="p">)</span>
     <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"```yaml meta"</span><span class="p">)</span>
     <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">safe_dump</span><span class="p">(</span><span class="n">meta_dict</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">())</span>
     <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"```</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
@@ -1310,8 +1333,13 @@ window.runMermaid = runMermaid;</script>
             <span class="p">}</span>
             <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">from_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">entry</span><span class="p">[</span><span class="s2">"from"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">from_value</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">easing</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"ease_in_out"</span><span class="p">):</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"easing"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">easing</span>
+            <span class="c1"># Written exactly when the author set it — `ease_in_out` included,</span>
+            <span class="c1"># because under a scene `default_easing` an explicit ease_in_out</span>
+            <span class="c1"># and an unset easing draw different curves (an#166).</span>
+            <span class="k">if</span> <span class="s2">"easing"</span> <span class="ow">in</span> <span class="n">leaf</span><span class="o">.</span><span class="n">model_fields_set</span><span class="p">:</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">"easing"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="nb">list</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">easing</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">easing</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">leaf</span><span class="o">.</span><span class="n">easing</span>
+                <span class="p">)</span>
             <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">entry</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
@@ -1337,6 +1365,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">entry</span><span class="p">[</span><span class="s2">"speed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">speed</span>
             <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">loop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">entry</span><span class="p">[</span><span class="s2">"loop"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">loop</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">"args"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">entry</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>

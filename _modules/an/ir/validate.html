@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=726fce2c"></script>
+    <script src="../../../_static/documentation_options.js?v=45974446"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.95" />
+  <meta name="docsearch:version" content="0.1.96" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -732,7 +732,14 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">AUTHORABLE_PROPERTIES</span><span class="p">,</span> <span class="n">TRANSFORM_PROPERTIES</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.play</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_exists_for</span><span class="p">,</span> <span class="n">play_problems</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.play</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PRESET_SOURCE</span><span class="p">,</span>
+    <span class="n">art_exists_for</span><span class="p">,</span>
+    <span class="n">play_problems</span><span class="p">,</span>
+    <span class="n">play_source</span><span class="p">,</span>
+    <span class="n">preset_moved_node</span><span class="p">,</span>
+    <span class="n">preset_play_span</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterDescriptor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.binding</span><span class="w"> </span><span class="kn">import</span> <span class="n">expression_problems</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span><span class="p">,</span> <span class="n">CameraError</span><span class="p">,</span> <span class="n">camera_keys</span>
@@ -1029,6 +1036,14 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># `face_overlay=false` all used to pass here and raise there). Art is</span>
     <span class="c1"># checked when the store has a filesystem root; a dict store assumes</span>
     <span class="c1"># presence, as the compiler's part probe does.</span>
+    <span class="c1">#</span>
+    <span class="c1"># A name the descriptor does not declare — or any name on an entity with</span>
+    <span class="c1"># no descriptor — falls back to a motion preset (an#166), decided by the</span>
+    <span class="c1"># same `play_problems`. A preset additionally needs the node it moves to</span>
+    <span class="c1"># be BUILT, which only the compiler's scene builder knows: the stage is</span>
+    <span class="c1"># built once per shot, lazily, and only when a preset play is present.</span>
+    <span class="n">stage_nodes</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">stage_tried</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>
             <span class="n">leaf</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
@@ -1042,27 +1057,61 @@ window.runMermaid = runMermaid;</script>
             <span class="c1"># `play` resolves against a CHARACTER's animations. A prop has an</span>
             <span class="c1"># `animations` field so the shared rig builder can read the same</span>
             <span class="c1"># attribute on either document, but nothing seeds it and no author</span>
-            <span class="c1"># tool writes one — so a `play` on a prop lands here with the same</span>
-            <span class="c1"># "no descriptor" verdict the compiler gives it.</span>
+            <span class="c1"># tool writes one — so a `play` on a prop resolves presets only,</span>
+            <span class="c1"># exactly as the compiler (which reads character descriptors</span>
+            <span class="c1"># alone) resolves it.</span>
+            <span class="n">is_character</span> <span class="o">=</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span>
             <span class="n">desc</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span>
+                <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">is_character</span>
                 <span class="k">else</span> <span class="kc">None</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                    <span class="s2">"error"</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"`play` names animation </span><span class="si">{</span><span class="n">leaf</span><span class="o">.</span><span class="n">animation</span><span class="si">!r}</span><span class="s2"> on </span><span class="si">{</span><span class="n">entity_id</span><span class="si">!r}</span><span class="s2">, "</span>
-                    <span class="s2">"which has no descriptor — named animations live in a "</span>
-                    <span class="s2">"character's descriptor `animations`; compiling this shot raises."</span><span class="p">,</span>
-                <span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="k">for</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">play_problems</span><span class="p">(</span>
+            <span class="n">problems</span> <span class="o">=</span> <span class="n">play_problems</span><span class="p">(</span>
                 <span class="n">desc</span><span class="p">,</span>
                 <span class="n">leaf</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span>
-                <span class="n">art_exists</span><span class="o">=</span><span class="n">art_exists_for</span><span class="p">(</span><span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">),</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">),</span>
-            <span class="p">):</span>
+                <span class="n">art_exists</span><span class="o">=</span><span class="p">(</span>
+                    <span class="n">art_exists_for</span><span class="p">(</span><span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">),</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">is_character</span>
+                    <span class="k">else</span> <span class="kc">None</span>
+                <span class="p">),</span>
+                <span class="n">args</span><span class="o">=</span><span class="n">leaf</span><span class="o">.</span><span class="n">args</span><span class="p">,</span>
+                <span class="n">duration</span><span class="o">=</span><span class="n">leaf</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+                <span class="n">speed</span><span class="o">=</span><span class="n">leaf</span><span class="o">.</span><span class="n">speed</span><span class="p">,</span>
+                <span class="n">loop</span><span class="o">=</span><span class="n">leaf</span><span class="o">.</span><span class="n">loop</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">problems</span> <span class="ow">and</span> <span class="n">play_source</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">animation</span><span class="p">)</span> <span class="o">==</span> <span class="n">PRESET_SOURCE</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">stage_tried</span><span class="p">:</span>
+                    <span class="n">stage_tried</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">stage_nodes</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="n">_built_node_paths</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">why</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="c1"># Said out loud, never a silent pass: validate could</span>
+                        <span class="c1"># not see what compile will look the node up in.</span>
+                        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                            <span class="s2">"warning"</span><span class="p">,</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                            <span class="s2">"the node a motion-preset `play` moves was NOT "</span>
+                            <span class="sa">f</span><span class="s2">"checked: the shot's stage did not build (</span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">)."</span><span class="p">,</span>
+                        <span class="p">)</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">start</span> <span class="o">+</span> <span class="n">preset_play_span</span><span class="p">(</span><span class="n">leaf</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">:</span>
+                    <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                        <span class="s2">"warning"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"`play` of motion preset </span><span class="si">{</span><span class="n">leaf</span><span class="o">.</span><span class="n">animation</span><span class="si">!r}</span><span class="s2"> on "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity_id</span><span class="si">!r}</span><span class="s2"> runs to t=</span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s, past the shot's end "</span>
+                        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s): the rest of the move never shows."</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">if</span> <span class="n">stage_nodes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">node</span> <span class="o">=</span> <span class="n">preset_moved_node</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">node</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stage_nodes</span><span class="p">:</span>
+                        <span class="n">built</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                            <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">stage_nodes</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">entity_id</span>
+                        <span class="p">)</span>
+                        <span class="n">problems</span> <span class="o">=</span> <span class="p">[</span>
+                            <span class="sa">f</span><span class="s2">"motion preset </span><span class="si">{</span><span class="n">leaf</span><span class="o">.</span><span class="n">animation</span><span class="si">!r}</span><span class="s2"> moves node </span><span class="si">{</span><span class="n">node</span><span class="si">!r}</span><span class="s2">, "</span>
+                            <span class="sa">f</span><span class="s2">"which the built scene does not carry (built: </span><span class="si">{</span><span class="n">built</span><span class="si">}</span><span class="s2">)"</span>
+                        <span class="p">]</span>
+            <span class="k">for</span> <span class="n">problem</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
                 <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                     <span class="s2">"error"</span><span class="p">,</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
@@ -1198,6 +1247,28 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> set (it has: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span><span class="si">}</span><span class="s2">) — compiling "</span>
                     <span class="s2">"this shot raises."</span><span class="p">,</span>
                 <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_built_node_paths</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``(node paths, None)`` — every node path the cutout compiler builds for</span>
+<span class="sd">    ``shot``'s STAGE (its entities; no actions), from the supplied stores — or</span>
+<span class="sd">    ``(None, why)`` when the stage does not build. Read off the compiler rather</span>
+<span class="sd">    than restated: a preset play's node is checked against exactly what compile</span>
+<span class="sd">    will look it up in (an#166). The failure is RETURNED so the caller reports</span>
+<span class="sd">    that the check was skipped; swallowing it would be validate saying "fine"</span>
+<span class="sd">    about a play it never looked at."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.motion</span><span class="w"> </span><span class="kn">import</span> <span class="n">stage_poses</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>  <span class="c1"># the render's warnings, not validate's</span>
+            <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">stage_poses</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">stores</span><span class="p">)),</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — reported by the caller, by name</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_descriptor_for</span><span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="n">available_characters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CharacterDescriptor</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -1378,6 +1449,52 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_default_easing</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``meta.default_easing`` (an#166) must be an easing the evaluators know:</span>
+<span class="sd">    it reaches every unnamed tween in the scene, so a typo is not one broken</span>
+<span class="sd">    tween but all of them. The compiler re-checks, since a render never runs</span>
+<span class="sd">    validate."""</span>
+    <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_easing</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">apply_easing</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="s2">"meta/default_easing"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2"> is not an easing: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_default_easing_reach</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Warn when ``meta.default_easing`` is set and some tweens spell</span>
+<span class="sd">    ``ease_in_out`` explicitly — the shape every ``scene.json`` written before</span>
+<span class="sd">    an#166 has (the old serializer wrote the default out), where the scene</span>
+<span class="sd">    default silently reaches nothing. Explicit is explicit, so it is a</span>
+<span class="sd">    warning naming the count, not a rewrite."""</span>
+    <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">TweenAction</span>
+
+    <span class="n">pinned</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="s2">"easing"</span> <span class="ow">in</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">model_fields_set</span>
+        <span class="ow">and</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">easing</span> <span class="o">==</span> <span class="s2">"ease_in_out"</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">pinned</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="s2">"meta/default_easing"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">pinned</span><span class="p">)</span><span class="si">}</span><span class="s2"> tween(s) name `easing: ease_in_out` explicitly, so "</span>
+            <span class="sa">f</span><span class="s2">"default_easing </span><span class="si">{</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="si">!r}</span><span class="s2"> does not reach them "</span>
+            <span class="sa">f</span><span class="s2">"(first: </span><span class="si">{</span><span class="n">pinned</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">). A scene.json written before an#166 spells the "</span>
+            <span class="s2">"old default out on every tween; drop the key where the scene "</span>
+            <span class="s2">"default is meant."</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
 <span class="c1">#: Keys an#106 retired, and what to write instead. `SceneIR`'s models are</span>
 <span class="c1">#: `extra="allow"` (deliberately — forward compatibility), so a document that</span>
 <span class="c1">#: still carries one of these validates cleanly and renders with the DEFAULT</span>
@@ -1496,6 +1613,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_check_step_hz</span><span class="p">(</span>
         <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">"meta/step_hz"</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span>
     <span class="p">)</span>
+    <span class="n">_check_default_easing</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
+    <span class="n">_check_default_easing_reach</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
             <span class="s2">"warning"</span><span class="p">,</span>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=726fce2c"></script>
+    <script src="../../_static/documentation_options.js?v=45974446"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.95" />
+  <meta name="docsearch:version" content="0.1.96" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -880,10 +880,13 @@ window.runMermaid = runMermaid;</script>
 <span class="s2">        A tween with no "from" starts at the property's rest value: 1.0 for</span>
 <span class="s2">        scale_x / scale_y / alpha, "#ffffff" for tint, 0.0 for the rest.</span>
 <span class="s2">        A "play" action ({kind: play, target: &lt;entity&gt;, animation: &lt;name&gt;,</span>
-<span class="s2">        [duration], [speed], [loop]}) plays one of the target character's</span>
-<span class="s2">        descriptor animations ("idle_breath", "blink", or any it declares);</span>
-<span class="s2">        an animation the descriptor does not declare fails the compile —</span>
-<span class="s2">        never invent a name.</span>
+<span class="s2">        [duration], [speed], [loop], [args]}) plays one of the target character's</span>
+<span class="s2">        descriptor animations ("idle_breath", "blink", or any it declares) or,</span>
+<span class="s2">        for a name the descriptor does not declare, a motion preset — pop_in,</span>
+<span class="s2">        hop, shake, nod, point (target the arm node), slide_in, slide_out,</span>
+<span class="s2">        squash_stretch, waddle — with "args" as its parameters (e.g.</span>
+<span class="s2">        {"height": 30}); a name in neither fails validation — never invent one.</span>
+<span class="s2">        A tween with no "easing" takes the scene's meta.default_easing when set.</span>
 <span class="s2">        An "expression" action ({kind: expression, target: &lt;entity&gt;, preset: &lt;name&gt;,</span>
 <span class="s2">        [axes: {axis: value}], [intensity], [duration], [blend]}) holds a facial</span>
 <span class="s2">        expression on a character: brows, eyelids, and the mouth's set for any</span>

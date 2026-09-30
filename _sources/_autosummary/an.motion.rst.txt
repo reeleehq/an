@@ -23,6 +23,7 @@ an.motion
       pop_in
       rest_pose
       shake
+      stage_poses
       slide_in
       slide_out
       squash_stretch

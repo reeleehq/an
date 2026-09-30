@@ -40,7 +40,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).
 
-### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, frame_samples=None, extra=<factory>)
+### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, extra=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -49,6 +49,17 @@ Everything a renderer needs that isn’t on the Shot itself.
 `mall` carries the project’s stores so the renderer can resolve assets
 by reference. `work_dir` is a scratch space; the renderer must clean up
 after itself or treat it as ephemeral.
+
+#### default_easing *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
+
+the curve of every
+authored tween that names none. `None` = the built-in
+`"ease_in_out"`, and a compiled document byte-identical to before the
+field existed; set, it changes keyframes, so the contract hash moves
+with it — as it should.
+
+* **Type:**
+  The scene’s `meta.default_easing` (an#166)
 
 #### fps *: [int](https://docs.python.org/3/builtins/functions.html#int) | [float](https://docs.python.org/3/builtins/functions.html#float)*
 

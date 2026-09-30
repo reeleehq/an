@@ -272,6 +272,19 @@ Bases: `_IRModel`
 
 Scene metadata.
 
+#### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The easing every authored `tween` that names none is drawn with
+(an#166) — `"linear"` for a snappy South Park cadence, an overshooting
+cubic-Bezier for a bouncy one. Precedence is \*\*tween > this > the
+built-in `"ease_in_out"``** (:meth:`TweenAction.resolved_easing`).
+``None` — the default and what every existing document has — changes
+nothing, and is omitted from JSON like `style_pack`, so no committed
+scene and no compiled document moves. It reaches authored tweens ONLY:
+a motion preset writes its own easings, the camera’s named moves supply
+theirs, and blinks, `play` clips and swap channels have none to
+inherit. There is no per-shot override yet — style is a scene’s.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -335,7 +348,16 @@ Play a named animation of the target entity’s descriptor (an#7).
 
 `animation` names an entry of `CharacterDescriptor.animations` (the
 seeded `idle_breath` and `blink`, or anything an author adds); the
-compiler resolves its tracks into channels on the entity’s nodes.
+compiler resolves its tracks into channels on the entity’s nodes. A name
+the descriptor does NOT declare — or any name on an entity with no
+descriptor (a procedural rig, a prop) — falls back to the motion presets
+of [`an.motion.PRESETS`](an.motion.html.md#an.motion.PRESETS) (`hop`, `nod`, …), which expand to
+ordinary tweens at the target’s built rest pose; a descriptor animation of
+the same name wins (an#166). Both halves are decided by
+[`an.characters.play.play_problems()`](an.characters.play.html.md#an.characters.play.play_problems), the one resolver `an validate`
+and the compiler share. For a preset, `args` are its parameters,
+`duration` stretches the whole move to that length, `speed` divides
+it, and `loop: true` is refused (a preset is a one-shot).
 `duration` widens/narrows the placement window; `None` means the
 animation’s own duration — or, when the resolved `loop` is true, the
 rest of the shot, because a loop bounded by its own natural duration
@@ -343,6 +365,14 @@ never loops. `loop` overrides the animation’s declared `loop`
 (`None` = use the descriptor’s). Inside a `sequence` a play with
 `duration=None` has ZERO width ([`an.ir.compose.duration_of()`](an.ir.compose.html.md#an.ir.compose.duration_of)):
 the next sibling starts at the same instant.
+
+#### args *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Parameters of a MOTION PRESET (an#166) — `{"height": 30}` for a
+`hop` — passed to its [`an.motion.PRESETS`](an.motion.html.md#an.motion.PRESETS) function as keyword
+arguments. `None` (the default, omitted from JSON) means the preset’s
+own defaults. A descriptor animation takes none, and one given to it is
+refused; `rest` is never one — it is read off the built scene.
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
@@ -495,9 +525,66 @@ Bases: `_ActionBase`
 
 Animate a property from a start value to an end value over a duration.
 
+#### easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a
+tween that does not name an easing takes the scene’s
+[`Meta.default_easing`](#an.ir.schema.Meta.default_easing), and only when that is unset too the
+built-in `"ease_in_out"` this default spells. “Unset” is
+`"easing" not in model_fields_set` — the default stays the literal so
+every reader of `.easing` still sees the curve a scene without a
+default draws — and the serializer below omits an unset easing, so the
+distinction survives `scene.json`. `None` is an explicit LINEAR
+ramp (the evaluators’ reading of a null easing), not “unset”.
+
+* **Type:**
+  The curve. \*\*Unset is not the same as 
+
+  ```
+  ``
+  ```
+
+  ”ease_in_out”
+
+  ```
+  ``
+  ```
+
+  \*\* (an#166)
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### resolved_easing(default=None)
+
+The easing this tween draws with under a scene default of
+`default` — the ONE statement of the precedence \*\*tween > scene
+(`Meta.default_easing`) > built-in 
+
+```
+``
+```
+
+”ease_in_out”
+
+```
+``
+```
+
+\*\* (an#166).
+
+```pycon
+>>> TweenAction(target="a", property="x", to_value=1).resolved_easing("linear")
+'linear'
+>>> TweenAction(target="a", property="x", to_value=1, easing="ease_in_out").resolved_easing("linear")
+'ease_in_out'
+>>> TweenAction(target="a", property="x", to_value=1).resolved_easing(None)
+'ease_in_out'
+```
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
 
 ### *class* an.ir.schema.VisemeKeyframe(\*\*data)
 

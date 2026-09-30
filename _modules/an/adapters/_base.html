@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=726fce2c"></script>
+    <script src="../../../_static/documentation_options.js?v=45974446"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.95" />
+  <meta name="docsearch:version" content="0.1.96" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -805,6 +805,12 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: per shot: a pack is art direction for a project, and a scene whose shots</span>
     <span class="c1">#: disagreed about it would be two scenes.</span>
     <span class="n">style_pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The scene's ``meta.default_easing`` (an#166): the curve of every</span>
+    <span class="c1">#: authored tween that names none. ``None`` = the built-in</span>
+    <span class="c1">#: ``"ease_in_out"``, and a compiled document byte-identical to before the</span>
+    <span class="c1">#: field existed; set, it changes keyframes, so the contract hash moves</span>
+    <span class="c1">#: with it — as it should.</span>
+    <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: Per output frame, the scene instants to render and average into it —</span>
     <span class="c1">#: ``None`` is one instant at ``i / fps``, the path every render took before</span>
     <span class="c1">#: this field existed, byte for byte. Several instants per frame are an open</span>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=726fce2c"></script>
+    <script src="../../../../_static/documentation_options.js?v=45974446"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.95" />
+  <meta name="docsearch:version" content="0.1.96" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -753,6 +753,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRANSFORM_PROPERTIES</span><span class="p">,</span> <span class="n">TRIM_PROPERTIES</span><span class="p">,</span> <span class="n">swap_set_name_problem</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_easing</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten_curve</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.coarticulate</span><span class="w"> </span><span class="kn">import</span> <span class="n">coarticulate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.axes</span><span class="w"> </span><span class="kn">import</span> <span class="n">LID_KEY_CLOSED</span><span class="p">,</span> <span class="n">LID_KEY_OPEN</span><span class="p">,</span> <span class="n">lid_key</span>
@@ -769,10 +770,14 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.presets</span><span class="w"> </span><span class="kn">import</span> <span class="n">mouth_form_of</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.provider</span><span class="w"> </span><span class="kn">import</span> <span class="n">DefaultExpressionProvider</span><span class="p">,</span> <span class="n">ExpressionProvider</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.play</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">PRESET_SOURCE</span><span class="p">,</span>
     <span class="n">BoneTrack</span><span class="p">,</span>
     <span class="n">PlayResolutionError</span><span class="p">,</span>
     <span class="n">art_exists_for</span><span class="p">,</span>
     <span class="n">drawn_attachment</span><span class="p">,</span>
+    <span class="n">expand_preset_play</span><span class="p">,</span>
+    <span class="n">play_problems</span><span class="p">,</span>
+    <span class="n">play_source</span><span class="p">,</span>
     <span class="n">primary_slot_per_bone</span><span class="p">,</span>
     <span class="n">resolve_play</span><span class="p">,</span>
     <span class="n">sampled_deviations</span><span class="p">,</span>
@@ -1424,8 +1429,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">expression_provider</span><span class="p">:</span> <span class="n">ExpressionProvider</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">style_pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CutoutSceneJSON</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Compile a single cutout-style `Shot` to its JS-runtime JSON form.</span>
+
+<span class="sd">    ``default_easing`` (an#166) is the scene's ``meta.default_easing``: the</span>
+<span class="sd">    curve of every authored tween that names none (tween &gt; this &gt; the built-in</span>
+<span class="sd">    ``"ease_in_out"``, :meth:`~an.ir.schema.TweenAction.resolved_easing`).</span>
+<span class="sd">    ``None`` leaves the document byte-identical to before the knob existed.</span>
 
 <span class="sd">    ``expression_provider`` (an#98) is the seam that turns authored</span>
 <span class="sd">    ``expression`` leaves and dialogue ``[emotion]`` sugar into per-axis</span>
@@ -1467,6 +1478,8 @@ window.runMermaid = runMermaid;</script>
             <span class="sa">f</span><span class="s2">"step_hz must satisfy 0 &lt; step_hz &lt;= fps (</span><span class="si">{</span><span class="n">fps</span><span class="si">}</span><span class="s2">); got </span><span class="si">{</span><span class="n">step_hz</span><span class="si">!r}</span><span class="s2">. "</span>
             <span class="sa">f</span><span class="s2">"At </span><span class="si">{</span><span class="n">fps</span><span class="si">}</span><span class="s2"> fps, </span><span class="si">{</span><span class="n">fps</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> is 'on twos' and </span><span class="si">{</span><span class="n">fps</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">3</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> 'on threes'."</span>
         <span class="p">)</span>
+    <span class="k">if</span> <span class="n">default_easing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_check_default_easing</span><span class="p">(</span><span class="n">default_easing</span><span class="p">)</span>
     <span class="n">mall</span> <span class="o">=</span> <span class="n">mall</span> <span class="ow">or</span> <span class="p">{}</span>
 
     <span class="n">textures</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetJSON</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -1482,6 +1495,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">resolutions</span><span class="o">=</span><span class="n">resolutions</span><span class="p">,</span>
         <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
         <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
+        <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">provider</span> <span class="o">=</span> <span class="n">expression_provider</span> <span class="ow">or</span> <span class="n">DefaultExpressionProvider</span><span class="p">()</span>
     <span class="c1"># Phase 4: emit a viseme channel per dialogue line that has a viseme_track.</span>
@@ -2892,8 +2906,15 @@ window.runMermaid = runMermaid;</script>
     <span class="n">resolutions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetResolutionJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
     <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AnimationClipJSON</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">TrackJSON</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""Flatten authoring actions and convert to animation clips.</span>
+
+<span class="sd">    A ``play`` of a MOTION PRESET is replaced by the tweens and settling sets</span>
+<span class="sd">    it stands for before anything else looks (:func:`_expand_preset_plays`,</span>
+<span class="sd">    an#166), so from here on it is ordinary authored motion — stepped under</span>
+<span class="sd">    ``step_hz`` like any tween, which is what the ``an.motion`` macro spelling</span>
+<span class="sd">    of the same preset has always been.</span>
 
 <span class="sd">    Tweens and plays compile per action. **Set actions compile per</span>
 <span class="sd">    (target, property) group into step channels that HOLD from each set until</span>
@@ -2923,6 +2944,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">flat_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
         <span class="n">flat_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">))</span>
+    <span class="n">flat_list</span> <span class="o">=</span> <span class="n">_expand_preset_plays</span><span class="p">(</span><span class="n">flat_list</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">)</span>
 
     <span class="c1"># `expression` leaves (an#98) are the face solver's input, not clips of</span>
     <span class="c1"># their own: `_add_face_clips` sums them per (node, property).</span>
@@ -2963,6 +2985,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">,</span>
                 <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
                 <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
+                <span class="n">default_easing</span><span class="o">=</span><span class="n">default_easing</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="nb">isinstance</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">PlayAction</span><span class="p">)</span>
@@ -3190,6 +3213,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">30</span><span class="p">,</span>
     <span class="n">step_hz</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">default_easing</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AnimationClipJSON</span><span class="p">:</span>
     <span class="n">action</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">PlayAction</span><span class="p">):</span>
@@ -3204,7 +3228,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">_check_keyframe_value</span><span class="p">(</span>
             <span class="n">action</span><span class="o">.</span><span class="n">to_value</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">property</span>
         <span class="p">)</span>
-        <span class="n">easing</span> <span class="o">=</span> <span class="n">_easing_to_json</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">easing</span><span class="p">)</span>
+        <span class="n">easing</span> <span class="o">=</span> <span class="n">_easing_to_json</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">resolved_easing</span><span class="p">(</span><span class="n">default_easing</span><span class="p">))</span>
         <span class="c1"># Only an easing the author actually WROTE earns a warning:</span>
         <span class="c1"># TweenAction's default is 'ease_in_out', so a swap tween with no</span>
         <span class="c1"># easing given would otherwise be told it "asked for" one.</span>
@@ -3328,6 +3352,78 @@ window.runMermaid = runMermaid;</script>
         <span class="n">KeyframeJSON</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">evaluate</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">t</span><span class="p">)),</span> <span class="n">easing</span><span class="o">=</span><span class="s2">"step"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">step_times</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">step_hz</span><span class="p">)</span>
     <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_default_easing</span><span class="p">(</span><span class="n">spec</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a scene default easing the evaluators would refuse — at compile,</span>
+<span class="sd">    because a render never runs ``an validate``, and a typo here would</span>
+<span class="sd">    otherwise surface as a runtime throw on the first tween of every shot."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">apply_easing</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"meta.default_easing </span><span class="si">{</span><span class="n">spec</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_expand_preset_plays</span><span class="p">(</span>
+    <span class="n">flat_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">vocab</span><span class="p">:</span> <span class="n">_SwapVocabulary</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Replace each ``play`` of a motion preset with the flat tweens and sets</span>
+<span class="sd">    it expands to (an#166); descriptor plays pass through to</span>
+<span class="sd">    :func:`_resolve_play`.</span>
+
+<span class="sd">    Every ``play`` — both sources — is checked here by</span>
+<span class="sd">    :func:`an.characters.play.play_problems`, the verdict ``an validate``</span>
+<span class="sd">    reports, so the two cannot disagree about a name, an argument or a</span>
+<span class="sd">    source. The preset's rest pose is the moved node's BUILT transform</span>
+<span class="sd">    (``vocab.node_transforms``), so a move on ``x`` in a two-character shot</span>
+<span class="sd">    stays centred on the laid-out ``-110`` without a ``rest=``; with no</span>
+<span class="sd">    vocabulary (a unit test compiling bare actions) it is the identity pose.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.motion</span><span class="w"> </span><span class="kn">import</span> <span class="n">IDENTITY_POSE</span><span class="p">,</span> <span class="n">POSE_PROPERTIES</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">rest_of</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">IDENTITY_POSE</span><span class="p">)</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">node_transforms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">POSE_PROPERTIES</span><span class="p">}</span>
+
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flat_list</span><span class="p">:</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">PlayAction</span><span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">entity_id</span> <span class="o">=</span> <span class="n">_track_root_of</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"play of </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="si">!r}</span><span class="s2"> on </span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="n">problems</span> <span class="o">=</span> <span class="n">play_problems</span><span class="p">(</span>
+            <span class="n">desc</span><span class="p">,</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span>
+            <span class="n">art_exists</span><span class="o">=</span><span class="n">vocab</span><span class="o">.</span><span class="n">art_exists</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">args</span><span class="p">,</span>
+            <span class="n">duration</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+            <span class="n">speed</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">speed</span><span class="p">,</span>
+            <span class="n">loop</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">loop</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">problems</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">problems</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">play_source</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">animation</span><span class="p">)</span> <span class="o">!=</span> <span class="n">PRESET_SOURCE</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flat</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">expand_preset_play</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">rest_of</span><span class="o">=</span><span class="n">rest_of</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">PlayResolutionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">built</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="n">p</span>
+                <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">paths</span> <span class="k">if</span> <span class="n">vocab</span> <span class="k">else</span> <span class="p">())</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">entity_id</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">problems</span><span class="p">)</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">" (built: </span><span class="si">{</span><span class="n">built</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_resolve_play</span><span class="p">(</span>

@@ -34,6 +34,11 @@ what tooling reasons about.
 [(0.0, 2.0), (0.0, 3.0)]
 ```
 
+### Module Attributes
+
+| [`INHERIT`](#an.ir.compose.INHERIT)   | `tween(..., easing=INHERIT)` — the default — leaves the easing UNSET, so the scene's `meta.default_easing` applies, else `"ease_in_out"` (an#166).   |
+|------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
 | [`delay`](#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                     |
@@ -62,6 +67,12 @@ A leaf action with its absolute start and end times.
 The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
+
+### an.ir.compose.INHERIT *= INHERIT*
+
+`tween(..., easing=INHERIT)` — the default — leaves the easing UNSET, so
+the scene’s `meta.default_easing` applies, else `"ease_in_out"` (an#166).
+A sentinel rather than `None` because `None` already means linear.
 
 ### an.ir.compose.delay(duration)
 
@@ -132,7 +143,7 @@ Run all children at once. Total duration = max of child durations.
 * **Return type:**
   [`ParallelAction`](an.ir.schema.html.md#an.ir.schema.ParallelAction)
 
-### an.ir.compose.play(target, animation, , duration=None, speed=1.0, loop=None)
+### an.ir.compose.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
 
 Play a named animation of the target entity’s descriptor (an#7).
 
@@ -150,6 +161,14 @@ so a sibling placed after it starts at the same instant:
 [0.0, 2.0]
 ```
 
+A name the descriptor does not declare falls back to a motion preset of
+[`an.motion.PRESETS`](an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
+
+```pycon
+>>> play("charlie", "hop", args={"height": 30}).args
+{'height': 30}
+```
+
 ### an.ir.compose.sequence(\*actions)
 
 Run children one after the other. Total duration = sum of child durations.
@@ -164,9 +183,19 @@ Discrete property set at time `at` (relative to its enclosing scope).
 * **Return type:**
   [`SetAction`](an.ir.schema.html.md#an.ir.schema.SetAction)
 
-### an.ir.compose.tween(target, property, to, duration, , from_=None, easing='ease_in_out')
+### an.ir.compose.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
 Animate a property from `from_` (or its current value) to `to`.
 
+`easing` left out inherits the scene’s `meta.default_easing` (else
+`"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
+
 * **Return type:**
   [`TweenAction`](an.ir.schema.html.md#an.ir.schema.TweenAction)
+
+```pycon
+>>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
+False
+>>> tween("a", "x", to=1.0, duration=1.0, easing="linear").easing
+'linear'
+```

@@ -161,6 +161,19 @@ Bases: `_IRModel`
 
 Scene metadata.
 
+#### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The easing every authored `tween` that names none is drawn with
+(an#166) — `"linear"` for a snappy South Park cadence, an overshooting
+cubic-Bezier for a bouncy one. Precedence is \*\*tween > this > the
+built-in `"ease_in_out"``** (:meth:`TweenAction.resolved_easing`).
+``None` — the default and what every existing document has — changes
+nothing, and is omitted from JSON like `style_pack`, so no committed
+scene and no compiled document moves. It reaches authored tweens ONLY:
+a motion preset writes its own easings, the camera’s named moves supply
+theirs, and blinks, `play` clips and swap channels have none to
+inherit. There is no per-shot override yet — style is a scene’s.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -382,7 +395,7 @@ Run all children at once. Total duration = max of child durations.
 * **Return type:**
   [`ParallelAction`](an.ir.schema.md#an.ir.schema.ParallelAction)
 
-### an.play(target, animation, , duration=None, speed=1.0, loop=None)
+### an.play(target, animation, , duration=None, speed=1.0, loop=None, args=None)
 
 Play a named animation of the target entity’s descriptor (an#7).
 
@@ -398,6 +411,14 @@ so a sibling placed after it starts at the same instant:
 [0.0, 1.0]
 >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
 [0.0, 2.0]
+```
+
+A name the descriptor does not declare falls back to a motion preset of
+[`an.motion.PRESETS`](an.motion.md#an.motion.PRESETS), with `args` as its parameters (an#166):
+
+```pycon
+>>> play("charlie", "hop", args={"height": 30}).args
+{'height': 30}
 ```
 
 ### an.save(project)
@@ -421,12 +442,22 @@ Discrete property set at time `at` (relative to its enclosing scope).
 * **Return type:**
   [`SetAction`](an.ir.schema.md#an.ir.schema.SetAction)
 
-### an.tween(target, property, to, duration, , from_=None, easing='ease_in_out')
+### an.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
 Animate a property from `from_` (or its current value) to `to`.
 
+`easing` left out inherits the scene’s `meta.default_easing` (else
+`"ease_in_out"`); naming one — `"ease_in_out"` included — pins it.
+
 * **Return type:**
   [`TweenAction`](an.ir.schema.md#an.ir.schema.TweenAction)
+
+```pycon
+>>> "easing" in tween("a", "x", to=1.0, duration=1.0).model_fields_set
+False
+>>> tween("a", "x", to=1.0, duration=1.0, easing="linear").easing
+'linear'
+```
 
 ### an.validate_schema(doc)
 

@@ -247,9 +247,14 @@ own boundary contract: every failure out of `compile_shot` is one type.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CameraKey`](an.ir.schema.html.md#an.ir.schema.CameraKey)]
 
-### an.adapters.cutout.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None)
+### an.adapters.cutout.compile.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
 
 Compile a single cutout-style `Shot` to its JS-runtime JSON form.
+
+`default_easing` (an#166) is the scene’s `meta.default_easing`: the
+curve of every authored tween that names none (tween > this > the built-in
+`"ease_in_out"`, [`resolved_easing()`](an.ir.schema.html.md#an.ir.schema.TweenAction.resolved_easing)).
+`None` leaves the document byte-identical to before the knob existed.
 
 `expression_provider` (an#98) is the seam that turns authored
 `expression` leaves and dialogue `[emotion]` sugar into per-axis

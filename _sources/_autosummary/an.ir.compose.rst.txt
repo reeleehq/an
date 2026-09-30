@@ -4,6 +4,12 @@ an.ir.compose
 .. automodule:: an.ir.compose
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      INHERIT
+   
    .. rubric:: Functions
 
    .. autosummary::
