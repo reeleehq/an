@@ -3092,9 +3092,7 @@ def _set_runs(
     :func:`_value_at`, so a from-less tween reads the holds the runtime plays."""
     runs: list[list[FlatAction]] = []
     for flat in sets:
-        if runs and not any(
-            runs[-1][0].start <= b <= flat.start for b in tween_starts
-        ):
+        if runs and not any(runs[-1][0].start <= b <= flat.start for b in tween_starts):
             runs[-1].append(flat)
         else:
             runs.append([flat])
@@ -3806,9 +3804,14 @@ def _value_at(
         for k, f in earlier
         if (f.start >= last_set if isinstance(f.action, SetAction) else f.end >= cutoff)
     ]
-    tweens = [f for _, f in sorted(earlier, key=lambda e: e[0]) if isinstance(f.action, TweenAction)]
+    tweens = [
+        f
+        for _, f in sorted(earlier, key=lambda e: e[0])
+        if isinstance(f.action, TweenAction)
+    ]
     sets = sorted(
-        (f for _, f in earlier if isinstance(f.action, SetAction)), key=lambda f: f.start
+        (f for _, f in earlier if isinstance(f.action, SetAction)),
+        key=lambda f: f.start,
     )
     boundaries = sorted(f.start for f in tweens)
     placed: list[PlacedClip] = []
@@ -3825,7 +3828,9 @@ def _value_at(
                     target=target,
                     property=prop,
                     keyframes=[
-                        KeyframeJSON(time=f.start - first, value=f.action.value, easing="step")
+                        KeyframeJSON(
+                            time=f.start - first, value=f.action.value, easing="step"
+                        )
                         for f in run
                     ],
                 )
