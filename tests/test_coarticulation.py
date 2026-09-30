@@ -425,3 +425,43 @@ def test_out_of_order_dialogue_lines_are_emitted_in_time_order():
         assert evaluate_timeline(timeline_from_scene(compiled), 18 / 24)[("c/head/mouth", "viseme")] == "A", order
         (trk,) = [t for t in js["timeline"]["tracks"] if t["target_root"] == "c"]
         assert [c["start_time"] for c in trk["clips"] if "__viseme__" in c["animation_id"]] == [0.0, 0.71]
+
+
+def test_the_mouth_rests_after_the_last_word_not_at_the_clip_end():
+    """an#213, the evidence: ElevenLabs' "Bye." is 0.5 s of speech in a 1.84 s
+    clip, and the whisper track keyed no rest after the word, so the mouth
+    held ``C`` through 1.3 s of silence. With the line's word timings the
+    compiler closes it where the word ends (after the decay); a line without
+    word timings is unchanged."""
+    from an.ir.schema import WordTimingIR
+
+    keys = [(0.0, "X"), (0.0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
+    shot = _shot(keys, duration=1.838)
+    timed = shot.model_copy(deep=True)
+    timed.dialogue[0].word_timings = [WordTimingIR(text="Bye.", start=0.0, end=0.5)]
+
+    def mouth(scene, t):
+        return evaluate_timeline(timeline_from_scene(scene), t)[("c/head/mouth", "viseme")]
+
+    closed, open_ = _compile(timed), _compile(shot)
+    assert mouth(closed, 0.3) != "X"  # still speaking
+    assert mouth(closed, 0.5 + 0.12) == "X"  # rested within the decay of the word's end
+    assert mouth(closed, 1.5) == "X"
+    assert mouth(open_, 1.5) != "X"  # no words, no speech end: as before
+    assert _mouth_keys(closed)[-1] == (1.838, "X")  # the terminal rest invariant holds
+
+
+def test_the_provider_keys_a_rest_after_the_last_word():
+    """The raw track is honest too: the trailing silence gets the same rest a
+    gap between words gets (an#213)."""
+    from an.audio.lipsync import word_timings_to_visemes
+    from an.audio.offline_lipsync import _CHAR_TO_VISEME
+
+    out = word_timings_to_visemes(
+        [("bye", 0.0, 0.5)], total_duration=1.838, char_to_viseme=_CHAR_TO_VISEME
+    )
+    assert [(round(v.time, 3), v.code) for v in out][-2:] == [(0.55, "X"), (1.838, "X")]
+    tight = word_timings_to_visemes(
+        [("bye", 0.0, 0.5)], total_duration=0.6, char_to_viseme=_CHAR_TO_VISEME
+    )
+    assert [v.code for v in tight].count("X") == 2  # a short tail: the terminal rest only

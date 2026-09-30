@@ -4346,9 +4346,19 @@ def _add_viseme_clips(
         ]
         condensed: list[tuple[float, str]]
         if COARTICULATION_ENABLED:
+            # Where the last word ends, when the line knows its words: the
+            # mouth rests there, not at the clip's end (an#213) — a TTS clip
+            # can carry a second of silence after the last word.
+            speech_end = (
+                max(float(w.end) for w in line.word_timings)
+                if line.word_timings
+                else None
+            )
             condensed = [
                 (c.time, c.code)
-                for c in coarticulate(raw, fps=fps, end=float(line.duration))
+                for c in coarticulate(
+                    raw, fps=fps, end=float(line.duration), speech_end=speech_end
+                )
             ]
         else:
             # The pre-#97 condenser, verbatim: a key inside the window is

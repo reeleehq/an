@@ -8,6 +8,12 @@ than a frame or two can show, tongue-only shapes swap the lips for one frame, an
 every shape lands exactly on its sound instead of a beat ahead of it. These
 passes turn the raw track into what an animator would key, in this order:
 
+0. **Close after speech** — :func:`close_after_speech` puts the mouth at rest
+   where the last WORD ends, when the line knows its words (an#213). A
+   provider that aligns from words keys a rest between words but, until
+   an#213, not after the last one, so the last shape held through the
+   trailing silence of the clip; cached tracks keep that defect, so the
+   compiler closes the mouth rather than asking for a re-alignment.
 1. **Symbolic** — :func:`merge_duplicates` drops a cue whose shape is already
    showing; :func:`suppress_weak` drops a low-dominance cue that would show for
    less than one frame (JALI, Edwards et al. 2016 §4.2: "Tongue-only visemes
@@ -304,6 +310,36 @@ def condense(
     return out
 
 
+def close_after_speech(
+    keys: Iterable, *, speech_end: float | None, rest: str = "X"
+) -> list[Cue]:
+    """Rest at ``speech_end`` when the shape showing there is not already rest.
+
+    ``speech_end`` is where the line's last word ends (``None``: the line does
+    not know its words, and nothing changes). Cues after it are kept — a
+    provider that keys something there knows more than the word timings do —
+    and the passes after this one give the last shape its time: the lead moves
+    the rest two frames earlier with every other cue, and the decay pushes it
+    back out to ``decay_s`` after the shape before it (an#213).
+
+    The evidence, "Bye." timed 0.0–0.5 s in a 1.84 s clip:
+
+    >>> raw = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
+    >>> [(c.time, c.code) for c in close_after_speech(raw, speech_end=0.5)]
+    [(0.0, 'X'), (0.0, 'A'), (0.167, 'B'), (0.333, 'C'), (0.5, 'X'), (1.838, 'X')]
+    >>> close_after_speech(raw, speech_end=None) == _cues(raw)
+    True
+    """
+    cues = _cues(keys)
+    if speech_end is None:
+        return cues
+    before = [c for c in cues if c.time <= speech_end]
+    if not before or before[-1].code == rest:
+        return cues
+    closing = Cue(float(speech_end), rest, before[-1].intensity)
+    return sorted([*cues, closing], key=lambda c: c.time)
+
+
 def coarticulate(
     keys: Iterable,
     *,
@@ -313,8 +349,21 @@ def coarticulate(
     lead_s: float = DEFAULT_LEAD_S,
     decay_s: float = DEFAULT_DECAY_S,
     rest: str = "X",
+    speech_end: float | None = None,
 ) -> list[Cue]:
-    """All four passes, in the order the module docstring gives.
+    """All the passes, in the order the module docstring gives.
+
+    ``speech_end`` (where the last word ends, when the line knows its words)
+    closes the mouth there instead of at ``end`` (an#213):
+
+    >>> bye = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
+    >>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838)][-2:]
+    [(0.28, 'C'), (1.755, 'X')]
+    >>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838, speech_end=0.5)][-2:]
+    [(0.28, 'C'), (0.42, 'X')]
+
+    (The rest leads by two frames like every other cue, and the hold places it
+    on its window.)
 
     >>> raw = [(0.0, "X"), (0.30, "B"), (0.34, "A"), (0.38, "D"), (0.80, "X")]
     >>> [(round(c.time, 3), c.code) for c in coarticulate(raw, fps=24, end=1.0)]
@@ -343,7 +392,8 @@ def coarticulate(
         raise ValueError(f"lead_s and decay_s must be >= 0, got {lead_s} and {decay_s}")
     cues_in = _cues(keys)
     one_frame = 1.0 / fps
-    cues = suppress_weak(cues_in, max_weak_s=one_frame, end=end)
+    cues = close_after_speech(cues_in, speech_end=speech_end, rest=rest)
+    cues = suppress_weak(cues, max_weak_s=one_frame, end=end)
     cues = lead(cues, lead_s=lead_s)
     cues = decay(cues, decay_s=decay_s, rest=rest, end=end)
     out = condense(cues, min_hold_s=min_hold_s, end=end)

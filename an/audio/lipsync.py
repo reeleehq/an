@@ -94,6 +94,8 @@ class WordTimingProvider(Protocol):
 
 _DEFAULT_REST_VISEME = "X"
 _DEFAULT_MIN_WORD_GAP_FOR_REST = 0.20  # seconds
+#: How long after a word ends its closing rest lands (a gap's, or the line's tail).
+_REST_AFTER_WORD_S = 0.05  # seconds
 
 
 def word_timings_to_visemes(
@@ -110,7 +112,8 @@ def word_timings_to_visemes(
     algorithm: per word, walk its characters in order, look up each
     character's viseme code, dedupe consecutive identical codes, and
     space the resulting keyframes evenly across the word's
-    ``[start, end]`` interval. In gaps wider than ``min_gap_for_rest``
+    ``[start, end]`` interval. In gaps wider than ``min_gap_for_rest`` —
+    between two words, or after the last one before ``total_duration`` —
     insert a single rest keyframe just after the previous word ended.
 
     Times are clamped to ``[0, total_duration]`` since some
@@ -128,7 +131,7 @@ def word_timings_to_visemes(
         w_start = clamp(w_start)
         w_end = clamp(w_end)
         if w_start - prev_end > min_gap_for_rest:
-            out.append(Viseme(time=clamp(prev_end + 0.05), code=rest_viseme))
+            out.append(Viseme(time=clamp(prev_end + _REST_AFTER_WORD_S), code=rest_viseme))
 
         codes: list[str] = []
         previous: str | None = None
@@ -151,5 +154,10 @@ def word_timings_to_visemes(
             out.append(Viseme(time=clamp(w_start + i * step), code=code))
         prev_end = w_end
 
+    # The silence AFTER the last word closes the mouth too, by the same rule as
+    # a gap between words — without it the last shape held to the clip's end
+    # (an#213).
+    if max_t - prev_end > min_gap_for_rest:
+        out.append(Viseme(time=clamp(prev_end + _REST_AFTER_WORD_S), code=rest_viseme))
     out.append(Viseme(time=max_t, code=rest_viseme))
     return out
