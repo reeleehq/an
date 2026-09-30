@@ -631,6 +631,92 @@ def _build_multiplane(work: Path) -> Path:
     return _render(_project(work, scene_md=md, characters=("maya",)))
 
 
+def _build_raster(work: Path) -> Path:
+    """Raster art (an#211): a shaded PNG plate and two shaded PNG props.
+
+    Everything is painted here with Pillow — a sky-to-haze gradient over two
+    shaded hills, and a lit ball with a soft shadow — because the point is the
+    shading a trace to SVG would throw away. One ball is listed BEFORE the
+    character (drawn behind her), one after (in front).
+    """
+    import json
+
+    from PIL import Image, ImageDraw, ImageFilter
+
+    from an.characters.schema import Attachment, Skin
+    from an.environments import EnvironmentDescriptor, Plane, PlaneArt
+    from an.props import PropDescriptor
+
+    w, h = DEMO_RESOLUTION
+    env_dir = work / "assets" / "environments" / "hills"
+    env_dir.mkdir(parents=True, exist_ok=True)
+    plate = Image.new("RGB", (160, 90))
+    px = plate.load()
+    for y in range(90):
+        for x in range(160):
+            t = y / 89
+            px[x, y] = (int(120 + 110 * t), int(170 + 60 * t), int(235 - 40 * t))
+    draw = ImageDraw.Draw(plate)
+    for cx, cy, r, base in ((40, 120, 70, (70, 130, 60)), (125, 130, 75, (55, 110, 50))):
+        for k in range(r, 0, -1):  # darker at the rim: a shaded hill, not a flat one
+            f = 0.6 + 0.4 * (1 - k / r)
+            draw.ellipse((cx - k, cy - k, cx + k, cy + k),
+                         fill=tuple(int(c * f) for c in base))
+    plate = plate.filter(ImageFilter.GaussianBlur(0.6))
+    plate.save(env_dir / "plate.png")
+    env = EnvironmentDescriptor(
+        name="hills",
+        planes=[Plane(name="plate", art=PlaneArt(kind="image", src="plate.png"),
+                      depth=0.0, size=(float(w), float(h)), fit="stretch")],
+    )
+    (env_dir / "meta.json").write_text(json.dumps(json.loads(env.model_dump_json())),
+                                      encoding="utf-8")
+
+    def ball(path: Path, base) -> None:
+        n = 96
+        im = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+        bp = im.load()
+        for y in range(n):
+            for x in range(n):
+                dx, dy = (x - n / 2 + 0.5) / (n / 2), (y - n / 2 + 0.5) / (n / 2)
+                d2 = dx * dx + dy * dy
+                if d2 <= 1:
+                    light = max(0.25, 1 - ((dx + 0.35) ** 2 + (dy + 0.35) ** 2) * 0.55)
+                    bp[x, y] = (*(min(255, int(c * light)) for c in base), 255)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        im.save(path)
+
+    for key, colour in (("red_ball", (230, 70, 60)), ("blue_ball", (70, 110, 230))):
+        ball(work / "assets" / "props" / key / "parts" / "ball.png", colour)
+        prop = PropDescriptor(
+            name=key,
+            view_box=(0, 0, 345, 345),  # k = 1: the PNG draws at its pixel size
+            skins={"default": Skin(slots={"body": {"ball": Attachment(path="parts/ball.png")}})},
+        )
+        doc = json.loads(prop.model_dump_json())
+        doc["slots"][0]["attachment"] = "ball"
+        (work / "assets" / "props" / key / "prop.json").write_text(
+            json.dumps(doc), encoding="utf-8")
+    md = (
+        _meta("Raster plate and raster props", 2.0)
+        + "\n"
+        + _shot("s1", 2.0)
+        + "\n```yaml entities\n"
+        "- kind: environment\n  id: hills\n  store: environments\n  ref: hills\n"
+        "- kind: prop\n  id: red_ball\n  store: props\n  ref: red_ball\n"
+        "  stage:\n    at:\n    - -20.0\n    - 40.0\n"
+        + _character_rows(("maya",))
+        + "\n- kind: prop\n  id: blue_ball\n  store: props\n  ref: blue_ball\n"
+        "  stage:\n    at:\n    - 60.0\n    - 80.0\n"
+        "```\n"
+        "\n```yaml actions\n"
+        "- kind: tween\n  target: blue_ball\n  property: x\n  from: 60.0\n  to: 160.0\n"
+        "  duration: 1.5\n  start: 0.2\n"
+        "```\n"
+    )
+    return _render(_project(work, scene_md=md, characters=("maya",)))
+
+
 def _build_path_arrow(work: Path) -> Path:
     """An invasion arrow drawing itself across a map while the camera pans.
 
@@ -2134,6 +2220,27 @@ DEMOS: tuple[Demo, ...] = (
             "distance."
         ),
         build=_build_pan,
+    ),
+    Demo(
+        slug="raster",
+        title="Raster art: a painted plate, shaded props",
+        shows=(
+            "A PNG background plate — a gradient sky over shaded hills — and two "
+            "PNG props with real shading and a transparent surround: the red ball "
+            "is listed before the character, so it is drawn BEHIND her; the blue "
+            "one is listed after, so it rolls in FRONT. Raster is how art carved "
+            "from a scan or a frame keeps the shading a trace to SVG throws away. "
+            "Narrower than it looks: a style pack cannot recolour raster parts "
+            "(their colours are pixels), and the golden corpus stays vector."
+        ),
+        how=(
+            "`PlaneArt(kind=\"image\", src=\"plate.png\")` with `size` set — the "
+            "declared size is the box (an#211) — and an attachment `path` of "
+            "`parts/ball.png`. Sized from the image header, loaded by PixiJS "
+            "natively, addressed by a content digest. Draw order among props and "
+            "characters is entity order."
+        ),
+        build=_build_raster,
     ),
     Demo(
         slug="multiplane",

@@ -345,6 +345,11 @@ def render(
     _write_caption_sidecar(
         project.mall, output_name, scene, captions, pages, fps=effective_fps
     )
+    # Last, so it is the last word about the file (an#211): a render that used
+    # all-rights-reserved, private-study material must not read as shippable.
+    from an.credits import credits_for_scene, warn_if_private_study
+
+    warn_if_private_study(credits_for_scene(project.mall, scene), output=output_path)
     return output_path
 
 

@@ -30,7 +30,7 @@ on purpose until that stopped being true.
 <name>/
   character.json     the descriptor — bones, slots, skins, asset_sets
   <name>.svg         the canonical drawing, containing <g id="skeleton">
-  parts/             one SVG per attachment
+  parts/             one SVG — or PNG — per attachment
     mouth/           the viseme set
 ```
 
@@ -40,6 +40,39 @@ an character validate <name> --out-dir <parent>   # offline, free, no render
 
 Every finding names the file and what to do. `error` blocks a render; `warning`
 renders but is worth fixing.
+
+## Raster parts (an#211)
+
+A part may be a **PNG with alpha** (or JPEG/WebP) instead of an SVG — the
+route for art carved from a scan or a video frame, which would lose its
+shading if traced. Point the attachment's `path` at it (`parts/head.png`);
+a required part may ship in either format. Rules, all checked by
+`an character validate`:
+
+- **Ship the raster as its own part file, never inside an SVG.** `<image>` in
+  an SVG part stays refused: it hides the pixels from every check, and its
+  rendering depends on the rasteriser.
+- **Cut it out.** A part with no alpha channel draws its whole rectangle,
+  background included (warning); a fully transparent part draws nothing
+  (error); an unreadable file is an error.
+- **Size is pixels × the rig's one uniform scale**, exactly as an SVG part's
+  `width`/`height` are — so carve every part of a character at the same source
+  scale.
+- **Not recolourable.** A StylePack's colour roles reach tagged SVG literals;
+  a raster's colours are pixels, so it renders as drawn (the compiler says so
+  once; a `colour_roles` entry on a `.png` is a warning). Outline and shadow
+  treatments still apply — they are copies of the part.
+- **Addressed by content.** The texture alias carries the file's digest, so a
+  re-carved part is a new texture and a new compiled document; nothing is
+  fetched over a network.
+- **Swap keys may be on different canvases.** Each key of a swap set (visemes,
+  eyelids, views) is drawn with its OWN box, anchor and offset — a closed
+  mouth on a thin canvas no longer squashes the open ones. Same for SVG.
+- **Record provenance.** Art carved from footage you do not own is
+  `license: "all-rights-reserved"` (or the free-text "all rights reserved —
+  private study only"): `an credits` lists it under **NOT PUBLISHABLE** and a
+  render using it ends with a warning. Never record a permissive licence you
+  do not hold.
 
 ## The four things that actually matter
 
@@ -94,7 +127,10 @@ makes the first shared drawing a schema change instead of a data change.
 Populate `source`. `None` means *we made this* — a claim, not a shrug. A licence
 defect is the only failure that reaches backwards through finished work: a video
 shipped with an unattributed CC BY asset cannot be un-shipped. See
-`an-dev-licensing`.
+`an-dev-licensing`. Recognised classes: attribution (CC BY family), free
+(`cc0-*`, `pd`/`public-domain`/`cc-pdm-1.0`, MIT/BSD/Apache), **private**
+(`all-rights-reserved…`, `private-study…` — not publishable), and unknown
+(anything else — reported UNVERIFIED).
 
 ## Reviewing a delivery
 

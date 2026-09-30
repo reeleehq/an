@@ -110,6 +110,25 @@ not a doorway for weak copyleft, source-available terms, non-commercial clauses,
 whose obligations vary by how the artifact is distributed. Those are the shapes Rule 2 is
 about, and none of them becomes acceptable by being written into a table.
 
+## Licence classes an asset can be in (an#211)
+
+`an.ir.assets.license_class(source)` is the one classifier `an credits` and the
+render-end check read. Four answers, and the fourth is not the second:
+
+| Class | Codes (normalised: lowercase words joined by `-`) | Meaning for the video |
+|---|---|---|
+| `attribution` | `ATTRIBUTION_REQUIRING_LICENSES` (CC BY family) | shippable; the credit MUST be displayed |
+| `free` | `cc0-*`, `pd`, `pdm`, `public-domain…`, `cc-pdm…`, `mit…`, `apache…`, `bsd…` | shippable; nothing owed |
+| `private` | `all-rights-reserved…`, `private-study…`, `arr` | **not publishable**: all rights reserved, private study only — `an credits` opens with it and `render` ends with a `PrivateStudyWarning` |
+| `unknown` | anything else, or none | UNVERIFIED — behaves like a refusal until someone reads the licence |
+
+`private` exists because end users study real footage: art carved from a film
+is legitimately used to learn a style, and must never be shipped. Recording it
+honestly (not as a permissive licence nobody granted) is what lets the tool say
+so. An environment's planes may each carry their own `source`, so a composite
+stage credits every part of it; `credits_for_scene` restricts a render's check
+to the assets its shots actually name.
+
 ## When you cannot verify
 
 Say so, in the artifact. `UNVERIFIABLE` is a real verdict and it behaves like

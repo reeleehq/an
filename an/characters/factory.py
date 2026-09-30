@@ -1248,8 +1248,9 @@ _HAT_VIEW_SVG: dict[str, dict[str, str]] = {
 }
 
 #: The head (skin) and hair of each non-front view, in the offline head's 80x80
-#: drawing — the SAME canvas as the front, because a swap carries texture only
-#: and is fitted into the front's box (an#87). ``{skin}``/``{hair}``/``{ink}``.
+#: drawing — the SAME canvas as the front, so a turn swaps texture only and
+#: emits no per-key geometry (an#87; a key on another canvas would carry its
+#: own box since an#211, but one canvas keeps the document unchanged). ``{skin}``/``{hair}``/``{ink}``.
 #: The ear is outlined in ink: skin on skin would not show.
 _VIEW_HEAD_SVG: dict[str, str] = {
     # From behind: the hair covers the head down to the nape; the ears show.

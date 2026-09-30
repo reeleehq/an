@@ -1156,6 +1156,136 @@ def _check_flat_pan(shot, keys, path: str, report: "ValidationReport", stores) -
     )
 
 
+def _check_framing(
+    shot, path: str, report: "ValidationReport", stores, *, width: int, height: int
+) -> None:
+    """Warn when a camera pose shows past the edge of the stage (an#211).
+
+    A close-up on a plate that only just fills the frame shows its edge — a
+    band of background colour, the top of a tree cut off — and renders
+    happily. The check is the compiler's geometry evaluated at every camera
+    key (or the resting frame when there is no move): the region the pose
+    frames (`an.environments.frame_rect`) against the union of every plane's
+    drawn rect with its parallax compensation at that pose
+    (`an.environments.plane_rect`).
+
+    **Keys suffice for a move without roll.** Between two keys x, y and zoom
+    share one eased parameter; a plane edge minus a frame edge is then a
+    linear term plus ``±canvas/(2·zoom)``, which is convex in it, so the
+    worst gap on each side is at a key. A rolling camera is checked at its
+    keys only.
+
+    Silent — not "covered" — when it cannot know: no environments store, an
+    environment that is not a plane descriptor (a preset draws 4000-pixel
+    bands, which cover), a shot with no environment, or a plane whose drawn
+    size depends on art that cannot be measured.
+    """
+    env_store = (stores or {}).get("environments")
+    envs = [e for e in shot.entities if e.kind == "environment"]
+    if env_store is None or not envs or not (width and height):
+        return
+    from an.environments import (
+        ENVIRONMENT_DOCUMENT_KIND,
+        EnvironmentDescriptor,
+        frame_rect,
+        plane_rect,
+        uncovered_part,
+    )
+
+    planes: list[tuple[Any, tuple[float, float] | None]] = []
+    root = getattr(env_store, "_root", None)
+    for entity in envs:
+        try:
+            raw = env_store[entity.ref]
+        except (KeyError, TypeError):
+            return  # a preset or the default backdrop: huge bands, covered
+        if not isinstance(raw, dict) or raw.get("kind") != ENVIRONMENT_DOCUMENT_KIND.name:
+            return
+        try:
+            env = EnvironmentDescriptor.model_validate(
+                migrate(dict(raw), kind=ENVIRONMENT_DOCUMENT_KIND.name)
+            )
+        except Exception:  # noqa: BLE001 — a malformed descriptor is another check's
+            return
+        if not env.planes:
+            return  # compiles to the preset backdrop
+        for plane in env.planes:
+            planes.append((plane, _plane_art_size(root, entity.ref, plane)))
+    try:
+        keys = camera_keys(shot, width=width, height=height)
+    except CameraError:
+        return  # `_check_camera` reports it
+    from an.ir.schema import CameraKey
+
+    if len(keys) < 2:
+        keys = [CameraKey()]  # no move: the resting frame
+    for key in keys:
+        rects = [
+            plane_rect(plane, art, camera=(float(key.x), float(key.y)))
+            for plane, art in planes
+        ]
+        if any(r is None for r in rects):
+            return
+        view = frame_rect(
+            x=float(key.x),
+            y=float(key.y),
+            zoom=float(key.zoom),
+            rotation=float(key.rotation),
+            width=float(width),
+            height=float(height),
+        )
+        hole = uncovered_part(view, rects)  # type: ignore[arg-type]
+        if hole is None:
+            continue
+        sides = [
+            name
+            for name, gap in (
+                ("left", hole[0] <= view[0]),
+                ("top", hole[1] <= view[1]),
+                ("right", hole[2] >= view[2]),
+                ("bottom", hole[3] >= view[3]),
+            )
+            if gap
+        ]
+        pose = (
+            f"the camera key at {float(key.at):g}s (x {float(key.x):g}, "
+            f"y {float(key.y):g}, zoom {float(key.zoom):g})"
+            if shot.camera is not None and len(keys) > 1
+            else "the resting frame"
+        )
+        report.add(
+            "warning",
+            f"{path}/camera" if shot.camera is not None else f"{path}/entities",
+            f"{pose} shows scene region "
+            f"{_fmt_rect(view)} but the environment planes leave "
+            f"{_fmt_rect(hole)} uncovered"
+            + (f" (the {'/'.join(sides)} edge)" if sides else "")
+            + ": the edge of the plate shows as background colour. Make the "
+            "plate bigger (`size`), move it (`offset`), or frame less.",
+        )
+        return  # one finding per shot: the first pose that shows an edge
+
+
+def _plane_art_size(root, ref, plane) -> tuple[float, float] | None:
+    """The measured extent of an image plane's art, or ``None``."""
+    if plane.art.kind != "image" or not plane.art.src or root is None:
+        return None
+    from pathlib import Path
+
+    from an.raster import art_size
+
+    try:
+        return art_size(Path(root) / str(ref) / plane.art.src)
+    except (OSError, ValueError):
+        return None
+
+
+def _fmt_rect(r) -> str:
+    return "x {:g}..{:g}, y {:g}..{:g}".format(
+        round(r[0], 1), round(r[2], 1), round(r[1], 1), round(r[3], 1)
+    )
+
+
 def _check_renderable(shot, path: str, report: "ValidationReport", stores=None) -> None:
     """Report, at validate time, what compile and render will refuse.
 
@@ -1404,6 +1534,14 @@ def validate_semantic(
             report.add("error", f"{path}/duration", "shot duration must be > 0")
 
         _check_renderable(shot, path, report, stores=rig_stores)
+        _check_framing(
+            shot,
+            path,
+            report,
+            rig_stores,
+            width=scene.meta.resolution.width,
+            height=scene.meta.resolution.height,
+        )
         _check_swap_references(shot, path, report, rig_stores)
         turn_resolutions.append(_turn_resolution(shot, rig_stores))
         _check_turns(shot, path, report, turn_resolutions[-1])

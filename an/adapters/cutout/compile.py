@@ -117,10 +117,11 @@ from an.characters.schema import (
     Skin,
     Slot,
 )
-from an.characters.svg_utils import raster_size
+from an.raster import art_size, is_raster, short_digest
 from an.ir.camera import CAMERA_MOVES, PAN_FRACTION, CameraError
 from an.ir.camera import camera_keys as _camera_keys
 from an.ir.migrate import DocumentKind, migrate
+from an.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
 from an.environments import (
     ENVIRONMENT_DOCUMENT_KIND,
     EnvironmentDescriptor,
@@ -268,6 +269,54 @@ def _warn_about_art_a_pack_cannot_reach(
     )
 
 
+def _has_raster_parts(desc_data: Mapping[str, Any]) -> bool:
+    """Whether any attachment of any skin of a rig document is raster art."""
+    for skin in (desc_data.get("skins") or {}).values():
+        for attachments in ((skin or {}).get("slots") or {}).values():
+            for att in (attachments or {}).values():
+                if isinstance(att, Mapping) and is_raster(att.get("path") or ""):
+                    return True
+    return False
+
+
+def _note_raster_rig(
+    entity: AssetRef,
+    desc_data: Mapping[str, Any],
+    pack: "StylePack | None",
+    raster: set[str] | None,
+) -> None:
+    """Record a rig with raster parts that a colour-setting pack is applied to."""
+    if (
+        raster is not None
+        and pack is not None
+        and (pack.roles or pack.entities)
+        and _has_raster_parts(desc_data)
+    ):
+        raster.add(entity.id)
+
+
+def _warn_raster_parts_not_recoloured(
+    pack: "StylePack | None", raster: set[str]
+) -> None:
+    """Say ONCE that a pack's colours do not reach raster parts (an#211).
+
+    A raster part's colours are pixels, not literals a descriptor can tag, so
+    a StylePack leaves it exactly as drawn. Stable text (the pack and the rigs,
+    nothing shot-specific), so Python's registry shows it once per process per
+    distinct set, like the untagged-art warning beside it.
+    """
+    if pack is None or not raster:
+        return
+    warnings.warn(
+        f"style pack {pack.name!r}: {sorted(raster)} carry raster (PNG/JPEG/WebP) "
+        "parts, which a pack cannot recolour — their colours are pixels, not "
+        "tagged literals — so those parts render as drawn. Surface treatments "
+        "(outline, shadow, glow) still reach them.",
+        CutoutCompileWarning,
+        stacklevel=3,
+    )
+
+
 #: Roles every character has somewhere (a body is skin, a costume, hair). A
 #: TAGGED rig missing one of these that a pack sets is half-reached — a
 #: DiceBear head keeps its own skin while the rest follows the pack — and is
@@ -322,6 +371,10 @@ def _recoloured_texture_srcs(
         return None
     out: dict[str, str] = {}
     for rel_path, roles in roles_by_part.items():
+        if is_raster(rel_path):
+            # Pixels, not literals: nothing to rewrite (an#211). The caller
+            # warns once, by rig, via `_raster_parts`.
+            continue
         swaps = role_recolouring(
             roles, lambda role: pack.colour_for(role, entity=entity.id)
         )
@@ -1172,6 +1225,7 @@ def _build_scene_root(
     in_front: list[NodeJSON] = []
     reached: set[str] = set()
     skipped: set[str] = set()
+    raster: set[str] = set()
     for entity in shot.entities:
         if entity.kind == "environment":
             node, front = _build_environment_subtree(
@@ -1196,6 +1250,7 @@ def _build_scene_root(
                 style_pack=style_pack,
                 reached=reached,
                 skipped=skipped,
+                raster=raster,
             )
             sub.transform.x = x
             _apply_stage_placement(sub, entity)
@@ -1228,6 +1283,7 @@ def _build_scene_root(
                 resolutions=resolutions,
                 style_pack=style_pack,
                 reached=reached,
+                raster=raster,
             )
             _apply_stage_placement(sub, entity)
             _warn_surface(
@@ -1241,6 +1297,7 @@ def _build_scene_root(
     # …and last, the foreground planes, over everything.
     children.extend(in_front)
     _warn_about_art_a_pack_cannot_reach(style_pack, reached, skipped)
+    _warn_raster_parts_not_recoloured(style_pack, raster)
     return NodeJSON(name="root", children=children)
 
 
@@ -1412,10 +1469,13 @@ def _build_plane_subtree(
     every fallback.
     """
     probe = _part_probe(env_store, art_prefix=ENVIRONMENT_ART_PREFIX)
+    digest = _raster_digest(env_store, art_prefix=ENVIRONMENT_ART_PREFIX)
     ref = entity.ref or entity.id
     nodes: list[NodeJSON] = []
     for plane in env.planes:
-        node = _plane_node(plane, ref=ref, textures=textures, probe=probe)
+        node = _plane_node(
+            plane, ref=ref, textures=textures, probe=probe, digest=digest
+        )
         if node is None:
             if resolutions is not None:
                 resolutions.append(
@@ -1456,10 +1516,10 @@ def _build_plane_subtree(
 #: The `assets.textures` `src` prefix an environment plate is addressed under.
 ENVIRONMENT_ART_PREFIX: str = "environments/"
 
-#: A `fill` plane with no declared size covers the canvas at any camera scale.
-#: The same 4000 the preset backdrop uses, and for the same reason — the runtime
-#: centres `root` and applies camera scale, so a huge rect always covers.
-PLANE_FILL_SPAN: float = 4000.0
+#: A `fill` plane with no declared size covers the canvas at any camera scale
+#: — defined beside the schema (`an.environments.PLANE_FILL_SPAN`) so the IR
+#: layer's framing check reads the same number, re-exported here.
+PLANE_FILL_SPAN: float = _PLANE_FILL_SPAN
 
 
 #: Suffix for the container holding an environment's FOREGROUND planes.
@@ -1538,12 +1598,19 @@ def _plane_node(
     ref: str,
     textures: dict[str, AssetJSON],
     probe=None,
+    digest: Callable[[str], str | None] | None = None,
 ) -> NodeJSON | None:
     """One plane as a scene node, or ``None`` when its art cannot be drawn.
 
     ``None`` rather than a placeholder: an environment plate that is not on
     disk has no stand-in that is not a lie about the picture (an#33), and the
     caller records it as a fallback so `strict_assets` can decide.
+
+    **A declared `size` is the box; the art's own extent is only the default**
+    (an#211). It was the other way round, so a plate's on-screen size came
+    from its SVG's `width`/`height` and `Plane.size` was read only for art
+    that could not be measured — the author had to rewrite the file to resize
+    the plane. The art is fitted into the box by `fit`.
     """
     art = plane.art
     ox, oy = plane.offset
@@ -1562,8 +1629,12 @@ def _plane_node(
     src = _svg_asset_src(ref, art.src, art_prefix=ENVIRONMENT_ART_PREFIX)
     if probe is not None and not probe(src)[0]:
         return None
-    alias = _register_texture(textures, f"{ref}.{plane.name}", src)
-    extent = (probe(src)[1] if probe else None) or plane.size
+    alias = f"{ref}.{plane.name}"
+    sha = digest(src) if digest is not None else None
+    if sha:
+        alias += "." + sha
+    alias = _register_texture(textures, alias, src)
+    extent = plane.size or (probe(src)[1] if probe else None)
     ax, ay = plane.anchor
     return NodeJSON(
         name=plane.name,
@@ -1795,6 +1866,7 @@ def _build_prop_subtree(
     resolutions: list[AssetResolutionJSON] | None = None,
     style_pack: "StylePack | None" = None,
     reached: set[str] | None = None,
+    raster: set[str] | None = None,
 ) -> NodeJSON:
     """Build the subtree for one prop, through the SAME rig builder.
 
@@ -1852,7 +1924,9 @@ def _build_prop_subtree(
             resolved="descriptor",
         )
     )
-    return _build_svg_character_subtree(
+    _note_raster_rig(entity, meta, style_pack, raster)
+    already = len(resolutions)
+    node = _build_svg_character_subtree(
         entity,
         meta,
         textures=textures if textures is not None else {},
@@ -1861,7 +1935,40 @@ def _build_prop_subtree(
         art_prefix=PROP_ART_PREFIX,
         descriptor_model=PropDescriptor,
         document_kind=PROP_DOCUMENT_KIND,
+        digest=_raster_digest(props_store, art_prefix=PROP_ART_PREFIX),
     )
+    if not _draws_anything(node) and not any(
+        r.fallback for r in resolutions[already:]
+    ):
+        # Nothing on disk is MISSING — the document simply names no art (no
+        # skin, or slots with no attachment) — so `_record_missing_parts` has
+        # nothing to say, and the prop used to vanish with `strict_assets`
+        # silent (an#211). It is a hole in the picture like any other.
+        slots = sorted(s.get("name", "?") for s in meta.get("slots") or []) or [
+            "body"
+        ]
+        resolutions.append(
+            AssetResolutionJSON(
+                id=entity.id,
+                kind="prop",
+                store=entity.store,
+                ref=entity.ref,
+                resolved="empty",
+                fallback=True,
+                detail=(
+                    f"prop {entity.ref!r} names no art for its slot(s) {slots}: "
+                    "its `skins` give them no attachment, so the prop draws "
+                    "NOTHING. Add a skin, e.g. {\"default\": {\"slots\": "
+                    "{\"body\": {\"body\": {\"path\": \"parts/body.png\"}}}}}"
+                ),
+            )
+        )
+    return node
+
+
+def _draws_anything(node: NodeJSON) -> bool:
+    """Whether any node in the subtree carries a visual."""
+    return node.visual is not None or any(_draws_anything(c) for c in node.children)
 
 
 def _build_path_subtree(
@@ -2047,6 +2154,7 @@ def _build_character_subtree(
     style_pack: "StylePack | None" = None,
     reached: set[str] | None = None,
     skipped: set[str] | None = None,
+    raster: set[str] | None = None,
 ) -> NodeJSON:
     """Build a NodeJSON subtree for one character.
 
@@ -2088,6 +2196,7 @@ def _build_character_subtree(
 
     if char_meta.get("kind") == "CharacterDescriptor":
         _record("descriptor")
+        _note_raster_rig(entity, char_meta, style_pack, raster)
         # An SVG rig's colours live inside its drawings. A pack reaches the
         # ones the descriptor TAGS (`colour_roles`); an untagged rig is
         # recorded so the compiler can say which it could not reach, by name.
@@ -2108,6 +2217,7 @@ def _build_character_subtree(
             probe=_part_probe(characters_store),
             resolutions=resolutions,
             texture_srcs=srcs or None,
+            digest=_raster_digest(characters_store),
         )
 
     declared_parts = char_meta.get("parts")
@@ -2333,7 +2443,9 @@ def _part_probe(
     no parts rather than all of them.
 
     Size is read from the SVG root's ``width``/``height``, falling back to the
-    viewBox extent as a browser does: a header parse, not a render.
+    viewBox extent as a browser does — or, for PNG/JPEG/WebP art, from the
+    image header (an#211): a header parse, not a render, either way. Before
+    an#211 a PNG was parsed AS SVG here and the compile died on an XML error.
     """
     root = getattr(characters_store, "_root", None)
     if root is None:
@@ -2348,13 +2460,41 @@ def _part_probe(
         if not path.is_file():
             return False, None
         try:
-            return True, raster_size(path)
+            return True, art_size(path)
         except (OSError, ValueError):
             # Present but unreadable or malformed. Still declared, so the
             # failure is loud at load rather than an absence nobody sees.
             return True, None
 
     return probe
+
+
+def _raster_digest(
+    store: Mapping,
+    *,
+    art_prefix: str = CHARACTER_ART_PREFIX,
+) -> Callable[[str], str | None]:
+    """``digest(src)``: a short content digest for RASTER art, else ``None``.
+
+    A raster texture is addressed by its bytes (an#211): the digest goes into
+    the texture's alias, so a re-carved part is a different texture — the
+    runtime's loader ignores a re-added alias on hot reload (an#155) — and a
+    different compiled contract, whose hash then covers the pixels drawn. SVG
+    art keeps its plain alias, which is what keeps every existing document
+    byte-identical.
+    """
+    root = getattr(store, "_root", None)
+
+    def digest(src: str) -> str | None:
+        if root is None or not is_raster(src) or not src.startswith(art_prefix):
+            return None
+        path = Path(root) / src[len(art_prefix) :]
+        try:
+            return short_digest(path)
+        except OSError:
+            return None  # absent art is the probe's business, not this one's
+
+    return digest
 
 
 def _bone_positions(desc: CharacterDescriptor) -> dict[str, tuple[float, float]]:
@@ -2469,8 +2609,22 @@ def _build_svg_character_subtree(
     descriptor_model: type = CharacterDescriptor,
     document_kind: DocumentKind = CHARACTER_DOCUMENT_KIND,
     texture_srcs: Mapping[str, str] | None = None,
+    digest: Callable[[str], str | None] | None = None,
 ) -> NodeJSON:
     """Build the scene subtree for a character, **from its descriptor's rig**.
+
+    A part may be SVG or raster (PNG/JPEG/WebP, an#211): the probe measures
+    either, and ``digest(src)`` — a content digest for raster art, ``None``
+    for SVG — is appended to a raster texture's alias so the texture is
+    addressed by its bytes.
+
+    **Every swap key keeps its own geometry** (an#211). A swap re-textures the
+    sprite, and the box, anchor and offset were the DEFAULT attachment's, so a
+    key drawn on a different canvas was fitted into the wrong box — a closed
+    mouth on a thin canvas squashed every open mouth to a fraction of a pixel.
+    A key whose box, anchor or offset differs from the drawn attachment's is
+    listed in ``VisualJSON.asset_geometry`` and the runtime applies it with the
+    texture; a rig whose keys share a canvas emits nothing new.
 
     ``texture_srcs`` maps a part path to the ``src`` its texture loads from
     instead of the stored file — a style pack's recoloured art
@@ -2532,9 +2686,21 @@ def _build_svg_character_subtree(
         src = (texture_srcs or {}).get(attachment.path)
         if src is None:
             src = _svg_asset_src(ref, attachment.path, art_prefix=art_prefix)
+            sha = digest(src) if digest is not None else None
+            if sha:
+                alias += "." + sha
         else:
             alias += "." + hashlib.sha256(src.encode("ascii")).hexdigest()[:12]
         return _register_texture(textures, alias, src)
+
+    def _box_of(attachment: Attachment) -> tuple[float, float] | None:
+        # The art's own extent (from its header), else the declared box.
+        src = _svg_asset_src(ref, attachment.path, art_prefix=art_prefix)
+        return (probe(src)[1] if probe else None) or (
+            (attachment.width, attachment.height)
+            if attachment.width and attachment.height
+            else None
+        )
 
     # Every attachment in the skin is registered, not just the active one, so a
     # swap has its texture already loaded when the key changes.
@@ -2587,12 +2753,7 @@ def _build_svg_character_subtree(
         bone_x += attachment.x
         bone_y += attachment.y
 
-        src = _svg_asset_src(ref, attachment.path, art_prefix=art_prefix)
-        extent = (probe(src)[1] if probe else None) or (
-            (attachment.width, attachment.height)
-            if attachment.width and attachment.height
-            else None
-        )
+        extent = _box_of(attachment)
         visual = VisualJSON(
             kind="svg_sprite",
             asset_id=aliases[slot.name][attachment_name],
@@ -2622,6 +2783,17 @@ def _build_svg_character_subtree(
         }
         if projected:
             visual.asset_sets = projected
+            geometry = _swap_key_geometry(
+                projected,
+                aliases[slot.name],
+                skin.slots.get(slot.name, {}),
+                drawn=attachment,
+                built=extent,
+                box_of=_box_of,
+                k=k,
+            )
+            if geometry:
+                visual.asset_geometry = geometry
 
         node = NodeJSON(
             name=slot.name,
@@ -2642,6 +2814,68 @@ def _build_svg_character_subtree(
         transform=TransformJSON(),
         children=children_of.get("", []),
     )
+
+
+def _swap_key_geometry(
+    projected: Mapping[str, Mapping[str, str]],
+    alias_of: Mapping[str, str],
+    attachments: Mapping[str, Attachment],
+    *,
+    drawn: Attachment,
+    built: tuple[float, float] | None,
+    box_of: Callable[[Attachment], tuple[float, float] | None],
+    k: float,
+) -> dict[str, dict[str, float]]:
+    """``{asset_id: geometry}`` for each swap key drawn unlike the built one.
+
+    The geometry is the key's own fit box (its art's extent × ``k``, the rig's
+    one uniform scale), its anchor, and its offset from the drawn attachment
+    in scene pixels — so every key is placed and scaled exactly as it would be
+    if it were the slot's default. A key whose art cannot be measured keeps
+    the built box: there is nothing better to say about it.
+
+    >>> a = Attachment(path="parts/m_x.svg", width=100, height=10)
+    >>> b = Attachment(path="parts/m_a.svg", width=100, height=60, y=5)
+    >>> _swap_key_geometry({"viseme": {"X": "c.m.x", "A": "c.m.a"}},
+    ...                    {"x": "c.m.x", "a": "c.m.a"}, {"x": a, "a": b},
+    ...                    drawn=a, built=(100, 10),
+    ...                    box_of=lambda att: (att.width, att.height), k=0.5)
+    {'c.m.a': {'width': 50.0, 'height': 30.0, 'anchor_x': 0.5, 'anchor_y': 0.5, 'x': 0.0, 'y': 2.5}}
+    """
+    name_of = {alias: name for name, alias in alias_of.items()}
+    built_geometry = (
+        (float(built[0]) * k, float(built[1]) * k) if built else None,
+        (float(drawn.anchor[0]), float(drawn.anchor[1])),
+        (0.0, 0.0),
+    )
+    out: dict[str, dict[str, float]] = {}
+    for key_map in projected.values():
+        for alias in key_map.values():
+            if alias in out or alias not in name_of:
+                continue
+            att = attachments.get(name_of[alias])
+            if att is None:
+                continue
+            box = box_of(att)
+            if box is None:
+                continue
+            geometry = (
+                (float(box[0]) * k, float(box[1]) * k),
+                (float(att.anchor[0]), float(att.anchor[1])),
+                ((float(att.x) - float(drawn.x)) * k, (float(att.y) - float(drawn.y)) * k),
+            )
+            if geometry == built_geometry:
+                continue
+            (w, h), (ax, ay), (dx, dy) = geometry
+            out[alias] = {
+                "width": w,
+                "height": h,
+                "anchor_x": ax,
+                "anchor_y": ay,
+                "x": dx,
+                "y": dy,
+            }
+    return out
 
 
 # -----------------------------------------------------------------------------

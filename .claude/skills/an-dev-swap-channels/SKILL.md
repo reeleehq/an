@@ -66,12 +66,22 @@ There is no other swap implementation, and the epic forbids a second.
    the tween clips and evaluation is later-wins). Never reintroduce the
    0.001s placement window either: a set at a non-frame-aligned time silently
    never fired, and persistence was an accident of stateful forward rendering.
-7. **The swap carries texture only.** Placement, anchor, and fit box are baked
-   from the DEFAULT attachment; `refitToBox` re-fits on every swap (keep it —
-   without it every key inherits the previous texture's scale). Per-key
-   geometry is not expressible; `validate_character` warns when a set's
-   attachments declare differing geometry. If per-key geometry becomes real
-   work, it is a wire-contract change — design it, don't bolt it on.
+7. **A swap carries the texture AND, when it differs, the key's geometry**
+   (an#211). The node's transform and the sprite's box/anchor are baked from
+   the DRAWN attachment; a key whose own box (its art's extent x the rig's one
+   uniform scale `k`), anchor or offset differs is listed in
+   `VisualJSON.asset_geometry` (`{asset_id: {width, height, anchor_x,
+   anchor_y, x, y}}`, omit-when-unset — a rig whose keys share one canvas
+   emits nothing, so no corpus hash moved). `applySwap` → `applyKeyGeometry`
+   re-boxes, re-anchors and re-places the sprite with the texture (the built
+   geometry is restored for any unlisted key and by the rest-restore path);
+   `refitToBox` still re-fits every other swap (keep it — without it every key
+   inherits the previous texture's scale). The offset lives on the SPRITE,
+   inside the slot's container, so channels and `swap_poses` on the node are
+   untouched, and `fitUnderlay` adds `main.x/y` so outline/shadow copies
+   follow. Before this a closed mouth drawn on a thin canvas squashed every
+   open mouth to a fraction of a pixel, and validate only compared DECLARED
+   geometry, so it never saw it.
 8. **Preload needs nothing.** Every attachment of every slot of the active
    skin is registered/staged/loaded up front, precisely so a swap's texture
    is GPU-ready when the key changes. Cross-skin swaps are out of scope.
@@ -132,8 +142,9 @@ fighting it); the rest ride its `__face__` clip as step channels. Nothing
 names `view`: it is the factory's convention (`an.characters.schema.
 VIEW_CHANNEL`), and the `gale` fixture's `body_facing` turns the same way
 (`tests/test_motion.py`). This is the "multi-slot turnaround" the Wave 5
-ruling deferred — done as a fan-out plus data, not a skin switch: the swap
-still carries texture only, so view art lives on the default part's canvas.
+ruling deferred — done as a fan-out plus data, not a skin switch. View art
+on the default part's canvas emits no per-key geometry; art on another canvas
+is placed by its own box (point 7).
 A `turn` PLAYED by name reads the timeline before it: `an.characters.play.
 resolve_turns` (shared by compile's `_expand_preset_plays` and `an validate`)
 fills in `from_direction` from the latest earlier `scale_x` on the entity, so

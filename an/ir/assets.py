@@ -46,11 +46,60 @@ what keeps `an` from shipping unattributed work in the meantime.
 
 from __future__ import annotations
 
-from typing import Any
+import re
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-__all__ = ["AssetSource", "ATTRIBUTION_REQUIRING_LICENSES", "requires_attribution"]
+__all__ = [
+    "AssetSource",
+    "ATTRIBUTION_REQUIRING_LICENSES",
+    "LicenseClass",
+    "PRIVATE_STUDY",
+    "PUBLIC_DOMAIN",
+    "license_class",
+    "normalise_license",
+    "requires_attribution",
+]
+
+#: The recognised code for material its owner has not licensed at all — frames
+#: or art carved out of a film, a show, a book — that a user may study
+#: privately but must not publish (an#211). Any code that normalises to one
+#: starting with ``all-rights-reserved`` or ``private-study`` is this class,
+#: so ``"All rights reserved - private study only"`` is recognised too.
+PRIVATE_STUDY: str = "all-rights-reserved-private-study"
+
+#: The recognised code for the public domain — no rights to clear, nothing
+#: owed (an#211). ``pd``, ``public-domain``, ``cc-pdm-1.0`` and ``cc0-*`` are
+#: all this class.
+PUBLIC_DOMAIN: str = "public-domain"
+
+#: What a licence means for shipping the video it ends up in.
+#:
+#: - ``attribution`` — shippable, with a credit that MUST be displayed;
+#: - ``free`` — shippable, nothing owed (public domain, CC0, MIT-shaped);
+#: - ``private`` — NOT shippable: all rights reserved, private study only;
+#: - ``unknown`` — not classified, which is not the same as free.
+LicenseClass = Literal["attribution", "free", "private", "unknown"]
+
+#: Normalised prefixes of the codes that mean "all rights reserved".
+_PRIVATE_PREFIXES: tuple[str, ...] = (
+    "all-rights-reserved",
+    "private-study",
+    "arr",
+    "copyrighted-private",
+)
+
+#: Normalised codes (exact) and prefixes that mean "no rights to clear".
+_FREE_EXACT: frozenset[str] = frozenset({"pd", "pdm", "publicdomain", "cc-pdm"})
+_FREE_PREFIXES: tuple[str, ...] = (
+    "cc0",
+    "public-domain",
+    "cc-pdm",
+    "mit",
+    "apache",
+    "bsd",
+)
 
 #: Licence codes that oblige the *user of the output* to credit someone.
 #:
@@ -117,18 +166,52 @@ class AssetSource(BaseModel):
     extra: dict[str, Any] = Field(default_factory=dict)
 
 
+def normalise_license(code: str) -> str:
+    """A licence code folded to lowercase words joined by ``-``.
+
+    Free text is what people actually write in a licence field, so the
+    classifier reads through punctuation and spacing:
+
+    >>> normalise_license("All rights reserved - private study only; never publish")
+    'all-rights-reserved-private-study-only-never-publish'
+    >>> normalise_license(" CC-BY-4.0 ")
+    'cc-by-4-0'
+    """
+    return "-".join(re.findall(r"[a-z0-9]+", code.lower()))
+
+
+def license_class(source: AssetSource) -> LicenseClass:
+    """What this asset's licence means for shipping the video (an#211).
+
+    >>> license_class(AssetSource(provider="p", license="pd"))
+    'free'
+    >>> license_class(AssetSource(provider="p", license="all-rights-reserved"))
+    'private'
+    >>> license_class(AssetSource(provider="p", license="cc-by-4.0"))
+    'attribution'
+    >>> license_class(AssetSource(provider="p", license="bespoke"))
+    'unknown'
+    """
+    if not source.license:
+        return "unknown"
+    raw = source.license.strip().lower()
+    if raw in ATTRIBUTION_REQUIRING_LICENSES:
+        return "attribution"
+    code = normalise_license(raw)
+    if code == "arr" or code.startswith(tuple(p for p in _PRIVATE_PREFIXES if p != "arr")):
+        return "private"
+    if code in _FREE_EXACT or code.startswith(_FREE_PREFIXES):
+        return "free"
+    return "unknown"
+
+
 def requires_attribution(source: AssetSource) -> bool | None:
     """Whether shipping this asset obliges the user to credit someone.
 
     Returns ``None`` for an unrecognised or absent licence: "we do not know" is a
     distinct answer from "no", and collapsing them is how an obligation gets
-    silently dropped.
+    silently dropped. Private-study material (all rights reserved) also answers
+    ``None`` here — the question is not whom to credit but that it may not ship
+    at all; :func:`license_class` says so (``"private"``).
     """
-    if not source.license:
-        return None
-    code = source.license.strip().lower()
-    if code in ATTRIBUTION_REQUIRING_LICENSES:
-        return True
-    if code.startswith(("cc0", "public-domain", "mit", "apache", "bsd")):
-        return False
-    return None
+    return {"attribution": True, "free": False}.get(license_class(source))

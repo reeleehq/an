@@ -178,10 +178,18 @@ class VisualJSON(_JSONModel):
     #: glow, ``"multiply"`` for the paper grain. PixiJS 7 does both in the
     #: blend equation — no filter, no render texture. ``None`` = normal.
     blend: Literal["add", "multiply"] | None = None
+    #: Per-texture geometry for a swap key drawn differently from the built
+    #: one (an#211): ``{asset_id: {"width", "height", "anchor_x", "anchor_y",
+    #: "x", "y"}}`` — the box the key is fitted into, its anchor, and its
+    #: offset from the node (scene pixels). A swap used to carry the texture
+    #: only, so every key drew in the DEFAULT attachment's box: a closed mouth
+    #: on a thin canvas squashed every open mouth to a fraction of a pixel. Only
+    #: keys whose geometry differs are listed; ``None`` = every key shares it.
+    asset_geometry: dict[str, dict[str, float]] | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_path(self, handler):
-        """Serialize ``path: null`` (and ``underlays``/``blend``) out of existence.
+        """Serialize ``path: null`` (and ``underlays``/``blend``/``asset_geometry``) out of existence.
 
         Written in the same commit as each field (the an#112 rule): `to_dict`
         prunes no `None`s and the bench's scene contract hashes the whole
@@ -190,7 +198,7 @@ class VisualJSON(_JSONModel):
         """
         data = handler(self)
         if isinstance(data, dict):
-            for key in ("path", "underlays", "blend"):
+            for key in ("path", "underlays", "blend", "asset_geometry"):
                 if data.get(key) is None:
                     data.pop(key, None)
         return data
