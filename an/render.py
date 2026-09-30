@@ -35,6 +35,10 @@ from an.project import Project, load
 # can always pass a higher number explicitly.
 DEFAULT_PARALLEL_CAP: int = 4
 
+#: How far ``duration * fps`` may sit from a whole number and still count as
+#: whole frames (float error, not a fraction of a frame).
+_FRAME_GRID_TOLERANCE: float = 1e-6
+
 
 class RenderError(RuntimeError):
     """Raised on render-pipeline failures with actionable detail."""
@@ -311,11 +315,15 @@ def render(
     # Concatenate per-shot mp4s.
     output_path = (project.root / "output" / f"{output_name}.mp4").resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    if needs_assembly(scene, fps=effective_fps):
+    if needs_assembly(scene, fps=effective_fps) or _sidecar_needs_frame_grid(
+        scene, shot_results, fps=effective_fps
+    ):
         # Transitions and/or a sound layer: composed in the frame stage and
         # mixed from sources (`an.assemble`). A scene with neither never
         # reaches this branch, so its delivered file is the concat's, byte
-        # for byte.
+        # for byte. (Captions can also send a scene here — see
+        # `_sidecar_needs_frame_grid`; captions are opt-in, so no existing
+        # scene's file changes.)
         assemble_film(
             scene,
             shot_results,
@@ -332,15 +340,91 @@ def render(
     with open(output_path, "rb") as f:
         project.mall["output"][output_name] = f.read()
 
-    if captions is not None and captions.sidecar:
-        # Beside the mp4, under the same key (`output/main.srt`), in FILM time
-        # on the timeline the picture was just laid out on.
-        from an.captions import srt_for_scene
-
-        srt = srt_for_scene(scene, fps=effective_fps, pages=pages)
-        project.mall["captions"][output_name] = srt.encode("utf-8")
-
+    _write_caption_sidecar(
+        project.mall, output_name, scene, captions, pages, fps=effective_fps
+    )
     return output_path
+
+
+def _write_caption_sidecar(mall, output_name, scene, captions, pages, *, fps):
+    """Write ``output/<name>.srt`` from ``pages`` — or REMOVE a stale one.
+
+    A player loads a sidecar that sits beside the mp4 by name, so a file left
+    from an earlier captioned render would be shown over a film it no longer
+    describes; this render's answer replaces it either way.
+    """
+    import warnings
+
+    from an.captions import CaptionWarning
+
+    store = mall.get("captions")
+    if store is None:
+        return
+    if captions is None:
+        # Not ours to delete: the scene never asked for captions, so a file
+        # there may be the author's own. Said, because a player will load it.
+        if output_name in store:
+            warnings.warn(
+                f"a caption sidecar for {output_name!r} sits beside the mp4 but "
+                "the scene has no `captions`; it was NOT written by this render",
+                CaptionWarning,
+                stacklevel=3,
+            )
+        return
+    if not captions.sidecar or not pages:
+        if captions.sidecar:
+            warnings.warn(
+                "captions are on but no line could be captioned; no sidecar written",
+                CaptionWarning,
+                stacklevel=3,
+            )
+        store.pop(output_name, None)
+        return
+    # Beside the mp4, under the same key (`output/main.srt`), in FILM time on
+    # the timeline the picture was just laid out on.
+    from an.captions import srt_for_scene
+
+    srt = srt_for_scene(scene, fps=fps, pages=pages)
+    store[output_name] = srt.encode("utf-8")
+
+
+def _sidecar_needs_frame_grid(scene, shot_results, *, fps) -> bool:
+    """True when a caption sidecar needs the film laid out on the frame grid.
+
+    The sidecar places shot ``i`` at its first FRAME (`film_timeline`). The
+    concat of shot mp4s places it at the previous shots' container lengths,
+    which differ whenever a shot's duration is not a whole number of frames —
+    and the error accumulates (review finding). The assembled path muxes the
+    film once from frames, frame ``i`` at ``i / fps``, which is exactly what
+    the sidecar says; so a captioned scene with such a shot is assembled. A
+    renderer that keeps no frames cannot be assembled: that is warned about,
+    and the concat is used.
+    """
+    import warnings
+
+    captions = scene.meta.captions
+    if captions is None or not captions.sidecar:
+        return False
+    off_grid = [
+        s.id
+        for s in scene.timeline
+        if abs(s.duration * fps - round(s.duration * fps)) > _FRAME_GRID_TOLERANCE
+    ]
+    if not off_grid:
+        return False
+    if all(r.frame_manifest for r in shot_results):
+        return True
+    from an.captions import CaptionWarning
+
+    warnings.warn(
+        f"shots {off_grid} are not a whole number of frames long at {fps} fps, so "
+        "the concatenated film drifts from the caption sidecar's frame grid, and "
+        "a renderer here keeps no frames to assemble from; make those durations "
+        "whole frames",
+        CaptionWarning,
+        stacklevel=3,
+    )
+    return False
 
 
 def _burn_captions(shot, index, pages, captions, ctx, project, *, fps):

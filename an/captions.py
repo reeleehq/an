@@ -235,7 +235,7 @@ def paginate(words: Sequence[str], *, max_chars: int, max_lines: int) -> list[ra
     """Split ``words`` into pages of at most ``max_lines`` wrapped lines, a new
     page starting after each sentence end. Returns index ranges.
 
-    >>> paginate("One two. Three four five six".split(), max_chars=9, max_lines=1)
+    >>> paginate("One two. Three four five six".split(), max_chars=10, max_lines=1)
     [range(0, 2), range(2, 4), range(4, 6)]
     """
     pages: list[range] = []
@@ -263,19 +263,41 @@ def _complain(message: str, *, strict: bool) -> None:
     warnings.warn(message, CaptionTimingWarning, stacklevel=4)
 
 
+def _split_token(text: str, start: float, end: float) -> list[tuple[str, float]]:
+    """A timed token the typesetter will set as several words ("New York")
+    becomes one entry per word, sharing the token's span evenly — so the
+    highlight's targets and the drawn word units stay one to one."""
+    parts = text.split()
+    step = max(0.0, end - start) / len(parts)
+    return [(part, start + k * step) for k, part in enumerate(parts)]
+
+
 def _timed_words(line: Any, *, where: str, strict: bool) -> list[tuple[str, float]]:
-    """``(word, line-relative start)`` per word the caption shows."""
+    """``(word, line-relative start)`` per word the caption shows, in time order."""
     script = line.text.split()
     timings = [w for w in (line.word_timings or []) if w.text.strip()]
     if timings:
-        if len(timings) == len(script):
+        ordered = sorted(timings, key=lambda w: w.start)
+        if ordered != timings:
+            _complain(
+                f"{where}: the provider's word timings are not in time order; "
+                "captioning them sorted, with the timed words' own text",
+                strict=strict,
+            )
+        elif len(timings) == len(script):
             return [(word, float(t.start)) for word, t in zip(script, timings)]
-        _complain(
-            f"{where}: the script has {len(script)} words but the provider timed "
-            f"{len(timings)}; captioning the TIMED words, which is what was said",
-            strict=strict,
-        )
-        return [(t.text.strip(), float(t.start)) for t in timings]
+        else:
+            _complain(
+                f"{where}: the script has {len(script)} words but the provider "
+                f"timed {len(timings)}; captioning the TIMED words, which is what "
+                "was said",
+                strict=strict,
+            )
+        return [
+            pair
+            for t in ordered
+            for pair in _split_token(t.text, float(t.start), float(t.end))
+        ]
     if not script:
         return []
     _complain(
@@ -311,20 +333,30 @@ def _line_pages(
         return []
     texts = [w for w, _ in words]
     at = float(line.start)
-    line_end = at + max(float(line.duration), max(s for _, s in words))
-    ranges = paginate(texts, max_chars=captions.max_chars, max_lines=captions.max_lines)
+    frame_of = [_first_frame_at(at + t, fps) for _, t in words]
+    line_end = _first_frame_at(at + max(float(line.duration), words[-1][1]), fps)
+    # A page whose successor starts on the same frame would never be seen
+    # ("Mr." then "Smith is here" 15 ms later): it joins its successor.
+    ranges: list[range] = []
+    for r in paginate(texts, max_chars=captions.max_chars, max_lines=captions.max_lines):
+        if ranges and frame_of[r.start] <= frame_of[ranges[-1].start]:
+            ranges[-1] = range(ranges[-1].start, r.stop)
+        else:
+            ranges.append(r)
     pages: list[CaptionPage] = []
     for n, r in enumerate(ranges):
-        start_t = at + words[r.start][1]
-        end_t = at + words[ranges[n + 1].start][1] if n + 1 < len(ranges) else line_end
-        start = min(_first_frame_at(start_t, fps), shot_frames)
-        end = min(_first_frame_at(end_t, fps), shot_frames)
+        start = frame_of[r.start]
         if start >= shot_frames:
+            warnings.warn(
+                f"{where}: {' '.join(texts[r.start:])!r} is spoken after the shot "
+                f"ends (frame {start} of {shot_frames}), so it is not captioned",
+                CaptionWarning,
+                stacklevel=3,
+            )
             break
-        end = max(end, start + 1)  # every page is seen for at least one frame
-        frames = tuple(
-            min(max(_first_frame_at(at + words[j][1], fps), start), end - 1) for j in r
-        )
+        end = frame_of[ranges[n + 1].start] if n + 1 < len(ranges) else line_end
+        end = min(max(end, start + 1), shot_frames)  # seen for at least one frame
+        frames = tuple(min(max(frame_of[j], start), end - 1) for j in r)
         lines = wrap_words(texts[r.start : r.stop], captions.max_chars)
         pages.append(
             CaptionPage(
@@ -345,9 +377,14 @@ def caption_pages(
     """Every caption page of ``scene``, shot by shot, in the order shown.
 
     ``captions`` defaults to ``scene.meta.captions`` (and to the defaults when
-    that is unset). Dialogue and narration are both captioned. Within a shot,
-    a page is cut off when the next one starts — two captions are never drawn
-    over each other at one anchor.
+    that is unset). Dialogue and narration are both captioned (though the
+    audio pipeline does not voice narration yet, so a narration line has no
+    ``start`` in a rendered scene and is skipped with a warning). Within a
+    shot a page is cut off when the next one starts, so two pages are never
+    drawn over each other at one anchor; ACROSS a transition they can be — a
+    dissolve blends the tail of one shot, captions included, with the head of
+    the next, and a fade takes the burned caption through the colour with the
+    rest of the picture, while the sidecar's cue is simply on.
     """
     from an.frame_clock import frame_count
 
@@ -356,7 +393,10 @@ def caption_pages(
     for i, shot in enumerate(scene.timeline):
         n_frames = frame_count(shot.duration, fps)
         pages: list[CaptionPage] = []
-        lines = [(f"dialogue {k} ({ln.speaker})", ln, ln.speaker) for k, ln in enumerate(shot.dialogue)]
+        lines = [
+            (f"dialogue {k} ({ln.speaker})", ln, ln.speaker)
+            for k, ln in enumerate(shot.dialogue)
+        ]
         lines += [(f"narration {k}", ln, None) for k, ln in enumerate(shot.narration)]
         for label, line, speaker in lines:
             pages += _line_pages(
@@ -373,11 +413,16 @@ def caption_pages(
             if k + 1 < len(pages) and pages[k + 1].start < page.end:
                 end = pages[k + 1].start
                 if end <= page.start:
-                    raise CaptionError(
-                        f"shot {shot.id!r}: two caption pages start on frame "
-                        f"{page.start} ({page.text!r} and {pages[k + 1].text!r}); "
-                        "two lines spoken at once cannot share one caption slot"
+                    # Two lines spoken at once, starting on one frame: one slot
+                    # can show one of them. Said, not silently dropped.
+                    warnings.warn(
+                        f"shot {shot.id!r}: captions {page.text!r} and "
+                        f"{pages[k + 1].text!r} start on the same frame "
+                        f"({page.start}); only the second is shown",
+                        CaptionWarning,
+                        stacklevel=2,
                     )
+                    continue
                 page = CaptionPage(
                     shot=page.shot,
                     start=page.start,
@@ -510,11 +555,20 @@ def _page_actions(
     frames = page.word_frames
     for j, first in enumerate(frames):
         target = f"{entity_id}/word_{j}"
-        actions.append(c.set_(target, "tint", captions.color, at=0.0))
         until = next((f for f in frames[j + 1 :] if f > first), page.end)
-        if j + 1 < len(frames) and frames[j + 1] == first:
+        lit = not (j + 1 < len(frames) and frames[j + 1] == first)
+        # Lit from frame 0 is the set AT 0 itself: a set at -half a frame
+        # would be overridden by the base-colour set at 0 (review finding).
+        from_start = lit and first == 0
+        actions.append(
+            c.set_(target, "tint", captions.highlight if from_start else captions.color, at=0.0)
+        )
+        if not lit:
             continue  # the next word starts on the same frame: this one is never lit
-        actions.append(c.set_(target, "tint", captions.highlight, at=_set_time(first, fps)))
+        if not from_start:
+            actions.append(
+                c.set_(target, "tint", captions.highlight, at=_set_time(first, fps))
+            )
         if until < page.end:
             actions.append(c.set_(target, "tint", captions.color, at=_set_time(until, fps)))
     return actions
@@ -603,15 +657,36 @@ def captioned_shot(
 def _check_typesettable(
     shot: Shot, page: CaptionPage, overrides: Mapping[str, Any], resolution: tuple[int, int]
 ) -> None:
+    """Typeset one page now: it must be drawable, fit the title-safe width,
+    and (for a highlight) build exactly one unit per word."""
+    from tituli import safe_area
+
     from an.text import layout_text, resolve_text
 
+    width, height = resolution
     try:
-        layout_text(
+        lay = layout_text(
             resolve_text({"kind": "TextDescriptor", "name": "caption"}, overrides),
-            width=resolution[0],
-            height=resolution[1],
+            width=width,
+            height=height,
         )
     except ValueError as err:  # TextFontError, TextLayoutError, ValidationError
         raise CaptionError(
-            f"shot {shot.id!r}: the caption {page.text!r} cannot be set: {err}"
+            f"shot {shot.id!r}: the caption {page.text!r} cannot be set: {err}. "
+            "A caption is set in `captions.font` (the embedded face when unset)."
         ) from err
+    area = safe_area(width, height)
+    x0 = min(u.box[0] for u in lay.units)
+    x1 = max(u.box[2] for u in lay.units)
+    if x0 < area.x0 - 1 or x1 > area.x1 + 1:
+        raise CaptionError(
+            f"shot {shot.id!r}: the caption line {page.text!r} is {x1 - x0} px "
+            f"wide, wider than the title-safe area ({round(area.x1 - area.x0)} px "
+            f"of a {width} px frame); lower `captions.max_chars` or `captions.size`"
+        )
+    if overrides.get("unit") == "word" and len(lay.units) != len(page.words):
+        raise CaptionError(  # pragma: no cover — the tokenisers agree today
+            f"shot {shot.id!r}: the caption {page.text!r} set as "
+            f"{len(lay.units)} word units but has {len(page.words)} words, so "
+            "the highlight would light the wrong word"
+        )

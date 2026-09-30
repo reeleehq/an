@@ -298,6 +298,109 @@ def test_the_caption_style_overlays_the_props_store_without_hiding_it(tmp_path):
     assert CAPTION_PROP_REF not in props  # nothing written to the project
 
 
+# --- review findings (an#175): each one a regression test --------------------------------
+
+
+def _lit_words(scene, page, *, n_words):
+    captioned, mall = captioned_shot(scene.timeline[0], [page], scene.meta.captions, fps=FPS, mall={})
+    tl = timeline_from_scene(compile_shot(captioned, mall, fps=FPS, width=W, height=H))
+    return [
+        [j for j in range(n_words)
+         if evaluate_timeline(tl, f / FPS)[(f"caption_0/word_{j}", "tint_r")] == 1.0]
+        for f in range(page.start, page.end)
+    ]
+
+
+def test_the_first_word_of_a_page_on_frame_zero_is_lit():
+    scene = _scene(Shot(id="s", duration=2.0, dialogue=[_line("a b", start=0.0)]),
+                   highlight="#ff0000", color="#0000ff")
+    (page,) = caption_pages(scene, fps=FPS)
+    assert page.start == 0
+    assert _lit_words(scene, page, n_words=2)[:3] == [[0], [0], [0]]
+
+
+def test_times_between_frames_round_up_to_the_first_frame_that_shows_them():
+    scene = _scene(Shot(id="s", duration=3.0, dialogue=[_line("a b", start=0.53, step=0.31)]))
+    (page,) = caption_pages(scene, fps=FPS)
+    assert (page.start, page.word_frames) == (6, (6, 9))  # 0.53 -> 0.6, 0.84 -> 0.9
+    assert srt_for_scene(scene, fps=FPS).split("\n")[1].startswith("00:00:00,600")
+
+
+def test_every_caption_set_lands_between_frames():
+    scene = _scene(Shot(id="s", duration=3.0, dialogue=[_line("a b c. d e", start=0.53)]),
+                   highlight="#ff0000")
+    captioned, _ = captioned_shot(scene.timeline[0], caption_pages(scene, fps=FPS),
+                                  scene.meta.captions, fps=FPS, mall={})
+    ats = [a.at * FPS for a in captioned.actions]
+    assert ats and all(at == 0 or abs(at - round(at)) == pytest.approx(0.5) for at in ats)
+
+
+def test_a_page_is_seen_for_at_least_one_frame():
+    line = Dialogue(speaker="a", text="blip", start=0.5, duration=0.0,
+                    word_timings=[WordTimingIR(text="blip", start=0.0, end=0.0)])
+    (page,) = caption_pages(_scene(Shot(id="s", duration=2.0, dialogue=[line])), fps=FPS)
+    assert page.end == page.start + 1
+
+
+def test_a_word_sharing_its_frame_with_the_next_is_never_lit_alone():
+    line = Dialogue(speaker="a", text="a b c", start=0.0, duration=1.5, word_timings=[
+        WordTimingIR(text=w, start=t, end=t + 0.01) for w, t in (("a", 0.02), ("b", 0.05), ("c", 0.5))])
+    scene = _scene(Shot(id="s", duration=2.0, dialogue=[line]), highlight="#ff0000")
+    (page,) = caption_pages(scene, fps=FPS)
+    lit = _lit_words(scene, page, n_words=3)
+    assert lit[0] == [1] and not any(0 in frame for frame in lit)
+
+
+def test_an_abbreviation_does_not_make_a_page_nobody_sees():
+    line = Dialogue(speaker="a", text="Mr. Smith is here", start=1.005, duration=1.0,
+                    word_timings=[WordTimingIR(text=w, start=t, end=t + 0.01) for w, t in
+                                  (("Mr.", 0.0), ("Smith", 0.015), ("is", 0.3), ("here", 0.5))])
+    (page,) = caption_pages(_scene(Shot(id="s", duration=3.0, dialogue=[line])), fps=30)
+    assert page.text == "Mr. Smith is here"
+
+
+def test_two_lines_starting_on_one_frame_warn_instead_of_aborting():
+    a, b = _line("first", start=0.5), _line("second", start=0.5, speaker="b")
+    with pytest.warns(UserWarning, match="same frame"):
+        (page,) = caption_pages(_scene(Shot(id="s", duration=2.0, dialogue=[a, b])), fps=FPS)
+    assert page.text == "second"
+
+
+def test_a_timed_token_with_a_space_is_one_word_per_unit():
+    line = Dialogue(speaker="a", text="New York is big", start=0.0, duration=1.5, word_timings=[
+        WordTimingIR(text="New York", start=0.0, end=0.4),
+        WordTimingIR(text="is", start=0.5, end=0.6), WordTimingIR(text="big", start=1.0, end=1.2)])
+    scene = _scene(Shot(id="s", duration=2.0, dialogue=[line]), highlight="#ff0000")
+    with pytest.warns(CaptionTimingWarning):
+        (page,) = caption_pages(scene, fps=FPS)
+    assert page.words == ("New", "York", "is", "big") and page.word_frames == (0, 2, 5, 10)
+    captioned, mall = captioned_shot(scene.timeline[0], [page], scene.meta.captions, fps=FPS,
+                                     mall={}, resolution=(W, H))
+    doc = compile_shot(captioned, mall, fps=FPS, width=W, height=H)
+    assert len(doc.overlay.children[0].children) == 4
+
+
+def test_unsorted_timings_are_sorted_and_said():
+    line = Dialogue(speaker="a", text="a b c", start=0.0, duration=2.0, word_timings=[
+        WordTimingIR(text=w, start=t, end=t + 0.1) for w, t in (("a", 0.0), ("c", 1.0), ("b", 0.5))])
+    with pytest.warns(CaptionTimingWarning, match="not in time order"):
+        (page,) = caption_pages(_scene(Shot(id="s", duration=3.0, dialogue=[line])), fps=FPS)
+    assert page.words == ("a", "b", "c") and page.word_frames == (0, 5, 10)
+
+
+def test_a_line_spoken_after_its_shot_ends_is_said():
+    scene = _scene(Shot(id="s", duration=1.0, dialogue=[_line("late", start=1.5)]))
+    with pytest.warns(UserWarning, match="after the shot ends"):
+        assert caption_pages(scene, fps=FPS) == []
+
+
+def test_a_caption_wider_than_the_title_safe_area_is_refused():
+    scene = _scene(Shot(id="s", duration=3.0, dialogue=[_line("word " * 8)]))
+    with pytest.raises(CaptionError, match="title-safe"):
+        captioned_shot(scene.timeline[0], caption_pages(scene, fps=FPS), scene.meta.captions,
+                       fps=FPS, mall={}, resolution=(360, 640))
+
+
 # --- the IR: opt-in, omit-when-unset, round trip -------------------------------------------
 
 
@@ -384,6 +487,67 @@ def test_sidecar_only_captions_leave_the_picture_alone(tmp_path, monkeypatch):
     ((shot, _),) = renderer.calls
     assert shot.entities == []
     assert out.with_suffix(".srt").read_text("utf-8").startswith("1\n")
+
+
+def test_a_stale_sidecar_is_removed_when_this_render_writes_none(tmp_path, monkeypatch):
+    scene = _scene(Shot(id="s", duration=2.0, dialogue=[_line("hi")]))
+    project, _, out = _render(tmp_path, monkeypatch, scene)
+    assert out.with_suffix(".srt").exists()
+    import an.render as render_mod
+
+    off = _scene(Shot(id="s", duration=2.0, dialogue=[_line("hi")]), sidecar=False)
+    project.mall["scenes"]["main"] = off
+    from an.project import load
+
+    render_mod.render(load(project.root), auto_audio=False)
+    assert not out.with_suffix(".srt").exists()
+
+
+def test_an_authors_own_srt_is_left_alone_when_the_scene_has_no_captions(tmp_path, monkeypatch):
+    scene = SceneIR(meta=Meta(fps=FPS), timeline=[Shot(id="s", dialogue=[_line("hi")])])
+    from an import init
+    from an.project import load
+    import an.render as render_mod
+
+    root = init(tmp_path / "demo")
+    (root / "output" / "main.srt").write_text("mine", encoding="utf-8")
+    project = load(root)
+    project.mall["scenes"]["main"] = scene
+    monkeypatch.setattr(render_mod._DEFAULT_REGISTRY, "find_for", lambda shot: _RecordingRenderer())
+    with pytest.warns(UserWarning, match="NOT written by this render"):
+        render_mod.render(load(root), auto_audio=False)
+    assert (root / "output" / "main.srt").read_text("utf-8") == "mine"
+
+
+def test_a_shot_off_the_frame_grid_sends_a_captioned_film_through_assembly(tmp_path, monkeypatch):
+    """A concat places shots at container lengths, the sidecar on frames; they
+    differ when a duration is not whole frames, so the film is assembled
+    (frame i at i/fps) — or, with no frames to assemble, it is said."""
+    import an.render as render_mod
+
+    scene = _scene(Shot(id="a", duration=1.04, dialogue=[_line("hi")]), Shot(id="b", duration=1.0))
+    monkeypatch.setattr(render_mod, "_ffmpeg_concat", lambda inputs, out: out.write_bytes(b"x"))
+    with pytest.warns(UserWarning, match="not a whole number of frames"):
+        _render(tmp_path / "x", monkeypatch, scene)  # recording renderer: no frames
+
+    assembled = []
+    monkeypatch.setattr(render_mod, "assemble_film",
+                        lambda scene, results, out, **kw: (assembled.append(out), out.write_bytes(b"x")))
+
+    class _WithFrames(_RecordingRenderer):
+        def render(self, shot, ctx):
+            result = super().render(shot, ctx)
+            result.frame_manifest = [Path("f.png")]
+            return result
+
+    from an import init
+    from an.project import load
+
+    root = init(tmp_path / "y" / "demo")
+    load(root).mall["scenes"]["main"] = scene
+    monkeypatch.setattr(render_mod._DEFAULT_REGISTRY, "find_for", lambda shot: _WithFrames())
+    render_mod.render(load(root), auto_audio=False)
+    assert len(assembled) == 1
 
 
 # --- the SubRip mirror and the import boundary (Decision 2 of epic #9) ----------------------
