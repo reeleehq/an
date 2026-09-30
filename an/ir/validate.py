@@ -1119,7 +1119,11 @@ def _check_assembly(
         for i, shot in enumerate(scene.timeline):
             # A dissolve plays both shots' audio in the overlap: a line there
             # is heard over the other shot's picture. Legal, and worth a word.
-            overlap_out = timeline.dissolve_in[i + 1] / fps if i + 1 < len(scene.timeline) else 0.0
+            overlap_out = (
+                timeline.dissolve_in[i + 1] / fps
+                if i + 1 < len(scene.timeline)
+                else 0.0
+            )
             overlap_in = timeline.dissolve_in[i] / fps
             for k, line in enumerate(shot.dialogue):
                 if line.start is None:

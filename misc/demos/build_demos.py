@@ -1311,12 +1311,14 @@ def _build_transitions_and_sound(work: Path) -> Path:
         ```
         """
     ) + (
-        "\n" + _entities("maya")
+        "\n"
+        + _entities("maya")
         + "\n```dialogue\nmaya: Listen. The music dips while I talk.\n```\n"
         + "\n## Shot s2 (cutout)\n\n```yaml shot\nduration: 3.0\n"
         "transition:\n  kind: dissolve\n  duration: 0.6\n"
         "sounds:\n- sound: hit\n  at: 1.5\n```\n"
-        + "\n" + _entities("maya", "charlie")
+        + "\n"
+        + _entities("maya", "charlie")
         + "\n```yaml actions\n"
         "- kind: set\n  target: charlie\n  property: alpha\n  value: 0.0\n  at: 0.0\n"
         "- kind: set\n  target: charlie\n  property: alpha\n  value: 1.0\n  at: 1.5\n"
@@ -1324,10 +1326,20 @@ def _build_transitions_and_sound(work: Path) -> Path:
     )
     project = _project(work, scene_md=md, characters=("maya", "charlie"))
     sounds = build_project_mall(project, ensure=True)["sounds"]
-    add_sound(sounds, "bed", synth_bed(2.0), source=SYNTH_SOURCE,
-              description="a pulsing A-major chord, 2 s, loops seamlessly")
-    add_sound(sounds, "hit", synth_hit(seed=1), source=SYNTH_SOURCE,
-              description="a noise burst over a 90 Hz thump")
+    add_sound(
+        sounds,
+        "bed",
+        synth_bed(2.0),
+        source=SYNTH_SOURCE,
+        description="a pulsing A-major chord, 2 s, loops seamlessly",
+    )
+    add_sound(
+        sounds,
+        "hit",
+        synth_hit(seed=1),
+        source=SYNTH_SOURCE,
+        description="a noise burst over a 90 Hz thump",
+    )
     return _render(project)
 
 

@@ -534,7 +534,9 @@ def ir_to_markdown(scene: SceneIR) -> str:
             list(easing) if isinstance(easing, tuple) else easing
         )
     if scene.meta.sounds:
-        meta_dict["sounds"] = [c.model_dump(exclude_defaults=True) for c in scene.meta.sounds]
+        meta_dict["sounds"] = [
+            c.model_dump(exclude_defaults=True) for c in scene.meta.sounds
+        ]
     parts.append("```yaml meta")
     parts.append(yaml.safe_dump(meta_dict, sort_keys=False).rstrip())
     parts.append("```\n")
@@ -554,7 +556,9 @@ def ir_to_markdown(scene: SceneIR) -> str:
         if shot.transition is not None:
             shot_yaml["transition"] = shot.transition.model_dump(exclude_defaults=True)
         if shot.sounds:
-            shot_yaml["sounds"] = [c.model_dump(exclude_defaults=True) for c in shot.sounds]
+            shot_yaml["sounds"] = [
+                c.model_dump(exclude_defaults=True) for c in shot.sounds
+            ]
         parts.append("```yaml shot")
         parts.append(yaml.safe_dump(shot_yaml, sort_keys=False).rstrip())
         parts.append("```\n")

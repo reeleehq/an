@@ -300,7 +300,9 @@ def _frame_sources(timeline: FilmTimeline) -> list[list[tuple[int, int]]]:
     return sources
 
 
-def _colour_weight(timeline: FilmTimeline, i: int, j: int) -> tuple[int, int, str | None]:
+def _colour_weight(
+    timeline: FilmTimeline, i: int, j: int
+) -> tuple[int, int, str | None]:
     """``(num, den, colour)``: how far frame ``j`` of shot ``i`` is faded.
 
     Head frames go ``m/m, (m-1)/m, … 1/m`` of colour — the first frame of a
@@ -559,7 +561,11 @@ def duck_gain(
 
 
 def _duck_expressions(
-    spans: Sequence[tuple[float, float]], *, duck_db: float, attack: float, release: float
+    spans: Sequence[tuple[float, float]],
+    *,
+    duck_db: float,
+    attack: float,
+    release: float,
 ) -> list[str]:
     """:func:`duck_gain` as ffmpeg ``volume`` expressions in ``t``, one per
     chunk of at most :data:`DUCK_SPANS_PER_EXPRESSION` spans, to be CHAINED.
@@ -706,4 +712,3 @@ def assemble_film(
     plan = mix_plan(scene, timeline, mall, work / "audio")
     _run(mix_command(plan, picture, output), doing="mixing the film's sound")
     return output
-
