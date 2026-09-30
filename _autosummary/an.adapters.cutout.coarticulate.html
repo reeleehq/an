@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=94c222a7"></script>
+    <script src="../_static/documentation_options.js?v=30baa6be"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.clip" href="an.adapters.cutout.clip.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.120" />
+  <meta name="docsearch:version" content="0.1.121" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -542,7 +542,16 @@ neighbour’s shape” is “do not swap”).</p></li>
 <li><p><strong>Anticipation</strong> — <a class="reference internal" href="#an.adapters.cutout.coarticulate.lead" title="an.adapters.cutout.coarticulate.lead"><code class="xref py py-func docutils literal notranslate"><span class="pre">lead()</span></code></a> moves every cue earlier by a fixed lead
 (JALI: “speech onset begins 120 ms before the apex”; the animator’s “two
 frames ahead”; Rhubarb’s own <code class="docutils literal notranslate"><span class="pre">maxExtensionDuration</span></code> of 60 ms), clamped
-at 0.</p></li>
+at 0.
+2b. <strong>Close after speech</strong> — <a class="reference internal" href="#an.adapters.cutout.coarticulate.close_after_speech" title="an.adapters.cutout.coarticulate.close_after_speech"><code class="xref py py-func docutils literal notranslate"><span class="pre">close_after_speech()</span></code></a> puts the mouth at rest
+where the last WORD ends, when the line knows its words (an#213). A
+provider that aligns from words keyed a rest between words but, until
+an#213, not after the last one, so the last shape held through the
+trailing silence of the clip; cached tracks keep that defect, so the
+compiler closes the mouth rather than asking for a re-alignment. After
+the lead (on the led times, so a word shorter than the lead still opens
+the mouth before it closes) and before the decay (which gives the last
+shape its time).</p></li>
 <li><p><strong>Decay</strong> — <a class="reference internal" href="#an.adapters.cutout.coarticulate.decay" title="an.adapters.cutout.coarticulate.decay"><code class="xref py py-func docutils literal notranslate"><span class="pre">decay()</span></code></a> gives a shape its time to close: a rest cue that
 arrives sooner than <code class="docutils literal notranslate"><span class="pre">decay_s</span></code> after the shape before it is pushed out to
 <code class="docutils literal notranslate"><span class="pre">decay_s</span></code> (JALI: “another 120 ms to decay to zero”), never past the next
@@ -594,22 +603,25 @@ codes both “most consonants” and the vowel EE, so the letter alone cannot sa
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.coarticulate" title="an.adapters.cutout.coarticulate.coarticulate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coarticulate</span></code></a>(keys, *, fps[, end, ...])</p></td>
-<td><p>All four passes, in the order the module docstring gives.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.close_after_speech" title="an.adapters.cutout.coarticulate.close_after_speech"><code class="xref py py-obj docutils literal notranslate"><span class="pre">close_after_speech</span></code></a>(keys, *, speech_end[, rest])</p></td>
+<td><p>Rest once speech is over: at <code class="docutils literal notranslate"><span class="pre">speech_end</span></code>, or just after the last shape when a shape is keyed at or after it — never before a shape.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.condense" title="an.adapters.cutout.coarticulate.condense"><code class="xref py py-obj docutils literal notranslate"><span class="pre">condense</span></code></a>(keys, *, min_hold_s[, end])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.coarticulate" title="an.adapters.cutout.coarticulate.coarticulate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coarticulate</span></code></a>(keys, *, fps[, end, ...])</p></td>
+<td><p>All the passes, in the order the module docstring gives.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.condense" title="an.adapters.cutout.coarticulate.condense"><code class="xref py py-obj docutils literal notranslate"><span class="pre">condense</span></code></a>(keys, *, min_hold_s[, end])</p></td>
 <td><p>Enforce a minimum hold by voting, never by dropping.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.decay" title="an.adapters.cutout.coarticulate.decay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decay</span></code></a>(keys, *, decay_s[, rest, end])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.decay" title="an.adapters.cutout.coarticulate.decay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decay</span></code></a>(keys, *, decay_s[, rest, end])</p></td>
 <td><p>Give a shape <code class="docutils literal notranslate"><span class="pre">decay_s</span></code> to close: a rest arriving sooner than that after the shape before it is pushed out to <code class="docutils literal notranslate"><span class="pre">decay_s</span></code>, never past the next cue and never past <code class="docutils literal notranslate"><span class="pre">end</span></code> (a rest pushed to <code class="docutils literal notranslate"><span class="pre">end</span></code> is where the line closes).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.lead" title="an.adapters.cutout.coarticulate.lead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lead</span></code></a>(keys, *, lead_s)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.lead" title="an.adapters.cutout.coarticulate.lead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lead</span></code></a>(keys, *, lead_s)</p></td>
 <td><p>Anticipation: every cue moves <code class="docutils literal notranslate"><span class="pre">lead_s</span></code> earlier, clamped at 0.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.merge_duplicates" title="an.adapters.cutout.coarticulate.merge_duplicates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_duplicates</span></code></a>(keys)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.merge_duplicates" title="an.adapters.cutout.coarticulate.merge_duplicates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_duplicates</span></code></a>(keys)</p></td>
 <td><p>Drop a cue whose shape is the one already showing.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.suppress_weak" title="an.adapters.cutout.coarticulate.suppress_weak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suppress_weak</span></code></a>(keys, *, max_weak_s[, end])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.coarticulate.suppress_weak" title="an.adapters.cutout.coarticulate.suppress_weak"><code class="xref py py-obj docutils literal notranslate"><span class="pre">suppress_weak</span></code></a>(keys, *, max_weak_s[, end])</p></td>
 <td><p>Drop a weak (low-dominance) cue that would show for less than <code class="docutils literal notranslate"><span class="pre">max_weak_s</span></code>.</p></td>
 </tr>
 </tbody>
@@ -670,14 +682,59 @@ codes both “most consonants” and the vowel EE, so the letter alone cannot sa
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="an.adapters.cutout.coarticulate.coarticulate">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.coarticulate.</span></span><span class="sig-name descname"><span class="pre">coarticulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_hold_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lead_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.08333333333333333</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/coarticulate.html#coarticulate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.coarticulate.coarticulate" title="Link to this definition">#</a></dt>
-<dd><p>All four passes, in the order the module docstring gives.</p>
+<dt class="sig sig-object py" id="an.adapters.cutout.coarticulate.close_after_speech">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.coarticulate.</span></span><span class="sig-name descname"><span class="pre">close_after_speech</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">speech_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/coarticulate.html#close_after_speech"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.coarticulate.close_after_speech" title="Link to this definition">#</a></dt>
+<dd><p>Rest once speech is over: at <code class="docutils literal notranslate"><span class="pre">speech_end</span></code>, or just after the last
+shape when a shape is keyed at or after it — never before a shape.</p>
+<p><code class="docutils literal notranslate"><span class="pre">speech_end</span></code> is where the line’s last word ends (<code class="docutils literal notranslate"><span class="pre">None</span></code>: the line does
+not know its words, and nothing changes). A provider spreads a very short
+word’s shapes over a minimum span, so a shape can start after its word’s
+end; the rest then follows that shape, and <a class="reference internal" href="#an.adapters.cutout.coarticulate.decay" title="an.adapters.cutout.coarticulate.decay"><code class="xref py py-func docutils literal notranslate"><span class="pre">decay()</span></code></a> pushes it out to
+<code class="docutils literal notranslate"><span class="pre">decay_s</span></code> after it (an#213 review). Nothing is inserted when the mouth
+is already at rest there. <code class="docutils literal notranslate"><span class="pre">rest</span></code> is the TRACK’s rest code (a track keyed
+in another convention closes with its own).</p>
+<p>The evidence, “Bye.” timed 0.0–0.5 s in a 1.84 s clip:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.adapters.cutout.coarticulate.Cue" title="an.adapters.cutout.coarticulate.Cue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cue</span></code></a>]</span></p>
 </dd>
 </dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">raw</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.167</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.333</span><span class="p">,</span> <span class="s2">"C"</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.838</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">c</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">close_after_speech</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">speech_end</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)]</span>
+<span class="go">[(0.0, 'X'), (0.0, 'A'), (0.167, 'B'), (0.333, 'C'), (0.5, 'X'), (1.838, 'X')]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">close_after_speech</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">speech_end</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">_cues</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>A 25 ms last word whose second shape starts after it ends:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">c</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">close_after_speech</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"E"</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.025</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">),</span> <span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">)],</span> <span class="n">speech_end</span><span class="o">=</span><span class="mf">1.02</span><span class="p">)][</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
+<span class="go">[(1.025, 'B'), (1.025000001, 'X'), (2.0, 'X')]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.adapters.cutout.coarticulate.coarticulate">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.coarticulate.</span></span><span class="sig-name descname"><span class="pre">coarticulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_hold_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lead_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.08333333333333333</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decay_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'X'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speech_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/coarticulate.html#coarticulate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.coarticulate.coarticulate" title="Link to this definition">#</a></dt>
+<dd><p>All the passes, in the order the module docstring gives.</p>
+<p><code class="docutils literal notranslate"><span class="pre">speech_end</span></code> (where the last word ends, when the line knows its words)
+closes the mouth there instead of at <code class="docutils literal notranslate"><span class="pre">end</span></code> (an#213):</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.adapters.cutout.coarticulate.Cue" title="an.adapters.cutout.coarticulate.Cue"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cue</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bye</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.167</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.333</span><span class="p">,</span> <span class="s2">"C"</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.838</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="nb">round</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">c</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coarticulate</span><span class="p">(</span><span class="n">bye</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mf">1.838</span><span class="p">)][</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+<span class="go">[(0.28, 'C'), (1.755, 'X')]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="nb">round</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">c</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coarticulate</span><span class="p">(</span><span class="n">bye</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mf">1.838</span><span class="p">,</span> <span class="n">speech_end</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)][</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+<span class="go">[(0.28, 'C'), (0.5, 'X')]</span>
+</pre></div>
+</div>
+<p>(The shapes lead by two frames; the closing rest is placed after the lead,
+at the word’s end, and the decay keeps it at least <code class="docutils literal notranslate"><span class="pre">decay_s</span></code> after the
+last shape.)</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">raw</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.30</span><span class="p">,</span> <span class="s2">"B"</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.34</span><span class="p">,</span> <span class="s2">"A"</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.38</span><span class="p">,</span> <span class="s2">"D"</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.80</span><span class="p">,</span> <span class="s2">"X"</span><span class="p">)]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="nb">round</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">c</span><span class="o">.</span><span class="n">code</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coarticulate</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)]</span>
 <span class="go">[(0.0, 'X'), (0.257, 'D'), (0.717, 'X')]</span>
@@ -894,6 +951,7 @@ condenser did.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.coarticulate.DEFAULT_MIN_HOLD_S"><code class="docutils literal notranslate"><span class="pre">DEFAULT_MIN_HOLD_S</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.coarticulate.DOMINANCE"><code class="docutils literal notranslate"><span class="pre">DOMINANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.coarticulate.WEAK_BELOW"><code class="docutils literal notranslate"><span class="pre">WEAK_BELOW</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.coarticulate.close_after_speech"><code class="docutils literal notranslate"><span class="pre">close_after_speech()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.coarticulate.coarticulate"><code class="docutils literal notranslate"><span class="pre">coarticulate()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.coarticulate.condense"><code class="docutils literal notranslate"><span class="pre">condense()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.coarticulate.decay"><code class="docutils literal notranslate"><span class="pre">decay()</span></code></a></li>

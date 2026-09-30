@@ -19,6 +19,7 @@ an.adapters.cutout.coarticulate
 
    .. autosummary::
    
+      close_after_speech
       coarticulate
       condense
       decay

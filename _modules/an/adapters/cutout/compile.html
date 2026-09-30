@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=94c222a7"></script>
+    <script src="../../../../_static/documentation_options.js?v=30baa6be"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.120" />
+  <meta name="docsearch:version" content="0.1.121" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -5095,9 +5095,26 @@ window.runMermaid = runMermaid;</script>
         <span class="p">]</span>
         <span class="n">condensed</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
         <span class="k">if</span> <span class="n">COARTICULATION_ENABLED</span><span class="p">:</span>
+            <span class="c1"># Where the last word ends, when the line knows its words: the</span>
+            <span class="c1"># mouth rests there, not at the clip's end (an#213) — a TTS clip</span>
+            <span class="c1"># can carry a second of silence after the last word.</span>
+            <span class="n">speech_end</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">word_timings</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">word_timings</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="c1"># A word-timed track ends on ITS rest code (`word_timings_to_visemes`</span>
+            <span class="c1"># always does), which need not be Rhubarb's 'X' (an#213 review).</span>
+            <span class="n">rest_kw</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"rest"</span><span class="p">:</span> <span class="n">raw</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]}</span> <span class="k">if</span> <span class="n">speech_end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
             <span class="n">condensed</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coarticulate</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">coarticulate</span><span class="p">(</span>
+                    <span class="n">raw</span><span class="p">,</span>
+                    <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+                    <span class="n">end</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">),</span>
+                    <span class="n">speech_end</span><span class="o">=</span><span class="n">speech_end</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">rest_kw</span><span class="p">,</span>
+                <span class="p">)</span>
             <span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># The pre-#97 condenser, verbatim: a key inside the window is</span>

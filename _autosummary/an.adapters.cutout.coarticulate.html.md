@@ -19,6 +19,15 @@ passes turn the raw track into what an animator would key, in this order:
    (JALI: “speech onset begins 120 ms before the apex”; the animator’s “two
    frames ahead”; Rhubarb’s own `maxExtensionDuration` of 60 ms), clamped
    at 0.
+   2b. **Close after speech** — [`close_after_speech()`](#an.adapters.cutout.coarticulate.close_after_speech) puts the mouth at rest
+   where the last WORD ends, when the line knows its words (an#213). A
+   provider that aligns from words keyed a rest between words but, until
+   an#213, not after the last one, so the last shape held through the
+   trailing silence of the clip; cached tracks keep that defect, so the
+   compiler closes the mouth rather than asking for a re-alignment. After
+   the lead (on the led times, so a word shorter than the lead still opens
+   the mouth before it closes) and before the decay (which gives the last
+   shape its time).
 3. **Decay** — [`decay()`](#an.adapters.cutout.coarticulate.decay) gives a shape its time to close: a rest cue that
    arrives sooner than `decay_s` after the shape before it is pushed out to
    `decay_s` (JALI: “another 120 ms to decay to zero”), never past the next
@@ -62,13 +71,14 @@ codes both “most consonants” and the vowel EE, so the letter alone cannot sa
 
 ### Functions
 
-| [`coarticulate`](#an.adapters.cutout.coarticulate.coarticulate)(keys, \*, fps[, end, ...])    | All four passes, in the order the module docstring gives.                                                                                                                                                               |
-|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`condense`](#an.adapters.cutout.coarticulate.condense)(keys, \*, min_hold_s[, end])      | Enforce a minimum hold by voting, never by dropping.                                                                                                                                                                    |
-| [`decay`](#an.adapters.cutout.coarticulate.decay)(keys, \*, decay_s[, rest, end])      | Give a shape `decay_s` to close: a rest arriving sooner than that after the shape before it is pushed out to `decay_s`, never past the next cue and never past `end` (a rest pushed to `end` is where the line closes). |
-| [`lead`](#an.adapters.cutout.coarticulate.lead)(keys, \*, lead_s)                     | Anticipation: every cue moves `lead_s` earlier, clamped at 0.                                                                                                                                                           |
-| [`merge_duplicates`](#an.adapters.cutout.coarticulate.merge_duplicates)(keys)                     | Drop a cue whose shape is the one already showing.                                                                                                                                                                      |
-| [`suppress_weak`](#an.adapters.cutout.coarticulate.suppress_weak)(keys, \*, max_weak_s[, end]) | Drop a weak (low-dominance) cue that would show for less than `max_weak_s`.                                                                                                                                             |
+| [`close_after_speech`](#an.adapters.cutout.coarticulate.close_after_speech)(keys, \*, speech_end[, rest])   | Rest once speech is over: at `speech_end`, or just after the last shape when a shape is keyed at or after it — never before a shape.                                                                                    |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`coarticulate`](#an.adapters.cutout.coarticulate.coarticulate)(keys, \*, fps[, end, ...])            | All the passes, in the order the module docstring gives.                                                                                                                                                                |
+| [`condense`](#an.adapters.cutout.coarticulate.condense)(keys, \*, min_hold_s[, end])              | Enforce a minimum hold by voting, never by dropping.                                                                                                                                                                    |
+| [`decay`](#an.adapters.cutout.coarticulate.decay)(keys, \*, decay_s[, rest, end])              | Give a shape `decay_s` to close: a rest arriving sooner than that after the shape before it is pushed out to `decay_s`, never past the next cue and never past `end` (a rest pushed to `end` is where the line closes). |
+| [`lead`](#an.adapters.cutout.coarticulate.lead)(keys, \*, lead_s)                             | Anticipation: every cue moves `lead_s` earlier, clamped at 0.                                                                                                                                                           |
+| [`merge_duplicates`](#an.adapters.cutout.coarticulate.merge_duplicates)(keys)                             | Drop a cue whose shape is the one already showing.                                                                                                                                                                      |
+| [`suppress_weak`](#an.adapters.cutout.coarticulate.suppress_weak)(keys, \*, max_weak_s[, end])         | Drop a weak (low-dominance) cue that would show for less than `max_weak_s`.                                                                                                                                             |
 
 ### Classes
 
@@ -105,12 +115,61 @@ Per-shape dominance for Rhubarb’s letters. Order sourced, values ours.
 
 Below this dominance a cue is “weak” for [`suppress_weak()`](#an.adapters.cutout.coarticulate.suppress_weak).
 
-### an.adapters.cutout.coarticulate.coarticulate(keys, , fps, end=None, min_hold_s=0.14, lead_s=0.08333333333333333, decay_s=0.12, rest='X')
+### an.adapters.cutout.coarticulate.close_after_speech(keys, , speech_end, rest='X')
 
-All four passes, in the order the module docstring gives.
+Rest once speech is over: at `speech_end`, or just after the last
+shape when a shape is keyed at or after it — never before a shape.
+
+`speech_end` is where the line’s last word ends (`None`: the line does
+not know its words, and nothing changes). A provider spreads a very short
+word’s shapes over a minimum span, so a shape can start after its word’s
+end; the rest then follows that shape, and [`decay()`](#an.adapters.cutout.coarticulate.decay) pushes it out to
+`decay_s` after it (an#213 review). Nothing is inserted when the mouth
+is already at rest there. `rest` is the TRACK’s rest code (a track keyed
+in another convention closes with its own).
+
+The evidence, “Bye.” timed 0.0–0.5 s in a 1.84 s clip:
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
+
+```pycon
+>>> raw = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
+>>> [(c.time, c.code) for c in close_after_speech(raw, speech_end=0.5)]
+[(0.0, 'X'), (0.0, 'A'), (0.167, 'B'), (0.333, 'C'), (0.5, 'X'), (1.838, 'X')]
+>>> close_after_speech(raw, speech_end=None) == _cues(raw)
+True
+```
+
+A 25 ms last word whose second shape starts after it ends:
+
+```pycon
+>>> [(c.time, c.code) for c in close_after_speech(
+...     [(0, "X"), (1.0, "E"), (1.025, "B"), (2.0, "X")], speech_end=1.02)][-3:]
+[(1.025, 'B'), (1.025000001, 'X'), (2.0, 'X')]
+```
+
+### an.adapters.cutout.coarticulate.coarticulate(keys, , fps, end=None, min_hold_s=0.14, lead_s=0.08333333333333333, decay_s=0.12, rest='X', speech_end=None)
+
+All the passes, in the order the module docstring gives.
+
+`speech_end` (where the last word ends, when the line knows its words)
+closes the mouth there instead of at `end` (an#213):
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](#an.adapters.cutout.coarticulate.Cue)]
+
+```pycon
+>>> bye = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
+>>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838)][-2:]
+[(0.28, 'C'), (1.755, 'X')]
+>>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838, speech_end=0.5)][-2:]
+[(0.28, 'C'), (0.5, 'X')]
+```
+
+(The shapes lead by two frames; the closing rest is placed after the lead,
+at the word’s end, and the decay keeps it at least `decay_s` after the
+last shape.)
 
 ```pycon
 >>> raw = [(0.0, "X"), (0.30, "B"), (0.34, "A"), (0.38, "D"), (0.80, "X")]

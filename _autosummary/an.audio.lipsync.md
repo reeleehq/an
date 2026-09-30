@@ -104,7 +104,8 @@ Used by `WhisperLipSync` and `WordTimingsLipSync`. The
 algorithm: per word, walk its characters in order, look up each
 character’s viseme code, dedupe consecutive identical codes, and
 space the resulting keyframes evenly across the word’s
-`[start, end]` interval. In gaps wider than `min_gap_for_rest`
+`[start, end]` interval. In gaps wider than `min_gap_for_rest` —
+between two words, or after the last one before `total_duration` —
 insert a single rest keyframe just after the previous word ended.
 
 Times are clamped to `[0, total_duration]` since some

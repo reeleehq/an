@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=94c222a7"></script>
+    <script src="../../../_static/documentation_options.js?v=30baa6be"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.120" />
+  <meta name="docsearch:version" content="0.1.121" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -824,6 +824,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">_DEFAULT_REST_VISEME</span> <span class="o">=</span> <span class="s2">"X"</span>
 <span class="n">_DEFAULT_MIN_WORD_GAP_FOR_REST</span> <span class="o">=</span> <span class="mf">0.20</span>  <span class="c1"># seconds</span>
+<span class="c1">#: How long after a word ends its closing rest lands (a gap's, or the line's tail).</span>
+<span class="n">_REST_AFTER_WORD_S</span> <span class="o">=</span> <span class="mf">0.05</span>  <span class="c1"># seconds</span>
 
 
 <div class="viewcode-block" id="word_timings_to_visemes">
@@ -842,7 +844,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    algorithm: per word, walk its characters in order, look up each</span>
 <span class="sd">    character's viseme code, dedupe consecutive identical codes, and</span>
 <span class="sd">    space the resulting keyframes evenly across the word's</span>
-<span class="sd">    ``[start, end]`` interval. In gaps wider than ``min_gap_for_rest``</span>
+<span class="sd">    ``[start, end]`` interval. In gaps wider than ``min_gap_for_rest`` —</span>
+<span class="sd">    between two words, or after the last one before ``total_duration`` —</span>
 <span class="sd">    insert a single rest keyframe just after the previous word ended.</span>
 
 <span class="sd">    Times are clamped to ``[0, total_duration]`` since some</span>
@@ -860,7 +863,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">w_start</span> <span class="o">=</span> <span class="n">clamp</span><span class="p">(</span><span class="n">w_start</span><span class="p">)</span>
         <span class="n">w_end</span> <span class="o">=</span> <span class="n">clamp</span><span class="p">(</span><span class="n">w_end</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">w_start</span> <span class="o">-</span> <span class="n">prev_end</span> <span class="o">&gt;</span> <span class="n">min_gap_for_rest</span><span class="p">:</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">clamp</span><span class="p">(</span><span class="n">prev_end</span> <span class="o">+</span> <span class="mf">0.05</span><span class="p">),</span> <span class="n">code</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">clamp</span><span class="p">(</span><span class="n">prev_end</span> <span class="o">+</span> <span class="n">_REST_AFTER_WORD_S</span><span class="p">),</span> <span class="n">code</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">)</span>
+            <span class="p">)</span>
 
         <span class="n">codes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">previous</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
@@ -883,6 +888,11 @@ window.runMermaid = runMermaid;</script>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">clamp</span><span class="p">(</span><span class="n">w_start</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">step</span><span class="p">),</span> <span class="n">code</span><span class="o">=</span><span class="n">code</span><span class="p">))</span>
         <span class="n">prev_end</span> <span class="o">=</span> <span class="n">w_end</span>
 
+    <span class="c1"># The silence AFTER the last word closes the mouth too, by the same rule as</span>
+    <span class="c1"># a gap between words — without it the last shape held to the clip's end</span>
+    <span class="c1"># (an#213).</span>
+    <span class="k">if</span> <span class="n">max_t</span> <span class="o">-</span> <span class="n">prev_end</span> <span class="o">&gt;</span> <span class="n">min_gap_for_rest</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">clamp</span><span class="p">(</span><span class="n">prev_end</span> <span class="o">+</span> <span class="n">_REST_AFTER_WORD_S</span><span class="p">),</span> <span class="n">code</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">))</span>
     <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Viseme</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">max_t</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="n">rest_viseme</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">out</span></div>
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=94c222a7"></script>
+    <script src="../../../../_static/documentation_options.js?v=30baa6be"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.120" />
+  <meta name="docsearch:version" content="0.1.121" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -729,6 +729,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">   (JALI: "speech onset begins 120 ms before the apex"; the animator's "two</span>
 <span class="sd">   frames ahead"; Rhubarb's own ``maxExtensionDuration`` of 60 ms), clamped</span>
 <span class="sd">   at 0.</span>
+<span class="sd">2b. **Close after speech** — :func:`close_after_speech` puts the mouth at rest</span>
+<span class="sd">   where the last WORD ends, when the line knows its words (an#213). A</span>
+<span class="sd">   provider that aligns from words keyed a rest between words but, until</span>
+<span class="sd">   an#213, not after the last one, so the last shape held through the</span>
+<span class="sd">   trailing silence of the clip; cached tracks keep that defect, so the</span>
+<span class="sd">   compiler closes the mouth rather than asking for a re-alignment. After</span>
+<span class="sd">   the lead (on the led times, so a word shorter than the lead still opens</span>
+<span class="sd">   the mouth before it closes) and before the decay (which gives the last</span>
+<span class="sd">   shape its time).</span>
 <span class="sd">3. **Decay** — :func:`decay` gives a shape its time to close: a rest cue that</span>
 <span class="sd">   arrives sooner than ``decay_s`` after the shape before it is pushed out to</span>
 <span class="sd">   ``decay_s`` (JALI: "another 120 ms to decay to zero"), never past the next</span>
@@ -1034,6 +1043,64 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="close_after_speech">
+<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.coarticulate.html#an.adapters.cutout.coarticulate.close_after_speech">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">close_after_speech</span><span class="p">(</span>
+    <span class="n">keys</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">speech_end</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">rest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"X"</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Cue</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Rest once speech is over: at ``speech_end``, or just after the last</span>
+<span class="sd">    shape when a shape is keyed at or after it — never before a shape.</span>
+
+<span class="sd">    ``speech_end`` is where the line's last word ends (``None``: the line does</span>
+<span class="sd">    not know its words, and nothing changes). A provider spreads a very short</span>
+<span class="sd">    word's shapes over a minimum span, so a shape can start after its word's</span>
+<span class="sd">    end; the rest then follows that shape, and :func:`decay` pushes it out to</span>
+<span class="sd">    ``decay_s`` after it (an#213 review). Nothing is inserted when the mouth</span>
+<span class="sd">    is already at rest there. ``rest`` is the TRACK's rest code (a track keyed</span>
+<span class="sd">    in another convention closes with its own).</span>
+
+<span class="sd">    The evidence, "Bye." timed 0.0–0.5 s in a 1.84 s clip:</span>
+
+<span class="sd">    &gt;&gt;&gt; raw = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]</span>
+<span class="sd">    &gt;&gt;&gt; [(c.time, c.code) for c in close_after_speech(raw, speech_end=0.5)]</span>
+<span class="sd">    [(0.0, 'X'), (0.0, 'A'), (0.167, 'B'), (0.333, 'C'), (0.5, 'X'), (1.838, 'X')]</span>
+<span class="sd">    &gt;&gt;&gt; close_after_speech(raw, speech_end=None) == _cues(raw)</span>
+<span class="sd">    True</span>
+
+<span class="sd">    A 25 ms last word whose second shape starts after it ends:</span>
+
+<span class="sd">    &gt;&gt;&gt; [(c.time, c.code) for c in close_after_speech(</span>
+<span class="sd">    ...     [(0, "X"), (1.0, "E"), (1.025, "B"), (2.0, "X")], speech_end=1.02)][-3:]</span>
+<span class="sd">    [(1.025, 'B'), (1.025000001, 'X'), (2.0, 'X')]</span>
+<span class="sd">    """</span>
+    <span class="n">cues</span> <span class="o">=</span> <span class="n">_cues</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">speech_end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cues</span>
+    <span class="n">shapes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cues</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">code</span> <span class="o">!=</span> <span class="n">rest</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">time</span> <span class="o">&lt;</span> <span class="n">_last_rest_time</span><span class="p">(</span><span class="n">cues</span><span class="p">,</span> <span class="n">rest</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="n">closing</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">speech_end</span><span class="p">),</span> <span class="p">(</span><span class="n">shapes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span> <span class="o">+</span> <span class="n">_AFTER_SHAPE_S</span><span class="p">)</span> <span class="k">if</span> <span class="n">shapes</span> <span class="k">else</span> <span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">inf</span>
+    <span class="p">)</span>
+    <span class="n">before</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cues</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">time</span> <span class="o">&lt;=</span> <span class="n">closing</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">before</span> <span class="ow">or</span> <span class="n">before</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="n">rest</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cues</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">[</span><span class="o">*</span><span class="n">cues</span><span class="p">,</span> <span class="n">Cue</span><span class="p">(</span><span class="n">closing</span><span class="p">,</span> <span class="n">rest</span><span class="p">,</span> <span class="n">before</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">intensity</span><span class="p">)],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">time</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="c1">#: Where a closing rest goes when a shape starts at or after the speech end:</span>
+<span class="c1">#: just after it, so the shape keeps its onset and the decay gives it its time.</span>
+<span class="n">_AFTER_SHAPE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_last_rest_time</span><span class="p">(</span><span class="n">cues</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Cue</span><span class="p">],</span> <span class="n">rest</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The terminal rest's time (the track's end), or infinity without one."""</span>
+    <span class="k">return</span> <span class="n">cues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">time</span> <span class="k">if</span> <span class="n">cues</span> <span class="ow">and</span> <span class="n">cues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="n">rest</span> <span class="k">else</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span>
+
+
 <div class="viewcode-block" id="coarticulate">
 <a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.coarticulate.html#an.adapters.cutout.coarticulate.coarticulate">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">coarticulate</span><span class="p">(</span>
@@ -1045,8 +1112,22 @@ window.runMermaid = runMermaid;</script>
     <span class="n">lead_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DEFAULT_LEAD_S</span><span class="p">,</span>
     <span class="n">decay_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DEFAULT_DECAY_S</span><span class="p">,</span>
     <span class="n">rest</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"X"</span><span class="p">,</span>
+    <span class="n">speech_end</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Cue</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""All four passes, in the order the module docstring gives.</span>
+<span class="w">    </span><span class="sd">"""All the passes, in the order the module docstring gives.</span>
+
+<span class="sd">    ``speech_end`` (where the last word ends, when the line knows its words)</span>
+<span class="sd">    closes the mouth there instead of at ``end`` (an#213):</span>
+
+<span class="sd">    &gt;&gt;&gt; bye = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]</span>
+<span class="sd">    &gt;&gt;&gt; [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838)][-2:]</span>
+<span class="sd">    [(0.28, 'C'), (1.755, 'X')]</span>
+<span class="sd">    &gt;&gt;&gt; [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838, speech_end=0.5)][-2:]</span>
+<span class="sd">    [(0.28, 'C'), (0.5, 'X')]</span>
+
+<span class="sd">    (The shapes lead by two frames; the closing rest is placed after the lead,</span>
+<span class="sd">    at the word's end, and the decay keeps it at least ``decay_s`` after the</span>
+<span class="sd">    last shape.)</span>
 
 <span class="sd">    &gt;&gt;&gt; raw = [(0.0, "X"), (0.30, "B"), (0.34, "A"), (0.38, "D"), (0.80, "X")]</span>
 <span class="sd">    &gt;&gt;&gt; [(round(c.time, 3), c.code) for c in coarticulate(raw, fps=24, end=1.0)]</span>
@@ -1077,6 +1158,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">one_frame</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">fps</span>
     <span class="n">cues</span> <span class="o">=</span> <span class="n">suppress_weak</span><span class="p">(</span><span class="n">cues_in</span><span class="p">,</span> <span class="n">max_weak_s</span><span class="o">=</span><span class="n">one_frame</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
     <span class="n">cues</span> <span class="o">=</span> <span class="n">lead</span><span class="p">(</span><span class="n">cues</span><span class="p">,</span> <span class="n">lead_s</span><span class="o">=</span><span class="n">lead_s</span><span class="p">)</span>
+    <span class="n">cues</span> <span class="o">=</span> <span class="n">close_after_speech</span><span class="p">(</span><span class="n">cues</span><span class="p">,</span> <span class="n">speech_end</span><span class="o">=</span><span class="n">speech_end</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="n">rest</span><span class="p">)</span>
     <span class="n">cues</span> <span class="o">=</span> <span class="n">decay</span><span class="p">(</span><span class="n">cues</span><span class="p">,</span> <span class="n">decay_s</span><span class="o">=</span><span class="n">decay_s</span><span class="p">,</span> <span class="n">rest</span><span class="o">=</span><span class="n">rest</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">condense</span><span class="p">(</span><span class="n">cues</span><span class="p">,</span> <span class="n">min_hold_s</span><span class="o">=</span><span class="n">min_hold_s</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span>

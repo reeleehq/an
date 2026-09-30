@@ -1,4 +1,4 @@
-> built 2026-09-30 17:13 UTC from ddfc842 (main) · an 0.1.120. Details: build_info.json
+> built 2026-09-30 17:25 UTC from a1ad742 (main) · an 0.1.121. Details: build_info.json
 
 # index.html.md
 
@@ -637,6 +637,15 @@ passes turn the raw track into what an animator would key, in this order:
    (JALI: “speech onset begins 120 ms before the apex”; the animator’s “two
    frames ahead”; Rhubarb’s own `maxExtensionDuration` of 60 ms), clamped
    at 0.
+   2b. **Close after speech** — [`close_after_speech()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.close_after_speech) puts the mouth at rest
+   where the last WORD ends, when the line knows its words (an#213). A
+   provider that aligns from words keyed a rest between words but, until
+   an#213, not after the last one, so the last shape held through the
+   trailing silence of the clip; cached tracks keep that defect, so the
+   compiler closes the mouth rather than asking for a re-alignment. After
+   the lead (on the led times, so a word shorter than the lead still opens
+   the mouth before it closes) and before the decay (which gives the last
+   shape its time).
 3. **Decay** — [`decay()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.decay) gives a shape its time to close: a rest cue that
    arrives sooner than `decay_s` after the shape before it is pushed out to
    `decay_s` (JALI: “another 120 ms to decay to zero”), never past the next
@@ -680,13 +689,14 @@ codes both “most consonants” and the vowel EE, so the letter alone cannot sa
 
 ### Functions
 
-| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.coarticulate)(keys, \*, fps[, end, ...])    | All four passes, in the order the module docstring gives.                                                                                                                                                               |
-|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`condense`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.condense)(keys, \*, min_hold_s[, end])      | Enforce a minimum hold by voting, never by dropping.                                                                                                                                                                    |
-| [`decay`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.decay)(keys, \*, decay_s[, rest, end])      | Give a shape `decay_s` to close: a rest arriving sooner than that after the shape before it is pushed out to `decay_s`, never past the next cue and never past `end` (a rest pushed to `end` is where the line closes). |
-| [`lead`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.lead)(keys, \*, lead_s)                     | Anticipation: every cue moves `lead_s` earlier, clamped at 0.                                                                                                                                                           |
-| [`merge_duplicates`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.merge_duplicates)(keys)                     | Drop a cue whose shape is the one already showing.                                                                                                                                                                      |
-| [`suppress_weak`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.suppress_weak)(keys, \*, max_weak_s[, end]) | Drop a weak (low-dominance) cue that would show for less than `max_weak_s`.                                                                                                                                             |
+| [`close_after_speech`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.close_after_speech)(keys, \*, speech_end[, rest])   | Rest once speech is over: at `speech_end`, or just after the last shape when a shape is keyed at or after it — never before a shape.                                                                                    |
+|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.coarticulate)(keys, \*, fps[, end, ...])            | All the passes, in the order the module docstring gives.                                                                                                                                                                |
+| [`condense`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.condense)(keys, \*, min_hold_s[, end])              | Enforce a minimum hold by voting, never by dropping.                                                                                                                                                                    |
+| [`decay`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.decay)(keys, \*, decay_s[, rest, end])              | Give a shape `decay_s` to close: a rest arriving sooner than that after the shape before it is pushed out to `decay_s`, never past the next cue and never past `end` (a rest pushed to `end` is where the line closes). |
+| [`lead`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.lead)(keys, \*, lead_s)                             | Anticipation: every cue moves `lead_s` earlier, clamped at 0.                                                                                                                                                           |
+| [`merge_duplicates`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.merge_duplicates)(keys)                             | Drop a cue whose shape is the one already showing.                                                                                                                                                                      |
+| [`suppress_weak`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.suppress_weak)(keys, \*, max_weak_s[, end])         | Drop a weak (low-dominance) cue that would show for less than `max_weak_s`.                                                                                                                                             |
 
 ### Classes
 
@@ -723,12 +733,61 @@ Per-shape dominance for Rhubarb’s letters. Order sourced, values ours.
 
 Below this dominance a cue is “weak” for [`suppress_weak()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.suppress_weak).
 
-### an.adapters.cutout.coarticulate.coarticulate(keys, , fps, end=None, min_hold_s=0.14, lead_s=0.08333333333333333, decay_s=0.12, rest='X')
+### an.adapters.cutout.coarticulate.close_after_speech(keys, , speech_end, rest='X')
 
-All four passes, in the order the module docstring gives.
+Rest once speech is over: at `speech_end`, or just after the last
+shape when a shape is keyed at or after it — never before a shape.
+
+`speech_end` is where the line’s last word ends (`None`: the line does
+not know its words, and nothing changes). A provider spreads a very short
+word’s shapes over a minimum span, so a shape can start after its word’s
+end; the rest then follows that shape, and [`decay()`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.decay) pushes it out to
+`decay_s` after it (an#213 review). Nothing is inserted when the mouth
+is already at rest there. `rest` is the TRACK’s rest code (a track keyed
+in another convention closes with its own).
+
+The evidence, “Bye.” timed 0.0–0.5 s in a 1.84 s clip:
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
+
+```pycon
+>>> raw = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
+>>> [(c.time, c.code) for c in close_after_speech(raw, speech_end=0.5)]
+[(0.0, 'X'), (0.0, 'A'), (0.167, 'B'), (0.333, 'C'), (0.5, 'X'), (1.838, 'X')]
+>>> close_after_speech(raw, speech_end=None) == _cues(raw)
+True
+```
+
+A 25 ms last word whose second shape starts after it ends:
+
+```pycon
+>>> [(c.time, c.code) for c in close_after_speech(
+...     [(0, "X"), (1.0, "E"), (1.025, "B"), (2.0, "X")], speech_end=1.02)][-3:]
+[(1.025, 'B'), (1.025000001, 'X'), (2.0, 'X')]
+```
+
+### an.adapters.cutout.coarticulate.coarticulate(keys, , fps, end=None, min_hold_s=0.14, lead_s=0.08333333333333333, decay_s=0.12, rest='X', speech_end=None)
+
+All the passes, in the order the module docstring gives.
+
+`speech_end` (where the last word ends, when the line knows its words)
+closes the mouth there instead of at `end` (an#213):
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.adapters.cutout.coarticulate.html.md#an.adapters.cutout.coarticulate.Cue)]
+
+```pycon
+>>> bye = [(0, "X"), (0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
+>>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838)][-2:]
+[(0.28, 'C'), (1.755, 'X')]
+>>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838, speech_end=0.5)][-2:]
+[(0.28, 'C'), (0.5, 'X')]
+```
+
+(The shapes lead by two frames; the closing rest is placed after the lead,
+at the word’s end, and the decay keeps it at least `decay_s` after the
+last shape.)
 
 ```pycon
 >>> raw = [(0.0, "X"), (0.30, "B"), (0.34, "A"), (0.38, "D"), (0.80, "X")]
@@ -5019,7 +5078,8 @@ Used by [`WhisperLipSync`](_autosummary/an.audio.html.md#an.audio.WhisperLipSync
 algorithm: per word, walk its characters in order, look up each
 character’s viseme code, dedupe consecutive identical codes, and
 space the resulting keyframes evenly across the word’s
-`[start, end]` interval. In gaps wider than `min_gap_for_rest`
+`[start, end]` interval. In gaps wider than `min_gap_for_rest` —
+between two words, or after the last one before `total_duration` —
 insert a single rest keyframe just after the previous word ended.
 
 Times are clamped to `[0, total_duration]` since some
@@ -5231,7 +5291,8 @@ Used by `WhisperLipSync` and `WordTimingsLipSync`. The
 algorithm: per word, walk its characters in order, look up each
 character’s viseme code, dedupe consecutive identical codes, and
 space the resulting keyframes evenly across the word’s
-`[start, end]` interval. In gaps wider than `min_gap_for_rest`
+`[start, end]` interval. In gaps wider than `min_gap_for_rest` —
+between two words, or after the last one before `total_duration` —
 insert a single rest keyframe just after the previous word ended.
 
 Times are clamped to `[0, total_duration]` since some
@@ -6947,7 +7008,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'mouth', 'eye', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'mouth', 'rect', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -23844,20 +23905,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 17:13 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/ddfc842e6216b2ca72b507657392c619d74cf3a8"><code>ddfc842</code></a> on branch <code>main</code>, for **an 0.1.120** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 17:25 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/a1ad74235854c2e869cb03cfc12845b56c13ef79"><code>a1ad742</code></a> on branch <code>main</code>, for **an 0.1.121** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.120) is ahead of the latest release on PyPI (0.1.118): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/ddfc842e6216b2ca72b507657392c619d74cf3a8"><code>ddfc842e6216b2ca72b507657392c619d74cf3a8</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/a1ad74235854c2e869cb03cfc12845b56c13ef79"><code>a1ad74235854c2e869cb03cfc12845b56c13ef79</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.120</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.121</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -23866,9 +23925,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36749346034">36749346034</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36750776293">36750776293</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>ffcb7b432807084a59702ded7f0101ac8c678a49</code> (in the history of the built commit) |
+| Event commit | <code>c41ba1314e461c17e191c7dd092bd6fd589b4457</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -23893,13 +23952,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.118/">0.1.118</a>, older than the documented version (0.1.120).
+Latest release: <a href="https://pypi.org/project/an/0.1.121/">0.1.121</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout ddfc842e6216b2ca72b507657392c619d74cf3a8
+git checkout a1ad74235854c2e869cb03cfc12845b56c13ef79
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
