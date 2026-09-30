@@ -637,7 +637,11 @@ def _check_swap_references(
             # per slot, through the resolvers the compiler's fan-out and
             # `play: turn` share (an#201), not by the per-node rule below.
             _check_whole_character_swap(
-                action, desc, prop, keys, entity_id,
+                action,
+                desc,
+                prop,
+                keys,
+                entity_id,
                 where=f"{path}/actions/{k}",
                 report=report,
                 art_exists=art_exists_for(
