@@ -11,7 +11,7 @@ description: Stroked paths in the `an` repo (an#160, epic #9 Wave 9) — the `Pa
 - The entity's `overrides` are merged over the stored document and validated **strictly** by `an.paths.resolve_path` — the one call both the compiler and `an validate` make, so their verdicts agree (`tests/test_path.py::test_validate_and_compile_reach_the_same_verdict`).
 - Cubic Béziers are **flattened in the compiler** (`an.adapters.cutout.path.flatten_curve`, uniform in the parameter). The wire (`VisualJSON.path`, a `PathJSON`) only ever carries a polyline.
 - `trim_start` / `trim_end` are in `an.base.TRANSFORM_PROPERTIES` (rest 0.0 / 1.0), so they tween, step and hold like `alpha`. They are path-only: `_check_trim_target` (compile) and `_check_trim_targets` (validate) refuse any other target, and the runtime's `applyTrim` throws.
-- The runtime draws `pathGeometry(points, trim_start, trim_end, head_length, head_width)` → `{stroke, head}`; `an/adapters/cutout/path.py::path_geometry` is its **executable spec**.
+- The runtime draws `pathGeometry(points, trim_start, trim_end, head_length, head_width, dash, gap, dash_offset)` → `{stroke, head[, dashes]}`; `an/adapters/cutout/path.py::path_geometry` is its **executable spec**.
 
 ## Invariants that are not obvious
 
@@ -24,9 +24,16 @@ description: Stroked paths in the `an` repo (an#160, epic #9 Wave 9) — the `Pa
 7. **Byte identity**: `VisualJSON.path` is omit-when-unset (the an#112 rule), so no pre-existing corpus hash moves. Any new `PathJSON` field is safe (it only exists on path visuals), but a new `VisualJSON` field is not — give it its own omit serializer in the same commit.
 8. `test_loud_discards.py` exempts `trim_*` from its write-7-and-look loop (`PATH_ONLY`) because they land on the path VISUAL, not the node; `test_path.py::test_the_runtime_applies_trim_to_the_path_visual` is the check that covers them.
 
-## Not built (the rest of Wave 9's path work)
+## Since an#161
 
-The bench palette (`an/bench/palette.py`) has no branch for path visuals — a corpus scene with a path needs one. StylePack `stroke` role (`REACHABLE_ROLES` is closed and each role is asserted to reach a fixed scene — add the role and a path to that scene together); dashes; variable width / taper; closed and filled shapes (borders as regions); per-point trim easing / multiple heads (tail arrowhead); arc-length-uniform Bézier sampling; a corpus scene + golden for paths (the pixel test is analytic, in the browser lane).
+- **StylePack `stroke` role.** `_path_colour` in `compile.py`. Precedence: pack `entities[<id>].stroke` > the document's own `color` > pack `roles.stroke` > `DFLT_STROKE_COLOUR`. So the role replaces only the DEFAULT; a document that names its `color` is art, and the compiler **warns** (a pack that silently did nothing is the failure `an.styles` exists to refuse). The arrowhead is filled with `path.color`, so there is no second role; `test_the_arrowhead_is_filled_in_the_strokes_colour` pins that. The reachability test in `tests/test_styles.py` has a path entity in its fixed scene for this reason.
+- **Dashes.** `PathDescriptor.dash` / `gap` (gap defaults to dash) / `dash_offset`, scene px. Dash `k` covers `[offset + k*period, ... + dash]` laid along the WHOLE path from arc length 0 and clipped to the trimmed span afterwards (`dash_spans`, mirrored by `pathDashSpans`), so moving `trim_end`/`trim_start` never moves a dash — that is the anti-crawl invariant, and `test_dashes_do_not_crawl_as_trim_end_grows` is its guard. Result shape: `stroke` is `[]` and a `dashes` key (absent for a solid path, in BOTH implementations) holds one polyline per dash. The parity battery crosses every case with five dash patterns, including an irrational period and a negative offset. Period below `MIN_DASH_PERIOD` (1 px) is refused: it is thousands of dashes redrawn per frame.
+- **`dash_offset` is a `TRIM_PROPERTIES` member** (the name predates it): path-only, refused on a non-path at compile, validate and runtime, and ALSO refused on a path with no dash pattern (`vocab.path_trims` only carries `dash_offset` for a dashed path). A tween with no `from` starts at the document's offset. One full period is the identity, so an offset tween over one period loops seamlessly.
+- **Corpus scene `path_draw`** (`misc/bench/corpus/path_draw/`, goldens at frames 0 and 8): a dashed cubic arrow drawing on plus marching-ants frame, both coloured by the pack's `stroke` role. The bench palette reads `path` visuals through `COLOURED_KINDS`. Committed under `NEW_IN_WAVE` in `test_expression_compose.py` until a `an bench` run over ALL scenes is committed as a ledger row — then remove it (the sibling test goes red on that commit, by design).
+
+## Not built (still in #161)
+
+Variable width / taper (needs a filled outline instead of `lineStyle`, also the route to a brush feel); closed and filled shapes (borders as regions, fill colour and alpha); per-point trim easing / tail arrowhead / double-headed arrows; arc-length-uniform Bézier sampling; the hand-drawn wobble/boil layer (below). Dashes with a round cap extend past their length by half the width each end — use `cap: butt` for exact dashes.
 
 ## A style layer on top (hand-drawn wobble, stroke jitter)
 

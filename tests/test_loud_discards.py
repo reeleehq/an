@@ -458,7 +458,7 @@ COMPOSED_ELSEWHERE: frozenset[str] = frozenset({"tint_r", "tint_g", "tint_b"})
 #: Runtime properties that land on a node's PATH visual, not on the node
 #: (an#160), so a bare node cannot receive them. Checked where they land by
 #: `tests/test_path.py::test_the_runtime_applies_trim_to_the_path_visual`.
-PATH_ONLY: frozenset[str] = frozenset({"trim_start", "trim_end"})
+PATH_ONLY: frozenset[str] = frozenset({"trim_start", "trim_end", "dash_offset"})
 
 
 def _apply_property_source() -> str:

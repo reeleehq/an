@@ -101,6 +101,34 @@ def test_a_rect_contributes_its_declared_colour():
     assert 0x123456 in pal["palette"]
 
 
+def test_a_stroked_path_contributes_its_stroke_colour():
+    """an#161: the palette had no branch for `path`, so a path's every pixel
+    was counted off-palette and `off_palette_pixel_fraction` read high on any
+    scene with one. The compiled scene stamps the stroke colour on
+    `visual.color` too, which is what this reads."""
+    pal = palette_for_scene(
+        _scene(_node("path", color="#8e24aa", path={"color": "#8e24aa"})),
+        runtime_dir=Path("."),
+    )
+    assert 0x8E24AA in pal["palette"]
+
+
+def test_a_compiled_path_scene_lands_its_colours_in_the_palette():
+    from an.adapters.cutout.compile import compile_shot
+    from an.adapters.cutout.serialize import to_dict
+    from an.ir.schema import AssetRef, Shot
+
+    shot = Shot(
+        id="s", renderer="cutout", duration=1.0,
+        entities=[AssetRef(kind="prop", id="r", store="props", ref="r")],
+    )
+    doc = {"kind": "PathDescriptor", "name": "r", "points": [[0, 0], [9, 9]],
+           "color": "#123456", "arrowhead": True}
+    scene = to_dict(compile_shot(shot, mall={"props": {"r": doc}}, fps=12))
+    pal = palette_for_scene(scene, runtime_dir=Path("."))
+    assert 0x123456 in pal["palette"]
+
+
 def test_a_mouth_contributes_the_runtime_constants_and_not_its_own_colour():
     """`drawMouthShape` never reads the node's colour — collecting it is noise."""
     pal = palette_for_scene(

@@ -270,6 +270,24 @@ DFLT_FIXTURES: dict[str, Fixture] = {
             "plane's own offset."
         ),
     ),
+    "path_draw": Fixture(
+        path=f"{CORPUS_DIRNAME}/path_draw",
+        expect_visual_kinds=frozenset({"path"}),
+        golden_frames=(0.0, 8 / 24),
+        golden_note=(
+            "two stroked paths (an#160, an#161), both dashed and both coloured "
+            "by a StylePack's `stroke` role: a marching-ants frame whose "
+            "`dash_offset` runs 0 -> 20 px, and a cubic arrow that draws itself "
+            "on (`trim_end` 0 -> 1) with its head on the moving tip. What "
+            "moves between the goldens is the ROUTE growing (frame 0 shows "
+            "none of it) and the frame's dashes sliding 6.7 px along their "
+            "path; a regression in trim, in the dash phase, in the "
+            "anchored-at-the-path-start rule that keeps a dash from crawling "
+            "as the tip advances, or in the pack reaching a path, moves a "
+            "golden. Butt caps, so a dash's ends are exact rather than "
+            "rounded past their length."
+        ),
+    ),
     "expressions": Fixture(
         path=f"{CORPUS_DIRNAME}/expressions",
         expect_visual_kinds=frozenset({"svg_sprite"}),

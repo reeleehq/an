@@ -388,6 +388,7 @@ def _property_rest_values() -> dict[str, float]:
     # fully drawn path, so a draw-on names its `from_value` (0).
     rest["trim_start"] = 0.0
     rest["trim_end"] = 1.0
+    rest["dash_offset"] = 0.0  # an#161: a path's dash phase, same exception
     return rest
 
 
@@ -583,6 +584,8 @@ def _swap_vocabulary(
                         "trim_start": v.path.trim_start,
                         "trim_end": v.path.trim_end,
                     }
+                    if v.path.dash > 0:  # only a dashed path has an offset
+                        path_trims[path]["dash_offset"] = v.path.dash_offset
             if v is not None and v.asset_sets:
                 node_sets[path] = v.asset_sets
                 node_asset_ids[path] = v.asset_id
@@ -960,7 +963,12 @@ def _build_scene_root(
                 (overlay if layer == "overlay" else children).append(sub)
                 continue
             sub = _build_prop_subtree(
-                entity, props_store, textures=textures, resolutions=resolutions
+                entity,
+                props_store,
+                textures=textures,
+                resolutions=resolutions,
+                style_pack=style_pack,
+                reached=reached,
             )
             _apply_stage_placement(sub, entity)
             children.append(sub)
@@ -1521,6 +1529,8 @@ def _build_prop_subtree(
     *,
     textures: dict[str, AssetJSON] | None = None,
     resolutions: list[AssetResolutionJSON] | None = None,
+    style_pack: "StylePack | None" = None,
+    reached: set[str] | None = None,
 ) -> NodeJSON:
     """Build the subtree for one prop, through the SAME rig builder.
 
@@ -1547,7 +1557,13 @@ def _build_prop_subtree(
         except KeyError:
             meta = {}
     if meta.get("kind") == PATH_DOCUMENT_KIND.name:
-        return _build_path_subtree(entity, meta, resolutions=resolutions)
+        return _build_path_subtree(
+            entity,
+            meta,
+            resolutions=resolutions,
+            style_pack=style_pack,
+            reached=reached,
+        )
     if meta.get("kind") != PROP_DOCUMENT_KIND.name:
         raise CutoutCompileError(
             f"prop {entity.id!r} refers to {entity.ref!r} in the "
@@ -1589,6 +1605,8 @@ def _build_path_subtree(
     document: Mapping[str, Any],
     *,
     resolutions: list[AssetResolutionJSON],
+    style_pack: "StylePack | None" = None,
+    reached: set[str] | None = None,
 ) -> NodeJSON:
     """One node whose visual is a stroked path (an#160).
 
@@ -1600,6 +1618,11 @@ def _build_path_subtree(
 
     The node is the entity itself, so ``route:trim_end`` and ``route:x``
     address the same thing an author thinks of as "the arrow".
+
+    Colour (an#161): a pack's per-entity ``stroke`` override always wins; its
+    ``stroke`` ROLE replaces only the document's DEFAULT colour — a document
+    that names its own ``color`` is art, and the compiler warns that the pack
+    left it alone rather than recolouring it or staying quiet.
     """
     try:
         desc = resolve_path(document, entity.overrides)
@@ -1620,21 +1643,25 @@ def _build_path_subtree(
     points = flatten_curve(
         desc.points, curve=desc.curve, samples=desc.samples_per_segment
     )
+    colour = _path_colour(desc, entity, style_pack, reached)
     return NodeJSON(
         name=entity.id,
         visual=VisualJSON(
             kind="path",
-            color=desc.color,
+            color=colour,
             path=PathJSON(
                 points=points,
                 stroke_width=desc.width,
-                color=desc.color,
+                color=colour,
                 cap=desc.cap,
                 join=desc.join,
                 trim_start=desc.trim_start,
                 trim_end=desc.trim_end,
                 head_length=desc.head_length_px if desc.arrowhead else 0.0,
                 head_width=desc.head_width_px if desc.arrowhead else 0.0,
+                dash=desc.dash or 0.0,
+                gap=desc.gap_px,
+                dash_offset=desc.dash_offset,
             ),
         ),
     )
@@ -1709,6 +1736,42 @@ def _check_text_unit_targets(
                     f"action targets {target!r}, which text block {root!r} does "
                     f"not build. Its units are: {built}"
                 )
+
+
+def _path_colour(
+    desc: PathDescriptor,
+    entity: AssetRef,
+    style_pack: "StylePack | None",
+    reached: set[str] | None,
+) -> str:
+    """The colour a path is drawn in under ``style_pack`` (an#161).
+
+    A lookup with a default, like every other role: no pack, or a pack that
+    does not mention ``stroke``, returns the document's own colour untouched.
+    """
+    if style_pack is None:
+        return desc.color
+    per_entity = style_pack.entities.get(entity.id, {}).get("stroke")
+    role = style_pack.roles.get("stroke")
+    if per_entity is not None:
+        chosen = per_entity
+    elif role is not None and "color" not in desc.model_fields_set:
+        chosen = role
+    else:
+        if role is not None:
+            warnings.warn(
+                f"style pack {style_pack.name!r} sets a `stroke` role but path "
+                f"{entity.id!r} names its own `color` ({desc.color}), which is "
+                "art rather than a default and is left alone. Drop the "
+                "document's `color` to let the pack decide, or set "
+                f"`entities.{entity.id}.stroke` in the pack to override it.",
+                CutoutCompileWarning,
+                stacklevel=3,
+            )
+        return desc.color
+    if reached is not None:
+        reached.add(entity.id)
+    return chosen
 
 
 def _build_character_subtree(
@@ -3050,6 +3113,16 @@ def _check_trim_target(flat: FlatAction, *, vocab: _SwapVocabulary) -> None:
     if prop not in TRIM_PROPERTIES:
         return
     target = action.target
+    if (
+        prop == "dash_offset"
+        and target in vocab.path_nodes
+        and prop not in vocab.path_trims.get(target, {})
+    ):
+        raise CutoutCompileError(
+            f"action targets {target!r}:'dash_offset', but the path {target!r} "
+            "has no dash pattern, so an offset would draw nothing. Give the "
+            "path document a `dash` length (and optionally a `gap`)."
+        )
     if target not in vocab.path_nodes:
         raise CutoutCompileError(
             f"action targets {target!r}:{prop!r}, but {prop!r} is a stroked "

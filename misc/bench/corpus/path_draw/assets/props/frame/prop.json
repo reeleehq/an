@@ -1,0 +1,11 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "PathDescriptor",
+  "name": "frame",
+  "points": [[-140, -100], [140, -100], [140, 100], [-140, 100], [-140, -100]],
+  "width": 4,
+  "cap": "butt",
+  "join": "miter",
+  "dash": 12,
+  "gap": 8
+}

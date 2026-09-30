@@ -56,6 +56,7 @@ __all__ = [
     "PathDescriptor",
     "resolve_path",
     "DFLT_STROKE_COLOUR",
+    "MIN_DASH_PERIOD",
 ]
 
 PATH_SCHEMA_VERSION = "0.1.0"
@@ -70,13 +71,17 @@ PATH_DOCUMENT_KIND: DocumentKind = register_kind(
     )
 )
 
-#: The stroke colour when the document names none.
-#:
-#: Not yet a `StylePack` role: `an.styles.REACHABLE_ROLES` is a closed set, and
-#: every role in it is asserted to reach a compiled document from one fixed
-#: scene (`tests/test_styles.py`). A `stroke` role is a small follow-up, not a
-#: field that silently does nothing today.
+#: The stroke colour when the document names none. A `StylePack`'s `stroke`
+#: role replaces it (an#161) — but only this default: a document that sets
+#: `color` itself is art, not a default, and a pack does not rewrite art (the
+#: same line `an.styles` draws for SVG). A per-entity `stroke` override in the
+#: pack wins over both.
 DFLT_STROKE_COLOUR: str = "#c0392b"
+
+#: The shortest dash period (dash + gap), scene pixels. Bounds the number of
+#: dashes a path can ask the runtime to redraw every frame: a path a few
+#: thousand pixels long is a few thousand dashes at most.
+MIN_DASH_PERIOD: float = 1.0
 
 #: Default stroke width, scene pixels.
 DFLT_STROKE_WIDTH: float = 8.0
@@ -135,6 +140,16 @@ class PathDescriptor(BaseModel):
     #: with no ``from_value`` starts from these values (not the global rest).
     trim_start: float = Field(default=0.0, ge=0.0, le=1.0)
     trim_end: float = Field(default=1.0, ge=0.0, le=1.0)
+    #: A dash pattern, scene pixels: ``dash`` on, ``gap`` off, repeating along
+    #: the path from ITS start — anchored to the path, not to the trimmed span,
+    #: so a draw-on reveals dashes in place instead of making them crawl.
+    #: ``gap`` defaults to ``dash``. ``None`` = a solid stroke.
+    dash: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    gap: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    #: Shifts the pattern along the path (positive = forward). An ordinary
+    #: numeric node property like ``trim_end``, so ``tween route dash_offset``
+    #: is the "marching ants" route; only a dashed path has one.
+    dash_offset: float = Field(default=0.0, allow_inf_nan=False)
     arrowhead: bool = False
     #: Scene pixels; ``None`` = a multiple of ``width``.
     head_length: float | None = Field(default=None, gt=0, allow_inf_nan=False)
@@ -176,6 +191,17 @@ class PathDescriptor(BaseModel):
                 "head_length/head_width are set but arrowhead is false, so "
                 "they would draw nothing; set `arrowhead: true` or drop them"
             )
+        if self.dash is None and given & {"gap", "dash_offset"}:
+            raise ValueError(
+                "gap/dash_offset are set but `dash` is not, so the stroke is "
+                "solid and they would draw nothing; set `dash` or drop them"
+            )
+        if self.dash is not None and self.dash + self.gap_px < MIN_DASH_PERIOD:
+            raise ValueError(
+                f"dash + gap = {self.dash + self.gap_px} scene px is below "
+                f"{MIN_DASH_PERIOD}: that is thousands of dashes redrawn every "
+                "frame and finer than a pixel"
+            )
         if self.curve == "polyline" and "samples_per_segment" in given:
             raise ValueError(
                 "samples_per_segment only applies to curve='cubic'; a "
@@ -187,6 +213,13 @@ class PathDescriptor(BaseModel):
                 "length and would draw nothing"
             )
         return self
+
+    @property
+    def gap_px(self) -> float:
+        """The gap of the dash pattern, scene pixels (``dash`` when unset)."""
+        if self.gap is not None:
+            return float(self.gap)
+        return float(self.dash) if self.dash is not None else 0.0
 
     @property
     def head_length_px(self) -> float:

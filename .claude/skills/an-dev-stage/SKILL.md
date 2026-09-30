@@ -163,6 +163,11 @@ the compiler warns naming what it could not reach.
 A pack must not declare a role it cannot change — `lip`, `mouth_fill`, `teeth`, `tongue`,
 `eye_sclera` are runtime literals. A role that silently does nothing is worse than an absent one.
 
+`stroke` (an#161) is the role for a stroked path (`an-dev-path`): it replaces a path document's
+DEFAULT colour only — a path that names its own `color` is art, left alone with a compiler warning —
+and a per-entity `stroke` in the pack beats both. Every role in `REACHABLE_ROLES` has a marker-colour
+test compiling one fixed scene, so adding a role means adding the entity that reaches it to that scene.
+
 ## 5. Order of work
 
 

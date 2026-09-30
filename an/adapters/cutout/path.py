@@ -5,6 +5,9 @@ The runtime draws a path (an#160) from three things this module defines:
 - **arc length** — cumulative straight-segment lengths over the polyline;
 - **trim** — the visible span ``[min(ts, te), max(ts, te)]``, clamped to
   ``[0, 1]``, as fractions of that length;
+- **dashes** — an optional on/off pattern laid along the WHOLE path from arc
+  length 0 (shifted by an offset) and only then clipped to the trimmed span, so
+  a draw-on reveals dashes in place rather than making them crawl (an#161);
 - **the arrowhead** — a triangle whose tip is the trimmed end, oriented along
   the direction of the segment the tip lies on (the *incoming* segment when
   the tip sits exactly on a vertex).
@@ -42,6 +45,7 @@ __all__ = [
     "cumulative_lengths",
     "point_at",
     "trim_polyline",
+    "dash_spans",
     "path_geometry",
     "HEAD_STROKE_INSET",
 ]
@@ -146,6 +150,39 @@ def trim_polyline(
     return out
 
 
+def dash_spans(
+    a: float, b: float, dash: float, gap: float, offset: float
+) -> list[tuple[float, float]]:
+    """The arc-length spans ``[lo, hi]`` inside ``[a, b]`` that a dash covers.
+
+    The pattern is anchored at arc length ``0`` — dash ``k`` covers
+    ``[offset + k*period, offset + k*period + dash]`` — and is clipped to the
+    window afterwards, so moving ``a`` or ``b`` never moves a dash. Only IEEE
+    ``+ - * /`` and ``floor``, in the order ``runtime.js::pathDashSpans`` uses.
+
+    >>> dash_spans(0.0, 100.0, 10.0, 15.0, 0.0)
+    [(0.0, 10.0), (25.0, 35.0), (50.0, 60.0), (75.0, 85.0)]
+    >>> dash_spans(30.0, 60.0, 10.0, 15.0, 0.0)  # clipped, not re-anchored
+    [(30.0, 35.0), (50.0, 60.0)]
+    >>> dash_spans(0.0, 30.0, 10.0, 10.0, 5.0)  # offset slides the pattern forward
+    [(0.0, 5.0), (15.0, 25.0)]
+    """
+    period = dash + gap
+    k = math.floor((a - offset - dash) / period)
+    out: list[tuple[float, float]] = []
+    while True:
+        start = offset + k * period
+        if not start < b:
+            break
+        lo = a if a > start else start
+        end = start + dash
+        hi = b if b < end else end
+        if hi > lo:
+            out.append((lo, hi))
+        k += 1
+    return out
+
+
 def _clamp01(v: float) -> float:
     return 0.0 if v < 0.0 else (1.0 if v > 1.0 else v)
 
@@ -157,8 +194,14 @@ def path_geometry(
     *,
     head_length: float = 0.0,
     head_width: float = 0.0,
+    dash: float = 0.0,
+    gap: float = 0.0,
+    dash_offset: float = 0.0,
 ) -> dict:
     """What the runtime draws: ``{"stroke": [points], "head": [3 points] | None}``.
+
+    ``dash > 0`` makes the stroke a dash pattern: ``stroke`` is then ``[]`` and
+    a ``"dashes"`` key (absent otherwise) holds one polyline per visible dash.
 
     ``head_length > 0`` turns the arrowhead on. While the visible length is
     shorter than the head, the head is scaled by ``visible / head_length`` so
@@ -198,5 +241,9 @@ def path_geometry(
         ny = ux * (hw / 2)
         head = [(tx, ty), (bx + nx, by + ny), (bx - nx, by - ny)]
         stroke_end = b - hl * HEAD_STROKE_INSET
+    if dash > 0:
+        spans = dash_spans(a, stroke_end, dash, gap, dash_offset) if stroke_end > a else []
+        dashes = [trim_polyline(pts, cum, lo_s, hi_s) for lo_s, hi_s in spans]
+        return {"stroke": [], "head": head, "dashes": dashes}
     stroke = trim_polyline(pts, cum, a, stroke_end) if stroke_end > a else []
     return {"stroke": stroke, "head": head}

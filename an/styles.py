@@ -75,7 +75,10 @@ STYLE_DOCUMENT_KIND: DocumentKind = register_kind(
 #:
 #: `skin`, `clothing` and `hair` are `_CHARACTER_PALETTES`' three components;
 #: `leg` and `pupil` are the compiler's own literals (`DFLT_LEG_COLOUR`,
-#: `DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets'.
+#: `DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets';
+#: `stroke` is a stroked path's default colour (`an.paths.DFLT_STROKE_COLOUR`,
+#: an#161) — the arrowhead is filled in the same colour, so it is not a second
+#: role. A path that names its own `color` is art and is left alone.
 #:
 #: Every one of these is compiled with a marker colour and asserted to reach
 #: the document by `tests/test_styles.py`. `pupil` shipped in this set wired to
@@ -83,7 +86,7 @@ STYLE_DOCUMENT_KIND: DocumentKind = register_kind(
 #: set it was checking — a declared-reachable role that reaches nothing is the
 #: same defect as an unreachable one, and it needs the same kind of test.
 REACHABLE_ROLES: frozenset[str] = frozenset(
-    {"skin", "clothing", "hair", "leg", "pupil", "sky", "ground"}
+    {"skin", "clothing", "hair", "leg", "pupil", "sky", "ground", "stroke"}
 )
 
 #: Roles a pack must NOT declare, with what makes each unreachable. These are

@@ -1,0 +1,7 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "StylePack",
+  "name": "poster",
+  "roles": {"stroke": "#8e24aa"},
+  "entities": {"frame": {"stroke": "#00897b"}}
+}
