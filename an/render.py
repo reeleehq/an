@@ -103,7 +103,7 @@ def render_project(
     ``capture`` picks how frames leave the browser: ``"screenshot"`` (the
     default, via ``None``) or ``"canvas"`` — an in-page read of the canvas,
     batched, writing frames whose decoded pixels equal the screenshot path's
-    and measured several times faster (see
+    and measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p (see
     `an.adapters.cutout.canvas_capture`). Opt-in until the equivalence gate has
     held on both rendering lanes.
 

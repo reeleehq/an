@@ -269,9 +269,21 @@ supersample 2 with a 3-sample open shutter through `CutoutRenderer` directly.
 AND the labelled Linux lane; the flip is a one-line PR of its own
 (`DEFAULT_CAPTURE`, read at call time).
 
-**Cost**: see the PR that shipped it for the corpus before/after; per frame at
-1080p on an M1 Max under heavy load, interleaved over three rounds, the frame
-stage measured screenshot **185.9** ms/f against canvas **76-82** ms/f.
+**Cost** (M1 Max, a heavily loaded machine — load average 120-230 on 10 cores —
+so read ratios, not absolutes; interleaved, medians):
+
+- **Golden corpus, 11 scenes, 2 rounds**: the frame stage (`_capture_frames`)
+  **29.3 s -> 3.8 s (7.8x)**, ~100 ms/f -> ~12 ms/f at 320x240, where the
+  element screenshot's fixed per-call cost is everything. Whole-render
+  wall-clock only **462 s -> 383 s (1.2x)**: at corpus size, browser launch,
+  compile, audio and ffmpeg dominate, and under that load they are noisy
+  (one scene read the other way).
+- **1080p, `single_character`, 3 rounds**: frame stage **186 -> 76-82 ms/f
+  (~2.3x)**. Here the page's own `toDataURL` (~45 ms/f) and the Python
+  decode/re-encode (~40-60 ms/f of CPU, overlapped on the pool) are real work.
+- The in-page encoder is the next cost: a readback that reaches Python as
+  pixels without a PNG round trip would need a faster channel than CDP (§2b
+  table, raw RGBA row).
 
 **`-tune animation`** — measured at **0.8%**. Dropped: it is not a wave, and
 adding it moves `x264_argv` and refuses every encode-side metric for nothing.

@@ -110,7 +110,7 @@ def render(
         without one (an#96)
     capture: how frames leave the browser — "screenshot" (the default) or
         "canvas", an in-page read of the canvas in batches that writes frames
-        with the same decoded pixels, several times faster. Opt-in until the
+        with the same decoded pixels; ~7.8x faster frame stage on the corpus, ~2.3x at 1080p. Opt-in until the
         equivalence gate has held on both rendering lanes
     """
     parallel_arg: int | str | None
