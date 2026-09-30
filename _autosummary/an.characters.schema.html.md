@@ -49,29 +49,34 @@ several slots.
 
 ### Module Attributes
 
-| [`CHARACTER_DOCUMENT_KIND`](#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                                                                                                                                           |
-|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`MOUTH_SHAPES`](#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                                                                                                                                                 |
-| [`DEFAULT_VISEME_MAP`](#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                                                                                                                                               |
-| [`VISEME_CHANNEL`](#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                                                                                                                                                     |
-| [`EYELID_CHANNEL`](#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                                                                                                                                        |
-| [`DEFAULT_EYELID_MAP`](#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                                                                                                                                             |
-| [`VIEW_CHANNEL`](#an.characters.schema.VIEW_CHANNEL)              | one KEY per drawn view, projected onto the slots whose art changes with the view (the factory draws the head and the torso), each slot carrying attachments NAMED after the keys.                                                                     |
-| [`VIEWS`](#an.characters.schema.VIEWS)                     | The views the factory draws, in turnaround order.                                                                                                                                                                                                     |
-| [`DFLT_VIEW`](#an.characters.schema.DFLT_VIEW)                 | its default attachments ARE this view.                                                                                                                                                                                                                |
-| [`REQUIRED_PARTS`](#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                                                                                                                                                  |
-| [`DEFAULT_VIEW_BOX`](#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                                                                                                                                       |
-| [`SLOT_POSE_OFFSETS`](#an.characters.schema.SLOT_POSE_OFFSETS)         | The transform properties a [`SlotPose`](#an.characters.schema.SlotPose) sets, and whether each is an OFFSET added to the rest (in view_box units, so scaled by the rig), an ANGLE added to it (radians, never scaled) or a FACTOR on it. |
-| [`LEG_LENGTH`](#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                                                                                                                                                  |
-| [`HEAD_ANCHOR`](#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                                                                                                                                               |
-| [`REFERENCE_HEAD_HEIGHT`](#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024.                                                                                                                       |
-| [`FACE_OFFSETS`](#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                                                                                                                                             |
+| [`CHARACTER_DOCUMENT_KIND`](#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                                                                                                                                                  |
+|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`MOUTH_SHAPES`](#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                                                                                                                                                        |
+| [`DEFAULT_VISEME_MAP`](#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                                                                                                                                                      |
+| [`VISEME_CHANNEL`](#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                                                                                                                                                            |
+| [`EYELID_CHANNEL`](#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                                                                                                                                               |
+| [`DEFAULT_EYELID_MAP`](#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                                                                                                                                                    |
+| [`VIEW_CHANNEL`](#an.characters.schema.VIEW_CHANNEL)              | one KEY per drawn view, projected onto the slots whose art changes with the view (the factory draws the head and the torso), each slot carrying attachments NAMED after the keys.                                                                            |
+| [`VIEWS`](#an.characters.schema.VIEWS)                     | The views the factory draws, in turnaround order.                                                                                                                                                                                                            |
+| [`DFLT_VIEW`](#an.characters.schema.DFLT_VIEW)                 | its default attachments ARE this view.                                                                                                                                                                                                                       |
+| [`VIEW_VARIANT_SEP`](#an.characters.schema.VIEW_VARIANT_SEP)          | What joins a swap set's name to the view a variant of it serves: `eyelid@side` is the `eyelid` set drawn for the `side` view (an#220), the same separator the expression variants (`viseme@happy`, an#98) use.                                               |
+| [`GAITS`](#an.characters.schema.GAITS)                     | `legs` swing about the hip in a profile and step up and down facing the camera; `hem` — the leg slots are the two halves of a robe's hem — tilts them in turn under a swaying, bobbing body; `rock` moves no leg at all (a blob, a sack) and rocks the body. |
+| [`REQUIRED_PARTS`](#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                                                                                                                                                         |
+| [`DEFAULT_VIEW_BOX`](#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                                                                                                                                              |
+| [`SLOT_POSE_OFFSETS`](#an.characters.schema.SLOT_POSE_OFFSETS)         | The transform properties a [`SlotPose`](#an.characters.schema.SlotPose) sets, and whether each is an OFFSET added to the rest (in view_box units, so scaled by the rig), an ANGLE added to it (radians, never scaled) or a FACTOR on it.        |
+| [`LEG_LENGTH`](#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                                                                                                                                                         |
+| [`HEAD_ANCHOR`](#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                                                                                                                                                      |
+| [`REFERENCE_HEAD_HEIGHT`](#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024.                                                                                                                              |
+| [`FACE_OFFSETS`](#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                                                                                                                                                    |
 
 ### Functions
 
-| [`bones_from_pivots`](#an.characters.schema.bones_from_pivots)(pivots, \*[, bones])   | Re-place a bone rig onto an illustrator's own joint coordinates.   |
-|-------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
-| [`default_asset_sets`](#an.characters.schema.default_asset_sets)()                     | `{channel: {key: attachment_name}}` for a freshly-built character. |
+| [`attachment_box`](#an.characters.schema.attachment_box)(width, height, art)      | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).                                                                                                                     |
+|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`bones_from_pivots`](#an.characters.schema.bones_from_pivots)(pivots, \*[, bones])  | Re-place a bone rig onto an illustrator's own joint coordinates.                                                                                                                                                           |
+| [`default_asset_sets`](#an.characters.schema.default_asset_sets)()                    | `{channel: {key: attachment_name}}` for a freshly-built character.                                                                                                                                                         |
+| [`view_variant_set`](#an.characters.schema.view_variant_set)(set_name, view)        | The name of `set_name`'s variant for `view` (an#220).                                                                                                                                                                      |
+| [`view_variant_sets`](#an.characters.schema.view_variant_sets)(desc, \*[, view_set]) | `{base set: {view: variant set name}}` — every per-view face set the descriptor declares (an#220): a set named `<base>@<view>` where `<base>` is a declared set and `<view>` a key of its `view` set (or its `rest_view`). |
 
 ### Classes
 
@@ -131,9 +136,29 @@ Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where THIS part’s art came from, when it is not the descriptor’s
+`source` — a character composed from several clips, or a carved head
+on a CC0 body, credits each (an#220). `None` = the descriptor’s
+`source` covers it. `an credits` lists every one; an all-rights-
+reserved part makes the render NOT PUBLISHABLE like any other.
+Omitted from the stored document when unset.
+
 #### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
-Optional explicit bounding box override in the part’s local viewBox.
+The size the part draws at, in **view_box units** — the rig’s units,
+the ones `x`/`y` and the bones use (an#220). \*\*A declared size
+wins\*\* over the art’s own extent, as `Plane.size` does for plates.
+Unset, the art’s own extent is the size: an SVG’s `width`/`height`
+(else its viewBox), a raster’s PIXEL count — so a PNG carved at one
+pixel per unit needs nothing, and one carved at any other scale
+declares its size here instead of being resampled. The aspect is the
+art’s, always (an#74): with ONE of the two declared the other follows
+the art’s aspect; with both, the art is contained in the box
+(uniformly scaled to fit, never stretched) and `an character
+validate` says when the two aspects disagree. See
+[`attachment_box()`](#an.characters.schema.attachment_box).
 
 #### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
@@ -250,6 +275,14 @@ from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
 from the provenance string once, and `art_provenance` reverts to pure
 provenance/licensing metadata.
 
+#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+This character’s default walk `gait` (one of [`GAITS`](#an.characters.schema.GAITS), an#220);
+an author’s `gait` arg overrides it. `None` = `legs` when the rig
+builds a leg pair, else `rock`. A robe figure whose leg slots are hem
+halves declares `"hem"` once, here, rather than on every walk.
+Omitted from the stored document when unset.
+
 #### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How far a pupil may travel from its rest, in view-box units per axis
@@ -280,6 +313,16 @@ This is useful if you want to do some validation that requires the entire model 
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The view the DEFAULT art is drawn in (an#220) — a declared fact about
+the art, like `face_overlay`. `None` means [`DFLT_VIEW`](#an.characters.schema.DFLT_VIEW)
+(front). A character carved from a profile (a silhouette film, a side-
+on figure) says `"side"`, and everything that asks which view is in
+force before any turn — `walk` swinging its legs rather than lifting
+them — reads it instead of the author passing `view: side` by hand.
+Omitted from the stored document when unset.
 
 #### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -349,6 +392,7 @@ because Rhubarb emits A-X; lowercase attachment names by convention.
 ### an.characters.schema.DFLT_VIEW *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'front'*
 
 its default attachments ARE this view.
+A descriptor whose art is drawn in another view says so in `rest_view`.
 
 * **Type:**
   The view a character shows at rest
@@ -372,6 +416,17 @@ change it. Those pairs were relative to the head’s CENTRE (the old compiler
 anchored the head at 0.5); the bone is the NECK, and the head hangs above it
 at [`HEAD_ANCHOR`](#an.characters.schema.HEAD_ANCHOR), so each pair is lifted by the centre’s height above
 the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).
+
+### an.characters.schema.GAITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('legs', 'hem', 'rock')*
+
+`legs`
+swing about the hip in a profile and step up and down facing the camera;
+`hem` — the leg slots are the two halves of a robe’s hem — tilts them in
+turn under a swaying, bobbing body; `rock` moves no leg at all (a blob, a
+sack) and rocks the body.
+
+* **Type:**
+  How a character walks (`an.motion.walk`’s `gait`, an#220)
 
 ### an.characters.schema.HEAD_ANCHOR *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 0.78)*
 
@@ -503,12 +558,41 @@ reads it; `an.motion.turn` is the one writer that defaults to it.
 * **Type:**
   The swap set a turnaround rides (an#197)
 
+### an.characters.schema.VIEW_VARIANT_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '@'*
+
+What joins a swap set’s name to the view a variant of it serves:
+`eyelid@side` is the `eyelid` set drawn for the `side` view (an#220),
+the same separator the expression variants (`viseme@happy`, an#98) use.
+
 ### an.characters.schema.VISEME_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'viseme'*
 
 The swap channel lip-sync drives. `viseme` is a conventional set name, not
 a special case in control flow (an#87): the compiler projects EVERY
 `asset_sets` channel onto the slots whose attachments its keys name, and
 the runtime applies any projected channel the same way.
+
+### an.characters.schema.attachment_box(width, height, art)
+
+The box a part draws in, in view_box units: the declared size wins, the
+art’s aspect is kept (an#220).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> attachment_box(None, None, (40, 20))       # the art's own extent
+(40.0, 20.0)
+>>> attachment_box(120, None, (40, 20))        # width declared: height follows
+(120.0, 60.0)
+>>> attachment_box(None, 30, (40, 20))
+(60.0, 30.0)
+>>> attachment_box(120, 120, (40, 20))         # both: contained, never stretched
+(120.0, 60.0)
+>>> attachment_box(120, 90, None)              # unmeasurable art: the box as declared
+(120.0, 90.0)
+>>> attachment_box(120, None, None) is None    # nothing to take the aspect from
+True
+```
 
 ### an.characters.schema.bones_from_pivots(pivots, , bones=None)
 
@@ -548,3 +632,35 @@ first, which is why this walks in declaration order rather than by index.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.characters.schema.view_variant_set(set_name, view)
+
+The name of `set_name`’s variant for `view` (an#220).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> view_variant_set("eyelid", "side")
+'eyelid@side'
+```
+
+### an.characters.schema.view_variant_sets(desc, , view_set='view')
+
+`{base set: {view: variant set name}}` — every per-view face set the
+descriptor declares (an#220): a set named `<base>@<view>` where `<base>`
+is a declared set and `<view>` a key of its `view` set (or its
+`rest_view`). `viseme@happy` is NOT one — `happy` is not a view —
+so the expression variants (an#98) and the view variants never collide.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> d = CharacterDescriptor(name="v")
+>>> d.asset_sets["view"] = {"front": "front", "side": "side"}
+>>> d.asset_sets["eyelid@side"] = {"OPEN": "open_side", "CLOSED": "closed_side"}
+>>> d.asset_sets["viseme@happy"] = {"X": "mouth_x_happy"}
+>>> view_variant_sets(d)
+{'eyelid': {'side': 'eyelid@side'}}
+```

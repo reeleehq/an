@@ -20,12 +20,13 @@ that cannot land.
 
 ### Module Attributes
 
-| [`PROHIBITED_ELEMENTS`](#an.characters.validate.PROHIBITED_ELEMENTS)   | Elements an art package may not contain.                        |
-|------------------------------------------------------------------------|-----------------------------------------------------------------|
-| [`PART_SUFFIXES`](#an.characters.validate.PART_SUFFIXES)         | SVG, or raster with the suffixes `an.raster` reads (an#211).    |
-| [`DRAWABLE_ELEMENTS`](#an.characters.validate.DRAWABLE_ELEMENTS)     | Elements that put ink on the canvas.                            |
-| [`BLOCKING`](#an.characters.validate.BLOCKING)              | Severity for a problem that stops the part rendering correctly. |
-| [`ADVISORY`](#an.characters.validate.ADVISORY)              | Severity for a problem worth fixing that still renders.         |
+| [`PROHIBITED_ELEMENTS`](#an.characters.validate.PROHIBITED_ELEMENTS)       | Elements an art package may not contain.                                                                                                |
+|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`PART_SUFFIXES`](#an.characters.validate.PART_SUFFIXES)             | SVG, or raster with the suffixes `an.raster` reads (an#211).                                                                            |
+| [`DRAWABLE_ELEMENTS`](#an.characters.validate.DRAWABLE_ELEMENTS)         | Elements that put ink on the canvas.                                                                                                    |
+| [`BLOCKING`](#an.characters.validate.BLOCKING)                  | Severity for a problem that stops the part rendering correctly.                                                                         |
+| [`ADVISORY`](#an.characters.validate.ADVISORY)                  | Severity for a problem worth fixing that still renders.                                                                                 |
+| [`DECLARED_ASPECT_TOLERANCE`](#an.characters.validate.DECLARED_ASPECT_TOLERANCE) | How far a declared box's aspect may differ from its art's before the containment is worth saying (a rounding of a pixel or two is not). |
 
 ### Functions
 
@@ -41,6 +42,11 @@ Severity for a problem worth fixing that still renders.
 ### an.characters.validate.BLOCKING *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'error'*
 
 Severity for a problem that stops the part rendering correctly.
+
+### an.characters.validate.DECLARED_ASPECT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.01*
+
+How far a declared box’s aspect may differ from its art’s before the
+containment is worth saying (a rounding of a pixel or two is not).
 
 ### an.characters.validate.DRAWABLE_ELEMENTS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'circle', 'ellipse', 'line', 'path', 'polygon', 'polyline', 'rect', 'text', 'use'})*
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=07422cd4"></script>
+    <script src="../../../_static/documentation_options.js?v=68b33800"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.122" />
+  <meta name="docsearch:version" content="0.1.124" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1569,6 +1569,73 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_hidden_mouth_while_speaking</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">resolved</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A line spoken while the speaker's view HIDES its mouth (an#220): the</span>
+<span class="sd">    view's ``swap_poses`` sets the mouth slot's ``alpha`` to 0 — the back</span>
+<span class="sd">    view does, and so did every profile carved with the mouth baked in — so</span>
+<span class="sd">    the audio plays over a face with no lip-sync. A warning, since a line</span>
+<span class="sd">    delivered over the shoulder can be meant; the fix for a profile is a</span>
+<span class="sd">    per-view mouth set (``viseme@side``) instead of the hide.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">resolved</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SetAction</span>
+
+    <span class="n">events</span> <span class="o">=</span> <span class="n">resolved</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">events</span>
+    <span class="n">rigs</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span> <span class="ow">or</span> <span class="p">()):</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">desc</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span> <span class="k">if</span> <span class="n">doc</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">ValidationError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">desc</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">desc</span><span class="o">.</span><span class="n">face_overlay</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">skin</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"default"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">mouth_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"viseme"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">mouths</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">slot</span>
+            <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="p">(</span><span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">skin</span> <span class="k">else</span> <span class="p">())</span>
+            <span class="k">if</span> <span class="n">mouth_names</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">attachments</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">views</span> <span class="o">=</span> <span class="p">[</span><span class="n">facing_at</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span><span class="o">.</span><span class="n">view</span> <span class="ow">or</span> <span class="n">desc</span><span class="o">.</span><span class="n">rest_view</span><span class="p">]</span>
+        <span class="n">views</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">value</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">events</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span> <span class="o">==</span> <span class="n">line</span><span class="o">.</span><span class="n">speaker</span>
+            <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">property</span> <span class="o">==</span> <span class="n">VIEW_CHANNEL</span>
+            <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;=</span> <span class="n">end</span>
+        <span class="p">]</span>
+        <span class="n">poses</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">swap_poses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VIEW_CHANNEL</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">view</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">views</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">hidden</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mouths</span> <span class="k">if</span> <span class="p">(</span><span class="n">p</span> <span class="o">:=</span> <span class="n">poses</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">view</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">))</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">alpha</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">hidden</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">!r}</span><span class="s2"> speaks this line while its </span><span class="si">{</span><span class="n">view</span><span class="si">!r}</span><span class="s2"> view hides "</span>
+                <span class="sa">f</span><span class="s2">"its mouth (</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">hidden</span><span class="p">)</span><span class="si">}</span><span class="s2">: swap_poses.</span><span class="si">{</span><span class="n">VIEW_CHANNEL</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">view</span><span class="si">}</span><span class="s2"> "</span>
+                <span class="s2">"alpha 0), so the line plays with no lip-sync on screen. "</span>
+                <span class="o">+</span> <span class="p">(</span>
+                    <span class="s2">"Turn before the line if the face should be seen."</span>
+                    <span class="k">if</span> <span class="n">view</span> <span class="o">==</span> <span class="s2">"back"</span>
+                    <span class="k">else</span> <span class="sa">f</span><span class="s2">"Give the view its own mouth (a `viseme@</span><span class="si">{</span><span class="n">view</span><span class="si">}</span><span class="s2">` set) "</span>
+                    <span class="s2">"instead of hiding it, or turn before the line."</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_view_continuity</span><span class="p">(</span>
     <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">resolved</span><span class="p">:</span> <span class="nb">list</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2285,6 +2352,9 @@ window.runMermaid = runMermaid;</script>
         <span class="n">_check_swap_references</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span>
         <span class="n">turn_resolutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_turn_resolution</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">))</span>
         <span class="n">_check_turns</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">turn_resolutions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">_check_hidden_mouth_while_speaking</span><span class="p">(</span>
+            <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">turn_resolutions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">rig_stores</span>
+        <span class="p">)</span>
         <span class="n">_check_trim_targets</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span>
         <span class="n">text_ids</span> <span class="o">=</span> <span class="n">_check_text_blocks</span><span class="p">(</span>
             <span class="n">shot</span><span class="p">,</span>

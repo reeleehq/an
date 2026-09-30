@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=07422cd4"></script>
+    <script src="../_static/documentation_options.js?v=68b33800"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.record" href="an.characters.record.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.122" />
+  <meta name="docsearch:version" content="0.1.124" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -594,6 +594,12 @@ several slots.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.DFLT_VIEW" title="an.characters.schema.DFLT_VIEW"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_VIEW</span></code></a></p></td>
 <td><p>its default attachments ARE this view.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.VIEW_VARIANT_SEP" title="an.characters.schema.VIEW_VARIANT_SEP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VIEW_VARIANT_SEP</span></code></a></p></td>
+<td><p>What joins a swap set's name to the view a variant of it serves: <code class="docutils literal notranslate"><span class="pre">eyelid&#64;side</span></code> is the <code class="docutils literal notranslate"><span class="pre">eyelid</span></code> set drawn for the <code class="docutils literal notranslate"><span class="pre">side</span></code> view (an#220), the same separator the expression variants (<code class="docutils literal notranslate"><span class="pre">viseme&#64;happy</span></code>, an#98) use.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.GAITS" title="an.characters.schema.GAITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GAITS</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">legs</span></code> swing about the hip in a profile and step up and down facing the camera; <code class="docutils literal notranslate"><span class="pre">hem</span></code> — the leg slots are the two halves of a robe's hem — tilts them in turn under a swaying, bobbing body; <code class="docutils literal notranslate"><span class="pre">rock</span></code> moves no leg at all (a blob, a sack) and rocks the body.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.REQUIRED_PARTS" title="an.characters.schema.REQUIRED_PARTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REQUIRED_PARTS</span></code></a></p></td>
 <td><p>Required body parts.</p></td>
 </tr>
@@ -621,11 +627,20 @@ several slots.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.bones_from_pivots" title="an.characters.schema.bones_from_pivots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bones_from_pivots</span></code></a>(pivots, *[, bones])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.attachment_box" title="an.characters.schema.attachment_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">attachment_box</span></code></a>(width, height, art)</p></td>
+<td><p>The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.bones_from_pivots" title="an.characters.schema.bones_from_pivots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bones_from_pivots</span></code></a>(pivots, *[, bones])</p></td>
 <td><p>Re-place a bone rig onto an illustrator's own joint coordinates.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.default_asset_sets" title="an.characters.schema.default_asset_sets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_asset_sets</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.default_asset_sets" title="an.characters.schema.default_asset_sets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_asset_sets</span></code></a>()</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{channel:</span> <span class="pre">{key:</span> <span class="pre">attachment_name}}</span></code> for a freshly-built character.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.schema.view_variant_set" title="an.characters.schema.view_variant_set"><code class="xref py py-obj docutils literal notranslate"><span class="pre">view_variant_set</span></code></a>(set_name, view)</p></td>
+<td><p>The name of <code class="docutils literal notranslate"><span class="pre">set_name</span></code>'s variant for <code class="docutils literal notranslate"><span class="pre">view</span></code> (an#220).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.schema.view_variant_sets" title="an.characters.schema.view_variant_sets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">view_variant_sets</span></code></a>(desc, *[, view_set])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{base</span> <span class="pre">set:</span> <span class="pre">{view:</span> <span class="pre">variant</span> <span class="pre">set</span> <span class="pre">name}}</span></code> — every per-view face set the descriptor declares (an#220): a set named <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;&#64;&lt;view&gt;</span></code> where <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code> is a declared set and <code class="docutils literal notranslate"><span class="pre">&lt;view&gt;</span></code> a key of its <code class="docutils literal notranslate"><span class="pre">view</span></code> set (or its <code class="docutils literal notranslate"><span class="pre">rest_view</span></code>).</p></td>
 </tr>
 </tbody>
 </table>
@@ -714,9 +729,31 @@ list of <code class="docutils literal notranslate"><span class="pre">[time_s,</s
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.Attachment.source">
+<span class="sig-name descname"><span class="pre">source</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.ir.assets.html#an.ir.assets.AssetSource" title="an.ir.assets.AssetSource"><span class="pre">AssetSource</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.Attachment.source" title="Link to this definition">#</a></dt>
+<dd><p>Where THIS part’s art came from, when it is not the descriptor’s
+<code class="docutils literal notranslate"><span class="pre">source</span></code> — a character composed from several clips, or a carved head
+on a CC0 body, credits each (an#220). <code class="docutils literal notranslate"><span class="pre">None</span></code> = the descriptor’s
+<code class="docutils literal notranslate"><span class="pre">source</span></code> covers it. <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">credits</span></code> lists every one; an all-rights-
+reserved part makes the render NOT PUBLISHABLE like any other.
+Omitted from the stored document when unset.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.characters.schema.Attachment.width">
 <span class="sig-name descname"><span class="pre">width</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.Attachment.width" title="Link to this definition">#</a></dt>
-<dd><p>Optional explicit bounding box override in the part’s local viewBox.</p>
+<dd><p>The size the part draws at, in <strong>view_box units</strong> — the rig’s units,
+the ones <code class="docutils literal notranslate"><span class="pre">x</span></code>/<code class="docutils literal notranslate"><span class="pre">y</span></code> and the bones use (an#220). **A declared size
+wins** over the art’s own extent, as <code class="docutils literal notranslate"><span class="pre">Plane.size</span></code> does for plates.
+Unset, the art’s own extent is the size: an SVG’s <code class="docutils literal notranslate"><span class="pre">width</span></code>/<code class="docutils literal notranslate"><span class="pre">height</span></code>
+(else its viewBox), a raster’s PIXEL count — so a PNG carved at one
+pixel per unit needs nothing, and one carved at any other scale
+declares its size here instead of being resampled. The aspect is the
+art’s, always (an#74): with ONE of the two declared the other follows
+the art’s aspect; with both, the art is contained in the box
+(uniformly scaled to fit, never stretched) and <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">character</span>
+<span class="pre">validate</span></code> says when the two aspects disagree. See
+<a class="reference internal" href="#an.characters.schema.attachment_box" title="an.characters.schema.attachment_box"><code class="xref py py-func docutils literal notranslate"><span class="pre">attachment_box()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -852,6 +889,16 @@ provenance/licensing metadata.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.gait">
+<span class="sig-name descname"><span class="pre">gait</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.gait" title="Link to this definition">#</a></dt>
+<dd><p>This character’s default walk <code class="docutils literal notranslate"><span class="pre">gait</span></code> (one of <a class="reference internal" href="#an.characters.schema.GAITS" title="an.characters.schema.GAITS"><code class="xref py py-data docutils literal notranslate"><span class="pre">GAITS</span></code></a>, an#220);
+an author’s <code class="docutils literal notranslate"><span class="pre">gait</span></code> arg overrides it. <code class="docutils literal notranslate"><span class="pre">None</span></code> = <code class="docutils literal notranslate"><span class="pre">legs</span></code> when the rig
+builds a leg pair, else <code class="docutils literal notranslate"><span class="pre">rock</span></code>. A robe figure whose leg slots are hem
+halves declares <code class="docutils literal notranslate"><span class="pre">&quot;hem&quot;</span></code> once, here, rather than on every walk.
+Omitted from the stored document when unset.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.gaze_travel">
 <span class="sig-name descname"><span class="pre">gaze_travel</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.gaze_travel" title="Link to this definition">#</a></dt>
 <dd><p>How far a pupil may travel from its rest, in view-box units per axis
@@ -889,6 +936,18 @@ This is useful if you want to do some validation that requires the entire model 
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.characters.schema.CharacterDescriptor.rest_view">
+<span class="sig-name descname"><span class="pre">rest_view</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.characters.schema.CharacterDescriptor.rest_view" title="Link to this definition">#</a></dt>
+<dd><p>The view the DEFAULT art is drawn in (an#220) — a declared fact about
+the art, like <code class="docutils literal notranslate"><span class="pre">face_overlay</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code> means <a class="reference internal" href="#an.characters.schema.DFLT_VIEW" title="an.characters.schema.DFLT_VIEW"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_VIEW</span></code></a>
+(front). A character carved from a profile (a silhouette film, a side-
+on figure) says <code class="docutils literal notranslate"><span class="pre">&quot;side&quot;</span></code>, and everything that asks which view is in
+force before any turn — <code class="docutils literal notranslate"><span class="pre">walk</span></code> swinging its legs rather than lifting
+them — reads it instead of the author passing <code class="docutils literal notranslate"><span class="pre">view:</span> <span class="pre">side</span></code> by hand.
+Omitted from the stored document when unset.</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -972,7 +1031,8 @@ because Rhubarb emits A-X; lowercase attachment names by convention.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.characters.schema.DFLT_VIEW">
 <span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">DFLT_VIEW</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'front'</span></span><a class="headerlink" href="#an.characters.schema.DFLT_VIEW" title="Link to this definition">#</a></dt>
-<dd><p>its default attachments ARE this view.</p>
+<dd><p>its default attachments ARE this view.
+A descriptor whose art is drawn in another view says so in <code class="docutils literal notranslate"><span class="pre">rest_view</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>The view a character shows at rest</p>
@@ -1001,6 +1061,21 @@ change it. Those pairs were relative to the head’s CENTRE (the old compiler
 anchored the head at 0.5); the bone is the NECK, and the head hangs above it
 at <a class="reference internal" href="#an.characters.schema.HEAD_ANCHOR" title="an.characters.schema.HEAD_ANCHOR"><code class="xref py py-data docutils literal notranslate"><span class="pre">HEAD_ANCHOR</span></code></a>, so each pair is lifted by the centre’s height above
 the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.GAITS">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">GAITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('legs',</span> <span class="pre">'hem',</span> <span class="pre">'rock')</span></span><a class="headerlink" href="#an.characters.schema.GAITS" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">legs</span></code>
+swing about the hip in a profile and step up and down facing the camera;
+<code class="docutils literal notranslate"><span class="pre">hem</span></code> — the leg slots are the two halves of a robe’s hem — tilts them in
+turn under a swaying, bobbing body; <code class="docutils literal notranslate"><span class="pre">rock</span></code> moves no leg at all (a blob, a
+sack) and rocks the body.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How a character walks (<code class="docutils literal notranslate"><span class="pre">an.motion.walk</span></code>’s <code class="docutils literal notranslate"><span class="pre">gait</span></code>, an#220)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py data">
@@ -1171,12 +1246,46 @@ reads it; <code class="code docutils literal notranslate"><span class="pre">an.m
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.characters.schema.VIEW_VARIANT_SEP">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">VIEW_VARIANT_SEP</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'&#64;'</span></span><a class="headerlink" href="#an.characters.schema.VIEW_VARIANT_SEP" title="Link to this definition">#</a></dt>
+<dd><p>What joins a swap set’s name to the view a variant of it serves:
+<code class="docutils literal notranslate"><span class="pre">eyelid&#64;side</span></code> is the <code class="docutils literal notranslate"><span class="pre">eyelid</span></code> set drawn for the <code class="docutils literal notranslate"><span class="pre">side</span></code> view (an#220),
+the same separator the expression variants (<code class="docutils literal notranslate"><span class="pre">viseme&#64;happy</span></code>, an#98) use.</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.characters.schema.VISEME_CHANNEL">
 <span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">VISEME_CHANNEL</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'viseme'</span></span><a class="headerlink" href="#an.characters.schema.VISEME_CHANNEL" title="Link to this definition">#</a></dt>
 <dd><p>The swap channel lip-sync drives. <code class="code docutils literal notranslate"><span class="pre">viseme</span></code> is a conventional set name, not
 a special case in control flow (an#87): the compiler projects EVERY
 <code class="code docutils literal notranslate"><span class="pre">asset_sets</span></code> channel onto the slots whose attachments its keys name, and
 the runtime applies any projected channel the same way.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.schema.attachment_box">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">attachment_box</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">art</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#attachment_box"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.attachment_box" title="Link to this definition">#</a></dt>
+<dd><p>The box a part draws in, in view_box units: the declared size wins, the
+art’s aspect is kept (an#220).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">attachment_box</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>       <span class="c1"># the art's own extent</span>
+<span class="go">(40.0, 20.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attachment_box</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>        <span class="c1"># width declared: height follows</span>
+<span class="go">(120.0, 60.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attachment_box</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>
+<span class="go">(60.0, 30.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attachment_box</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">20</span><span class="p">))</span>         <span class="c1"># both: contained, never stretched</span>
+<span class="go">(120.0, 60.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attachment_box</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>              <span class="c1"># unmeasurable art: the box as declared</span>
+<span class="go">(120.0, 90.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">attachment_box</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>    <span class="c1"># nothing to take the aspect from</span>
+<span class="go">True</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1220,6 +1329,44 @@ first, which is why this walks in declaration order rather than by index.</p>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.schema.view_variant_set">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">view_variant_set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">set_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#view_variant_set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.view_variant_set" title="Link to this definition">#</a></dt>
+<dd><p>The name of <code class="docutils literal notranslate"><span class="pre">set_name</span></code>’s variant for <code class="docutils literal notranslate"><span class="pre">view</span></code> (an#220).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">view_variant_set</span><span class="p">(</span><span class="s2">"eyelid"</span><span class="p">,</span> <span class="s2">"side"</span><span class="p">)</span>
+<span class="go">'eyelid@side'</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.characters.schema.view_variant_sets">
+<span class="sig-prename descclassname"><span class="pre">an.characters.schema.</span></span><span class="sig-name descname"><span class="pre">view_variant_sets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">desc</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">view_set</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'view'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/schema.html#view_variant_sets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.schema.view_variant_sets" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{base</span> <span class="pre">set:</span> <span class="pre">{view:</span> <span class="pre">variant</span> <span class="pre">set</span> <span class="pre">name}}</span></code> — every per-view face set the
+descriptor declares (an#220): a set named <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;&#64;&lt;view&gt;</span></code> where <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code>
+is a declared set and <code class="docutils literal notranslate"><span class="pre">&lt;view&gt;</span></code> a key of its <code class="docutils literal notranslate"><span class="pre">view</span></code> set (or its
+<code class="docutils literal notranslate"><span class="pre">rest_view</span></code>). <code class="docutils literal notranslate"><span class="pre">viseme&#64;happy</span></code> is NOT one — <code class="docutils literal notranslate"><span class="pre">happy</span></code> is not a view —
+so the expression variants (an#98) and the view variants never collide.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">CharacterDescriptor</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"v"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">[</span><span class="s2">"view"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"front"</span><span class="p">:</span> <span class="s2">"front"</span><span class="p">,</span> <span class="s2">"side"</span><span class="p">:</span> <span class="s2">"side"</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">[</span><span class="s2">"eyelid@side"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"OPEN"</span><span class="p">:</span> <span class="s2">"open_side"</span><span class="p">,</span> <span class="s2">"CLOSED"</span><span class="p">:</span> <span class="s2">"closed_side"</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">[</span><span class="s2">"viseme@happy"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"X"</span><span class="p">:</span> <span class="s2">"mouth_x_happy"</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">view_variant_sets</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="go">{'eyelid': {'side': 'eyelid@side'}}</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -1278,6 +1425,7 @@ first, which is why this walks in declaration order rather than by index.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment"><code class="docutils literal notranslate"><span class="pre">Attachment</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment.anchor"><code class="docutils literal notranslate"><span class="pre">Attachment.anchor</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment.model_config"><code class="docutils literal notranslate"><span class="pre">Attachment.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment.source"><code class="docutils literal notranslate"><span class="pre">Attachment.source</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment.width"><code class="docutils literal notranslate"><span class="pre">Attachment.width</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.Attachment.x"><code class="docutils literal notranslate"><span class="pre">Attachment.x</span></code></a></li>
 </ul>
@@ -1293,10 +1441,12 @@ first, which is why this walks in declaration order rather than by index.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.colour_roles"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.colour_roles</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.expression_binding"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.expression_binding</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.face_overlay"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.face_overlay</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.gait"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.gait</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.gaze_travel"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.gaze_travel</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.metadata"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.metadata</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.model_config"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.model_post_init"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.model_post_init()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.rest_view"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.rest_view</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.source"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.source_svg"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.source_svg</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.CharacterDescriptor.swap_poses"><code class="docutils literal notranslate"><span class="pre">CharacterDescriptor.swap_poses</span></code></a></li>
@@ -1309,6 +1459,7 @@ first, which is why this walks in declaration order rather than by index.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.DFLT_VIEW"><code class="docutils literal notranslate"><span class="pre">DFLT_VIEW</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.EYELID_CHANNEL"><code class="docutils literal notranslate"><span class="pre">EYELID_CHANNEL</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.FACE_OFFSETS"><code class="docutils literal notranslate"><span class="pre">FACE_OFFSETS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.GAITS"><code class="docutils literal notranslate"><span class="pre">GAITS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.HEAD_ANCHOR"><code class="docutils literal notranslate"><span class="pre">HEAD_ANCHOR</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.IdleAnimation"><code class="docutils literal notranslate"><span class="pre">IdleAnimation</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.IdleAnimation.model_config"><code class="docutils literal notranslate"><span class="pre">IdleAnimation.model_config</span></code></a></li>
@@ -1334,9 +1485,13 @@ first, which is why this walks in declaration order rather than by index.</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.VIEWS"><code class="docutils literal notranslate"><span class="pre">VIEWS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.VIEW_CHANNEL"><code class="docutils literal notranslate"><span class="pre">VIEW_CHANNEL</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.VIEW_VARIANT_SEP"><code class="docutils literal notranslate"><span class="pre">VIEW_VARIANT_SEP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.VISEME_CHANNEL"><code class="docutils literal notranslate"><span class="pre">VISEME_CHANNEL</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.attachment_box"><code class="docutils literal notranslate"><span class="pre">attachment_box()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.bones_from_pivots"><code class="docutils literal notranslate"><span class="pre">bones_from_pivots()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.default_asset_sets"><code class="docutils literal notranslate"><span class="pre">default_asset_sets()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.view_variant_set"><code class="docutils literal notranslate"><span class="pre">view_variant_set()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.schema.view_variant_sets"><code class="docutils literal notranslate"><span class="pre">view_variant_sets()</span></code></a></li>
 </ul>
   </nav></div>
 

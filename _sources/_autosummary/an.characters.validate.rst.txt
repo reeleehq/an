@@ -13,6 +13,7 @@ an.characters.validate
       DRAWABLE_ELEMENTS
       BLOCKING
       ADVISORY
+      DECLARED_ASPECT_TOLERANCE
    
    .. rubric:: Functions
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=07422cd4"></script>
+    <script src="../../../_static/documentation_options.js?v=68b33800"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.122" />
+  <meta name="docsearch:version" content="0.1.124" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -927,11 +927,15 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    &gt;&gt;&gt; declared_mouth_variants(CharacterDescriptor(name="m"))</span>
 <span class="sd">    {}</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">view_variant_sets</span>
+
     <span class="n">prefix</span> <span class="o">=</span> <span class="n">VISEME_CHANNEL</span> <span class="o">+</span> <span class="s2">"@"</span>
+    <span class="c1"># `viseme@side` is the mouth drawn for a VIEW (an#220), not a mouth form.</span>
+    <span class="n">per_view</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">view_variant_sets</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VISEME_CHANNEL</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="p">:]:</span> <span class="n">name</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span>
-        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">per_view</span>
     <span class="p">}</span></div>
 
 

@@ -364,7 +364,7 @@ so it is the one that needs `rest` in a multi-character shot.
 0.6
 ```
 
-### an.motion.walk(target, , to_x=None, distance=None, direction=None, steps=None, step_s=0.4, step_length=80.0, stride=0.35, lift=10.0, bob=6.0, arm_swing=0.3, rock=0.06, view=None, legs=None, arms=None, parts=None, rest=None)
+### an.motion.walk(target, , to_x=None, distance=None, direction=None, steps=None, step_s=0.4, step_length=80.0, stride=0.35, lift=10.0, bob=6.0, arm_swing=0.3, rock=0.06, hem_tilt=0.24, view=None, gait=None, legs=None, arms=None, parts=None, rest=None)
 
 Walk: the body travels on `x` and bobs once per step while the legs
 alternate and the arms swing against them (an#214).
@@ -389,8 +389,18 @@ timeline at the play’s start (the view the last `turn` or `set` left);
 pass it to override. `legs`/`arms` name the two limb nodes; by
 default the first pair in `WALK_LEG_NAMES` / `WALK_ARM_NAMES`
 that the rig builds (`parts`: the entity’s built parts with their pose
-at the start, filled in by the compiler). A figure with no legs (a robe,
-a blob) walks on the bob and a `rock` of the body instead. Limbs land on
+at the start, filled in by the compiler). Played by name with no view on
+the timeline, the view is the descriptor’s `rest_view` (an#220) — a
+character carved in profile swings its legs with nothing passed.
+
+**Gait** (`gait`, one of [`an.characters.schema.GAITS`](an.characters.schema.html.md#an.characters.schema.GAITS), an#220).
+`legs` is the above. `hem` is a robe whose leg slots are the two
+halves of its hem: facing the camera the halves TILT in turn by
+`hem_tilt` radians about the hip while the body sways by `rock` and
+bobs (in a profile they swing like legs). `rock` moves no leg: the body
+rocks and bobs (a blob, a sack). Unset: the descriptor’s `gait` when
+played by name, else `legs` when the rig builds a leg pair and `rock`
+when it does not. Limbs land on
 their rest with a `WALK_LANDING_S` constant tween, not a settling
 `set`: a `set`’s hold would outrank the view’s pose channel and keep a
 profile’s splay after a later turn to the front.
@@ -413,4 +423,7 @@ then `walk`.
 ['rotation']
 >>> sorted({f.action.target for f in _tweens(walk("blob", steps=2, legs=(), arms=()))})
 ['blob']
+>>> sorted({(f.action.target, f.action.property) for f in _tweens(walk("al", steps=2, gait="hem"))
+...         if f.action.target in ("al", "al/leg_l")})
+[('al', 'rotation'), ('al', 'y'), ('al/leg_l', 'rotation')]
 ```

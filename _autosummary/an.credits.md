@@ -24,7 +24,9 @@ answers, and collapsing them is exactly how an obligation goes missing.
 
 Public domain (`pd`, `public-domain`, `cc-pdm-1.0`, `cc0-*`) is recognised as
 nothing owed, and an environment’s planes may each carry their own `source`,
-so a composite stage — a carved plate plus a CC0 prop — credits both.
+so a composite stage — a carved plate plus a CC0 prop — credits both. A
+character’s (or prop’s) attachments may too (an#220): a figure composed from
+parts carved out of several clips credits each clip, part by part.
 
 ### Functions
 

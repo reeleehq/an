@@ -1,4 +1,4 @@
-> built 2026-09-30 17:39 UTC from 41a9825 (main) · an 0.1.122. Details: build_info.json
+> built 2026-09-30 19:35 UTC from 60cbbd1 (main) · an 0.1.124. Details: build_info.json
 
 # index.html.md
 
@@ -6322,13 +6322,14 @@ per-developer landmine, in the module whose docstring says the opposite.
 
 ### Functions
 
-| [`capture_fixture`](_autosummary/an.bench.capture.html.md#an.bench.capture.capture_fixture)(name, fixture, \*, repo_root)   | Render `fixture` in a throwaway copy and return its artifacts.             |
-|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`cleanup`](_autosummary/an.bench.capture.html.md#an.bench.capture.cleanup)(capture)                                | Remove a capture's throwaway tree.                                         |
-| [`dirty_paths`](_autosummary/an.bench.capture.html.md#an.bench.capture.dirty_paths)(repo_root)                          | `git status --porcelain` lines, so a capture can prove it touched nothing. |
-| [`distinct_png_sizes`](_autosummary/an.bench.capture.html.md#an.bench.capture.distinct_png_sizes)(frames_dir)                  | Every distinct `(width, height)` among a shot's frame PNGs, sorted.        |
-| [`expected_frame_count`](_autosummary/an.bench.capture.html.md#an.bench.capture.expected_frame_count)(duration, fps)             | The renderer's own frame-count expression, reused rather than restated.    |
-| [`stage_copy`](_autosummary/an.bench.capture.html.md#an.bench.capture.stage_copy)(fixture_dir, base)                   | Copy a fixture into `base`, leaving the previous render behind.            |
+| [`capture_fixture`](_autosummary/an.bench.capture.html.md#an.bench.capture.capture_fixture)(name, fixture, \*, repo_root)    | Render `fixture` in a throwaway copy and return its artifacts.               |
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`cleanup`](_autosummary/an.bench.capture.html.md#an.bench.capture.cleanup)(capture)                                 | Remove a capture's throwaway tree.                                           |
+| [`compiled_contract_sha256`](_autosummary/an.bench.capture.html.md#an.bench.capture.compiled_contract_sha256)(fixture, \*, repo_root) | The `scene_contract_sha256` a render of `fixture` would record — no browser. |
+| [`dirty_paths`](_autosummary/an.bench.capture.html.md#an.bench.capture.dirty_paths)(repo_root)                           | `git status --porcelain` lines, so a capture can prove it touched nothing.   |
+| [`distinct_png_sizes`](_autosummary/an.bench.capture.html.md#an.bench.capture.distinct_png_sizes)(frames_dir)                   | Every distinct `(width, height)` among a shot's frame PNGs, sorted.          |
+| [`expected_frame_count`](_autosummary/an.bench.capture.html.md#an.bench.capture.expected_frame_count)(duration, fps)              | The renderer's own frame-count expression, reused rather than restated.      |
+| [`stage_copy`](_autosummary/an.bench.capture.html.md#an.bench.capture.stage_copy)(fixture_dir, base)                    | Copy a fixture into `base`, leaving the previous render behind.              |
 
 ### Classes
 
@@ -6448,6 +6449,24 @@ Remove a capture’s throwaway tree.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.bench.capture.compiled_contract_sha256(fixture, , repo_root)
+
+The `scene_contract_sha256` a render of `fixture` would record — no browser.
+
+Compiles every timeline shot the way the cutout renderer does (the scene’s
+size, fps, style pack, default easing and stepped-timing policy, with
+`strict_assets` as the bench sets it) in a throwaway copy, and hashes the
+documents. It is the default-leg twin of [`capture_fixture()`](_autosummary/an.bench.capture.html.md#an.bench.capture.capture_fixture): the
+contract hash is a function of the compiled JSON alone, so the guards that
+check it — against the newest ledger row and against each golden’s bless
+record — run on every PR, not only in the labelled browser lane.
+
+It is the contract of a bench render, which passes no overrides: a render
+given its own `step_hz`, fps or resolution compiles something else.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.capture.dirty_paths(repo_root)
 
@@ -7008,7 +7027,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'ellipse', 'rect', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'eye', 'mouth', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -7199,6 +7218,7 @@ uninterpretable, not good or bad.
 | [`environment_record`](_autosummary/an.bench.environment.html.md#an.bench.environment.environment_record)(\*, pix_fmt[, x264_sei, ...])   | Everything about this machine that could plausibly move a number.            |
 |-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
 | [`ffmpeg_identity`](_autosummary/an.bench.environment.html.md#an.bench.environment.ffmpeg_identity)()                                  | The ffmpeg build banner.                                                     |
+| [`home_relative`](_autosummary/an.bench.environment.html.md#an.bench.environment.home_relative)(path, \*[, home])                    | `path` with the user's home directory spelled `~`.                           |
 | [`probe_browser`](_autosummary/an.bench.environment.html.md#an.bench.environment.probe_browser)()                                    | Launch Chromium with the render path's own flags and read back its identity. |
 | [`runtime_sha256`](_autosummary/an.bench.environment.html.md#an.bench.environment.runtime_sha256)()                                   | A digest of the JS runtime the renderer will stage, files and names.         |
 | `tool_version`(name)                                                                                |                                                                              |
@@ -7258,6 +7278,24 @@ The ffmpeg build banner. Informational — the `x264_sei` is the key.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.bench.environment.home_relative(path, , home=None)
+
+`path` with the user’s home directory spelled `~`.
+
+Ledger rows are committed to a public repository, so a row must not carry
+the absolute path of the machine that wrote it. Provenance only: nothing
+compares on this field. POSIX-spelled on every platform.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> home_relative("/home/u/.cache/ms-playwright/chrome", home=Path("/home/u"))
+'~/.cache/ms-playwright/chrome'
+>>> home_relative("/opt/chrome", home=Path("/home/u"))
+'/opt/chrome'
+```
 
 ### an.bench.environment.probe_browser()
 
@@ -11912,9 +11950,29 @@ Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where THIS part’s art came from, when it is not the descriptor’s
+`source` — a character composed from several clips, or a carved head
+on a CC0 body, credits each (an#220). `None` = the descriptor’s
+`source` covers it. `an credits` lists every one; an all-rights-
+reserved part makes the render NOT PUBLISHABLE like any other.
+Omitted from the stored document when unset.
+
 #### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
-Optional explicit bounding box override in the part’s local viewBox.
+The size the part draws at, in **view_box units** — the rig’s units,
+the ones `x`/`y` and the bones use (an#220). \*\*A declared size
+wins\*\* over the art’s own extent, as `Plane.size` does for plates.
+Unset, the art’s own extent is the size: an SVG’s `width`/`height`
+(else its viewBox), a raster’s PIXEL count — so a PNG carved at one
+pixel per unit needs nothing, and one carved at any other scale
+declares its size here instead of being resampled. The aspect is the
+art’s, always (an#74): with ONE of the two declared the other follows
+the art’s aspect; with both, the art is contained in the box
+(uniformly scaled to fit, never stretched) and `an character
+validate` says when the two aspects disagree. See
+`attachment_box()`.
 
 #### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
@@ -12023,6 +12081,14 @@ from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
 from the provenance string once, and `art_provenance` reverts to pure
 provenance/licensing metadata.
 
+#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+This character’s default walk `gait` (one of `GAITS`, an#220);
+an author’s `gait` arg overrides it. `None` = `legs` when the rig
+builds a leg pair, else `rock`. A robe figure whose leg slots are hem
+halves declares `"hem"` once, here, rather than on every walk.
+Omitted from the stored document when unset.
+
 #### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How far a pupil may travel from its rest, in view-box units per axis
@@ -12053,6 +12119,16 @@ This is useful if you want to do some validation that requires the entire model 
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The view the DEFAULT art is drawn in (an#220) — a declared fact about
+the art, like `face_overlay`. `None` means `DFLT_VIEW`
+(front). A character carved from a profile (a silhouette film, a side-
+on figure) says `"side"`, and everything that asks which view is in
+force before any turn — `walk` swinging its legs rather than lifting
+them — reads it instead of the author passing `view: side` by hand.
+Omitted from the stored document when unset.
 
 #### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -13465,29 +13541,34 @@ several slots.
 
 ### Module Attributes
 
-| [`CHARACTER_DOCUMENT_KIND`](_autosummary/an.characters.schema.html.md#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                                                                                                                                           |
-|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`MOUTH_SHAPES`](_autosummary/an.characters.schema.html.md#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                                                                                                                                                 |
-| [`DEFAULT_VISEME_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                                                                                                                                               |
-| [`VISEME_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                                                                                                                                                     |
-| [`EYELID_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                                                                                                                                        |
-| [`DEFAULT_EYELID_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                                                                                                                                             |
-| [`VIEW_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEW_CHANNEL)              | one KEY per drawn view, projected onto the slots whose art changes with the view (the factory draws the head and the torso), each slot carrying attachments NAMED after the keys.                                                                     |
-| [`VIEWS`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEWS)                     | The views the factory draws, in turnaround order.                                                                                                                                                                                                     |
-| [`DFLT_VIEW`](_autosummary/an.characters.schema.html.md#an.characters.schema.DFLT_VIEW)                 | its default attachments ARE this view.                                                                                                                                                                                                                |
-| [`REQUIRED_PARTS`](_autosummary/an.characters.schema.html.md#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                                                                                                                                                  |
-| [`DEFAULT_VIEW_BOX`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                                                                                                                                       |
-| [`SLOT_POSE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.SLOT_POSE_OFFSETS)         | The transform properties a [`SlotPose`](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose) sets, and whether each is an OFFSET added to the rest (in view_box units, so scaled by the rig), an ANGLE added to it (radians, never scaled) or a FACTOR on it. |
-| [`LEG_LENGTH`](_autosummary/an.characters.schema.html.md#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                                                                                                                                                  |
-| [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                                                                                                                                               |
-| [`REFERENCE_HEAD_HEIGHT`](_autosummary/an.characters.schema.html.md#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024.                                                                                                                       |
-| [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                                                                                                                                             |
+| [`CHARACTER_DOCUMENT_KIND`](_autosummary/an.characters.schema.html.md#an.characters.schema.CHARACTER_DOCUMENT_KIND)   | The descriptor is a schema-versioned document in its own right, with its own version field.                                                                                                                                                                  |
+|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`MOUTH_SHAPES`](_autosummary/an.characters.schema.html.md#an.characters.schema.MOUTH_SHAPES)              | Rhubarb mouth shapes.                                                                                                                                                                                                                                        |
+| [`DEFAULT_VISEME_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VISEME_MAP)        | Default Rhubarb-letter → mouth-attachment-name mapping.                                                                                                                                                                                                      |
+| [`VISEME_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VISEME_CHANNEL)            | The swap channel lip-sync drives.                                                                                                                                                                                                                            |
+| [`EYELID_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.EYELID_CHANNEL)            | The swap channel blinks drive.                                                                                                                                                                                                                               |
+| [`DEFAULT_EYELID_MAP`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_EYELID_MAP)        | Default eyelid-state → attachment-name mapping, shared by both eye slots.                                                                                                                                                                                    |
+| [`VIEW_CHANNEL`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEW_CHANNEL)              | one KEY per drawn view, projected onto the slots whose art changes with the view (the factory draws the head and the torso), each slot carrying attachments NAMED after the keys.                                                                            |
+| [`VIEWS`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEWS)                     | The views the factory draws, in turnaround order.                                                                                                                                                                                                            |
+| [`DFLT_VIEW`](_autosummary/an.characters.schema.html.md#an.characters.schema.DFLT_VIEW)                 | its default attachments ARE this view.                                                                                                                                                                                                                       |
+| [`VIEW_VARIANT_SEP`](_autosummary/an.characters.schema.html.md#an.characters.schema.VIEW_VARIANT_SEP)          | What joins a swap set's name to the view a variant of it serves: `eyelid@side` is the `eyelid` set drawn for the `side` view (an#220), the same separator the expression variants (`viseme@happy`, an#98) use.                                               |
+| [`GAITS`](_autosummary/an.characters.schema.html.md#an.characters.schema.GAITS)                     | `legs` swing about the hip in a profile and step up and down facing the camera; `hem` — the leg slots are the two halves of a robe's hem — tilts them in turn under a swaying, bobbing body; `rock` moves no leg at all (a blob, a sack) and rocks the body. |
+| [`REQUIRED_PARTS`](_autosummary/an.characters.schema.html.md#an.characters.schema.REQUIRED_PARTS)            | Required body parts.                                                                                                                                                                                                                                         |
+| [`DEFAULT_VIEW_BOX`](_autosummary/an.characters.schema.html.md#an.characters.schema.DEFAULT_VIEW_BOX)          | 1024x1024 with feet near y≈980.                                                                                                                                                                                                                              |
+| [`SLOT_POSE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.SLOT_POSE_OFFSETS)         | The transform properties a [`SlotPose`](_autosummary/an.characters.schema.html.md#an.characters.schema.SlotPose) sets, and whether each is an OFFSET added to the rest (in view_box units, so scaled by the rig), an ANGLE added to it (radians, never scaled) or a FACTOR on it.        |
+| [`LEG_LENGTH`](_autosummary/an.characters.schema.html.md#an.characters.schema.LEG_LENGTH)                | Hip to ground in the default rig, in view_box units.                                                                                                                                                                                                         |
+| [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR)               | the head hangs above the neck, its lower ~fifth overlapping the collar.                                                                                                                                                                                      |
+| [`REFERENCE_HEAD_HEIGHT`](_autosummary/an.characters.schema.html.md#an.characters.schema.REFERENCE_HEAD_HEIGHT)     | The head height the default face layout is drawn for, in view_box units — the pre-Wave-4 compiler's 96 px head at k = 345/1024.                                                                                                                              |
+| [`FACE_OFFSETS`](_autosummary/an.characters.schema.html.md#an.characters.schema.FACE_OFFSETS)              | Where each face part sits relative to the `head` bone, in view_box units.                                                                                                                                                                                    |
 
 ### Functions
 
-| [`bones_from_pivots`](_autosummary/an.characters.schema.html.md#an.characters.schema.bones_from_pivots)(pivots, \*[, bones])   | Re-place a bone rig onto an illustrator's own joint coordinates.   |
-|-------------------------------------------------------------------------------------------|--------------------------------------------------------------------|
-| [`default_asset_sets`](_autosummary/an.characters.schema.html.md#an.characters.schema.default_asset_sets)()                     | `{channel: {key: attachment_name}}` for a freshly-built character. |
+| [`attachment_box`](_autosummary/an.characters.schema.html.md#an.characters.schema.attachment_box)(width, height, art)      | The box a part draws in, in view_box units: the declared size wins, the art's aspect is kept (an#220).                                                                                                                     |
+|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`bones_from_pivots`](_autosummary/an.characters.schema.html.md#an.characters.schema.bones_from_pivots)(pivots, \*[, bones])  | Re-place a bone rig onto an illustrator's own joint coordinates.                                                                                                                                                           |
+| [`default_asset_sets`](_autosummary/an.characters.schema.html.md#an.characters.schema.default_asset_sets)()                    | `{channel: {key: attachment_name}}` for a freshly-built character.                                                                                                                                                         |
+| [`view_variant_set`](_autosummary/an.characters.schema.html.md#an.characters.schema.view_variant_set)(set_name, view)        | The name of `set_name`'s variant for `view` (an#220).                                                                                                                                                                      |
+| [`view_variant_sets`](_autosummary/an.characters.schema.html.md#an.characters.schema.view_variant_sets)(desc, \*[, view_set]) | `{base set: {view: variant set name}}` — every per-view face set the descriptor declares (an#220): a set named `<base>@<view>` where `<base>` is a declared set and `<view>` a key of its `view` set (or its `rest_view`). |
 
 ### Classes
 
@@ -13547,9 +13628,29 @@ Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where THIS part’s art came from, when it is not the descriptor’s
+`source` — a character composed from several clips, or a carved head
+on a CC0 body, credits each (an#220). `None` = the descriptor’s
+`source` covers it. `an credits` lists every one; an all-rights-
+reserved part makes the render NOT PUBLISHABLE like any other.
+Omitted from the stored document when unset.
+
 #### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
-Optional explicit bounding box override in the part’s local viewBox.
+The size the part draws at, in **view_box units** — the rig’s units,
+the ones `x`/`y` and the bones use (an#220). \*\*A declared size
+wins\*\* over the art’s own extent, as `Plane.size` does for plates.
+Unset, the art’s own extent is the size: an SVG’s `width`/`height`
+(else its viewBox), a raster’s PIXEL count — so a PNG carved at one
+pixel per unit needs nothing, and one carved at any other scale
+declares its size here instead of being resampled. The aspect is the
+art’s, always (an#74): with ONE of the two declared the other follows
+the art’s aspect; with both, the art is contained in the box
+(uniformly scaled to fit, never stretched) and `an character
+validate` says when the two aspects disagree. See
+[`attachment_box()`](_autosummary/an.characters.schema.html.md#an.characters.schema.attachment_box).
 
 #### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
@@ -13666,6 +13767,14 @@ from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
 from the provenance string once, and `art_provenance` reverts to pure
 provenance/licensing metadata.
 
+#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+This character’s default walk `gait` (one of [`GAITS`](_autosummary/an.characters.schema.html.md#an.characters.schema.GAITS), an#220);
+an author’s `gait` arg overrides it. `None` = `legs` when the rig
+builds a leg pair, else `rock`. A robe figure whose leg slots are hem
+halves declares `"hem"` once, here, rather than on every walk.
+Omitted from the stored document when unset.
+
 #### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How far a pupil may travel from its rest, in view-box units per axis
@@ -13696,6 +13805,16 @@ This is useful if you want to do some validation that requires the entire model 
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The view the DEFAULT art is drawn in (an#220) — a declared fact about
+the art, like `face_overlay`. `None` means [`DFLT_VIEW`](_autosummary/an.characters.schema.html.md#an.characters.schema.DFLT_VIEW)
+(front). A character carved from a profile (a silhouette film, a side-
+on figure) says `"side"`, and everything that asks which view is in
+force before any turn — `walk` swinging its legs rather than lifting
+them — reads it instead of the author passing `view: side` by hand.
+Omitted from the stored document when unset.
 
 #### source *: [AssetSource](_autosummary/an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -13765,6 +13884,7 @@ because Rhubarb emits A-X; lowercase attachment names by convention.
 ### an.characters.schema.DFLT_VIEW *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'front'*
 
 its default attachments ARE this view.
+A descriptor whose art is drawn in another view says so in `rest_view`.
 
 * **Type:**
   The view a character shows at rest
@@ -13788,6 +13908,17 @@ change it. Those pairs were relative to the head’s CENTRE (the old compiler
 anchored the head at 0.5); the bone is the NECK, and the head hangs above it
 at [`HEAD_ANCHOR`](_autosummary/an.characters.schema.html.md#an.characters.schema.HEAD_ANCHOR), so each pair is lifted by the centre’s height above
 the neck. Unlifted, the mouth sat below the neck — on the torso (an#168).
+
+### an.characters.schema.GAITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('legs', 'hem', 'rock')*
+
+`legs`
+swing about the hip in a profile and step up and down facing the camera;
+`hem` — the leg slots are the two halves of a robe’s hem — tilts them in
+turn under a swaying, bobbing body; `rock` moves no leg at all (a blob, a
+sack) and rocks the body.
+
+* **Type:**
+  How a character walks (`an.motion.walk`’s `gait`, an#220)
 
 ### an.characters.schema.HEAD_ANCHOR *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 0.78)*
 
@@ -13919,12 +14050,41 @@ reads it; `an.motion.turn` is the one writer that defaults to it.
 * **Type:**
   The swap set a turnaround rides (an#197)
 
+### an.characters.schema.VIEW_VARIANT_SEP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '@'*
+
+What joins a swap set’s name to the view a variant of it serves:
+`eyelid@side` is the `eyelid` set drawn for the `side` view (an#220),
+the same separator the expression variants (`viseme@happy`, an#98) use.
+
 ### an.characters.schema.VISEME_CHANNEL *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'viseme'*
 
 The swap channel lip-sync drives. `viseme` is a conventional set name, not
 a special case in control flow (an#87): the compiler projects EVERY
 `asset_sets` channel onto the slots whose attachments its keys name, and
 the runtime applies any projected channel the same way.
+
+### an.characters.schema.attachment_box(width, height, art)
+
+The box a part draws in, in view_box units: the declared size wins, the
+art’s aspect is kept (an#220).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> attachment_box(None, None, (40, 20))       # the art's own extent
+(40.0, 20.0)
+>>> attachment_box(120, None, (40, 20))        # width declared: height follows
+(120.0, 60.0)
+>>> attachment_box(None, 30, (40, 20))
+(60.0, 30.0)
+>>> attachment_box(120, 120, (40, 20))         # both: contained, never stretched
+(120.0, 60.0)
+>>> attachment_box(120, 90, None)              # unmeasurable art: the box as declared
+(120.0, 90.0)
+>>> attachment_box(120, None, None) is None    # nothing to take the aspect from
+True
+```
 
 ### an.characters.schema.bones_from_pivots(pivots, , bones=None)
 
@@ -13964,6 +14124,38 @@ first, which is why this walks in declaration order rather than by index.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.characters.schema.view_variant_set(set_name, view)
+
+The name of `set_name`’s variant for `view` (an#220).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> view_variant_set("eyelid", "side")
+'eyelid@side'
+```
+
+### an.characters.schema.view_variant_sets(desc, , view_set='view')
+
+`{base set: {view: variant set name}}` — every per-view face set the
+descriptor declares (an#220): a set named `<base>@<view>` where `<base>`
+is a declared set and `<view>` a key of its `view` set (or its
+`rest_view`). `viseme@happy` is NOT one — `happy` is not a view —
+so the expression variants (an#98) and the view variants never collide.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> d = CharacterDescriptor(name="v")
+>>> d.asset_sets["view"] = {"front": "front", "side": "side"}
+>>> d.asset_sets["eyelid@side"] = {"OPEN": "open_side", "CLOSED": "closed_side"}
+>>> d.asset_sets["viseme@happy"] = {"X": "mouth_x_happy"}
+>>> view_variant_sets(d)
+{'eyelid': {'side': 'eyelid@side'}}
+```
 
 
 # _autosummary/an.characters.silhouette.html.md
@@ -14191,12 +14383,13 @@ that cannot land.
 
 ### Module Attributes
 
-| [`PROHIBITED_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.PROHIBITED_ELEMENTS)   | Elements an art package may not contain.                        |
-|------------------------------------------------------------------------|-----------------------------------------------------------------|
-| [`PART_SUFFIXES`](_autosummary/an.characters.validate.html.md#an.characters.validate.PART_SUFFIXES)         | SVG, or raster with the suffixes `an.raster` reads (an#211).    |
-| [`DRAWABLE_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.DRAWABLE_ELEMENTS)     | Elements that put ink on the canvas.                            |
-| [`BLOCKING`](_autosummary/an.characters.validate.html.md#an.characters.validate.BLOCKING)              | Severity for a problem that stops the part rendering correctly. |
-| [`ADVISORY`](_autosummary/an.characters.validate.html.md#an.characters.validate.ADVISORY)              | Severity for a problem worth fixing that still renders.         |
+| [`PROHIBITED_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.PROHIBITED_ELEMENTS)       | Elements an art package may not contain.                                                                                                |
+|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| [`PART_SUFFIXES`](_autosummary/an.characters.validate.html.md#an.characters.validate.PART_SUFFIXES)             | SVG, or raster with the suffixes `an.raster` reads (an#211).                                                                            |
+| [`DRAWABLE_ELEMENTS`](_autosummary/an.characters.validate.html.md#an.characters.validate.DRAWABLE_ELEMENTS)         | Elements that put ink on the canvas.                                                                                                    |
+| [`BLOCKING`](_autosummary/an.characters.validate.html.md#an.characters.validate.BLOCKING)                  | Severity for a problem that stops the part rendering correctly.                                                                         |
+| [`ADVISORY`](_autosummary/an.characters.validate.html.md#an.characters.validate.ADVISORY)                  | Severity for a problem worth fixing that still renders.                                                                                 |
+| [`DECLARED_ASPECT_TOLERANCE`](_autosummary/an.characters.validate.html.md#an.characters.validate.DECLARED_ASPECT_TOLERANCE) | How far a declared box's aspect may differ from its art's before the containment is worth saying (a rounding of a pixel or two is not). |
 
 ### Functions
 
@@ -14212,6 +14405,11 @@ Severity for a problem worth fixing that still renders.
 ### an.characters.validate.BLOCKING *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'error'*
 
 Severity for a problem that stops the part rendering correctly.
+
+### an.characters.validate.DECLARED_ASPECT_TOLERANCE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.01*
+
+How far a declared box’s aspect may differ from its art’s before the
+containment is worth saying (a rounding of a pixel or two is not).
 
 ### an.characters.validate.DRAWABLE_ELEMENTS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'circle', 'ellipse', 'line', 'path', 'polygon', 'polyline', 'rect', 'text', 'use'})*
 
@@ -14331,7 +14529,9 @@ answers, and collapsing them is exactly how an obligation goes missing.
 
 Public domain (`pd`, `public-domain`, `cc-pdm-1.0`, `cc0-*`) is recognised as
 nothing owed, and an environment’s planes may each carry their own `source`,
-so a composite stage — a carved plate plus a CC0 prop — credits both.
+so a composite stage — a carved plate plus a CC0 prop — credits both. A
+character’s (or prop’s) attachments may too (an#220): a figure composed from
+parts carved out of several clips credits each clip, part by part.
 
 ### Functions
 
@@ -20649,7 +20849,7 @@ so it is the one that needs `rest` in a multi-character shot.
 0.6
 ```
 
-### an.motion.walk(target, , to_x=None, distance=None, direction=None, steps=None, step_s=0.4, step_length=80.0, stride=0.35, lift=10.0, bob=6.0, arm_swing=0.3, rock=0.06, view=None, legs=None, arms=None, parts=None, rest=None)
+### an.motion.walk(target, , to_x=None, distance=None, direction=None, steps=None, step_s=0.4, step_length=80.0, stride=0.35, lift=10.0, bob=6.0, arm_swing=0.3, rock=0.06, hem_tilt=0.24, view=None, gait=None, legs=None, arms=None, parts=None, rest=None)
 
 Walk: the body travels on `x` and bobs once per step while the legs
 alternate and the arms swing against them (an#214).
@@ -20674,8 +20874,18 @@ timeline at the play’s start (the view the last `turn` or `set` left);
 pass it to override. `legs`/`arms` name the two limb nodes; by
 default the first pair in `WALK_LEG_NAMES` / `WALK_ARM_NAMES`
 that the rig builds (`parts`: the entity’s built parts with their pose
-at the start, filled in by the compiler). A figure with no legs (a robe,
-a blob) walks on the bob and a `rock` of the body instead. Limbs land on
+at the start, filled in by the compiler). Played by name with no view on
+the timeline, the view is the descriptor’s `rest_view` (an#220) — a
+character carved in profile swings its legs with nothing passed.
+
+**Gait** (`gait`, one of [`an.characters.schema.GAITS`](_autosummary/an.characters.schema.html.md#an.characters.schema.GAITS), an#220).
+`legs` is the above. `hem` is a robe whose leg slots are the two
+halves of its hem: facing the camera the halves TILT in turn by
+`hem_tilt` radians about the hip while the body sways by `rock` and
+bobs (in a profile they swing like legs). `rock` moves no leg: the body
+rocks and bobs (a blob, a sack). Unset: the descriptor’s `gait` when
+played by name, else `legs` when the rig builds a leg pair and `rock`
+when it does not. Limbs land on
 their rest with a `WALK_LANDING_S` constant tween, not a settling
 `set`: a `set`’s hold would outrank the view’s pose channel and keep a
 profile’s splay after a later turn to the front.
@@ -20698,6 +20908,9 @@ then `walk`.
 ['rotation']
 >>> sorted({f.action.target for f in _tweens(walk("blob", steps=2, legs=(), arms=()))})
 ['blob']
+>>> sorted({(f.action.target, f.action.property) for f in _tweens(walk("al", steps=2, gait="hem"))
+...         if f.action.target in ("al", "al/leg_l")})
+[('al', 'rotation'), ('al', 'y'), ('al/leg_l', 'rotation')]
 ```
 
 
@@ -23991,7 +24204,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 17:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/41a98253796030dde48e958615f6a373519e440c"><code>41a9825</code></a> on branch <code>main</code>, for **an 0.1.122** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 19:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/60cbbd166ce5e3fc7314c4ea9ea08bed357dec8c"><code>60cbbd1</code></a> on branch <code>main</code>, for **an 0.1.124** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -24000,9 +24213,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/41a98253796030dde48e958615f6a373519e440c"><code>41a98253796030dde48e958615f6a373519e440c</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/60cbbd166ce5e3fc7314c4ea9ea08bed357dec8c"><code>60cbbd166ce5e3fc7314c4ea9ea08bed357dec8c</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.122</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.124</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -24011,9 +24224,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36752361413">36752361413</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36766256153">36766256153</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>5f87b5bfe8d0d159908e288c6da5cb617452cd71</code> (in the history of the built commit) |
+| Event commit | <code>aea648f8394a639a7b9b35092d3ccd71a0779cf6</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -24038,13 +24251,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.122/">0.1.122</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.124/">0.1.124</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 41a98253796030dde48e958615f6a373519e440c
+git checkout 60cbbd166ce5e3fc7314c4ea9ea08bed357dec8c
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

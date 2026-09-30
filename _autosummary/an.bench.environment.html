@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=07422cd4"></script>
+    <script src="../_static/documentation_options.js?v=68b33800"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.corpus" href="an.bench.corpus.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.122" />
+  <meta name="docsearch:version" content="0.1.124" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -563,16 +563,19 @@ uninterpretable, not good or bad.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.bench.environment.ffmpeg_identity" title="an.bench.environment.ffmpeg_identity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ffmpeg_identity</span></code></a>()</p></td>
 <td><p>The ffmpeg build banner.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.environment.probe_browser" title="an.bench.environment.probe_browser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">probe_browser</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.environment.home_relative" title="an.bench.environment.home_relative"><code class="xref py py-obj docutils literal notranslate"><span class="pre">home_relative</span></code></a>(path, *[, home])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">path</span></code> with the user's home directory spelled <code class="docutils literal notranslate"><span class="pre">~</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.environment.probe_browser" title="an.bench.environment.probe_browser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">probe_browser</span></code></a>()</p></td>
 <td><p>Launch Chromium with the render path's own flags and read back its identity.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.environment.runtime_sha256" title="an.bench.environment.runtime_sha256"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime_sha256</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.environment.runtime_sha256" title="an.bench.environment.runtime_sha256"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime_sha256</span></code></a>()</p></td>
 <td><p>A digest of the JS runtime the renderer will stage, files and names.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tool_version</span></code>(name)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tool_version</span></code>(name)</p></td>
 <td><p></p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.environment.x264_sei" title="an.bench.environment.x264_sei"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x264_sei</span></code></a>(mp4)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.environment.x264_sei" title="an.bench.environment.x264_sei"><code class="xref py py-obj docutils literal notranslate"><span class="pre">x264_sei</span></code></a>(mp4)</p></td>
 <td><p>The encoder build + thread count, read straight out of the file.</p></td>
 </tr>
 </tbody>
@@ -643,6 +646,26 @@ encode-side rows may be compared at all.</p>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.bench.environment.home_relative">
+<span class="sig-prename descclassname"><span class="pre">an.bench.environment.</span></span><span class="sig-name descname"><span class="pre">home_relative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">home</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/environment.html#home_relative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.environment.home_relative" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">path</span></code> with the user’s home directory spelled <code class="docutils literal notranslate"><span class="pre">~</span></code>.</p>
+<p>Ledger rows are committed to a public repository, so a row must not carry
+the absolute path of the machine that wrote it. Provenance only: nothing
+compares on this field. POSIX-spelled on every platform.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">home_relative</span><span class="p">(</span><span class="s2">"/home/u/.cache/ms-playwright/chrome"</span><span class="p">,</span> <span class="n">home</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"/home/u"</span><span class="p">))</span>
+<span class="go">'~/.cache/ms-playwright/chrome'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">home_relative</span><span class="p">(</span><span class="s2">"/opt/chrome"</span><span class="p">,</span> <span class="n">home</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"/home/u"</span><span class="p">))</span>
+<span class="go">'/opt/chrome'</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -743,6 +766,7 @@ file that is not staged as a runtime asset — a stray <code class="code docutil
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.environment.RUNTIME_IGNORED_SUFFIXES"><code class="docutils literal notranslate"><span class="pre">RUNTIME_IGNORED_SUFFIXES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.environment.environment_record"><code class="docutils literal notranslate"><span class="pre">environment_record()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.environment.ffmpeg_identity"><code class="docutils literal notranslate"><span class="pre">ffmpeg_identity()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.environment.home_relative"><code class="docutils literal notranslate"><span class="pre">home_relative()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.environment.probe_browser"><code class="docutils literal notranslate"><span class="pre">probe_browser()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.environment.runtime_sha256"><code class="docutils literal notranslate"><span class="pre">runtime_sha256()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.environment.x264_sei"><code class="docutils literal notranslate"><span class="pre">x264_sei()</span></code></a></li>

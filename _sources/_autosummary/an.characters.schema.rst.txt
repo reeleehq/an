@@ -17,6 +17,8 @@ an.characters.schema
       VIEW_CHANNEL
       VIEWS
       DFLT_VIEW
+      VIEW_VARIANT_SEP
+      GAITS
       REQUIRED_PARTS
       DEFAULT_VIEW_BOX
       SLOT_POSE_OFFSETS
@@ -29,8 +31,11 @@ an.characters.schema
 
    .. autosummary::
    
+      attachment_box
       bones_from_pivots
       default_asset_sets
+      view_variant_set
+      view_variant_sets
    
    .. rubric:: Classes
 

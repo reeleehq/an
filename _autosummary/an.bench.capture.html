@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=07422cd4"></script>
+    <script src="../_static/documentation_options.js?v=68b33800"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench" href="an.bench.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.122" />
+  <meta name="docsearch:version" content="0.1.124" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -567,16 +567,19 @@ per-developer landmine, in the module whose docstring says the opposite.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.bench.capture.cleanup" title="an.bench.capture.cleanup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cleanup</span></code></a>(capture)</p></td>
 <td><p>Remove a capture's throwaway tree.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.capture.dirty_paths" title="an.bench.capture.dirty_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dirty_paths</span></code></a>(repo_root)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.capture.compiled_contract_sha256" title="an.bench.capture.compiled_contract_sha256"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compiled_contract_sha256</span></code></a>(fixture, *, repo_root)</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">scene_contract_sha256</span></code> a render of <code class="docutils literal notranslate"><span class="pre">fixture</span></code> would record — no browser.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.capture.dirty_paths" title="an.bench.capture.dirty_paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dirty_paths</span></code></a>(repo_root)</p></td>
 <td><p><code class="code docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span> <span class="pre">--porcelain</span></code> lines, so a capture can prove it touched nothing.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.capture.distinct_png_sizes" title="an.bench.capture.distinct_png_sizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distinct_png_sizes</span></code></a>(frames_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.capture.distinct_png_sizes" title="an.bench.capture.distinct_png_sizes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distinct_png_sizes</span></code></a>(frames_dir)</p></td>
 <td><p>Every distinct <code class="docutils literal notranslate"><span class="pre">(width,</span> <span class="pre">height)</span></code> among a shot's frame PNGs, sorted.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.capture.expected_frame_count" title="an.bench.capture.expected_frame_count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expected_frame_count</span></code></a>(duration, fps)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.capture.expected_frame_count" title="an.bench.capture.expected_frame_count"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expected_frame_count</span></code></a>(duration, fps)</p></td>
 <td><p>The renderer's own frame-count expression, reused rather than restated.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.bench.capture.stage_copy" title="an.bench.capture.stage_copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_copy</span></code></a>(fixture_dir, base)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.bench.capture.stage_copy" title="an.bench.capture.stage_copy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_copy</span></code></a>(fixture_dir, base)</p></td>
 <td><p>Copy a fixture into <code class="docutils literal notranslate"><span class="pre">base</span></code>, leaving the previous render behind.</p></td>
 </tr>
 </tbody>
@@ -743,6 +746,26 @@ and hands back the path. <code class="xref py py-func docutils literal notransla
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.bench.capture.compiled_contract_sha256">
+<span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">compiled_contract_sha256</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixture</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">repo_root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/capture.html#compiled_contract_sha256"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.capture.compiled_contract_sha256" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">scene_contract_sha256</span></code> a render of <code class="docutils literal notranslate"><span class="pre">fixture</span></code> would record — no browser.</p>
+<p>Compiles every timeline shot the way the cutout renderer does (the scene’s
+size, fps, style pack, default easing and stepped-timing policy, with
+<code class="docutils literal notranslate"><span class="pre">strict_assets</span></code> as the bench sets it) in a throwaway copy, and hashes the
+documents. It is the default-leg twin of <a class="reference internal" href="#an.bench.capture.capture_fixture" title="an.bench.capture.capture_fixture"><code class="xref py py-func docutils literal notranslate"><span class="pre">capture_fixture()</span></code></a>: the
+contract hash is a function of the compiled JSON alone, so the guards that
+check it — against the newest ledger row and against each golden’s bless
+record — run on every PR, not only in the labelled browser lane.</p>
+<p>It is the contract of a bench render, which passes no overrides: a render
+given its own <code class="docutils literal notranslate"><span class="pre">step_hz</span></code>, fps or resolution compiles something else.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.bench.capture.dirty_paths">
 <span class="sig-prename descclassname"><span class="pre">an.bench.capture.</span></span><span class="sig-name descname"><span class="pre">dirty_paths</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/bench/capture.html#dirty_paths"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.bench.capture.dirty_paths" title="Link to this definition">#</a></dt>
 <dd><p><code class="code docutils literal notranslate"><span class="pre">git</span> <span class="pre">status</span> <span class="pre">--porcelain</span></code> lines, so a capture can prove it touched nothing.</p>
@@ -882,6 +905,7 @@ the only way to drop <code class="docutils literal notranslate"><span class="pre
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.capture_fixture"><code class="docutils literal notranslate"><span class="pre">capture_fixture()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.cleanup"><code class="docutils literal notranslate"><span class="pre">cleanup()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.compiled_contract_sha256"><code class="docutils literal notranslate"><span class="pre">compiled_contract_sha256()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.dirty_paths"><code class="docutils literal notranslate"><span class="pre">dirty_paths()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.distinct_png_sizes"><code class="docutils literal notranslate"><span class="pre">distinct_png_sizes()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.bench.capture.expected_frame_count"><code class="docutils literal notranslate"><span class="pre">expected_frame_count()</span></code></a></li>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=07422cd4"></script>
+    <script src="../../../_static/documentation_options.js?v=68b33800"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.122" />
+  <meta name="docsearch:version" content="0.1.124" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -922,6 +922,55 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_audio_cache_state</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">audio</span> <span class="o">=</span> <span class="n">project_dir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"audio"</span>
     <span class="k">return</span> <span class="s2">"warm"</span> <span class="k">if</span> <span class="n">audio</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">audio</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span> <span class="k">else</span> <span class="s2">"cold"</span>
+
+
+<div class="viewcode-block" id="compiled_contract_sha256">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.capture.html#an.bench.capture.compiled_contract_sha256">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compiled_contract_sha256</span><span class="p">(</span><span class="n">fixture</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">repo_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``scene_contract_sha256`` a render of ``fixture`` would record — no browser.</span>
+
+<span class="sd">    Compiles every timeline shot the way the cutout renderer does (the scene's</span>
+<span class="sd">    size, fps, style pack, default easing and stepped-timing policy, with</span>
+<span class="sd">    ``strict_assets`` as the bench sets it) in a throwaway copy, and hashes the</span>
+<span class="sd">    documents. It is the default-leg twin of :func:`capture_fixture`: the</span>
+<span class="sd">    contract hash is a function of the compiled JSON alone, so the guards that</span>
+<span class="sd">    check it — against the newest ledger row and against each golden's bless</span>
+<span class="sd">    record — run on every PR, not only in the labelled browser lane.</span>
+
+<span class="sd">    It is the contract of a bench render, which passes no overrides: a render</span>
+<span class="sd">    given its own ``step_hz``, fps or resolution compiles something else.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_shot</span><span class="p">,</span> <span class="n">style_pack_for</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_dict</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.contract</span><span class="w"> </span><span class="kn">import</span> <span class="n">scenes_contract_sha256</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_step_hz</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"an-contract-"</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+        <span class="n">work</span> <span class="o">=</span> <span class="n">stage_copy</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">repo_root</span><span class="p">)</span> <span class="o">/</span> <span class="n">fixture</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">fixture</span><span class="o">.</span><span class="n">prepare</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fixture</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span>
+        <span class="n">style_pack</span> <span class="o">=</span> <span class="n">style_pack_for</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">docs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">to_dict</span><span class="p">(</span>
+                <span class="n">compile_shot</span><span class="p">(</span>
+                    <span class="n">shot</span><span class="p">,</span>
+                    <span class="n">mall</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
+                    <span class="n">fps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">)),</span>
+                    <span class="n">width</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+                    <span class="n">height</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                    <span class="n">strict_assets</span><span class="o">=</span><span class="n">BENCH_RENDER_KWARGS</span><span class="p">[</span><span class="s2">"strict_assets"</span><span class="p">],</span>
+                    <span class="n">step_hz</span><span class="o">=</span><span class="n">resolve_step_hz</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">),</span>
+                    <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack</span><span class="p">,</span>
+                    <span class="n">default_easing</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="n">scenes_contract_sha256</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="capture_fixture">

@@ -108,9 +108,29 @@ Anchor in 0..1 per-axis units (Pixi’s Sprite.anchor convention).
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where THIS part’s art came from, when it is not the descriptor’s
+`source` — a character composed from several clips, or a carved head
+on a CC0 body, credits each (an#220). `None` = the descriptor’s
+`source` covers it. `an credits` lists every one; an all-rights-
+reserved part makes the render NOT PUBLISHABLE like any other.
+Omitted from the stored document when unset.
+
 #### width *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
-Optional explicit bounding box override in the part’s local viewBox.
+The size the part draws at, in **view_box units** — the rig’s units,
+the ones `x`/`y` and the bones use (an#220). \*\*A declared size
+wins\*\* over the art’s own extent, as `Plane.size` does for plates.
+Unset, the art’s own extent is the size: an SVG’s `width`/`height`
+(else its viewBox), a raster’s PIXEL count — so a PNG carved at one
+pixel per unit needs nothing, and one carved at any other scale
+declares its size here instead of being resampled. The aspect is the
+art’s, always (an#74): with ONE of the two declared the other follows
+the art’s aspect; with both, the art is contained in the box
+(uniformly scaled to fit, never stretched) and `an character
+validate` says when the two aspects disagree. See
+`attachment_box()`.
 
 #### x *: [float](https://docs.python.org/3/builtins/functions.html#float)*
 
@@ -219,6 +239,14 @@ from; this says what the art IS. The 0.2.0 → 0.3.0 migration derives it
 from the provenance string once, and `art_provenance` reverts to pure
 provenance/licensing metadata.
 
+#### gait *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+This character’s default walk `gait` (one of `GAITS`, an#220);
+an author’s `gait` arg overrides it. `None` = `legs` when the rig
+builds a leg pair, else `rock`. A robe figure whose leg slots are hem
+halves declares `"hem"` once, here, rather than on every walk.
+Omitted from the stored document when unset.
+
 #### gaze_travel *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 How far a pupil may travel from its rest, in view-box units per axis
@@ -249,6 +277,16 @@ This is useful if you want to do some validation that requires the entire model 
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### rest_view *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+The view the DEFAULT art is drawn in (an#220) — a declared fact about
+the art, like `face_overlay`. `None` means `DFLT_VIEW`
+(front). A character carved from a profile (a silhouette film, a side-
+on figure) says `"side"`, and everything that asks which view is in
+force before any turn — `walk` swinging its legs rather than lifting
+them — reads it instead of the author passing `view: side` by hand.
+Omitted from the stored document when unset.
 
 #### source *: [AssetSource](an.ir.assets.html.md#an.ir.assets.AssetSource) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

@@ -19,6 +19,7 @@ an.bench.capture
    
       capture_fixture
       cleanup
+      compiled_contract_sha256
       dirty_paths
       distinct_png_sizes
       expected_frame_count

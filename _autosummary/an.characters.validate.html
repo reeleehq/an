@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=07422cd4"></script>
+    <script src="../_static/documentation_options.js?v=68b33800"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.svg_utils" href="an.characters.svg_utils.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.122" />
+  <meta name="docsearch:version" content="0.1.124" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -559,6 +559,9 @@ that cannot land.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.characters.validate.ADVISORY" title="an.characters.validate.ADVISORY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ADVISORY</span></code></a></p></td>
 <td><p>Severity for a problem worth fixing that still renders.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.characters.validate.DECLARED_ASPECT_TOLERANCE" title="an.characters.validate.DECLARED_ASPECT_TOLERANCE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DECLARED_ASPECT_TOLERANCE</span></code></a></p></td>
+<td><p>How far a declared box's aspect may differ from its art's before the containment is worth saying (a rounding of a pixel or two is not).</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -587,6 +590,13 @@ that cannot land.</p>
 <dt class="sig sig-object py" id="an.characters.validate.BLOCKING">
 <span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">BLOCKING</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'error'</span></span><a class="headerlink" href="#an.characters.validate.BLOCKING" title="Link to this definition">#</a></dt>
 <dd><p>Severity for a problem that stops the part rendering correctly.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.characters.validate.DECLARED_ASPECT_TOLERANCE">
+<span class="sig-prename descclassname"><span class="pre">an.characters.validate.</span></span><span class="sig-name descname"><span class="pre">DECLARED_ASPECT_TOLERANCE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.01</span></span><a class="headerlink" href="#an.characters.validate.DECLARED_ASPECT_TOLERANCE" title="Link to this definition">#</a></dt>
+<dd><p>How far a declared box’s aspect may differ from its art’s before the
+containment is worth saying (a rounding of a pixel or two is not).</p>
 </dd></dl>
 
 <dl class="py data">
@@ -722,6 +732,7 @@ colliding with a part id, and an unpopulated <code class="docutils literal notra
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.validate.ADVISORY"><code class="docutils literal notranslate"><span class="pre">ADVISORY</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.validate.BLOCKING"><code class="docutils literal notranslate"><span class="pre">BLOCKING</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.validate.DECLARED_ASPECT_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">DECLARED_ASPECT_TOLERANCE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.validate.DRAWABLE_ELEMENTS"><code class="docutils literal notranslate"><span class="pre">DRAWABLE_ELEMENTS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.validate.PART_SUFFIXES"><code class="docutils literal notranslate"><span class="pre">PART_SUFFIXES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.characters.validate.PROHIBITED_ELEMENTS"><code class="docutils literal notranslate"><span class="pre">PROHIBITED_ELEMENTS</span></code></a></li>

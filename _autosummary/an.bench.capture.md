@@ -32,13 +32,14 @@ per-developer landmine, in the module whose docstring says the opposite.
 
 ### Functions
 
-| [`capture_fixture`](#an.bench.capture.capture_fixture)(name, fixture, \*, repo_root)   | Render `fixture` in a throwaway copy and return its artifacts.             |
-|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`cleanup`](#an.bench.capture.cleanup)(capture)                                | Remove a capture's throwaway tree.                                         |
-| [`dirty_paths`](#an.bench.capture.dirty_paths)(repo_root)                          | `git status --porcelain` lines, so a capture can prove it touched nothing. |
-| [`distinct_png_sizes`](#an.bench.capture.distinct_png_sizes)(frames_dir)                  | Every distinct `(width, height)` among a shot's frame PNGs, sorted.        |
-| [`expected_frame_count`](#an.bench.capture.expected_frame_count)(duration, fps)             | The renderer's own frame-count expression, reused rather than restated.    |
-| [`stage_copy`](#an.bench.capture.stage_copy)(fixture_dir, base)                   | Copy a fixture into `base`, leaving the previous render behind.            |
+| [`capture_fixture`](#an.bench.capture.capture_fixture)(name, fixture, \*, repo_root)    | Render `fixture` in a throwaway copy and return its artifacts.               |
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`cleanup`](#an.bench.capture.cleanup)(capture)                                 | Remove a capture's throwaway tree.                                           |
+| [`compiled_contract_sha256`](#an.bench.capture.compiled_contract_sha256)(fixture, \*, repo_root) | The `scene_contract_sha256` a render of `fixture` would record — no browser. |
+| [`dirty_paths`](#an.bench.capture.dirty_paths)(repo_root)                           | `git status --porcelain` lines, so a capture can prove it touched nothing.   |
+| [`distinct_png_sizes`](#an.bench.capture.distinct_png_sizes)(frames_dir)                   | Every distinct `(width, height)` among a shot's frame PNGs, sorted.          |
+| [`expected_frame_count`](#an.bench.capture.expected_frame_count)(duration, fps)              | The renderer's own frame-count expression, reused rather than restated.      |
+| [`stage_copy`](#an.bench.capture.stage_copy)(fixture_dir, base)                    | Copy a fixture into `base`, leaving the previous render behind.              |
 
 ### Classes
 
@@ -158,6 +159,24 @@ Remove a capture’s throwaway tree.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.bench.capture.compiled_contract_sha256(fixture, , repo_root)
+
+The `scene_contract_sha256` a render of `fixture` would record — no browser.
+
+Compiles every timeline shot the way the cutout renderer does (the scene’s
+size, fps, style pack, default easing and stepped-timing policy, with
+`strict_assets` as the bench sets it) in a throwaway copy, and hashes the
+documents. It is the default-leg twin of [`capture_fixture()`](#an.bench.capture.capture_fixture): the
+contract hash is a function of the compiled JSON alone, so the guards that
+check it — against the newest ledger row and against each golden’s bless
+record — run on every PR, not only in the labelled browser lane.
+
+It is the contract of a bench render, which passes no overrides: a render
+given its own `step_hz`, fps or resolution compiles something else.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.capture.dirty_paths(repo_root)
 

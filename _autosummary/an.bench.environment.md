@@ -41,6 +41,7 @@ uninterpretable, not good or bad.
 | [`environment_record`](#an.bench.environment.environment_record)(\*, pix_fmt[, x264_sei, ...])   | Everything about this machine that could plausibly move a number.            |
 |-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
 | [`ffmpeg_identity`](#an.bench.environment.ffmpeg_identity)()                                  | The ffmpeg build banner.                                                     |
+| [`home_relative`](#an.bench.environment.home_relative)(path, \*[, home])                    | `path` with the user's home directory spelled `~`.                           |
 | [`probe_browser`](#an.bench.environment.probe_browser)()                                    | Launch Chromium with the render path's own flags and read back its identity. |
 | [`runtime_sha256`](#an.bench.environment.runtime_sha256)()                                   | A digest of the JS runtime the renderer will stage, files and names.         |
 | `tool_version`(name)                                                                                |                                                                              |
@@ -100,6 +101,24 @@ The ffmpeg build banner. Informational — the `x264_sei` is the key.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.bench.environment.home_relative(path, , home=None)
+
+`path` with the user’s home directory spelled `~`.
+
+Ledger rows are committed to a public repository, so a row must not carry
+the absolute path of the machine that wrote it. Provenance only: nothing
+compares on this field. POSIX-spelled on every platform.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> home_relative("/home/u/.cache/ms-playwright/chrome", home=Path("/home/u"))
+'~/.cache/ms-playwright/chrome'
+>>> home_relative("/opt/chrome", home=Path("/home/u"))
+'/opt/chrome'
+```
 
 ### an.bench.environment.probe_browser()
 

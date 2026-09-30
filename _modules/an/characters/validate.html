@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=07422cd4"></script>
+    <script src="../../../_static/documentation_options.js?v=68b33800"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.122" />
+  <meta name="docsearch:version" content="0.1.124" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1026,7 +1026,9 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">_check_asset_sets</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
     <span class="n">_check_raster_colour_roles</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
+    <span class="n">_check_declared_boxes</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
     <span class="n">_check_swap_poses</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
+    <span class="n">_check_view_variants</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
 
     <span class="n">_check_mouth_variants</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
     <span class="n">_check_gaze_stack</span><span class="p">(</span><span class="n">descriptor</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">who</span><span class="o">=</span><span class="n">who</span><span class="p">)</span>
@@ -1161,6 +1163,91 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"pack cannot recolour pixels, so the roles do nothing"</span><span class="p">,</span>
                 <span class="s2">"Drop the entry, or ship that part as SVG if it must follow a pack."</span><span class="p">,</span>
             <span class="p">)</span>
+
+
+<span class="c1">#: How far a declared box's aspect may differ from its art's before the</span>
+<span class="c1">#: containment is worth saying (a rounding of a pixel or two is not).</span>
+<span class="n">DECLARED_ASPECT_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_declared_boxes</span><span class="p">(</span>
+    <span class="n">directory</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">descriptor</span><span class="p">:</span> <span class="n">CharacterDescriptor</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">report</span><span class="p">:</span> <span class="n">VerificationReport</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">who</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""An attachment that declares BOTH ``width`` and ``height`` in an aspect</span>
+<span class="sd">    its art does not have is drawn contained, not stretched (an#220) —</span>
+<span class="sd">    ADVISORY, naming the size it actually draws at, so the author sees the</span>
+<span class="sd">    box they asked for is not the one on screen.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">descriptor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">attachment_box</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.raster</span><span class="w"> </span><span class="kn">import</span> <span class="n">art_size</span>
+
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">skin</span> <span class="ow">in</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">slot_name</span><span class="p">,</span> <span class="n">attachments</span> <span class="ow">in</span> <span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">att</span> <span class="ow">in</span> <span class="n">attachments</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">width</span> <span class="ow">and</span> <span class="n">att</span><span class="o">.</span><span class="n">height</span><span class="p">)</span> <span class="ow">or</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">art</span> <span class="o">=</span> <span class="n">art_size</span><span class="p">(</span><span class="n">directory</span> <span class="o">/</span> <span class="n">att</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — unreadable art is reported elsewhere</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">art</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">art</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">width</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">((</span><span class="n">w</span> <span class="o">/</span> <span class="n">h</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">art</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">art</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">DECLARED_ASPECT_TOLERANCE</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">cw</span><span class="p">,</span> <span class="n">ch</span> <span class="o">=</span> <span class="n">attachment_box</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">art</span><span class="p">)</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="n">ADVISORY</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"character.json#skins.</span><span class="si">{</span><span class="n">skin</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.slots.</span><span class="si">{</span><span class="n">slot_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">'s </span><span class="si">{</span><span class="n">slot_name</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> declares a </span><span class="si">{</span><span class="n">w</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> box, but "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">att</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">art</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">art</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> — a different aspect, so it "</span>
+                    <span class="sa">f</span><span class="s2">"draws contained at </span><span class="si">{</span><span class="n">cw</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">ch</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> (a part is never stretched)"</span><span class="p">,</span>
+                    <span class="s2">"Declare only `width` (or only `height`) and let the art's aspect "</span>
+                    <span class="s2">"give the other."</span><span class="p">,</span>
+                <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_view_variants</span><span class="p">(</span>
+    <span class="n">descriptor</span><span class="p">:</span> <span class="n">CharacterDescriptor</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="n">VerificationReport</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">who</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A per-view face set (``eyelid@side``, ``viseme@side``, an#220) must vary a</span>
+<span class="sd">    set the rig has, and should carry that set's keys — ADVISORY, because a</span>
+<span class="sd">    key the variant lacks falls back to the neutral set's art, which is the</span>
+<span class="sd">    front drawing in a profile.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">descriptor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">VIEW_CHANNEL</span><span class="p">,</span> <span class="n">VIEWS</span><span class="p">,</span> <span class="n">view_variant_sets</span>
+
+    <span class="n">known_views</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">VIEWS</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">descriptor</span><span class="o">.</span><span class="n">asset_sets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VIEW_CHANNEL</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">rest_view</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">descriptor</span><span class="o">.</span><span class="n">rest_view</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known_views</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="n">ADVISORY</span><span class="p">,</span>
+            <span class="s2">"character.json#rest_view"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2"> declares rest_view </span><span class="si">{</span><span class="n">descriptor</span><span class="o">.</span><span class="n">rest_view</span><span class="si">!r}</span><span class="s2">, which is not a view "</span>
+            <span class="sa">f</span><span class="s2">"(known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">known_views</span><span class="p">)</span><span class="si">}</span><span class="s2">) — nothing that reads the view matches it"</span><span class="p">,</span>
+            <span class="s2">"Name the view the default art is drawn in, e.g. `side`."</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">base</span><span class="p">,</span> <span class="n">per_view</span> <span class="ow">in</span> <span class="n">view_variant_sets</span><span class="p">(</span><span class="n">descriptor</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">base_keys</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">descriptor</span><span class="o">.</span><span class="n">asset_sets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="k">for</span> <span class="n">view</span><span class="p">,</span> <span class="n">set_name</span> <span class="ow">in</span> <span class="n">per_view</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">base_keys</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">descriptor</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">[</span><span class="n">set_name</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                    <span class="n">ADVISORY</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"character.json#asset_sets.</span><span class="si">{</span><span class="n">set_name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">'s </span><span class="si">{</span><span class="n">set_name</span><span class="si">!r}</span><span class="s2"> lacks the keys </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2"> its </span><span class="si">{</span><span class="n">base</span><span class="si">!r}</span><span class="s2"> set "</span>
+                    <span class="sa">f</span><span class="s2">"has; in the </span><span class="si">{</span><span class="n">view</span><span class="si">!r}</span><span class="s2"> view those keys show the </span><span class="si">{</span><span class="n">base</span><span class="si">!r}</span><span class="s2"> art"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"Draw the missing </span><span class="si">{</span><span class="n">view</span><span class="si">}</span><span class="s2"> shapes, or accept the fallback."</span><span class="p">,</span>
+                <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_swap_poses</span><span class="p">(</span>
@@ -1474,7 +1561,12 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"    whole rectangle, background and all"</span><span class="p">,</span>
         <span class="s2">"  - draws something (not fully transparent)"</span><span class="p">,</span>
         <span class="s2">"  - is drawn at its pixel size x the rig's one uniform scale, like an"</span><span class="p">,</span>
-        <span class="s2">"    SVG part at its width/height"</span><span class="p">,</span>
+        <span class="s2">"    SVG part at its width/height — one pixel is one view_box unit —"</span><span class="p">,</span>
+        <span class="s2">"    unless the attachment declares `width` and/or `height` (view_box"</span><span class="p">,</span>
+        <span class="s2">"    units, an#220): a declared size wins, so art carved at any"</span><span class="p">,</span>
+        <span class="s2">"    resolution is sized without resampling. One of the two is enough —"</span><span class="p">,</span>
+        <span class="s2">"    the other follows the art's aspect; with both, the art is contained"</span><span class="p">,</span>
+        <span class="s2">"    in the box, never stretched"</span><span class="p">,</span>
         <span class="s2">"  - is NOT recoloured by a style pack (its colours are pixels); outline"</span><span class="p">,</span>
         <span class="s2">"    and shadow treatments still apply"</span><span class="p">,</span>
         <span class="s2">""</span><span class="p">,</span>
@@ -1499,13 +1591,25 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"x/y offsets (view_box units), scale_x/scale_y/alpha factors, per slot."</span><span class="p">,</span>
         <span class="s2">"The back view hides the face this way; a profile hides the far eye."</span><span class="p">,</span>
         <span class="s2">"`an character new --offline` draws all of this for its own characters."</span><span class="p">,</span>
+        <span class="s2">""</span><span class="p">,</span>
+        <span class="s2">"A face drawn differently in a view gets its OWN set rather than being"</span><span class="p">,</span>
+        <span class="s2">"hidden (an#220): `eyelid@side` ({OPEN, CLOSED} -&gt; the profile's eye"</span><span class="p">,</span>
+        <span class="s2">"attachments, on the eye slots) and `viseme@side` (the profile's mouth"</span><span class="p">,</span>
+        <span class="s2">"shapes, on the mouth slot) are used whenever that view is in force —"</span><span class="p">,</span>
+        <span class="s2">"blinks, expressions and lip-sync keep running in profile. Art drawn"</span><span class="p">,</span>
+        <span class="s2">"only in profile (no front at all) declares `rest_view: side` instead."</span><span class="p">,</span>
+        <span class="s2">"A robe whose leg slots are the two halves of its hem declares"</span><span class="p">,</span>
+        <span class="s2">"`gait: hem`, so a walk tilts the halves in turn and sways the body."</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">lines</span> <span class="o">+=</span> <span class="p">[</span>
         <span class="s2">""</span><span class="p">,</span>
         <span class="s2">"## Provenance"</span><span class="p">,</span>
         <span class="s2">""</span><span class="p">,</span>
         <span class="s2">"Populate `source` unless the art is your own. A licence defect is the"</span><span class="p">,</span>
-        <span class="s2">"only failure that reaches backwards through finished work."</span><span class="p">,</span>
+        <span class="s2">"only failure that reaches backwards through finished work. A part"</span><span class="p">,</span>
+        <span class="s2">"whose art came from elsewhere than the rest (another clip, a CC0"</span><span class="p">,</span>
+        <span class="s2">"prop) carries its own `source` on its attachment; `an credits` lists"</span><span class="p">,</span>
+        <span class="s2">"each (an#220)."</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
 

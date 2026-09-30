@@ -17,6 +17,7 @@ an.bench.environment
    
       environment_record
       ffmpeg_identity
+      home_relative
       probe_browser
       runtime_sha256
       tool_version

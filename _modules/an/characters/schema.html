@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=07422cd4"></script>
+    <script src="../../../_static/documentation_options.js?v=68b33800"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.122" />
+  <meta name="docsearch:version" content="0.1.124" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -758,7 +758,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">field_validator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">field_validator</span><span class="p">,</span> <span class="n">model_serializer</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">register_kind</span><span class="p">,</span> <span class="n">register_migration</span>
@@ -818,7 +818,62 @@ window.runMermaid = runMermaid;</script>
 <span class="n">VIEWS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"front"</span><span class="p">,</span> <span class="s2">"three_quarter"</span><span class="p">,</span> <span class="s2">"side"</span><span class="p">,</span> <span class="s2">"back"</span><span class="p">)</span>
 
 <span class="c1">#: The view a character shows at rest: its default attachments ARE this view.</span>
+<span class="c1">#: A descriptor whose art is drawn in another view says so in ``rest_view``.</span>
 <span class="n">DFLT_VIEW</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"front"</span>
+
+<span class="c1">#: What joins a swap set's name to the view a variant of it serves:</span>
+<span class="c1">#: ``eyelid@side`` is the ``eyelid`` set drawn for the ``side`` view (an#220),</span>
+<span class="c1">#: the same separator the expression variants (``viseme@happy``, an#98) use.</span>
+<span class="n">VIEW_VARIANT_SEP</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"@"</span>
+
+<span class="c1">#: How a character walks (``an.motion.walk``'s ``gait``, an#220): ``legs``</span>
+<span class="c1">#: swing about the hip in a profile and step up and down facing the camera;</span>
+<span class="c1">#: ``hem`` — the leg slots are the two halves of a robe's hem — tilts them in</span>
+<span class="c1">#: turn under a swaying, bobbing body; ``rock`` moves no leg at all (a blob, a</span>
+<span class="c1">#: sack) and rocks the body.</span>
+<span class="n">GAITS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"legs"</span><span class="p">,</span> <span class="s2">"hem"</span><span class="p">,</span> <span class="s2">"rock"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="view_variant_set">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.schema.html#an.characters.view_variant_set">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">view_variant_set</span><span class="p">(</span><span class="n">set_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">view</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The name of ``set_name``'s variant for ``view`` (an#220).</span>
+
+<span class="sd">    &gt;&gt;&gt; view_variant_set("eyelid", "side")</span>
+<span class="sd">    'eyelid@side'</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">set_name</span><span class="si">}{</span><span class="n">VIEW_VARIANT_SEP</span><span class="si">}{</span><span class="n">view</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
+<div class="viewcode-block" id="view_variant_sets">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.schema.html#an.characters.view_variant_sets">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">view_variant_sets</span><span class="p">(</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="s2">"CharacterDescriptor"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">view_set</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">VIEW_CHANNEL</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``{base set: {view: variant set name}}`` — every per-view face set the</span>
+<span class="sd">    descriptor declares (an#220): a set named ``&lt;base&gt;@&lt;view&gt;`` where ``&lt;base&gt;``</span>
+<span class="sd">    is a declared set and ``&lt;view&gt;`` a key of its ``view`` set (or its</span>
+<span class="sd">    ``rest_view``). ``viseme@happy`` is NOT one — ``happy`` is not a view —</span>
+<span class="sd">    so the expression variants (an#98) and the view variants never collide.</span>
+
+<span class="sd">    &gt;&gt;&gt; d = CharacterDescriptor(name="v")</span>
+<span class="sd">    &gt;&gt;&gt; d.asset_sets["view"] = {"front": "front", "side": "side"}</span>
+<span class="sd">    &gt;&gt;&gt; d.asset_sets["eyelid@side"] = {"OPEN": "open_side", "CLOSED": "closed_side"}</span>
+<span class="sd">    &gt;&gt;&gt; d.asset_sets["viseme@happy"] = {"X": "mouth_x_happy"}</span>
+<span class="sd">    &gt;&gt;&gt; view_variant_sets(d)</span>
+<span class="sd">    {'eyelid': {'side': 'eyelid@side'}}</span>
+<span class="sd">    """</span>
+    <span class="n">views</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">view_set</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">desc</span><span class="o">.</span><span class="n">rest_view</span><span class="p">:</span>
+        <span class="n">views</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">rest_view</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">):</span>
+        <span class="n">base</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">view</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="n">VIEW_VARIANT_SEP</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sep</span> <span class="ow">and</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span> <span class="ow">and</span> <span class="n">view</span> <span class="ow">in</span> <span class="n">views</span> <span class="ow">and</span> <span class="n">base</span> <span class="o">!=</span> <span class="n">view_set</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="p">{})[</span><span class="n">view</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
 
 
 <div class="viewcode-block" id="default_asset_sets">
@@ -927,9 +982,77 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: way to say otherwise and the compiler used hardcoded literals instead.</span>
     <span class="n">x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="c1">#: Optional explicit bounding box override in the part's local viewBox.</span>
+    <span class="c1">#: The size the part draws at, in **view_box units** — the rig's units,</span>
+    <span class="c1">#: the ones ``x``/``y`` and the bones use (an#220). **A declared size</span>
+    <span class="c1">#: wins** over the art's own extent, as ``Plane.size`` does for plates.</span>
+    <span class="c1">#: Unset, the art's own extent is the size: an SVG's ``width``/``height``</span>
+    <span class="c1">#: (else its viewBox), a raster's PIXEL count — so a PNG carved at one</span>
+    <span class="c1">#: pixel per unit needs nothing, and one carved at any other scale</span>
+    <span class="c1">#: declares its size here instead of being resampled. The aspect is the</span>
+    <span class="c1">#: art's, always (an#74): with ONE of the two declared the other follows</span>
+    <span class="c1">#: the art's aspect; with both, the art is contained in the box</span>
+    <span class="c1">#: (uniformly scaled to fit, never stretched) and `an character</span>
+    <span class="c1">#: validate` says when the two aspects disagree. See</span>
+    <span class="c1">#: :func:`attachment_box`.</span>
     <span class="n">width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">height</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="n">height</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: Where THIS part's art came from, when it is not the descriptor's</span>
+    <span class="c1">#: ``source`` — a character composed from several clips, or a carved head</span>
+    <span class="c1">#: on a CC0 body, credits each (an#220). ``None`` = the descriptor's</span>
+    <span class="c1">#: ``source`` covers it. `an credits` lists every one; an all-rights-</span>
+    <span class="c1">#: reserved part makes the render NOT PUBLISHABLE like any other.</span>
+    <span class="c1">#: Omitted from the stored document when unset.</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""``source: null`` is written out of existence, as `Plane.source` is:</span>
+<span class="sd">        an attachment with no source of its own is the attachment every</span>
+<span class="sd">        stored descriptor already holds."""</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"source"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+
+
+<div class="viewcode-block" id="attachment_box">
+<a class="viewcode-back" href="../../../_autosummary/an.characters.schema.html#an.characters.attachment_box">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">attachment_box</span><span class="p">(</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">art</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The box a part draws in, in view_box units: the declared size wins, the</span>
+<span class="sd">    art's aspect is kept (an#220).</span>
+
+<span class="sd">    &gt;&gt;&gt; attachment_box(None, None, (40, 20))       # the art's own extent</span>
+<span class="sd">    (40.0, 20.0)</span>
+<span class="sd">    &gt;&gt;&gt; attachment_box(120, None, (40, 20))        # width declared: height follows</span>
+<span class="sd">    (120.0, 60.0)</span>
+<span class="sd">    &gt;&gt;&gt; attachment_box(None, 30, (40, 20))</span>
+<span class="sd">    (60.0, 30.0)</span>
+<span class="sd">    &gt;&gt;&gt; attachment_box(120, 120, (40, 20))         # both: contained, never stretched</span>
+<span class="sd">    (120.0, 60.0)</span>
+<span class="sd">    &gt;&gt;&gt; attachment_box(120, 90, None)              # unmeasurable art: the box as declared</span>
+<span class="sd">    (120.0, 90.0)</span>
+<span class="sd">    &gt;&gt;&gt; attachment_box(120, None, None) is None    # nothing to take the aspect from</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="k">if</span> <span class="n">width</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">height</span><span class="p">)</span> <span class="k">if</span> <span class="n">height</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">art</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">art</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">art</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span> <span class="k">if</span> <span class="n">w</span> <span class="ow">and</span> <span class="n">h</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">aw</span><span class="p">,</span> <span class="n">ah</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">art</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">art</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">w</span> <span class="ow">and</span> <span class="n">h</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="n">aw</span><span class="p">,</span> <span class="n">h</span> <span class="o">/</span> <span class="n">ah</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="n">aw</span>
+    <span class="k">elif</span> <span class="n">h</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">h</span> <span class="o">/</span> <span class="n">ah</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">aw</span><span class="p">,</span> <span class="n">ah</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">aw</span> <span class="o">*</span> <span class="n">s</span><span class="p">,</span> <span class="n">ah</span> <span class="o">*</span> <span class="n">s</span><span class="p">)</span></div>
 
 
 
@@ -1193,6 +1316,40 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: (the face solver folds a pose into its own channels). Additive: no</span>
     <span class="c1">#: schema bump, and a descriptor without it reads back unposed.</span>
     <span class="n">swap_poses</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">SlotPose</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="c1">#: The view the DEFAULT art is drawn in (an#220) — a declared fact about</span>
+    <span class="c1">#: the art, like ``face_overlay``. ``None`` means :data:`DFLT_VIEW`</span>
+    <span class="c1">#: (front). A character carved from a profile (a silhouette film, a side-</span>
+    <span class="c1">#: on figure) says ``"side"``, and everything that asks which view is in</span>
+    <span class="c1">#: force before any turn — ``walk`` swinging its legs rather than lifting</span>
+    <span class="c1">#: them — reads it instead of the author passing ``view: side`` by hand.</span>
+    <span class="c1">#: Omitted from the stored document when unset.</span>
+    <span class="n">rest_view</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1">#: This character's default walk ``gait`` (one of :data:`GAITS`, an#220);</span>
+    <span class="c1">#: an author's ``gait`` arg overrides it. ``None`` = ``legs`` when the rig</span>
+    <span class="c1">#: builds a leg pair, else ``rock``. A robe figure whose leg slots are hem</span>
+    <span class="c1">#: halves declares ``"hem"`` once, here, rather than on every walk.</span>
+    <span class="c1">#: Omitted from the stored document when unset.</span>
+    <span class="n">gait</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"gait"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_gait</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+        <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">GAITS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"gait must be one of </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">GAITS</span><span class="p">)</span><span class="si">}</span><span class="s2"> (or unset), got </span><span class="si">{</span><span class="n">v</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">v</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_view_facts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""``rest_view``/``gait`` unset are written out of existence, so every</span>
+<span class="sd">        stored descriptor reads back byte-identical (an#220)."""</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"rest_view"</span><span class="p">,</span> <span class="s2">"gait"</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span>
 
 <div class="viewcode-block" id="CharacterDescriptor.model_post_init">
 <a class="viewcode-back" href="../../../_autosummary/an.characters.schema.html#an.characters.CharacterDescriptor.model_post_init">[docs]</a>
