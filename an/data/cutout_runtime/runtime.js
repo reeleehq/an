@@ -9,6 +9,7 @@
  *   window.anLoadScene(sceneJsonObject) → builds the scene tree, registers
  *       animations + timeline. Returns true on success.
  *   window.anSetTime(t) → seeks to time t (seconds) and re-evaluates poses.
+ *       A pure function of t: the picture never depends on earlier seeks (an#185).
  *   window.anCanvasReady() → resolves when the canvas is sized and PixiJS
  *       is initialized (so Playwright knows it's safe to screenshot).
  *   window.anCaptureFrames(requests) → seeks each requested instant in order
@@ -30,6 +31,8 @@
     let scene = null;      // current CutoutSceneJSON
     let nodeIndex = {};    // path → PIXI.DisplayObject
     let visualIndex = {};  // path → { container, visual: PIXI.DisplayObject }
+    let restIndex = {};    // 'target::prop' → restore-to-built function (an#185)
+    let restOrder = [];    // restIndex's keys, in pose application order
     let pixiReady = false;
 
     // ------------------------------------------------------------------------
@@ -168,9 +171,15 @@
             // path applies `viseme` here the same way it swaps textures on a
             // sprite — the set name is convention, not control flow.
             const g = new PIXI.Graphics();
-            drawMouthShape(g, 'X');
+            drawMouthShape(g, MOUTH_REST);
             g._anDrawSets = {
-                viseme: { keys: Object.keys(VISEME_SHAPES).sort(), apply: drawMouthShape },
+                viseme: {
+                    keys: Object.keys(VISEME_SHAPES).sort(),
+                    apply: drawMouthShape,
+                    // What it was built showing: the pose a seek to before
+                    // the first viseme key restores (an#185).
+                    rest: MOUTH_REST,
+                },
             };
             return g;
         }
@@ -656,6 +665,7 @@
         G: { w: 22, h: 7,  open: 0.2, smile: 0.0, teeth: true },
         H: { w: 18, h: 6,  open: 0.15, smile: 0.0, tongue: true },
     };
+    const MOUTH_REST = 'X';
     const _LIP_COLOR  = 0x6b2b2b;
     const _MOUTH_FILL = 0x2a1010;
     const _TEETH_COLOR = 0xfafafa;
@@ -883,8 +893,19 @@
         return Math.min(t, duration);  // 'once', and the default for anything unknown
     }
 
+    // Port of `an/adapters/cutout/timeline.py::evaluate_timeline` — that
+    // function is the spec, and tests/test_pure_pose.py runs this one against
+    // it. The pose is a PURE function of t (an#185): a key a playing clip
+    // writes takes its value (later wins); a key whose clips have all ENDED
+    // holds the value the latest-ending one reached at its end (a tie goes to
+    // the later clip); a key nothing has started writing is ABSENT, and
+    // `anSetTime` restores it to what `anLoadScene` built. Before an#185 an
+    // ended clip simply stopped writing, so the node kept whatever the
+    // previous SEEK applied — identical when seeks run forward, and a
+    // different picture after any seek backwards.
     function evaluateTimeline(t) {
-        const pose = {};
+        const active = {};
+        const held = {};     // key → { end, value }
         for (const track of scene.timeline.tracks || []) {
             for (const placed of track.clips || []) {
                 const anim = scene.animations[placed.animation_id];
@@ -898,20 +919,113 @@
                 const windowDur = placed.duration != null ? placed.duration : clipDur;
                 const speed = placed.speed != null ? placed.speed : 1;
                 const effDur = windowDur / speed;
-                if (placed.start_time <= t && t <= placed.start_time + effDur) {
+                const end = placed.start_time + effDur;
+                if (placed.start_time <= t && t <= end) {
                     const localT = wrapTime(
                         (t - placed.start_time) * speed, clipDur, anim.loop_mode
                     );
                     for (const ch of anim.channels) {
                         const v = evaluateChannel(ch, localT);
                         if (v != null) {
-                            pose[ch.target + '::' + ch.property] = v;
+                            active[ch.target + '::' + ch.property] = v;
+                        }
+                    }
+                } else if (t > end) {
+                    const localEnd = wrapTime(
+                        (end - placed.start_time) * speed, clipDur, anim.loop_mode
+                    );
+                    for (const ch of anim.channels) {
+                        const v = evaluateChannel(ch, localEnd);
+                        if (v == null) continue;
+                        const key = ch.target + '::' + ch.property;
+                        if (!(key in held) || end >= held[key].end) {
+                            held[key] = { end: end, value: v };
                         }
                     }
                 }
             }
         }
-        return pose;
+        const pose = {};
+        for (const key of Object.keys(held)) {
+            if (!(key in active)) pose[key] = held[key].value;
+        }
+        return Object.assign(pose, active);
+    }
+
+    // What `anSetTime` puts back for a key the pose leaves ABSENT (nothing
+    // writing it has started): a function restoring the node to what
+    // `anLoadScene` built, captured right after the build and before any
+    // seek. `null` when there is nothing to capture — an unknown target or
+    // property — so the loud error stays where it was: `applyPose`, the
+    // first time a clip actually writes the key.
+    function captureRest(node, prop) {
+        switch (prop) {
+            case 'x': { const v = node.x; return () => { node.x = v; }; }
+            case 'y': { const v = node.y; return () => { node.y = v; }; }
+            case 'rotation':
+            case 'rotation_rad': { const v = node.rotation; return () => { node.rotation = v; }; }
+            case 'scale_x': { const v = node.scale.x; return () => { node.scale.x = v; }; }
+            case 'scale_y': { const v = node.scale.y; return () => { node.scale.y = v; }; }
+            case 'skew_x': { const v = node.skew.x; return () => { node.skew.x = v; }; }
+            case 'skew_y': { const v = node.skew.y; return () => { node.skew.y = v; }; }
+            case 'pivot_x': { const v = node.pivot.x; return () => { node.pivot.x = v; }; }
+            case 'pivot_y': { const v = node.pivot.y; return () => { node.pivot.y = v; }; }
+            case 'alpha': { const v = node.alpha; return () => { node.alpha = v; }; }
+            case 'trim_start':
+            case 'trim_end':
+            case 'dash_offset': {
+                const child = (node.children || []).find(c => c._anPath);
+                if (!child) return null;
+                const v = child._anPath[prop];
+                return () => {
+                    if (child._anPath[prop] === v) return;
+                    child._anPath[prop] = v;
+                    drawPath(child);
+                };
+            }
+            // Rest is white (see applyProperty): restoring one component
+            // re-applies the cascade with it at 1.
+            case 'tint_r':
+            case 'tint_g':
+            case 'tint_b':
+                return () => applyProperty(node, prop, 1);
+            default: {
+                const child = (node.children || []).find(
+                    c => c._anAssetSets || c._anDrawSets
+                );
+                if (!child) return null;
+                const drawn = child._anDrawSets && child._anDrawSets[prop];
+                if (drawn) {
+                    return () => drawn.apply(child, drawn.rest);
+                }
+                if (!(child._anAssetSets && child._anAssetSets[prop])) return null;
+                // The texture it was BUILT with, which need not be any key of
+                // the set. Re-fit and re-fit the underlays exactly as a swap
+                // does, so the restored box is the built one.
+                const tex = child.texture;
+                return () => {
+                    if (child.texture === tex) return;
+                    child.texture = tex;
+                    refitToBox(child);
+                    for (const copy of (child._anUnderlays || [])) {
+                        fitUnderlay(child, copy);
+                    }
+                };
+            }
+        }
+    }
+
+    function indexRestPoses() {
+        restIndex = {};
+        for (const anim of Object.values(scene.animations || {})) {
+            for (const ch of anim.channels || []) {
+                const key = ch.target + '::' + ch.property;
+                if (key in restIndex) continue;
+                const node = nodeIndex[ch.target];
+                restIndex[key] = node ? captureRest(node, ch.property) : null;
+            }
+        }
+        restOrder = poseKeysInApplicationOrder(restIndex);
     }
 
     // ------------------------------------------------------------------------
@@ -1062,6 +1176,7 @@
             }
         }
 
+        indexRestPoses();
         app.render();
         pixiReady = true;
         return true;
@@ -1070,6 +1185,15 @@
     NS.anSetTime = function (t) {
         if (!app || !scene) return false;
         const pose = evaluateTimeline(t);
+        // Every animated key the pose leaves absent goes back to rest FIRST,
+        // then the pose is applied over it — so a key that shares what it
+        // writes with another (two swap sets on one sprite, `rotation` and
+        // `rotation_rad`, a tint cascade) still ends on the value the pose
+        // names. When seeks run forward this restores nothing that was not
+        // already at rest, which is why no golden frame moved (an#185).
+        for (const key of restOrder) {
+            if (!(key in pose) && restIndex[key]) restIndex[key]();
+        }
         applyPose(pose);
         app.render();
         return true;
@@ -1088,10 +1212,9 @@
     // path raises.
     //
     // Every instant is seeked through `NS.anSetTime`, in the order given,
-    // exactly as the screenshot path seeks it: the pose is NOT a pure function
-    // of t today (a seek back to an earlier time can leave state behind, an#185), so a
-    // capture that visited the instants in any other order would be a
-    // different render, not a faster one.
+    // exactly as the screenshot path seeks it. Since an#185 the pose is a pure
+    // function of t, so the order is no longer load-bearing for the picture;
+    // it is kept because the frame numbers are echoed in it.
     //
     // `app.view.toDataURL`, not `app.renderer.extract` (which re-renders into
     // a non-multisampled texture — a different picture) and not raw

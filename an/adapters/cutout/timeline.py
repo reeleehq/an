@@ -90,22 +90,60 @@ class Timeline:
 
 
 def evaluate_timeline(timeline: Timeline, t: float) -> Pose:
-    """Evaluate ``timeline`` at time ``t``, merging poses across tracks/clips."""
-    track_poses: list[Pose] = []
+    """Evaluate ``timeline`` at time ``t``, merging poses across tracks/clips.
+
+    The result is a PURE function of ``t`` (an#185): what a key shows at ``t``
+    never depends on which instants were evaluated before it. Three cases, per
+    ``(target, property)``:
+
+    - **Active** — some clip writing it is playing at ``t`` (inclusive end:
+      a clip at ``[s, e]`` is active at ``t == e`` too, so the final frame of
+      "play this from 0 to 1 s" is visible at 1.0). Later wins: track order,
+      then clip order within a track.
+    - **Held** — no clip writing it is playing, but one has ended: the value
+      the clip reached AT ITS END holds. The latest end wins; a tie goes to
+      the later clip, the same "later wins" as above.
+    - **At rest** — nothing writing it has started yet. The key is ABSENT from
+      the pose, and its value is the node's own (``transform_of`` reads it
+      from the document; ``runtime.js`` restores what it built).
+
+    The held rule is what forward-order rendering always showed — the runtime
+    kept the last pose it applied — stated so it no longer needs the previous
+    frame to have been rendered. They agree whenever a clip's last frame is
+    its end value, which is what the compiler's settling ``set`` guarantees.
+
+    ``runtime.js::evaluateTimeline`` is a port of this function and
+    ``tests/test_pure_pose.py`` holds the two to it.
+
+    >>> from an.adapters.cutout.channel import Channel, Keyframe
+    >>> from an.adapters.cutout.clip import Clip
+    >>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
+    >>> tl = Timeline(2.0, [Track("a", [PlacedClip(Clip("m", 1.0, [ch]), 0.5)])])
+    >>> evaluate_timeline(tl, 0.0)  # not started: at rest, so absent
+    {}
+    >>> evaluate_timeline(tl, 1.0)[("a", "x")]  # active
+    5.0
+    >>> evaluate_timeline(tl, 1.75)[("a", "x")]  # ended: its end value holds
+    10.0
+    """
+    active: Pose = {}
+    held: dict[tuple[str, str], tuple[float, Any]] = {}
     for track in timeline.tracks:
-        active_poses: list[Pose] = []
         for placed in track.clips:
-            # Inclusive-end semantics: a clip at [s, e] is active at t==e too.
-            # This matches the natural reading of "play this clip from 0 to 1s"
-            # (the final frame should still be visible at t=1.0).
-            if placed.start_time <= t <= placed.end_time:
+            end = placed.end_time
+            if placed.start_time <= t <= end:
                 local_t = (t - placed.start_time) * placed.speed
-                active_poses.append(_evaluate_clip(placed.clip, local_t))
-        if active_poses:
-            track_poses.append(merge_poses(*active_poses))
-    if not track_poses:
-        return {}
-    return merge_poses(*track_poses)
+                active.update(_evaluate_clip(placed.clip, local_t))
+            elif t > end:
+                end_pose = _evaluate_clip(
+                    placed.clip, (end - placed.start_time) * placed.speed
+                )
+                for key, value in end_pose.items():
+                    if key not in held or end >= held[key][0]:
+                        held[key] = (end, value)
+    pose: Pose = {key: value for key, (_, value) in held.items() if key not in active}
+    pose.update(active)
+    return pose
 
 
 def timeline_from_scene(scene: CutoutSceneJSON) -> Timeline:
