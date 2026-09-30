@@ -8,7 +8,8 @@ The flow per shot:
 3. Launch headless Chromium via Playwright; load `index.html`; inject the
    scene via ``window.anLoadScene``.
 4. For each frame ``f`` in ``[0, total_frames)``: call ``window.anSetTime(f/fps)``
-   and screenshot the canvas to a PNG.
+   and screenshot the canvas to a PNG — or, with ``capture="canvas"``, read the
+   canvas's own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`).
 5. Mux the PNG sequence to mp4 with ffmpeg.
 
 Failures are reported with concrete remediation: missing ffmpeg, missing
@@ -39,6 +40,11 @@ from an.adapters.cutout.supersample import (
 )
 from an.base import BT709_SCALE_FILTER, MP4_FASTSTART_ARGS
 from an.determinism import capture_violations, determinism_enforced
+from an.adapters.cutout.canvas_capture import (
+    CanvasCaptureError,
+    canvas_frame_png,
+    decode_data_url,
+)
 from an.adapters.cutout.compile import compile_shot
 from an.adapters.cutout.shutter import check_frame_samples, mean_png_bytes
 from an.adapters.cutout.runtime_files import runtime_dir
@@ -167,6 +173,49 @@ DEFAULT_PIX_FMT: str = "yuv420p"
 #: has not been measured against the panel.
 SUPPORTED_PIX_FMTS: tuple[str, ...] = ("yuv420p", "yuv444p")
 
+#: How frames leave the browser. ``"screenshot"``: a Playwright element
+#: screenshot of ``#stage`` per instant — the path every render took before the
+#: canvas path existed, and still the default. ``"canvas"``: the runtime's
+#: ``anCaptureFrames`` reads the canvas in-page and hands back PNG data URLs in
+#: batches (`an.adapters.cutout.canvas_capture`), which writes frames whose
+#: DECODED pixels equal the screenshot path's.
+#:
+#: **The default stays ``"screenshot"`` until the equivalence gate has held on
+#: the whole golden corpus on both the developer machine and the labelled Linux
+#: rendering lane** (epic #9's throughput track): a faster path that moved a
+#: pixel would silently invalidate every baseline recorded before it. The flip is
+#: its own one-line PR. Read as a MODULE GLOBAL at call time, for
+#: `DEFAULT_PIX_FMT`'s reason — a default argument would bind it at def time.
+DEFAULT_CAPTURE: str = "screenshot"
+
+#: The capture paths `_check_capture` accepts. Not an open string: a typo must
+#: fail before a browser launches, not minutes into a render.
+SUPPORTED_CAPTURES: tuple[str, ...] = ("screenshot", "canvas")
+
+#: Frames per ``anCaptureFrames`` round trip. Measured at 1920x1080 on an M1
+#: Max, `single_character`: 67 ms/frame one frame per call, 46 at four, 46 at
+#: eight — the round trip is ~20 ms of fixed cost, amortised by the batch. It is
+#: also the memory the page holds before Python takes it: eight data URLs of a
+#: 1080p frame are well under a megabyte of text, and at a supersampled 4K
+#: backbuffer a few megabytes each.
+DEFAULT_CANVAS_BATCH: int = 8
+
+#: Threads decoding, resolving and re-encoding canvas frames while the page
+#: renders the next batch. The decode/encode is ~60 ms/frame of Pillow and zlib
+#: at 1080p — the same order as the page's own work — so it must overlap it or
+#: it eats the win. Two, not `cpu_count()`: `an render --parallel` already runs
+#: one Chromium per shot, and each of them is another source of CPU pressure.
+DEFAULT_CANVAS_ENCODE_WORKERS: int = 2
+
+#: BACK-PRESSURE: frames handed to the encode pool and not yet written. When
+#: the pool falls behind, the capture loop blocks on the oldest one before it
+#: asks the page for more, so memory is bounded by this many frames plus one
+#: batch however long the shot is.
+DEFAULT_CANVAS_MAX_INFLIGHT: int = 2 * DEFAULT_CANVAS_BATCH
+
+#: The page-side capture call; see ``anCaptureFrames`` in ``runtime.js``.
+_CAPTURE_FRAMES_JS: str = "(requests) => window.anCaptureFrames(requests)"
+
 DETERMINISTIC_X264_ARGS: tuple[str, ...] = (
     "-threads",
     "1",
@@ -273,6 +322,23 @@ def _check_pix_fmt(pix_fmt: str | None) -> str:
     return resolved
 
 
+def _check_capture(capture: str | None) -> str:
+    """Resolve and validate the capture path; ``None`` is the module default
+    **at call time**, which keeps :data:`DEFAULT_CAPTURE` flippable from outside.
+
+    >>> _check_capture(None), _check_capture("canvas")
+    ('screenshot', 'canvas')
+    """
+    resolved = capture or DEFAULT_CAPTURE
+    if resolved not in SUPPORTED_CAPTURES:
+        raise CutoutRenderError(
+            f"capture={resolved!r} is not one of {SUPPORTED_CAPTURES}. "
+            "'screenshot' is the default; 'canvas' reads the canvas in-page and "
+            "writes frames whose decoded pixels equal the screenshot path's."
+        )
+    return resolved
+
+
 @dataclass(slots=True)
 class _RenderJob:
     """Per-shot scratch area + the scene that's about to render."""
@@ -307,6 +373,7 @@ class CutoutRenderer:
         # minutes, and `check_factor` is microseconds.
         supersample = check_factor(ctx.supersample)
         pix_fmt = _check_pix_fmt(ctx.pix_fmt)
+        capture = _check_capture(ctx.capture)
         total_frames = max(1, int(round(shot.duration * ctx.fps)))
         frame_samples = check_frame_samples(
             ctx.frame_samples, total_frames=total_frames, duration=shot.duration
@@ -409,6 +476,8 @@ class CutoutRenderer:
                     job.frames_dir,
                     supersample,
                     frame_samples=frame_samples,
+                    capture=capture,
+                    resolution=tuple(ctx.resolution),
                 )
             finally:
                 browser.close()
@@ -435,6 +504,10 @@ class CutoutRenderer:
                 # stage. `supersample` beside it is what says how they got there.
                 "supersample": supersample,
                 "pix_fmt": pix_fmt,
+                # How the frames left the browser. Recorded because the two
+                # paths must agree on decoded pixels but not on file bytes, so a
+                # frame-byte diff between two runs is only interpretable beside it.
+                "capture": capture,
                 "frame_count": total_frames,
                 "audio_tracks": len(audio_inputs),
                 # The launch argv verbatim: all four rasteriser configurations
@@ -721,8 +794,18 @@ def _capture_frames(
     supersample: int = NO_SUPERSAMPLE,
     *,
     frame_samples: tuple[tuple[float, ...], ...] | None = None,
+    capture: str | None = None,
+    resolution: tuple[int, int] | None = None,
 ) -> None:
-    """Step the JS runtime through ``total_frames`` and screenshot the canvas each time.
+    """Step the JS runtime through ``total_frames`` and capture the canvas each time.
+
+    ``capture`` picks how the pixels leave the browser (:data:`DEFAULT_CAPTURE`
+    when ``None``): ``"screenshot"`` is the loop below, ``"canvas"`` is
+    :func:`_capture_frames_canvas`. Both write the same decoded frames to the same
+    files; the dispatch lives HERE, inside the one function the bench's
+    supersample lever wraps, so the lever reaches either path. ``resolution``
+    (the declared width, height) lets the canvas path refuse a frame of the wrong
+    size before it is written; the screenshot path does not read it.
 
     **The resolve happens here, in the frame stage, and that is not a stylistic
     choice.** Nothing downstream reads a resolution off the files: the bench's
@@ -744,6 +827,17 @@ def _capture_frames(
     both. ``None`` is one instant at ``i / fps``, and a frame with one instant
     takes the path above unchanged, so the knob is free when it is off too.
     """
+    if _check_capture(capture) == "canvas":
+        _capture_frames_canvas(
+            page,
+            total_frames,
+            fps,
+            frames_dir,
+            supersample,
+            frame_samples=frame_samples,
+            resolution=resolution,
+        )
+        return
     for i in range(total_frames):
         instants = (i / float(fps),) if frame_samples is None else frame_samples[i]
         out_path = frames_dir / (DEFAULT_FRAME_PNG_PATTERN % i)
@@ -760,6 +854,146 @@ def _capture_frames(
             _set_time(page, t, frame=i)
             shots.append(page.locator("#stage").screenshot(omit_background=False))
         out_path.write_bytes(mean_png_bytes(shots, factor=supersample))
+
+
+def _capture_frames_canvas(
+    page: Any,
+    total_frames: int,
+    fps: int | float,
+    frames_dir: Path,
+    supersample: int = NO_SUPERSAMPLE,
+    *,
+    frame_samples: tuple[tuple[float, ...], ...] | None = None,
+    resolution: tuple[int, int] | None = None,
+    batch: int | None = None,
+    workers: int | None = None,
+    max_inflight: int | None = None,
+) -> None:
+    """The ``capture="canvas"`` frame stage: in-page reads, batched, ordered, bounded.
+
+    Per round trip the page seeks up to ``batch`` frames' instants **in frame
+    order, samples in the order given** — the order the screenshot path seeks
+    them, which matters because the runtime's pose is not yet a pure function of
+    ``t`` (an#185) — and returns each frame's canvas as PNG data URLs. The decode,
+    opacity check, supersample and temporal resolve, and RGB re-encode
+    (:func:`~an.adapters.cutout.canvas_capture.canvas_frame_png`) run on a
+    small thread pool while the page renders the next batch.
+
+    Two corruptions are silent unless refused, so both are refused explicitly:
+
+    - **A dropped or reordered frame.** The page echoes each frame number; the
+      reply must be exactly the frames requested, in the order requested, each
+      with one PNG per instant — otherwise this raises before anything is
+      written from that batch. Every file is named by the frame number the page
+      echoed and the loop's own index agreeing, never by arrival order from the
+      pool; and before returning, every frame ``0..total_frames-1`` must have
+      been written exactly once.
+    - **Unbounded buffering.** At most ``max_inflight`` frames sit in the pool
+      unwritten; past that the loop blocks on the OLDEST before asking the page
+      for more (back-pressure), so a long shot costs bounded memory.
+
+    ``None`` for ``batch`` / ``workers`` / ``max_inflight`` reads the module
+    defaults at call time.
+    """
+    from collections import deque
+    from concurrent.futures import ThreadPoolExecutor
+
+    batch = batch or DEFAULT_CANVAS_BATCH
+    workers = workers or DEFAULT_CANVAS_ENCODE_WORKERS
+    max_inflight = max(1, max_inflight or DEFAULT_CANVAS_MAX_INFLIGHT)
+    instants = [
+        (i / float(fps),) if frame_samples is None else tuple(frame_samples[i])
+        for i in range(total_frames)
+    ]
+
+    def _encode(i: int, pngs: list[bytes]) -> int:
+        out = frames_dir / (DEFAULT_FRAME_PNG_PATTERN % i)
+        try:
+            data = canvas_frame_png(pngs, frame=i, factor=supersample, size=resolution)
+        except CanvasCaptureError as e:
+            raise CutoutRenderError(f"canvas capture: {e}") from e
+        out.write_bytes(data)
+        return i
+
+    written: list[int] = []
+    inflight: deque = deque()
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="an-canvas") as pool:
+        try:
+            for start in range(0, total_frames, batch):
+                requests = [
+                    {"frame": i, "times": list(instants[i])}
+                    for i in range(start, min(start + batch, total_frames))
+                ]
+                reply = _evaluate(
+                    page,
+                    _CAPTURE_FRAMES_JS,
+                    requests,
+                    doing=(
+                        f"capturing frames {requests[0]['frame']}-"
+                        f"{requests[-1]['frame']} from the canvas"
+                    ),
+                )
+                for i, pngs in _checked_capture_reply(reply, requests):
+                    while len(inflight) >= max_inflight:
+                        written.append(inflight.popleft().result())
+                    inflight.append(pool.submit(_encode, i, pngs))
+            while inflight:
+                written.append(inflight.popleft().result())
+        finally:
+            # A failure anywhere must not leave encodes running against a
+            # frames directory the caller is about to treat as finished.
+            for fut in inflight:
+                fut.cancel()
+    if written != list(range(total_frames)):
+        raise CutoutRenderError(
+            f"canvas capture wrote frames {written[:5]}... ({len(written)}) but "
+            f"the shot has {total_frames}; a dropped or reordered frame is "
+            "silent corruption, so this refuses rather than muxing it"
+        )
+
+
+def _checked_capture_reply(
+    reply: Any, requests: list[dict[str, Any]]
+) -> Iterator[tuple[int, list[bytes]]]:
+    """Validate one ``anCaptureFrames`` reply against its request; yield
+    ``(frame, [png bytes, ...])`` in frame order, or raise.
+
+    The whole reply is checked before the first frame is yielded, so a bad
+    batch writes nothing.
+    """
+    if isinstance(reply, dict) and "error" in reply:
+        frame, t = reply.get("frame"), reply.get("t")
+        where = f"frame {frame} (t={t:.4f}s)" if isinstance(t, (int, float)) else f"frame {frame}"
+        raise CutoutRenderError(f"{where} could not be evaluated:\n{reply['error']}")
+    frames = reply.get("frames") if isinstance(reply, dict) else None
+    if not isinstance(frames, list):
+        raise CutoutRenderError(
+            f"anCaptureFrames returned {type(reply).__name__}, not {{frames: [...]}} "
+            "— is the staged runtime.js older than this renderer?"
+        )
+    asked = [r["frame"] for r in requests]
+    got = [f.get("frame") if isinstance(f, dict) else None for f in frames]
+    if got != asked:
+        raise CutoutRenderError(
+            f"the page returned frames {got} for a request of {asked}; a "
+            "dropped or reordered frame is silent corruption, so nothing from "
+            "this batch is written"
+        )
+    decoded = []
+    for req, entry in zip(requests, frames):
+        urls = entry.get("pngs")
+        if not isinstance(urls, list) or len(urls) != len(req["times"]):
+            raise CutoutRenderError(
+                f"frame {req['frame']}: the page returned "
+                f"{len(urls) if isinstance(urls, list) else urls!r} sample(s) for "
+                f"{len(req['times'])} instant(s)"
+            )
+        try:
+            pngs = [decode_data_url(u, frame=req["frame"]) for u in urls]
+        except CanvasCaptureError as e:
+            raise CutoutRenderError(f"canvas capture: {e}") from e
+        decoded.append((req["frame"], pngs))
+    yield from decoded
 
 
 def _set_time(page: Any, t: float, *, frame: int) -> None:

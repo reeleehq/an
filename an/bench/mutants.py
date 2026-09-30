@@ -654,6 +654,23 @@ MUTANTS: tuple[Mutant, ...] = (
             "equality notices."
         ),
     ),
+    # ------------------------------------------ canvas capture (epic #9 track)
+    Mutant(
+        name="canvas_capture_flips_rows",
+        file="an/adapters/cutout/canvas_capture.py",
+        old='image.convert("RGB")',
+        new='image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")',
+        caught_by="tests/test_canvas_capture.py",
+        why=(
+            "the `readPixels` trap in reverse: WebGL readback is bottom-up and a "
+            "PNG is top-down, so a capture path is one flip away from writing "
+            "every frame upside down at exactly the declared size — past every "
+            "shape check. The offline catcher is named here because a sweep "
+            "runs the whole file per mutant; the browser equivalence gate "
+            "(tests/test_canvas_capture_equivalence.py) catches the same flip "
+            "in its own test."
+        ),
+    ),
     # ------------------------------------------------- an#57, registerable
     # since an#58 gated the parse check on `.py`. Before that these two had to
     # be mutation-tested by hand, with the proof living in a docstring instead

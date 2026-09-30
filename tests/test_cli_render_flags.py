@@ -22,11 +22,12 @@ def test_every_cli_render_flag_reaches_the_leaf_renderer(monkeypatch):
         return Path("out.mp4")
 
     monkeypatch.setattr(orchestrate, "_render_project", leaf)
-    out = tools.render("proj", tts="mac_say", lipsync="rhubarb", parallel="auto", strict_assets=True, supersample=2, pix_fmt="yuv444p", step_hz=12.0, language="fr")
+    out = tools.render("proj", tts="mac_say", lipsync="rhubarb", parallel="auto", strict_assets=True, supersample=2, pix_fmt="yuv444p", step_hz=12.0, language="fr", capture="canvas")
     assert out.startswith("rendered:")
     assert seen == {
         "output_name": "main", "tts": "mac_say", "lipsync": "rhubarb", "parallel": "auto",
         "strict_assets": True, "supersample": 2, "pix_fmt": "yuv444p", "step_hz": 12.0, "language": "fr",
+        "capture": "canvas",
     }
     # And the leaf actually accepts every one of them.
     import inspect
