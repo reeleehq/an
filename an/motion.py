@@ -593,7 +593,9 @@ def stage_poses(
     def walk(node: Any, prefix: str) -> None:
         path = f"{prefix}/{node.name}" if prefix else node.name
         if prefix or node.name != "root":
-            found[path] = {p: float(getattr(node.transform, p)) for p in POSE_PROPERTIES}
+            found[path] = {
+                p: float(getattr(node.transform, p)) for p in POSE_PROPERTIES
+            }
             child_prefix = path
         else:
             child_prefix = ""  # the synthetic root is not addressable

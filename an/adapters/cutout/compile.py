@@ -2677,7 +2677,9 @@ def _expand_preset_plays(
             out.extend(expand_preset_play(action, start=flat.start, rest_of=rest_of))
         except PlayResolutionError as e:
             built = sorted(
-                p for p in (vocab.paths if vocab else ()) if p.split("/")[0] == entity_id
+                p
+                for p in (vocab.paths if vocab else ())
+                if p.split("/")[0] == entity_id
             )
             raise CutoutCompileError(
                 f"{where}: " + "; ".join(e.problems) + f" (built: {built})"

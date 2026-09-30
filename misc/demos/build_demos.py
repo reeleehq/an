@@ -1049,7 +1049,8 @@ def _build_preset_plays(work: Path) -> Path:
     slide takes the scene's `default_easing: linear`."""
     md = (
         _meta("Motion presets by name", 4.0).replace(
-            "default_renderer: cutout", "default_renderer: cutout\ndefault_easing: linear"
+            "default_renderer: cutout",
+            "default_renderer: cutout\ndefault_easing: linear",
         )
         + "\n"
         + _shot("s1", 4.0)

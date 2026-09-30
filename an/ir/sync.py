@@ -620,9 +620,7 @@ def _actions_to_yaml_list(actions: list) -> list[dict]:
             # and an unset easing draw different curves (an#166).
             if "easing" in leaf.model_fields_set:
                 entry["easing"] = (
-                    list(leaf.easing)
-                    if isinstance(leaf.easing, tuple)
-                    else leaf.easing
+                    list(leaf.easing) if isinstance(leaf.easing, tuple) else leaf.easing
                 )
             if start is not None:
                 entry["start"] = start

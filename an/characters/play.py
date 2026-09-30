@@ -438,7 +438,9 @@ def preset_moved_node(action_target: str, animation: str, args=None) -> str:
     if len(moved) != 1:  # every shipped preset moves one node; a new one must too
         raise PlayResolutionError(
             animation,
-            [f"motion preset {animation!r} moves {moved}; a play needs exactly one node"],
+            [
+                f"motion preset {animation!r} moves {moved}; a play needs exactly one node"
+            ],
         )
     return moved[0]
 
@@ -498,7 +500,9 @@ def expand_preset_play(
         if isinstance(leaf, TweenAction):
             leaf = leaf.model_copy(update={"duration": leaf.duration * scale})
         t0 = start + (f.start - start) * scale
-        out.append(FlatAction(start=t0, end=t0 + (f.end - f.start) * scale, action=leaf))
+        out.append(
+            FlatAction(start=t0, end=t0 + (f.end - f.start) * scale, action=leaf)
+        )
     return out
 
 
