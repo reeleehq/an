@@ -122,8 +122,9 @@ the same `set` on every path `swap_capable_paths(entity, set)` returns, each
 then checked like an authored swap; it only fires for a descriptor character
 whose root node does not carry the set. Each fan-out is recorded, and
 `_swap_pose_layer` turns the descriptor's `swap_poses[set][key][slot]`
-(`SlotPose`: `x`/`y` offsets in view_box units, `scale_x`/`scale_y`/`alpha`
-factors) into step curves per (node, property) — a slot posed under any key
+(`SlotPose`: `x`/`y` offsets in view_box units, a `rotation` added in
+radians and never scaled — an#203, how the profile splays its legs —
+`scale_x`/`scale_y`/`alpha` factors) into step curves per (node, property) — a slot posed under any key
 of the set returns to rest under the others. The face solver takes a posed
 entity down its solver path and FOLDS a curve into any channel it drives
 (the pupil's gaze `x` is summed onto the posed `x`, never a second channel
@@ -133,6 +134,11 @@ VIEW_CHANNEL`), and the `gale` fixture's `body_facing` turns the same way
 (`tests/test_motion.py`). This is the "multi-slot turnaround" the Wave 5
 ruling deferred — done as a fan-out plus data, not a skin switch: the swap
 still carries texture only, so view art lives on the default part's canvas.
+A `turn` PLAYED by name reads the timeline before it: `an.characters.play.
+resolve_turns` (shared by compile's `_expand_preset_plays` and `an validate`)
+fills in `from_direction` from the latest earlier `scale_x` on the entity, so
+chained turns need nothing by hand; a pose's `alpha` step to 0 is a hide, not
+a fade, so it never trips the surface-treatment fade warning (an#203).
 Tests: `tests/test_turnaround.py`.
 
 ## `play` rides the same channels (an#7)

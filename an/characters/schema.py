@@ -225,13 +225,15 @@ class SlotPose(_CharModel):
     """How one slot is posed while a swap key is shown (``swap_poses``, an#197).
 
     Relative to the slot's REST, so one pose serves every placement: ``x``/``y``
-    are added (view_box units, like an attachment offset), ``scale_x``,
-    ``scale_y`` and ``alpha`` multiply. ``alpha: 0`` is how a view HIDES a slot
-    — the back view hides the face — which is a property of the view, never an
-    author's alpha hack on node paths guessed by trial.
+    are added (view_box units, like an attachment offset), ``rotation`` is
+    added too (radians, about the slot's own pivot — how a profile splays its
+    legs so both show), ``scale_x``, ``scale_y`` and ``alpha`` multiply.
+    ``alpha: 0`` is how a view HIDES a slot — the back view hides the face —
+    which is a property of the view, never an author's alpha hack on node
+    paths guessed by trial.
 
-    >>> SlotPose(alpha=0).alpha, SlotPose().x
-    (0.0, 0.0)
+    >>> SlotPose(alpha=0).alpha, SlotPose().x, SlotPose().rotation
+    (0.0, 0.0, 0.0)
     """
 
     x: float = 0.0
@@ -239,11 +241,14 @@ class SlotPose(_CharModel):
     scale_x: float = 1.0
     scale_y: float = 1.0
     alpha: float = 1.0
+    rotation: float = 0.0
 
 
 #: The transform properties a :class:`SlotPose` sets, and whether each is an
-#: OFFSET added to the rest (in view_box units) or a FACTOR on it.
+#: OFFSET added to the rest (in view_box units, so scaled by the rig), an
+#: ANGLE added to it (radians, never scaled) or a FACTOR on it.
 SLOT_POSE_OFFSETS: tuple[str, ...] = ("x", "y")
+SLOT_POSE_ANGLES: tuple[str, ...] = ("rotation",)
 SLOT_POSE_FACTORS: tuple[str, ...] = ("scale_x", "scale_y", "alpha")
 
 

@@ -22,16 +22,20 @@ from pydantic import ValidationError
 from an.base import AUTHORABLE_PROPERTIES, TRANSFORM_PROPERTIES
 from an.characters.play import (
     PRESET_SOURCE,
+    Facing,
+    TurnResolution,
     art_exists_for,
+    facing_at,
     play_extent_for,
     play_problems,
     play_source,
     preset_moved_node,
     preset_play_span,
+    resolve_turns,
 )
 from an.audio.effects import VoiceEffectError, voice_effects
 from an.audio.voices import speaker_voice_ref
-from an.characters.schema import CharacterDescriptor
+from an.characters.schema import DFLT_VIEW, VIEW_CHANNEL, CharacterDescriptor
 from an.expression.binding import expression_problems
 from an.ir.camera import CAMERA_MOVES, CameraError, camera_keys
 from an.ir.compose import flatten
@@ -614,7 +618,13 @@ def _check_swap_references(
                 f"{path}/actions/{k}",
                 f"property {prop!r} names no declared asset set of "
                 f"{entity_id!r} (it has: {sorted(declared)}) — compiling "
-                "this shot raises.",
+                "this shot raises."
+                + (
+                    " A character made before an#197 has no views: "
+                    "`an character add-views` draws them."
+                    if prop == VIEW_CHANNEL and entity.kind == "character"
+                    else ""
+                ),
             )
             continue
         keys = declared.get(prop) or {}
@@ -659,6 +669,131 @@ def _check_swap_references(
                     f"{prop!r} set (it has: {sorted(keys)}) — compiling "
                     "this shot raises.",
                 )
+
+
+def _turn_resolution(
+    shot, stores: Mapping[str, Any]
+) -> tuple[TurnResolution, list[int]] | None:
+    """The shot's flat timeline with its turns resolved the way the compiler
+    resolves them (:func:`an.characters.play.resolve_turns`, an#203), and the
+    top-level action index each flat came from. ``None`` without a characters
+    store — the check did not run, which is not the same as passing.
+
+    The rest pose is the identity: validate builds no stage, and the SIGN of
+    ``scale_x`` — all a facing is — does not depend on the rest's size.
+    """
+    if stores.get("characters") is None:
+        return None
+    rigs = {e.id: e for e in shot.entities if e.kind == "character"}
+
+    def descriptor_of(entity_id: str) -> CharacterDescriptor | None:
+        entity = rigs.get(entity_id)
+        doc = _rig_document(entity, stores) if entity is not None else None
+        try:
+            return CharacterDescriptor.model_validate(doc) if doc else None
+        except ValidationError:
+            return None  # reported by the play check
+
+    extent = play_extent_for(descriptor_of)
+    origin: list[int] = []
+    flats = []
+    for k, action in enumerate(shot.actions):
+        for flat in flatten(action, play_extent=extent):
+            flats.append(flat)
+            origin.append(k)
+    resolution = resolve_turns(
+        flats,
+        descriptor_of=descriptor_of,
+        rest_of=lambda _p: {"x": 0.0, "y": 0.0, "rotation": 0.0,
+                            "scale_x": 1.0, "scale_y": 1.0, "alpha": 1.0},
+    )
+    return resolution, origin
+
+
+def _check_turns(
+    shot, path: str, report: "ValidationReport", resolved
+) -> None:
+    """A ``turn`` whose declared ``from_direction`` contradicts the side the
+    timeline before it left the character facing (an#203): the compiler
+    keeps what the author wrote, so the character flips to the other side
+    before it squashes — a visible jump."""
+    if resolved is None:
+        return
+    resolution, origin = resolved
+    for turn in resolution.turns:
+        if not turn.contradicted:
+            continue
+        report.add(
+            "warning",
+            f"{path}/actions/{origin[turn.index]}",
+            f"`turn` on {turn.entity!r} at t={turn.start:g}s declares "
+            f"from_direction {turn.declared!r}, but the timeline before it left "
+            f"{turn.entity!r} facing {turn.before.direction!r}"
+            + (f" in its {turn.before.view!r} view" if turn.before.view else "")
+            + ", so it jumps to the other side before it turns. Drop "
+            "`from_direction`: a turn infers it from the timeline.",
+        )
+
+
+def _check_view_continuity(
+    scene: SceneIR, report: "ValidationReport", resolved: list
+) -> None:
+    """A character that ends one shot turned (a view other than the default,
+    or facing left) and appears in the NEXT shot starts that shot at its rest
+    — shots are independent by design (each compiles alone; the per-shot
+    archive and `render_project` depend on it), so a view does not carry
+    across a cut (an#203). Said as a warning, with the one line that carries
+    it on; the next shot setting the view (or ``scale_x``) at t=0 is taken as
+    the author's decision either way. ``resolved`` is
+    :func:`_turn_resolution` per shot.
+    """
+    previous: dict[str, tuple[str, Facing]] = {}
+    for i, (shot, shot_resolved) in enumerate(zip(scene.timeline, resolved)):
+        if shot_resolved is None:
+            return  # no characters store: the check did not run
+        events = shot_resolved[0].events
+        ids = [e.id for e in shot.entities if e.kind == "character"]
+        for j, entity_id in enumerate(ids):
+            if entity_id not in previous:
+                continue
+            prev_shot, ended = previous[entity_id]
+            start = facing_at(events, entity_id, 0.0)
+            turned_view = ended.view not in (None, DFLT_VIEW) and start.view is None
+            turned_left = ended.direction == "left" and start.direction is None
+            if not (turned_view or turned_left):
+                continue
+            state = " ".join(
+                bit
+                for bit in (
+                    f"in its {ended.view!r} view" if turned_view else "",
+                    "facing left" if turned_left else "",
+                )
+                if bit
+            )
+            fix = " and ".join(
+                bit
+                for bit in (
+                    f"`{{kind: set, target: {entity_id}, property: view, value: "
+                    f"{ended.view}, at: 0}}`"
+                    if turned_view
+                    else "",
+                    "a negative `scale_x` set at 0" if turned_left else "",
+                )
+                if bit
+            )
+            report.add(
+                "warning",
+                f"timeline/{i}/entities",
+                f"{entity_id!r} ends shot {prev_shot!r} {state}, and shot "
+                f"{shot.id!r} starts it at its rest — a view does not carry "
+                f"across a cut (each shot compiles alone). To continue the "
+                f"turn, open shot {shot.id!r} with {fix}; to reset it on "
+                "purpose, set the view there anyway.",
+            )
+        previous = {
+            e: (shot.id, facing_at(events, e, float(shot.duration)))
+            for e in ids
+        }
 
 
 #: Leaf kinds whose ``target`` is a NODE path the runtime animates. `play` and
@@ -1124,6 +1259,7 @@ def validate_semantic(
         )
 
     seen_shot_ids: set[str] = set()
+    turn_resolutions: list = []
     for i, shot in enumerate(scene.timeline):
         path = f"timeline/{i}"
         _check_step_hz(
@@ -1140,6 +1276,8 @@ def validate_semantic(
 
         _check_renderable(shot, path, report, stores=rig_stores)
         _check_swap_references(shot, path, report, rig_stores)
+        turn_resolutions.append(_turn_resolution(shot, rig_stores))
+        _check_turns(shot, path, report, turn_resolutions[-1])
         _check_trim_targets(shot, path, report, rig_stores)
         text_ids = _check_text_blocks(
             shot,
@@ -1251,6 +1389,7 @@ def validate_semantic(
                 )
         _check_dialogue_fits(shot, path, report)
 
+    _check_view_continuity(scene, report, turn_resolutions)
     _check_assembly(scene, report, sounds=available_sounds)
     return report
 
