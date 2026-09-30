@@ -41,12 +41,14 @@ prompt. Roughly $0.005 with Haiku.
 
 ### Functions
 
-| [`judge_envelope`](#an.verify.vision.judge_envelope)(frames, \*[, prompt, ...])        | Call the vision model and return a recordable envelope.                                     |
-|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| [`judge_frames`](#an.verify.vision.judge_frames)(frames, \*[, prompt, ...])          | The paid seam: frame bytes in, the model's raw text reply out.                              |
-| [`judge_key`](#an.verify.vision.judge_key)(\*args, \*\*kwargs)                    | The cache key for one [`judge_frames()`](#an.verify.vision.judge_frames) call. |
-| [`judge_legibility`](#an.verify.vision.judge_legibility)(frames, text, \*[, judge, ...]) | Score a dense in-line frame strip for lip-sync legibility (an#97).                          |
-| [`legibility_prompt`](#an.verify.vision.legibility_prompt)(text)                          | The legibility prompt for one line.                                                         |
+| [`emotion_prompt`](#an.verify.vision.emotion_prompt)(labels)                           | The name-the-emotion prompt over a closed label set.                                                       |
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| [`judge_emotion`](#an.verify.vision.judge_emotion)(frames, \*[, labels, judge, ...])  | Name the emotion a frame (or short strip) shows, or `None` if the reply named nothing in `labels` (an#98). |
+| [`judge_envelope`](#an.verify.vision.judge_envelope)(frames, \*[, prompt, ...])        | Call the vision model and return a recordable envelope.                                                    |
+| [`judge_frames`](#an.verify.vision.judge_frames)(frames, \*[, prompt, ...])          | The paid seam: frame bytes in, the model's raw text reply out.                                             |
+| [`judge_key`](#an.verify.vision.judge_key)(\*args, \*\*kwargs)                    | The cache key for one [`judge_frames()`](#an.verify.vision.judge_frames) call.                |
+| [`judge_legibility`](#an.verify.vision.judge_legibility)(frames, text, \*[, judge, ...]) | Score a dense in-line frame strip for lip-sync legibility (an#97).                                         |
+| [`legibility_prompt`](#an.verify.vision.legibility_prompt)(text)                          | The legibility prompt for one line.                                                                        |
 
 ### Classes
 
@@ -113,6 +115,30 @@ Injected, per “no globals, no service locators” — and because
 injection is what makes record-vs-replay drift impossible: the
 recorded and replayed paths are the same call through the same
 object, differing only in what the store returns.
+
+### an.verify.vision.emotion_prompt(labels)
+
+The name-the-emotion prompt over a closed label set. The labels are part
+of the key, so a different set is a different recording.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> "happy" in emotion_prompt(["neutral", "happy"])
+True
+```
+
+### an.verify.vision.judge_emotion(frames, , labels=None, judge=None, model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
+
+Name the emotion a frame (or short strip) shows, or `None` if the
+reply named nothing in `labels` (an#98).
+
+`labels` defaults to every preset in [`an.expression`](an.expression.md#module-an.expression). `judge` is
+the `judge_frames`-shaped seam; parsing stays outside the recording.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.verify.vision.judge_envelope(frames, \*, prompt='You are reviewing frames from a short animated cartoon. The character\\\\nart is intentionally simple (placeholder geometry: ellipse heads, rect\\\\ntorsos/limbs, curved bezier mouths, eyes drawn as white-sclera + dark\\\\npupils). DO NOT comment on the simplicity of the art itself — that is by\\\\ndesign. DO comment on: \\\\n\\\\n- Characters that are clipped off-screen or overlap badly.\\\\n- Faces that are missing parts (no eyes, mouth not visible, head occluded).\\\\n- Motion that looks broken (limbs detached, character flying off-canvas).\\\\n- Mouth shape that obviously doesn\\\\'t match active speech (e.g. closed lips\\\\n  during a long word).\\\\n- Background obscuring a character.\\\\n\\\\nReply in JSON only, with this shape: \\\\n\\\\n{\\\\n  "issues": [\\\\n    {"severity": "warning"|"error", "where": '<short location hint>', "what": "<one sentence>"}\\\\n  ]\\\\n}\\\\n\\\\nIf everything looks fine, return \`\`{"issues": []}\`\`.\\\\n', model='claude-haiku-4-5-20251001', max_tokens=800, api_key=None)
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=d6174a35"></script>
+    <script src="../../../_static/documentation_options.js?v=726fce2c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.94" />
+  <meta name="docsearch:version" content="0.1.95" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1040,6 +1040,97 @@ window.runMermaid = runMermaid;</script>
         <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">_parse_legibility</span><span class="p">(</span><span class="n">reply</span><span class="p">)</span></div>
+
+
+
+<span class="n">_EMOTION_PROMPT</span> <span class="o">=</span> <span class="s2">"""You are judging FACIAL EXPRESSION on a single frame of a simple animated</span>
+<span class="s2">cartoon character. The art is deliberately minimal (eyes, brows, a small</span>
+<span class="s2">mouth); look at the brows, the eyelids and the mouth. Which ONE of these</span>
+<span class="s2">emotion labels best names the expression shown?</span>
+
+<span class="s2">    </span><span class="si">{labels}</span>
+
+<span class="s2">Reply in JSON only, with this shape:</span>
+
+<span class="s2">{{"emotion": "&lt;exactly one of the labels above&gt;"}}</span>
+<span class="s2">"""</span>
+
+
+<div class="viewcode-block" id="emotion_prompt">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.vision.html#an.verify.emotion_prompt">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">emotion_prompt</span><span class="p">(</span><span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The name-the-emotion prompt over a closed label set. The labels are part</span>
+<span class="sd">    of the key, so a different set is a different recording.</span>
+
+<span class="sd">    &gt;&gt;&gt; "happy" in emotion_prompt(["neutral", "happy"])</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_EMOTION_PROMPT</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">labels</span><span class="p">))</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_emotion</span><span class="p">(</span><span class="n">body</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The named label from a reply, or ``None`` when it carried no verdict</span>
+<span class="sd">    (no JSON, no ``emotion`` key, or a name outside ``labels`` — a made-up</span>
+<span class="sd">    label is not a verdict).</span>
+
+<span class="sd">    &gt;&gt;&gt; _parse_emotion('{"emotion": "Angry"}', ["neutral", "angry"])</span>
+<span class="sd">    'angry'</span>
+<span class="sd">    &gt;&gt;&gt; _parse_emotion('{"emotion": "grumpy"}', ["neutral", "angry"]) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; _parse_emotion("no idea", ["neutral"]) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">body</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">fenced</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"```(?:json)?\s*({.*?})\s*```"</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+    <span class="n">raw</span> <span class="o">=</span> <span class="n">fenced</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">fenced</span> <span class="k">else</span> <span class="n">body</span>
+    <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">"{"</span><span class="p">),</span> <span class="n">raw</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">"}"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">start</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">end</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">end</span> <span class="o">&lt;</span> <span class="n">start</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw</span><span class="p">[</span><span class="n">start</span> <span class="p">:</span> <span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"emotion"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">name</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">{</span><span class="n">label</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">}</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="judge_emotion">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.vision.html#an.verify.judge_emotion">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">judge_emotion</span><span class="p">(</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">bytes</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">judge</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">model</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">_DEFAULT_MODEL</span><span class="p">,</span>
+    <span class="n">max_tokens</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">_DEFAULT_MAX_TOKENS</span><span class="p">,</span>
+    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Name the emotion a frame (or short strip) shows, or ``None`` if the</span>
+<span class="sd">    reply named nothing in ``labels`` (an#98).</span>
+
+<span class="sd">    ``labels`` defaults to every preset in :mod:`an.expression`. ``judge`` is</span>
+<span class="sd">    the `judge_frames`-shaped seam; parsing stays outside the recording.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression</span><span class="w"> </span><span class="kn">import</span> <span class="n">known_presets</span>
+
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">known_presets</span><span class="p">()</span>
+    <span class="n">reply</span> <span class="o">=</span> <span class="p">(</span><span class="n">judge</span> <span class="ow">or</span> <span class="n">judge_frames</span><span class="p">)(</span>
+        <span class="n">frames</span><span class="p">,</span>
+        <span class="n">prompt</span><span class="o">=</span><span class="n">emotion_prompt</span><span class="p">(</span><span class="n">labels</span><span class="p">),</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+        <span class="n">max_tokens</span><span class="o">=</span><span class="n">max_tokens</span><span class="p">,</span>
+        <span class="n">api_key</span><span class="o">=</span><span class="n">api_key</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_parse_emotion</span><span class="p">(</span><span class="n">reply</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span></div>
 
 
 
