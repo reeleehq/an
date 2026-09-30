@@ -41,9 +41,6 @@ from an.characters.schema import Attachment, Skin
 
 W, H = 320, 180
 
-PIL = pytest.importorskip("PIL.Image")  # arrives with tituli; a hard dependency
-
-
 # --- fixtures ---------------------------------------------------------------
 
 
