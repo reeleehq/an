@@ -59,6 +59,7 @@ __all__ = [
     "FilmTimeline",
     "assemble_film",
     "duck_gain",
+    "film_duration",
     "film_timeline",
     "needs_assembly",
     "transition_problems",
@@ -68,6 +69,10 @@ __all__ = [
 #: The ducking gain is re-evaluated every this many samples (10 ms at
 #: 44.1 kHz): fine enough that a 80 ms attack is a ramp, not a step.
 DUCK_FRAME_SAMPLES: int = 441
+
+#: Dialogue spans per ducking expression. ffmpeg 9.0.1 refuses one nested
+#: expression at about 95 spans (a sum of terms fails at 100 too); well under.
+DUCK_SPANS_PER_EXPRESSION: int = 40
 
 
 class AssemblyError(RuntimeError):
@@ -79,19 +84,51 @@ class AssemblyError(RuntimeError):
 # -----------------------------------------------------------------------------
 
 
-def needs_assembly(scene: SceneIR) -> bool:
+def _transition_frame_count(shot: Shot, fps: float) -> int:
+    """Frames ``shot``'s incoming transition spans; 0 for a cut, or for one so
+    short it rounds to nothing — which IS a cut, and must cost like one."""
+    t = shot.transition
+    if t is None or t.kind == "cut":
+        return 0
+    return int(round(t.duration * fps))
+
+
+def needs_assembly(scene: SceneIR, *, fps: float | None = None) -> bool:
     """True when the scene asks for anything beyond hard cuts and shot audio.
 
-    >>> from an.ir.schema import Meta, SceneIR, Shot
+    Decided on FRAMES at the render's rate (``fps``, default the scene's): a
+    transition that rounds to zero frames asks for nothing, and must not cost a
+    scene its byte-identical concat.
+
+    >>> from an.ir.schema import Meta, SceneIR, Shot, Transition
     >>> needs_assembly(SceneIR(timeline=[Shot(id="a"), Shot(id="b")]))
     False
+    >>> needs_assembly(SceneIR(timeline=[
+    ...     Shot(id="a"), Shot(id="b", transition=Transition(kind="fade", duration=0.0))]))
+    False
     """
-    if scene.meta.sounds:
+    if scene.meta.sounds or any(shot.sounds for shot in scene.timeline):
         return True
-    return any(
-        shot.sounds or (shot.transition is not None and shot.transition.kind != "cut")
-        for shot in scene.timeline
-    )
+    rate = fps if fps is not None else scene.meta.fps
+    return any(_transition_frame_count(shot, rate) for shot in scene.timeline)
+
+
+def film_duration(scene: SceneIR, *, fps: float | None = None) -> float:
+    """Seconds the delivered film runs: the shots' durations, minus each
+    dissolve's overlap. Exactly ``sum(durations)`` for a scene without one, so
+    every existing document's arithmetic is unchanged.
+
+    >>> from an.ir.schema import SceneIR, Shot, Transition
+    >>> film_duration(SceneIR(timeline=[Shot(id="a", duration=2.0),
+    ...     Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5))]))
+    3.5
+    """
+    rate = fps if fps is not None else scene.meta.fps
+    total = sum(s.duration for s in scene.timeline)
+    for shot in scene.timeline[1:]:
+        if shot.transition is not None and shot.transition.kind == "dissolve":
+            total -= _transition_frame_count(shot, rate) / rate
+    return total
 
 
 @dataclass(frozen=True)
@@ -140,9 +177,9 @@ def _transition_frames(shots: Sequence[Shot], fps: float):
     out_color: list[str | None] = [None] * n
     for i, shot in enumerate(shots):
         t = shot.transition
-        if t is None or t.kind == "cut":
+        k = _transition_frame_count(shot, fps)
+        if not k:
             continue
-        k = int(round(t.duration * fps))
         if t.kind == "dissolve":
             dissolve_in[i] = k
         elif i == 0:  # a fade on the first shot is a fade up from the colour
@@ -337,10 +374,11 @@ def compose_frames(
             (ia, ja), (ib, jb) = sorted(sources)
             k = timeline.dissolve_in[ib]
             a, b = load(shot_frames[ia][ja]), load(shot_frames[ib][jb])
-            if a.shape != b.shape:  # RGB against RGBA: meet in RGBA
-                a, b = (
-                    np.asarray(Image.fromarray(x).convert("RGBA")) for x in (a, b)
-                )
+            if a.shape != b.shape:
+                # Meet in the previous shot's mode, so the film's frames do not
+                # change pixel format mid-sequence.
+                mode = "RGBA" if a.shape[-1] == 4 else "RGB"
+                b = np.asarray(Image.fromarray(b).convert(mode))
             Image.fromarray(blend(a, b, jb + 1, k + 1)).save(out, format="PNG")
         written.append(out)
     return written
@@ -382,7 +420,9 @@ def _cue_placement(
     cue: SoundCue, *, at: float, container_end: float, path: Path, asset_duration: float
 ) -> Placement:
     if cue.duration is not None:
-        play = cue.duration
+        # A cue that does not loop cannot sound longer than its asset: its
+        # fade-out must land on audio that exists.
+        play = cue.duration if cue.loop else min(cue.duration, asset_duration)
     elif cue.loop:
         play = max(0.0, container_end - at)
     else:
@@ -499,7 +539,7 @@ def duck_gain(
     release: float,
 ) -> float:
     """The linear gain a ducked cue plays at, at film time ``t`` — the spec the
-    ffmpeg expression (:func:`_duck_expression`) is written from.
+    ffmpeg expressions (:func:`_duck_expressions`) are written from.
 
     Full level away from dialogue; ``duck_db`` down while a line plays; a linear
     ramp over ``attack`` seconds BEFORE each line (so its first syllable is
@@ -518,21 +558,32 @@ def duck_gain(
     return 1.0 - depth * weight
 
 
-def _duck_expression(
+def _duck_expressions(
     spans: Sequence[tuple[float, float]], *, duck_db: float, attack: float, release: float
-) -> str:
-    """:func:`duck_gain` as an ffmpeg ``volume`` expression in ``t``."""
+) -> list[str]:
+    """:func:`duck_gain` as ffmpeg ``volume`` expressions in ``t``, one per
+    chunk of at most :data:`DUCK_SPANS_PER_EXPRESSION` spans, to be CHAINED.
+
+    Chaining is exact, not an approximation: after :func:`merge_spans` no two
+    spans' ramps overlap, so at any instant at most one chunk's gain differs
+    from 1 and the product of the chunks is the single-expression gain. One
+    expression for a whole film is not an option — ffmpeg 9.0.1 refuses the
+    nested form at about 95 spans (measured), a long film's dialogue count.
+    """
     depth = 1.0 - 10 ** (duck_db / 20.0)
     terms = [
-        f"clip(min((t-{s - attack!r})/{attack!r}\\,({e + release!r}-t)/{release!r})\\,0\\,1)"
+        f"clip(min((t-{s - attack:.6f})/{attack:.6f}\\,"
+        f"({e + release:.6f}-t)/{release:.6f})\\,0\\,1)"
         for s, e in merge_spans(spans, attack=attack, release=release)
     ]
-    if not terms:
-        return "1"
-    weight = terms[0]
-    for term in terms[1:]:
-        weight = f"max({weight}\\,{term})"
-    return f"1-{depth!r}*{weight}"
+    expressions = []
+    for i in range(0, len(terms), DUCK_SPANS_PER_EXPRESSION):
+        chunk = terms[i : i + DUCK_SPANS_PER_EXPRESSION]
+        weight = chunk[0]
+        for term in chunk[1:]:
+            weight = f"max({weight}\\,{term})"
+        expressions.append(f"1-{depth:.6f}*{weight}")
+    return expressions
 
 
 def mix_command(plan: MixPlan, video: Path, output: Path) -> list[str]:
@@ -565,20 +616,20 @@ def mix_command(plan: MixPlan, video: Path, output: Path) -> list[str]:
             start = max(0.0, p.play - p.fade_out)
             chain.append(f"afade=t=out:st={start:.6f}:d={p.fade_out:.6f}")
         if p.gain_db:
-            chain.append(f"volume={p.gain_db!r}dB")
+            chain.append(f"volume={p.gain_db:.6f}dB")
         delay = int(round(p.at * sr))
         if delay:
             chain.append(f"adelay={delay}S:all=1")
         if p.duck is not None and plan.dialogue_spans:
             duck_db, attack, release = p.duck
-            expr = _duck_expression(
-                plan.dialogue_spans, duck_db=duck_db, attack=attack, release=release
-            )
             # `eval=frame` holds the gain for a whole audio frame, and a WAV
             # demuxes in frames of thousands of samples: re-chunked first, so
             # the ramp is a staircase of DUCK_FRAME_SAMPLES-long steps.
             chain.append(f"asetnsamples=n={DUCK_FRAME_SAMPLES}:p=0")
-            chain.append(f"volume=eval=frame:volume='{expr}'")
+            for expr in _duck_expressions(
+                plan.dialogue_spans, duck_db=duck_db, attack=attack, release=release
+            ):
+                chain.append(f"volume=eval=frame:volume='{expr}'")
         label = f"[s{n}]"
         parts.append(f"[{n + 2}:a]{','.join(chain)}{label}")
         labels.append(label)
@@ -623,39 +674,36 @@ def assemble_film(
     mall: Mapping[str, Any],
     work_dir: Path,
     pix_fmt: str | None = None,
-    concat=None,
 ) -> Path:
-    """Assemble rendered shots into ``output``: transitions, then the mix.
+    """Assemble rendered shots into ``output``: the picture from the shots'
+    frames (transitions composed in), muxed once, then the mix.
 
-    ``shot_results`` are the renderers' `RenderResult`s, in timeline order.
-    ``concat`` is the cut-only picture path (``an.render._ffmpeg_concat``),
-    used when there are sounds but no transitions, so the picture is the very
-    stream a scene without sound would have delivered.
+    ``shot_results`` are the renderers' `RenderResult`s, in timeline order;
+    each must carry its frames (``frame_manifest``), so a renderer that only
+    produces an mp4 cannot take part in an assembled film.
     """
     timeline = film_timeline(scene.timeline, fps=fps)
     work = Path(work_dir) / "film"
     work.mkdir(parents=True, exist_ok=True)
     picture = work / "picture.mp4"
-    if timeline.has_transitions:
-        from an.adapters.cutout.render import DEFAULT_FRAME_PNG_PATTERN, _ffmpeg_mux
+    # ALWAYS from frames, even with no transition: the concat of shot mp4s
+    # starts its picture after the AAC priming delay (23 ms) and advances by
+    # each shot's CONTAINER length, not its frame count, so a mix placed on the
+    # frame grid would lead the picture by 23 ms and drift at every shot whose
+    # duration is not a whole number of frames (both measured, an#163 review).
+    # One mux of the frame sequence puts frame i at exactly i / fps.
+    from an.adapters.cutout.render import DEFAULT_FRAME_PNG_PATTERN, _ffmpeg_mux
 
-        frames = compose_frames(
-            timeline,
-            [sorted(r.frame_manifest) for r in shot_results],
-            work / "frames",
-            pattern=DEFAULT_FRAME_PNG_PATTERN,
-        )
-        if len(frames) != timeline.total_frames:  # pragma: no cover — invariant
-            raise AssemblyError("composed frame count disagrees with the timeline")
-        _ffmpeg_mux(work / "frames", fps, picture, pix_fmt)
-    else:
-        (concat or _concat_default)([r.mp4_path for r in shot_results], picture)
+    frames = compose_frames(
+        timeline,
+        [sorted(r.frame_manifest) for r in shot_results],
+        work / "frames",
+        pattern=DEFAULT_FRAME_PNG_PATTERN,
+    )
+    if len(frames) != timeline.total_frames:  # pragma: no cover — invariant
+        raise AssemblyError("composed frame count disagrees with the timeline")
+    _ffmpeg_mux(work / "frames", fps, picture, pix_fmt)
     plan = mix_plan(scene, timeline, mall, work / "audio")
     _run(mix_command(plan, picture, output), doing="mixing the film's sound")
     return output
 
-
-def _concat_default(inputs: Sequence[Path], output: Path) -> None:
-    from an.render import _ffmpeg_concat
-
-    _ffmpeg_concat(inputs, output)

@@ -1137,6 +1137,18 @@ def _check_assembly(
                     )
 
     cues = [("meta/sounds", j, c) for j, c in enumerate(scene.meta.sounds)]
+    if not problems:
+        from an.assemble import film_duration
+
+        length = film_duration(scene)
+        for j, cue in enumerate(scene.meta.sounds):
+            if cue.at >= length:
+                report.add(
+                    "warning",
+                    f"meta/sounds/{j}/at",
+                    f"cue at {cue.at}s starts after the film ends ({length:.3f}s) "
+                    "and is dropped; a meta cue's time is film time",
+                )
     for i, shot in enumerate(scene.timeline):
         for j, cue in enumerate(shot.sounds):
             cues.append((f"timeline/{i}/sounds", j, cue))

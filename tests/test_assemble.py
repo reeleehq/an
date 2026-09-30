@@ -23,6 +23,8 @@ import an.render as render_mod
 from an.adapters._base import RenderResult
 from an.assemble import (
     AssemblyError,
+    _cue_placement,
+    film_duration,
     MixPlan,
     Placement,
     blend,
@@ -136,7 +138,7 @@ def test_mix_command_copies_the_picture_and_places_in_samples(tmp_path):
     i = cmd.index(str(tmp_path / "b.wav"))
     assert cmd[i - 3 : i - 1] == ["-stream_loop", "-1"]
     assert "afade=t=out:st=1.500000:d=0.500000" in graph
-    assert "volume=-6.0dB" in graph and "volume=eval=frame" in graph
+    assert "volume=-6.000000dB" in graph and "volume=eval=frame" in graph
     assert graph.endswith("amix=inputs=3:dropout_transition=0:normalize=0[aout]")
     assert cmd[-3:-1] == ["-movflags", "+faststart"]
 
@@ -496,3 +498,90 @@ def test_a_real_cutout_render_dissolves(tmp_path):
     assert len(_decode_rgb(out)) == 5 + 5 - 2
     assert _stream_duration(out, "v") == pytest.approx(0.8, abs=0.01)
     assert _stream_duration(out, "a") == pytest.approx(0.8, abs=0.03)
+
+
+def test_a_transition_that_rounds_to_no_frames_is_a_cut():
+    """It must not cost the scene its byte-identical concat (review item 4)."""
+    tiny = Transition(kind="dissolve", duration=0.01)
+    scene = SceneIR(meta=Meta(fps=30), timeline=_shots(("a", 1.0), ("b", 1.0, tiny)))
+    assert not needs_assembly(scene)
+    assert film_duration(scene) == 2.0
+
+
+def test_a_cue_that_does_not_loop_cannot_outlast_its_asset(tmp_path):
+    cue = SoundCue(sound="x", duration=3.0, fade_out=1.0)
+    p = _cue_placement(cue, at=0.0, container_end=9.0, path=tmp_path, asset_duration=0.5)
+    assert p.play == 0.5  # so the fade-out lands on audio that exists
+    looped = _cue_placement(cue.model_copy(update={"loop": True}), at=0.0,
+                            container_end=9.0, path=tmp_path, asset_duration=0.5)
+    assert looped.play == 3.0
+
+
+def test_the_layout_lint_expects_the_delivered_length():
+    from an.verify.layout import LayoutLintVerifier
+
+    d = Transition(kind="dissolve", duration=0.5)
+    scene = SceneIR(meta=Meta(fps=30, duration=3.5),
+                    timeline=_shots(("a", 2.0), ("b", 2.0, d)))
+    report = LayoutLintVerifier().verify(scene)
+    assert not [f for f in report.findings if f.ir_path == "meta/duration"]
+
+
+def test_a_meta_cue_after_the_film_ends_is_warned_about():
+    scene = SceneIR(meta=Meta(sounds=[SoundCue(sound="bed", at=10.0)]),
+                    timeline=[Shot(id="a", duration=2.0)])
+    report = validate_semantic(scene)
+    assert any(f.ir_path == "meta/sounds/0/at" for f in report.findings)
+
+
+@pytest.mark.ffmpeg
+def test_ducking_survives_a_long_film_of_dialogue(tmp_path):
+    """One nested expression fails in ffmpeg at about 95 spans; the chain of
+    chunked expressions must still render, and still duck (review item 1)."""
+    from an.sounds import synth_tone
+
+    subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i",
+         "color=c=black:s=32x24:r=10", "-t", "60", "-c:v", "libx264",
+         "-pix_fmt", "yuv420p", str(tmp_path / "v.mp4")],
+        check=True,
+    )
+    (tmp_path / "bed.wav").write_bytes(
+        synth_tone(200.0, 1.0, amplitude=0.5, attack=0, release=0))
+    spans = [(0.3 * i, 0.3 * i + 0.1) for i in range(200)]  # 200 separate lines
+    plan = MixPlan(
+        duration=60.0,
+        placements=[Placement(path=tmp_path / "bed.wav", at=0.0, play=60.0, loop=True,
+                              duck=(-20.0, 0.05, 0.05))],
+        dialogue_spans=spans,
+    )
+    result = subprocess.run(mix_command(plan, tmp_path / "v.mp4", tmp_path / "o.mp4"),
+                            capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    audio = _decode_audio(tmp_path / "o.mp4")
+    t = 0.3 * 150 + 0.05  # inside the 151st line: ducked by the 4th chunk
+    seg = audio[int((t - 0.01) * 44100): int((t + 0.01) * 44100)].astype(float)
+    assert np.sqrt(2 * (seg ** 2).mean()) == pytest.approx(0.05, rel=0.15)
+
+
+@pytest.mark.ffmpeg
+def test_a_cue_stays_on_its_shots_frames_across_cuts(tmp_path, monkeypatch):
+    """Sounds, no transition, and a shot that is not a whole number of frames:
+    the cue at the head of shot 2 must land on shot 2's first frame (review
+    item 2 — the concat path led by 23 ms and drifted)."""
+    from an.sounds import SYNTH_SOURCE, add_sound, synth_tone
+
+    scene = SceneIR(meta=_meta(2.04), timeline=[
+        Shot(id="red", duration=1.04),  # 10.4 frames -> 10
+        Shot(id="blue", duration=1.0, sounds=[SoundCue(sound="beep")])])
+    project = _project(tmp_path, scene)
+    add_sound(project.mall["sounds"], "beep",
+              synth_tone(880.0, 0.3, amplitude=0.5, attack=0, release=0),
+              source=SYNTH_SOURCE)
+    out = _render(project, monkeypatch)
+    video = _decode_rgb(out)
+    first_blue = next(i for i, f in enumerate(video) if f[..., 2].mean() > 128)
+    audio = _decode_audio(out)
+    onset = np.argmax(np.abs(audio) > 0.05) / 44100
+    assert onset == pytest.approx(first_blue / _FPS, abs=0.005)
+    assert _stream_duration(out, "a") == pytest.approx(_stream_duration(out, "v"), abs=0.03)

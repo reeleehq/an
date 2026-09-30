@@ -175,7 +175,13 @@ def orchestrate(
     project = load(project_dir)
     from an.adapters._base import RenderResult
 
-    rr = RenderResult(mp4_path=report.output_path, duration=project.scene.meta.duration)
+    from an.assemble import film_duration
+
+    # The DELIVERED length: a dissolve overlaps its shots (an#163), so the
+    # film can be shorter than meta.duration's sum of shots.
+    rr = RenderResult(
+        mp4_path=report.output_path, duration=film_duration(project.scene)
+    )
     for v in verifiers:
         try:
             vr = v.verify(project.scene, rr)

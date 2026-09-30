@@ -245,7 +245,7 @@ def render(
     )
 
     shots = list(scene.timeline)
-    if needs_assembly(scene):
+    if needs_assembly(scene, fps=effective_fps):
         # Before any browser launches: a transition the shots are too short
         # for is microseconds to find and minutes of rendering to discover.
         film_timeline(shots, fps=effective_fps)
@@ -285,7 +285,7 @@ def render(
     # Concatenate per-shot mp4s.
     output_path = (project.root / "output" / f"{output_name}.mp4").resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    if needs_assembly(scene):
+    if needs_assembly(scene, fps=effective_fps):
         # Transitions and/or a sound layer: composed in the frame stage and
         # mixed from sources (`an.assemble`). A scene with neither never
         # reaches this branch, so its delivered file is the concat's, byte
@@ -298,7 +298,6 @@ def render(
             mall=project.mall,
             work_dir=work_dir,
             pix_fmt=pix_fmt,
-            concat=_ffmpeg_concat,
         )
     else:
         _ffmpeg_concat([r.mp4_path for r in shot_results], output_path)

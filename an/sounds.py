@@ -15,7 +15,8 @@ not compliance**: ``an credits`` walks this store like the others.
 ...     asset.duration, get_sound(store, "beep")[1][:4]
 (0.25, b'RIFF')
 
-**v1 stores WAV (PCM) only.** The mix needs each asset's exact length to place
+**The film mix is mono at 44.1 kHz** (the per-shot audio's format), so a
+stereo asset is mixed down. **v1 stores WAV (PCM) only.** The mix needs each asset's exact length to place
 a fade-out, and a WAV header states it without decoding anything; convert other
 formats with ffmpeg before adding them.
 
@@ -33,7 +34,7 @@ import wave
 from collections.abc import Mapping, MutableMapping, Sequence
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, ValidationError
 
 from an.base import FILM_AUDIO_SAMPLE_RATE
 from an.ir.assets import AssetSource
@@ -138,12 +139,19 @@ def get_sound(store: Mapping, key: str) -> tuple[SoundAsset, bytes]:
     bytes under the same key are an asset nobody recorded.
     """
     try:
-        asset = SoundAsset.model_validate(store[key])
+        record = store[key]
     except KeyError:
         raise KeyError(
             f"sound {key!r} is not in the sounds store; add it with "
             "an.sounds.add_sound(mall['sounds'], key, wav_bytes, source=...)"
         ) from None
+    try:
+        asset = SoundAsset.model_validate(record)
+    except ValidationError as e:
+        raise SoundError(
+            f"sound {key!r}: its sound.json is not a recorded asset (it needs a "
+            f"`source` and the `sha256` of its audio). Re-add it with add_sound. {e}"
+        ) from e
     audio = store.read_audio(key)
     digest = hashlib.sha256(audio).hexdigest()
     if digest != asset.sha256:

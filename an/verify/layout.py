@@ -24,7 +24,11 @@ class LayoutLintVerifier:
         report = VerificationReport()
 
         # Total duration consistency
-        timeline_total = sum(s.duration for s in ir.timeline)
+        # The delivered length: the shots' sum minus any dissolve overlaps
+        # (an#163); exactly the sum for a scene without one.
+        from an.assemble import film_duration
+
+        timeline_total = film_duration(ir)
         if ir.meta.duration > 0 and abs(ir.meta.duration - timeline_total) > 0.01:
             report.add(
                 "warning",
