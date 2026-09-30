@@ -965,7 +965,8 @@ def _capture_frames_canvas(
                 part = list(times[j : j + step])
                 pixels = len(part) * per_instant
                 if trip and (
-                    len(trip) >= batch or (per_instant and trip_pixels + pixels > budget)
+                    len(trip) >= batch
+                    or (per_instant and trip_pixels + pixels > budget)
                 ):
                     yield trip
                     trip, trip_pixels = [], 0
