@@ -235,18 +235,44 @@ def _warn_about_art_a_pack_cannot_reach(
 
     The text depends only on the pack and the untagged rigs, never on the shot
     or on what WAS reached, so Python's warning registry shows it once per
-    process for a cast that does not change: one line per scene, not a paragraph
-    per shot (the e2e style test counted ~5 wrapped lines per shot).
+    process per distinct set: one line for a scene whose cast does not change,
+    not a paragraph per shot (the e2e style test counted ~5 wrapped lines per
+    shot). A cast that changes between shots gets one line per distinct set.
     """
     if pack is None or not skipped:
         return
     warnings.warn(
-        f"style pack {pack.name!r} could not reach {sorted(skipped)}: their SVG "
-        "art has no colour_roles (hand-drawn or DiceBear), so it renders as "
-        "drawn; `an character new --offline` tags its parts.",
+        f"style pack {pack.name!r} could not reach {sorted(skipped)}: that SVG "
+        "art carries no colour role for what the pack sets (hand-drawn or "
+        "DiceBear art is untagged), so it renders as drawn; "
+        "`an character new --offline` tags every part.",
         CutoutCompileWarning,
         stacklevel=3,
     )
+
+
+#: Roles every character has somewhere (a body is skin, a costume, hair). A
+#: TAGGED rig missing one of these that a pack sets is half-reached — a
+#: DiceBear head keeps its own skin while the rest follows the pack — and is
+#: warned about by role. `leg`, `pupil` and `accessory` are not here: a rig
+#: may legitimately have none (no legs, no hat).
+_CORE_CHARACTER_ROLES: tuple[str, ...] = ("skin", "hair", "clothing")
+
+
+def _core_roles_left_untagged(
+    entity: AssetRef, desc_data: Mapping[str, Any], pack: "StylePack | None"
+) -> list[str]:
+    """The core roles ``pack`` sets for ``entity`` that its tagged rig never tags."""
+    if pack is None:
+        return []
+    tagged = {
+        role for roles in (desc_data.get("colour_roles") or {}).values()
+        for role in roles.values()
+    }
+    return [
+        role for role in _CORE_CHARACTER_ROLES
+        if role not in tagged and pack.colour_for(role, entity=entity.id) is not None
+    ]
 
 
 def _recoloured_texture_srcs(
@@ -1914,8 +1940,12 @@ def _build_character_subtree(
         if srcs is None:
             if skipped is not None:
                 skipped.add(entity.id)
-        elif srcs and reached is not None:
-            reached.add(entity.id)
+        else:
+            if srcs and reached is not None:
+                reached.add(entity.id)
+            untagged = _core_roles_left_untagged(entity, char_meta, style_pack)
+            if untagged and skipped is not None:
+                skipped.add(f"{entity.id} ({', '.join(untagged)})")
         return _build_svg_character_subtree(
             entity,
             char_meta,

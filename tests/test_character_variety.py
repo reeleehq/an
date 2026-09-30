@@ -325,6 +325,46 @@ def test_the_warning_text_does_not_depend_on_the_shot(tmp_path):
     assert str(a.message) == str(b.message)
 
 
+def test_add_gaze_on_an_untagged_rig_tags_nothing(tmp_path):
+    """The lid's colour on an untagged rig is READ off the head art; recording
+    it as `skin` would be inferring a role from a pixel — the pack would then
+    repaint the lids and not the face (an#99), and silence the warning."""
+    from an.characters.factory import add_gaze
+
+    c = _make(tmp_path, gaze=False)
+    raw = json.loads((c / "character.json").read_text("utf-8"))
+    raw["colour_roles"] = {}
+    (c / "character.json").write_text(json.dumps(raw), encoding="utf-8")
+    add_gaze(c)
+    assert _desc(c).colour_roles == {}
+    add_gaze(c, skin="peachpuff")  # a named colour: a valid fill, never a role key
+    assert _desc(c).colour_roles == {}
+
+
+def test_a_dicebear_rig_is_not_half_tagged_and_the_pack_says_so(tmp_path, monkeypatch):
+    """A DiceBear head's skin and hair are its own; tagging them on the body
+    alone would repaint the hands and not the face, silently."""
+    import an.characters.factory as factory
+    from an.project import init, load
+
+    avatar = factory._fallback_face_svg("x")  # any valid SVG will do
+    monkeypatch.setattr(factory, "fetch_dicebear", lambda seed, style: avatar)
+    root = init(tmp_path / "p")
+    new_character(root / "assets" / "characters", name="d", use_dicebear=True)
+    roles = _desc(root / "assets" / "characters" / "d").colour_roles
+    assert "parts/head.svg" not in roles
+    assert not {r for m in roles.values() for r in m.values()} & {"skin", "hair"}
+    assert roles["parts/torso.svg"] and "clothing" in roles["parts/torso.svg"].values()
+    shot = Shot(id="s", renderer="cutout", duration=1.0,
+                entities=[AssetRef(kind="character", id="d", store="characters", ref="d")])
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        compile_shot(shot, mall=load(root).mall, fps=24,
+                     style_pack=StylePack(name="n", roles={"skin": "#d8d8d8", "clothing": "#202028"}))
+    msgs = [str(w.message) for w in caught if issubclass(w.category, CutoutCompileWarning)]
+    assert any("could not reach ['d (skin)']" in m for m in msgs), msgs
+
+
 def test_recolour_touches_paint_only():
     svg = '<svg><rect id="a83249" fill="#a83249"/><use href="#a83249"/><g style="stroke:#A83249"/></svg>'
     out = recolour_svg(svg, {"#a83249": "#000000"})

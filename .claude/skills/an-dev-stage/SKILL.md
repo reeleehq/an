@@ -165,7 +165,10 @@ channel). Staging skips `data:` sources, so content addressing and the resolutio
 untouched; no pack means nothing is read and nothing rewritten (byte-identical). **Untagged** art
 (hand-drawn, DiceBear heads) is never inferred — inferring a role from a pixel caused an#99's
 wrong-tone lid — and the compiler warns in ONE stable line (no shot-specific text, so Python's
-registry shows it once per scene). `accessory` is the one role that exists only in tagged SVG art
+registry shows it once per distinct pack-and-rig set per process: one line for a scene whose cast
+does not change). A tagged rig that lacks a core role the pack sets (`skin`/`hair`/`clothing` —
+a DiceBear head's own skin) is named with that role. `add_gaze` adds roles only to an already
+tagged rig, and the lid only when its colour is the head's tagged skin literal. `accessory` is the one role that exists only in tagged SVG art
 (hats, sashes).
 
 A pack must not declare a role it cannot change — `lip`, `mouth_fill`, `teeth`, `tongue`,
@@ -190,7 +193,7 @@ alone, then the path **(landed, an#108: PRs #117 and #118)** → `4` the transla
 **Wave 7 is complete.** What it left behind for a later wave, each named with its reason:
 the **dolly** (`dolly_in`/`dolly_out` and the `z`/`focal_z` sugar — depth-aware zoom, which is
 what `depth` does NOT do today); `repeat`/tiling and the `gradient`/`generated` plane arts (each
-needs a runtime that can draw it); a pack reaching SVG art through the factory; attaching a prop
+needs a runtime that can draw it); attaching a prop
 to a character (`_track_root_of` makes entity identity the first path segment, and the rig has no
 hand bone); and additive folding for the camera/plane collisions that currently raise.
 

@@ -90,6 +90,10 @@ from an.characters.svg_utils import (
 #: role so the pack can reach what the palette drew.
 PALETTE_ROLES: tuple[str, ...] = ("skin", "hair", "clothing", "leg", "accessory")
 
+#: The roles a head's own art carries. On a head the factory did not draw
+#: (DiceBear) they are left untagged everywhere, never half-tagged.
+HEAD_ART_ROLES: frozenset[str] = frozenset({"skin", "hair"})
+
 #: The outline every synthesized body part is stroked in. Untagged: it is the
 #: drawing's ink, not a costume colour.
 OUTLINE_COLOUR: str = "#222222"
@@ -572,6 +576,17 @@ def new_character(
     # avatar has its face baked into the head SVG, so the overlay face parts
     # and the viseme channel are suppressed by this fact — the compiler no
     # longer sniffs metadata.art_provenance, which is provenance again.
+    if not head_is_ours:
+        # A DiceBear head carries its own skin and hair, which this factory did
+        # not draw and cannot tag. Tagging them on the body alone would let a
+        # pack repaint the hands and brows and not the face — so the body
+        # keeps them untagged too, and the compiler says the pack could not
+        # reach this rig's skin/hair.
+        roles = {
+            part: kept
+            for part, m in roles.items()
+            if (kept := {lit: r for lit, r in m.items() if r not in HEAD_ART_ROLES})
+        }
     descriptor = CharacterDescriptor(
         name=name,
         display_name=name.title(),
@@ -908,12 +923,21 @@ def add_gaze(
         ],
         head_scale,
     )
-    # The colours it just drew, as roles: the lid is skin, the pupil is the
-    # pupil, and the open eye is now an outline with nothing to recolour.
-    for side in ("l", "r"):
-        desc.colour_roles.pop(f"parts/eye_{side}_open.svg", None)
-        desc.colour_roles[f"parts/eye_{side}_closed.svg"] = {skin: "skin"}
-        desc.colour_roles[f"parts/pupil_{side}.svg"] = {PUPIL_COLOUR: "pupil"}
+    # The colours it just drew, as roles — but ONLY on a rig whose art is
+    # already tagged, and the lid only when its colour is the head's TAGGED
+    # skin literal. On an untagged rig the lid colour was read off the head
+    # art (`_skin_fill_of`), and turning that guess into a role is inferring
+    # a role from a pixel: a pack would repaint the lids and not the face,
+    # an#99's wrong-tone lid again, with the compiler's warning silenced.
+    if desc.colour_roles:
+        head_roles = desc.colour_roles.get("parts/head.svg", {})
+        lid = _hex_or_none(skin)
+        for side in ("l", "r"):
+            desc.colour_roles.pop(f"parts/eye_{side}_open.svg", None)
+            desc.colour_roles.pop(f"parts/eye_{side}_closed.svg", None)
+            if lid is not None and head_roles.get(lid) == "skin":
+                desc.colour_roles[f"parts/eye_{side}_closed.svg"] = {lid: "skin"}
+            desc.colour_roles[f"parts/pupil_{side}.svg"] = {PUPIL_COLOUR: "pupil"}
     had_stack = "left_pupil" in by_name or "right_pupil" in by_name
     for side, eye_slot in (("l", "left_eye"), ("r", "right_eye")):
         eye = by_name[eye_slot]
@@ -950,6 +974,15 @@ def add_gaze(
     desc.metadata["gaze_stack"] = "an#99"
     desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
     return desc_path
+
+
+def _hex_or_none(colour: str | None) -> str | None:
+    """``colour`` normalised, or ``None`` when it is not a hex literal (a named
+    SVG colour is a valid fill but cannot be a role key)."""
+    try:
+        return normalise_hex(colour) if colour else None
+    except ValueError:
+        return None
 
 
 def _palette_for_seed(seed: str) -> tuple[str, str, str]:
