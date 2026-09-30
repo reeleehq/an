@@ -1,0 +1,22 @@
+an.audio.voices
+===============
+
+.. automodule:: an.audio.voices
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_VOICE
+      PROVIDER_VOICE_KEY
+      CHARACTER_VOICE_KEY
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      line_voice_id
+      provider_voice
+      speaker_voice_ref
+   

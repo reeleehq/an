@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=7eceb120"></script>
+    <script src="../_static/documentation_options.js?v=dab63539"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.live_api" href="an.live_api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.108" />
+  <meta name="docsearch:version" content="0.1.109" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -338,6 +338,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
 </ul>
 </details></li>
@@ -610,8 +611,8 @@ length divided by <code class="docutils literal notranslate"><span class="pre">s
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.motion.shake" title="an.motion.shake"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shake</span></code></a>(target, *[, amplitude, duration, ...])</p></td>
 <td><p>Tremble side to side <code class="docutils literal notranslate"><span class="pre">cycles</span></code> times and come back to rest (on <code class="docutils literal notranslate"><span class="pre">x</span></code>).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.motion.stage_poses" title="an.motion.stage_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_poses</span></code></a>(shot, *[, mall])</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">{node</span> <span class="pre">path:</span> <span class="pre">rest</span> <span class="pre">pose}</span></code> for every node the compiler builds for <code class="docutils literal notranslate"><span class="pre">shot</span></code>'s stage — what <a class="reference internal" href="#an.motion.rest_pose" title="an.motion.rest_pose"><code class="xref py py-func docutils literal notranslate"><span class="pre">rest_pose()</span></code></a> reads one entry of, and what <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> checks a preset <code class="docutils literal notranslate"><span class="pre">play</span></code>'s node against (an#166).</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.motion.stage_poses" title="an.motion.stage_poses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage_poses</span></code></a>(shot, *[, mall, width, height])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{node</span> <span class="pre">path:</span> <span class="pre">rest</span> <span class="pre">pose}</span></code> for every node the compiler builds for <code class="docutils literal notranslate"><span class="pre">shot</span></code>'s stage — what <a class="reference internal" href="#an.motion.rest_pose" title="an.motion.rest_pose"><code class="xref py py-func docutils literal notranslate"><span class="pre">rest_pose()</span></code></a> reads one entry of, and what <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> checks a preset <code class="docutils literal notranslate"><span class="pre">play</span></code>'s node and every <code class="docutils literal notranslate"><span class="pre">set</span></code>/<code class="docutils literal notranslate"><span class="pre">tween</span></code> target against (an#166, an#193).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.motion.slide_in" title="an.motion.slide_in"><code class="xref py py-obj docutils literal notranslate"><span class="pre">slide_in</span></code></a>(target, *[, from_side, distance, ...])</p></td>
 <td><p>Whip in from <code class="docutils literal notranslate"><span class="pre">distance</span></code> pixels off to one side, overshoot, and settle.</p></td>
@@ -834,10 +835,12 @@ centre). Volume is roughly kept: one axis grows by what the other loses.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.motion.stage_poses">
-<span class="sig-prename descclassname"><span class="pre">an.motion.</span></span><span class="sig-name descname"><span class="pre">stage_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/motion.html#stage_poses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.motion.stage_poses" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.motion.</span></span><span class="sig-name descname"><span class="pre">stage_poses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/motion.html#stage_poses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.motion.stage_poses" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{node</span> <span class="pre">path:</span> <span class="pre">rest</span> <span class="pre">pose}</span></code> for every node the compiler builds for
 <code class="docutils literal notranslate"><span class="pre">shot</span></code>’s stage — what <a class="reference internal" href="#an.motion.rest_pose" title="an.motion.rest_pose"><code class="xref py py-func docutils literal notranslate"><span class="pre">rest_pose()</span></code></a> reads one entry of, and what
-<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> checks a preset <code class="docutils literal notranslate"><span class="pre">play</span></code>’s node against (an#166).</p>
+<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> checks a preset <code class="docutils literal notranslate"><span class="pre">play</span></code>’s node and every <code class="docutils literal notranslate"><span class="pre">set</span></code>/<code class="docutils literal notranslate"><span class="pre">tween</span></code>
+target against (an#166, an#193). <code class="docutils literal notranslate"><span class="pre">width</span></code>/<code class="docutils literal notranslate"><span class="pre">height</span></code> (default: the
+compiler’s) matter to text, whose line breaks depend on the frame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>

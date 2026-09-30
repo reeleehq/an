@@ -283,7 +283,7 @@ Raises `ValueError` for unknown names with a list of known options.
 * **Return type:**
   [`TTSProvider`](an.audio.tts.md#an.audio.tts.TTSProvider)
 
-### an.audio.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None, effects=None)
+### an.audio.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None, effects=None, voice_id=None)
 
 Synthesize audio + visemes for one dialogue line.
 
@@ -296,6 +296,12 @@ second call with identical inputs returns the cached versions.
 is applied to the synthesized audio BEFORE alignment, so the visemes are
 computed on the audio the viewer hears. The raw synthesis stays cached under
 its own key, so changing an effect never re-pays the TTS.
+
+`voice_id` (default: the line’s `voice_ref`, else `"default"`) is the
+`voices`-store key; [`produce_audio_for_scene()`](#an.audio.produce_audio_for_scene) passes the one
+[`an.audio.voices.line_voice_id()`](an.audio.voices.md#an.audio.voices.line_voice_id) resolves, so a character’s bound
+voice reaches here (an#194). The provider is handed the voice document’s
+own `voice_id` when it names one.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.md#an.audio.lipsync.VisemeTrack)]
@@ -345,4 +351,5 @@ audio’s actual length.
 | [`providers`](an.audio.providers.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                   |
 | [`rhubarb_lipsync`](an.audio.rhubarb_lipsync.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.    |
 | [`tts`](an.audio.tts.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                    |
+| [`voices`](an.audio.voices.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).        |
 | [`whisper_lipsync`](an.audio.whisper_lipsync.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.                |

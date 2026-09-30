@@ -49,6 +49,8 @@ mall). It reads only.
 | [`PUPIL_NODE_NAMES`](#an.adapters.cutout.compile.PUPIL_NODE_NAMES)           | The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.                                                                                                                                                                                                                         |
 | [`GAZE_ELLIPSE_MARGIN`](#an.adapters.cutout.compile.GAZE_ELLIPSE_MARGIN)        | The summed gaze (x, y), in axis units, is clamped to a circle of this radius — the declared travel maps the unit circle onto the sclera's inner ellipse, and 0.95 keeps the whole pupil disc inside it at every angle (measured on the synthesized eye: 1.0 pokes out by 2% of the ellipse at the diagonal). |
 | [`RUNTIME_APPLIED_PROPERTIES`](#an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES) | Every property name the JS runtime's `applyProperty` STATIC switch implements — exactly the numeric transform vocabulary (the rest-value SSOT above).                                                                                                                                                        |
+| [`DFLT_TARGET_SUGGESTIONS`](#an.adapters.cutout.compile.DFLT_TARGET_SUGGESTIONS)    | How many "did you mean" paths an unknown-target message offers.                                                                                                                                                                                                                                              |
+| [`CAMERA_NODE`](#an.adapters.cutout.compile.CAMERA_NODE)                | indexed by the runtime, absent from the tree.                                                                                                                                                                                                                                                                |
 | [`ENVIRONMENT_ART_PREFIX`](#an.adapters.cutout.compile.ENVIRONMENT_ART_PREFIX)     | The `assets.textures` `src` prefix an environment plate is addressed under.                                                                                                                                                                                                                                  |
 | [`PLANE_FILL_SPAN`](#an.adapters.cutout.compile.PLANE_FILL_SPAN)            | A `fill` plane with no declared size covers the canvas at any camera scale.                                                                                                                                                                                                                                  |
 | [`FOREGROUND_SUFFIX`](#an.adapters.cutout.compile.FOREGROUND_SUFFIX)          | Suffix for the container holding an environment's FOREGROUND planes.                                                                                                                                                                                                                                         |
@@ -59,21 +61,30 @@ mall). It reads only.
 
 ### Functions
 
-| [`blink_phase`](#an.adapters.cutout.compile.blink_phase)(entity_id)                      | The entity's blink phase in [0, 1): the runtime's rule, ported exactly.                                                                        |
-|----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`camera_keys`](#an.adapters.cutout.compile.camera_keys)(shot, \*, width, height)        | [`an.ir.camera.camera_keys()`](an.ir.camera.md#an.ir.camera.camera_keys), with its refusal typed for this adapter. |
-| [`compile_shot`](#an.adapters.cutout.compile.compile_shot)(shot[, mall, fps, width, ...]) | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                              |
-| [`foreground_node_name`](#an.adapters.cutout.compile.foreground_node_name)(entity_id)             | The node name an environment's foreground planes live under.                                                                                   |
-| [`parse_tint`](#an.adapters.cutout.compile.parse_tint)(value, \*, where)                | A `#rrggbb` string to three multipliers in 0..1.                                                                                               |
-| [`plane_parents`](#an.adapters.cutout.compile.plane_parents)(env, entity_id)               | `{plane name: the node path its channels must target}`.                                                                                        |
-| [`step_times`](#an.adapters.cutout.compile.step_times)(start, duration, step_hz)        | Clip-local times at which a stepped tween updates its pose (an#89).                                                                            |
-| [`style_pack_for`](#an.adapters.cutout.compile.style_pack_for)(scene_meta, styles_store)    | The `StylePack` a scene declares, or `None` (an#112).                                                                                          |
+| [`blink_phase`](#an.adapters.cutout.compile.blink_phase)(entity_id)                        | The entity's blink phase in [0, 1): the runtime's rule, ported exactly.                                                                        |
+|------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`camera_keys`](#an.adapters.cutout.compile.camera_keys)(shot, \*, width, height)          | [`an.ir.camera.camera_keys()`](an.ir.camera.md#an.ir.camera.camera_keys), with its refusal typed for this adapter. |
+| [`compile_shot`](#an.adapters.cutout.compile.compile_shot)(shot[, mall, fps, width, ...])   | Compile a single cutout-style `Shot` to its JS-runtime JSON form.                                                                              |
+| [`foreground_node_name`](#an.adapters.cutout.compile.foreground_node_name)(entity_id)               | The node name an environment's foreground planes live under.                                                                                   |
+| [`node_path_suggestions`](#an.adapters.cutout.compile.node_path_suggestions)(target, paths, \*[, n]) | The built node paths a mistyped `target` most plausibly meant.                                                                                 |
+| [`parse_tint`](#an.adapters.cutout.compile.parse_tint)(value, \*, where)                  | A `#rrggbb` string to three multipliers in 0..1.                                                                                               |
+| [`plane_parents`](#an.adapters.cutout.compile.plane_parents)(env, entity_id)                 | `{plane name: the node path its channels must target}`.                                                                                        |
+| [`step_times`](#an.adapters.cutout.compile.step_times)(start, duration, step_hz)          | Clip-local times at which a stepped tween updates its pose (an#89).                                                                            |
+| [`style_pack_for`](#an.adapters.cutout.compile.style_pack_for)(scene_meta, styles_store)      | The `StylePack` a scene declares, or `None` (an#112).                                                                                          |
+| [`unknown_target_message`](#an.adapters.cutout.compile.unknown_target_message)(target, paths)         | One sentence saying `target` is not a built node, with suggestions.                                                                            |
 
 ### Exceptions
 
 | [`CutoutCompileError`](#an.adapters.cutout.compile.CutoutCompileError)   | A shot cannot be compiled to a cutout scene.                    |
 |-----------------------------------------------------------------------|-----------------------------------------------------------------|
 | [`CutoutCompileWarning`](#an.adapters.cutout.compile.CutoutCompileWarning) | A shot compiles, but something in it will not reach the screen. |
+
+### an.adapters.cutout.compile.CAMERA_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'root'*
+
+indexed by the runtime, absent from the tree.
+
+* **Type:**
+  The runtime’s camera node
 
 ### an.adapters.cutout.compile.CHARACTER_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'characters/'*
 
@@ -136,6 +147,10 @@ string. A `StylePack`’s `leg` role replaces it.
 The procedural rig’s pupil colour. `makeEye` reads it from the document —
 the eye WHITE beside it is a literal and cannot be reached, which is the
 split `REACHABLE_ROLES` / `UNREACHABLE_ROLES` records.
+
+### an.adapters.cutout.compile.DFLT_TARGET_SUGGESTIONS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 3*
+
+How many “did you mean” paths an unknown-target message offers.
 
 ### an.adapters.cutout.compile.ENVIRONMENT_ART_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'environments/'*
 
@@ -302,6 +317,27 @@ The node name an environment’s foreground planes live under.
 'street__front'
 ```
 
+### an.adapters.cutout.compile.node_path_suggestions(target, paths, , n=3)
+
+The built node paths a mistyped `target` most plausibly meant.
+
+The paths of the SAME entity that end in the same part name — the usual
+mistake is a missing level (`ned/left_brow` for `ned/head/left_brow`)
+— or, when there are none, the closest spellings.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> built = ["ned", "ned/head", "ned/head/left_brow", "ned/head/mouth", "ned/arm_l"]
+>>> node_path_suggestions("ned/left_brow", built)
+['ned/head/left_brow']
+>>> node_path_suggestions("ned/arm_x", built)
+['ned/arm_l']
+>>> node_path_suggestions("zzz", built)
+[]
+```
+
 ### an.adapters.cutout.compile.parse_tint(value, , where)
 
 A `#rrggbb` string to three multipliers in 0..1.
@@ -375,3 +411,18 @@ else.
 
 * **Return type:**
   [`StylePack`](an.styles.md#an.styles.StylePack) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.adapters.cutout.compile.unknown_target_message(target, paths)
+
+One sentence saying `target` is not a built node, with suggestions.
+
+Shared by the compiler (which raises it) and `an validate` (which
+reports it), so the two say the same thing about the same path.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> print(unknown_target_message("ned/mouth", ["ned", "ned/head", "ned/head/mouth"]))
+'ned/mouth' is not a node of the built scene; did you mean 'ned/head/mouth'? (nodes of 'ned': ['ned', 'ned/head', 'ned/head/mouth'])
+```

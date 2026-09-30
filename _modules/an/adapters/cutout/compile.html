@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=7eceb120"></script>
+    <script src="../../../../_static/documentation_options.js?v=dab63539"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.108" />
+  <meta name="docsearch:version" content="0.1.109" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -748,7 +748,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
@@ -1320,6 +1320,98 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">paths</span>
 
 
+<span class="c1">#: How many "did you mean" paths an unknown-target message offers.</span>
+<span class="n">DFLT_TARGET_SUGGESTIONS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="c1">#: `difflib` similarity a path must reach to be offered as a suggestion.</span>
+<span class="n">_TARGET_SUGGESTION_CUTOFF</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.6</span>
+<span class="c1">#: The runtime's camera node: indexed by the runtime, absent from the tree.</span>
+<span class="n">CAMERA_NODE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"root"</span>
+
+
+<div class="viewcode-block" id="node_path_suggestions">
+<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.compile.html#an.adapters.cutout.node_path_suggestions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">node_path_suggestions</span><span class="p">(</span>
+    <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_TARGET_SUGGESTIONS</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The built node paths a mistyped ``target`` most plausibly meant.</span>
+
+<span class="sd">    The paths of the SAME entity that end in the same part name — the usual</span>
+<span class="sd">    mistake is a missing level (``ned/left_brow`` for ``ned/head/left_brow``)</span>
+<span class="sd">    — or, when there are none, the closest spellings.</span>
+
+<span class="sd">    &gt;&gt;&gt; built = ["ned", "ned/head", "ned/head/left_brow", "ned/head/mouth", "ned/arm_l"]</span>
+<span class="sd">    &gt;&gt;&gt; node_path_suggestions("ned/left_brow", built)</span>
+<span class="sd">    ['ned/head/left_brow']</span>
+<span class="sd">    &gt;&gt;&gt; node_path_suggestions("ned/arm_x", built)</span>
+<span class="sd">    ['ned/arm_l']</span>
+<span class="sd">    &gt;&gt;&gt; node_path_suggestions("zzz", built)</span>
+<span class="sd">    []</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">difflib</span>
+
+    <span class="n">paths</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">paths</span><span class="p">))</span>
+    <span class="n">entity</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+    <span class="n">leaf</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">same_leaf</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">p</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">!=</span> <span class="n">target</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">entity</span> <span class="ow">and</span> <span class="n">p</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">leaf</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">same_leaf</span><span class="p">:</span>  <span class="c1"># a part found by name beats any spelling guess</span>
+        <span class="k">return</span> <span class="n">same_leaf</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">difflib</span><span class="o">.</span><span class="n">get_close_matches</span><span class="p">(</span>
+        <span class="n">target</span><span class="p">,</span> <span class="n">paths</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">_TARGET_SUGGESTION_CUTOFF</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="unknown_target_message">
+<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.compile.html#an.adapters.cutout.unknown_target_message">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unknown_target_message</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">paths</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One sentence saying ``target`` is not a built node, with suggestions.</span>
+
+<span class="sd">    Shared by the compiler (which raises it) and ``an validate`` (which</span>
+<span class="sd">    reports it), so the two say the same thing about the same path.</span>
+
+<span class="sd">    &gt;&gt;&gt; print(unknown_target_message("ned/mouth", ["ned", "ned/head", "ned/head/mouth"]))</span>
+<span class="sd">    'ned/mouth' is not a node of the built scene; did you mean 'ned/head/mouth'? (nodes of 'ned': ['ned', 'ned/head', 'ned/head/mouth'])</span>
+<span class="sd">    """</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">paths</span><span class="p">))</span>
+    <span class="n">entity</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">target</span><span class="si">!r}</span><span class="s2"> is not a node of the built scene"</span>
+    <span class="n">suggestions</span> <span class="o">=</span> <span class="n">node_path_suggestions</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">paths</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">suggestions</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="s2">"; did you mean "</span> <span class="o">+</span> <span class="s2">" or "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">suggestions</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"?"</span>
+    <span class="n">own</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">entity</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">own</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" (nodes of </span><span class="si">{</span><span class="n">entity</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">own</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">entities</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">paths</span><span class="p">})</span>
+        <span class="n">msg</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" (no entity </span><span class="si">{</span><span class="n">entity</span><span class="si">!r}</span><span class="s2">; entities: </span><span class="si">{</span><span class="n">entities</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="k">return</span> <span class="n">msg</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_channel_targets</span><span class="p">(</span>
+    <span class="n">animations</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AnimationClipJSON</span><span class="p">],</span> <span class="n">paths</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a channel whose target the runtime will not find (an#193).</span>
+
+<span class="sd">    The runtime throws on an unknown node from inside the frame loop, which</span>
+<span class="sd">    reached the author as a JavaScript stack trace from Chromium. Every channel</span>
+<span class="sd">    is swept here, after every emission pass, so authored, preset and</span>
+<span class="sd">    generated targets are all held to the tree that was actually built.</span>
+<span class="sd">    """</span>
+    <span class="n">known</span> <span class="o">=</span> <span class="n">paths</span> <span class="o">|</span> <span class="p">{</span><span class="n">CAMERA_NODE</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">clip</span> <span class="ow">in</span> <span class="n">animations</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">clip</span><span class="o">.</span><span class="n">channels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">channel</span><span class="o">.</span><span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">known</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot_id</span><span class="si">!r}</span><span class="s2">: a </span><span class="si">{</span><span class="n">channel</span><span class="o">.</span><span class="n">property</span><span class="si">!r}</span><span class="s2"> animation targets "</span>
+                    <span class="sa">f</span><span class="s2">"an unknown node — </span><span class="si">{</span><span class="n">unknown_target_message</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">target</span><span class="p">,</span><span class="w"> </span><span class="n">paths</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">)</span>
+
+
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">_SwapVocabulary</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""What the built scene can swap, and what the descriptors declare.</span>
@@ -1663,6 +1755,9 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># swapping them is picture-equivalent. What IS load-bearing is that both</span>
     <span class="c1"># resolve the same `camera_keys`, so they cannot describe different moves.</span>
     <span class="n">_add_parallax_clips</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">animations</span><span class="p">,</span> <span class="n">tracks</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+    <span class="c1"># After EVERY emission pass, so no channel reaches the runtime's frame loop</span>
+    <span class="c1"># naming a node it will not find (an#193).</span>
+    <span class="n">_check_channel_targets</span><span class="p">(</span><span class="n">animations</span><span class="p">,</span> <span class="n">vocab</span><span class="o">.</span><span class="n">paths</span><span class="p">,</span> <span class="n">shot_id</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
     <span class="c1"># AFTER action + viseme compilation, deliberately: a swap key the timeline</span>
     <span class="c1"># actually USES whose art is missing is recorded as a fallback during</span>
     <span class="c1"># those passes (usage-aware escalation, an#87), and this is the one place</span>

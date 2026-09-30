@@ -55,4 +55,5 @@ an.audio
    providers
    rhubarb_lipsync
    tts
+   voices
    whisper_lipsync

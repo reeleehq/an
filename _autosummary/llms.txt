@@ -40,6 +40,7 @@
 - [an.audio.providers](an.audio.providers.html.md): Provider factory: name → concrete TTS/LipSync provider instance.
 - [an.audio.rhubarb_lipsync](an.audio.rhubarb_lipsync.html.md): RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.
 - [an.audio.tts](an.audio.tts.html.md): TTS provider protocol + supporting dataclasses.
+- [an.audio.voices](an.audio.voices.html.md): Which voice speaks a dialogue line: the character → voice binding (an#194).
 - [an.audio.whisper_lipsync](an.audio.whisper_lipsync.html.md): WhisperLipSync — faster-whisper word timestamps → viseme keyframes.
 - [an.base](an.base.html.md): Core types, constants, and re-exports for an.
 - [an.bench](an.bench.html.md): &#96;an bench&#96; — render a fixed corpus, compute a metrics panel, write one ledger row.

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7eceb120"></script>
+    <script src="../../../_static/documentation_options.js?v=dab63539"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.108" />
+  <meta name="docsearch:version" content="0.1.109" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -742,6 +742,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">preset_play_span</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoiceEffectError</span><span class="p">,</span> <span class="n">voice_effects</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">speaker_voice_ref</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterDescriptor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.binding</span><span class="w"> </span><span class="kn">import</span> <span class="n">expression_problems</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.camera</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_MOVES</span><span class="p">,</span> <span class="n">CameraError</span><span class="p">,</span> <span class="n">camera_keys</span>
@@ -1381,8 +1382,80 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
 
 
+<span class="c1">#: Leaf kinds whose ``target`` is a NODE path the runtime animates. `play` and</span>
+<span class="c1">#: `expression` target an entity and are resolved by their own checks above.</span>
+<span class="n">_NODE_TARGETING_KINDS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"set"</span><span class="p">,</span> <span class="s2">"tween"</span><span class="p">})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_action_targets</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">,</span>
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span>
+    <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">skip</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Every `set`/`tween` target must be a node the compiler BUILDS (an#193).</span>
+
+<span class="sd">    Resolved against :func:`_built_node_paths` — the compiler's own stage</span>
+<span class="sd">    builder, the one a preset `play` is checked against (an#166) — so the rig</span>
+<span class="sd">    is never restated here; the message is the compiler's</span>
+<span class="sd">    (:func:`an.adapters.cutout.compile.unknown_target_message`), with "did you</span>
+<span class="sd">    mean" suggestions from the real paths. A target on an entity whose store</span>
+<span class="sd">    was not supplied is skipped: without it a stand-in (the placeholder rig,</span>
+<span class="sd">    the default backdrop) would be built, and its paths are not the asset's.</span>
+<span class="sd">    ``skip`` names entities another check owns (text blocks: their units are</span>
+<span class="sd">    checked by `_check_text_blocks`, at the scene's resolution). The runtime's</span>
+<span class="sd">    camera node (``root``) is a legitimate target, as the compiler says.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stores</span> <span class="ow">or</span> <span class="n">shot</span><span class="o">.</span><span class="n">renderer</span> <span class="o">!=</span> <span class="s2">"cutout"</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">CAMERA_NODE</span><span class="p">,</span> <span class="n">unknown_target_message</span>
+
+    <span class="n">store_of</span> <span class="o">=</span> <span class="p">{</span><span class="n">kind</span><span class="p">:</span> <span class="n">name</span> <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">_doc</span><span class="p">)</span> <span class="ow">in</span> <span class="n">RIG_STORES</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">store_of</span><span class="p">[</span><span class="s2">"environment"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"environments"</span>  <span class="c1"># its planes are nodes too</span>
+    <span class="n">unchecked</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="n">store_of</span> <span class="ow">and</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store_of</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">kind</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">}</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">skip</span><span class="p">)</span>
+    <span class="n">leaves</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">in</span> <span class="n">_NODE_TARGETING_KINDS</span>
+    <span class="p">]</span>
+    <span class="n">targets</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">leaves</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">target</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unchecked</span>
+        <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">target</span> <span class="o">!=</span> <span class="n">CAMERA_NODE</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">targets</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">built</span><span class="p">,</span> <span class="n">why</span> <span class="o">=</span> <span class="n">_built_node_paths</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">built</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"warning"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"animation targets were NOT checked: the shot's stage did not build (</span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">)."</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">targets</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">built</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"error"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">unknown_target_message</span><span class="p">(</span><span class="n">target</span><span class="p">,</span><span class="w"> </span><span class="n">built</span><span class="p">)</span><span class="si">}</span><span class="s2"> — rendering this shot raises."</span><span class="p">,</span>
+            <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_built_node_paths</span><span class="p">(</span>
-    <span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">shot</span><span class="p">,</span>
+    <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""``(node paths, None)`` — every node path the cutout compiler builds for</span>
 <span class="sd">    ``shot``'s STAGE (its entities; no actions), from the supplied stores — or</span>
@@ -1398,7 +1471,11 @@ window.runMermaid = runMermaid;</script>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>  <span class="c1"># the render's warnings, not validate's</span>
-            <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">stage_poses</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">stores</span><span class="p">)),</span> <span class="kc">None</span>
+            <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">resolution</span> <span class="ow">or</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="nb">set</span><span class="p">(</span><span class="n">stage_poses</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">stores</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">)),</span>
+                <span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — reported by the caller, by name</span>
         <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span>
 
@@ -1795,6 +1872,17 @@ window.runMermaid = runMermaid;</script>
             <span class="n">width</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
             <span class="n">height</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="n">_check_action_targets</span><span class="p">(</span>
+            <span class="n">shot</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">,</span>
+            <span class="n">report</span><span class="p">,</span>
+            <span class="n">rig_stores</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="p">(</span>
+                <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">),</span>
+            <span class="n">skip</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">text_ids</span><span class="p">),</span>
+        <span class="p">)</span>
 
         <span class="c1"># Entity references resolve?</span>
         <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
@@ -1849,21 +1937,29 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
 
         <span class="c1"># Dialogue voice refs resolve?</span>
+        <span class="c1"># The line's own voice_ref, else the one its speaker is bound to — the</span>
+        <span class="c1"># resolver the audio pipeline speaks with (an#194).</span>
         <span class="k">if</span> <span class="n">available_voices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
-                <span class="k">if</span> <span class="p">(</span>
-                    <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                    <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">available_voices</span>
-                <span class="p">):</span>
+                <span class="n">voice_ref</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">or</span> <span class="n">speaker_voice_ref</span><span class="p">(</span>
+                    <span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="p">{</span><span class="s2">"characters"</span><span class="p">:</span> <span class="n">available_characters</span><span class="p">}</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">voice_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">voice_ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">available_voices</span><span class="p">:</span>
+                    <span class="n">bound</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="s2">""</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span>
+                        <span class="k">else</span> <span class="sa">f</span><span class="s2">" (the voice character </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">!r}</span><span class="s2"> is bound to)"</span>
+                    <span class="p">)</span>
                     <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
                         <span class="s2">"warning"</span><span class="p">,</span>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/voice_ref"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"voice ref </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span><span class="si">!r}</span><span class="s2"> not in voices store"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"voice ref </span><span class="si">{</span><span class="n">voice_ref</span><span class="si">!r}{</span><span class="n">bound</span><span class="si">}</span><span class="s2"> not in voices store; "</span>
+                        <span class="s2">"the TTS provider is handed the name itself"</span><span class="p">,</span>
                     <span class="p">)</span>
-                <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">_check_voice_effects</span><span class="p">(</span>
-                        <span class="n">report</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span><span class="p">,</span> <span class="n">available_voices</span>
-                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_check_voice_effects</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">voice_ref</span><span class="p">,</span> <span class="n">available_voices</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>

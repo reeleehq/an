@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=7eceb120"></script>
+    <script src="../../../_static/documentation_options.js?v=dab63539"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.108" />
+  <meta name="docsearch:version" content="0.1.109" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1386,6 +1386,58 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span>
 
 
+<span class="c1">#: Relative disagreement below which two frame-rate readings are the same rate.</span>
+<span class="n">_FPS_AGREEMENT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rate</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``"24/1"`` → 24.0; ``"0/0"``, empty or malformed → ``None``."""</span>
+    <span class="n">num</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">den</span> <span class="o">=</span> <span class="p">(</span><span class="n">text</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">den</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">ZeroDivisionError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stream_fps</span><span class="p">(</span>
+    <span class="n">r_frame_rate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">avg_frame_rate</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">n_frames</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The frame rate a video stream actually PLAYS at, from ffprobe's fields.</span>
+
+<span class="sd">    ``r_frame_rate`` is the lowest rate that represents every timestamp, not</span>
+<span class="sd">    the rate the frames arrive at: a file with sub-frame holes between its</span>
+<span class="sd">    shots read ``120/1`` for a 24 fps film, and the lint measured "2.042 s at</span>
+<span class="sd">    120 fps, 0 cuts" (an#195). So it is trusted only when the average rate</span>
+<span class="sd">    agrees; otherwise frames over duration decide, then the average.</span>
+
+<span class="sd">    &gt;&gt;&gt; stream_fps("24/1", "24/1")</span>
+<span class="sd">    24.0</span>
+<span class="sd">    &gt;&gt;&gt; round(stream_fps("120/1", "602112/25129", n_frames=245, duration=10.225016), 3)</span>
+<span class="sd">    23.961</span>
+<span class="sd">    &gt;&gt;&gt; round(stream_fps("120/1", "602112/25129"), 3)</span>
+<span class="sd">    23.961</span>
+<span class="sd">    &gt;&gt;&gt; stream_fps("30/1", "0/0")</span>
+<span class="sd">    30.0</span>
+<span class="sd">    """</span>
+    <span class="n">r</span><span class="p">,</span> <span class="n">avg</span> <span class="o">=</span> <span class="n">_rate</span><span class="p">(</span><span class="n">r_frame_rate</span><span class="p">),</span> <span class="n">_rate</span><span class="p">(</span><span class="n">avg_frame_rate</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">avg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">r</span> <span class="o">-</span> <span class="n">avg</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">_FPS_AGREEMENT</span> <span class="o">*</span> <span class="n">avg</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">r</span>
+    <span class="k">if</span> <span class="n">n_frames</span> <span class="ow">and</span> <span class="n">duration</span> <span class="ow">and</span> <span class="n">duration</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">n_frames</span> <span class="o">/</span> <span class="n">duration</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="n">avg</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+    <span class="k">raise</span> <span class="n">StyleLintError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"could not read a frame rate (r_frame_rate=</span><span class="si">{</span><span class="n">r_frame_rate</span><span class="si">!r}</span><span class="s2">, "</span>
+        <span class="sa">f</span><span class="s2">"avg_frame_rate=</span><span class="si">{</span><span class="n">avg_frame_rate</span><span class="si">!r}</span><span class="s2">)"</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_probe_fps</span><span class="p">(</span><span class="n">mp4</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">_run</span><span class="p">(</span>
@@ -1396,20 +1448,29 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"-select_streams"</span><span class="p">,</span>
                 <span class="s2">"v:0"</span><span class="p">,</span>
                 <span class="s2">"-show_entries"</span><span class="p">,</span>
-                <span class="s2">"stream=r_frame_rate"</span><span class="p">,</span>
+                <span class="s2">"stream=r_frame_rate,avg_frame_rate,nb_frames,duration"</span><span class="p">,</span>
                 <span class="s2">"-of"</span><span class="p">,</span>
-                <span class="s2">"csv=p=0"</span><span class="p">,</span>
+                <span class="s2">"default=noprint_wrappers=1"</span><span class="p">,</span>
                 <span class="nb">str</span><span class="p">(</span><span class="n">mp4</span><span class="p">),</span>
             <span class="p">]</span>
         <span class="p">)</span>
         <span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
         <span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="p">)</span>
-    <span class="n">num</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">den</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">den</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">ZeroDivisionError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">StyleLintError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"could not read a frame rate from </span><span class="si">{</span><span class="n">out</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"="</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span> <span class="k">if</span> <span class="s2">"="</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">number</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">kind</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">kind</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># "N/A"</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">stream_fps</span><span class="p">(</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"r_frame_rate"</span><span class="p">),</span>
+        <span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"avg_frame_rate"</span><span class="p">),</span>
+        <span class="n">n_frames</span><span class="o">=</span><span class="n">number</span><span class="p">(</span><span class="s2">"nb_frames"</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+        <span class="n">duration</span><span class="o">=</span><span class="n">number</span><span class="p">(</span><span class="s2">"duration"</span><span class="p">,</span> <span class="nb">float</span><span class="p">),</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_decode_frames</span><span class="p">(</span><span class="n">mp4</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>

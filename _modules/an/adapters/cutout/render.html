@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=7eceb120"></script>
+    <script src="../../../../_static/documentation_options.js?v=dab63539"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.108" />
+  <meta name="docsearch:version" content="0.1.109" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1201,13 +1201,15 @@ window.runMermaid = runMermaid;</script>
             <span class="k">finally</span><span class="p">:</span>
                 <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-        <span class="c1"># Mux frames → silent video, then layer (silence base + dialogue) audio on top.</span>
-        <span class="c1"># Every shot mp4 carries an AAC stream (silent if no dialogue) so the</span>
-        <span class="c1"># final ffmpeg concat across heterogeneous shots works without surprises.</span>
-        <span class="n">silent_mp4</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">work_dir</span> <span class="o">/</span> <span class="s2">"silent.mp4"</span>
-        <span class="n">_ffmpeg_mux</span><span class="p">(</span><span class="n">job</span><span class="o">.</span><span class="n">frames_dir</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">silent_mp4</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="p">)</span>
-        <span class="n">audio_inputs</span> <span class="o">=</span> <span class="n">_stage_audio_inputs</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">work_dir</span><span class="p">)</span>
-        <span class="n">_ffmpeg_add_audio</span><span class="p">(</span><span class="n">silent_mp4</span><span class="p">,</span> <span class="n">audio_inputs</span><span class="p">,</span> <span class="n">job</span><span class="o">.</span><span class="n">output_mp4</span><span class="p">,</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+        <span class="n">n_audio_tracks</span> <span class="o">=</span> <span class="n">_mux_shot</span><span class="p">(</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">frames_dir</span><span class="p">,</span>
+            <span class="n">shot</span><span class="p">,</span>
+            <span class="n">ctx</span><span class="p">,</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">work_dir</span><span class="p">,</span>
+            <span class="n">job</span><span class="o">.</span><span class="n">output_mp4</span><span class="p">,</span>
+            <span class="n">n_frames</span><span class="o">=</span><span class="n">total_frames</span><span class="p">,</span>
+            <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">RenderResult</span><span class="p">(</span>
             <span class="n">mp4_path</span><span class="o">=</span><span class="n">job</span><span class="o">.</span><span class="n">output_mp4</span><span class="p">,</span>
@@ -1228,7 +1230,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="c1"># frame-byte diff between two runs is only interpretable beside it.</span>
                 <span class="s2">"capture"</span><span class="p">:</span> <span class="n">capture</span><span class="p">,</span>
                 <span class="s2">"frame_count"</span><span class="p">:</span> <span class="n">total_frames</span><span class="p">,</span>
-                <span class="s2">"audio_tracks"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio_inputs</span><span class="p">),</span>
+                <span class="s2">"audio_tracks"</span><span class="p">:</span> <span class="n">n_audio_tracks</span><span class="p">,</span>
                 <span class="c1"># The launch argv verbatim: all four rasteriser configurations</span>
                 <span class="c1"># report a byte-identical WebGL renderer string, so the string</span>
                 <span class="c1"># cannot witness the choice and the argv is the only guard.</span>
@@ -1849,6 +1851,35 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">out</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_mux_shot</span><span class="p">(</span>
+    <span class="n">frames_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">ctx</span><span class="p">:</span> <span class="n">RenderContext</span><span class="p">,</span>
+    <span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">output_mp4</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">n_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">pix_fmt</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Frames → the delivered per-shot mp4: a silent mux, then the audio mux.</span>
+<span class="sd">    Returns how many dialogue audio tracks were laid under the picture.</span>
+
+<span class="sd">    Every shot mp4 carries an AAC stream (silent if no dialogue) so the final</span>
+<span class="sd">    ffmpeg concat across heterogeneous shots works without surprises. The audio</span>
+<span class="sd">    is cut to the PICTURE's length, ``n_frames / fps``, not ``shot.duration``:</span>
+<span class="sd">    a duration that is not a whole number of frames (2.6 s at 24 fps is 62.4)</span>
+<span class="sd">    gets ``round(d * fps)`` frames, and an audio track padded to ``d`` made the</span>
+<span class="sd">    shot's container longer than its picture — the concat then advanced by the</span>
+<span class="sd">    container and left sub-frame holes in the film's video timestamps, which</span>
+<span class="sd">    ffprobe reads as ``r_frame_rate=120/1`` (an#195).</span>
+<span class="sd">    """</span>
+    <span class="n">silent_mp4</span> <span class="o">=</span> <span class="n">work_dir</span> <span class="o">/</span> <span class="s2">"silent.mp4"</span>
+    <span class="n">_ffmpeg_mux</span><span class="p">(</span><span class="n">frames_dir</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">silent_mp4</span><span class="p">,</span> <span class="n">pix_fmt</span><span class="p">)</span>
+    <span class="n">audio_inputs</span> <span class="o">=</span> <span class="n">_stage_audio_inputs</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">work_dir</span><span class="p">)</span>
+    <span class="n">_ffmpeg_add_audio</span><span class="p">(</span><span class="n">silent_mp4</span><span class="p">,</span> <span class="n">audio_inputs</span><span class="p">,</span> <span class="n">output_mp4</span><span class="p">,</span> <span class="n">n_frames</span> <span class="o">/</span> <span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio_inputs</span><span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_ffmpeg_add_audio</span><span class="p">(</span>
     <span class="n">video_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
     <span class="n">audio_inputs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
@@ -1859,7 +1890,9 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    Always emits an audio stream. ``anullsrc`` provides the silent base track</span>
 <span class="sd">    of length ``duration_s`` so concat across shots is safe; dialogue lines</span>
-<span class="sd">    are overlaid via ``adelay`` + ``amix``.</span>
+<span class="sd">    are overlaid via ``adelay`` + ``amix``. ``duration_s`` must be the</span>
+<span class="sd">    picture's length (frames / fps): the concat advances each shot by its</span>
+<span class="sd">    container length, which is the longer of the two streams (an#195).</span>
 <span class="sd">    """</span>
     <span class="n">sr</span> <span class="o">=</span> <span class="mi">44100</span>
     <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span>
@@ -1873,7 +1906,7 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"-f"</span><span class="p">,</span>
         <span class="s2">"lavfi"</span><span class="p">,</span>
         <span class="s2">"-t"</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">duration_s</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">duration_s</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="s2">"-i"</span><span class="p">,</span>
         <span class="sa">f</span><span class="s2">"anullsrc=channel_layout=mono:sample_rate=</span><span class="si">{</span><span class="n">sr</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
     <span class="p">]</span>
@@ -1922,7 +1955,7 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"-ac"</span><span class="p">,</span>
         <span class="s2">"1"</span><span class="p">,</span>
         <span class="s2">"-t"</span><span class="p">,</span>
-        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">duration_s</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">duration_s</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="c1"># THE DELIVERED per-shot mp4 is this one, not `_ffmpeg_mux`'s. `-c:v</span>
         <span class="c1"># copy` re-lays the container and writes `moov` last, so without this</span>
         <span class="c1"># every shot mp4 `an` has ever produced is progressive-download</span>

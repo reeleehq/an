@@ -16,6 +16,8 @@ an.adapters.cutout.compile
       PUPIL_NODE_NAMES
       GAZE_ELLIPSE_MARGIN
       RUNTIME_APPLIED_PROPERTIES
+      DFLT_TARGET_SUGGESTIONS
+      CAMERA_NODE
       ENVIRONMENT_ART_PREFIX
       PLANE_FILL_SPAN
       FOREGROUND_SUFFIX
@@ -32,10 +34,12 @@ an.adapters.cutout.compile
       camera_keys
       compile_shot
       foreground_node_name
+      node_path_suggestions
       parse_tint
       plane_parents
       step_times
       style_pack_for
+      unknown_target_message
    
    .. rubric:: Exceptions
 

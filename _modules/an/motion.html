@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=7eceb120"></script>
+    <script src="../../_static/documentation_options.js?v=dab63539"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.108" />
+  <meta name="docsearch:version" content="0.1.109" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1312,11 +1312,17 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="stage_poses">
 <a class="viewcode-back" href="../../_autosummary/an.motion.html#an.motion.stage_poses">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">stage_poses</span><span class="p">(</span>
-    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""``{node path: rest pose}`` for every node the compiler builds for</span>
 <span class="sd">    ``shot``'s stage — what :func:`rest_pose` reads one entry of, and what</span>
-<span class="sd">    ``an validate`` checks a preset ``play``'s node against (an#166).</span>
+<span class="sd">    ``an validate`` checks a preset ``play``'s node and every ``set``/``tween``</span>
+<span class="sd">    target against (an#166, an#193). ``width``/``height`` (default: the</span>
+<span class="sd">    compiler's) matter to text, whose line breaks depend on the frame.</span>
 
 <span class="sd">    &gt;&gt;&gt; from an.ir.schema import AssetRef</span>
 <span class="sd">    &gt;&gt;&gt; one = Shot(id="s", entities=[AssetRef(kind="character", id="c", store="characters", ref="c")])</span>
@@ -1332,7 +1338,10 @@ window.runMermaid = runMermaid;</script>
     <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
         <span class="c1"># The stand-in-rig warning is the real render's to give, not this read's.</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
-        <span class="n">doc</span> <span class="o">=</span> <span class="n">compile_shot</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+        <span class="n">size</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">"width"</span><span class="p">,</span> <span class="n">width</span><span class="p">),</span> <span class="p">(</span><span class="s2">"height"</span><span class="p">,</span> <span class="n">height</span><span class="p">))</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">}</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">compile_shot</span><span class="p">(</span><span class="n">stage</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="o">**</span><span class="n">size</span><span class="p">)</span>
     <span class="n">found</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
