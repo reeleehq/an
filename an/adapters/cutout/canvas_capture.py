@@ -1,7 +1,8 @@
 """The canvas capture path: frames read from the page, not photographed off the screen.
 
-The default capture (`render._capture_frames`, ``capture="screenshot"``) asks
-Playwright for an ELEMENT screenshot of ``#stage`` on every frame. That is a page
+The screenshot capture (`render._capture_frames`, ``capture="screenshot"``, the
+default until an#192) asks Playwright for an ELEMENT screenshot of ``#stage`` on
+every frame. That is a page
 capture clipped to the element, taken from the compositor, and it is the largest
 single cost in the frame path — ~100 ms/frame at 1080p that is neither the GPU
 readback nor the PNG encode (`an-dev-render-pipeline` §8). This path instead
@@ -208,15 +209,21 @@ def canvas_frame_png(
         raise CanvasCaptureError(f"frame {frame}: no samples were captured")
     if compress_level is None:
         compress_level = DEFAULT_PNG_COMPRESS_LEVEL
-    images = [opaque_rgb(png, frame=frame) for png in samples]
-    if len(images) == 1 and factor == NO_SUPERSAMPLE:
+    if len(samples) == 1 and factor == NO_SUPERSAMPLE:
         # The common case never leaves Pillow: nothing to resolve or average.
-        (image,) = images
+        image = opaque_rgb(samples[0], frame=frame)
         _check_size(image.size, size, frame=frame, factor=factor)
         return _encode(image, compress_level)
     import numpy as np
 
-    resolved = [block_mean_resolve(np.asarray(im), factor) for im in images]
+    # Resolved as each sample is decoded, so at most ONE full-size (k-times)
+    # canvas is alive at a time, as on the screenshot path. Decoding them all
+    # first held samples x k² full frames per frame in flight (review of an#192:
+    # 16 GB at supersample 3 with a grain pack).
+    resolved = [
+        block_mean_resolve(np.asarray(opaque_rgb(png, frame=frame)), factor)
+        for png in samples
+    ]
     shapes = {r.shape for r in resolved}
     if len(shapes) != 1:
         raise CanvasCaptureError(

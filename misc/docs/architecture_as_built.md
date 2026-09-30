@@ -289,10 +289,11 @@ Project.load(dir)
    │               unknown node is a CutoutCompileError with suggestions, an#193)
    │              → spin Chromium via Playwright
    │              → load runtime + JSON
-   │              → for each frame: anSetTime(t) + screenshot canvas
-   │                (t = i/fps, or each of ctx.frame_samples[i], averaged)
-   │                — or, with ctx.capture="canvas", batches of frames read
-   │                in-page (anCaptureFrames → PNG data URLs), same decoded frames
+   │              → for each frame, at t = i/fps (or each of
+   │                ctx.frame_samples[i], averaged): by default (capture="canvas",
+   │                an#192) batches read in-page (anCaptureFrames → PNG data
+   │                URLs, bounded in frames AND pixels); with capture="screenshot",
+   │                anSetTime(t) + an element screenshot — same decoded frames
    │              → ffmpeg mux PNG sequence → silent.mp4
    │              → ffmpeg overlay dialogue audio (anullsrc base + adelay+amix per line),
    │                cut to the PICTURE's length (frames / fps), so the concat

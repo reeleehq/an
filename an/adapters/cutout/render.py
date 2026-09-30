@@ -7,9 +7,11 @@ The flow per shot:
    JSON beside it.
 3. Launch headless Chromium via Playwright; load `index.html`; inject the
    scene via ``window.anLoadScene``.
-4. For each frame ``f`` in ``[0, total_frames)``: call ``window.anSetTime(f/fps)``
-   and screenshot the canvas to a PNG — or, with ``capture="canvas"``, read the
-   canvas's own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`).
+4. For each frame ``f`` in ``[0, total_frames)``: seek ``f/fps`` and capture the
+   canvas to a PNG — by default (``capture="canvas"``, since an#192) reading its
+   own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`); with
+   ``capture="screenshot"``, ``window.anSetTime`` plus a Playwright element
+   screenshot per instant.
 5. Mux the PNG sequence to mp4 with ffmpeg.
 
 Failures are reported with concrete remediation: missing ffmpeg, missing
@@ -208,6 +210,21 @@ DEFAULT_CANVAS_BATCH: int = 8
 #: one Chromium per shot, and each of them is another source of CPU pressure.
 DEFAULT_CANVAS_ENCODE_WORKERS: int = 2
 
+#: The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample
+#: counts k² times and an open shutter once per instant): at most this many per
+#: ``anCaptureFrames`` round trip, and twice this many waiting on the encode
+#: pool. Two 1080p instants: small scenes still batch by the frame count
+#: above, and at 1080p the batch size stopped mattering for a flat scene
+#: (96 frames: 4.7 s at 2, 4 or 8 per round trip) while it decides everything
+#: for an incompressible one (a grain pack, 48 frames: 11.0 s / 0.38 GB at 2
+#: against 17.8 s / 2.1 GB at 8; the screenshot path 17.8 s / 0.16 GB). Needed
+#: because a count alone does not bound the bytes: the review of an#192
+#: measured grain at supersample 2 with an 8-sample shutter overflowing the
+#: driver's string limit in ONE reply (the render hung in ``browser.close()``),
+#: and ~16 GB of Python memory at supersample 3. A frame whose instants alone
+#: exceed it is captured over several round trips.
+DEFAULT_CANVAS_BATCH_PIXELS: int = 2 * 1920 * 1080
+
 #: BACK-PRESSURE: frames handed to the encode pool and not yet written. When
 #: the pool falls behind, the capture loop blocks on the oldest one before it
 #: asks the page for more, so memory is bounded by this many frames plus one
@@ -399,7 +416,7 @@ class CutoutRenderer:
 
         job = _stage_job(ctx.work_dir, shot.id, scene_json, mall=ctx.mall)
 
-        # Drive Chromium → screenshot frames.
+        # Drive Chromium → capture frames (canvas read or screenshot, `capture`).
         # Phase 11b: serve runtime via local HTTP because PIXI.Assets.fetch()
         # can't load file:// URLs in headless Chromium. Same effect as a
         # static deployment, isolated to this render.
@@ -872,6 +889,7 @@ def _capture_frames_canvas(
     batch: int | None = None,
     workers: int | None = None,
     max_inflight: int | None = None,
+    batch_pixels: int | None = None,
 ) -> None:
     """The ``capture="canvas"`` frame stage: in-page reads, batched, ordered, bounded.
 
@@ -898,8 +916,15 @@ def _capture_frames_canvas(
       unwritten; past that the loop blocks on the OLDEST before asking the page
       for more (back-pressure), so a long shot costs bounded memory.
 
-    ``None`` for ``batch`` / ``workers`` / ``max_inflight`` reads the module
-    defaults at call time.
+    Both bounds are ALSO held in captured pixels when ``resolution`` is known
+    (:data:`DEFAULT_CANVAS_BATCH_PIXELS`, ``batch_pixels``): a round trip
+    carries at most that many backbuffer pixels, the pool at most twice that,
+    and a frame whose instants alone exceed it is captured over several round
+    trips and encoded once all of them are in. A frame count alone bounds
+    nothing when a frame is a k-times, many-sample, incompressible canvas.
+
+    ``None`` for ``batch`` / ``workers`` / ``max_inflight`` / ``batch_pixels``
+    reads the module defaults at call time.
     """
     from collections import deque
     from concurrent.futures import ThreadPoolExecutor
@@ -907,10 +932,16 @@ def _capture_frames_canvas(
     batch = batch or DEFAULT_CANVAS_BATCH
     workers = workers or DEFAULT_CANVAS_ENCODE_WORKERS
     max_inflight = max(1, max_inflight or DEFAULT_CANVAS_MAX_INFLIGHT)
+    budget = batch_pixels or DEFAULT_CANVAS_BATCH_PIXELS
     instants = [
         (i / float(fps),) if frame_samples is None else tuple(frame_samples[i])
         for i in range(total_frames)
     ]
+    # Backbuffer pixels per captured instant; 0 (unknown) disables the pixel
+    # bounds and leaves the frame counts in charge, as before.
+    per_instant = (
+        resolution[0] * resolution[1] * supersample * supersample if resolution else 0
+    )
 
     def _encode(i: int, pngs: list[bytes]) -> int:
         out = frames_dir / (DEFAULT_FRAME_PNG_PATTERN % i)
@@ -921,17 +952,38 @@ def _capture_frames_canvas(
         out.write_bytes(data)
         return i
 
+    def _round_trips() -> Iterator[list[tuple[dict[str, Any], bool]]]:
+        """Requests grouped into round trips, each ``(request, frame_done)``.
+        A frame's instants are split only when they alone exceed the budget,
+        so the parts of one frame never share a round trip."""
+        per_part = max(1, budget // per_instant) if per_instant else None
+        trip: list[tuple[dict[str, Any], bool]] = []
+        trip_pixels = 0
+        for i, times in enumerate(instants):
+            step = per_part or len(times)
+            for j in range(0, len(times), step):
+                part = list(times[j : j + step])
+                pixels = len(part) * per_instant
+                if trip and (
+                    len(trip) >= batch or (per_instant and trip_pixels + pixels > budget)
+                ):
+                    yield trip
+                    trip, trip_pixels = [], 0
+                trip.append(({"frame": i, "times": part}, j + step >= len(times)))
+                trip_pixels += pixels
+        if trip:
+            yield trip
+
     written: list[int] = []
-    inflight: deque = deque()
+    inflight: deque = deque()  # (future, pixels)
+    inflight_pixels = 0
+    pending: list[bytes] = []  # the samples of a frame split across round trips
     with ThreadPoolExecutor(
         max_workers=workers, thread_name_prefix="an-canvas"
     ) as pool:
         try:
-            for start in range(0, total_frames, batch):
-                requests = [
-                    {"frame": i, "times": list(instants[i])}
-                    for i in range(start, min(start + batch, total_frames))
-                ]
+            for trip in _round_trips():
+                requests = [req for req, _ in trip]
                 reply = _evaluate(
                     page,
                     _CAPTURE_FRAMES_JS,
@@ -941,16 +993,28 @@ def _capture_frames_canvas(
                         f"{requests[-1]['frame']} from the canvas"
                     ),
                 )
-                for i, pngs in _checked_capture_reply(reply, requests):
-                    while len(inflight) >= max_inflight:
-                        written.append(inflight.popleft().result())
-                    inflight.append(pool.submit(_encode, i, pngs))
+                checked = list(_checked_capture_reply(reply, requests))
+                for (i, pngs), (_, done) in zip(checked, trip):
+                    pending.extend(pngs)
+                    if not done:
+                        continue
+                    pixels = len(pending) * per_instant
+                    while inflight and (
+                        len(inflight) >= max_inflight
+                        or (per_instant and inflight_pixels + pixels > 2 * budget)
+                    ):
+                        fut, done_pixels = inflight.popleft()
+                        written.append(fut.result())
+                        inflight_pixels -= done_pixels
+                    inflight.append((pool.submit(_encode, i, pending), pixels))
+                    inflight_pixels += pixels
+                    pending = []
             while inflight:
-                written.append(inflight.popleft().result())
+                written.append(inflight.popleft()[0].result())
         finally:
             # A failure anywhere must not leave encodes running against a
             # frames directory the caller is about to treat as finished.
-            for fut in inflight:
+            for fut, _ in inflight:
                 fut.cancel()
     # Belt and braces, checked on DISK rather than on the bookkeeping above
     # (which is correct by construction): the mux reads the directory, so the

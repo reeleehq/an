@@ -683,7 +683,9 @@ MUTANTS: tuple[Mutant, ...] = (
         new="#stage { display: none; }",
         caught_by="tests/test_cutout_runtime_files.py",
         why=(
-            "an#57's proposal. The element screenshot is a PAGE capture clipped "
+            "an#57's proposal. The element screenshot (the `--capture "
+            "screenshot` path, which shares this page with the canvas default) "
+            "is a PAGE capture clipped "
             "to the element, so hiding the canvas does not make it cheaper — it "
             "makes `Locator.screenshot` time out after 30 s per frame. The two "
             "spellings Playwright does accept return an all-white frame."
