@@ -61,9 +61,10 @@ GOLDEN_FACTORY_DIGESTS = {
 
 def _factory_digest(char_dir: Path) -> str:
     h = hashlib.sha256()
-    for f in sorted(char_dir.rglob("*.svg")):
-        h.update(str(f.relative_to(char_dir)).encode())
-        h.update(f.read_bytes())
+    for f in sorted(char_dir.rglob("*.svg"), key=lambda p: p.relative_to(char_dir).as_posix()):
+        # Platform-neutral: posix paths, and LF (text mode writes CRLF on Windows).
+        h.update(f.relative_to(char_dir).as_posix().encode())
+        h.update(f.read_bytes().replace(b"\r\n", b"\n"))
     desc = json.loads((char_dir / "character.json").read_text("utf-8"))
     h.update(json.dumps({k: desc.get(k) for k in DESCRIPTOR_KEYS}, sort_keys=True).encode())
     return h.hexdigest()[:16]
@@ -407,7 +408,7 @@ def test_a_role_recolour_reaches_the_rendered_pixels(tmp_path):
         new_character(root / "assets" / "characters", name="k", seed="kyle", use_dicebear=False)
         if pack is not None:
             (root / "assets" / "styles").mkdir(parents=True, exist_ok=True)
-            (root / "assets" / "styles" / f"{pack.name}.json").write_text(pack.model_dump_json(), "utf-8")
+            (root / "assets" / "styles" / f"{pack.name}.json").write_text(pack.model_dump_json(), encoding="utf-8")
         proj = load(root)
         proj.scene = SceneIR(
             meta=Meta(title="roles", duration=0.25, fps=12,
