@@ -29,6 +29,11 @@ live:
   characters:
     generate: offline
     mouth_variants: [happy, sad]
+    build: stick             # `--build stick`: a small blocky body with stick limbs
+    head_scale: 1.7          # `--head-scale 1.7`: the oversized head
+    hat: [bicorne, bowler, cap, none]   # `--hat`: period headgear tells figures apart
+    sash: true               # `--sash` on the figures that wear one (officers, royalty)
+    palette: per_character   # `--palette clothing=#..,accessory=#..`: costume colour is identity
   transitions:
     default: {kind: cut}     # hard cuts plus gags
   sound:
@@ -40,8 +45,8 @@ targets:
   cuts_per_min: [8, 10]                  # measured 9.0
 
 guidance:
-  construction: blocky body, stick limbs, oversized head; brows and mouth only, no nose or ears
-  identity: costume colour, hat, sash tell figures apart
+  construction: blocky body, stick limbs, oversized head (all live as `characters` knobs); brows and mouth only, no nose or ears
+  identity: costume colour, hat, sash tell figures apart (live as `characters.palette`, `hat` and `sash`); beards, crowns and uniforms beyond a sash are not
   crowds: dozens of identical figures; no instancing macro ships, so repeat entities by hand
   structure: [narrated_map, dramatization, date_card]
   narration: one narrator voices every character, third person

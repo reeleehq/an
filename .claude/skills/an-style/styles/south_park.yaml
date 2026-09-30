@@ -6,7 +6,7 @@
 style: south_park
 title: South Park (construction-paper cut-out, digital)
 cost_class: low
-cost_note: rigid shape characters, a locked camera and flat sets; `an character new --offline` characters are close to the look
+cost_note: rigid shape characters, a locked camera and flat sets; `an character new --offline --build squat --head-scale 1.3 --hat beanie` characters are close to the look
 
 live:
   meta:                      # the ```yaml meta``` block
@@ -14,7 +14,7 @@ live:
     default_easing: linear          # short snaps, never an overshoot; every unnamed tween takes it
     step_hz: 12              # on twos at 24 fps; body tweens hold every other frame
     style_pack: south_park
-  style_pack:                # save as assets/styles/south_park.json; reaches environment presets and procedural rigs only
+  style_pack:                # save as assets/styles/south_park.json; reaches environment presets, procedural rigs and factory characters' tagged colours
     name: south_park
     roles:
       sky: "#c0c6c7"         # measured backdrop grey
@@ -33,6 +33,11 @@ live:
   characters:
     generate: offline        # `an character new <name> --offline`
     mouth_variants: [happy, sad]
+    build: squat             # `--build squat`: a wide round body on short legs
+    head_scale: 1.3          # `--head-scale 1.3`: the head is about as wide as the body
+    hat: [beanie, cap, none] # `--hat`: pick one per character; a hat and a costume colour tell them apart
+    sash: false
+    palette: per_character   # `--palette clothing=#..,accessory=#..,leg=#..`: a distinct costume each
   transitions:
     default: {kind: cut}     # hard cuts only [research: U]
   voice:
@@ -44,7 +49,7 @@ targets:
   mean_shot_s: [3, 5.5]                 # measured 4.2
 
 guidance:                    # not in `an` yet: apply by hand where you can, otherwise tell the user it was omitted
-  construction: head, torso and limbs are single rigid pieces; no elbow or knee bends
+  construction: head, torso and limbs are single rigid pieces; no elbow or knee bends (the squat build is live; the near-circular head with eyes touching is not)
   eyes: two white ovals with pupil dots; brows appear when worried or angry; a half-lid per shot
   views: front and three-quarter heads as a swap set (`asset_sets`), turned by a hard swap
   coverage: [two_shot, single_close, over_shoulder]

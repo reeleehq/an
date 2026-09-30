@@ -7,24 +7,17 @@ character factory, which carried *two disagreeing* palette tables. an#106
 retired `AssetRef(kind="style")` because it selected nothing. This is what the
 word was reserved for.
 
-**A pack does not recolour SVG art at compile time.** Four code-backed reasons,
-and they are the reason this module is small:
-
-1. It would break `src` content addressing and the asset-resolution ledger.
-2. The only substitution precedent in this package is a regex
-   (`_skin_fill_of`) — which is exactly what `bench/palette.py` had to abandon
-   for XML parsing.
-3. `CharacterDescriptor` has no role tagging, so a pack would have to infer a
-   role from a pixel; inferring a role from a pixel is what produced an#99's
-   wrong-tone lid.
-4. `tint` occurs zero times in the runtime.
-
-**Nothing recolours SVG art today.** A pack seam in the character factory —
-which already owns the colour seams — is the obvious home for it and is NOT
-built; the compiler **warns**, naming the entities it could not reach, and says
-so rather than pointing at a flag that does not exist. Until then, an SVG rig
-is recoloured by editing its art or generating it in the colours you want. A pack that silently did nothing to an SVG rig would be the
-worst of the options.
+**A pack recolours SVG art only where the art says what its colours are.**
+The character factory records, per part, which literal it drew as which role
+(`CharacterDescriptor.colour_roles`, see :mod:`an.characters.colour_roles`),
+and the compiler rewrites exactly those literals into a new, content-addressed
+inline texture — palette swapping. Untagged art (hand-drawn, DiceBear) is left
+alone and the compiler warns once, naming it: a pack would otherwise have to
+infer a role from a pixel, which is what produced an#99's wrong-tone lid. So
+the four reasons this module once gave for never touching SVG reduce to one
+that still holds — no tags, no recolour. (The texture is inline, so staging and
+content addressing are unaffected; the substitution rewrites paint attributes
+only, never geometry or ids.)
 
 **A pack must not declare a role it cannot change.** `lip`, `mouth_fill`,
 `teeth`, `tongue` and the eye's white are literals inside `runtime.js`; a role
@@ -79,6 +72,9 @@ STYLE_DOCUMENT_KIND: DocumentKind = register_kind(
 #: `stroke` is a stroked path's default colour (`an.paths.DFLT_STROKE_COLOUR`,
 #: an#161) — the arrowhead is filled in the same colour, so it is not a second
 #: role. A path that names its own `color` is art and is left alone.
+#: `accessory` (a hat, a sash) exists only in role-tagged SVG art — the
+#: factory's `colour_roles` — and reaches the document through the recoloured
+#: texture, as do the SVG rig's `skin`, `clothing`, `hair`, `leg` and `pupil`.
 #:
 #: Every one of these is compiled with a marker colour and asserted to reach
 #: the document by `tests/test_styles.py`. `pupil` shipped in this set wired to
@@ -86,7 +82,7 @@ STYLE_DOCUMENT_KIND: DocumentKind = register_kind(
 #: set it was checking — a declared-reachable role that reaches nothing is the
 #: same defect as an unreachable one, and it needs the same kind of test.
 REACHABLE_ROLES: frozenset[str] = frozenset(
-    {"skin", "clothing", "hair", "leg", "pupil", "sky", "ground", "stroke"}
+    {"skin", "clothing", "hair", "leg", "pupil", "sky", "ground", "stroke", "accessory"}
 )
 
 #: Roles a pack must NOT declare, with what makes each unreachable. These are

@@ -351,6 +351,45 @@ class CharacterDescriptor(_CharModel):
     #: angle (a per-axis box pokes out at the diagonal) — no runtime mask.
     gaze_travel: Optional[dict[str, float]] = None
 
+    #: Which colour literal in which part plays which `StylePack` role —
+    #: ``{part path: {"#rrggbb": role}}``, e.g.
+    #: ``{"parts/torso.svg": {"#a83249": "clothing"}}``. Written by the factory,
+    #: which KNOWS what it drew as skin or clothing; read by the compiler, which
+    #: rewrites the tagged literals under a pack (palette swapping — see
+    #: :mod:`an.characters.colour_roles`). Empty = untagged art (hand-drawn,
+    #: DiceBear): a pack cannot reach it and the compiler says so, because the
+    #: alternative is inferring a role from a pixel (an#99's wrong-tone lid).
+    #: Additive: no schema bump, and a descriptor without it reads back as
+    #: untagged. Keys are normalised to lowercase ``#rrggbb``; a role must be
+    #: one a pack can set (:data:`an.styles.REACHABLE_ROLES`).
+    colour_roles: dict[str, dict[str, str]] = Field(default_factory=dict)
+
+    @field_validator("colour_roles")
+    @classmethod
+    def _check_colour_roles(cls, v: dict[str, dict[str, str]]):
+        from an.characters.colour_roles import normalise_hex
+        from an.styles import REACHABLE_ROLES
+
+        out: dict[str, dict[str, str]] = {}
+        for path, roles in v.items():
+            part: dict[str, str] = {}
+            for literal, role in roles.items():
+                if role not in REACHABLE_ROLES:
+                    raise ValueError(
+                        f"colour_roles[{path!r}][{literal!r}] = {role!r} is not a role "
+                        f"a style pack can set; known: {sorted(REACHABLE_ROLES)}"
+                    )
+                key = normalise_hex(literal)
+                if key in part and part[key] != role:
+                    raise ValueError(
+                        f"colour_roles[{path!r}] gives {key} two roles "
+                        f"({part[key]!r}, {role!r}); within one part each role "
+                        "needs its own literal — a swap cannot tell them apart"
+                    )
+                part[key] = role
+            out[path] = part
+        return out
+
     #: Free-form metadata (dicebear style/seed, etc.). Schema-evolution
     #: friendly: anything an external tool wants to record can land here.
     #:

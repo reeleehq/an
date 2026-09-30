@@ -35,12 +35,26 @@ FACE_PARTS = ("left_eye", "right_eye", "left_brow", "right_brow", "mouth")
 TOL_PX = 0.5
 
 
-@pytest.fixture(scope="module")
-def compiled():
+#: The factory's proportion knobs (`build`, `head_scale`) must keep every
+#: invariant below: legs from the hip to the ground, the face on the head above
+#: the collar. `regular` at 1.0 is the default character.
+LAYOUTS = [
+    ("regular", 1.0),
+    ("squat", 1.3),
+    ("tall", 1.0),
+    ("stick", 1.7),
+    ("regular", 0.8),
+]
+
+
+@pytest.fixture(scope="module", params=LAYOUTS, ids=lambda p: f"{p[0]}-x{p[1]:g}")
+def compiled(request):
+    build, head_scale = request.param
     with tempfile.TemporaryDirectory() as d:
         root = init(Path(d) / "p")
         desc_path = new_character(
-            root / "assets" / "characters", name="c", seed="c", use_dicebear=False
+            root / "assets" / "characters", name="c", seed="c", use_dicebear=False,
+            build=build, head_scale=head_scale,
         )
         desc = CharacterDescriptor.model_validate_json(desc_path.read_text("utf-8"))
         shot = Shot(

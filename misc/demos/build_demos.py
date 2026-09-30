@@ -805,11 +805,11 @@ def _build_style_pack(work: Path) -> Path:
     Nothing about the scene changes — same rig, same backdrop, same timing.
     What changes is a single `style_pack:` line in the meta block.
 
-    **The procedural rig is the whole reason this demo shows anything**, so it
-    is DECLARED rather than fallen into. `new_character` writes SVG art, and a
-    pack does not reach inside a drawing (`an.styles`' central limit) — a
-    synthesized character would have left the backdrop as the only thing that
-    changed. The procedural rig is the only rig a pack can repaint.
+    **The procedural rig is DECLARED rather than fallen into.** When this demo
+    was written a pack could not reach inside a drawing, so the procedural rig
+    was the only rig it could repaint. Since the factory tags its colours
+    (`colour_roles`), a `new_character` rig is repainted too; the demo keeps the
+    procedural rig so its clip is unchanged.
 
     Declaring it follows `an.bench.corpus._declare_procedural_rig`, for the
     same an#33 reason: the store entry lists exactly `_PLACEHOLDER_PARTS`, the
@@ -1395,6 +1395,145 @@ def _build_south_park_style(work: Path) -> Path:
     return mp4
 
 
+#: The two casts of the `character-casts` demo: the SAME scene, only the
+#: factory knobs and the style spec's pack differ. Knob values are the specs'
+#: `live.characters`; the costume colours are this demo's own casting.
+CHARACTER_CASTS: dict[str, dict] = {
+    "south_park": {
+        "environment": "indoor",
+        "characters": {
+            "stan": dict(build="squat", head_scale=1.3, hat="beanie",
+                         palette={"clothing": "#8b5a3c", "accessory": "#3a55a6",
+                                  "leg": "#3a55a6", "skin": "#fbd9b5"}),
+            "kyle": dict(build="squat", head_scale=1.3, hat="beanie",
+                         palette={"clothing": "#f06a23", "accessory": "#3f9b3a",
+                                  "leg": "#3d8b3d", "skin": "#fbd9b5"}),
+        },
+        "lines": ("stan [surprised]: Dude, the vending machine ate my money.",
+                  "kyle [angry]: Oh, come on!"),
+    },
+    "oversimplified": {
+        "environment": "default",
+        "characters": {
+            "napoleon": dict(build="stick", head_scale=1.7, hat="bicorne", sash=True,
+                             palette={"clothing": "#2b3a67", "accessory": "#c0392b",
+                                      "leg": "#e8e4d8", "skin": "#f6d7b0"}),
+            "wellington": dict(build="stick", head_scale=1.7, hat="bicorne",
+                               palette={"clothing": "#b3262e", "accessory": "#1f1f1f",
+                                        "leg": "#e8e4d8", "skin": "#f6d7b0"}),
+        },
+        "lines": ("napoleon [happy]: I shall simply win again.",
+                  "wellington [angry]: Not at Waterloo, you won't."),
+    },
+}
+
+
+#: The mouth forms the casts' `[emotion]` tags prefer (an#98), so no line falls
+#: back to the neutral set with a warning. Smile offsets as `an character mouths`.
+CAST_MOUTH_FORMS: dict[str, float] = {"happy": 0.35, "sad": -0.35, "angry": -0.25, "surprised": 0.0}
+
+
+def _cast_extent(project: Path, names: tuple[str, ...]) -> tuple[float, float]:
+    """``(top, bottom)`` of the tallest drawn bounds among ``names``, in scene
+    pixels from an entity's own origin — measured off the compiled document,
+    as `_drawn_extent` does for the one default geometry. A build or a head
+    scale changes the geometry, so this cast is measured on its own."""
+    from an.adapters.cutout.compile import compile_shot
+    from an.adapters.cutout.serialize import to_dict
+    from an.ir.schema import AssetRef, Shot
+    from an.stores.characters import CharactersStore
+
+    shot = Shot(
+        id="probe", renderer="cutout", duration=1.0,
+        entities=[AssetRef(kind="character", id=n, store="characters", ref=n) for n in names],
+    )
+    mall = {"characters": CharactersStore(project / "assets" / "characters")}
+    doc = to_dict(compile_shot(shot, mall=mall, fps=DEMO_FPS, strict_assets=True))
+    tops: list[float] = []
+    bottoms: list[float] = []
+
+    def walk(node: dict, oy: float = 0.0) -> None:
+        t, v = node["transform"], node["visual"]
+        y = oy + t["y"]
+        top = y - v["anchor_y"] * v["height"]
+        tops.append(top)
+        bottoms.append(top + v["height"])
+        for kid in node.get("children") or []:
+            walk(kid, y)
+
+    for character in doc["scene"]["children"]:
+        for part in character["children"]:
+            walk(part)
+    return min(tops), max(bottoms)
+
+
+def _build_character_casts(work: Path) -> Path:
+    """The same two-character scene twice, stacked: a South Park-ish cast over
+    an OverSimplified-ish one. Nothing is hand-drawn and no SVG is edited — the
+    difference is `new_character`'s knobs (`build`, `head_scale`, `hat`,
+    `sash`, `palette`) and each style spec's StylePack for the set."""
+    import json
+    import subprocess
+
+    import yaml
+
+    from an.characters import new_character
+    from an.styles import StylePack
+
+    specs = STYLE_SPEC_PATH.parent
+    duration = 4.0
+    panes = []
+    for style, cast in CHARACTER_CASTS.items():
+        pane = work / style
+        chars_dir = pane / "assets" / "characters"
+        chars_dir.mkdir(parents=True, exist_ok=True)
+        for name, knobs in cast["characters"].items():
+            new_character(chars_dir, name=name, seed=name, use_dicebear=False,
+                          overwrite=True, mouth_variants=CAST_MOUTH_FORMS, **knobs)
+        pack = StylePack(**yaml.safe_load((specs / f"{style}.yaml").read_text("utf-8"))["live"]["style_pack"])
+        (pane / "assets" / "styles").mkdir(parents=True, exist_ok=True)
+        (pane / "assets" / "styles" / f"{pack.name}.json").write_text(
+            json.dumps(json.loads(pack.model_dump_json()), indent=2), encoding="utf-8"
+        )
+        names = tuple(cast["characters"])
+        top, bottom = _cast_extent(pane, names)
+        frame_h = float(DEMO_RESOLUTION[1])
+        scale = min(1.2, frame_h * (1.0 - 2.0 * FRAME_MARGIN) / (bottom - top))
+        y = -scale * (top + bottom) / 2.0
+        rows = [f"- kind: environment\n  id: set\n  store: environments\n  ref: {cast['environment']}"]
+        rows += [
+            f"- kind: character\n  id: {n}\n  store: characters\n  ref: {n}\n"
+            f"  stage:\n    at: [{x:g}, {y:.2f}]\n    scale: {scale:.4f}"
+            for n, x in zip(names, (-110, 110))
+        ]
+        gestures = "".join(
+            f"- kind: tween\n  target: {n}/arm_r\n  property: rotation\n  to: {sign * 0.5}\n"
+            f"  duration: 0.2\n  start: {t0}\n"
+            f"- kind: tween\n  target: {n}/arm_r\n  property: rotation\n  to: 0\n"
+            f"  duration: 0.2\n  start: {t0 + 0.8}\n"
+            for n, sign, t0 in zip(names, (1, -1), (0.3, 2.3))
+        )
+        md = (
+            _meta(f"Character casts: {style}", duration).replace(
+                "```\n", f"style_pack: {pack.name}\n```\n", 1
+            )
+            + "\n" + _shot("s1", duration) + "\n```yaml entities\n" + "\n".join(rows)
+            + "\n```\n\n```yaml actions\n" + gestures + "```\n\n```dialogue\n"
+            + "\n".join(cast["lines"]) + "\n```\n"
+        )
+        (pane / "scene.md").write_text(md, encoding="utf-8")
+        panes.append(_render(pane))
+    out = work / "character-casts.mp4"
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-y", "-i", str(panes[0]), "-i", str(panes[1]),
+         # Silent, like the GIF: two conversations mixed over each other are noise.
+         "-filter_complex", "vstack=inputs=2", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+         "-an", str(out)],
+        check=True,
+    )
+    return out
+
+
 def _build_transitions_and_sound(work: Path) -> Path:
     """Two shots joined by a dissolve, under a ducked music bed, with an SFX hit.
 
@@ -1801,16 +1940,17 @@ DEMOS: tuple[Demo, ...] = (
             "An `an.styles.StylePack` in the project's `styles` store — which had "
             "no reader at all until an#112 — named by `style_pack:` in `yaml meta`. "
             "`roles` maps a role to a hex colour and `entities` overrides one "
-            "character. Seven roles are reachable — `skin`, `clothing`, `hair`, "
+            "character. The reachable roles include `skin`, `clothing`, `hair`, "
             "`leg`, `pupil`, `sky`, `ground` — and this pack declares five of "
             "them: not `leg`, which this rig cannot draw, and not `pupil`, "
             "which it could. "
             "A pack may NOT name `lip`, `mouth_fill`, `teeth`, `tongue` "
             "or `eye_sclera`: those are literals inside `runtime.js`, and a role "
             "that silently does nothing is worse than an absent one, so declaring "
-            "one is refused. It also does not recolour SVG art — those colours are "
-            "inside the drawings — and the compiler warns naming the rigs it could "
-            "not reach."
+            "one is refused. It recolours SVG art only where the descriptor tags "
+            "its colours by role (`an character new` does; hand-drawn and DiceBear "
+            "art does not), and the compiler warns, in one line, naming the rigs "
+            "it could not reach."
         ),
         build=_build_style_pack,
     ),
@@ -2059,6 +2199,25 @@ DEMOS: tuple[Demo, ...] = (
             "(`an.verify.style.StyleLintVerifier`)."
         ),
         build=_build_south_park_style,
+    ),
+    Demo(
+        slug="character-casts",
+        title="Two casts from one factory: South Park-ish and OverSimplified-ish",
+        shows=(
+            "The same two-character scene twice. Top: squat round bodies on short "
+            "legs, big heads, beanies, one costume colour each. Bottom: small "
+            "blocky bodies on stick limbs, oversized heads, bicornes, a sash. No "
+            "art was drawn or edited — every part is synthesized by the factory, "
+            "and every colour it drew is tagged with its role so a StylePack can "
+            "recolour it later."
+        ),
+        how=(
+            "`an character new stan --offline --build squat --head-scale 1.3 "
+            "--hat beanie --palette clothing=#8b5a3c,accessory=#3a55a6` — "
+            "`new_character(build=, head_scale=, hat=, sash=, palette=)`; the "
+            "knob values are each style spec's `live.characters`."
+        ),
+        build=_build_character_casts,
     ),
     Demo(
         slug="transitions-and-sound",
