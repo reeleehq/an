@@ -264,7 +264,9 @@ def duration_of(action: Action, *, play_extent: PlayExtent | None = None) -> Sec
     if isinstance(action, DelayAction):
         return action.duration
     if isinstance(action, SequenceAction):
-        return sum((duration_of(c, play_extent=play_extent) for c in action.children), 0.0)
+        return sum(
+            (duration_of(c, play_extent=play_extent) for c in action.children), 0.0
+        )
     if isinstance(action, ParallelAction):
         return max(
             (duration_of(c, play_extent=play_extent) for c in action.children),
