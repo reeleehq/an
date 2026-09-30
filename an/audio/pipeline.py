@@ -28,7 +28,13 @@ from an.audio.lipsync import LipSyncProvider, Viseme, VisemeTrack
 from an.audio.offline_lipsync import OfflineLipSync
 from an.audio.offline_tts import OfflineTTS
 from an.audio.tts import AudioClip, TTSProvider
-from an.audio.voices import DEFAULT_VOICE, line_voice_id, provider_voice
+from an.audio.voices import (
+    DEFAULT_VOICE,
+    line_voice_id,
+    provider_voice,
+    voice_applies,
+    voice_document,
+)
 from an.ir.schema import Dialogue, SceneIR, VisemeKeyframe, WordTimingIR
 from an.ir.schema import VisemeTrack as IRVisemeTrack
 from an.util import _stable_hash
@@ -74,21 +80,35 @@ def produce_audio_for_dialogue(
     :func:`an.audio.voices.line_voice_id` resolves, so a character's bound
     voice reaches here (an#194). The provider is handed the voice document's
     own ``voice_id`` when it names one.
+
+    What the provider's optional ``synthesis_options`` hook derives from the
+    voice document and the line (ElevenLabs: ``model_id``, ``voice_settings``,
+    ``seed``, and the ``[emotion]``/``direction`` audio tags — an#209) is passed
+    to ``synthesize`` and keyed; the text handed to alignment is always the
+    bare ``dialogue.text``, never the tagged one.
     """
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
     voice_id = voice_id or dialogue.voice_ref or DEFAULT_VOICE
     if effects is None:
         effects = voice_effects(mall, voice_id)
-    named = provider_voice(mall, voice_id)
+    named = provider_voice(mall, voice_id, tts_name=tts.name)
+    options = synthesis_options(tts, dialogue, mall, voice_id)
 
-    raw_key = audio_key(dialogue.text, voice_id, tts.name, provider_voice=named)
+    raw_key = audio_key(
+        dialogue.text, voice_id, tts.name, provider_voice=named, options=options
+    )
     cache_key = audio_key(
-        dialogue.text, voice_id, tts.name, effects, provider_voice=named
+        dialogue.text,
+        voice_id,
+        tts.name,
+        effects,
+        provider_voice=named,
+        options=options,
     )
 
     audio_clip = _load_or_synthesize(
-        tts, dialogue.text, named or voice_id, mall, raw_key
+        tts, dialogue.text, named or voice_id, mall, raw_key, options=options
     )
     if cache_key != raw_key:
         audio_clip = _load_or_apply_effects(audio_clip, effects, mall, cache_key)
@@ -156,7 +176,8 @@ def produce_audio_for_scene(
                 voice_id,
                 tts.name,
                 effects,
-                provider_voice=provider_voice(mall, voice_id),
+                provider_voice=provider_voice(mall, voice_id, tts_name=tts.name),
+                options=synthesis_options(tts, line, mall, voice_id),
             )
             expected_viseme_ref = viseme_key(
                 expected_audio_ref, lipsync.name, line.text
@@ -245,18 +266,54 @@ def audio_key(
     effects: Mapping[str, float] | None = None,
     *,
     provider_voice: str | None = None,
+    options: Mapping[str, Any] | None = None,
 ) -> str:
     """Content key of a line's audio: text, voice, provider, and — only when the
-    voice declares them — its effects and the provider voice it names (an#194).
-    With neither, the payload is exactly the pre-effects one, so every key a
-    project already has is unchanged.
+    voice declares them — its effects, the provider voice it names (an#194) and
+    the provider's synthesis options (model, settings, seed, audio tags —
+    an#209). With none of them, the payload is exactly the pre-effects one, so
+    every key a project already has is unchanged.
+
+    >>> audio_key("hi", "default", "offline") == audio_key(
+    ...     "hi", "default", "offline", {}, provider_voice=None, options={})
+    True
     """
     payload: dict[str, Any] = {"text": text, "voice": voice_id, "tts": tts_name}
     if effects:
         payload["effects"] = dict(effects)
     if provider_voice:
         payload["provider_voice"] = provider_voice
+    if options:
+        payload["options"] = dict(options)
     return _stable_hash(payload)
+
+
+def synthesis_options(
+    tts: TTSProvider,
+    line: Any,
+    mall: Mapping[str, MutableMapping] | None,
+    voice_id: str,
+) -> dict[str, Any]:
+    """The provider-specific ``synthesize`` kwargs for ``line`` in ``voice_id``.
+
+    ``{}`` for a provider without a ``synthesis_options`` hook (offline,
+    mac_say) and for a voice written for another provider — which is what
+    keeps their cache keys where they were.
+    """
+    hook = getattr(tts, "synthesis_options", None)
+    if hook is None:
+        return {}
+    doc = voice_document(mall, voice_id)
+    if not voice_applies(doc, tts.name):
+        doc = {}
+    return dict(
+        hook(
+            doc,
+            emotion=getattr(line, "emotion", None),
+            direction=getattr(line, "direction", None),
+        )
+        or {}
+    )
 
 
 def viseme_key(audio_key_: str, lipsync_name: str, transcript: str) -> str:
@@ -337,6 +394,8 @@ def _load_or_synthesize(
     voice_id: str,
     mall: Mapping[str, MutableMapping] | None,
     cache_key: str,
+    *,
+    options: Mapping[str, Any] | None = None,
 ) -> AudioClip:
     if mall is not None and "audio" in mall and cache_key in mall["audio"]:
         wav_bytes = mall["audio"][cache_key]
@@ -345,7 +404,7 @@ def _load_or_synthesize(
         return AudioClip(
             bytes_=wav_bytes, duration=duration, voice_id=voice_id, transcript=text
         )
-    clip = tts.synthesize(text, voice_id)
+    clip = tts.synthesize(text, voice_id, **(options or {}))
     if mall is not None and "audio" in mall and clip.bytes_ is not None:
         mall["audio"][cache_key] = clip.bytes_
     return clip

@@ -171,7 +171,10 @@ The IR shape (relevant fields):
         Axes (offsets in [-1, 1]; lids in [-1, 0.5]): brow_height_l/r, brow_angle_l/r,
         lid_open_l/r, gaze_x, gaze_y. "duration" omitted = to the shot end. A
         character whose descriptor says face_overlay: false cannot take one.
-      - dialogue: list of {speaker, text, emotion, voice_ref, pause, at, ...}.
+      - dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}.
+        "direction" (optional) is a list of delivery cues — ["excited"],
+        ["sighs", "annoyed"] — that an expressive TTS voice performs; it is
+        never spoken as text and never shown in captions.
         Lines play back to back from the shot start. "pause" (seconds) is
         silence before a line, after the previous one ends — a beat, a look, a
         hesitation belongs here, NOT in a new shot. "at" (seconds) starts a line
@@ -210,6 +213,7 @@ Path syntax for patches: slash-delimited, list indices are integers. Examples:
                                               | "angry" | "surprised" | "afraid" | "disgusted"
                                               | "skeptical" | "amused" | "thinking" | "neutral")
   "timeline/1/dialogue/1/pause"             → seconds of silence before that line
+  "timeline/1/dialogue/1/direction"         → delivery cues, e.g. ["whispers"]
 
 Patch operations:
 
