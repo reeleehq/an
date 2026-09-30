@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=566346bf"></script>
+    <script src="../../../_static/documentation_options.js?v=f21bc2a6"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.116" />
+  <meta name="docsearch:version" content="0.1.117" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1194,18 +1194,81 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"(keys: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">[</span><span class="n">leaf</span><span class="o">.</span><span class="n">property</span><span class="p">])</span><span class="si">}</span><span class="s2">)"</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">art_exists</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span><span class="p">[</span><span class="n">leaf</span><span class="o">.</span><span class="n">property</span><span class="p">][</span><span class="n">leaf</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
-            <span class="n">skin</span> <span class="o">=</span> <span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"default"</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">skins</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
-                <span class="n">att</span><span class="o">.</span><span class="n">path</span>
-                <span class="k">for</span> <span class="n">atts</span> <span class="ow">in</span> <span class="p">(</span><span class="n">skin</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">skin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">())</span>
-                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">atts</span>
-                <span class="k">for</span> <span class="n">att</span> <span class="ow">in</span> <span class="p">(</span><span class="n">atts</span><span class="p">[</span><span class="n">name</span><span class="p">],)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">art_exists</span><span class="p">(</span><span class="n">att</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-            <span class="p">)</span>
+            <span class="n">missing</span> <span class="o">=</span> <span class="n">swap_art_missing</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">property</span><span class="p">,</span> <span class="n">leaf</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">art_exists</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
                 <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">, but its art is not on disk: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">problems</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">swap_slots</span><span class="p">(</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">CharacterDescriptor</span><span class="p">,</span>
+    <span class="n">set_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">art_exists</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The slots a WHOLE-CHARACTER swap of ``set_name`` lands on (an#197): every</span>
+<span class="sd">    built slot whose skin carries an attachment some key of the set names, and</span>
+<span class="sd">    — when ``art_exists`` can tell — at least one of them resolves. That is the</span>
+<span class="sd">    compiler's ``swap_capable_paths``: a slot with none of the set's art never</span>
+<span class="sd">    receives the set, so the fan-out skips it.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.characters.schema import Skin</span>
+<span class="sd">    &gt;&gt;&gt; d = CharacterDescriptor(</span>
+<span class="sd">    ...     name="m", asset_sets={"view": {"front": "a", "side": "b"}},</span>
+<span class="sd">    ...     skins={"default": Skin(slots={"head": {"a": {"path": "h.svg"}},</span>
+<span class="sd">    ...                                   "torso": {"b": {"path": "t.svg"}}})})</span>
+<span class="sd">    &gt;&gt;&gt; swap_slots(d, "view")</span>
+<span class="sd">    ['head', 'torso']</span>
+<span class="sd">    """</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">set_name</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">unbuilt</span> <span class="o">=</span> <span class="n">suppressed_slots</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">slot</span>
+        <span class="k">for</span> <span class="n">slot</span><span class="p">,</span> <span class="n">atts</span> <span class="ow">in</span> <span class="n">active_skin</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span><span class="o">.</span><span class="n">slots</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">slot</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unbuilt</span>
+        <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">art_exists</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">art_exists</span><span class="p">(</span><span class="n">atts</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">atts</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">swap_art_missing</span><span class="p">(</span>
+    <span class="n">desc</span><span class="p">:</span> <span class="n">CharacterDescriptor</span><span class="p">,</span>
+    <span class="n">set_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">art_exists</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">bool</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The art ``key`` of ``set_name`` is missing, on ANY slot it lands on.</span>
+
+<span class="sd">    A whole-character swap lands on every slot the set projects onto</span>
+<span class="sd">    (:func:`swap_slots`), and the compiler drops a slot whose art for the key</span>
+<span class="sd">    did not resolve — so ``--strict-assets`` refuses the shot when one slot</span>
+<span class="sd">    lacks it, even though another slot has it. A slot with none of the set's</span>
+<span class="sd">    art, or one the rig never builds, receives no swap and is skipped, as the</span>
+<span class="sd">    compiler skips it. "Some slot has the art" is the</span>
+<span class="sd">    wrong question for an entity-level swap; this is the right one, shared by</span>
+<span class="sd">    ``an validate`` and :func:`preset_swap_problems` (an#201).</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.characters.schema import Skin</span>
+<span class="sd">    &gt;&gt;&gt; d = CharacterDescriptor(</span>
+<span class="sd">    ...     name="m", asset_sets={"view": {"front": "f", "side": "s"}},</span>
+<span class="sd">    ...     skins={"default": Skin(slots={</span>
+<span class="sd">    ...         "head": {"f": {"path": "hf.svg"}, "s": {"path": "hs.svg"}},</span>
+<span class="sd">    ...         "torso": {"s": {"path": "ts.svg"}}})})</span>
+<span class="sd">    &gt;&gt;&gt; swap_art_missing(d, "view", "side", lambda p: p != "hs.svg")</span>
+<span class="sd">    ['hs.svg']</span>
+<span class="sd">    &gt;&gt;&gt; swap_art_missing(d, "view", "side", lambda p: p != "ts.svg")  # torso has no view art at all</span>
+<span class="sd">    []</span>
+<span class="sd">    """</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="n">desc</span><span class="o">.</span><span class="n">asset_sets</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">set_name</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">slots</span> <span class="o">=</span> <span class="n">active_skin</span><span class="p">(</span><span class="n">desc</span><span class="p">)</span><span class="o">.</span><span class="n">slots</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="n">slots</span><span class="p">[</span><span class="n">slot</span><span class="p">][</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">path</span>
+        <span class="k">for</span> <span class="n">slot</span> <span class="ow">in</span> <span class="n">swap_slots</span><span class="p">(</span><span class="n">desc</span><span class="p">,</span> <span class="n">set_name</span><span class="p">,</span> <span class="n">art_exists</span><span class="o">=</span><span class="n">art_exists</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">slots</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">art_exists</span><span class="p">(</span><span class="n">slots</span><span class="p">[</span><span class="n">slot</span><span class="p">][</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_easing_problems</span><span class="p">(</span><span class="n">animation</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
