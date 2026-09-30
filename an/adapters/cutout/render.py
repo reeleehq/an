@@ -918,7 +918,9 @@ def _capture_frames_canvas(
 
     written: list[int] = []
     inflight: deque = deque()
-    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="an-canvas") as pool:
+    with ThreadPoolExecutor(
+        max_workers=workers, thread_name_prefix="an-canvas"
+    ) as pool:
         try:
             for start in range(0, total_frames, batch):
                 requests = [
@@ -972,7 +974,11 @@ def _checked_capture_reply(
     """
     if isinstance(reply, dict) and "error" in reply:
         frame, t = reply.get("frame"), reply.get("t")
-        where = f"frame {frame} (t={t:.4f}s)" if isinstance(t, (int, float)) else f"frame {frame}"
+        where = (
+            f"frame {frame} (t={t:.4f}s)"
+            if isinstance(t, (int, float))
+            else f"frame {frame}"
+        )
         raise CutoutRenderError(f"{where} could not be evaluated:\n{reply['error']}")
     frames = reply.get("frames") if isinstance(reply, dict) else None
     if not isinstance(frames, list):
