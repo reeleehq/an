@@ -168,7 +168,7 @@ no_browser: don’t auto-open the default browser
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en')
+### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='')
 
 Render the project at `project_dir` to a single mp4.
 
@@ -207,6 +207,11 @@ language: the dialogue’s language (BCP-47) for providers that select
 : behaviour by it — Rhubarb’s recognizer today: English (the default)
   uses `pocketSphinx` with the transcript, anything else `phonetic`
   without one (an#96)
+
+capture: how frames leave the browser — “screenshot” (the default) or
+: “canvas”, an in-page read of the canvas in batches that writes frames
+  with the same decoded pixels; ~7.8x faster frame stage on the corpus, ~2.3x at 1080p. Opt-in until the
+  equivalence gate has held on both rendering lanes
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

@@ -265,10 +265,9 @@ restated per preset, so a preset added later needs no entry here.
 ### an.characters.play.preset_play_span(action)
 
 How long a preset `play` runs, in seconds: its `duration` when set,
-else the preset’s natural length divided by `speed`. A play with no
-`duration` is still ZERO-width inside a `sequence` (the rule every
-`play` follows, because `flatten` cannot know which source wins); this
-is the span it actually animates.
+else the preset’s natural length divided by `speed`. What a
+`sequence` advances by is `play_extent()`, which is this for a preset
+source.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)

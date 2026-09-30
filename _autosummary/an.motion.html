@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../_static/documentation_options.js?v=05541c91"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.live_api" href="an.live_api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -564,8 +564,9 @@ this module’s tweens at compile, with the rest pose read off the built scene �
 no <code class="docutils literal notranslate"><span class="pre">rest=</span></code> — and <code class="docutils literal notranslate"><span class="pre">args</span></code> as the preset’s keyword arguments. A character
 descriptor animation of the same name WINS; <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> and the compiler
 decide both through <a class="reference internal" href="an.characters.play.html#an.characters.play.play_problems" title="an.characters.play.play_problems"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.characters.play.play_problems()</span></code></a>. <code class="docutils literal notranslate"><span class="pre">duration</span></code>
-stretches the move and <code class="docutils literal notranslate"><span class="pre">speed</span></code> divides it; <code class="docutils literal notranslate"><span class="pre">loop</span></code> is refused. Like every
-<code class="docutils literal notranslate"><span class="pre">play</span></code> without a <code class="docutils literal notranslate"><span class="pre">duration</span></code>, it is zero-width inside a <code class="docutils literal notranslate"><span class="pre">sequence</span></code>.
+stretches the move and <code class="docutils literal notranslate"><span class="pre">speed</span></code> divides it; <code class="docutils literal notranslate"><span class="pre">loop</span></code> is refused. In a
+<code class="docutils literal notranslate"><span class="pre">sequence</span></code> a <code class="docutils literal notranslate"><span class="pre">play</span></code> without a <code class="docutils literal notranslate"><span class="pre">duration</span></code> occupies the preset’s own
+length divided by <code class="docutils literal notranslate"><span class="pre">speed</span></code>, so two in a row run one after the other.
 <a class="reference internal" href="#an.motion.as_leaves" title="an.motion.as_leaves"><code class="xref py py-func docutils literal notranslate"><span class="pre">as_leaves()</span></code></a> remains for a preset composed in Python and written into
 <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> as plain tweens (a composition tree does not round-trip).</p>
 <p class="rubric">Module Attributes</p>

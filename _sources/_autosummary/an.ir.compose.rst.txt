@@ -9,11 +9,13 @@ an.ir.compose
    .. autosummary::
    
       INHERIT
+      PlayExtent
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      default_play_extent
       delay
       duration_of
       expression

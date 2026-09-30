@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../_static/documentation_options.js?v=05541c91"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.characters.mouth_set" href="an.characters.mouth_set.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -895,10 +895,9 @@ restated per preset, so a preset added later needs no entry here.</p>
 <dt class="sig sig-object py" id="an.characters.play.preset_play_span">
 <span class="sig-prename descclassname"><span class="pre">an.characters.play.</span></span><span class="sig-name descname"><span class="pre">preset_play_span</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/characters/play.html#preset_play_span"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.characters.play.preset_play_span" title="Link to this definition">#</a></dt>
 <dd><p>How long a preset <code class="docutils literal notranslate"><span class="pre">play</span></code> runs, in seconds: its <code class="docutils literal notranslate"><span class="pre">duration</span></code> when set,
-else the preset’s natural length divided by <code class="docutils literal notranslate"><span class="pre">speed</span></code>. A play with no
-<code class="docutils literal notranslate"><span class="pre">duration</span></code> is still ZERO-width inside a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> (the rule every
-<code class="docutils literal notranslate"><span class="pre">play</span></code> follows, because <code class="docutils literal notranslate"><span class="pre">flatten</span></code> cannot know which source wins); this
-is the span it actually animates.</p>
+else the preset’s natural length divided by <code class="docutils literal notranslate"><span class="pre">speed</span></code>. What a
+<code class="docutils literal notranslate"><span class="pre">sequence</span></code> advances by is <code class="xref py py-func docutils literal notranslate"><span class="pre">play_extent()</span></code>, which is this for a preset
+source.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>

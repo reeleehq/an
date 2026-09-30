@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../../../../_static/documentation_options.js?v=05541c91"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -720,7 +720,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">3. Launch headless Chromium via Playwright; load `index.html`; inject the</span>
 <span class="sd">   scene via ``window.anLoadScene``.</span>
 <span class="sd">4. For each frame ``f`` in ``[0, total_frames)``: call ``window.anSetTime(f/fps)``</span>
-<span class="sd">   and screenshot the canvas to a PNG.</span>
+<span class="sd">   and screenshot the canvas to a PNG — or, with ``capture="canvas"``, read the</span>
+<span class="sd">   canvas's own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`).</span>
 <span class="sd">5. Mux the PNG sequence to mp4 with ffmpeg.</span>
 
 <span class="sd">Failures are reported with concrete remediation: missing ffmpeg, missing</span>
@@ -751,6 +752,11 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BT709_SCALE_FILTER</span><span class="p">,</span> <span class="n">MP4_FASTSTART_ARGS</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.determinism</span><span class="w"> </span><span class="kn">import</span> <span class="n">capture_violations</span><span class="p">,</span> <span class="n">determinism_enforced</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.canvas_capture</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CanvasCaptureError</span><span class="p">,</span>
+    <span class="n">canvas_frame_png</span><span class="p">,</span>
+    <span class="n">decode_data_url</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_shot</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.shutter</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_frame_samples</span><span class="p">,</span> <span class="n">mean_png_bytes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.runtime_files</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime_dir</span>
@@ -879,6 +885,49 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: has not been measured against the panel.</span>
 <span class="n">SUPPORTED_PIX_FMTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"yuv420p"</span><span class="p">,</span> <span class="s2">"yuv444p"</span><span class="p">)</span>
 
+<span class="c1">#: How frames leave the browser. ``"screenshot"``: a Playwright element</span>
+<span class="c1">#: screenshot of ``#stage`` per instant — the path every render took before the</span>
+<span class="c1">#: canvas path existed, and still the default. ``"canvas"``: the runtime's</span>
+<span class="c1">#: ``anCaptureFrames`` reads the canvas in-page and hands back PNG data URLs in</span>
+<span class="c1">#: batches (`an.adapters.cutout.canvas_capture`), which writes frames whose</span>
+<span class="c1">#: DECODED pixels equal the screenshot path's.</span>
+<span class="c1">#:</span>
+<span class="c1">#: **The default stays ``"screenshot"`` until the equivalence gate has held on</span>
+<span class="c1">#: the whole golden corpus on both the developer machine and the labelled Linux</span>
+<span class="c1">#: rendering lane** (epic #9's throughput track): a faster path that moved a</span>
+<span class="c1">#: pixel would silently invalidate every baseline recorded before it. The flip is</span>
+<span class="c1">#: its own one-line PR. Read as a MODULE GLOBAL at call time, for</span>
+<span class="c1">#: `DEFAULT_PIX_FMT`'s reason — a default argument would bind it at def time.</span>
+<span class="n">DEFAULT_CAPTURE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"screenshot"</span>
+
+<span class="c1">#: The capture paths `_check_capture` accepts. Not an open string: a typo must</span>
+<span class="c1">#: fail before a browser launches, not minutes into a render.</span>
+<span class="n">SUPPORTED_CAPTURES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"screenshot"</span><span class="p">,</span> <span class="s2">"canvas"</span><span class="p">)</span>
+
+<span class="c1">#: Frames per ``anCaptureFrames`` round trip. Measured at 1920x1080 on an M1</span>
+<span class="c1">#: Max, `single_character`: 67 ms/frame one frame per call, 46 at four, 46 at</span>
+<span class="c1">#: eight — the round trip is ~20 ms of fixed cost, amortised by the batch. It is</span>
+<span class="c1">#: also the memory the page holds before Python takes it: eight data URLs of a</span>
+<span class="c1">#: 1080p frame are well under a megabyte of text, and at a supersampled 4K</span>
+<span class="c1">#: backbuffer a few megabytes each.</span>
+<span class="n">DEFAULT_CANVAS_BATCH</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+
+<span class="c1">#: Threads decoding, resolving and re-encoding canvas frames while the page</span>
+<span class="c1">#: renders the next batch. The decode/encode is ~60 ms/frame of Pillow and zlib</span>
+<span class="c1">#: at 1080p — the same order as the page's own work — so it must overlap it or</span>
+<span class="c1">#: it eats the win. Two, not `cpu_count()`: `an render --parallel` already runs</span>
+<span class="c1">#: one Chromium per shot, and each of them is another source of CPU pressure.</span>
+<span class="n">DEFAULT_CANVAS_ENCODE_WORKERS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1">#: BACK-PRESSURE: frames handed to the encode pool and not yet written. When</span>
+<span class="c1">#: the pool falls behind, the capture loop blocks on the oldest one before it</span>
+<span class="c1">#: asks the page for more, so memory is bounded by this many frames plus one</span>
+<span class="c1">#: batch however long the shot is.</span>
+<span class="n">DEFAULT_CANVAS_MAX_INFLIGHT</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">DEFAULT_CANVAS_BATCH</span>
+
+<span class="c1">#: The page-side capture call; see ``anCaptureFrames`` in ``runtime.js``.</span>
+<span class="n">_CAPTURE_FRAMES_JS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"(requests) =&gt; window.anCaptureFrames(requests)"</span>
+
 <span class="n">DETERMINISTIC_X264_ARGS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
     <span class="s2">"-threads"</span><span class="p">,</span>
     <span class="s2">"1"</span><span class="p">,</span>
@@ -988,6 +1037,23 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">resolved</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_capture</span><span class="p">(</span><span class="n">capture</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Resolve and validate the capture path; ``None`` is the module default</span>
+<span class="sd">    **at call time**, which keeps :data:`DEFAULT_CAPTURE` flippable from outside.</span>
+
+<span class="sd">    &gt;&gt;&gt; _check_capture(None), _check_capture("canvas")</span>
+<span class="sd">    ('screenshot', 'canvas')</span>
+<span class="sd">    """</span>
+    <span class="n">resolved</span> <span class="o">=</span> <span class="n">capture</span> <span class="ow">or</span> <span class="n">DEFAULT_CAPTURE</span>
+    <span class="k">if</span> <span class="n">resolved</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SUPPORTED_CAPTURES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutRenderError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"capture=</span><span class="si">{</span><span class="n">resolved</span><span class="si">!r}</span><span class="s2"> is not one of </span><span class="si">{</span><span class="n">SUPPORTED_CAPTURES</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="s2">"'screenshot' is the default; 'canvas' reads the canvas in-page and "</span>
+            <span class="s2">"writes frames whose decoded pixels equal the screenshot path's."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">resolved</span>
+
+
 <span class="nd">@dataclass</span><span class="p">(</span><span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">_RenderJob</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Per-shot scratch area + the scene that's about to render."""</span>
@@ -1026,6 +1092,7 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># minutes, and `check_factor` is microseconds.</span>
         <span class="n">supersample</span> <span class="o">=</span> <span class="n">check_factor</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">supersample</span><span class="p">)</span>
         <span class="n">pix_fmt</span> <span class="o">=</span> <span class="n">_check_pix_fmt</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">pix_fmt</span><span class="p">)</span>
+        <span class="n">capture</span> <span class="o">=</span> <span class="n">_check_capture</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">capture</span><span class="p">)</span>
         <span class="n">total_frames</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">)))</span>
         <span class="n">frame_samples</span> <span class="o">=</span> <span class="n">check_frame_samples</span><span class="p">(</span>
             <span class="n">ctx</span><span class="o">.</span><span class="n">frame_samples</span><span class="p">,</span> <span class="n">total_frames</span><span class="o">=</span><span class="n">total_frames</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span>
@@ -1128,6 +1195,8 @@ window.runMermaid = runMermaid;</script>
                     <span class="n">job</span><span class="o">.</span><span class="n">frames_dir</span><span class="p">,</span>
                     <span class="n">supersample</span><span class="p">,</span>
                     <span class="n">frame_samples</span><span class="o">=</span><span class="n">frame_samples</span><span class="p">,</span>
+                    <span class="n">capture</span><span class="o">=</span><span class="n">capture</span><span class="p">,</span>
+                    <span class="n">resolution</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">resolution</span><span class="p">),</span>
                 <span class="p">)</span>
             <span class="k">finally</span><span class="p">:</span>
                 <span class="n">browser</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -1154,6 +1223,10 @@ window.runMermaid = runMermaid;</script>
                 <span class="c1"># stage. `supersample` beside it is what says how they got there.</span>
                 <span class="s2">"supersample"</span><span class="p">:</span> <span class="n">supersample</span><span class="p">,</span>
                 <span class="s2">"pix_fmt"</span><span class="p">:</span> <span class="n">pix_fmt</span><span class="p">,</span>
+                <span class="c1"># How the frames left the browser. Recorded because the two</span>
+                <span class="c1"># paths must agree on decoded pixels but not on file bytes, so a</span>
+                <span class="c1"># frame-byte diff between two runs is only interpretable beside it.</span>
+                <span class="s2">"capture"</span><span class="p">:</span> <span class="n">capture</span><span class="p">,</span>
                 <span class="s2">"frame_count"</span><span class="p">:</span> <span class="n">total_frames</span><span class="p">,</span>
                 <span class="s2">"audio_tracks"</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">audio_inputs</span><span class="p">),</span>
                 <span class="c1"># The launch argv verbatim: all four rasteriser configurations</span>
@@ -1448,8 +1521,18 @@ window.runMermaid = runMermaid;</script>
     <span class="n">supersample</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">NO_SUPERSAMPLE</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">frame_samples</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">capture</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Step the JS runtime through ``total_frames`` and screenshot the canvas each time.</span>
+<span class="w">    </span><span class="sd">"""Step the JS runtime through ``total_frames`` and capture the canvas each time.</span>
+
+<span class="sd">    ``capture`` picks how the pixels leave the browser (:data:`DEFAULT_CAPTURE`</span>
+<span class="sd">    when ``None``): ``"screenshot"`` is the loop below, ``"canvas"`` is</span>
+<span class="sd">    :func:`_capture_frames_canvas`. Both write the same decoded frames to the same</span>
+<span class="sd">    files; the dispatch lives HERE, inside the one function the bench's</span>
+<span class="sd">    supersample lever wraps, so the lever reaches either path. ``resolution``</span>
+<span class="sd">    (the declared width, height) lets the canvas path refuse a frame of the wrong</span>
+<span class="sd">    size before it is written; the screenshot path does not read it.</span>
 
 <span class="sd">    **The resolve happens here, in the frame stage, and that is not a stylistic</span>
 <span class="sd">    choice.** Nothing downstream reads a resolution off the files: the bench's</span>
@@ -1471,6 +1554,17 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    both. ``None`` is one instant at ``i / fps``, and a frame with one instant</span>
 <span class="sd">    takes the path above unchanged, so the knob is free when it is off too.</span>
 <span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">_check_capture</span><span class="p">(</span><span class="n">capture</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"canvas"</span><span class="p">:</span>
+        <span class="n">_capture_frames_canvas</span><span class="p">(</span>
+            <span class="n">page</span><span class="p">,</span>
+            <span class="n">total_frames</span><span class="p">,</span>
+            <span class="n">fps</span><span class="p">,</span>
+            <span class="n">frames_dir</span><span class="p">,</span>
+            <span class="n">supersample</span><span class="p">,</span>
+            <span class="n">frame_samples</span><span class="o">=</span><span class="n">frame_samples</span><span class="p">,</span>
+            <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_frames</span><span class="p">):</span>
         <span class="n">instants</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">fps</span><span class="p">),)</span> <span class="k">if</span> <span class="n">frame_samples</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">frame_samples</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="n">out_path</span> <span class="o">=</span> <span class="n">frames_dir</span> <span class="o">/</span> <span class="p">(</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
@@ -1487,6 +1581,161 @@ window.runMermaid = runMermaid;</script>
             <span class="n">_set_time</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
             <span class="n">shots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">locator</span><span class="p">(</span><span class="s2">"#stage"</span><span class="p">)</span><span class="o">.</span><span class="n">screenshot</span><span class="p">(</span><span class="n">omit_background</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
         <span class="n">out_path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">mean_png_bytes</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="n">supersample</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_capture_frames_canvas</span><span class="p">(</span>
+    <span class="n">page</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">total_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">frames_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">supersample</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">NO_SUPERSAMPLE</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">frame_samples</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">batch</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">workers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_inflight</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``capture="canvas"`` frame stage: in-page reads, batched, ordered, bounded.</span>
+
+<span class="sd">    Per round trip the page seeks up to ``batch`` frames' instants **in frame</span>
+<span class="sd">    order, samples in the order given** — the order the screenshot path seeks</span>
+<span class="sd">    them, which matters because the runtime's pose is not yet a pure function of</span>
+<span class="sd">    ``t`` (an#185) — and returns each frame's canvas as PNG data URLs. The decode,</span>
+<span class="sd">    opacity check, supersample and temporal resolve, and RGB re-encode</span>
+<span class="sd">    (:func:`~an.adapters.cutout.canvas_capture.canvas_frame_png`) run on a</span>
+<span class="sd">    small thread pool while the page renders the next batch.</span>
+
+<span class="sd">    Two corruptions are silent unless refused, so both are refused explicitly:</span>
+
+<span class="sd">    - **A dropped or reordered frame.** The page echoes each frame number; the</span>
+<span class="sd">      reply must be exactly the frames requested, in the order requested, each</span>
+<span class="sd">      with one PNG per instant — otherwise this raises before anything is</span>
+<span class="sd">      written from that batch. Every file is named by the frame number the page</span>
+<span class="sd">      echoed and the loop's own index agreeing, never by arrival order from the</span>
+<span class="sd">      pool; and before returning, every frame file ``0..total_frames-1`` must</span>
+<span class="sd">      exist on disk (redundant with the above by construction — kept because</span>
+<span class="sd">      the mux reads the directory, not this loop's bookkeeping).</span>
+<span class="sd">    - **Unbounded buffering.** At most ``max_inflight`` frames sit in the pool</span>
+<span class="sd">      unwritten; past that the loop blocks on the OLDEST before asking the page</span>
+<span class="sd">      for more (back-pressure), so a long shot costs bounded memory.</span>
+
+<span class="sd">    ``None`` for ``batch`` / ``workers`` / ``max_inflight`` reads the module</span>
+<span class="sd">    defaults at call time.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">deque</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
+
+    <span class="n">batch</span> <span class="o">=</span> <span class="n">batch</span> <span class="ow">or</span> <span class="n">DEFAULT_CANVAS_BATCH</span>
+    <span class="n">workers</span> <span class="o">=</span> <span class="n">workers</span> <span class="ow">or</span> <span class="n">DEFAULT_CANVAS_ENCODE_WORKERS</span>
+    <span class="n">max_inflight</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_inflight</span> <span class="ow">or</span> <span class="n">DEFAULT_CANVAS_MAX_INFLIGHT</span><span class="p">)</span>
+    <span class="n">instants</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">fps</span><span class="p">),)</span> <span class="k">if</span> <span class="n">frame_samples</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">frame_samples</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_frames</span><span class="p">)</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_encode</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pngs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">frames_dir</span> <span class="o">/</span> <span class="p">(</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">canvas_frame_png</span><span class="p">(</span><span class="n">pngs</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">resolution</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">CanvasCaptureError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CutoutRenderError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"canvas capture: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">i</span>
+
+    <span class="n">written</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">inflight</span><span class="p">:</span> <span class="n">deque</span> <span class="o">=</span> <span class="n">deque</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span>
+        <span class="n">max_workers</span><span class="o">=</span><span class="n">workers</span><span class="p">,</span> <span class="n">thread_name_prefix</span><span class="o">=</span><span class="s2">"an-canvas"</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">,</span> <span class="n">batch</span><span class="p">):</span>
+                <span class="n">requests</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">{</span><span class="s2">"frame"</span><span class="p">:</span> <span class="n">i</span><span class="p">,</span> <span class="s2">"times"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">instants</span><span class="p">[</span><span class="n">i</span><span class="p">])}</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="n">batch</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">))</span>
+                <span class="p">]</span>
+                <span class="n">reply</span> <span class="o">=</span> <span class="n">_evaluate</span><span class="p">(</span>
+                    <span class="n">page</span><span class="p">,</span>
+                    <span class="n">_CAPTURE_FRAMES_JS</span><span class="p">,</span>
+                    <span class="n">requests</span><span class="p">,</span>
+                    <span class="n">doing</span><span class="o">=</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"capturing frames </span><span class="si">{</span><span class="n">requests</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">'frame'</span><span class="p">]</span><span class="si">}</span><span class="s2">-"</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">requests</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">'frame'</span><span class="p">]</span><span class="si">}</span><span class="s2"> from the canvas"</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pngs</span> <span class="ow">in</span> <span class="n">_checked_capture_reply</span><span class="p">(</span><span class="n">reply</span><span class="p">,</span> <span class="n">requests</span><span class="p">):</span>
+                    <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">inflight</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">max_inflight</span><span class="p">:</span>
+                        <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inflight</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+                    <span class="n">inflight</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_encode</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pngs</span><span class="p">))</span>
+            <span class="k">while</span> <span class="n">inflight</span><span class="p">:</span>
+                <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inflight</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span><span class="o">.</span><span class="n">result</span><span class="p">())</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="c1"># A failure anywhere must not leave encodes running against a</span>
+            <span class="c1"># frames directory the caller is about to treat as finished.</span>
+            <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">inflight</span><span class="p">:</span>
+                <span class="n">fut</span><span class="o">.</span><span class="n">cancel</span><span class="p">()</span>
+    <span class="c1"># Belt and braces, checked on DISK rather than on the bookkeeping above</span>
+    <span class="c1"># (which is correct by construction): the mux reads the directory, so the</span>
+    <span class="c1"># directory is what must hold every frame exactly once.</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">i</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_frames</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">frames_dir</span> <span class="o">/</span> <span class="p">(</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span> <span class="o">%</span> <span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">is_file</span><span class="p">()</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">written</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">total_frames</span><span class="p">))</span> <span class="ow">or</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutRenderError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"canvas capture finished with frames </span><span class="si">{</span><span class="n">missing</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span><span class="si">}</span><span class="s2"> missing from "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">frames_dir</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">written</span><span class="p">)</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">total_frames</span><span class="si">}</span><span class="s2"> encoded); a dropped "</span>
+            <span class="s2">"frame is silent corruption, so this refuses rather than muxing it"</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_checked_capture_reply</span><span class="p">(</span>
+    <span class="n">reply</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">requests</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""Validate one ``anCaptureFrames`` reply against its request; yield</span>
+<span class="sd">    ``(frame, [png bytes, ...])`` in frame order, or raise.</span>
+
+<span class="sd">    The whole reply is checked before the first frame is yielded, so a bad</span>
+<span class="sd">    batch writes nothing.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reply</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"error"</span> <span class="ow">in</span> <span class="n">reply</span><span class="p">:</span>
+        <span class="n">frame</span><span class="p">,</span> <span class="n">t</span> <span class="o">=</span> <span class="n">reply</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"frame"</span><span class="p">),</span> <span class="n">reply</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"t"</span><span class="p">)</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"frame </span><span class="si">{</span><span class="n">frame</span><span class="si">}</span><span class="s2"> (t=</span><span class="si">{</span><span class="n">t</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">s)"</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">))</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">"frame </span><span class="si">{</span><span class="n">frame</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+        <span class="k">raise</span> <span class="n">CutoutRenderError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> could not be evaluated:</span><span class="se">\n</span><span class="si">{</span><span class="n">reply</span><span class="p">[</span><span class="s1">'error'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">reply</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"frames"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">reply</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">CutoutRenderError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"anCaptureFrames returned </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">reply</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">, not </span><span class="se">{{</span><span class="s2">frames: [...]</span><span class="se">}}</span><span class="s2"> "</span>
+            <span class="s2">"— is the staged runtime.js older than this renderer?"</span>
+        <span class="p">)</span>
+    <span class="n">asked</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"frame"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">requests</span><span class="p">]</span>
+    <span class="n">got</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"frame"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">got</span> <span class="o">!=</span> <span class="n">asked</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutRenderError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the page returned frames </span><span class="si">{</span><span class="n">got</span><span class="si">}</span><span class="s2"> for a request of </span><span class="si">{</span><span class="n">asked</span><span class="si">}</span><span class="s2">; a "</span>
+            <span class="s2">"dropped or reordered frame is silent corruption, so nothing from "</span>
+            <span class="s2">"this batch is written"</span>
+        <span class="p">)</span>
+    <span class="n">decoded</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">req</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">requests</span><span class="p">,</span> <span class="n">frames</span><span class="p">):</span>
+        <span class="n">urls</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pngs"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">urls</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">urls</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="s2">"times"</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="n">CutoutRenderError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"frame </span><span class="si">{</span><span class="n">req</span><span class="p">[</span><span class="s1">'frame'</span><span class="p">]</span><span class="si">}</span><span class="s2">: the page returned "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">urls</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">urls</span><span class="p">,</span><span class="w"> </span><span class="nb">list</span><span class="p">)</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">urls</span><span class="si">!r}</span><span class="s2"> sample(s) for "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">req</span><span class="p">[</span><span class="s1">'times'</span><span class="p">])</span><span class="si">}</span><span class="s2"> instant(s)"</span>
+            <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">pngs</span> <span class="o">=</span> <span class="p">[</span><span class="n">decode_data_url</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">frame</span><span class="o">=</span><span class="n">req</span><span class="p">[</span><span class="s2">"frame"</span><span class="p">])</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">urls</span><span class="p">]</span>
+        <span class="k">except</span> <span class="n">CanvasCaptureError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CutoutRenderError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"canvas capture: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="n">decoded</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">req</span><span class="p">[</span><span class="s2">"frame"</span><span class="p">],</span> <span class="n">pngs</span><span class="p">))</span>
+    <span class="k">yield from</span> <span class="n">decoded</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_set_time</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

@@ -8,6 +8,7 @@
 - [an](an.html.md): an — AI-driven structured animation.
 - [an.adapters](an.adapters.html.md): Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).
 - [an.adapters.cutout](an.adapters.cutout.html.md): Cutout-style 2D animation backend.
+- [an.adapters.cutout.canvas_capture](an.adapters.cutout.canvas_capture.html.md): The canvas capture path: frames read from the page, not photographed off the screen.
 - [an.adapters.cutout.channel](an.adapters.cutout.channel.html.md): Channel: keyframes for a single (target, property) pair, evaluated at time t.
 - [an.adapters.cutout.clip](an.adapters.cutout.clip.html.md): Clip: a named bundle of channels with a duration and loop mode.
 - [an.adapters.cutout.coarticulate](an.adapters.cutout.coarticulate.html.md): Co-articulation for a swap mouth: the passes between a provider’s raw viseme

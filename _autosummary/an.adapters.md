@@ -40,7 +40,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).
 
-### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, extra=<factory>)
+### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, capture=None, extra=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -49,6 +49,20 @@ Everything a renderer needs that isn’t on the Shot itself.
 `mall` carries the project’s stores so the renderer can resolve assets
 by reference. `work_dir` is a scratch space; the renderer must clean up
 after itself or treat it as ephemeral.
+
+#### capture *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"screenshot"` (a Playwright element
+screenshot per instant) or `"canvas"` (the runtime reads its own canvas
+in-page, in batches). `None` is the renderer’s module default, read at
+call time — `"screenshot"` until the equivalence gate has held on the
+whole corpus on both lanes. The two paths write frames whose DECODED
+pixels are equal, so this is a throughput knob and never a picture knob;
+a `RenderContext` field for `supersample`’s reason, and recorded in
+per-shot provenance.
+
+* **Type:**
+  How frames leave the browser
 
 #### default_easing *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
 

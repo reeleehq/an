@@ -24,7 +24,7 @@ authoring-time DSL to canonical-form actions.
 | [`parallel`](#an.ir.parallel)(\*actions)                              | Run all children at once.                                                   |
 | [`delay`](#an.ir.delay)(duration)                                  | An empty span that consumes time.                                           |
 | [`loop`](#an.ir.loop)(action, count)                              | Repeat `action` `count` times.                                              |
-| [`flatten`](#an.ir.flatten)(action, \*[, start])                     | Walk a composition tree, emitting leaf actions with absolute times.         |
+| [`flatten`](#an.ir.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.         |
 | [`validate_schema`](#an.ir.validate_schema)(doc)                             | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema. |
 | [`validate_semantic`](#an.ir.validate_semantic)(scene, \*[, ...])              | Cross-field semantic checks.                                                |
 | [`migrate`](#an.ir.migrate)(doc[, target_version, kind])             | Migrate a document to `target_version` (default: its kind's current).       |
@@ -327,7 +327,7 @@ An empty span that consumes time. Useful inside `sequence`.
 Hold a facial expression on an entity (an#98).
 
 `duration=None` runs to the shot end and counts as **zero** in a
-`sequence`, like `play`:
+`sequence`, as a looping `play` does:
 
 * **Return type:**
   [`ExpressionAction`](an.ir.schema.html.md#an.ir.schema.ExpressionAction)
@@ -339,9 +339,13 @@ Hold a facial expression on an entity (an#98).
 2.0
 ```
 
-### an.ir.flatten(action, , start=0.0)
+### an.ir.flatten(action, , start=0.0, play_extent=None)
 
 Walk a composition tree, emitting leaf actions with absolute times.
+
+A `play` without `duration` advances a `sequence` by `play_extent`
+(default `default_play_extent()`): its natural length, or zero for a
+looping animation, which runs to the shot end.
 
 Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
@@ -451,8 +455,11 @@ Run all children at once. Total duration = max of child durations.
 Play a named animation of the target entity’s descriptor (an#7).
 
 `duration=None` fills the animation’s natural length — or the shot’s
-remainder for a looping one — but counts as **zero** in a `sequence`,
-so a sibling placed after it starts at the same instant:
+remainder for a looping one. In a `sequence` a play with no `duration`
+occupies its **natural** length (a motion preset’s own length divided by
+`speed`; a non-looping descriptor animation’s likewise), so the sibling
+after it starts when it ends; a looping one runs to the shot end and
+occupies **zero**:
 
 * **Return type:**
   [`PlayAction`](an.ir.schema.html.md#an.ir.schema.PlayAction)
@@ -462,7 +469,16 @@ so a sibling placed after it starts at the same instant:
 [0.0, 1.0]
 >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
 [0.0, 2.0]
+>>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
+[0.0, 0.5]
+>>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
+[0.0, 0.25]
 ```
+
+(Bare `flatten` knows only the presets, by name; `an validate` and the
+compiler pass the entity’s descriptor too — `an.characters.play.play_extent()`
+— so a descriptor animation that shares a preset’s name is measured as the
+descriptor’s.)
 
 A name the descriptor does not declare falls back to a motion preset of
 [`an.motion.PRESETS`](an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):

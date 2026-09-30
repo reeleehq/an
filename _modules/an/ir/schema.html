@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../../../_static/documentation_options.js?v=05541c91"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1085,8 +1085,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    rest of the shot, because a loop bounded by its own natural duration</span>
 <span class="sd">    never loops. ``loop`` overrides the animation's declared ``loop``</span>
 <span class="sd">    (``None`` = use the descriptor's). Inside a ``sequence`` a play with</span>
-<span class="sd">    ``duration=None`` has ZERO width (:func:`an.ir.compose.duration_of`):</span>
-<span class="sd">    the next sibling starts at the same instant.</span>
+<span class="sd">    ``duration=None`` occupies its NATURAL length — a motion preset's own</span>
+<span class="sd">    length, a non-looping descriptor animation's ``duration``, both over</span>
+<span class="sd">    ``speed`` — so the next sibling starts when it ends; a looping one runs to</span>
+<span class="sd">    the shot end and occupies ZERO (:func:`an.characters.play.play_extent`).</span>
 <span class="sd">    """</span>
 
     <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"play"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"play"</span>
@@ -1127,7 +1129,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    are per-axis overrides layered on it (axis units, see</span>
 <span class="sd">    :mod:`an.expression.axes`); ``None`` + no axes is a cheap "return to</span>
 <span class="sd">    rest". ``duration=None`` runs to the shot end (the looping-play rule) and</span>
-<span class="sd">    is **zero-width in a sequence**, like ``play``. ``blend`` ramps the</span>
+<span class="sd">    is **zero-width in a sequence**, like a looping ``play``. ``blend`` ramps the</span>
 <span class="sd">    intensity in and out; two overlapping expressions cross-fade because the</span>
 <span class="sd">    face solver sums offsets. The dialogue ``speaker [emotion]: …`` bracket is</span>
 <span class="sd">    sugar for one of these over the line, desugared in memory only.</span>

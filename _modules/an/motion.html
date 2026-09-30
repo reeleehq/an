@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../../_static/documentation_options.js?v=05541c91"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -764,8 +764,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">no ``rest=`` — and ``args`` as the preset's keyword arguments. A character</span>
 <span class="sd">descriptor animation of the same name WINS; ``an validate`` and the compiler</span>
 <span class="sd">decide both through :func:`an.characters.play.play_problems`. ``duration``</span>
-<span class="sd">stretches the move and ``speed`` divides it; ``loop`` is refused. Like every</span>
-<span class="sd">``play`` without a ``duration``, it is zero-width inside a ``sequence``.</span>
+<span class="sd">stretches the move and ``speed`` divides it; ``loop`` is refused. In a</span>
+<span class="sd">``sequence`` a ``play`` without a ``duration`` occupies the preset's own</span>
+<span class="sd">length divided by ``speed``, so two in a row run one after the other.</span>
 <span class="sd">:func:`as_leaves` remains for a preset composed in Python and written into</span>
 <span class="sd">``scene.md`` as plain tweens (a composition tree does not round-trip).</span>
 <span class="sd">"""</span>

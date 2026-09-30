@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../../../_static/documentation_options.js?v=05541c91"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -735,6 +735,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.play</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">PRESET_SOURCE</span><span class="p">,</span>
     <span class="n">art_exists_for</span><span class="p">,</span>
+    <span class="n">play_extent_for</span><span class="p">,</span>
     <span class="n">play_problems</span><span class="p">,</span>
     <span class="n">play_source</span><span class="p">,</span>
     <span class="n">preset_moved_node</span><span class="p">,</span>
@@ -1157,8 +1158,37 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># built once per shot, lazily, and only when a preset play is present.</span>
     <span class="n">stage_nodes</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">stage_tried</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">play_descriptor</span><span class="p">(</span><span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CharacterDescriptor</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># `play` resolves against a CHARACTER's animations. A prop has an</span>
+        <span class="c1"># `animations` field so the shared rig builder can read the same</span>
+        <span class="c1"># attribute on either document, but nothing seeds it and no author</span>
+        <span class="c1"># tool writes one — so a `play` on a prop resolves presets only,</span>
+        <span class="c1"># exactly as the compiler (which reads character descriptors</span>
+        <span class="c1"># alone) resolves it.</span>
+        <span class="n">entity</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">is_character</span> <span class="o">=</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">is_character</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extent_descriptor</span><span class="p">(</span><span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CharacterDescriptor</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Only to place a `sequence`'s later siblings, exactly as the compiler</span>
+        <span class="c1"># does; a descriptor that will not even parse is reported by the loop</span>
+        <span class="c1"># below, so it must not raise from inside `flatten`.</span>
+        <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="n">unchecked</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">play_descriptor</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ValidationError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">play_extent</span> <span class="o">=</span> <span class="n">play_extent_for</span><span class="p">(</span><span class="n">extent_descriptor</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">play_extent</span><span class="p">):</span>
             <span class="n">leaf</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
             <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"play"</span><span class="p">:</span>
                 <span class="k">continue</span>
@@ -1166,19 +1196,8 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">entity_id</span> <span class="ow">in</span> <span class="n">unchecked</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="n">entity</span> <span class="o">=</span> <span class="n">rigs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
-            <span class="n">doc</span> <span class="o">=</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span> <span class="k">if</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-            <span class="c1"># `play` resolves against a CHARACTER's animations. A prop has an</span>
-            <span class="c1"># `animations` field so the shared rig builder can read the same</span>
-            <span class="c1"># attribute on either document, but nothing seeds it and no author</span>
-            <span class="c1"># tool writes one — so a `play` on a prop resolves presets only,</span>
-            <span class="c1"># exactly as the compiler (which reads character descriptors</span>
-            <span class="c1"># alone) resolves it.</span>
             <span class="n">is_character</span> <span class="o">=</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span>
-            <span class="n">desc</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">CharacterDescriptor</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">is_character</span>
-                <span class="k">else</span> <span class="kc">None</span>
-            <span class="p">)</span>
+            <span class="n">desc</span> <span class="o">=</span> <span class="n">play_descriptor</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span>
             <span class="n">problems</span> <span class="o">=</span> <span class="n">play_problems</span><span class="p">(</span>
                 <span class="n">desc</span><span class="p">,</span>
                 <span class="n">leaf</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span>

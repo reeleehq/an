@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../_static/documentation_options.js?v=05541c91"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.impacts.truth" href="an.impacts.truth.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -552,7 +552,7 @@ authoring-time DSL to canonical-form actions.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.loop" title="an.ir.loop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loop</span></code></a>(action, count)</p></td>
 <td><p>Repeat <code class="docutils literal notranslate"><span class="pre">action</span></code> <code class="docutils literal notranslate"><span class="pre">count</span></code> times.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.flatten" title="an.ir.flatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></a>(action, *[, start])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.flatten" title="an.ir.flatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></a>(action, *[, start, play_extent])</p></td>
 <td><p>Walk a composition tree, emitting leaf actions with absolute times.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate_schema" title="an.ir.validate_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schema</span></code></a>(doc)</p></td>
@@ -969,7 +969,7 @@ renderer while the thing that actually styles it went unread.</p>
 <span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">expression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">intensity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#expression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.expression" title="Link to this definition">#</a></dt>
 <dd><p>Hold a facial expression on an entity (an#98).</p>
 <p><code class="docutils literal notranslate"><span class="pre">duration=None</span></code> runs to the shot end and counts as <strong>zero</strong> in a
-<code class="docutils literal notranslate"><span class="pre">sequence</span></code>, like <code class="docutils literal notranslate"><span class="pre">play</span></code>:</p>
+<code class="docutils literal notranslate"><span class="pre">sequence</span></code>, as a looping <code class="docutils literal notranslate"><span class="pre">play</span></code> does:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.ExpressionAction" title="an.ir.schema.ExpressionAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExpressionAction</span></code></a></span></p>
@@ -985,8 +985,11 @@ renderer while the thing that actually styles it went unread.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.ir.flatten">
-<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">flatten</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#flatten"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.flatten" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">flatten</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">play_extent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#flatten"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.flatten" title="Link to this definition">#</a></dt>
 <dd><p>Walk a composition tree, emitting leaf actions with absolute times.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">play</span></code> without <code class="docutils literal notranslate"><span class="pre">duration</span></code> advances a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> by <code class="docutils literal notranslate"><span class="pre">play_extent</span></code>
+(default <code class="xref py py-func docutils literal notranslate"><span class="pre">default_play_extent()</span></code>): its natural length, or zero for a
+looping animation, which runs to the shot end.</p>
 <p>Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.</p>
@@ -1117,8 +1120,11 @@ path exists between the source and target versions.</p>
 <span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">play</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">animation</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loop</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#play"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.play" title="Link to this definition">#</a></dt>
 <dd><p>Play a named animation of the target entity’s descriptor (an#7).</p>
 <p><code class="docutils literal notranslate"><span class="pre">duration=None</span></code> fills the animation’s natural length — or the shot’s
-remainder for a looping one — but counts as <strong>zero</strong> in a <code class="docutils literal notranslate"><span class="pre">sequence</span></code>,
-so a sibling placed after it starts at the same instant:</p>
+remainder for a looping one. In a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> a play with no <code class="docutils literal notranslate"><span class="pre">duration</span></code>
+occupies its <strong>natural</strong> length (a motion preset’s own length divided by
+<code class="docutils literal notranslate"><span class="pre">speed</span></code>; a non-looping descriptor animation’s likewise), so the sibling
+after it starts when it ends; a looping one runs to the shot end and
+occupies <strong>zero</strong>:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.PlayAction" title="an.ir.schema.PlayAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlayAction</span></code></a></span></p>
@@ -1128,8 +1134,16 @@ so a sibling placed after it starts at the same instant:</p>
 <span class="go">[0.0, 1.0]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">sequence</span><span class="p">(</span><span class="n">play</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"idle_breath"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span> <span class="n">play</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"blink"</span><span class="p">)))]</span>
 <span class="go">[0.0, 2.0]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">sequence</span><span class="p">(</span><span class="n">play</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">),</span> <span class="n">play</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"nod"</span><span class="p">)))]</span>
+<span class="go">[0.0, 0.5]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">start</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">sequence</span><span class="p">(</span><span class="n">play</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mf">2.0</span><span class="p">),</span> <span class="n">play</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"nod"</span><span class="p">)))]</span>
+<span class="go">[0.0, 0.25]</span>
 </pre></div>
 </div>
+<p>(Bare <code class="docutils literal notranslate"><span class="pre">flatten</span></code> knows only the presets, by name; <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> and the
+compiler pass the entity’s descriptor too — <code class="xref py py-func docutils literal notranslate"><span class="pre">an.characters.play.play_extent()</span></code>
+— so a descriptor animation that shares a preset’s name is measured as the
+descriptor’s.)</p>
 <p>A name the descriptor does not declare falls back to a motion preset of
 <a class="reference internal" href="an.motion.html#an.motion.PRESETS" title="an.motion.PRESETS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.motion.PRESETS</span></code></a>, with <code class="docutils literal notranslate"><span class="pre">args</span></code> as its parameters (an#166):</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">play</span><span class="p">(</span><span class="s2">"charlie"</span><span class="p">,</span> <span class="s2">"hop"</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">{</span><span class="s2">"height"</span><span class="p">:</span> <span class="mi">30</span><span class="p">})</span><span class="o">.</span><span class="n">args</span>

@@ -26,7 +26,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised on render-pipeline failures with actionable detail.
 
-### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, language='en')
+### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
 
 Lower-level: render a loaded `Project` to mp4.
 
@@ -76,7 +76,7 @@ different picture (an#33).
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, language='en')
+### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
 
 Render every shot in `project_dir`’s scene and concatenate to one mp4.
 
@@ -99,6 +99,13 @@ GIL during the slow parts).
 `supersample` renders at N times the declared resolution and resolves back
 with an exact block mean. **Opt-in, and 1 is free** — at 1 nothing is
 decoded and Chromium’s own bytes reach disk. See [`render()`](#an.render.render).
+
+`capture` picks how frames leave the browser: `"screenshot"` (the
+default, via `None`) or `"canvas"` — an in-page read of the canvas,
+batched, writing frames whose decoded pixels equal the screenshot path’s
+and measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p (see
+`an.adapters.cutout.canvas_capture`). Opt-in until the equivalence gate has
+held on both rendering lanes.
 
 `step_hz` overrides the scene’s `meta.step_hz` for this render (a shot’s
 own `step_hz` still wins): authored tweens are resampled onto a pose grid

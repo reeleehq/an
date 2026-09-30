@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../../../_static/documentation_options.js?v=05541c91"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -739,6 +739,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -830,13 +831,25 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Play a named animation of the target entity's descriptor (an#7).</span>
 
 <span class="sd">    ``duration=None`` fills the animation's natural length — or the shot's</span>
-<span class="sd">    remainder for a looping one — but counts as **zero** in a ``sequence``,</span>
-<span class="sd">    so a sibling placed after it starts at the same instant:</span>
+<span class="sd">    remainder for a looping one. In a ``sequence`` a play with no ``duration``</span>
+<span class="sd">    occupies its **natural** length (a motion preset's own length divided by</span>
+<span class="sd">    ``speed``; a non-looping descriptor animation's likewise), so the sibling</span>
+<span class="sd">    after it starts when it ends; a looping one runs to the shot end and</span>
+<span class="sd">    occupies **zero**:</span>
 
 <span class="sd">    &gt;&gt;&gt; [f.start for f in flatten(sequence(play("a", "idle_breath"), delay(1.0), play("a", "blink")))]</span>
 <span class="sd">    [0.0, 1.0]</span>
 <span class="sd">    &gt;&gt;&gt; [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]</span>
 <span class="sd">    [0.0, 2.0]</span>
+<span class="sd">    &gt;&gt;&gt; [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]</span>
+<span class="sd">    [0.0, 0.5]</span>
+<span class="sd">    &gt;&gt;&gt; [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]</span>
+<span class="sd">    [0.0, 0.25]</span>
+
+<span class="sd">    (Bare ``flatten`` knows only the presets, by name; ``an validate`` and the</span>
+<span class="sd">    compiler pass the entity's descriptor too — :func:`an.characters.play.play_extent`</span>
+<span class="sd">    — so a descriptor animation that shares a preset's name is measured as the</span>
+<span class="sd">    descriptor's.)</span>
 
 <span class="sd">    A name the descriptor does not declare falls back to a motion preset of</span>
 <span class="sd">    :data:`an.motion.PRESETS`, with ``args`` as its parameters (an#166):</span>
@@ -869,7 +882,7 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Hold a facial expression on an entity (an#98).</span>
 
 <span class="sd">    ``duration=None`` runs to the shot end and counts as **zero** in a</span>
-<span class="sd">    ``sequence``, like ``play``:</span>
+<span class="sd">    ``sequence``, as a looping ``play`` does:</span>
 
 <span class="sd">    &gt;&gt;&gt; [f.start for f in flatten(sequence(expression("a", "happy"), delay(1.0), expression("a", "sad")))]</span>
 <span class="sd">    [0.0, 1.0]</span>
@@ -931,10 +944,46 @@ window.runMermaid = runMermaid;</script>
 <span class="c1"># -----------------------------------------------------------------------------</span>
 
 
+<span class="c1">#: ``PlayAction -&gt; seconds`` a play WITHOUT an explicit ``duration`` occupies in</span>
+<span class="c1">#: a ``sequence``. The default is :func:`default_play_extent`; the compiler and</span>
+<span class="c1">#: ``an validate`` pass one bound to the entity's descriptor.</span>
+<span class="n">PlayExtent</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">PlayAction</span><span class="p">],</span> <span class="n">Seconds</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="default_play_extent">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.compose.html#an.default_play_extent">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">default_play_extent</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">PlayAction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Seconds</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A duration-less play's extent when no descriptor is known: a motion</span>
+<span class="sd">    preset's natural length over ``speed``, else ``0.0``.</span>
+
+<span class="sd">    The one resolver is :func:`an.characters.play.play_extent`; this is it with</span>
+<span class="sd">    ``desc=None``.</span>
+
+<span class="sd">    &gt;&gt;&gt; default_play_extent(PlayAction(target="a", animation="hop"))</span>
+<span class="sd">    0.5</span>
+<span class="sd">    &gt;&gt;&gt; default_play_extent(PlayAction(target="a", animation="not_a_preset"))</span>
+<span class="sd">    0.0</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.play</span><span class="w"> </span><span class="kn">import</span> <span class="n">play_extent</span>  <span class="c1"># lazy: play imports the IR</span>
+
+    <span class="k">return</span> <span class="n">play_extent</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">action</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_extent_of_play</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">play_extent</span><span class="p">:</span> <span class="n">PlayExtent</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Seconds</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">ExpressionAction</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span> <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">play_extent</span> <span class="ow">or</span> <span class="n">default_play_extent</span><span class="p">)(</span><span class="n">action</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="duration_of">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.compose.html#an.duration_of">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">duration_of</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Action</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Seconds</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">duration_of</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Action</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">play_extent</span><span class="p">:</span> <span class="n">PlayExtent</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Seconds</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Compute the total duration of an action tree without evaluating it.</span>
+
+<span class="sd">    ``play_extent`` resolves a duration-less ``play`` (see :data:`PlayExtent`).</span>
 
 <span class="sd">    &gt;&gt;&gt; duration_of(tween("a", "x", to=1.0, duration=2.0))</span>
 <span class="sd">    2.0</span>
@@ -952,15 +1001,18 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="p">(</span><span class="n">PlayAction</span><span class="p">,</span> <span class="n">ExpressionAction</span><span class="p">)):</span>
-        <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span> <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="k">return</span> <span class="n">_extent_of_play</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">DelayAction</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">SequenceAction</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">((</span><span class="n">duration_of</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">children</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">((</span><span class="n">duration_of</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">play_extent</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">children</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">ParallelAction</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">max</span><span class="p">((</span><span class="n">duration_of</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">children</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">duration_of</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">play_extent</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">children</span><span class="p">),</span>
+            <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">LoopAction</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">duration_of</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">child</span><span class="p">)</span> <span class="o">*</span> <span class="n">action</span><span class="o">.</span><span class="n">count</span>
+        <span class="k">return</span> <span class="n">duration_of</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">child</span><span class="p">,</span> <span class="n">play_extent</span><span class="o">=</span><span class="n">play_extent</span><span class="p">)</span> <span class="o">*</span> <span class="n">action</span><span class="o">.</span><span class="n">count</span>
     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown action type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
 
 
@@ -991,20 +1043,34 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="flatten">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.compose.html#an.flatten">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">flatten</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Action</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">flatten</span><span class="p">(</span>
+    <span class="n">action</span><span class="p">:</span> <span class="n">Action</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">start</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">play_extent</span><span class="p">:</span> <span class="n">PlayExtent</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Walk a composition tree, emitting leaf actions with absolute times.</span>
+
+<span class="sd">    A ``play`` without ``duration`` advances a ``sequence`` by ``play_extent``</span>
+<span class="sd">    (default :func:`default_play_extent`): its natural length, or zero for a</span>
+<span class="sd">    looping animation, which runs to the shot end.</span>
 
 <span class="sd">    Delays are absorbed into the timeline (they don't appear in the output).</span>
 <span class="sd">    Loops are unrolled by simple repetition — appropriate at v0.1; the cutout</span>
 <span class="sd">    runtime can re-roll for efficiency later.</span>
 <span class="sd">    """</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">_flatten_into</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+    <span class="n">_flatten_into</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">play_extent</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_flatten_into</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Action</span><span class="p">,</span> <span class="n">t</span><span class="p">:</span> <span class="n">Seconds</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Seconds</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_flatten_into</span><span class="p">(</span>
+    <span class="n">action</span><span class="p">:</span> <span class="n">Action</span><span class="p">,</span>
+    <span class="n">t</span><span class="p">:</span> <span class="n">Seconds</span><span class="p">,</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">FlatAction</span><span class="p">],</span>
+    <span class="n">play_extent</span><span class="p">:</span> <span class="n">PlayExtent</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Seconds</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Append leaf actions to ``out`` and return the new cursor time."""</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">):</span>
         <span class="c1"># `at` is relative to enclosing scope; absolute start is t + at.</span>
@@ -1015,7 +1081,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FlatAction</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">t</span> <span class="o">+</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">t</span> <span class="o">+</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="p">(</span><span class="n">PlayAction</span><span class="p">,</span> <span class="n">ExpressionAction</span><span class="p">)):</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span> <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">_extent_of_play</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">play_extent</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">FlatAction</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">t</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">t</span> <span class="o">+</span> <span class="n">d</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="n">action</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">t</span> <span class="o">+</span> <span class="n">d</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">DelayAction</span><span class="p">):</span>
@@ -1023,19 +1089,19 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">SequenceAction</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="n">t</span>
         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-            <span class="n">cursor</span> <span class="o">=</span> <span class="n">_flatten_into</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">_flatten_into</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">play_extent</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cursor</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">ParallelAction</span><span class="p">):</span>
         <span class="n">max_end</span> <span class="o">=</span> <span class="n">t</span>
         <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
-            <span class="n">child_end</span> <span class="o">=</span> <span class="n">_flatten_into</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+            <span class="n">child_end</span> <span class="o">=</span> <span class="n">_flatten_into</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">play_extent</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">child_end</span> <span class="o">&gt;</span> <span class="n">max_end</span><span class="p">:</span>
                 <span class="n">max_end</span> <span class="o">=</span> <span class="n">child_end</span>
         <span class="k">return</span> <span class="n">max_end</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="n">LoopAction</span><span class="p">):</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="n">t</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">count</span><span class="p">):</span>
-            <span class="n">cursor</span> <span class="o">=</span> <span class="n">_flatten_into</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">child</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">_flatten_into</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">child</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">play_extent</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cursor</span>
     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown action type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </pre></div>

@@ -40,6 +40,7 @@ an.adapters.cutout
    :toctree:
    :recursive:
 
+   canvas_capture
    channel
    clip
    coarticulate

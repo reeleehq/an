@@ -241,7 +241,7 @@ Hold a facial expression on an entity (an#98, epic #9 Wave 6).
 are per-axis overrides layered on it (axis units, see
 [`an.expression.axes`](an.expression.axes.html.md#module-an.expression.axes)); `None` + no axes is a cheap “return to
 rest”. `duration=None` runs to the shot end (the looping-play rule) and
-is **zero-width in a sequence**, like `play`. `blend` ramps the
+is **zero-width in a sequence**, like a looping `play`. `blend` ramps the
 intensity in and out; two overlapping expressions cross-fade because the
 face solver sums offsets. The dialogue `speaker [emotion]: …` bracket is
 sugar for one of these over the line, desugared in memory only.
@@ -370,8 +370,10 @@ animation’s own duration — or, when the resolved `loop` is true, the
 rest of the shot, because a loop bounded by its own natural duration
 never loops. `loop` overrides the animation’s declared `loop`
 (`None` = use the descriptor’s). Inside a `sequence` a play with
-`duration=None` has ZERO width ([`an.ir.compose.duration_of()`](an.ir.compose.html.md#an.ir.compose.duration_of)):
-the next sibling starts at the same instant.
+`duration=None` occupies its NATURAL length — a motion preset’s own
+length, a non-looping descriptor animation’s `duration`, both over
+`speed` — so the next sibling starts when it ends; a looping one runs to
+the shot end and occupies ZERO (`an.characters.play.play_extent()`).
 
 #### args *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

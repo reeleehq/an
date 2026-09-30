@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../_static/documentation_options.js?v=05541c91"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.path" href="an.adapters.cutout.path.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -529,7 +529,8 @@ JSON beside it.</p></li>
 <li><p>Launch headless Chromium via Playwright; load <code class="code docutils literal notranslate"><span class="pre">index.html</span></code>; inject the
 scene via <code class="docutils literal notranslate"><span class="pre">window.anLoadScene</span></code>.</p></li>
 <li><p>For each frame <code class="docutils literal notranslate"><span class="pre">f</span></code> in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">total_frames)</span></code>: call <code class="docutils literal notranslate"><span class="pre">window.anSetTime(f/fps)</span></code>
-and screenshot the canvas to a PNG.</p></li>
+and screenshot the canvas to a PNG — or, with <code class="docutils literal notranslate"><span class="pre">capture=&quot;canvas&quot;</span></code>, read the
+canvas’s own pixels in-page, in batches (<code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.canvas_capture</span></code>).</p></li>
 <li><p>Mux the PNG sequence to mp4 with ffmpeg.</p></li>
 </ol>
 <p>Failures are reported with concrete remediation: missing ffmpeg, missing
@@ -550,10 +551,25 @@ facade boundary.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.SUPPORTED_PIX_FMTS" title="an.adapters.cutout.render.SUPPORTED_PIX_FMTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_PIX_FMTS</span></code></a></p></td>
 <td><p>a typo would reach ffmpeg as an obscure failure minutes into a render, and a format outside this set has not been measured against the panel.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER" title="an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_LOAD_TIMEOUT_MARKER</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CAPTURE" title="an.adapters.cutout.render.DEFAULT_CAPTURE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTURE</span></code></a></p></td>
+<td><p>a Playwright element screenshot of <code class="docutils literal notranslate"><span class="pre">#stage</span></code> per instant — the path every render took before the canvas path existed, and still the default.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.SUPPORTED_CAPTURES" title="an.adapters.cutout.render.SUPPORTED_CAPTURES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_CAPTURES</span></code></a></p></td>
+<td><p>a typo must fail before a browser launches, not minutes into a render.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH" title="an.adapters.cutout.render.DEFAULT_CANVAS_BATCH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_BATCH</span></code></a></p></td>
+<td><p>Frames per <code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> round trip.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS" title="an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_ENCODE_WORKERS</span></code></a></p></td>
+<td><p>Threads decoding, resolving and re-encoding canvas frames while the page renders the next batch.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT" title="an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_MAX_INFLIGHT</span></code></a></p></td>
+<td><p>frames handed to the encode pool and not yet written.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER" title="an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_LOAD_TIMEOUT_MARKER</span></code></a></p></td>
 <td><p>Sentinel the in-page deadline rejects with, so the Python side can tell a timeout apart from a load failure and say something different about each.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE" title="an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_SRC_PREFIX_TO_STORE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE" title="an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_SRC_PREFIX_TO_STORE</span></code></a></p></td>
 <td><p>Texture <code class="docutils literal notranslate"><span class="pre">src</span></code> prefix → the mall store that resolves the rest of the path.</p></td>
 </tr>
 </tbody>
@@ -675,6 +691,63 @@ up”. Raise it for a genuinely heavy art package rather than removing it.</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_BATCH">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_BATCH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH" title="Link to this definition">#</a></dt>
+<dd><p>Frames per <code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> round trip. Measured at 1920x1080 on an M1
+Max, <code class="code docutils literal notranslate"><span class="pre">single_character</span></code>: 67 ms/frame one frame per call, 46 at four, 46 at
+eight — the round trip is ~20 ms of fixed cost, amortised by the batch. It is
+also the memory the page holds before Python takes it: eight data URLs of a
+1080p frame are well under a megabyte of text, and at a supersampled 4K
+backbuffer a few megabytes each.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_ENCODE_WORKERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS" title="Link to this definition">#</a></dt>
+<dd><p>Threads decoding, resolving and re-encoding canvas frames while the page
+renders the next batch. The decode/encode is ~60 ms/frame of Pillow and zlib
+at 1080p — the same order as the page’s own work — so it must overlap it or
+it eats the win. Two, not <code class="code docutils literal notranslate"><span class="pre">cpu_count()</span></code>: <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--parallel</span></code> already runs
+one Chromium per shot, and each of them is another source of CPU pressure.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_MAX_INFLIGHT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT" title="Link to this definition">#</a></dt>
+<dd><p>frames handed to the encode pool and not yet written. When
+the pool falls behind, the capture loop blocks on the oldest one before it
+asks the page for more, so memory is bounded by this many frames plus one
+batch however long the shot is.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>BACK-PRESSURE</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CAPTURE">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CAPTURE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'screenshot'</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CAPTURE" title="Link to this definition">#</a></dt>
+<dd><p>a Playwright element
+screenshot of <code class="docutils literal notranslate"><span class="pre">#stage</span></code> per instant — the path every render took before the
+canvas path existed, and still the default. <code class="docutils literal notranslate"><span class="pre">&quot;canvas&quot;</span></code>: the runtime’s
+<code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> reads the canvas in-page and hands back PNG data URLs in
+batches (<code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.canvas_capture</span></code>), which writes frames whose
+DECODED pixels equal the screenshot path’s.</p>
+<p>**The default stays <code class="docutils literal notranslate"><span class="pre">&quot;screenshot&quot;</span></code> until the equivalence gate has held on
+the whole golden corpus on both the developer machine and the labelled Linux
+rendering lane** (epic #9’s throughput track): a faster path that moved a
+pixel would silently invalidate every baseline recorded before it. The flip is
+its own one-line PR. Read as a MODULE GLOBAL at call time, for
+<code class="code docutils literal notranslate"><span class="pre">DEFAULT_PIX_FMT</span></code>’s reason — a default argument would bind it at def time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How frames leave the browser. <code class="docutils literal notranslate"><span class="pre">&quot;screenshot&quot;</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_PIX_FMT">
 <span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_PIX_FMT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'yuv420p'</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_PIX_FMT" title="Link to this definition">#</a></dt>
 <dd><p>x264 encode knobs pinned so the delivered mp4 is a function of the frames
@@ -763,6 +836,18 @@ explicit <code class="docutils literal notranslate"><span class="pre">app.render
 <p>Record the argv <strong>verbatim</strong> in any provenance row: all four rasteriser
 configurations report the byte-identical <code class="docutils literal notranslate"><span class="pre">UNMASKED_RENDERER_WEBGL</span></code> string,
 so the renderer string cannot witness this choice.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.SUPPORTED_CAPTURES">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_CAPTURES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('screenshot',</span> <span class="pre">'canvas')</span></span><a class="headerlink" href="#an.adapters.cutout.render.SUPPORTED_CAPTURES" title="Link to this definition">#</a></dt>
+<dd><p>a typo must
+fail before a browser launches, not minutes into a render.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The capture paths <code class="code docutils literal notranslate"><span class="pre">_check_capture</span></code> accepts. Not an open string</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py data">
@@ -859,8 +944,13 @@ has not been measured against the panel.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS"><code class="docutils literal notranslate"><span class="pre">DEFAULT_ASSET_LOAD_TIMEOUT_MS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_BATCH</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_ENCODE_WORKERS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_MAX_INFLIGHT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_CAPTURE"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CAPTURE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_PIX_FMT"><code class="docutils literal notranslate"><span class="pre">DEFAULT_PIX_FMT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS"><code class="docutils literal notranslate"><span class="pre">DETERMINISTIC_CHROMIUM_ARGS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.SUPPORTED_CAPTURES"><code class="docutils literal notranslate"><span class="pre">SUPPORTED_CAPTURES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.SUPPORTED_PIX_FMTS"><code class="docutils literal notranslate"><span class="pre">SUPPORTED_PIX_FMTS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.effective_step_hz"><code class="docutils literal notranslate"><span class="pre">effective_step_hz()</span></code></a></li>
 </ul>

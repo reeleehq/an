@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../_static/documentation_options.js?v=05541c91"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.compose" href="an.ir.compose.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -847,7 +847,7 @@ has none (offline, Rhubarb) or the line was stamped before an#96.</p>
 are per-axis overrides layered on it (axis units, see
 <a class="reference internal" href="an.expression.axes.html#module-an.expression.axes" title="an.expression.axes"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.expression.axes</span></code></a>); <code class="docutils literal notranslate"><span class="pre">None</span></code> + no axes is a cheap “return to
 rest”. <code class="docutils literal notranslate"><span class="pre">duration=None</span></code> runs to the shot end (the looping-play rule) and
-is <strong>zero-width in a sequence</strong>, like <code class="docutils literal notranslate"><span class="pre">play</span></code>. <code class="docutils literal notranslate"><span class="pre">blend</span></code> ramps the
+is <strong>zero-width in a sequence</strong>, like a looping <code class="docutils literal notranslate"><span class="pre">play</span></code>. <code class="docutils literal notranslate"><span class="pre">blend</span></code> ramps the
 intensity in and out; two overlapping expressions cross-fade because the
 face solver sums offsets. The dialogue <code class="docutils literal notranslate"><span class="pre">speaker</span> <span class="pre">[emotion]:</span> <span class="pre">…</span></code> bracket is
 sugar for one of these over the line, desugared in memory only.</p>
@@ -1005,8 +1005,10 @@ animation’s own duration — or, when the resolved <code class="docutils liter
 rest of the shot, because a loop bounded by its own natural duration
 never loops. <code class="docutils literal notranslate"><span class="pre">loop</span></code> overrides the animation’s declared <code class="docutils literal notranslate"><span class="pre">loop</span></code>
 (<code class="docutils literal notranslate"><span class="pre">None</span></code> = use the descriptor’s). Inside a <code class="docutils literal notranslate"><span class="pre">sequence</span></code> a play with
-<code class="docutils literal notranslate"><span class="pre">duration=None</span></code> has ZERO width (<a class="reference internal" href="an.ir.compose.html#an.ir.compose.duration_of" title="an.ir.compose.duration_of"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.compose.duration_of()</span></code></a>):
-the next sibling starts at the same instant.</p>
+<code class="docutils literal notranslate"><span class="pre">duration=None</span></code> occupies its NATURAL length — a motion preset’s own
+length, a non-looping descriptor animation’s <code class="docutils literal notranslate"><span class="pre">duration</span></code>, both over
+<code class="docutils literal notranslate"><span class="pre">speed</span></code> — so the next sibling starts when it ends; a looping one runs to
+the shot end and occupies ZERO (<code class="xref py py-func docutils literal notranslate"><span class="pre">an.characters.play.play_extent()</span></code>).</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=a12c9888"></script>
+    <script src="../../../_static/documentation_options.js?v=05541c91"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.104" />
+  <meta name="docsearch:version" content="0.1.105" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1376,6 +1376,23 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"still present — and the encode moves and every encode-side metric "</span>
             <span class="s2">"is silently refused against every committed row. Only argv "</span>
             <span class="s2">"equality notices."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="c1"># ------------------------------------------ canvas capture (epic #9 track)</span>
+    <span class="n">Mutant</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"canvas_capture_flips_rows"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/adapters/cutout/canvas_capture.py"</span><span class="p">,</span>
+        <span class="n">old</span><span class="o">=</span><span class="s1">'rgb = image.convert("RGB")'</span><span class="p">,</span>
+        <span class="n">new</span><span class="o">=</span><span class="s1">'rgb = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")'</span><span class="p">,</span>
+        <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_canvas_capture.py"</span><span class="p">,</span>
+        <span class="n">why</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"the `readPixels` trap in reverse: WebGL readback is bottom-up and a "</span>
+            <span class="s2">"PNG is top-down, so a capture path is one flip away from writing "</span>
+            <span class="s2">"every frame upside down at exactly the declared size — past every "</span>
+            <span class="s2">"shape check. The offline catcher is named here because a sweep "</span>
+            <span class="s2">"runs the whole file per mutant; the browser equivalence gate "</span>
+            <span class="s2">"(tests/test_canvas_capture_equivalence.py) catches the same flip "</span>
+            <span class="s2">"in its own test."</span>
         <span class="p">),</span>
     <span class="p">),</span>
     <span class="c1"># ------------------------------------------------- an#57, registerable</span>

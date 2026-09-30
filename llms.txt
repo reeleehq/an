@@ -10,6 +10,7 @@
 - [an](_autosummary/an.html.md): an — AI-driven structured animation.
 - [an.adapters](_autosummary/an.adapters.html.md): Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).
 - [an.adapters.cutout](_autosummary/an.adapters.cutout.html.md): Cutout-style 2D animation backend.
+- [an.adapters.cutout.canvas_capture](_autosummary/an.adapters.cutout.canvas_capture.html.md): The canvas capture path: frames read from the page, not photographed off the screen.
 - [an.adapters.cutout.channel](_autosummary/an.adapters.cutout.channel.html.md): Channel: keyframes for a single (target, property) pair, evaluated at time t.
 - [an.adapters.cutout.clip](_autosummary/an.adapters.cutout.clip.html.md): Clip: a named bundle of channels with a duration and loop mode.
 - [an.adapters.cutout.coarticulate](_autosummary/an.adapters.cutout.coarticulate.html.md): Co-articulation for a swap mouth: the passes between a provider’s raw viseme
@@ -133,7 +134,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-30 04:19 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-30 04:39 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

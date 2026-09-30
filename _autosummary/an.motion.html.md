@@ -56,8 +56,9 @@ this module’s tweens at compile, with the rest pose read off the built scene �
 no `rest=` — and `args` as the preset’s keyword arguments. A character
 descriptor animation of the same name WINS; `an validate` and the compiler
 decide both through [`an.characters.play.play_problems()`](an.characters.play.html.md#an.characters.play.play_problems). `duration`
-stretches the move and `speed` divides it; `loop` is refused. Like every
-`play` without a `duration`, it is zero-width inside a `sequence`.
+stretches the move and `speed` divides it; `loop` is refused. In a
+`sequence` a `play` without a `duration` occupies the preset’s own
+length divided by `speed`, so two in a row run one after the other.
 [`as_leaves()`](#an.motion.as_leaves) remains for a preset composed in Python and written into
 `scene.md` as plain tweens (a composition tree does not round-trip).
 

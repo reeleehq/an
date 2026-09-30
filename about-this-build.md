@@ -2,18 +2,20 @@
 
 # About this build
 
-This documentation was built on **2026-09-30 04:19 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/2d1d861b70b63bd0d91385409d23258860dccc44"><code>2d1d861</code></a> on branch <code>main</code>, for **an 0.1.104** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 04:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/d5ff2b7b2a340a83ebbad5270134b1000ef0ce07"><code>d5ff2b7</code></a> on branch <code>main</code>, for **an 0.1.105** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.105) is behind the latest release on PyPI (0.1.106): `pip install an` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/2d1d861b70b63bd0d91385409d23258860dccc44"><code>2d1d861b70b63bd0d91385409d23258860dccc44</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/d5ff2b7b2a340a83ebbad5270134b1000ef0ce07"><code>d5ff2b7b2a340a83ebbad5270134b1000ef0ce07</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.104</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.105</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -22,9 +24,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36668054589">36668054589</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36669554395">36669554395</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>30aebf72ce3c15b06533f59d533dd3eafa30644c</code> (in the history of the built commit) |
+| Event commit | <code>0670eac04422f0cc7dad63f260698b4bf6b85c8b</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -49,13 +51,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.104/">0.1.104</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.106/">0.1.106</a>, newer than the documented version (0.1.105).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 2d1d861b70b63bd0d91385409d23258860dccc44
+git checkout d5ff2b7b2a340a83ebbad5270134b1000ef0ce07
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

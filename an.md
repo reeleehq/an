@@ -1,4 +1,4 @@
-> built 2026-09-30 04:19 UTC from 2d1d861 (main) · an 0.1.104. Details: build_info.json
+> built 2026-09-30 04:39 UTC from d5ff2b7 (main) · an 0.1.105. Details: build_info.json
 
 # index.html.md
 
@@ -274,6 +274,171 @@ list described.
   thing that renders; `character_gallery/build.py` goes end to end from character creation.
 
 <p class="epythet-aggregates">This documentation as a single file: <a href="an.md">an.md</a> (Markdown, for agents).</p>
+
+
+# _autosummary/an.adapters.cutout.canvas_capture.html.md
+
+# an.adapters.cutout.canvas_capture
+
+The canvas capture path: frames read from the page, not photographed off the screen.
+
+The default capture (`render._capture_frames`, `capture="screenshot"`) asks
+Playwright for an ELEMENT screenshot of `#stage` on every frame. That is a page
+capture clipped to the element, taken from the compositor, and it is the largest
+single cost in the frame path — ~100 ms/frame at 1080p that is neither the GPU
+readback nor the PNG encode (`an-dev-render-pipeline` §8). This path instead
+asks the runtime for the canvas’s own pixels (`window.anCaptureFrames` in
+`runtime.js`: seek, `app.view.toDataURL('image/png')`), in batches, and does
+the rest here.
+
+\*\*It is a different route to the same pixels, and the whole contract is that
+nothing downstream can tell.\*\* The frames it writes are RGB PNGs of the declared
+size whose DECODED arrays equal the screenshot path’s, so ffmpeg receives the
+same frames, the golden gate the same arrays, and the bench the same sizes. The
+file bytes differ (a different PNG encoder), which is why the equivalence gate is
+on decoded pixels — the same criterion the golden corpus already uses.
+
+The classic traps, and where each one is closed:
+
+- **Row order.** `gl.readPixels` returns rows bottom-up. `toDataURL` returns
+  the image top-down, and this path uses `toDataURL` — so there is no flip,
+  and adding one is the mutation the equivalence test must catch.
+- **Premultiplied alpha.** Not live today: the runtime leaves PixiJS’s
+  `backgroundAlpha` at 1, so the WebGL context is created without alpha and
+  every pixel measured came back at 255. It becomes live the day a scene gets a
+  translucent background — then the premultiplied drawing buffer, the
+  un-premultiplied PNG and the screenshot’s composite over the page’s white all
+  disagree. So a frame with any pixel below full alpha is REFUSED
+  ([`opaque_rgb()`](_autosummary/an.adapters.cutout.canvas_capture.html.md#an.adapters.cutout.canvas_capture.opaque_rgb)) rather than guessed at: compositing it here would be a
+  second implementation of the browser’s blend, equal to it only by luck.
+- \*\*Why not `renderer.extract`.\*\* It re-renders the stage into a render
+  texture, which is not multisampled — a different picture from the one the
+  `antialias: true` backbuffer holds.
+- \*\*Why not raw `readPixels` bytes.\*\* Measured at 1920x1080 on an M1 Max:
+  moving 8 MB of RGBA per frame across the DevTools protocol costs 830-950
+  ms/frame (in-page base64 through `btoa` or `FileReader`), and Playwright’s
+  own typed-array serialisation 5.9 s/frame — against ~46 ms/frame for the PNG
+  data URL, which is ~45 KB. The PNG *is* the transfer encoding.
+
+Supersampling and the frame clock go through the same arithmetic as the
+screenshot path — [`an.adapters.cutout.supersample.block_mean_resolve()`](_autosummary/an.adapters.cutout.supersample.html.md#an.adapters.cutout.supersample.block_mean_resolve) then
+[`an.adapters.cutout.shutter.temporal_mean()`](_autosummary/an.adapters.cutout.shutter.html.md#an.adapters.cutout.shutter.temporal_mean) — so a supersampled or blurred
+canvas frame is the screenshot path’s frame, not a lookalike.
+
+Nothing in this module touches a browser: it is the pure half, testable offline.
+The loop that drives the page (batching, ordering, back-pressure) is
+`render._capture_frames_canvas`.
+
+### Module Attributes
+
+| [`DATA_URL_PREFIX`](_autosummary/an.adapters.cutout.canvas_capture.html.md#an.adapters.cutout.canvas_capture.DATA_URL_PREFIX)   | What `HTMLCanvasElement.toDataURL('image/png')` returns.   |
+|--------------------------------------------------------------------|------------------------------------------------------------|
+
+### Functions
+
+| [`canvas_frame_png`](_autosummary/an.adapters.cutout.canvas_capture.html.md#an.adapters.cutout.canvas_capture.canvas_frame_png)(samples, \*, frame[, ...])   | One output frame's canvas PNGs -> the RGB PNG the screenshot path writes.   |
+|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------|
+| [`decode_data_url`](_autosummary/an.adapters.cutout.canvas_capture.html.md#an.adapters.cutout.canvas_capture.decode_data_url)(url, \*, frame)               | A `toDataURL('image/png')` result -> the PNG's bytes, or refuse.            |
+| [`opaque_rgb`](_autosummary/an.adapters.cutout.canvas_capture.html.md#an.adapters.cutout.canvas_capture.opaque_rgb)(png, \*, frame)                    | Decode a canvas PNG to an RGB `PIL.Image`, refusing any transparency.       |
+
+### Exceptions
+
+| [`CanvasCaptureError`](_autosummary/an.adapters.cutout.canvas_capture.html.md#an.adapters.cutout.canvas_capture.CanvasCaptureError)   | A captured frame that cannot be turned into the screenshot path's frame.   |
+|-----------------------------------------------------------------------|----------------------------------------------------------------------------|
+
+### *exception* an.adapters.cutout.canvas_capture.CanvasCaptureError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A captured frame that cannot be turned into the screenshot path’s frame.
+
+### an.adapters.cutout.canvas_capture.DATA_URL_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'data:image/png;base64,'*
+
+What `HTMLCanvasElement.toDataURL('image/png')` returns. Anything else —
+`"data:,"` for a zero-size canvas, or a JPEG a browser fell back to — is
+refused rather than decoded as whatever it happens to be.
+
+### an.adapters.cutout.canvas_capture.canvas_frame_png(samples, , frame, factor=1, size=None, compress_level=None)
+
+One output frame’s canvas PNGs -> the RGB PNG the screenshot path writes.
+
+`samples` are the frame’s instants in capture order (one unless a frame
+clock opened the shutter). Each is decoded and refused unless opaque,
+resolved by `factor` with the product’s block mean, and the results
+averaged with the product’s temporal mean — the arithmetic the screenshot
+path runs, so the two agree about every tie. `size` (width, height), when
+given, is the DECLARED size the resolved frame must have: a canvas that is
+not `factor` times it is refused here, not muxed. `compress_level=None`
+reads `DEFAULT_PNG_COMPRESS_LEVEL` at call time.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> import numpy as np
+>>> from PIL import Image
+>>> def png(a):
+...     out = io.BytesIO(); Image.fromarray(a).save(out, format="PNG")
+...     return out.getvalue()
+>>> big = np.full((4, 6, 4), 255, np.uint8); big[:2, :2, :3] = 0
+>>> out = canvas_frame_png([png(big)], frame=0, factor=2, size=(3, 2))
+>>> np.asarray(Image.open(io.BytesIO(out))).shape
+(2, 3, 3)
+>>> canvas_frame_png([png(big)], frame=9, factor=1, size=(3, 2))
+Traceback (most recent call last):
+  ...
+an.adapters.cutout.canvas_capture.CanvasCaptureError: frame 9: resolved to 6x4, declared 3x2 (supersample 1)
+```
+
+### an.adapters.cutout.canvas_capture.decode_data_url(url, , frame)
+
+A `toDataURL('image/png')` result -> the PNG’s bytes, or refuse.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+```pycon
+>>> decode_data_url(DATA_URL_PREFIX + "iVBORw==", frame=0)[:4]
+b'\x89PNG'
+>>> decode_data_url("data:,", frame=3)
+Traceback (most recent call last):
+  ...
+an.adapters.cutout.canvas_capture.CanvasCaptureError: frame 3: the canvas returned 'data:,' rather than a PNG data URL — a zero-size canvas does this
+```
+
+### an.adapters.cutout.canvas_capture.opaque_rgb(png, , frame)
+
+Decode a canvas PNG to an RGB `PIL.Image`, refusing any transparency.
+
+The screenshot path composites the canvas over the page (white, since
+`omit_background=False`); where every pixel has alpha 255 that composite
+is the identity, and the premultiplied drawing buffer and the
+un-premultiplied PNG agree. Anywhere else the two paths would differ, so the
+frame is refused with a count rather than blended here.
+
+Pillow end to end, deliberately: the alpha check is `getextrema` and the
+drop is `convert("RGB")`, both in C. Slicing `[..., :3]` out of a numpy
+view and copying it contiguous measured ~5x slower at 1080p, on a path whose
+whole point is time.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+```pycon
+>>> import numpy as np
+>>> from PIL import Image
+>>> def png(a):
+...     out = io.BytesIO(); Image.fromarray(a).save(out, format="PNG")
+...     return out.getvalue()
+>>> rgba = np.zeros((2, 3, 4), np.uint8); rgba[..., 3] = 255; rgba[0, 0, 0] = 7
+>>> np.asarray(opaque_rgb(png(rgba), frame=0))[0, 0].tolist()
+[7, 0, 0]
+>>> rgba[1, 2, 3] = 128
+>>> opaque_rgb(png(rgba), frame=5)
+Traceback (most recent call last):
+  ...
+an.adapters.cutout.canvas_capture.CanvasCaptureError: frame 5: 1 of 6 canvas pixels are not opaque (min alpha 128); the screenshot path would composite them over the page's white and this path will not guess at that blend
+```
 
 
 # _autosummary/an.adapters.cutout.channel.html.md
@@ -1716,22 +1881,23 @@ clothes (an#33).
 
 ### Modules
 
-| [`channel`](_autosummary/an.adapters.cutout.channel.html.md#module-an.adapters.cutout.channel)             | Channel: keyframes for a single (target, property) pair, evaluated at time t.                                                                   |
-|--------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`clip`](_autosummary/an.adapters.cutout.clip.html.md#module-an.adapters.cutout.clip)                   | Clip: a named bundle of channels with a duration and loop mode.                                                                                 |
-| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#module-an.adapters.cutout.coarticulate)   | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6). |
-| [`compile`](_autosummary/an.adapters.cutout.compile.html.md#module-an.adapters.cutout.compile)             | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                        |
-| [`easing`](_autosummary/an.adapters.cutout.easing.html.md#module-an.adapters.cutout.easing)               | Easing functions for keyframe interpolation.                                                                                                    |
-| [`fidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#module-an.adapters.cutout.fidelity)           | How faithfully a compiled scene reproduces the art it was built from.                                                                           |
-| [`gaze`](_autosummary/an.adapters.cutout.gaze.html.md#module-an.adapters.cutout.gaze)                   | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                         |
-| [`path`](_autosummary/an.adapters.cutout.path.html.md#module-an.adapters.cutout.path)                   | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                      |
-| [`render`](_autosummary/an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)               | Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.                                                                      |
-| [`runtime_files`](_autosummary/an.adapters.cutout.runtime_files.html.md#module-an.adapters.cutout.runtime_files) | Locate the bundled cutout JS runtime files.                                                                                                     |
-| [`serialize`](_autosummary/an.adapters.cutout.serialize.html.md#module-an.adapters.cutout.serialize)         | JSON contract between the Python compiler and the (future) JS runtime.                                                                          |
-| [`shutter`](_autosummary/an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)             | The temporal half of the frame stage: average several instants into one frame.                                                                  |
-| [`supersample`](_autosummary/an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)     | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                   |
-| [`text`](_autosummary/an.adapters.cutout.text.html.md#module-an.adapters.cutout.text)                   | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                         |
-| [`timeline`](_autosummary/an.adapters.cutout.timeline.html.md#module-an.adapters.cutout.timeline)           | Timeline: tracks of placed clips with absolute times and blend ramps.                                                                           |
+| [`canvas_capture`](_autosummary/an.adapters.cutout.canvas_capture.html.md#module-an.adapters.cutout.canvas_capture)   | The canvas capture path: frames read from the page, not photographed off the screen.                                                            |
+|------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`channel`](_autosummary/an.adapters.cutout.channel.html.md#module-an.adapters.cutout.channel)                 | Channel: keyframes for a single (target, property) pair, evaluated at time t.                                                                   |
+| [`clip`](_autosummary/an.adapters.cutout.clip.html.md#module-an.adapters.cutout.clip)                       | Clip: a named bundle of channels with a duration and loop mode.                                                                                 |
+| [`coarticulate`](_autosummary/an.adapters.cutout.coarticulate.html.md#module-an.adapters.cutout.coarticulate)       | Co-articulation for a swap mouth: the passes between a provider's raw viseme track and the compiler's channel emission (an#97, epic #9 Wave 6). |
+| [`compile`](_autosummary/an.adapters.cutout.compile.html.md#module-an.adapters.cutout.compile)                 | Compile a top-level `Shot` (renderer="cutout") into a `CutoutSceneJSON`.                                                                        |
+| [`easing`](_autosummary/an.adapters.cutout.easing.html.md#module-an.adapters.cutout.easing)                   | Easing functions for keyframe interpolation.                                                                                                    |
+| [`fidelity`](_autosummary/an.adapters.cutout.fidelity.html.md#module-an.adapters.cutout.fidelity)               | How faithfully a compiled scene reproduces the art it was built from.                                                                           |
+| [`gaze`](_autosummary/an.adapters.cutout.gaze.html.md#module-an.adapters.cutout.gaze)                       | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                         |
+| [`path`](_autosummary/an.adapters.cutout.path.html.md#module-an.adapters.cutout.path)                       | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                      |
+| [`render`](_autosummary/an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)                   | Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.                                                                      |
+| [`runtime_files`](_autosummary/an.adapters.cutout.runtime_files.html.md#module-an.adapters.cutout.runtime_files)     | Locate the bundled cutout JS runtime files.                                                                                                     |
+| [`serialize`](_autosummary/an.adapters.cutout.serialize.html.md#module-an.adapters.cutout.serialize)             | JSON contract between the Python compiler and the (future) JS runtime.                                                                          |
+| [`shutter`](_autosummary/an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)                 | The temporal half of the frame stage: average several instants into one frame.                                                                  |
+| [`supersample`](_autosummary/an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)         | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                   |
+| [`text`](_autosummary/an.adapters.cutout.text.html.md#module-an.adapters.cutout.text)                       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                         |
+| [`timeline`](_autosummary/an.adapters.cutout.timeline.html.md#module-an.adapters.cutout.timeline)               | Timeline: tracks of placed clips with absolute times and blend ramps.                                                                           |
 
 
 # _autosummary/an.adapters.cutout.path.html.md
@@ -1898,7 +2064,8 @@ The flow per shot:
 3. Launch headless Chromium via Playwright; load `index.html`; inject the
    scene via `window.anLoadScene`.
 4. For each frame `f` in `[0, total_frames)`: call `window.anSetTime(f/fps)`
-   and screenshot the canvas to a PNG.
+   and screenshot the canvas to a PNG — or, with `capture="canvas"`, read the
+   canvas’s own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`).
 5. Mux the PNG sequence to mp4 with ffmpeg.
 
 Failures are reported with concrete remediation: missing ffmpeg, missing
@@ -1912,6 +2079,11 @@ facade boundary.
 | [`DETERMINISTIC_CHROMIUM_ARGS`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS)     | Chromium launch flags that pin the rasteriser (an#31, research §2).                                                                                 |
 | [`DEFAULT_PIX_FMT`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.DEFAULT_PIX_FMT)                 | x264 encode knobs pinned so the delivered mp4 is a function of the frames rather than of the machine (an#34, research §2).                          |
 | [`SUPPORTED_PIX_FMTS`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.SUPPORTED_PIX_FMTS)              | a typo would reach ffmpeg as an obscure failure minutes into a render, and a format outside this set has not been measured against the panel.       |
+| [`DEFAULT_CAPTURE`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.DEFAULT_CAPTURE)                 | a Playwright element screenshot of `#stage` per instant — the path every render took before the canvas path existed, and still the default.         |
+| [`SUPPORTED_CAPTURES`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.SUPPORTED_CAPTURES)              | a typo must fail before a browser launches, not minutes into a render.                                                                              |
+| [`DEFAULT_CANVAS_BATCH`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH)            | Frames per `anCaptureFrames` round trip.                                                                                                            |
+| [`DEFAULT_CANVAS_ENCODE_WORKERS`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS)   | Threads decoding, resolving and re-encoding canvas frames while the page renders the next batch.                                                    |
+| [`DEFAULT_CANVAS_MAX_INFLIGHT`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT)     | frames handed to the encode pool and not yet written.                                                                                               |
 | [`ASSET_LOAD_TIMEOUT_MARKER`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER)       | Sentinel the in-page deadline rejects with, so the Python side can tell a timeout apart from a load failure and say something different about each. |
 | [`ASSET_SRC_PREFIX_TO_STORE`](_autosummary/an.adapters.cutout.render.html.md#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE)       | Texture `src` prefix → the mall store that resolves the rest of the path.                                                                           |
 
@@ -2008,6 +2180,52 @@ The value is a policy choice, not a measurement: it needs to sit far above a
 legitimate cold load of a few dozen small SVGs and far below “a human gave
 up”. Raise it for a genuinely heavy art package rather than removing it.
 
+### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
+
+Frames per `anCaptureFrames` round trip. Measured at 1920x1080 on an M1
+Max, `single_character`: 67 ms/frame one frame per call, 46 at four, 46 at
+eight — the round trip is ~20 ms of fixed cost, amortised by the batch. It is
+also the memory the page holds before Python takes it: eight data URLs of a
+1080p frame are well under a megabyte of text, and at a supersampled 4K
+backbuffer a few megabytes each.
+
+### an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
+
+Threads decoding, resolving and re-encoding canvas frames while the page
+renders the next batch. The decode/encode is ~60 ms/frame of Pillow and zlib
+at 1080p — the same order as the page’s own work — so it must overlap it or
+it eats the win. Two, not `cpu_count()`: `an render --parallel` already runs
+one Chromium per shot, and each of them is another source of CPU pressure.
+
+### an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
+
+frames handed to the encode pool and not yet written. When
+the pool falls behind, the capture loop blocks on the oldest one before it
+asks the page for more, so memory is bounded by this many frames plus one
+batch however long the shot is.
+
+* **Type:**
+  BACK-PRESSURE
+
+### an.adapters.cutout.render.DEFAULT_CAPTURE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'screenshot'*
+
+a Playwright element
+screenshot of `#stage` per instant — the path every render took before the
+canvas path existed, and still the default. `"canvas"`: the runtime’s
+`anCaptureFrames` reads the canvas in-page and hands back PNG data URLs in
+batches (`an.adapters.cutout.canvas_capture`), which writes frames whose
+DECODED pixels equal the screenshot path’s.
+
+\*\*The default stays `"screenshot"` until the equivalence gate has held on
+the whole golden corpus on both the developer machine and the labelled Linux
+rendering lane\*\* (epic #9’s throughput track): a faster path that moved a
+pixel would silently invalidate every baseline recorded before it. The flip is
+its own one-line PR. Read as a MODULE GLOBAL at call time, for
+`DEFAULT_PIX_FMT`’s reason — a default argument would bind it at def time.
+
+* **Type:**
+  How frames leave the browser. `"screenshot"`
+
 ### an.adapters.cutout.render.DEFAULT_PIX_FMT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'yuv420p'*
 
 x264 encode knobs pinned so the delivered mp4 is a function of the frames
@@ -2103,6 +2321,14 @@ explicit `app.render()`.
 Record the argv **verbatim** in any provenance row: all four rasteriser
 configurations report the byte-identical `UNMASKED_RENDERER_WEBGL` string,
 so the renderer string cannot witness this choice.
+
+### an.adapters.cutout.render.SUPPORTED_CAPTURES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('screenshot', 'canvas')*
+
+a typo must
+fail before a browser launches, not minutes into a render.
+
+* **Type:**
+  The capture paths `_check_capture` accepts. Not an open string
 
 ### an.adapters.cutout.render.SUPPORTED_PIX_FMTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('yuv420p', 'yuv444p')*
 
@@ -3134,7 +3360,7 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 Remotion-based renderer (skeleton).
 
-### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, extra=<factory>)
+### *class* an.adapters.RenderContext(mall, work_dir, fps=30, resolution=(1920, 1080), strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, style_pack=None, default_easing=None, frame_samples=None, capture=None, extra=<factory>)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -3143,6 +3369,20 @@ Everything a renderer needs that isn’t on the Shot itself.
 `mall` carries the project’s stores so the renderer can resolve assets
 by reference. `work_dir` is a scratch space; the renderer must clean up
 after itself or treat it as ephemeral.
+
+#### capture *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"screenshot"` (a Playwright element
+screenshot per instant) or `"canvas"` (the runtime reads its own canvas
+in-page, in batches). `None` is the renderer’s module default, read at
+call time — `"screenshot"` until the equivalence gate has held on the
+whole corpus on both lanes. The two paths write frames whose DECODED
+pixels are equal, so this is a throughput knob and never a picture knob;
+a `RenderContext` field for `supersample`’s reason, and recorded in
+per-shot provenance.
+
+* **Type:**
+  How frames leave the browser
 
 #### default_easing *: [Any](https://docs.python.org/3/library/typing.html#typing.Any)*
 
@@ -5793,7 +6033,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'ellipse', 'eye', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'eye', 'mouth', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -8003,7 +8243,7 @@ gives — “you stopped it” and “a guard is decoration” are different ans
 * **Type:**
   What the CLI exits with after an interrupted sweep
 
-### an.bench.mutants.MUTANTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mutant](_autosummary/an.bench.mutants.html.md#an.bench.mutants.Mutant), ...]* *= (Mutant(name='png_paeth_tiebreak', file='an/bench/png.py', old='if (pa <= pb and pa <= pc) else (b if pb <= pc else c)', new='if (pa <= pb and pa <= pc) else (b if pb < pc else c)', caught_by='tests/test_bench_png.py', why="the Paeth predictor's tie-break. Wrong, it still decodes this module's own filter-0 output perfectly and corrupts every real Chromium frame — the exact asymmetry that makes an encoder validating its own decoder worthless."), Mutant(name='png_first_idat_only', file='an/bench/png.py', old='            idat.append(payload)', new='            idat = [payload]', caught_by='tests/test_bench_png.py', why='Chromium splits the stream: a real frame has 2-9 IDAT chunks and our own output has one, so a first-chunk-only reader passes its own tests and fails on everything else.'), Mutant(name='png_no_write_verification', file='an/bench/png.py', old='    if not np.array_equal(decode_png(out.read_bytes()), np.asarray(rgb)):', new='    if False:', caught_by='tests/test_bench_png.py', why="the only thing between a bug in this module's own encoder and a committed golden that silently disagrees with the frame it was blessed from."), Mutant(name='golden_criterion_becomes_file_bytes', file='an/bench/golden.py', old='    digest.update(f"{arr.dtype.str}:{arr.shape}|".encode("ascii"))', new='    pass', caught_by='tests/test_bench_golden.py', why='\`ndarray.tobytes()\` carries no shape, so a transposed frame hashes identically and satisfies the criterion an#38 literally states.'), Mutant(name='golden_blesses_a_blank_reason', file='an/bench/golden.py', old='    if not reason.strip():', new='    if reason is None:', caught_by='tests/test_bench_golden.py', why='a re-bless with no recorded reason is the same failure as a silently widened threshold — the named failure mode this wave exists to end.'), Mutant(name='golden_blesses_an_identical_pair', file='an/bench/golden.py', old='            if np.array_equal(decoded[i], decoded[j]):', new='            if False:', caught_by='tests/test_bench_golden.py', why='measured on \`promote_demo\`: frame 0 and the duration/2 frame differ by ZERO pixels, so the obvious second time blesses one picture twice and the second golden tests nothing forever after.'), Mutant(name='compare_gains_a_tolerance_band', file='an/bench/compare.py', old='    if before == after:\\n        return "no_change"', new='    if abs(float(before) - float(after)) < 1e-9:\\n        return "no_change"', caught_by='tests/test_bench_compare.py', why='two consecutive runs on one machine are bit-identical, so a band can only ever hide a true movement.'), Mutant(name='compare_refuses_on_an_absent_key', file='an/bench/compare.py', old='        elif b is \_ABSENT or a is \_ABSENT:', new='        elif False:', caught_by='tests/test_bench_compare.py', why='the ledger grows additively, so treating absence as difference makes every future field retroactively destroy comparability with every row already written.'), Mutant(name='compare_counts_metrics_not_families', file='an/bench/compare.py', old='        block["family_count"] = len(families)', new='        block["family_count"] = sum(len(v) for v in families.values())', caught_by='tests/test_bench_compare.py', why="counting bare metrics is satisfiable by shipping one signal under three names, which is exactly what family A's three edge metrics would do."), Mutant(name='compare_exempts_the_whole_environment', file='an/bench/compare.py', old='        touched = {t.label for t in MUTATION_TOUCHES.get(mutation, ())}', new='        touched = {i["key"] for i in common + render + encode}', caught_by='tests/test_bench_compare.py', why='the knob the lever pulls is the independent variable; the ISA is not. A blanket exemption lets a row from another machine in through the same door.'), Mutant(name='compare_exempts_by_path_not_by_value', file='an/bench/registry.py', old='        if self.differs_only_in is None:\\n            return True', new='        if True:\\n            return True', caught_by='tests/test_bench_compare.py', why="\`x264_argv\` is the WHOLE encode command, so exempting the path exempts every flag in it. A \`-preset medium\` -> \`-preset veryslow\` change moves every encode-side number and rode in as 'the lever moved it — expected'. The exemption must match the change the lever actually makes."), Mutant(name='compare_trusts_an_edited_prediction', file='an/bench/compare.py', old='    if not isinstance(inline, dict) or not isinstance(declared, dict):\\n        return []', new='    if True:\\n        return []', caught_by='tests/test_bench_compare.py', why="the prediction IS the criterion, and it is read from the after row's inline block alone. Flipping one \`expect\` turns \`contrary\` into \`as_declared\` with nothing else in the report moving — the cheapest possible way to fake a caught mutation."), Mutant(name='compare_lets_a_row_forge_its_own_scope', file='an/bench/compare.py', old='    "comparison_scope",\\n    "reference",', new='    "reference",', caught_by='tests/test_bench_compare.py', why="\`comparison_scope\` decides whether a metric may be compared ACROSS MACHINES, and \`compare\` reads the row's INLINE copy. Editing that one word compared an encode-side metric across a different ISA with no refusal — the single invariant this module exists to hold, defeated from inside the row."), Mutant(name='ledger_substitutes_zero_for_unknown', file='an/bench/ledger.py', old='        if self.state == "measured":\\n            if self.value is None:', new='        if self.state == "measured":\\n            if False:', caught_by='tests/test_bench_ledger_schema.py', why='a substituted number — 0.0 especially — is read downstream as a measurement, which is the unknown-is-not-zero failure the whole schema exists to prevent.'), Mutant(name='ledger_lets_a_tripwire_vanish', file='an/bench/ledger.py', old='    absent_tw = sorted(set(TRIPWIRES) - set(tripwires))', new='    absent_tw = []', caught_by='tests/test_bench_ledger_schema.py', why='a change detector that quietly stopped being computed reads exactly like one that fired and found nothing.'), Mutant(name='registry_counts_a_tautology', file='an/bench/registry.py', old='        if self.expect in ("no_change", "not_applicable") and self.counts:', new='        if False:', caught_by='tests/test_bench_ledger_schema.py', why="'no change by construction' is a tautology; counting it lets any pre-encode statistic pad the witness count for free."), Mutant(name='golden_fabricates_a_zero_pixel_count', file='an/bench/golden.py', old='"changed_px": max((int(f["changed_px"]) for f in compared), default=None),', new='"changed_px": max((int(f["changed_px"] or 0) for f in frames), default=0),', caught_by='tests/test_bench_golden.py', why="a shape mismatch has no per-pixel comparison to count, and turning that into 0 printed 'GOLDEN MISMATCH: 0 px changed' — a fabricated number in the one schema whose whole premise is that unknown is not zero."), Mutant(name='compare_scope_absence_fails_open', file='an/bench/compare.py', old='        if scope not in env_refusals:', new='        if False:', caught_by='tests/test_bench_compare.py', why="an absent \`comparison_scope\` read as 'no refusals apply', so an encode-side metric from another ISA and another x264 build compared cleanly and reported a regression."), Mutant(name='strict_passes_a_comparison_that_compared_nothing', file='an/tools.py', old='            not report.get("answered")', new='            False', caught_by='tests/test_bench_compare.py', why="the documented CI gate exited 0 on a run in which every scene was refused, while printing '0 regression(s)' — a zero the compare module's own docstring calls worse than no number at all."), Mutant(name='cli_returns_nothing_to_the_terminal', file='an/_\_main_\_.py', old='        if result is not None:\\n            typer.echo(result)', new='        pass', caught_by='tests/test_cli_dispatch.py', why='typer discards return values and every \`an.tools\` function returns its report as a string, so the CLI would run correctly and print NOTHING — the worst possible failure for a diagnostic tool.'), Mutant(name='cli_loses_the_signature_that_is_the_command_line', file='an/_\_main_\_.py', old='    @functools.wraps(func)\\n    def run(', new='    def run(', caught_by='tests/test_cli_dispatch.py', why='\`inspect.signature\` follows \`_\_wrapped_\_\`, and that signature IS the command line. Without it typer sees \`(\*args, \*\*kwargs)\` and every flag on all 17 commands disappears at once, while \`--help\` still renders.'), Mutant(name='corpus_reads_shot_order_from_the_directory', file='an/bench/corpus.py', old='    for shot_id in order:\\n        shot_dir = root / f"shot_{shot_id}"', new='    for shot_dir in sorted(root.glob(SHOT_DIR_GLOB)):\\n        shot_id = shot_dir.name[len("shot_") :]', caught_by='tests/test_bench_corpus.py', why="\`an/render.py\` concatenates in timeline order; a directory sort agrees only by luck, and when it does not every encode-side metric pairs one shot's source frames against another's decode."), Mutant(name='reshape_checks_divisibility_not_shape', file='an/bench/imageio.py', old='    if frames is not None and len(buf) != per_frame \* frames:', new='    if False:', caught_by='tests/test_bench_shape_guard.py', why='a k-times supersample makes the decoded buffer exactly k\*\*2 larger, so a divisibility check ALWAYS passes and family A is computed over k\*\*2 as many scrambled frames — plausibly, because at k=2 most horizontal runs survive the wrong reshape.'), Mutant(name='bench_measures_a_supersampled_render', file='an/bench/run.py', old='        if sizes != {capture.resolution}:', new='        if False:', caught_by='tests/test_bench_shape_guard.py', why="\`capture.resolution\` comes from the staged scene's meta and never from a file, so without an independent read of the PNGs' own IHDRs nothing in the pipeline ever compares the declared size to the size on disk."), Mutant(name='png_dimensions_trusts_a_non_ihdr_first_chunk', file='an/bench/png.py', old='    if data[_IHDR_TAG] != b"IHDR":', new='    if False:', caught_by='tests/test_bench_png.py', why='without the tag check the four bytes that happen to sit at offset 16 are returned as a resolution — a plausible number fed straight into the shape guard, which is the failure class an#54 closes.'), Mutant(name='read_png_dimensions_reads_the_whole_file', file='an/bench/png.py', old='        return png_dimensions(handle.read(PNG_HEADER_BYTES))', new='        return png_dimensions(handle.read())', caught_by='tests/test_bench_png.py', why='the answer stays right and the cost stops being free: the bench reads one of these per frame of every shot, and a 1080p frame is megabytes against a 24-byte header.'), Mutant(name='strict_exits_zero_on_a_row_it_cannot_read', file='an/tools.py', old='        if strict:\\n            print(refusal)', new='        if False:\\n            print(refusal)', caught_by='tests/test_bench_compare.py', why='the documented CI gate exited 0 on an unreadable schema_version or an undeclared --mutation — precisely the state a \`--strict --mutation supersample\` run is in before the lever is registered. Same class an#51 closed for the refusal path.'), Mutant(name='latest_rows_orders_by_filename', file='an/bench/compare.py', old='    return sorted(rows, key=key)[-count:]', new='    return sorted(rows, key=lambda p: p.name)[-count:]', caught_by='tests/test_bench_compare.py', why="filenames are <date>-<sha7>.json, so within one date the order is sha HEX order. A re-baseline and its after-run on the same day swap silently when the after-commit's sha sorts lower, and every improvement is then reported as a regression."), Mutant(name='compare_hides_that_a_row_was_blessed', file='an/bench/compare.py', old='            "blessed_scenes": sorted(after["provenance"].get("blessed") or ()),', new='            "blessed_scenes": [],', caught_by='tests/test_bench_compare.py', why="a bless run gates family B \`blessed_this_run\`, and \`format_comparison\` skips \`unchanged\` entries — so family B vanishes from the table entirely. 'Family B agreed' and 'family B was never asked' are the same blank space."), Mutant(name='capture_inherits_the_previous_renders_shots', file='an/bench/capture.py', old='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ("artifacts/shots",)', new='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ()', caught_by='tests/test_bench_corpus.py', why="\`mall['shots']\` is \`<project>/artifacts/shots\`, and it is gitignored — so a previous render's per-shot mp4s cross into every bench run on a developer machine and on no clean checkout, in the module whose docstring is 'do not inherit a stale render'."), Mutant(name='capture_excludes_shots_by_basename_at_any_depth', file='an/bench/capture.py', old='            n for n in names if prefix + n in IGNORED_RELPATHS_ON_COPY', new='            n\\n            for n in names\\n            if n in {p.rsplit("/", 1)[-1] for p in IGNORED_RELPATHS_ON_COPY}', caught_by='tests/test_bench_corpus.py', why="the obvious \`shutil.ignore_patterns('shots')\` spelling, restated. It fnmatches BASENAMES against the names in every directory, so it also deletes a character rig's \`assets/.../shots\` — and the other obvious spelling, \`'artifacts/shots'\` as a pattern, matches NOTHING, because no name contains a separator. Both fail silently."), Mutant(name='bless_names_its_row_after_the_tree_it_did_not_leave', file='an/bench/run.py', old='    return git_state(root) if blessed else git', new='    return git', caught_by='tests/test_bench_bless_protocol.py', why='\`git_state\` is read before the corpus loop and a \`--bless\` run writes inside it, so a bless on a clean tree filed itself as \`<date>-<sha>.json\` — a filename naming a commit whose tree that very run then modified, which is what the \`-dirty\` suffix exists to prevent.'), Mutant(name='golden_trusts_a_frame_its_own_record_disowns', file='an/bench/golden.py', old='        if expected is not None and expected != record["golden_sha256"]:', new='        if False:', caught_by='tests/test_bench_golden.py', why='the bless record and the committed PNG carry the same digest of the same file, written by two different calls. A disagreement means the golden is not the picture a human blessed — an edited file, a half-finished re-bless — and every one of those read as a clean PASS.'), Mutant(name='bench_asks_a_mutated_run_the_unmutated_question', file='an/tools.py', old='            compare_rows(load_row(compare), ledger, mutation=mutation or None)', new='            compare_rows(load_row(compare), ledger)', caught_by='tests/test_bench_mutation_cli.py', why="without the mutation, \`compare\` answers 'is the second row worse' of a run degraded on purpose — so the declared per-mutation predictions are never scored and the an#41 criterion cannot appear in the mandated \`--compare\` artifact at all."), Mutant(name='bench_blesses_a_deliberately_degraded_picture', file='an/tools.py', old='        if bless:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', new='        if False:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', caught_by='tests/test_bench_mutation_cli.py', why='blessing under a lever commits the degraded picture as the reference every future run is measured against — a permanent, silent re-baseline, and the one bless refusal that cannot be recovered by reading the recorded reason.'), Mutant(name='pix_fmt_knob_cannot_reach_the_encode', file='an/adapters/cutout/render.py', old='    resolved = pix_fmt or DEFAULT_PIX_FMT', new='    resolved = pix_fmt or "yuv420p"', caught_by='tests/test_encode_pins.py', why='reading the literal instead of the module global severs the seam any outside caller pulls — the same shape hoisting \`DETERMINISTIC_X264_ARGS\` into a default argument would sever for \`high_crf\`. That is why the seam is kept even though an#59 ships no lever — see the note there. (Until an#72 the row would ALSO have said 4:4:4 while the file stayed 4:2:0, because \`environment_record\` re-derived the format from the same global; it is measured off the delivered files now, so the row no longer lies about its own file — only the knob is broken.)'), Mutant(name='mux_argv_is_checked_by_subset_not_equality', file='an/adapters/cutout/render.py', old='        "-c:v",\\n        "libx264",\\n        "-pix_fmt",', new='        "-c:v",\\n        "libx264",\\n        "-tune",\\n        "animation",\\n        "-pix_fmt",', caught_by='tests/test_encode_pins.py', why='\`-tune animation\` is a measured-and-rejected flag (0.8%) and this is what adding it looks like. A SUBSET check passes — every pin is still present — and the encode moves and every encode-side metric is silently refused against every committed row. Only argv equality notices.'), Mutant(name='capture_page_stops_compositing_the_canvas', file='an/data/cutout_runtime/index.html', old='#stage { display: block; }', new='#stage { display: none; }', caught_by='tests/test_cutout_runtime_files.py', why="an#57's proposal. The element screenshot is a PAGE capture clipped to the element, so hiding the canvas does not make it cheaper — it makes \`Locator.screenshot\` time out after 30 s per frame. The two spellings Playwright does accept return an all-white frame."), Mutant(name='supersample_autodensity_true', file='an/data/cutout_runtime/runtime.js', old='            autoDensity: false,', new='            autoDensity: true,', caught_by='tests/test_bench_supersample_lever.py', why="\`autoDensity: true\` makes Chromium composite the k-times backbuffer down before the screenshot — a blind downscale with no filter choice and no record. The PNGs come out the DECLARED size, so every shape check passes and the whole knob silently measures nothing. It is the option whose name most suggests it is the right one. Lives on the PRODUCT's file since an#58, because the product owns the key."), Mutant(name='supersample_skips_the_frame_stage', file='an/bench/mutations.py', old='        render._capture_frames = \_capture_then_resolve', new='        render._capture_frames = original', caught_by='tests/test_bench_supersample_lever.py', why='drops the resolve, leaving k-times PNGs on disk. Before an#54 that was silent — \`_reshape\` checked byte-count divisibility and k\*\*2 always divides — and family A was computed on k\*\*2 scrambled frames that still produced a believable \`edge_transition_width\`. It is a loud refusal now, which is what makes this lever safe to run.'), Mutant(name='supersample_verify_is_merely_not_shipped', file='an/bench/mutations.py', old='    if recorded != expected:', new='    if False:', caught_by='tests/test_bench_supersample_lever.py', why="reduces the supersample fingerprint to \`disabled_aa\`'s inequality, which ANY render lever satisfies — both stage through one seam and both move \`render_side.runtime_sha256\`. A row rendered with \`antialias: false\` then verifies as a supersample row and the whole lever table is written from the wrong lever's numbers."), Mutant(name='edge_masked_colour_count_is_not_masked', file='an/bench/metrics.py', old='    per_frame = [len(np.unique(f[m])) for f, m in zip(packed, edge) if m.any()]', new='    per_frame = [len(np.unique(f)) for f, m in zip(packed, edge) if m.any()]', caught_by='tests/test_bench_metrics.py', why='unmasked it is \`frame_distinct_colours\` under a second name, and the one property the mask does buy — that an interior-only change cannot reach the number — is gone with no other symptom.'), Mutant(name='empty_edge_mask_reads_as_zero_colours', file='an/bench/metrics.py', old='        return float("nan"), 0', new='        return 0.0, 0', caught_by='tests/test_bench_metrics.py', why='a substituted zero is the largest possible DOWNWARD move in the one metric that exists to notice a downward move, on exactly the scenes where the number means nothing at all.'), Mutant(name='lossless_leg_pinned_to_420', file='an/bench/imageio.py', old='        "-pix_fmt",\\n        resolved,\\n        "-qp",', new='        "-pix_fmt",\\n        "yuv420p",\\n        "-qp",', caught_by='tests/test_bench_lossless_leg.py', why='a reference PINNED in the one dimension it has to track. The leg exists to be the plane libx264 received; \`-pix_fmt\` names what libx264 receives, so pinning it does not keep the reference lossless — it makes the reference a different colour pipeline from the delivered file, and every encode-side metric silently acquires the whole 4:2:0 conversion the reference exists to cancel. Distinct from every other entry here because the mutated code stays correct on the default path and is wrong only under a knob: measured on the corpus at 4:4:4, it changes the SIGN of family E on three of ten scenes (an#72).'), Mutant(name='sweep_never_finds_a_reversal', file='an/bench/compare.py', old='    unstable = tally["increase"] > 0 and tally["decrease"] > 0', new='    unstable = tally["increase"] > 0 and tally["decrease"] < 0', caught_by='tests/test_bench_compare.py', why="the robustness gate that stops being able to fire. Every row still carries its sweep and every report still prints a \`sweep\` block reading \`stable\`, so the instrument looks exactly like one that checked and found nothing — while \`graded_field\`'s +84.2% at tol 6, which is -81.6% at tol 8, counts toward family D again (an#140)."), Mutant(name='sweep_counts_a_different_statistic', file='an/bench/metrics.py', old='int((dev > t).sum())', new='int((dev >= t).sum())', caught_by='tests/test_bench_metrics.py', why="a sweep of a statistic the row does not report. Off by one code value, every cell stays a plausible, monotone survival count, and the comparer then certifies the robustness of \`>=\` while the ledger's number is \`>\` (an#140)."), Mutant(name='sweep_deletion_is_excused', file='an/bench/compare.py', old='    spec = declared.get("threshold_sweep")\\n', new='    spec = None\\n', caught_by='tests/test_bench_compare.py', why="a row that declares a threshold sweep and carries none reads as 'written before an#140' — so deleting one field from a row turns an \`unstable\` verdict back into a counted witness, the cheapest possible way to fake a caught mutation."), Mutant(name='strict_passes_an_unstable_movement', file='an/tools.py', old='else bool(report.get("has_regressions") or report.get("unstable"))', new='else bool(report.get("has_regressions"))', caught_by='tests/test_bench_compare.py', why="\`unstable\` is neither a regression nor a pass; with no mutation it means some cell of the metric's own grid got worse. A CI gate that exits 0 on it reads 'cannot tell' as 'fine' (an#140)."))*
+### an.bench.mutants.MUTANTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mutant](_autosummary/an.bench.mutants.html.md#an.bench.mutants.Mutant), ...]* *= (Mutant(name='png_paeth_tiebreak', file='an/bench/png.py', old='if (pa <= pb and pa <= pc) else (b if pb <= pc else c)', new='if (pa <= pb and pa <= pc) else (b if pb < pc else c)', caught_by='tests/test_bench_png.py', why="the Paeth predictor's tie-break. Wrong, it still decodes this module's own filter-0 output perfectly and corrupts every real Chromium frame — the exact asymmetry that makes an encoder validating its own decoder worthless."), Mutant(name='png_first_idat_only', file='an/bench/png.py', old='            idat.append(payload)', new='            idat = [payload]', caught_by='tests/test_bench_png.py', why='Chromium splits the stream: a real frame has 2-9 IDAT chunks and our own output has one, so a first-chunk-only reader passes its own tests and fails on everything else.'), Mutant(name='png_no_write_verification', file='an/bench/png.py', old='    if not np.array_equal(decode_png(out.read_bytes()), np.asarray(rgb)):', new='    if False:', caught_by='tests/test_bench_png.py', why="the only thing between a bug in this module's own encoder and a committed golden that silently disagrees with the frame it was blessed from."), Mutant(name='golden_criterion_becomes_file_bytes', file='an/bench/golden.py', old='    digest.update(f"{arr.dtype.str}:{arr.shape}|".encode("ascii"))', new='    pass', caught_by='tests/test_bench_golden.py', why='\`ndarray.tobytes()\` carries no shape, so a transposed frame hashes identically and satisfies the criterion an#38 literally states.'), Mutant(name='golden_blesses_a_blank_reason', file='an/bench/golden.py', old='    if not reason.strip():', new='    if reason is None:', caught_by='tests/test_bench_golden.py', why='a re-bless with no recorded reason is the same failure as a silently widened threshold — the named failure mode this wave exists to end.'), Mutant(name='golden_blesses_an_identical_pair', file='an/bench/golden.py', old='            if np.array_equal(decoded[i], decoded[j]):', new='            if False:', caught_by='tests/test_bench_golden.py', why='measured on \`promote_demo\`: frame 0 and the duration/2 frame differ by ZERO pixels, so the obvious second time blesses one picture twice and the second golden tests nothing forever after.'), Mutant(name='compare_gains_a_tolerance_band', file='an/bench/compare.py', old='    if before == after:\\n        return "no_change"', new='    if abs(float(before) - float(after)) < 1e-9:\\n        return "no_change"', caught_by='tests/test_bench_compare.py', why='two consecutive runs on one machine are bit-identical, so a band can only ever hide a true movement.'), Mutant(name='compare_refuses_on_an_absent_key', file='an/bench/compare.py', old='        elif b is \_ABSENT or a is \_ABSENT:', new='        elif False:', caught_by='tests/test_bench_compare.py', why='the ledger grows additively, so treating absence as difference makes every future field retroactively destroy comparability with every row already written.'), Mutant(name='compare_counts_metrics_not_families', file='an/bench/compare.py', old='        block["family_count"] = len(families)', new='        block["family_count"] = sum(len(v) for v in families.values())', caught_by='tests/test_bench_compare.py', why="counting bare metrics is satisfiable by shipping one signal under three names, which is exactly what family A's three edge metrics would do."), Mutant(name='compare_exempts_the_whole_environment', file='an/bench/compare.py', old='        touched = {t.label for t in MUTATION_TOUCHES.get(mutation, ())}', new='        touched = {i["key"] for i in common + render + encode}', caught_by='tests/test_bench_compare.py', why='the knob the lever pulls is the independent variable; the ISA is not. A blanket exemption lets a row from another machine in through the same door.'), Mutant(name='compare_exempts_by_path_not_by_value', file='an/bench/registry.py', old='        if self.differs_only_in is None:\\n            return True', new='        if True:\\n            return True', caught_by='tests/test_bench_compare.py', why="\`x264_argv\` is the WHOLE encode command, so exempting the path exempts every flag in it. A \`-preset medium\` -> \`-preset veryslow\` change moves every encode-side number and rode in as 'the lever moved it — expected'. The exemption must match the change the lever actually makes."), Mutant(name='compare_trusts_an_edited_prediction', file='an/bench/compare.py', old='    if not isinstance(inline, dict) or not isinstance(declared, dict):\\n        return []', new='    if True:\\n        return []', caught_by='tests/test_bench_compare.py', why="the prediction IS the criterion, and it is read from the after row's inline block alone. Flipping one \`expect\` turns \`contrary\` into \`as_declared\` with nothing else in the report moving — the cheapest possible way to fake a caught mutation."), Mutant(name='compare_lets_a_row_forge_its_own_scope', file='an/bench/compare.py', old='    "comparison_scope",\\n    "reference",', new='    "reference",', caught_by='tests/test_bench_compare.py', why="\`comparison_scope\` decides whether a metric may be compared ACROSS MACHINES, and \`compare\` reads the row's INLINE copy. Editing that one word compared an encode-side metric across a different ISA with no refusal — the single invariant this module exists to hold, defeated from inside the row."), Mutant(name='ledger_substitutes_zero_for_unknown', file='an/bench/ledger.py', old='        if self.state == "measured":\\n            if self.value is None:', new='        if self.state == "measured":\\n            if False:', caught_by='tests/test_bench_ledger_schema.py', why='a substituted number — 0.0 especially — is read downstream as a measurement, which is the unknown-is-not-zero failure the whole schema exists to prevent.'), Mutant(name='ledger_lets_a_tripwire_vanish', file='an/bench/ledger.py', old='    absent_tw = sorted(set(TRIPWIRES) - set(tripwires))', new='    absent_tw = []', caught_by='tests/test_bench_ledger_schema.py', why='a change detector that quietly stopped being computed reads exactly like one that fired and found nothing.'), Mutant(name='registry_counts_a_tautology', file='an/bench/registry.py', old='        if self.expect in ("no_change", "not_applicable") and self.counts:', new='        if False:', caught_by='tests/test_bench_ledger_schema.py', why="'no change by construction' is a tautology; counting it lets any pre-encode statistic pad the witness count for free."), Mutant(name='golden_fabricates_a_zero_pixel_count', file='an/bench/golden.py', old='"changed_px": max((int(f["changed_px"]) for f in compared), default=None),', new='"changed_px": max((int(f["changed_px"] or 0) for f in frames), default=0),', caught_by='tests/test_bench_golden.py', why="a shape mismatch has no per-pixel comparison to count, and turning that into 0 printed 'GOLDEN MISMATCH: 0 px changed' — a fabricated number in the one schema whose whole premise is that unknown is not zero."), Mutant(name='compare_scope_absence_fails_open', file='an/bench/compare.py', old='        if scope not in env_refusals:', new='        if False:', caught_by='tests/test_bench_compare.py', why="an absent \`comparison_scope\` read as 'no refusals apply', so an encode-side metric from another ISA and another x264 build compared cleanly and reported a regression."), Mutant(name='strict_passes_a_comparison_that_compared_nothing', file='an/tools.py', old='            not report.get("answered")', new='            False', caught_by='tests/test_bench_compare.py', why="the documented CI gate exited 0 on a run in which every scene was refused, while printing '0 regression(s)' — a zero the compare module's own docstring calls worse than no number at all."), Mutant(name='cli_returns_nothing_to_the_terminal', file='an/_\_main_\_.py', old='        if result is not None:\\n            typer.echo(result)', new='        pass', caught_by='tests/test_cli_dispatch.py', why='typer discards return values and every \`an.tools\` function returns its report as a string, so the CLI would run correctly and print NOTHING — the worst possible failure for a diagnostic tool.'), Mutant(name='cli_loses_the_signature_that_is_the_command_line', file='an/_\_main_\_.py', old='    @functools.wraps(func)\\n    def run(', new='    def run(', caught_by='tests/test_cli_dispatch.py', why='\`inspect.signature\` follows \`_\_wrapped_\_\`, and that signature IS the command line. Without it typer sees \`(\*args, \*\*kwargs)\` and every flag on all 17 commands disappears at once, while \`--help\` still renders.'), Mutant(name='corpus_reads_shot_order_from_the_directory', file='an/bench/corpus.py', old='    for shot_id in order:\\n        shot_dir = root / f"shot_{shot_id}"', new='    for shot_dir in sorted(root.glob(SHOT_DIR_GLOB)):\\n        shot_id = shot_dir.name[len("shot_") :]', caught_by='tests/test_bench_corpus.py', why="\`an/render.py\` concatenates in timeline order; a directory sort agrees only by luck, and when it does not every encode-side metric pairs one shot's source frames against another's decode."), Mutant(name='reshape_checks_divisibility_not_shape', file='an/bench/imageio.py', old='    if frames is not None and len(buf) != per_frame \* frames:', new='    if False:', caught_by='tests/test_bench_shape_guard.py', why='a k-times supersample makes the decoded buffer exactly k\*\*2 larger, so a divisibility check ALWAYS passes and family A is computed over k\*\*2 as many scrambled frames — plausibly, because at k=2 most horizontal runs survive the wrong reshape.'), Mutant(name='bench_measures_a_supersampled_render', file='an/bench/run.py', old='        if sizes != {capture.resolution}:', new='        if False:', caught_by='tests/test_bench_shape_guard.py', why="\`capture.resolution\` comes from the staged scene's meta and never from a file, so without an independent read of the PNGs' own IHDRs nothing in the pipeline ever compares the declared size to the size on disk."), Mutant(name='png_dimensions_trusts_a_non_ihdr_first_chunk', file='an/bench/png.py', old='    if data[_IHDR_TAG] != b"IHDR":', new='    if False:', caught_by='tests/test_bench_png.py', why='without the tag check the four bytes that happen to sit at offset 16 are returned as a resolution — a plausible number fed straight into the shape guard, which is the failure class an#54 closes.'), Mutant(name='read_png_dimensions_reads_the_whole_file', file='an/bench/png.py', old='        return png_dimensions(handle.read(PNG_HEADER_BYTES))', new='        return png_dimensions(handle.read())', caught_by='tests/test_bench_png.py', why='the answer stays right and the cost stops being free: the bench reads one of these per frame of every shot, and a 1080p frame is megabytes against a 24-byte header.'), Mutant(name='strict_exits_zero_on_a_row_it_cannot_read', file='an/tools.py', old='        if strict:\\n            print(refusal)', new='        if False:\\n            print(refusal)', caught_by='tests/test_bench_compare.py', why='the documented CI gate exited 0 on an unreadable schema_version or an undeclared --mutation — precisely the state a \`--strict --mutation supersample\` run is in before the lever is registered. Same class an#51 closed for the refusal path.'), Mutant(name='latest_rows_orders_by_filename', file='an/bench/compare.py', old='    return sorted(rows, key=key)[-count:]', new='    return sorted(rows, key=lambda p: p.name)[-count:]', caught_by='tests/test_bench_compare.py', why="filenames are <date>-<sha7>.json, so within one date the order is sha HEX order. A re-baseline and its after-run on the same day swap silently when the after-commit's sha sorts lower, and every improvement is then reported as a regression."), Mutant(name='compare_hides_that_a_row_was_blessed', file='an/bench/compare.py', old='            "blessed_scenes": sorted(after["provenance"].get("blessed") or ()),', new='            "blessed_scenes": [],', caught_by='tests/test_bench_compare.py', why="a bless run gates family B \`blessed_this_run\`, and \`format_comparison\` skips \`unchanged\` entries — so family B vanishes from the table entirely. 'Family B agreed' and 'family B was never asked' are the same blank space."), Mutant(name='capture_inherits_the_previous_renders_shots', file='an/bench/capture.py', old='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ("artifacts/shots",)', new='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ()', caught_by='tests/test_bench_corpus.py', why="\`mall['shots']\` is \`<project>/artifacts/shots\`, and it is gitignored — so a previous render's per-shot mp4s cross into every bench run on a developer machine and on no clean checkout, in the module whose docstring is 'do not inherit a stale render'."), Mutant(name='capture_excludes_shots_by_basename_at_any_depth', file='an/bench/capture.py', old='            n for n in names if prefix + n in IGNORED_RELPATHS_ON_COPY', new='            n\\n            for n in names\\n            if n in {p.rsplit("/", 1)[-1] for p in IGNORED_RELPATHS_ON_COPY}', caught_by='tests/test_bench_corpus.py', why="the obvious \`shutil.ignore_patterns('shots')\` spelling, restated. It fnmatches BASENAMES against the names in every directory, so it also deletes a character rig's \`assets/.../shots\` — and the other obvious spelling, \`'artifacts/shots'\` as a pattern, matches NOTHING, because no name contains a separator. Both fail silently."), Mutant(name='bless_names_its_row_after_the_tree_it_did_not_leave', file='an/bench/run.py', old='    return git_state(root) if blessed else git', new='    return git', caught_by='tests/test_bench_bless_protocol.py', why='\`git_state\` is read before the corpus loop and a \`--bless\` run writes inside it, so a bless on a clean tree filed itself as \`<date>-<sha>.json\` — a filename naming a commit whose tree that very run then modified, which is what the \`-dirty\` suffix exists to prevent.'), Mutant(name='golden_trusts_a_frame_its_own_record_disowns', file='an/bench/golden.py', old='        if expected is not None and expected != record["golden_sha256"]:', new='        if False:', caught_by='tests/test_bench_golden.py', why='the bless record and the committed PNG carry the same digest of the same file, written by two different calls. A disagreement means the golden is not the picture a human blessed — an edited file, a half-finished re-bless — and every one of those read as a clean PASS.'), Mutant(name='bench_asks_a_mutated_run_the_unmutated_question', file='an/tools.py', old='            compare_rows(load_row(compare), ledger, mutation=mutation or None)', new='            compare_rows(load_row(compare), ledger)', caught_by='tests/test_bench_mutation_cli.py', why="without the mutation, \`compare\` answers 'is the second row worse' of a run degraded on purpose — so the declared per-mutation predictions are never scored and the an#41 criterion cannot appear in the mandated \`--compare\` artifact at all."), Mutant(name='bench_blesses_a_deliberately_degraded_picture', file='an/tools.py', old='        if bless:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', new='        if False:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', caught_by='tests/test_bench_mutation_cli.py', why='blessing under a lever commits the degraded picture as the reference every future run is measured against — a permanent, silent re-baseline, and the one bless refusal that cannot be recovered by reading the recorded reason.'), Mutant(name='pix_fmt_knob_cannot_reach_the_encode', file='an/adapters/cutout/render.py', old='    resolved = pix_fmt or DEFAULT_PIX_FMT', new='    resolved = pix_fmt or "yuv420p"', caught_by='tests/test_encode_pins.py', why='reading the literal instead of the module global severs the seam any outside caller pulls — the same shape hoisting \`DETERMINISTIC_X264_ARGS\` into a default argument would sever for \`high_crf\`. That is why the seam is kept even though an#59 ships no lever — see the note there. (Until an#72 the row would ALSO have said 4:4:4 while the file stayed 4:2:0, because \`environment_record\` re-derived the format from the same global; it is measured off the delivered files now, so the row no longer lies about its own file — only the knob is broken.)'), Mutant(name='mux_argv_is_checked_by_subset_not_equality', file='an/adapters/cutout/render.py', old='        "-c:v",\\n        "libx264",\\n        "-pix_fmt",', new='        "-c:v",\\n        "libx264",\\n        "-tune",\\n        "animation",\\n        "-pix_fmt",', caught_by='tests/test_encode_pins.py', why='\`-tune animation\` is a measured-and-rejected flag (0.8%) and this is what adding it looks like. A SUBSET check passes — every pin is still present — and the encode moves and every encode-side metric is silently refused against every committed row. Only argv equality notices.'), Mutant(name='canvas_capture_flips_rows', file='an/adapters/cutout/canvas_capture.py', old='rgb = image.convert("RGB")', new='rgb = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")', caught_by='tests/test_canvas_capture.py', why='the \`readPixels\` trap in reverse: WebGL readback is bottom-up and a PNG is top-down, so a capture path is one flip away from writing every frame upside down at exactly the declared size — past every shape check. The offline catcher is named here because a sweep runs the whole file per mutant; the browser equivalence gate (tests/test_canvas_capture_equivalence.py) catches the same flip in its own test.'), Mutant(name='capture_page_stops_compositing_the_canvas', file='an/data/cutout_runtime/index.html', old='#stage { display: block; }', new='#stage { display: none; }', caught_by='tests/test_cutout_runtime_files.py', why="an#57's proposal. The element screenshot is a PAGE capture clipped to the element, so hiding the canvas does not make it cheaper — it makes \`Locator.screenshot\` time out after 30 s per frame. The two spellings Playwright does accept return an all-white frame."), Mutant(name='supersample_autodensity_true', file='an/data/cutout_runtime/runtime.js', old='            autoDensity: false,', new='            autoDensity: true,', caught_by='tests/test_bench_supersample_lever.py', why="\`autoDensity: true\` makes Chromium composite the k-times backbuffer down before the screenshot — a blind downscale with no filter choice and no record. The PNGs come out the DECLARED size, so every shape check passes and the whole knob silently measures nothing. It is the option whose name most suggests it is the right one. Lives on the PRODUCT's file since an#58, because the product owns the key."), Mutant(name='supersample_skips_the_frame_stage', file='an/bench/mutations.py', old='        render._capture_frames = \_capture_then_resolve', new='        render._capture_frames = original', caught_by='tests/test_bench_supersample_lever.py', why='drops the resolve, leaving k-times PNGs on disk. Before an#54 that was silent — \`_reshape\` checked byte-count divisibility and k\*\*2 always divides — and family A was computed on k\*\*2 scrambled frames that still produced a believable \`edge_transition_width\`. It is a loud refusal now, which is what makes this lever safe to run.'), Mutant(name='supersample_verify_is_merely_not_shipped', file='an/bench/mutations.py', old='    if recorded != expected:', new='    if False:', caught_by='tests/test_bench_supersample_lever.py', why="reduces the supersample fingerprint to \`disabled_aa\`'s inequality, which ANY render lever satisfies — both stage through one seam and both move \`render_side.runtime_sha256\`. A row rendered with \`antialias: false\` then verifies as a supersample row and the whole lever table is written from the wrong lever's numbers."), Mutant(name='edge_masked_colour_count_is_not_masked', file='an/bench/metrics.py', old='    per_frame = [len(np.unique(f[m])) for f, m in zip(packed, edge) if m.any()]', new='    per_frame = [len(np.unique(f)) for f, m in zip(packed, edge) if m.any()]', caught_by='tests/test_bench_metrics.py', why='unmasked it is \`frame_distinct_colours\` under a second name, and the one property the mask does buy — that an interior-only change cannot reach the number — is gone with no other symptom.'), Mutant(name='empty_edge_mask_reads_as_zero_colours', file='an/bench/metrics.py', old='        return float("nan"), 0', new='        return 0.0, 0', caught_by='tests/test_bench_metrics.py', why='a substituted zero is the largest possible DOWNWARD move in the one metric that exists to notice a downward move, on exactly the scenes where the number means nothing at all.'), Mutant(name='lossless_leg_pinned_to_420', file='an/bench/imageio.py', old='        "-pix_fmt",\\n        resolved,\\n        "-qp",', new='        "-pix_fmt",\\n        "yuv420p",\\n        "-qp",', caught_by='tests/test_bench_lossless_leg.py', why='a reference PINNED in the one dimension it has to track. The leg exists to be the plane libx264 received; \`-pix_fmt\` names what libx264 receives, so pinning it does not keep the reference lossless — it makes the reference a different colour pipeline from the delivered file, and every encode-side metric silently acquires the whole 4:2:0 conversion the reference exists to cancel. Distinct from every other entry here because the mutated code stays correct on the default path and is wrong only under a knob: measured on the corpus at 4:4:4, it changes the SIGN of family E on three of ten scenes (an#72).'), Mutant(name='sweep_never_finds_a_reversal', file='an/bench/compare.py', old='    unstable = tally["increase"] > 0 and tally["decrease"] > 0', new='    unstable = tally["increase"] > 0 and tally["decrease"] < 0', caught_by='tests/test_bench_compare.py', why="the robustness gate that stops being able to fire. Every row still carries its sweep and every report still prints a \`sweep\` block reading \`stable\`, so the instrument looks exactly like one that checked and found nothing — while \`graded_field\`'s +84.2% at tol 6, which is -81.6% at tol 8, counts toward family D again (an#140)."), Mutant(name='sweep_counts_a_different_statistic', file='an/bench/metrics.py', old='int((dev > t).sum())', new='int((dev >= t).sum())', caught_by='tests/test_bench_metrics.py', why="a sweep of a statistic the row does not report. Off by one code value, every cell stays a plausible, monotone survival count, and the comparer then certifies the robustness of \`>=\` while the ledger's number is \`>\` (an#140)."), Mutant(name='sweep_deletion_is_excused', file='an/bench/compare.py', old='    spec = declared.get("threshold_sweep")\\n', new='    spec = None\\n', caught_by='tests/test_bench_compare.py', why="a row that declares a threshold sweep and carries none reads as 'written before an#140' — so deleting one field from a row turns an \`unstable\` verdict back into a counted witness, the cheapest possible way to fake a caught mutation."), Mutant(name='strict_passes_an_unstable_movement', file='an/tools.py', old='else bool(report.get("has_regressions") or report.get("unstable"))', new='else bool(report.get("has_regressions"))', caught_by='tests/test_bench_compare.py', why="\`unstable\` is neither a regression nor a pass; with no mutation it means some cell of the metric's own grid got worse. A CI gate that exits 0 on it reads 'cannot tell' as 'fine' (an#140)."))*
 
 A representative sweep rather than an exhaustive one, chosen so each entry
 pins a *different* class of failure: a silently widened comparison, a guard
@@ -11135,10 +11375,9 @@ restated per preset, so a preset added later needs no entry here.
 ### an.characters.play.preset_play_span(action)
 
 How long a preset `play` runs, in seconds: its `duration` when set,
-else the preset’s natural length divided by `speed`. A play with no
-`duration` is still ZERO-width inside a `sequence` (the rule every
-`play` follows, because `flatten` cannot know which source wins); this
-is the span it actually animates.
+else the preset’s natural length divided by `speed`. What a
+`sequence` advances by is `play_extent()`, which is this for a preset
+source.
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
@@ -13691,7 +13930,7 @@ True
 | [`parallel`](_autosummary/an.html.md#an.parallel)(\*actions)                              | Run all children at once.                                                   |
 | [`delay`](_autosummary/an.html.md#an.delay)(duration)                                  | An empty span that consumes time.                                           |
 | [`loop`](_autosummary/an.html.md#an.loop)(action, count)                              | Repeat `action` `count` times.                                              |
-| [`flatten`](_autosummary/an.html.md#an.flatten)(action, \*[, start])                     | Walk a composition tree, emitting leaf actions with absolute times.         |
+| [`flatten`](_autosummary/an.html.md#an.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.         |
 | [`validate_schema`](_autosummary/an.html.md#an.validate_schema)(doc)                             | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema. |
 | [`validate_semantic`](_autosummary/an.html.md#an.validate_semantic)(scene, \*[, ...])              | Cross-field semantic checks.                                                |
 | [`markdown_to_ir`](_autosummary/an.html.md#an.markdown_to_ir)(md_text)                          | Parse the structured Markdown form of a scene into a SceneIR.               |
@@ -13983,9 +14222,13 @@ An empty span that consumes time. Useful inside `sequence`.
 * **Return type:**
   [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)
 
-### an.flatten(action, , start=0.0)
+### an.flatten(action, , start=0.0, play_extent=None)
 
 Walk a composition tree, emitting leaf actions with absolute times.
+
+A `play` without `duration` advances a `sequence` by `play_extent`
+(default `default_play_extent()`): its natural length, or zero for a
+looping animation, which runs to the shot end.
 
 Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
@@ -14082,8 +14325,11 @@ Run all children at once. Total duration = max of child durations.
 Play a named animation of the target entity’s descriptor (an#7).
 
 `duration=None` fills the animation’s natural length — or the shot’s
-remainder for a looping one — but counts as **zero** in a `sequence`,
-so a sibling placed after it starts at the same instant:
+remainder for a looping one. In a `sequence` a play with no `duration`
+occupies its **natural** length (a motion preset’s own length divided by
+`speed`; a non-looping descriptor animation’s likewise), so the sibling
+after it starts when it ends; a looping one runs to the shot end and
+occupies **zero**:
 
 * **Return type:**
   [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)
@@ -14093,7 +14339,16 @@ so a sibling placed after it starts at the same instant:
 [0.0, 1.0]
 >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
 [0.0, 2.0]
+>>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
+[0.0, 0.5]
+>>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
+[0.0, 0.25]
 ```
+
+(Bare `flatten` knows only the presets, by name; `an validate` and the
+compiler pass the entity’s descriptor too — `an.characters.play.play_extent()`
+— so a descriptor animation that shares a preset’s name is measured as the
+descriptor’s.)
 
 A name the descriptor does not declare falls back to a motion preset of
 [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
@@ -15766,22 +16021,24 @@ what tooling reasons about.
 
 ### Module Attributes
 
-| [`INHERIT`](_autosummary/an.ir.compose.html.md#an.ir.compose.INHERIT)   | `tween(..., easing=INHERIT)` — the default — leaves the easing UNSET, so the scene's `meta.default_easing` applies, else `"ease_in_out"` (an#166).   |
-|------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`INHERIT`](_autosummary/an.ir.compose.html.md#an.ir.compose.INHERIT)    | `tween(..., easing=INHERIT)` — the default — leaves the easing UNSET, so the scene's `meta.default_easing` applies, else `"ease_in_out"` (an#166).   |
+|-------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`PlayExtent`](_autosummary/an.ir.compose.html.md#an.ir.compose.PlayExtent) | `PlayAction -> seconds` a play WITHOUT an explicit `duration` occupies in a `sequence`.                                                              |
 
 ### Functions
 
-| [`delay`](_autosummary/an.ir.compose.html.md#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                     |
-|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
-| [`duration_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.duration_of)(action)                              | Compute the total duration of an action tree without evaluating it.   |
-| [`expression`](_autosummary/an.ir.compose.html.md#an.ir.compose.expression)(target[, preset, axes, ...])          | Hold a facial expression on an entity (an#98).                        |
-| [`flatten`](_autosummary/an.ir.compose.html.md#an.ir.compose.flatten)(action, \*[, start])                     | Walk a composition tree, emitting leaf actions with absolute times.   |
-| [`loop`](_autosummary/an.ir.compose.html.md#an.ir.compose.loop)(action, count)                              | Repeat `action` `count` times.                                        |
-| [`parallel`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel)(\*actions)                              | Run all children at once.                                             |
-| [`play`](_autosummary/an.ir.compose.html.md#an.ir.compose.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).      |
-| [`sequence`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence)(\*actions)                              | Run children one after the other.                                     |
-| [`set_`](_autosummary/an.ir.compose.html.md#an.ir.compose.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope). |
-| [`tween`](_autosummary/an.ir.compose.html.md#an.ir.compose.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.       |
+| [`default_play_extent`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent)(action)                      | A duration-less play's extent when no descriptor is known: a motion preset's natural length over `speed`, else `0.0`.   |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| [`delay`](_autosummary/an.ir.compose.html.md#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                                                                       |
+| [`duration_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.duration_of)(action, \*[, play_extent])           | Compute the total duration of an action tree without evaluating it.                                                     |
+| [`expression`](_autosummary/an.ir.compose.html.md#an.ir.compose.expression)(target[, preset, axes, ...])          | Hold a facial expression on an entity (an#98).                                                                          |
+| [`flatten`](_autosummary/an.ir.compose.html.md#an.ir.compose.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.                                                     |
+| [`loop`](_autosummary/an.ir.compose.html.md#an.ir.compose.loop)(action, count)                              | Repeat `action` `count` times.                                                                                          |
+| [`parallel`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel)(\*actions)                              | Run all children at once.                                                                                               |
+| [`play`](_autosummary/an.ir.compose.html.md#an.ir.compose.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).                                                        |
+| [`sequence`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence)(\*actions)                              | Run children one after the other.                                                                                       |
+| [`set_`](_autosummary/an.ir.compose.html.md#an.ir.compose.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).                                                   |
+| [`tween`](_autosummary/an.ir.compose.html.md#an.ir.compose.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                                                         |
 
 ### Classes
 
@@ -15804,6 +16061,32 @@ appear in the flat form — they’re collapsed into time offsets.
 the scene’s `meta.default_easing` applies, else `"ease_in_out"` (an#166).
 A sentinel rather than `None` because `None` already means linear.
 
+### an.ir.compose.PlayExtent
+
+`PlayAction -> seconds` a play WITHOUT an explicit `duration` occupies in
+a `sequence`. The default is [`default_play_extent()`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent); the compiler and
+`an validate` pass one bound to the entity’s descriptor.
+
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.ir.compose.default_play_extent(action)
+
+A duration-less play’s extent when no descriptor is known: a motion
+preset’s natural length over `speed`, else `0.0`.
+
+The one resolver is `an.characters.play.play_extent()`; this is it with
+`desc=None`.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> default_play_extent(PlayAction(target="a", animation="hop"))
+0.5
+>>> default_play_extent(PlayAction(target="a", animation="not_a_preset"))
+0.0
+```
+
 ### an.ir.compose.delay(duration)
 
 An empty span that consumes time. Useful inside `sequence`.
@@ -15811,9 +16094,11 @@ An empty span that consumes time. Useful inside `sequence`.
 * **Return type:**
   [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)
 
-### an.ir.compose.duration_of(action)
+### an.ir.compose.duration_of(action, , play_extent=None)
 
 Compute the total duration of an action tree without evaluating it.
+
+`play_extent` resolves a duration-less `play` (see [`PlayExtent`](_autosummary/an.ir.compose.html.md#an.ir.compose.PlayExtent)).
 
 * **Return type:**
   [`float`](https://docs.python.org/3/builtins/functions.html#float)
@@ -15836,7 +16121,7 @@ Compute the total duration of an action tree without evaluating it.
 Hold a facial expression on an entity (an#98).
 
 `duration=None` runs to the shot end and counts as **zero** in a
-`sequence`, like `play`:
+`sequence`, as a looping `play` does:
 
 * **Return type:**
   [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)
@@ -15848,9 +16133,13 @@ Hold a facial expression on an entity (an#98).
 2.0
 ```
 
-### an.ir.compose.flatten(action, , start=0.0)
+### an.ir.compose.flatten(action, , start=0.0, play_extent=None)
 
 Walk a composition tree, emitting leaf actions with absolute times.
+
+A `play` without `duration` advances a `sequence` by `play_extent`
+(default [`default_play_extent()`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent)): its natural length, or zero for a
+looping animation, which runs to the shot end.
 
 Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
@@ -15878,8 +16167,11 @@ Run all children at once. Total duration = max of child durations.
 Play a named animation of the target entity’s descriptor (an#7).
 
 `duration=None` fills the animation’s natural length — or the shot’s
-remainder for a looping one — but counts as **zero** in a `sequence`,
-so a sibling placed after it starts at the same instant:
+remainder for a looping one. In a `sequence` a play with no `duration`
+occupies its **natural** length (a motion preset’s own length divided by
+`speed`; a non-looping descriptor animation’s likewise), so the sibling
+after it starts when it ends; a looping one runs to the shot end and
+occupies **zero**:
 
 * **Return type:**
   [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)
@@ -15889,7 +16181,16 @@ so a sibling placed after it starts at the same instant:
 [0.0, 1.0]
 >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
 [0.0, 2.0]
+>>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
+[0.0, 0.5]
+>>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
+[0.0, 0.25]
 ```
+
+(Bare `flatten` knows only the presets, by name; `an validate` and the
+compiler pass the entity’s descriptor too — `an.characters.play.play_extent()`
+— so a descriptor animation that shares a preset’s name is measured as the
+descriptor’s.)
 
 A name the descriptor does not declare falls back to a motion preset of
 [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
@@ -15959,7 +16260,7 @@ authoring-time DSL to canonical-form actions.
 | [`parallel`](_autosummary/an.ir.html.md#an.ir.parallel)(\*actions)                              | Run all children at once.                                                   |
 | [`delay`](_autosummary/an.ir.html.md#an.ir.delay)(duration)                                  | An empty span that consumes time.                                           |
 | [`loop`](_autosummary/an.ir.html.md#an.ir.loop)(action, count)                              | Repeat `action` `count` times.                                              |
-| [`flatten`](_autosummary/an.ir.html.md#an.ir.flatten)(action, \*[, start])                     | Walk a composition tree, emitting leaf actions with absolute times.         |
+| [`flatten`](_autosummary/an.ir.html.md#an.ir.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.         |
 | [`validate_schema`](_autosummary/an.ir.html.md#an.ir.validate_schema)(doc)                             | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema. |
 | [`validate_semantic`](_autosummary/an.ir.html.md#an.ir.validate_semantic)(scene, \*[, ...])              | Cross-field semantic checks.                                                |
 | [`migrate`](_autosummary/an.ir.html.md#an.ir.migrate)(doc[, target_version, kind])             | Migrate a document to `target_version` (default: its kind's current).       |
@@ -16262,7 +16563,7 @@ An empty span that consumes time. Useful inside `sequence`.
 Hold a facial expression on an entity (an#98).
 
 `duration=None` runs to the shot end and counts as **zero** in a
-`sequence`, like `play`:
+`sequence`, as a looping `play` does:
 
 * **Return type:**
   [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)
@@ -16274,9 +16575,13 @@ Hold a facial expression on an entity (an#98).
 2.0
 ```
 
-### an.ir.flatten(action, , start=0.0)
+### an.ir.flatten(action, , start=0.0, play_extent=None)
 
 Walk a composition tree, emitting leaf actions with absolute times.
+
+A `play` without `duration` advances a `sequence` by `play_extent`
+(default `default_play_extent()`): its natural length, or zero for a
+looping animation, which runs to the shot end.
 
 Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
@@ -16386,8 +16691,11 @@ Run all children at once. Total duration = max of child durations.
 Play a named animation of the target entity’s descriptor (an#7).
 
 `duration=None` fills the animation’s natural length — or the shot’s
-remainder for a looping one — but counts as **zero** in a `sequence`,
-so a sibling placed after it starts at the same instant:
+remainder for a looping one. In a `sequence` a play with no `duration`
+occupies its **natural** length (a motion preset’s own length divided by
+`speed`; a non-looping descriptor animation’s likewise), so the sibling
+after it starts when it ends; a looping one runs to the shot end and
+occupies **zero**:
 
 * **Return type:**
   [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)
@@ -16397,7 +16705,16 @@ so a sibling placed after it starts at the same instant:
 [0.0, 1.0]
 >>> [f.start for f in flatten(sequence(play("a", "idle_breath", duration=2.0), play("a", "blink")))]
 [0.0, 2.0]
+>>> [f.start for f in flatten(sequence(play("a", "hop"), play("a", "nod")))]
+[0.0, 0.5]
+>>> [f.start for f in flatten(sequence(play("a", "hop", speed=2.0), play("a", "nod")))]
+[0.0, 0.25]
 ```
+
+(Bare `flatten` knows only the presets, by name; `an validate` and the
+compiler pass the entity’s descriptor too — `an.characters.play.play_extent()`
+— so a descriptor animation that shares a preset’s name is measured as the
+descriptor’s.)
 
 A name the descriptor does not declare falls back to a motion preset of
 [`an.motion.PRESETS`](_autosummary/an.motion.html.md#an.motion.PRESETS), with `args` as its parameters (an#166):
@@ -16768,7 +17085,7 @@ Hold a facial expression on an entity (an#98, epic #9 Wave 6).
 are per-axis overrides layered on it (axis units, see
 [`an.expression.axes`](_autosummary/an.expression.axes.html.md#module-an.expression.axes)); `None` + no axes is a cheap “return to
 rest”. `duration=None` runs to the shot end (the looping-play rule) and
-is **zero-width in a sequence**, like `play`. `blend` ramps the
+is **zero-width in a sequence**, like a looping `play`. `blend` ramps the
 intensity in and out; two overlapping expressions cross-fade because the
 face solver sums offsets. The dialogue `speaker [emotion]: …` bracket is
 sugar for one of these over the line, desugared in memory only.
@@ -16897,8 +17214,10 @@ animation’s own duration — or, when the resolved `loop` is true, the
 rest of the shot, because a loop bounded by its own natural duration
 never loops. `loop` overrides the animation’s declared `loop`
 (`None` = use the descriptor’s). Inside a `sequence` a play with
-`duration=None` has ZERO width ([`an.ir.compose.duration_of()`](_autosummary/an.ir.compose.html.md#an.ir.compose.duration_of)):
-the next sibling starts at the same instant.
+`duration=None` occupies its NATURAL length — a motion preset’s own
+length, a non-looping descriptor animation’s `duration`, both over
+`speed` — so the next sibling starts when it ends; a looping one runs to
+the shot end and occupies ZERO (`an.characters.play.play_extent()`).
 
 #### args *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -17624,8 +17943,9 @@ this module’s tweens at compile, with the rest pose read off the built scene �
 no `rest=` — and `args` as the preset’s keyword arguments. A character
 descriptor animation of the same name WINS; `an validate` and the compiler
 decide both through [`an.characters.play.play_problems()`](_autosummary/an.characters.play.html.md#an.characters.play.play_problems). `duration`
-stretches the move and `speed` divides it; `loop` is refused. Like every
-`play` without a `duration`, it is zero-width inside a `sequence`.
+stretches the move and `speed` divides it; `loop` is refused. In a
+`sequence` a `play` without a `duration` occupies the preset’s own
+length divided by `speed`, so two in a row run one after the other.
 [`as_leaves()`](_autosummary/an.motion.html.md#an.motion.as_leaves) remains for a preset composed in Python and written into
 `scene.md` as plain tweens (a composition tree does not round-trip).
 
@@ -18478,7 +18798,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised on render-pipeline failures with actionable detail.
 
-### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, language='en')
+### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
 
 Lower-level: render a loaded `Project` to mp4.
 
@@ -18528,7 +18848,7 @@ different picture (an#33).
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, step_hz=None, language='en')
+### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en')
 
 Render every shot in `project_dir`’s scene and concatenate to one mp4.
 
@@ -18551,6 +18871,13 @@ GIL during the slow parts).
 `supersample` renders at N times the declared resolution and resolves back
 with an exact block mean. **Opt-in, and 1 is free** — at 1 nothing is
 decoded and Chromium’s own bytes reach disk. See [`render()`](_autosummary/an.render.html.md#an.render.render).
+
+`capture` picks how frames leave the browser: `"screenshot"` (the
+default, via `None`) or `"canvas"` — an in-page read of the canvas,
+batched, writing frames whose decoded pixels equal the screenshot path’s
+and measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p (see
+`an.adapters.cutout.canvas_capture`). Opt-in until the equivalence gate has
+held on both rendering lanes.
 
 `step_hz` overrides the scene’s `meta.step_hz` for this render (a shot’s
 own `step_hz` still wins): authored tweens are resampled onto a pose grid
@@ -19933,7 +20260,7 @@ no_browser: don’t auto-open the default browser
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en')
+### an.tools.render(project_dir, output_name='main', tts='offline', lipsync='offline', parallel='', strict_assets=False, supersample=1, pix_fmt='', step_hz=0.0, language='en', capture='')
 
 Render the project at `project_dir` to a single mp4.
 
@@ -19972,6 +20299,11 @@ language: the dialogue’s language (BCP-47) for providers that select
 : behaviour by it — Rhubarb’s recognizer today: English (the default)
   uses `pocketSphinx` with the transcript, anything else `phonetic`
   without one (an#96)
+
+capture: how frames leave the browser — “screenshot” (the default) or
+: “canvas”, an in-page read of the canvas in batches that writes frames
+  with the same decoded pixels; ~7.8x faster frame stage on the corpus, ~2.3x at 1080p. Opt-in until the
+  equivalence gate has held on both rendering lanes
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -20794,18 +21126,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 04:19 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/2d1d861b70b63bd0d91385409d23258860dccc44"><code>2d1d861</code></a> on branch <code>main</code>, for **an 0.1.104** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 04:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/d5ff2b7b2a340a83ebbad5270134b1000ef0ce07"><code>d5ff2b7</code></a> on branch <code>main</code>, for **an 0.1.105** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.105) is behind the latest release on PyPI (0.1.106): `pip install an` gives newer code than these docs describe.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/2d1d861b70b63bd0d91385409d23258860dccc44"><code>2d1d861b70b63bd0d91385409d23258860dccc44</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/d5ff2b7b2a340a83ebbad5270134b1000ef0ce07"><code>d5ff2b7b2a340a83ebbad5270134b1000ef0ce07</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.104</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.105</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -20814,9 +21148,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36668054589">36668054589</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36669554395">36669554395</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>30aebf72ce3c15b06533f59d533dd3eafa30644c</code> (in the history of the built commit) |
+| Event commit | <code>0670eac04422f0cc7dad63f260698b4bf6b85c8b</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -20841,13 +21175,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.104/">0.1.104</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.106/">0.1.106</a>, newer than the documented version (0.1.105).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 2d1d861b70b63bd0d91385409d23258860dccc44
+git checkout d5ff2b7b2a340a83ebbad5270134b1000ef0ce07
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
