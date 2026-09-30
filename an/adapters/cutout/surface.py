@@ -180,7 +180,9 @@ def apply_surface(
                     # art's own silhouette (concave shapes and transparent
                     # margins included), where scaling a copy only grows its box.
                     underlays.append(
-                        UnderlayJSON(color=outline.color, offsets=ring_offsets(outline.width))
+                        UnderlayJSON(
+                            color=outline.color, offsets=ring_offsets(outline.width)
+                        )
                     )
                 else:
                     underlays.append(
@@ -249,7 +251,9 @@ def _fmt(x: float) -> str:
     return f"{x:.4f}".rstrip("0").rstrip(".")
 
 
-def glow_svg(width: int, height: int, *, color: str, intensity: float, core: float) -> str:
+def glow_svg(
+    width: int, height: int, *, color: str, intensity: float, core: float
+) -> str:
     """The glow's texture: an elliptical radial gradient filling its box.
 
     It holds ``intensity`` out to ``core`` (a fraction of the radius) and
@@ -278,7 +282,9 @@ def _inline_texture(textures: dict[str, AssetJSON], kind: str, src: str) -> str:
     return alias
 
 
-def glow_node(glow: "Glow", entity: NodeJSON, *, textures: dict[str, AssetJSON]) -> NodeJSON | None:
+def glow_node(
+    glow: "Glow", entity: NodeJSON, *, textures: dict[str, AssetJSON]
+) -> NodeJSON | None:
     """The glow sprite for ``entity``, or ``None`` if it draws nothing."""
     box = drawn_box(entity)
     if box is None:
@@ -289,7 +295,9 @@ def glow_node(glow: "Glow", entity: NodeJSON, *, textures: dict[str, AssetJSON])
     gh = math.ceil(bh + 2 * glow.radius)
     core = min(bw / gw, bh / gh)
     svg = glow_svg(gw, gh, color=glow.color, intensity=glow.intensity, core=core)
-    src = "data:image/svg+xml;base64," + base64.b64encode(svg.encode("utf-8")).decode("ascii")
+    src = "data:image/svg+xml;base64," + base64.b64encode(svg.encode("utf-8")).decode(
+        "ascii"
+    )
     alias = _inline_texture(textures, "glow", src)
     return NodeJSON(
         name=GLOW_NODE,
@@ -350,7 +358,12 @@ def grain_greys(amount: float) -> list[int]:
 
 
 def _png_chunk(kind: bytes, data: bytes) -> bytes:
-    return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
+    return (
+        struct.pack(">I", len(data))
+        + kind
+        + data
+        + struct.pack(">I", zlib.crc32(kind + data))
+    )
 
 
 def _stored_zlib(raw: bytes) -> bytes:
@@ -360,7 +373,9 @@ def _stored_zlib(raw: bytes) -> bytes:
     for i in range(0, max(len(raw), 1), limit):
         block = raw[i : i + limit]
         final = 1 if i + limit >= len(raw) else 0
-        out += bytes([final]) + struct.pack("<HH", len(block), len(block) ^ 0xFFFF) + block
+        out += (
+            bytes([final]) + struct.pack("<HH", len(block), len(block) ^ 0xFFFF) + block
+        )
     out += struct.pack(">I", zlib.adler32(raw))
     return bytes(out)
 

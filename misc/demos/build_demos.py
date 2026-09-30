@@ -937,7 +937,9 @@ def _build_surface_treatments(work: Path) -> Path:
         md = (
             meta + "\n" + _shot("s1", 3.0) + "\n```yaml entities\n"
             "- kind: environment\n  id: set\n  store: environments\n  ref: park\n"
-            + _character_rows(("maya", "bo")) + "\n```\n" + body
+            + _character_rows(("maya", "bo"))
+            + "\n```\n"
+            + body
         )
         _project(pane, scene_md=md, characters=("maya", "bo"))
         if variant == "treated":
@@ -949,9 +951,22 @@ def _build_surface_treatments(work: Path) -> Path:
     out = work / "surface-treatments.mp4"
     subprocess.run(
         [
-            "ffmpeg", "-v", "error", "-y", "-i", str(panes[0]), "-i", str(panes[1]),
-            "-filter_complex", "hstack", "-c:v", "libx264", "-pix_fmt", "yuv420p",
-            "-an", str(out),
+            "ffmpeg",
+            "-v",
+            "error",
+            "-y",
+            "-i",
+            str(panes[0]),
+            "-i",
+            str(panes[1]),
+            "-filter_complex",
+            "hstack",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-an",
+            str(out),
         ],
         check=True,
     )

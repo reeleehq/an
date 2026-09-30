@@ -994,7 +994,8 @@ def compile_shot(
         # an#163: the paper grain, FIRST on the overlay so any text draws over
         # it, and on the overlay at all so the camera cannot move or scale it.
         overlay_children.insert(
-            0, grain_node(style_pack.grain, width=width, height=height, textures=textures)
+            0,
+            grain_node(style_pack.grain, width=width, height=height, textures=textures),
         )
     # The vocabulary sees the overlay too: its nodes are indexed by the
     # runtime under their own paths (`title/word_0`), exactly like the scene's,
@@ -1184,7 +1185,9 @@ def _build_scene_root(
             _apply_stage_placement(sub, entity)
             # an#163: outline / paper-gap shadow / glow, when the pack asks.
             _warn_surface(
-                apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
+                apply_surface(
+                    sub, surface_for(style_pack, entity.id), textures=textures
+                )
             )
             children.append(sub)
         elif entity.kind == "prop":
@@ -1212,7 +1215,9 @@ def _build_scene_root(
             )
             _apply_stage_placement(sub, entity)
             _warn_surface(
-                apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
+                apply_surface(
+                    sub, surface_for(style_pack, entity.id), textures=textures
+                )
             )
             children.append(sub)
         # `voice` entities are legitimately not drawable: they

@@ -376,7 +376,9 @@ class StylePack(BaseModel):
         import difflib
 
         for key in self.model_extra or {}:
-            close = difflib.get_close_matches(key, type(self).model_fields, n=1, cutoff=0.8)
+            close = difflib.get_close_matches(
+                key, type(self).model_fields, n=1, cutoff=0.8
+            )
             if close:
                 raise ValueError(
                     f"{key!r} is not a StylePack field; did you mean {close[0]!r}? "
