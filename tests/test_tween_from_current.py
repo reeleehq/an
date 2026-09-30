@@ -180,3 +180,43 @@ def test_a_from_less_tween_on_a_swap_set_still_raises():
     """No numeric start exists for a key, so nothing is invented (unchanged)."""
     with pytest.raises(CutoutCompileError, match="no from_value"):
         _compile(_shot([tween("c/head/mouth", "viseme", to="A", duration=0.2)]))
+
+
+def test_an_entrance_still_lands_home():
+    """Review of an#212: ``slide_in`` and ``pop_in`` end where the node BELONGS
+    (``an.motion.HOME_PRESETS``), so they read the built pose, not the pose at
+    their start — ``slide_out`` then ``slide_in`` comes back, and ``pop_in``
+    after hiding the scales with a ``set`` (its own docstring's advice) grows."""
+    back = _compile(
+        _shot([play("c", "slide_out"), sequence(delay(2.0), play("c", "slide_in"))])
+    )
+    assert _at(back, 3.9, "c", "x") == pytest.approx(0.0)
+    popped = _compile(
+        _shot(
+            [
+                set_("c", "scale_x", 0.0),
+                set_("c", "scale_y", 0.0),
+                sequence(delay(1.0), play("c", "pop_in")),
+            ]
+        )
+    )
+    assert _at(popped, 3.0, "c", "scale_x") == pytest.approx(1.0)
+
+
+def test_rotation_and_rotation_rad_are_one_property():
+    """They write the same thing on the node (``timeline.write_group``), so a
+    from-less ``rotation`` tween after a ``rotation_rad`` set starts from it."""
+    shot = _shot(
+        [set_("c/torso", "rotation_rad", 0.5), tween("c/torso", "rotation", to=0.0, duration=1.0, start=1.0)]
+    )
+    assert _starts(_compile(shot), "c/torso", "rotation") == [(0.5, 0.0)]
+
+
+def test_a_long_chain_resolves_every_link():
+    """The pruned evaluation still gives each link the end of the one before."""
+    links = [
+        tween("c", "x", to=float(i + 1), duration=0.1, start=0.1 * i)
+        for i in range(200)
+    ]
+    starts = _starts(_compile(_shot(links, duration=25.0)), "c", "x")
+    assert [a for a, _ in starts] == [0.0] + [float(i + 1) for i in range(199)]

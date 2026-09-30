@@ -3389,7 +3389,8 @@ def _expand_preset_plays(
     timeline before it left the entity facing (:func:`an.characters.play.
     resolve_turns`, an#203) — the resolver ``an validate`` checks with.
     """
-    from an.motion import IDENTITY_POSE, POSE_PROPERTIES
+    from an.adapters.cutout.timeline import write_group
+    from an.motion import HOME_PRESETS, IDENTITY_POSE, POSE_PROPERTIES
 
     def built_rest(path: str) -> dict[str, float] | None:
         if vocab is None:
@@ -3433,7 +3434,8 @@ def _expand_preset_plays(
 
     def value_at(target: str, prop: str, t: float, base: float) -> float:
         return _value_at(
-            history.get((target, prop), []),
+            history.get((target, write_group(prop)), []),
+            prop,
             t,
             base,
             vocab=vocab,
@@ -3456,7 +3458,11 @@ def _expand_preset_plays(
                 leaves = expand_preset_play(
                     action,
                     start=flat.start,
-                    rest_of=lambda path, t=flat.start: pose_at(path, t),
+                    rest_of=(
+                        built_rest
+                        if action.animation in HOME_PRESETS
+                        else lambda path, t=flat.start: pose_at(path, t)
+                    ),
                 )
             except PlayResolutionError as e:
                 entity_id = _track_root_of(action.target)
@@ -3487,7 +3493,8 @@ def _expand_preset_plays(
         placed[i] = leaves
         for sub, leaf in enumerate(leaves):
             if isinstance(leaf.action, (SetAction, TweenAction)):
-                key = (leaf.action.target, leaf.action.property)
+                # Keyed by what the property WRITES: `rotation_rad` is `rotation`.
+                key = (leaf.action.target, write_group(leaf.action.property))
                 history.setdefault(key, []).append(((i, sub), leaf))
     return [leaf for i in range(len(flat_list)) for leaf in placed[i]]
 
@@ -3509,6 +3516,7 @@ def _built_value(target: str, prop: str, *, vocab: _SwapVocabulary | None) -> fl
 
 def _value_at(
     entries: list[tuple[tuple[int, int], FlatAction]],
+    prop: str,
     t: float,
     base: float,
     *,
@@ -3525,6 +3533,12 @@ def _value_at(
     :func:`~an.adapters.cutout.timeline.evaluate_timeline`, so the answer is
     the runtime's by construction: an active tween governs, otherwise the
     latest write holds. ``base`` when nothing has written it yet (an#212).
+
+    ``entries`` are one node's writes of ``prop``'s write group (``rotation``
+    and ``rotation_rad`` are one). Only the writes that can still show at ``t``
+    are compiled — the latest set and whatever did not end before it or before
+    the latest-ending finished tween — so a long chain on one property costs
+    one short evaluation per tween, not the whole history each time.
     """
     from an.adapters.cutout.timeline import (
         PlacedClip,
@@ -3532,11 +3546,30 @@ def _value_at(
         Track,
         clip_from_json,
         evaluate_timeline,
+        write_group,
     )
 
     earlier = [(k, f) for k, f in entries if f.start <= t + 1e-12]
     if not earlier:
         return base
+    # Prune what cannot show at t: before the latest set (it holds from there,
+    # or is cut by a tween that is itself kept), and any tween that ended
+    # before the latest-ending one that has ended (a held end loses to a later
+    # end). Ties are kept, so later-wins still decides between them.
+    last_set = max(
+        (f.start for _, f in earlier if isinstance(f.action, SetAction)),
+        default=-math.inf,
+    )
+    ended = max(
+        (f.end for _, f in earlier if isinstance(f.action, TweenAction) and f.end < t),
+        default=-math.inf,
+    )
+    cutoff = max(last_set, ended)
+    earlier = [
+        (k, f)
+        for k, f in earlier
+        if (f.start >= last_set if isinstance(f.action, SetAction) else f.end >= cutoff)
+    ]
     tweens = [f for _, f in sorted(earlier, key=lambda e: e[0]) if isinstance(f.action, TweenAction)]
     sets = sorted(
         (f for _, f in earlier if isinstance(f.action, SetAction)), key=lambda f: f.start
@@ -3574,9 +3607,11 @@ def _value_at(
             default_easing=default_easing,
         )
         placed.append(PlacedClip(clip_from_json(anim), start_time=f.start))
-    value = evaluate_timeline(Timeline(t + 1.0, [Track("", placed)]), t).get(
-        (target, prop)
-    )
+    pose = evaluate_timeline(Timeline(t + 1.0, [Track("", placed)]), t)
+    group = write_group(prop)
+    # One key of the group survives the evaluation — the most recently written.
+    shown = [v for (n, p), v in pose.items() if n == target and write_group(p) == group]
+    value = pose.get((target, prop), shown[-1] if shown else None)
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return base  # a value the compiler refuses later, where it says why
     return float(value)
