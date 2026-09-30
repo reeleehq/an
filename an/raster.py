@@ -22,6 +22,10 @@ needed was three answers it previously got only from an SVG:
   loader ignores a re-added alias on hot reload, an#155) and a different
   compiled contract, so the contract hash covers the pixels it will draw.
 
+**Known limit: EXIF orientation.** The header size is the stored size. A
+JPEG whose EXIF says "rotate 90°" (a phone photo) is decoded upright by
+Chromium, so its box would be transposed — export such art rotated.
+
 **Why a raster part is never recoloured.** A StylePack recolours SVG art by
 rewriting the literal colours its descriptor tags (`colour_roles`). A raster
 has no literals — its colours are pixels, and inferring a role from a pixel is
@@ -48,6 +52,8 @@ __all__ = [
     "has_alpha",
     "image_size",
     "is_raster",
+    "strip_version",
+    "versioned_src",
 ]
 
 #: The raster formats a plate or a part may be, by file suffix. PixiJS 7's
@@ -105,12 +111,15 @@ def image_size(source: Any) -> tuple[float, float]:
     (3.0, 2.0)
     """
     data = _read(source)
-    if data.startswith(_PNG_SIGNATURE):
-        return _png_size(data)
-    if data[:2] == b"\xff\xd8":
-        return _jpeg_size(source if not isinstance(source, bytes) else data)
-    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
-        return _webp_size(data)
+    try:
+        if data.startswith(_PNG_SIGNATURE):
+            return _png_size(data)
+        if data[:2] == b"\xff\xd8":
+            return _jpeg_size(source)
+        if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+            return _webp_size(data)
+    except (struct.error, IndexError) as e:
+        raise RasterFormatError(f"{_label(source)} has a truncated header: {e}") from e
     raise RasterFormatError(
         f"{_label(source)} is not a PNG, JPEG or WebP (header "
         f"{data[:12]!r}); raster art must be one of {list(RASTER_SUFFIXES)}"
@@ -126,6 +135,13 @@ def has_alpha(source: Any) -> bool | None:
     canvas draws, background and all — which is what `an character validate`
     uses this for.
     """
+    try:
+        return _has_alpha(source)
+    except (struct.error, IndexError):
+        return None
+
+
+def _has_alpha(source: Any) -> bool | None:
     data = _read(source)
     if data.startswith(_PNG_SIGNATURE):
         if data[25] in _PNG_ALPHA_COLOUR_TYPES:
@@ -159,8 +175,39 @@ def art_size(source: str | Path) -> tuple[float, float]:
     return raster_size(source)
 
 
+#: The query key a raster texture's ``src`` carries its digest under. The
+#: ALIAS alone is not enough: PixiJS caches a load by URL (and the browser
+#: caches the file), so a re-carved part under a new alias but the same URL
+#: would still resolve to the old pixels on a hot reload. The staging step and
+#: the local HTTP server ignore the query; PixiJS 7 picks its parser from the
+#: path before ``?``.
+VERSION_QUERY_KEY: str = "v"
+
+
+def versioned_src(src: str, digest: str) -> str:
+    """``src`` with its content digest as a query string.
+
+    >>> versioned_src("props/lamp/parts/on.png", "abc123")
+    'props/lamp/parts/on.png?v=abc123'
+    """
+    return f"{src}?{VERSION_QUERY_KEY}={digest}"
+
+
+def strip_version(src: str) -> str:
+    """The file path a (possibly versioned) texture ``src`` names.
+
+    >>> strip_version("props/lamp/parts/on.png?v=abc123")
+    'props/lamp/parts/on.png'
+    """
+    return src.split("?", 1)[0]
+
+
 def content_digest(path: str | Path) -> str:
     """The hex sha256 of a file's bytes, cached by (path, mtime, size).
+
+    The ENCODED bytes, not the pixels: re-saving the same image with another
+    encoder changes the digest (and so the alias and the contract hash) —
+    which is the conservative direction for a contract.
 
     Cached because a rig registers every attachment of every slot and a scene
     compiles each shot separately; keyed on the stat so an edited file is
@@ -240,7 +287,13 @@ def _jpeg_size(source: Any) -> tuple[float, float]:
     raise RasterFormatError("JPEG with no start-of-frame marker")
 
 
+#: Bytes a WebP header needs before its size fields are all present.
+_WEBP_HEADER_BYTES: int = 30
+
+
 def _webp_size(data: bytes) -> tuple[float, float]:
+    if len(data) < _WEBP_HEADER_BYTES:
+        raise RasterFormatError(f"WebP header is {len(data)} bytes, too short")
     chunk = data[12:16]
     if chunk == b"VP8X":
         w = 1 + int.from_bytes(data[24:27], "little")

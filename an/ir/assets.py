@@ -70,8 +70,8 @@ __all__ = [
 PRIVATE_STUDY: str = "all-rights-reserved-private-study"
 
 #: The recognised code for the public domain — no rights to clear, nothing
-#: owed (an#211). ``pd``, ``public-domain``, ``cc-pdm-1.0`` and ``cc0-*`` are
-#: all this class.
+#: owed (an#211). ``pd``, ``pd-us``, ``pdm-1.0``, ``public-domain``,
+#: ``cc-pdm-1.0`` and ``cc0-*`` are all this class.
 PUBLIC_DOMAIN: str = "public-domain"
 
 #: What a licence means for shipping the video it ends up in.
@@ -82,18 +82,20 @@ PUBLIC_DOMAIN: str = "public-domain"
 #: - ``unknown`` — not classified, which is not the same as free.
 LicenseClass = Literal["attribution", "free", "private", "unknown"]
 
-#: Normalised prefixes of the codes that mean "all rights reserved".
-_PRIVATE_PREFIXES: tuple[str, ...] = (
-    "all-rights-reserved",
-    "private-study",
-    "arr",
-    "copyrighted-private",
-)
+#: Normalised phrases that mean "all rights reserved" ANYWHERE in the code —
+#: "(c) Studio. All rights reserved" is the usual way it is written.
+_PRIVATE_PHRASES: tuple[str, ...] = ("all-rights-reserved", "private-study")
+#: …and whole normalised codes that mean it.
+_PRIVATE_EXACT: frozenset[str] = frozenset({"arr"})
 
-#: Normalised codes (exact) and prefixes that mean "no rights to clear".
-_FREE_EXACT: frozenset[str] = frozenset({"pd", "pdm", "publicdomain", "cc-pdm"})
-_FREE_PREFIXES: tuple[str, ...] = (
+#: Normalised codes that mean "no rights to clear", matched as whole leading
+#: WORDS (``code == w`` or ``code.startswith(w + "-")``), never as bare string
+#: prefixes — ``mitigated`` is not MIT.
+_FREE_WORDS: tuple[str, ...] = (
     "cc0",
+    "pd",
+    "pdm",
+    "publicdomain",
     "public-domain",
     "cc-pdm",
     "mit",
@@ -198,9 +200,9 @@ def license_class(source: AssetSource) -> LicenseClass:
     if raw in ATTRIBUTION_REQUIRING_LICENSES:
         return "attribution"
     code = normalise_license(raw)
-    if code == "arr" or code.startswith(tuple(p for p in _PRIVATE_PREFIXES if p != "arr")):
+    if code in _PRIVATE_EXACT or any(p in code for p in _PRIVATE_PHRASES):
         return "private"
-    if code in _FREE_EXACT or code.startswith(_FREE_PREFIXES):
+    if any(code == w or code.startswith(w + "-") for w in _FREE_WORDS):
         return "free"
     return "unknown"
 

@@ -189,9 +189,11 @@ def test_a_png_plate_compiles_where_it_used_to_raise_a_parse_error(tmp_path):
     ])
     scene = _compile(_shot(_env_ref()), {"environments": store}, strict_assets=True)
     (alias, asset), = scene.assets.textures.items()
-    assert asset.src == "environments/street/plate.png"
-    # addressed by its bytes: a re-carved plate is a different texture
-    assert alias == f"street.plate.{short_digest(png)}"
+    # addressed by its bytes: a re-carved plate is a different texture under a
+    # different alias AND URL (PixiJS caches a load by URL, the browser too)
+    sha = short_digest(png)
+    assert alias == f"street.plate.{sha}"
+    assert asset.src == f"environments/street/plate.png?v={sha}"
     visual = _node(scene, "street", "plate").visual
     assert (visual.width, visual.height) == (64.0, 36.0)  # from the PNG header
 
@@ -231,7 +233,8 @@ def test_a_raster_part_is_sized_from_its_pixels_and_addressed_by_its_bytes(tmp_p
     assert (visual.width, visual.height) == (50.0, 80.0)  # k == 1
     digest = short_digest(tmp_path / "props" / "thing" / "parts" / "lamp.png")
     assert visual.asset_id == f"thing.body.lamp.{digest}"
-    assert scene.assets.textures[visual.asset_id].src == "props/thing/parts/lamp.png"
+    assert scene.assets.textures[visual.asset_id].src == (
+        f"props/thing/parts/lamp.png?v={digest}")
 
 
 def test_a_character_can_be_built_entirely_from_raster_parts(tmp_path):
@@ -258,7 +261,7 @@ def test_a_character_can_be_built_entirely_from_raster_parts(tmp_path):
         strict_assets=True,
     )
     srcs = {a.src for a in scene.assets.textures.values()}
-    assert srcs and all(s.endswith(".png") for s in srcs)
+    assert srcs and all(".png?v=" in s for s in srcs)
     # the eyelid set still projects onto both eye slots
     eyes = [n for n in _node(scene, "rae", "head").children if n.name.endswith("_eye")]
     assert eyes and all("eyelid" in (n.visual.asset_sets or {}) for n in eyes)
@@ -395,6 +398,8 @@ def test_the_contract_documents_raster_parts():
         ("cc0-1.0", "free"), ("all-rights-reserved", "private"),
         ("All rights reserved - private study only; never commit or publish", "private"),
         ("private-study", "private"), ("cc-by-4.0", "attribution"),
+        ("(c) Some Studio. All rights reserved.", "private"),
+        ("pdm-1.0", "free"), ("PD-US", "free"), ("mitigated", "unknown"),
         (None, "unknown"), ("bespoke", "unknown"),
     ],
 )
@@ -474,7 +479,39 @@ def test_render_project_ends_with_the_private_study_warning(tmp_path, monkeypatc
     src = Path(render_mod.__file__).read_text(encoding="utf-8")
     body = src[src.index("def render("):src.index("def _write_caption_sidecar")]
     tail = body[body.rindex("_write_caption_sidecar("):]
-    assert "warn_if_private_study(credits_for_scene(project.mall, scene)" in tail
+    assert "credits_for_scene(project.mall, scene)" in tail
+    assert "warn_if_private_study(report, output=output_path)" in tail
+    # …and a credits failure only warns: a finished render never fails on it
+    assert "except Exception" in tail and "CreditsWarning" in tail
+
+
+def test_staging_copies_the_file_a_versioned_src_names(tmp_path):
+    """The digest rides in the URL's query; the staged file is the path."""
+    from an.adapters.cutout.render import _stage_scene_assets
+
+    store = _prop_store(tmp_path, parts={"lamp": ((50, 80), (10, 200, 10, 255))},
+                        slot_default="lamp")
+    scene = _compile(_shot(_prop_ref()), {"props": store}, strict_assets=True)
+    out = tmp_path / "runtime"
+    _stage_scene_assets(scene, {"props": store}, out)
+    assert (out / "props" / "thing" / "parts" / "lamp.png").is_file()
+
+
+def test_a_malformed_source_is_unverified_not_a_crash(tmp_path):
+    """A render ends with a credits check; an unrelated store entry whose
+    `source` is a bare string must not raise from it."""
+    from an.credits import CreditsWarning, collect_credits, credits_for_scene
+    from an.ir.schema import Meta, SceneIR
+
+    mall = _credit_mall(tmp_path)
+    mall["props"]["junk"] = {"name": "junk", "source": "found on the web"}
+    with pytest.warns(CreditsWarning, match="junk"):
+        report = collect_credits(mall)
+    assert "props/junk" in [e.asset for e in report.unverified]
+    scene = SceneIR(meta=Meta(title="t", duration=1.0), timeline=[_shot(_prop_ref("sign"))])
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", CreditsWarning)  # the unused entry is never read
+        assert [e.asset for e in credits_for_scene(mall, scene).entries] == ["props/sign"]
 
 
 def test_a_plane_without_a_source_stores_no_source_key():
@@ -569,6 +606,24 @@ def test_the_union_of_planes_counts_and_a_fill_covers(tmp_path):
     assert _framing(tmp_path, halves[:1])
     sky = [Plane(name="sky", art=PlaneArt(kind="fill", color="#88aaff"))]
     assert not _framing(tmp_path, sky + halves[:1], camera=Camera(move="pull_out"))
+
+
+def test_a_fill_plane_is_placed_centred_as_the_compiler_draws_it(tmp_path):
+    """The compiler emits a fill as a centred rect whatever its `anchor`, so
+    the framing geometry must too — or it vouches for a frame half empty."""
+    fill = Plane(name="band", art=PlaneArt(kind="fill", color="#88aaff"),
+                 size=(W, H), offset=(0.0, -H / 2), anchor=(0.5, 0.0))
+    found = _framing(tmp_path, [fill])
+    assert found and "bottom" in found[0].description
+
+
+def test_a_truncated_header_is_a_raster_format_error(tmp_path):
+    from an.raster import RasterFormatError, has_alpha, image_size
+
+    (tmp_path / "t.webp").write_bytes(b"RIFF\x00\x00\x00\x00WEBPVP8X\x00")
+    with pytest.raises(RasterFormatError):
+        image_size(tmp_path / "t.webp")
+    assert has_alpha(tmp_path / "t.webp") is None
 
 
 def test_framing_is_silent_when_it_cannot_know(tmp_path):

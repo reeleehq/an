@@ -347,9 +347,21 @@ def render(
     )
     # Last, so it is the last word about the file (an#211): a render that used
     # all-rights-reserved, private-study material must not read as shippable.
-    from an.credits import credits_for_scene, warn_if_private_study
+    import warnings
 
-    warn_if_private_study(credits_for_scene(project.mall, scene), output=output_path)
+    from an.credits import CreditsWarning, credits_for_scene, warn_if_private_study
+
+    try:
+        report = credits_for_scene(project.mall, scene)
+    except Exception as e:  # noqa: BLE001 — never fail a finished render
+        warnings.warn(
+            f"{output_path} was rendered, but its credits could not be checked "
+            f"({type(e).__name__}: {e}); run `an credits` before sharing it.",
+            CreditsWarning,
+            stacklevel=2,
+        )
+    else:
+        warn_if_private_study(report, output=output_path)
     return output_path
 
 

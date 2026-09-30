@@ -49,6 +49,7 @@ from an.adapters.cutout.canvas_capture import (
 )
 from an.adapters.cutout.compile import compile_shot
 from an.adapters.cutout.shutter import check_frame_samples, mean_png_bytes
+from an.raster import strip_version
 from an.adapters.cutout.runtime_files import runtime_dir
 from an.adapters.cutout.serialize import to_dict
 from an.adapters.cutout.text import INLINE_SRC_PREFIX
@@ -760,7 +761,9 @@ def _stage_scene_assets(
             )
             continue
 
-        source = Path(root) / src_rel[len(prefix) :]
+        # A raster src carries its digest as a query (an#211); the file is the
+        # path before it.
+        source = Path(root) / strip_version(src_rel)[len(prefix) :]
         if not source.exists():
             warnings.warn(
                 f"texture {alias!r} declared as {src_rel!r} was not found at "
@@ -771,7 +774,7 @@ def _stage_scene_assets(
             )
             continue
 
-        target = runtime_target / src_rel
+        target = runtime_target / strip_version(src_rel)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
 

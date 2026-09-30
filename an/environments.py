@@ -330,7 +330,9 @@ def plane_rect(
     fx, fy = plane.factors()
     x = plane.offset[0] + (1.0 - fx) * camera[0]
     y = plane.offset[1] + (1.0 - fy) * camera[1]
-    ax, ay = plane.anchor
+    # A `fill` is emitted as a centred rect — the compiler does not pass the
+    # anchor to it — so the anchor is the image path's only.
+    ax, ay = plane.anchor if plane.art.kind == "image" else (0.5, 0.5)
     return (x - ax * w, y - ay * h, x + (1.0 - ax) * w, y + (1.0 - ay) * h)
 
 
@@ -344,7 +346,9 @@ def frame_rect(
     height: float,
 ) -> Rect:
     """The scene region a camera pose shows: centred on the camera, the canvas
-    divided by the zoom, grown to the axis-aligned box of a rolled frame.
+    divided by the zoom, grown to the axis-aligned box of a rolled frame —
+    CONSERVATIVE under roll (the box contains corners the rotated frame does
+    not show, so a plate that covers a rolled view can still be flagged).
 
     `root.pivot` is the camera and `root.scale` the zoom, composed about the
     canvas centre, so a pose shows ``camera ± canvas / (2 · zoom)``.

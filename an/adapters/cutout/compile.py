@@ -117,7 +117,7 @@ from an.characters.schema import (
     Skin,
     Slot,
 )
-from an.raster import art_size, is_raster, short_digest
+from an.raster import art_size, is_raster, short_digest, versioned_src
 from an.ir.camera import CAMERA_MOVES, PAN_FRACTION, CameraError
 from an.ir.camera import camera_keys as _camera_keys
 from an.ir.migrate import DocumentKind, migrate
@@ -1630,11 +1630,12 @@ def _plane_node(
     if probe is not None and not probe(src)[0]:
         return None
     alias = f"{ref}.{plane.name}"
+    extent = plane.size or (probe(src)[1] if probe else None)
     sha = digest(src) if digest is not None else None
     if sha:
         alias += "." + sha
+        src = versioned_src(src, sha)
     alias = _register_texture(textures, alias, src)
-    extent = plane.size or (probe(src)[1] if probe else None)
     ax, ay = plane.anchor
     return NodeJSON(
         name=plane.name,
@@ -1956,9 +1957,10 @@ def _build_prop_subtree(
                 resolved="empty",
                 fallback=True,
                 detail=(
-                    f"prop {entity.ref!r} names no art for its slot(s) {slots}: "
-                    "its `skins` give them no attachment, so the prop draws "
-                    "NOTHING. Add a skin, e.g. {\"default\": {\"slots\": "
+                    f"prop {entity.ref!r} draws NOTHING: none of its slot(s) "
+                    f"{slots} resolves to an attachment in its `skins` (no skin, "
+                    "or a slot whose `attachment` names none the skin has). "
+                    "Add a skin, e.g. {\"default\": {\"slots\": "
                     "{\"body\": {\"body\": {\"path\": \"parts/body.png\"}}}}}"
                 ),
             )
@@ -2689,6 +2691,7 @@ def _build_svg_character_subtree(
             sha = digest(src) if digest is not None else None
             if sha:
                 alias += "." + sha
+                src = versioned_src(src, sha)
         else:
             alias += "." + hashlib.sha256(src.encode("ascii")).hexdigest()[:12]
         return _register_texture(textures, alias, src)

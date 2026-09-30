@@ -169,8 +169,13 @@ class PrivateStudyWarning(UserWarning):
     """
 
 
-def collect_credits(mall: Mapping[str, Any]) -> CreditsReport:
+def collect_credits(
+    mall: Mapping[str, Any], *, only: "set[str] | None" = None
+) -> CreditsReport:
     """Walk a project mall and gather every recorded :class:`AssetSource`.
+
+    ``only`` restricts the walk to those ``store/key`` names (what a render
+    used, :func:`credits_for_scene`) — nothing else is read.
 
     Four stores carry provenance: characters, **props** (an#108),
     **environments** (an#110) and **sounds**. Each was added by the PR that gave that store
@@ -190,7 +195,12 @@ def collect_credits(mall: Mapping[str, Any]) -> CreditsReport:
         if store is None:
             continue
         try:
-            keys = sorted(store)
+            keys = sorted(
+                store
+                if only is None
+                else (k for k in (u.split("/", 1)[1] for u in only
+                                  if u.startswith(store_name + "/")) if k in store)
+            )
         except Exception:  # noqa: BLE001 — see below
             # The ITERATION, not just the per-key read. an#110 took this walk
             # from one store to three, so an unreadable backing store went from
@@ -214,7 +224,7 @@ def collect_credits(mall: Mapping[str, Any]) -> CreditsReport:
             source = getattr(descriptor, "source", None)
             if source is None and isinstance(descriptor, Mapping):
                 raw = descriptor.get("source")
-                source = AssetSource.model_validate(raw) if raw else None
+                source = _source_or_unknown(raw, f"{store_name}/{key}") if raw else None
             if source is None and store_name == "characters":
                 source = _reconstruct_legacy_source(descriptor)
             if source is not None:
@@ -224,6 +234,26 @@ def collect_credits(mall: Mapping[str, Any]) -> CreditsReport:
             if store_name == "environments":
                 report.entries.extend(_plane_credits(key, descriptor))
     return report
+
+
+def _source_or_unknown(raw: Any, asset: str) -> AssetSource:
+    """``raw`` as an `AssetSource`; a malformed one is reported UNVERIFIED.
+
+    A `source` that is not a record (a bare string, a list) is still a claim
+    somebody wrote about provenance. Raising would make a credits walk — and
+    the check at the end of every render — fail on an asset the render may
+    not even use; dropping it would be a false clean bill. Unknown is honest.
+    """
+    try:
+        return AssetSource.model_validate(raw)
+    except ValueError:
+        warnings.warn(
+            f"{asset}: its `source` is not an AssetSource record ({raw!r}); it is "
+            "reported with an UNKNOWN licence.",
+            CreditsWarning,
+            stacklevel=3,
+        )
+        return AssetSource(provider="unknown", extra={"raw": raw})
 
 
 def _plane_credits(key: str, descriptor: Any) -> list[CreditEntry]:
@@ -238,10 +268,9 @@ def _plane_credits(key: str, descriptor: Any) -> list[CreditEntry]:
     for plane in raw.get("planes") or []:
         if not isinstance(plane, Mapping) or not plane.get("source"):
             continue
-        try:
-            source = AssetSource.model_validate(plane["source"])
-        except ValueError:
-            continue
+        source = _source_or_unknown(
+            plane["source"], f"environments/{key}/planes/{plane.get('name', '?')}"
+        )
         out.append(
             CreditEntry(
                 asset=f"environments/{key}/planes/{plane.get('name', '?')}",
@@ -268,7 +297,7 @@ def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:
             used.add(f"sounds/{cue.sound}")
     for cue in getattr(getattr(scene, "meta", None), "sounds", None) or []:
         used.add(f"sounds/{cue.sound}")
-    full = collect_credits(mall)
+    full = collect_credits(mall, only=used)
     return CreditsReport(
         entries=[
             e

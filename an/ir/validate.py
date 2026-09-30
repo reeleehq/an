@@ -1172,8 +1172,10 @@ def _check_framing(
     **Keys suffice for a move without roll.** Between two keys x, y and zoom
     share one eased parameter; a plane edge minus a frame edge is then a
     linear term plus ``±canvas/(2·zoom)``, which is convex in it, so the
-    worst gap on each side is at a key. A rolling camera is checked at its
-    keys only.
+    worst gap on each side is at a key. Two stated limits: an easing that
+    OVERSHOOTS (a cubic Bézier outside [0, 1]) can pass a key, and a gap
+    BETWEEN two plates crossed mid-move is seen only if a key frames it. A
+    rolling camera is checked at its keys, conservatively.
 
     Silent — not "covered" — when it cannot know: no environments store, an
     environment that is not a plane descriptor (a preset draws 4000-pixel
