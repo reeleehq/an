@@ -119,9 +119,44 @@ def test_ranges_and_characters(spec):
     assert shots["range_s"][0] <= shots["mean_s"] <= shots["range_s"][1]
     chars = live["characters"]
     assert chars["generate"] in GENERATORS
-    assert set(chars) <= {"generate", "mouth_variants", "tint"}
+    assert set(chars) <= {"generate", "mouth_variants", "tint"} | set(FACTORY_KNOBS)
     if "tint" in chars:
         assert chars["tint"].startswith("#") and len(chars["tint"]) == 7
+
+
+#: `live.characters` keys that are `new_character` keyword arguments, with how a
+#: spec may spell each: `hat` lists the choices a cast picks from, and `palette`
+#: is `per_character` (the style's identity is each figure's own costume) or a
+#: role -> colour map.
+FACTORY_KNOBS = ("build", "head_scale", "hat", "sash", "palette")
+
+
+def test_character_knobs_are_live_factory_settings(spec, tmp_path):
+    """Every factory knob a spec names is a real `new_character` argument with a
+    value the factory accepts — checked by BUILDING one character per hat."""
+    import inspect
+
+    from an.characters import new_character
+    from an.characters.factory import BUILDS, HATS
+
+    chars = spec["live"]["characters"]
+    knobs = {k: chars[k] for k in FACTORY_KNOBS if k in chars}
+    if not knobs:
+        return
+    params = inspect.signature(new_character).parameters
+    assert set(knobs) <= set(params), set(knobs) - set(params)
+    if "build" in knobs:
+        assert knobs["build"] in BUILDS
+    hats = knobs.pop("hat", ["none"])
+    assert isinstance(hats, list) and set(hats) <= set(HATS)
+    palette = knobs.pop("palette", None)
+    assert palette == "per_character" or isinstance(palette, (dict, type(None)))
+    if isinstance(palette, dict):
+        knobs["palette"] = palette
+    if chars["generate"] != "offline":
+        return
+    for i, hat in enumerate(hats):
+        new_character(tmp_path, name=f"c{i}", use_dicebear=False, hat=hat, **knobs)
 
 
 def test_targets_are_measurable(spec):

@@ -169,6 +169,27 @@ can collide with a part id. That is a workaround for a missing namespace, not a 
 The structural answer is a reserved joint-name namespace that `validate_character`
 enforces.
 
+## Colour roles and proportions: the factory's side of the contract
+
+- **`colour_roles`** (`{part path: {"#rrggbb": role}}`) is how a StylePack reaches SVG art. It
+  is written by whoever KNOWS what a colour means — the factory, never a pixel reader (an#99).
+  Additive field, default `{}`, validated: roles must be in `an.styles.REACHABLE_ROLES`, and one
+  literal may not carry two roles within a part. Keyed per part because one literal means
+  different things in different drawings (`#1a1a1a` is a pupil, a shoe and a hair colour). Any
+  code that writes a part's colours must update its roles in the same place — `add_gaze` does
+  (lid = `skin`, pupil = `pupil`, the outline-only open eye loses its entry).
+- **Proportions come from one record.** `factory.BodyBuild` holds every length that decides where
+  a part hangs; `_bones_for` and the part writers read the same record, so a build cannot draw
+  a leg of one length and hang it from a bone at another. `tests/test_rig_layout.py` runs its
+  invariants over several builds and head scales.
+- **A head scale scales the face as a unit** (`_scale_face`): the face offsets are measured from
+  the neck for a `REFERENCE_HEAD_HEIGHT` head hung at `HEAD_ANCHOR`, so every face point moves by
+  exactly the factor; part rasters, attachment offsets and `gaze_travel` all take it, and
+  `metadata.head_scale` makes `add_gaze` / `an character mouths` redraw at that size.
+  `BROW_HEIGHT_TRAVEL` in the expression binding is not scaled (a known, small inconsistency).
+- **Defaults are byte-identical** to the pre-knob factory; `tests/test_character_variety.py`
+  holds golden digests. A knob recorded in `metadata` only when it is not the default.
+
 ## The migration has nowhere to go — check this before you write it
 
 The descriptor has a version *field* (`CHARACTER_SCHEMA_VERSION = "0.1.0"`) and **no

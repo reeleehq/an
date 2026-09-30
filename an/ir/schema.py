@@ -786,11 +786,11 @@ class Meta(_IRModel):
     #: moved no corpus hash (an#112).
     #:
     #: A pack changes what the COMPILER decides: the character palette, the
-    #: leg and pupil colours, the environment presets' sky and ground. It does
-    #: NOT recolour SVG art — that would need role tagging the descriptor does
-    #: not have, and inferring a role from a pixel is what produced an#99's
-    #: wrong-tone lid. A rig whose art a pack cannot reach is WARNED about by
-    #: name at compile.
+    #: leg and pupil colours, the environment presets' sky and ground — and SVG
+    #: art whose descriptor tags its colours by role (`colour_roles`, written by
+    #: `an character new`). Untagged art is never inferred (inferring a role
+    #: from a pixel is what produced an#99's wrong-tone lid); a rig a pack
+    #: cannot reach is WARNED about by name at compile.
     style_pack: str | None = None
 
     #: The easing every authored ``tween`` that names none is drawn with

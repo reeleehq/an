@@ -49,6 +49,11 @@ def new(
     acknowledge_attribution: bool = False,
     overwrite: bool = False,
     mouth_variants: str = "happy,sad",
+    palette: str = "",
+    build: str = "regular",
+    head_scale: float = 1.0,
+    hat: str = "none",
+    sash: bool = False,
 ) -> str:
     """Create a new character at ``out_dir``/``name``.
 
@@ -66,11 +71,20 @@ def new(
     mouth_variants: comma-separated mouth forms to draw as `viseme@<form>`
         sets (an#98) — a form an expression preset prefers (happy, sad, angry,
         surprised, afraid, disgusted); "" for the neutral set only
+    palette: colours by StylePack role, "skin=#f1c9a5,clothing=#2e7d4f" (or a
+        JSON object); roles: skin, hair, clothing, leg, accessory
+    build: body proportions — regular, squat (round body, short legs), tall,
+        stick (small blocky body, stick limbs)
+    head_scale: the head and its whole face scaled together (1.0 = regular)
+    hat: none, cap, beanie, bowler or bicorne (offline head only), in the
+        accessory colour
+    sash: a diagonal band across the torso, in the accessory colour
     """
     target = _resolve_target(out_dir)
     target.mkdir(parents=True, exist_ok=True)
     try:
         variants = _parse_variants(mouth_variants)
+        palette_map = _parse_palette(palette)
     except ValueError as e:
         return str(e)
     if style not in DICEBEAR_STYLES:
@@ -86,6 +100,11 @@ def new(
             acknowledge_attribution=acknowledge_attribution,
             overwrite=overwrite,
             mouth_variants=variants,
+            palette=palette_map,
+            build=build,
+            head_scale=head_scale,
+            hat=hat,
+            sash=sash,
         )
     except ValueError as e:
         # A licence refusal is a message for a human, not a traceback. The
@@ -114,7 +133,7 @@ def mouths(
     palette: optional JSON string to override colors, e.g. '{"lip":"#a44"}'
     variants: comma-separated mouth forms (see `an character new`); "" = none
     """
-    from an.characters.factory import declare_mouth_variants
+    from an.characters.factory import declare_mouth_variants, scale_part_files
     from an.characters.schema import CharacterDescriptor
     from an.ir.migrate import migrate
 
@@ -132,13 +151,16 @@ def mouths(
         return str(e)
     written = write_default_mouths(target, palette=palette_dict, variants=variant_map)
     desc_path = char_dir / "character.json"
-    if desc_path.is_file() and variant_map:
+    if desc_path.is_file():
         raw = json.loads(desc_path.read_text(encoding="utf-8"))
         desc = CharacterDescriptor.model_validate(
             migrate(raw, kind="CharacterDescriptor")
         )
-        declare_mouth_variants(desc, variant_map)
-        desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
+        # A rig drawn with a head scale gets its mouths at the face's size.
+        scale_part_files(written, float(desc.metadata.get("head_scale") or 1.0))
+        if variant_map:
+            declare_mouth_variants(desc, variant_map)
+            desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
     return f"wrote {len(written)} mouth shapes to {target}"
 
 
@@ -164,6 +186,34 @@ def add_gaze(name: str, out_dir: str = "", overwrite_eyes: bool = False) -> str:
     except ValueError as e:
         return str(e)
     return f"added the eye stack to {desc.parent} (descriptor: {desc.name})"
+
+
+def _parse_palette(spec: str) -> dict[str, str]:
+    """``"skin=#f1c9a5,clothing=#2e7d4f"`` (or a JSON object) → ``{role: colour}``.
+
+    >>> _parse_palette("skin=#f1c9a5, clothing=#2e7d4f")
+    {'skin': '#f1c9a5', 'clothing': '#2e7d4f'}
+    >>> _parse_palette('{"hair": "#111111"}')
+    {'hair': '#111111'}
+    """
+    spec = spec.strip()
+    if not spec:
+        return {}
+    if spec.startswith("{"):
+        try:
+            out = json.loads(spec)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"invalid palette JSON: {e}") from None
+        if not isinstance(out, dict):
+            raise ValueError("a palette is an object of role -> colour")
+        return {str(k): str(v) for k, v in out.items()}
+    out: dict[str, str] = {}
+    for item in spec.split(","):
+        role, sep, colour = item.partition("=")
+        if not sep:
+            raise ValueError(f"palette entry {item.strip()!r} is not role=#rrggbb")
+        out[role.strip()] = colour.strip()
+    return out
 
 
 def _parse_variants(spec: str) -> dict[str, float]:

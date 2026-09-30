@@ -154,11 +154,22 @@ and the rig has **no hand bone**.
 
 ## 4. What a pack may and may not do
 
-A StylePack does **not** recolour SVG art at compile time: it would break `src` content
-addressing and the asset-resolution ledger, the only substitution precedent is a regex the bench
-had to abandon for XML parsing, no role tagging exists, and inferring a role from a pixel already
-caused an#99's wrong-tone lid. A pack reaches SVG art **through the factory at authoring time**;
-the compiler warns naming what it could not reach.
+A StylePack recolours SVG art **only where the descriptor tags it**: the character factory records,
+per part, which colour literal it drew as which role (`CharacterDescriptor.colour_roles`,
+`{"parts/torso.svg": {"#a83249": "clothing"}}`), and the compiler's `_recoloured_texture_srcs`
+rewrites exactly those literals (`an.characters.colour_roles.recolour_svg` — paint attributes and
+style declarations only, never geometry, ids or `#frag` references) into an inline `data:` texture
+whose alias carries a content digest. Palette swapping: a role is keyed by its literal per PART, so
+the factory keeps each role's literal distinct within a part (`distinct_literal`, one step in one
+channel). Staging skips `data:` sources, so content addressing and the resolution ledger are
+untouched; no pack means nothing is read and nothing rewritten (byte-identical). **Untagged** art
+(hand-drawn, DiceBear heads) is never inferred — inferring a role from a pixel caused an#99's
+wrong-tone lid — and the compiler warns in ONE stable line (no shot-specific text, so Python's
+registry shows it once per distinct pack-and-rig set per process: one line for a scene whose cast
+does not change). A tagged rig that lacks a core role the pack sets (`skin`/`hair`/`clothing` —
+a DiceBear head's own skin) is named with that role. `add_gaze` adds roles only to an already
+tagged rig, and the lid only when its colour is the head's tagged skin literal. `accessory` is the one role that exists only in tagged SVG art
+(hats, sashes).
 
 A pack must not declare a role it cannot change — `lip`, `mouth_fill`, `teeth`, `tongue`,
 `eye_sclera` are runtime literals. A role that silently does nothing is worse than an absent one.
@@ -182,7 +193,7 @@ alone, then the path **(landed, an#108: PRs #117 and #118)** → `4` the transla
 **Wave 7 is complete.** What it left behind for a later wave, each named with its reason:
 the **dolly** (`dolly_in`/`dolly_out` and the `z`/`focal_z` sugar — depth-aware zoom, which is
 what `depth` does NOT do today); `repeat`/tiling and the `gradient`/`generated` plane arts (each
-needs a runtime that can draw it); a pack reaching SVG art through the factory; attaching a prop
+needs a runtime that can draw it); attaching a prop
 to a character (`_track_root_of` makes entity identity the first path segment, and the rig has no
 hand bone); and additive folding for the camera/plane collisions that currently raise.
 

@@ -13,8 +13,9 @@ Three rules this file exists to hold:
 2. **A pack must not declare a role it cannot change.** `lip`, `mouth_fill`,
    `teeth`, `tongue` and the eye white are `runtime.js` literals; a role that
    silently does nothing is worse than an absent one.
-3. **A pack does not recolour SVG art**, and says so rather than failing
-   quietly on a scene of SVG rigs.
+3. **A pack recolours SVG art only where the descriptor tags its colour
+   roles** (`colour_roles`, tests/test_character_variety.py), and says so
+   rather than failing quietly on a scene of untagged SVG rigs.
 """
 
 from __future__ import annotations
@@ -167,8 +168,22 @@ def test_an_unknown_role_is_refused_too():
 # --- what a pack changes ------------------------------------------------------
 
 
+def _painted(scene) -> list[str]:
+    """Node colours plus the paint inside inline (recoloured) SVG textures —
+    where a pack's roles land on role-tagged SVG art."""
+    import base64
+    import re
+
+    out = _colours(scene)
+    for asset in scene.assets.textures.values():
+        if asset.src.startswith("data:image/svg+xml;base64,"):
+            svg = base64.b64decode(asset.src.split(",", 1)[1]).decode("utf-8")
+            out += re.findall(r"#[0-9a-f]{6}", svg)
+    return out
+
+
 @pytest.mark.parametrize("role", sorted(REACHABLE_ROLES))
-def test_every_role_declared_REACHABLE_actually_reaches_the_document(role):
+def test_every_role_declared_REACHABLE_actually_reaches_the_document(role, tmp_path):
     """The counterpart `UNREACHABLE_ROLES` never had, and its absence is how
     `pupil` shipped declared-reachable and wired to nothing.
 
@@ -203,6 +218,14 @@ def test_every_role_declared_REACHABLE_actually_reaches_the_document(role):
         # needs a character that declares them — which is also why the leg
         # assertion in the older test below had to be left out of its own set.
         store = {"c": {"parts": ["torso", "left_leg", "right_leg"]}}
+    elif role == "accessory":
+        # Only role-tagged SVG art has an accessory: a factory character with
+        # a hat, whose descriptor records the hat's literal as `accessory`.
+        from an.characters import new_character
+        from an.stores.characters import CharactersStore
+
+        new_character(tmp_path, name="c", use_dicebear=False, hat="cap")
+        store = CharactersStore(tmp_path)
     else:
         store = {}
     with warnings.catch_warnings():
@@ -215,7 +238,7 @@ def test_every_role_declared_REACHABLE_actually_reaches_the_document(role):
             height=H,
             style_pack=StylePack(name="probe", roles={role: marker}),
         )
-    assert marker in _colours(scene), f"{role} is declared reachable and reaches nothing"
+    assert marker in _painted(scene), f"{role} is declared reachable and reaches nothing"
 
 
 def test_a_pack_recolours_the_procedural_rig_and_the_environment_preset():
@@ -260,10 +283,10 @@ def test_resolve_palette_is_a_lookup_with_a_default():
 
 
 def test_a_pack_warns_about_the_svg_art_it_cannot_reach(tmp_path):
-    """A pack recolours what the COMPILER decides. An SVG rig's colours are
-    inside its drawings, and this package deliberately does not rewrite SVG at
-    compile time — so the author hears it from the compiler rather than from
-    the frames."""
+    """A pack recolours what the COMPILER decides and role-TAGGED SVG art. An
+    untagged rig's colours are inside its drawings with no record of what they
+    mean — so the author hears it from the compiler rather than from the
+    frames."""
     import shutil
 
     from an.stores.characters import CharactersStore

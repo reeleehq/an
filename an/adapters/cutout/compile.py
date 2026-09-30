@@ -32,6 +32,7 @@ mall). It reads only.
 from __future__ import annotations
 
 import dataclasses
+import hashlib
 import math
 import re
 import warnings
@@ -123,7 +124,8 @@ from an.environments import (
 )
 from an.props import PROP_DOCUMENT_KIND, PropDescriptor
 from an.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
-from an.adapters.cutout.text import build_text_subtree, text_document
+from an.adapters.cutout.text import build_text_subtree, svg_data_uri, text_document
+from an.characters.colour_roles import recolour_svg, role_recolouring
 from an.text import font_base_dir, text_entity_problem
 from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette
 
@@ -224,28 +226,96 @@ def style_pack_for(scene_meta, styles_store: Mapping) -> "StylePack | None":
 def _warn_about_art_a_pack_cannot_reach(
     pack: "StylePack | None", reached: set[str], skipped: set[str]
 ) -> None:
-    """Say which entities the pack did not touch, and why.
+    """Say, in ONE line, which rigs the pack could not recolour.
 
-    A pack recolours what the COMPILER decides. An SVG rig's colours are inside
-    its art, and this package deliberately does not rewrite SVG at compile time
-    (see `an.styles`) — so a scene of SVG characters under a pack renders
-    exactly as it did, and the author has to hear that from the compiler rather
-    than from the frames.
+    A pack recolours what the COMPILER decides and SVG art whose descriptor
+    tags its colour roles (`colour_roles`, written by the character factory).
+    Untagged SVG art — hand-drawn, DiceBear — renders exactly as drawn, and the
+    author has to hear that from the compiler rather than from the frames.
+
+    The text depends only on the pack and the untagged rigs, never on the shot
+    or on what WAS reached, so Python's warning registry shows it once per
+    process per distinct set: one line for a scene whose cast does not change,
+    not a paragraph per shot (the e2e style test counted ~5 wrapped lines per
+    shot). A cast that changes between shots gets one line per distinct set.
     """
     if pack is None or not skipped:
         return
     warnings.warn(
-        f"style pack {pack.name!r} could not reach {sorted(skipped)}: their art "
-        "is SVG, whose colours live inside the drawings. A pack recolours what "
-        "the COMPILER decides — procedural rigs, the environment presets — and "
-        "nothing recolours SVG today: edit the art, or generate the character "
-        "in the colours you want. (A pack seam in the character factory is the "
-        "obvious home for that and is NOT built — an#112 says so rather than "
-        "pointing you at a flag that does not exist.) It did reach "
-        f"{sorted(reached) or 'nothing in this shot'}.",
+        f"style pack {pack.name!r} could not reach {sorted(skipped)}: that SVG "
+        "art carries no colour role for what the pack sets (hand-drawn or "
+        "DiceBear art is untagged), so it renders as drawn; "
+        "`an character new --offline` tags every part.",
         CutoutCompileWarning,
         stacklevel=3,
     )
+
+
+#: Roles every character has somewhere (a body is skin, a costume, hair). A
+#: TAGGED rig missing one of these that a pack sets is half-reached — a
+#: DiceBear head keeps its own skin while the rest follows the pack — and is
+#: warned about by role. `leg`, `pupil` and `accessory` are not here: a rig
+#: may legitimately have none (no legs, no hat).
+_CORE_CHARACTER_ROLES: tuple[str, ...] = ("skin", "hair", "clothing")
+
+
+def _core_roles_left_untagged(
+    entity: AssetRef, desc_data: Mapping[str, Any], pack: "StylePack | None"
+) -> list[str]:
+    """The core roles ``pack`` sets for ``entity`` that its tagged rig never tags."""
+    if pack is None:
+        return []
+    tagged = {
+        role for roles in (desc_data.get("colour_roles") or {}).values()
+        for role in roles.values()
+    }
+    return [
+        role for role in _CORE_CHARACTER_ROLES
+        if role not in tagged and pack.colour_for(role, entity=entity.id) is not None
+    ]
+
+
+def _recoloured_texture_srcs(
+    entity: AssetRef,
+    desc_data: Mapping[str, Any],
+    characters_store: Mapping,
+    pack: "StylePack | None",
+    *,
+    art_prefix: str | None = None,
+) -> dict[str, str] | None:
+    """``{part path: inline src}`` for every role-tagged part ``pack`` recolours.
+
+    ``None`` means the rig is UNREACHABLE — a pack is set and the descriptor
+    tags no colours (or its art cannot be read) — and the caller warns. An
+    empty dict means reachable but untouched (no pack, or a pack that sets none
+    of the rig's roles), which is what keeps a scene without a pack
+    byte-identical: nothing is read and nothing is rewritten.
+
+    The recoloured text becomes a ``data:`` texture (the an#155 form), so the
+    compiled document is self-contained and its contract hash covers the swap.
+    """
+    if pack is None:
+        return {}
+    art_prefix = art_prefix or CHARACTER_ART_PREFIX
+    roles_by_part = desc_data.get("colour_roles") or {}
+    root = getattr(characters_store, "_root", None)
+    if not roles_by_part or root is None:
+        return None
+    out: dict[str, str] = {}
+    for rel_path, roles in roles_by_part.items():
+        swaps = role_recolouring(
+            roles, lambda role: pack.colour_for(role, entity=entity.id)
+        )
+        if not swaps:
+            continue
+        src = _svg_asset_src(entity.ref or entity.id, rel_path, art_prefix=art_prefix)
+        path = Path(root) / src[len(art_prefix) :]
+        if not path.is_file():
+            continue  # a missing part is `_record_missing_parts`' business
+        out[rel_path] = svg_data_uri(
+            recolour_svg(path.read_text(encoding="utf-8"), swaps)
+        )
+    return out
 
 
 #: The procedural rig's leg colour — a literal the palette table never
@@ -1861,17 +1931,28 @@ def _build_character_subtree(
 
     if char_meta.get("kind") == "CharacterDescriptor":
         _record("descriptor")
-        # An SVG rig's colours live inside its drawings, and a pack does not
-        # rewrite SVG at compile time (see `an.styles`). Recorded so the
-        # compiler can say WHICH entities it could not reach, by name.
-        if skipped is not None:
-            skipped.add(entity.id)
+        # An SVG rig's colours live inside its drawings. A pack reaches the
+        # ones the descriptor TAGS (`colour_roles`); an untagged rig is
+        # recorded so the compiler can say which it could not reach, by name.
+        srcs = _recoloured_texture_srcs(
+            entity, char_meta, characters_store, style_pack
+        )
+        if srcs is None:
+            if skipped is not None:
+                skipped.add(entity.id)
+        else:
+            if srcs and reached is not None:
+                reached.add(entity.id)
+            untagged = _core_roles_left_untagged(entity, char_meta, style_pack)
+            if untagged and skipped is not None:
+                skipped.add(f"{entity.id} ({', '.join(untagged)})")
         return _build_svg_character_subtree(
             entity,
             char_meta,
             textures=textures if textures is not None else {},
             probe=_part_probe(characters_store),
             resolutions=resolutions,
+            texture_srcs=srcs or None,
         )
 
     declared_parts = char_meta.get("parts")
@@ -2232,8 +2313,16 @@ def _build_svg_character_subtree(
     art_prefix: str = CHARACTER_ART_PREFIX,
     descriptor_model: type = CharacterDescriptor,
     document_kind: DocumentKind = CHARACTER_DOCUMENT_KIND,
+    texture_srcs: Mapping[str, str] | None = None,
 ) -> NodeJSON:
     """Build the scene subtree for a character, **from its descriptor's rig**.
+
+    ``texture_srcs`` maps a part path to the ``src`` its texture loads from
+    instead of the stored file — a style pack's recoloured art
+    (:func:`_recoloured_texture_srcs`). Such a texture's alias carries a digest
+    of its content, so a different recolour is a different texture (the
+    runtime's loader ignores a re-added alias on hot reload, an#155). The part
+    is still probed and sized from the stored file, whose geometry is the same.
 
     Every part's position comes from a bone, every part's extent from its own
     art, and both are scaled by one uniform factor. Nothing here is a module
@@ -2285,9 +2374,12 @@ def _build_svg_character_subtree(
         # (both eye slots carry `open`/`closed`), and the old `{entity}.{name}`
         # alias space was silently first-wins on cross-slot collision.
         alias = f"{entity.id}.{slot_name}.{attachment_name}"
-        return _register_texture(
-            textures, alias, _svg_asset_src(ref, attachment.path, art_prefix=art_prefix)
-        )
+        src = (texture_srcs or {}).get(attachment.path)
+        if src is None:
+            src = _svg_asset_src(ref, attachment.path, art_prefix=art_prefix)
+        else:
+            alias += "." + hashlib.sha256(src.encode("ascii")).hexdigest()[:12]
+        return _register_texture(textures, alias, src)
 
     # Every attachment in the skin is registered, not just the active one, so a
     # swap has its texture already loaded when the key changes.
