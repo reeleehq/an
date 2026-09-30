@@ -18,5 +18,6 @@ an.adapters.cutout.path
       cumulative_lengths
       point_at
       trim_polyline
+      dash_spans
       path_geometry
    

@@ -258,6 +258,15 @@ touches the node; channels on those two properties move them.
 `head_length == 0` means no arrowhead. What the runtime draws from this
 is specified by `an.adapters.cutout.path.path_geometry`.
 
+#### dash *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+`dash > 0` is on. `dash_offset` is the value
+shown before a channel touches it. These are wire fields of path
+visuals only, so they cannot move a non-path document’s hash.
+
+* **Type:**
+  Dash pattern (an#161)
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].

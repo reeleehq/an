@@ -5,7 +5,7 @@ orphan: true
 
 # About this build
 
-This documentation was built on **2026-09-30 02:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/13e27f9e588ce11e754a2b5e8f8ed7b3fed66254"><code>13e27f9</code></a> on branch <code>main</code>, for **an 0.1.98** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 02:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/de4949f61bb0d4b57540895ddc42cf0f31ae641f"><code>de4949f</code></a> on branch <code>main</code>, for **an 0.1.99** (from <code>pyproject.toml</code>).
 
 :::{note}
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -15,9 +15,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 | | |
 |---|---|
-| Commit | <a href="https://github.com/thorwhalen/an/commit/13e27f9e588ce11e754a2b5e8f8ed7b3fed66254"><code>13e27f9e588ce11e754a2b5e8f8ed7b3fed66254</code></a> |
+| Commit | <a href="https://github.com/thorwhalen/an/commit/de4949f61bb0d4b57540895ddc42cf0f31ae641f"><code>de4949f61bb0d4b57540895ddc42cf0f31ae641f</code></a> |
 | Branch | <code>main</code> |
-| Tags at this commit | <code>0.1.98</code> |
+| Tags at this commit | none |
 | Working tree | clean |
 | Remote | <code>https://github.com/thorwhalen/an</code> |
 
@@ -26,9 +26,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 | | |
 |---|---|
 | Repository | <code>thorwhalen/an</code> |
-| Run | <a href="https://github.com/thorwhalen/an/actions/runs/36660303075">36660303075</a> |
+| Run | <a href="https://github.com/thorwhalen/an/actions/runs/36660593539">36660593539</a> |
 | Ref | <code>refs/heads/main</code> |
-| Event commit | <code>8af08a36f44488371b00ddb2e54edd900ce8b53c</code> (in the history of the built commit) |
+| Event commit | <code>e5df0eac2d23aee518fbca339a93cf6ff68d2a15</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -53,13 +53,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.98/">0.1.98</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.99/">0.1.99</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 13e27f9e588ce11e754a2b5e8f8ed7b3fed66254
+git checkout de4949f61bb0d4b57540895ddc42cf0f31ae641f
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

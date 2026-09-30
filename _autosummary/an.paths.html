@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.orchestrate" href="an.orchestrate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -557,6 +557,9 @@ SVG; a path has none of those, and its colour is decided by the compiler
 <tr class="row-even"><td><p><a class="reference internal" href="#an.paths.DFLT_STROKE_COLOUR" title="an.paths.DFLT_STROKE_COLOUR"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_STROKE_COLOUR</span></code></a></p></td>
 <td><p>The stroke colour when the document names none.</p></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.paths.MIN_DASH_PERIOD" title="an.paths.MIN_DASH_PERIOD"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MIN_DASH_PERIOD</span></code></a></p></td>
+<td><p>The shortest dash period (dash + gap), scene pixels.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -581,11 +584,19 @@ SVG; a path has none of those, and its colour is decided by the compiler
 <dl class="py data">
 <dt class="sig sig-object py" id="an.paths.DFLT_STROKE_COLOUR">
 <span class="sig-prename descclassname"><span class="pre">an.paths.</span></span><span class="sig-name descname"><span class="pre">DFLT_STROKE_COLOUR</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#c0392b'</span></span><a class="headerlink" href="#an.paths.DFLT_STROKE_COLOUR" title="Link to this definition">#</a></dt>
-<dd><p>The stroke colour when the document names none.</p>
-<p>Not yet a <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code> role: <code class="code docutils literal notranslate"><span class="pre">an.styles.REACHABLE_ROLES</span></code> is a closed set, and
-every role in it is asserted to reach a compiled document from one fixed
-scene (<code class="code docutils literal notranslate"><span class="pre">tests/test_styles.py</span></code>). A <code class="code docutils literal notranslate"><span class="pre">stroke</span></code> role is a small follow-up, not a
-field that silently does nothing today.</p>
+<dd><p>The stroke colour when the document names none. A <code class="code docutils literal notranslate"><span class="pre">StylePack</span></code>’s <code class="code docutils literal notranslate"><span class="pre">stroke</span></code>
+role replaces it (an#161) — but only this default: a document that sets
+<code class="code docutils literal notranslate"><span class="pre">color</span></code> itself is art, not a default, and a pack does not rewrite art (the
+same line <code class="code docutils literal notranslate"><span class="pre">an.styles</span></code> draws for SVG). A per-entity <code class="code docutils literal notranslate"><span class="pre">stroke</span></code> override in the
+pack wins over both.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.paths.MIN_DASH_PERIOD">
+<span class="sig-prename descclassname"><span class="pre">an.paths.</span></span><span class="sig-name descname"><span class="pre">MIN_DASH_PERIOD</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></span><a class="headerlink" href="#an.paths.MIN_DASH_PERIOD" title="Link to this definition">#</a></dt>
+<dd><p>The shortest dash period (dash + gap), scene pixels. Bounds the number of
+dashes a path can ask the runtime to redraw every frame: a path a few
+thousand pixels long is a few thousand dashes at most.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -623,6 +634,34 @@ chained:</p>
 <dt class="sig sig-object py" id="an.paths.PathDescriptor.color">
 <span class="sig-name descname"><span class="pre">color</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.paths.PathDescriptor.color" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">#rrggbb</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.paths.PathDescriptor.dash">
+<span class="sig-name descname"><span class="pre">dash</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.paths.PathDescriptor.dash" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">dash</span></code> on, <code class="docutils literal notranslate"><span class="pre">gap</span></code> off, repeating along
+the path from ITS start — anchored to the path, not to the trimmed span,
+so a draw-on reveals dashes in place instead of making them crawl.
+<code class="docutils literal notranslate"><span class="pre">gap</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">dash</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code> = a solid stroke.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dash pattern, scene pixels</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.paths.PathDescriptor.dash_offset">
+<span class="sig-name descname"><span class="pre">dash_offset</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.paths.PathDescriptor.dash_offset" title="Link to this definition">#</a></dt>
+<dd><p>Shifts the pattern along the path (positive = forward). An ordinary
+numeric node property like <code class="docutils literal notranslate"><span class="pre">trim_end</span></code>, so <code class="docutils literal notranslate"><span class="pre">tween</span> <span class="pre">route</span> <span class="pre">dash_offset</span></code>
+is the “marching ants” route; only a dashed path has one.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="an.paths.PathDescriptor.gap_px">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">gap_px</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><a class="headerlink" href="#an.paths.PathDescriptor.gap_px" title="Link to this definition">#</a></dt>
+<dd><p>The gap of the dash pattern, scene pixels (<code class="docutils literal notranslate"><span class="pre">dash</span></code> when unset).</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -741,9 +780,13 @@ unknown keys; a path’s does not).</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.DFLT_STROKE_COLOUR"><code class="docutils literal notranslate"><span class="pre">DFLT_STROKE_COLOUR</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.MIN_DASH_PERIOD"><code class="docutils literal notranslate"><span class="pre">MIN_DASH_PERIOD</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.PATH_DOCUMENT_KIND"><code class="docutils literal notranslate"><span class="pre">PATH_DOCUMENT_KIND</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.PathDescriptor"><code class="docutils literal notranslate"><span class="pre">PathDescriptor</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.PathDescriptor.color"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.color</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.PathDescriptor.dash"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.dash</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.PathDescriptor.dash_offset"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.dash_offset</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.PathDescriptor.gap_px"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.gap_px</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.PathDescriptor.head_length"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.head_length</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.PathDescriptor.head_length_px"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.head_length_px</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.paths.PathDescriptor.head_width_px"><code class="docutils literal notranslate"><span class="pre">PathDescriptor.head_width_px</span></code></a></li>

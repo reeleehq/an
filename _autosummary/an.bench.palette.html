@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.bench.mutations" href="an.bench.mutations.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -588,8 +588,11 @@ half moved when the number does.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.bench.palette.COLOURED_KINDS">
-<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">COLOURED_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'ellipse',</span> <span class="pre">'rect'})</span></span><a class="headerlink" href="#an.bench.palette.COLOURED_KINDS" title="Link to this definition">#</a></dt>
-<dd><p><code class="code docutils literal notranslate"><span class="pre">visual.kind</span></code> values whose <code class="code docutils literal notranslate"><span class="pre">visual.color</span></code> the runtime actually paints.</p>
+<span class="sig-prename descclassname"><span class="pre">an.bench.palette.</span></span><span class="sig-name descname"><span class="pre">COLOURED_KINDS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'ellipse',</span> <span class="pre">'path',</span> <span class="pre">'rect'})</span></span><a class="headerlink" href="#an.bench.palette.COLOURED_KINDS" title="Link to this definition">#</a></dt>
+<dd><p><code class="code docutils literal notranslate"><span class="pre">visual.kind</span></code> values whose <code class="code docutils literal notranslate"><span class="pre">visual.color</span></code> the runtime actually paints.
+A stroked path (an#160) paints <code class="code docutils literal notranslate"><span class="pre">path.color</span></code> — the compiler stamps the same
+value onto <code class="code docutils literal notranslate"><span class="pre">visual.color</span></code> (asserted by <code class="code docutils literal notranslate"><span class="pre">tests/test_styles.py</span></code>), so one read
+covers the stroke and the arrowhead, which is filled in that colour.</p>
 </dd></dl>
 
 <dl class="py data">

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../../../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -763,7 +763,10 @@ window.runMermaid = runMermaid;</script>
 <span class="n">RUNTIME_EYE_PUPIL_DEFAULT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#1a1a1a"</span>
 
 <span class="c1">#: `visual.kind` values whose `visual.color` the runtime actually paints.</span>
-<span class="n">COLOURED_KINDS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rect"</span><span class="p">,</span> <span class="s2">"ellipse"</span><span class="p">})</span>
+<span class="c1">#: A stroked path (an#160) paints `path.color` — the compiler stamps the same</span>
+<span class="c1">#: value onto `visual.color` (asserted by `tests/test_styles.py`), so one read</span>
+<span class="c1">#: covers the stroke and the arrowhead, which is filled in that colour.</span>
+<span class="n">COLOURED_KINDS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rect"</span><span class="p">,</span> <span class="s2">"ellipse"</span><span class="p">,</span> <span class="s2">"path"</span><span class="p">})</span>
 
 <span class="c1">#: `visual.kind` values whose `visual.color` is inert.</span>
 <span class="n">INERT_COLOUR_KINDS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"mouth"</span><span class="p">,</span> <span class="s2">"svg_sprite"</span><span class="p">,</span> <span class="s2">"sprite"</span><span class="p">})</span>

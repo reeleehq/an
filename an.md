@@ -1,4 +1,4 @@
-> built 2026-09-30 02:35 UTC from 13e27f9 (main) · an 0.1.98. Details: build_info.json
+> built 2026-09-30 02:39 UTC from de4949f (main) · an 0.1.99. Details: build_info.json
 
 # index.html.md
 
@@ -926,7 +926,7 @@ which is what decides where the staging step copies the art from.
 
 The pupil nodes of the gaze stack (an#99); a rig without them takes gaze as a no-op.
 
-### an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
+### an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 Every property name the JS runtime’s `applyProperty` STATIC switch
 implements — exactly the numeric transform vocabulary (the rest-value SSOT
@@ -1745,6 +1745,9 @@ The runtime draws a path (an#160) from three things this module defines:
 - **arc length** — cumulative straight-segment lengths over the polyline;
 - **trim** — the visible span `[min(ts, te), max(ts, te)]`, clamped to
   `[0, 1]`, as fractions of that length;
+- **dashes** — an optional on/off pattern laid along the WHOLE path from arc
+  length 0 (shifted by an offset) and only then clipped to the trimmed span, so
+  a draw-on reveals dashes in place rather than making them crawl (an#161);
 - **the arrowhead** — a triangle whose tip is the trimmed end, oriented along
   the direction of the segment the tip lies on (the *incoming* segment when
   the tip sits exactly on a vertex).
@@ -1783,6 +1786,7 @@ True
 | [`cumulative_lengths`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.cumulative_lengths)(points)                      | Arc length at each vertex.                                                                               |
 | [`point_at`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.point_at)(points, cum, s)                        | The point at arc length `s`.                                                                             |
 | [`trim_polyline`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.trim_polyline)(points, cum, a, b)                | The sub-polyline between arc lengths `a < b`: the two cut points and every vertex strictly between them. |
+| [`dash_spans`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.dash_spans)(a, b, dash, gap, offset)             | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                      |
 | [`path_geometry`](_autosummary/an.adapters.cutout.path.html.md#an.adapters.cutout.path.path_geometry)(points, trim_start, trim_end, \*) | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                               |
 
 ### an.adapters.cutout.path.HEAD_STROKE_INSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
@@ -1801,6 +1805,27 @@ Arc length at each vertex. Mirror of `runtime.js::pathLengths`.
 ```pycon
 >>> cumulative_lengths([(0, 0), (3, 4), (3, 10)])
 [0.0, 5.0, 11.0]
+```
+
+### an.adapters.cutout.path.dash_spans(a, b, dash, gap, offset)
+
+The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.
+
+The pattern is anchored at arc length `0` — dash `k` covers
+`[offset + k*period, offset + k*period + dash]` — and is clipped to the
+window afterwards, so moving `a` or `b` never moves a dash. Only IEEE
+`+ - * /` and `floor`, in the order `runtime.js::pathDashSpans` uses.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+```pycon
+>>> dash_spans(0.0, 100.0, 10.0, 15.0, 0.0)
+[(0.0, 10.0), (25.0, 35.0), (50.0, 60.0), (75.0, 85.0)]
+>>> dash_spans(30.0, 60.0, 10.0, 15.0, 0.0)  # clipped, not re-anchored
+[(30.0, 35.0), (50.0, 60.0)]
+>>> dash_spans(0.0, 30.0, 10.0, 10.0, 5.0)  # offset slides the pattern forward
+[(5.0, 15.0), (25.0, 30.0)]
 ```
 
 ### an.adapters.cutout.path.flatten_curve(points, , curve='polyline', samples=24)
@@ -1822,9 +1847,12 @@ at `samples` steps; shared endpoints appear once.
 [(0.0, 0.0), (5.0, 7.5), (10.0, 0.0)]
 ```
 
-### an.adapters.cutout.path.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0)
+### an.adapters.cutout.path.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0)
 
 What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.
+
+`dash > 0` makes the stroke a dash pattern: `stroke` is then `[]` and
+a `"dashes"` key (absent otherwise) holds one polyline per visible dash.
 
 `head_length > 0` turns the arrowhead on. While the visible length is
 shorter than the head, the head is scaled by `visible / head_length` so
@@ -2416,6 +2444,15 @@ A stroked path’s drawing instruction (an#160), carried on a `path` visual.
 touches the node; channels on those two properties move them.
 `head_length == 0` means no arrowhead. What the runtime draws from this
 is specified by `an.adapters.cutout.path.path_geometry`.
+
+#### dash *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+`dash > 0` is on. `dash_offset` is the value
+shown before a channel touches it. These are wire fields of path
+visuals only, so they cannot move a non-path document’s hash.
+
+* **Type:**
+  Dash pattern (an#161)
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
@@ -4615,7 +4652,7 @@ fraction of a second so the CLI is snappy.
 | [`BT709_SCALE_FILTER`](_autosummary/an.base.html.md#an.base.BT709_SCALE_FILTER)                 | The RGB->YUV conversion `an` performs, stated EXPLICITLY rather than left to the encoder flags to imply.                                                                                                                                    |
 | [`EASING_PRESETS`](_autosummary/an.base.html.md#an.base.EASING_PRESETS)                     | Named easing presets.                                                                                                                                                                                                                       |
 | [`COLOUR_PROPERTY`](_autosummary/an.base.html.md#an.base.COLOUR_PROPERTY)                    | The property names the cutout runtime animates NUMERICALLY.                                                                                                                                                                                 |
-| [`TRIM_PROPERTIES`](_autosummary/an.base.html.md#an.base.TRIM_PROPERTIES)                    | The two path-only properties inside `TRANSFORM_PROPERTIES` (an#160).                                                                                                                                                                        |
+| [`TRIM_PROPERTIES`](_autosummary/an.base.html.md#an.base.TRIM_PROPERTIES)                    | The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the name predates `dash_offset`, an#161): trim and the dash phase.                                                                                                          |
 | [`SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS`](_autosummary/an.base.html.md#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS) | `/` would read as a path segment and `::` is the runtime's pose-key separator.                                                                                                                                                              |
 | [`AUTHORABLE_PROPERTIES`](_autosummary/an.base.html.md#an.base.AUTHORABLE_PROPERTIES)              | a compiled transform channel, or the authored colour spelling the compiler expands.                                                                                                                                                         |
 | [`PathStr`](_autosummary/an.base.html.md#an.base.PathStr)                            | Slash-delimited node path, e.g. `"charlie/head/mouth"`.                                                                                                                                                                                     |
@@ -4634,7 +4671,7 @@ fraction of a second so the CLI is snappy.
 | [`swap_set_name_problem`](_autosummary/an.base.html.md#an.base.swap_set_name_problem)(name)   | Why `name` cannot be a swap-set name, or `None` if it can.   |
 |--------------------------------------------------------------------------------|--------------------------------------------------------------|
 
-### an.base.AUTHORABLE_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
+### an.base.AUTHORABLE_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'alpha', 'dash_offset', 'pivot_x', 'pivot_y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x', 'skew_y', 'tint', 'tint_b', 'tint_g', 'tint_r', 'trim_end', 'trim_start', 'x', 'y'})*
 
 a compiled transform channel, or the authored
 colour spelling the compiler expands. Validate checks against this, and the
@@ -4853,9 +4890,11 @@ only inside the audio pipeline where drift matters.
 The transition kinds a shot may be entered by. `cut` is the default and
 what every document written before transitions existed means.
 
-### an.base.TRIM_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'trim_end', 'trim_start'})*
+### an.base.TRIM_PROPERTIES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'dash_offset', 'trim_end', 'trim_start'})*
 
-The two path-only properties inside `TRANSFORM_PROPERTIES` (an#160).
+The path-only properties inside `TRANSFORM_PROPERTIES` (an#160; the
+name predates `dash_offset`, an#161): trim and the dash phase. A node that
+draws no path refuses all of them.
 
 ### an.base.swap_set_name_problem(name)
 
@@ -5516,7 +5555,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'eye', 'rect', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect', 'mouth', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -8078,9 +8117,12 @@ half moved when the number does.
 | [`runtime_literal_colours`](_autosummary/an.bench.palette.html.md#an.bench.palette.runtime_literal_colours)(runtime_js)              | Every 6-digit hex literal the runtime source paints.                            |
 | [`svg_colours`](_autosummary/an.bench.palette.html.md#an.bench.palette.svg_colours)(svg_path)                            | Every colour literal an SVG paints, plus the tokens that could not be resolved. |
 
-### an.bench.palette.COLOURED_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ellipse', 'rect'})*
+### an.bench.palette.COLOURED_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ellipse', 'path', 'rect'})*
 
 `visual.kind` values whose `visual.color` the runtime actually paints.
+A stroked path (an#160) paints `path.color` — the compiler stamps the same
+value onto `visual.color` (asserted by `tests/test_styles.py`), so one read
+covers the stroke and the arrowhead, which is filled in that colour.
 
 ### an.bench.palette.INERT_COLOUR_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'mouth', 'sprite', 'svg_sprite'})*
 
@@ -17616,6 +17658,7 @@ SVG; a path has none of those, and its colour is decided by the compiler
 | [`PATH_DOCUMENT_KIND`](_autosummary/an.paths.html.md#an.paths.PATH_DOCUMENT_KIND)   | Its own versioned document kind, registered from the module that owns the schema — the rule `PropDescriptor` and `CharacterDescriptor` follow.   |
 |-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`DFLT_STROKE_COLOUR`](_autosummary/an.paths.html.md#an.paths.DFLT_STROKE_COLOUR)   | The stroke colour when the document names none.                                                                                                  |
+| [`MIN_DASH_PERIOD`](_autosummary/an.paths.html.md#an.paths.MIN_DASH_PERIOD)      | The shortest dash period (dash + gap), scene pixels.                                                                                             |
 
 ### Functions
 
@@ -17629,12 +17672,17 @@ SVG; a path has none of those, and its colour is decided by the compiler
 
 ### an.paths.DFLT_STROKE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#c0392b'*
 
-The stroke colour when the document names none.
+The stroke colour when the document names none. A `StylePack`’s `stroke`
+role replaces it (an#161) — but only this default: a document that sets
+`color` itself is art, not a default, and a pack does not rewrite art (the
+same line `an.styles` draws for SVG). A per-entity `stroke` override in the
+pack wins over both.
 
-Not yet a `StylePack` role: `an.styles.REACHABLE_ROLES` is a closed set, and
-every role in it is asserted to reach a compiled document from one fixed
-scene (`tests/test_styles.py`). A `stroke` role is a small follow-up, not a
-field that silently does nothing today.
+### an.paths.MIN_DASH_PERIOD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
+
+The shortest dash period (dash + gap), scene pixels. Bounds the number of
+dashes a path can ask the runtime to redraw every frame: a path a few
+thousand pixels long is a few thousand dashes at most.
 
 ### an.paths.PATH_DOCUMENT_KIND *: [DocumentKind](_autosummary/an.ir.html.md#an.ir.DocumentKind)* *= DocumentKind(name='PathDescriptor', version_field='schema_version', current_version='0.1.0')*
 
@@ -17670,6 +17718,26 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescrip
 #### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 `#rrggbb`.
+
+#### dash *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`dash` on, `gap` off, repeating along
+the path from ITS start — anchored to the path, not to the trimmed span,
+so a draw-on reveals dashes in place instead of making them crawl.
+`gap` defaults to `dash`. `None` = a solid stroke.
+
+* **Type:**
+  A dash pattern, scene pixels
+
+#### dash_offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Shifts the pattern along the path (positive = forward). An ordinary
+numeric node property like `trim_end`, so `tween route dash_offset`
+is the “marching ants” route; only a dashed path has one.
+
+#### *property* gap_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The gap of the dash pattern, scene pixels (`dash` when unset).
 
 #### head_length *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -18890,14 +18958,17 @@ representation doubles the surface on which the two can silently diverge.
 | [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack)(\*\*data)   | Art direction for a project.   |
 |------------------------------------------------------------------------|--------------------------------|
 
-### an.styles.REACHABLE_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky'})*
+### an.styles.REACHABLE_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky', 'stroke'})*
 
 Roles a pack can actually change, because the COMPILER decides them and
 stamps them into the document the runtime draws.
 
 `skin`, `clothing` and `hair` are `_CHARACTER_PALETTES`’ three components;
 `leg` and `pupil` are the compiler’s own literals (`DFLT_LEG_COLOUR`,
-`DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets’.
+`DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets’;
+`stroke` is a stroked path’s default colour (`an.paths.DFLT_STROKE_COLOUR`,
+an#161) — the arrowhead is filled in the same colour, so it is not a second
+role. A path that names its own `color` is art and is left alone.
 
 Every one of these is compiled with a marker colour and asserted to reach
 the document by `tests/test_styles.py`. `pupil` shipped in this set wired to
@@ -20276,7 +20347,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 02:35 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/13e27f9e588ce11e754a2b5e8f8ed7b3fed66254"><code>13e27f9</code></a> on branch <code>main</code>, for **an 0.1.98** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 02:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/de4949f61bb0d4b57540895ddc42cf0f31ae641f"><code>de4949f</code></a> on branch <code>main</code>, for **an 0.1.99** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -20285,9 +20356,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/13e27f9e588ce11e754a2b5e8f8ed7b3fed66254"><code>13e27f9e588ce11e754a2b5e8f8ed7b3fed66254</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/de4949f61bb0d4b57540895ddc42cf0f31ae641f"><code>de4949f61bb0d4b57540895ddc42cf0f31ae641f</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.98</code>                                                                                                                                  |
+| Tags at this commit | none                                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -20296,9 +20367,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36660303075">36660303075</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36660593539">36660593539</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>8af08a36f44488371b00ddb2e54edd900ce8b53c</code> (in the history of the built commit) |
+| Event commit | <code>e5df0eac2d23aee518fbca339a93cf6ff68d2a15</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -20323,13 +20394,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.98/">0.1.98</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.99/">0.1.99</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 13e27f9e588ce11e754a2b5e8f8ed7b3fed66254
+git checkout de4949f61bb0d4b57540895ddc42cf0f31ae641f
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

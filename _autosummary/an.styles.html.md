@@ -59,14 +59,17 @@ representation doubles the surface on which the two can silently diverge.
 | [`StylePack`](#an.styles.StylePack)(\*\*data)   | Art direction for a project.   |
 |------------------------------------------------------------------------|--------------------------------|
 
-### an.styles.REACHABLE_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky'})*
+### an.styles.REACHABLE_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky', 'stroke'})*
 
 Roles a pack can actually change, because the COMPILER decides them and
 stamps them into the document the runtime draws.
 
 `skin`, `clothing` and `hair` are `_CHARACTER_PALETTES`’ three components;
 `leg` and `pupil` are the compiler’s own literals (`DFLT_LEG_COLOUR`,
-`DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets’.
+`DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets’;
+`stroke` is a stroked path’s default colour (`an.paths.DFLT_STROKE_COLOUR`,
+an#161) — the arrowhead is filled in the same colour, so it is not a second
+role. A path that names its own `color` is art and is left alone.
 
 Every one of these is compiled with a marker colour and asserted to reach
 the document by `tests/test_styles.py`. `pupil` shipped in this set wired to

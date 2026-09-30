@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../../../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -986,6 +986,24 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"Zoom is held constant on purpose: the x = 0 probe that cancels "</span>
             <span class="s2">"it in the JSON half does not reach a centroid, which sits at the "</span>
             <span class="s2">"plane's own offset."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"path_draw"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/path_draw"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"path"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"two stroked paths (an#160, an#161), both dashed and both coloured "</span>
+            <span class="s2">"by a StylePack's `stroke` role: a marching-ants frame whose "</span>
+            <span class="s2">"`dash_offset` runs 0 -&gt; 20 px, and a cubic arrow that draws itself "</span>
+            <span class="s2">"on (`trim_end` 0 -&gt; 1) with its head on the moving tip. What "</span>
+            <span class="s2">"moves between the goldens is the ROUTE growing (frame 0 shows "</span>
+            <span class="s2">"none of it) and the frame's dashes sliding 6.7 px along their "</span>
+            <span class="s2">"path; a regression in trim, in the dash phase, in the "</span>
+            <span class="s2">"anchored-at-the-path-start rule that keeps a dash from crawling "</span>
+            <span class="s2">"as the tip advances, or in the pack reaching a path, moves a "</span>
+            <span class="s2">"golden. Butt caps, so a dash's ends are exact rather than "</span>
+            <span class="s2">"rounded past their length."</span>
         <span class="p">),</span>
     <span class="p">),</span>
     <span class="s2">"expressions"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>

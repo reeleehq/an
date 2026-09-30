@@ -47,6 +47,7 @@ SVG; a path has none of those, and its colour is decided by the compiler
 | [`PATH_DOCUMENT_KIND`](#an.paths.PATH_DOCUMENT_KIND)   | Its own versioned document kind, registered from the module that owns the schema — the rule `PropDescriptor` and `CharacterDescriptor` follow.   |
 |-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`DFLT_STROKE_COLOUR`](#an.paths.DFLT_STROKE_COLOUR)   | The stroke colour when the document names none.                                                                                                  |
+| [`MIN_DASH_PERIOD`](#an.paths.MIN_DASH_PERIOD)      | The shortest dash period (dash + gap), scene pixels.                                                                                             |
 
 ### Functions
 
@@ -60,12 +61,17 @@ SVG; a path has none of those, and its colour is decided by the compiler
 
 ### an.paths.DFLT_STROKE_COLOUR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '#c0392b'*
 
-The stroke colour when the document names none.
+The stroke colour when the document names none. A `StylePack`’s `stroke`
+role replaces it (an#161) — but only this default: a document that sets
+`color` itself is art, not a default, and a pack does not rewrite art (the
+same line `an.styles` draws for SVG). A per-entity `stroke` override in the
+pack wins over both.
 
-Not yet a `StylePack` role: `an.styles.REACHABLE_ROLES` is a closed set, and
-every role in it is asserted to reach a compiled document from one fixed
-scene (`tests/test_styles.py`). A `stroke` role is a small follow-up, not a
-field that silently does nothing today.
+### an.paths.MIN_DASH_PERIOD *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 1.0*
+
+The shortest dash period (dash + gap), scene pixels. Bounds the number of
+dashes a path can ask the runtime to redraw every frame: a path a few
+thousand pixels long is a few thousand dashes at most.
 
 ### an.paths.PATH_DOCUMENT_KIND *: [DocumentKind](an.ir.md#an.ir.DocumentKind)* *= DocumentKind(name='PathDescriptor', version_field='schema_version', current_version='0.1.0')*
 
@@ -101,6 +107,26 @@ pydantic_core._pydantic_core.ValidationError: 1 validation error for PathDescrip
 #### color *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 `#rrggbb`.
+
+#### dash *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`dash` on, `gap` off, repeating along
+the path from ITS start — anchored to the path, not to the trimmed span,
+so a draw-on reveals dashes in place instead of making them crawl.
+`gap` defaults to `dash`. `None` = a solid stroke.
+
+* **Type:**
+  A dash pattern, scene pixels
+
+#### dash_offset *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Shifts the pattern along the path (positive = forward). An ordinary
+numeric node property like `trim_end`, so `tween route dash_offset`
+is the “marching ants” route; only a dashed path has one.
+
+#### *property* gap_px *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The gap of the dash pattern, scene pixels (`dash` when unset).
 
 #### head_length *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

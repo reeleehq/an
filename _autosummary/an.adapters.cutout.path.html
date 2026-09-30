@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.gaze" href="an.adapters.cutout.gaze.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -525,6 +525,9 @@
 <li><p><strong>arc length</strong> — cumulative straight-segment lengths over the polyline;</p></li>
 <li><p><strong>trim</strong> — the visible span <code class="docutils literal notranslate"><span class="pre">[min(ts,</span> <span class="pre">te),</span> <span class="pre">max(ts,</span> <span class="pre">te)]</span></code>, clamped to
 <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>, as fractions of that length;</p></li>
+<li><p><strong>dashes</strong> — an optional on/off pattern laid along the WHOLE path from arc
+length 0 (shifted by an offset) and only then clipped to the trimmed span, so
+a draw-on reveals dashes in place rather than making them crawl (an#161);</p></li>
 <li><p><strong>the arrowhead</strong> — a triangle whose tip is the trimmed end, oriented along
 the direction of the segment the tip lies on (the <em>incoming</em> segment when
 the tip sits exactly on a vertex).</p></li>
@@ -572,7 +575,10 @@ polyline at compile time, so the wire carries one geometry kind.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.path.trim_polyline" title="an.adapters.cutout.path.trim_polyline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trim_polyline</span></code></a>(points, cum, a, b)</p></td>
 <td><p>The sub-polyline between arc lengths <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">&lt;</span> <span class="pre">b</span></code>: the two cut points and every vertex strictly between them.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.path.path_geometry" title="an.adapters.cutout.path.path_geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path_geometry</span></code></a>(points, trim_start, trim_end, *)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.path.dash_spans" title="an.adapters.cutout.path.dash_spans"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dash_spans</span></code></a>(a, b, dash, gap, offset)</p></td>
+<td><p>The arc-length spans <code class="docutils literal notranslate"><span class="pre">[lo,</span> <span class="pre">hi]</span></code> inside <code class="docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code> that a dash covers.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.path.path_geometry" title="an.adapters.cutout.path.path_geometry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">path_geometry</span></code></a>(points, trim_start, trim_end, *)</p></td>
 <td><p>What the runtime draws: <code class="docutils literal notranslate"><span class="pre">{&quot;stroke&quot;:</span> <span class="pre">[points],</span> <span class="pre">&quot;head&quot;:</span> <span class="pre">[3</span> <span class="pre">points]</span> <span class="pre">|</span> <span class="pre">None}</span></code>.</p></td>
 </tr>
 </tbody>
@@ -602,6 +608,29 @@ head for the default proportions, so the stroke never pokes past the tip.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.adapters.cutout.path.dash_spans">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.path.</span></span><span class="sig-name descname"><span class="pre">dash_spans</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dash</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/path.html#dash_spans"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.path.dash_spans" title="Link to this definition">#</a></dt>
+<dd><p>The arc-length spans <code class="docutils literal notranslate"><span class="pre">[lo,</span> <span class="pre">hi]</span></code> inside <code class="docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code> that a dash covers.</p>
+<p>The pattern is anchored at arc length <code class="docutils literal notranslate"><span class="pre">0</span></code> — dash <code class="docutils literal notranslate"><span class="pre">k</span></code> covers
+<code class="docutils literal notranslate"><span class="pre">[offset</span> <span class="pre">+</span> <span class="pre">k*period,</span> <span class="pre">offset</span> <span class="pre">+</span> <span class="pre">k*period</span> <span class="pre">+</span> <span class="pre">dash]</span></code> — and is clipped to the
+window afterwards, so moving <code class="docutils literal notranslate"><span class="pre">a</span></code> or <code class="docutils literal notranslate"><span class="pre">b</span></code> never moves a dash. Only IEEE
+<code class="docutils literal notranslate"><span class="pre">+</span> <span class="pre">-</span> <span class="pre">*</span> <span class="pre">/</span></code> and <code class="docutils literal notranslate"><span class="pre">floor</span></code>, in the order <code class="docutils literal notranslate"><span class="pre">runtime.js::pathDashSpans</span></code> uses.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dash_spans</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+<span class="go">[(0.0, 10.0), (25.0, 35.0), (50.0, 60.0), (75.0, 85.0)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dash_spans</span><span class="p">(</span><span class="mf">30.0</span><span class="p">,</span> <span class="mf">60.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>  <span class="c1"># clipped, not re-anchored</span>
+<span class="go">[(30.0, 35.0), (50.0, 60.0)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dash_spans</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">30.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">)</span>  <span class="c1"># offset slides the pattern forward</span>
+<span class="go">[(5.0, 15.0), (25.0, 30.0)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.path.flatten_curve">
 <span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.path.</span></span><span class="sig-name descname"><span class="pre">flatten_curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">curve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'polyline'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/path.html#flatten_curve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.path.flatten_curve" title="Link to this definition">#</a></dt>
 <dd><p>The polyline the runtime draws for <code class="docutils literal notranslate"><span class="pre">points</span></code>.</p>
@@ -624,8 +653,10 @@ at <code class="docutils literal notranslate"><span class="pre">samples</span></
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.path.path_geometry">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.path.</span></span><span class="sig-name descname"><span class="pre">path_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_end</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/path.html#path_geometry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.path.path_geometry" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.path.</span></span><span class="sig-name descname"><span class="pre">path_geometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_end</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dash_offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/path.html#path_geometry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.path.path_geometry" title="Link to this definition">#</a></dt>
 <dd><p>What the runtime draws: <code class="docutils literal notranslate"><span class="pre">{&quot;stroke&quot;:</span> <span class="pre">[points],</span> <span class="pre">&quot;head&quot;:</span> <span class="pre">[3</span> <span class="pre">points]</span> <span class="pre">|</span> <span class="pre">None}</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dash</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> makes the stroke a dash pattern: <code class="docutils literal notranslate"><span class="pre">stroke</span></code> is then <code class="docutils literal notranslate"><span class="pre">[]</span></code> and
+a <code class="docutils literal notranslate"><span class="pre">&quot;dashes&quot;</span></code> key (absent otherwise) holds one polyline per visible dash.</p>
 <p><code class="docutils literal notranslate"><span class="pre">head_length</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> turns the arrowhead on. While the visible length is
 shorter than the head, the head is scaled by <code class="docutils literal notranslate"><span class="pre">visible</span> <span class="pre">/</span> <span class="pre">head_length</span></code> so
 a draw-on grows it in rather than popping a full-size triangle at frame
@@ -716,6 +747,7 @@ every vertex strictly between them. Mirror of <code class="docutils literal notr
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.path.HEAD_STROKE_INSET"><code class="docutils literal notranslate"><span class="pre">HEAD_STROKE_INSET</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.path.cumulative_lengths"><code class="docutils literal notranslate"><span class="pre">cumulative_lengths()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.path.dash_spans"><code class="docutils literal notranslate"><span class="pre">dash_spans()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.path.flatten_curve"><code class="docutils literal notranslate"><span class="pre">flatten_curve()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.path.path_geometry"><code class="docutils literal notranslate"><span class="pre">path_geometry()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.path.point_at"><code class="docutils literal notranslate"><span class="pre">point_at()</span></code></a></li>

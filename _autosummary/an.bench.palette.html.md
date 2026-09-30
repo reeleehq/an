@@ -48,9 +48,12 @@ half moved when the number does.
 | [`runtime_literal_colours`](#an.bench.palette.runtime_literal_colours)(runtime_js)              | Every 6-digit hex literal the runtime source paints.                            |
 | [`svg_colours`](#an.bench.palette.svg_colours)(svg_path)                            | Every colour literal an SVG paints, plus the tokens that could not be resolved. |
 
-### an.bench.palette.COLOURED_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ellipse', 'rect'})*
+### an.bench.palette.COLOURED_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ellipse', 'path', 'rect'})*
 
 `visual.kind` values whose `visual.color` the runtime actually paints.
+A stroked path (an#160) paints `path.color` — the compiler stamps the same
+value onto `visual.color` (asserted by `tests/test_styles.py`), so one read
+covers the stroke and the arrowhead, which is filled in that colour.
 
 ### an.bench.palette.INERT_COLOUR_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'mouth', 'sprite', 'svg_sprite'})*
 

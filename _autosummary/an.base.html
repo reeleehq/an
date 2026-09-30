@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.whisper_lipsync" href="an.audio.whisper_lipsync.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -545,7 +545,7 @@ fraction of a second so the CLI is snappy.</p>
 <td><p>The property names the cutout runtime animates NUMERICALLY.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.base.TRIM_PROPERTIES" title="an.base.TRIM_PROPERTIES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TRIM_PROPERTIES</span></code></a></p></td>
-<td><p>The two path-only properties inside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (an#160).</p></td>
+<td><p>The path-only properties inside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (an#160; the name predates <code class="code docutils literal notranslate"><span class="pre">dash_offset</span></code>, an#161): trim and the dash phase.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS" title="an.base.SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SWAP_SET_NAME_FORBIDDEN_SUBSTRINGS</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">/</span></code> would read as a path segment and <code class="docutils literal notranslate"><span class="pre">::</span></code> is the runtime's pose-key separator.</p></td>
@@ -597,7 +597,7 @@ fraction of a second so the CLI is snappy.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.base.AUTHORABLE_PROPERTIES">
-<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">AUTHORABLE_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.base.AUTHORABLE_PROPERTIES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">AUTHORABLE_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'alpha',</span> <span class="pre">'dash_offset',</span> <span class="pre">'pivot_x',</span> <span class="pre">'pivot_y',</span> <span class="pre">'rotation',</span> <span class="pre">'rotation_rad',</span> <span class="pre">'scale_x',</span> <span class="pre">'scale_y',</span> <span class="pre">'skew_x',</span> <span class="pre">'skew_y',</span> <span class="pre">'tint',</span> <span class="pre">'tint_b',</span> <span class="pre">'tint_g',</span> <span class="pre">'tint_r',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start',</span> <span class="pre">'x',</span> <span class="pre">'y'})</span></span><a class="headerlink" href="#an.base.AUTHORABLE_PROPERTIES" title="Link to this definition">#</a></dt>
 <dd><p>a compiled transform channel, or the authored
 colour spelling the compiler expands. Validate checks against this, and the
 compiler’s rest table against <code class="code docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> — the difference between
@@ -840,8 +840,10 @@ what every document written before transitions existed means.</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="an.base.TRIM_PROPERTIES">
-<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">TRIM_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'trim_end',</span> <span class="pre">'trim_start'})</span></span><a class="headerlink" href="#an.base.TRIM_PROPERTIES" title="Link to this definition">#</a></dt>
-<dd><p>The two path-only properties inside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (an#160).</p>
+<span class="sig-prename descclassname"><span class="pre">an.base.</span></span><span class="sig-name descname"><span class="pre">TRIM_PROPERTIES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'dash_offset',</span> <span class="pre">'trim_end',</span> <span class="pre">'trim_start'})</span></span><a class="headerlink" href="#an.base.TRIM_PROPERTIES" title="Link to this definition">#</a></dt>
+<dd><p>The path-only properties inside <code class="xref py py-data docutils literal notranslate"><span class="pre">TRANSFORM_PROPERTIES</span></code> (an#160; the
+name predates <code class="code docutils literal notranslate"><span class="pre">dash_offset</span></code>, an#161): trim and the dash phase. A node that
+draws no path refuses all of them.</p>
 </dd></dl>
 
 <dl class="py function">

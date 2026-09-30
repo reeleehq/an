@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../../../../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -717,6 +717,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">- **arc length** — cumulative straight-segment lengths over the polyline;</span>
 <span class="sd">- **trim** — the visible span ``[min(ts, te), max(ts, te)]``, clamped to</span>
 <span class="sd">  ``[0, 1]``, as fractions of that length;</span>
+<span class="sd">- **dashes** — an optional on/off pattern laid along the WHOLE path from arc</span>
+<span class="sd">  length 0 (shifted by an offset) and only then clipped to the trimmed span, so</span>
+<span class="sd">  a draw-on reveals dashes in place rather than making them crawl (an#161);</span>
 <span class="sd">- **the arrowhead** — a triangle whose tip is the trimmed end, oriented along</span>
 <span class="sd">  the direction of the segment the tip lies on (the *incoming* segment when</span>
 <span class="sd">  the tip sits exactly on a vertex).</span>
@@ -754,6 +757,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"cumulative_lengths"</span><span class="p">,</span>
     <span class="s2">"point_at"</span><span class="p">,</span>
     <span class="s2">"trim_polyline"</span><span class="p">,</span>
+    <span class="s2">"dash_spans"</span><span class="p">,</span>
     <span class="s2">"path_geometry"</span><span class="p">,</span>
     <span class="s2">"HEAD_STROKE_INSET"</span><span class="p">,</span>
 <span class="p">]</span>
@@ -870,6 +874,42 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="dash_spans">
+<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.path.html#an.adapters.cutout.path.dash_spans">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dash_spans</span><span class="p">(</span>
+    <span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">dash</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">gap</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">offset</span><span class="p">:</span> <span class="nb">float</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The arc-length spans ``[lo, hi]`` inside ``[a, b]`` that a dash covers.</span>
+
+<span class="sd">    The pattern is anchored at arc length ``0`` — dash ``k`` covers</span>
+<span class="sd">    ``[offset + k*period, offset + k*period + dash]`` — and is clipped to the</span>
+<span class="sd">    window afterwards, so moving ``a`` or ``b`` never moves a dash. Only IEEE</span>
+<span class="sd">    ``+ - * /`` and ``floor``, in the order ``runtime.js::pathDashSpans`` uses.</span>
+
+<span class="sd">    &gt;&gt;&gt; dash_spans(0.0, 100.0, 10.0, 15.0, 0.0)</span>
+<span class="sd">    [(0.0, 10.0), (25.0, 35.0), (50.0, 60.0), (75.0, 85.0)]</span>
+<span class="sd">    &gt;&gt;&gt; dash_spans(30.0, 60.0, 10.0, 15.0, 0.0)  # clipped, not re-anchored</span>
+<span class="sd">    [(30.0, 35.0), (50.0, 60.0)]</span>
+<span class="sd">    &gt;&gt;&gt; dash_spans(0.0, 30.0, 10.0, 10.0, 5.0)  # offset slides the pattern forward</span>
+<span class="sd">    [(5.0, 15.0), (25.0, 30.0)]</span>
+<span class="sd">    """</span>
+    <span class="n">period</span> <span class="o">=</span> <span class="n">dash</span> <span class="o">+</span> <span class="n">gap</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="n">a</span> <span class="o">-</span> <span class="n">offset</span> <span class="o">-</span> <span class="n">dash</span><span class="p">)</span> <span class="o">/</span> <span class="n">period</span><span class="p">)</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="n">period</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">lo</span> <span class="o">=</span> <span class="n">a</span> <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">start</span> <span class="k">else</span> <span class="n">start</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">dash</span>
+        <span class="n">hi</span> <span class="o">=</span> <span class="n">b</span> <span class="k">if</span> <span class="n">b</span> <span class="o">&lt;</span> <span class="n">end</span> <span class="k">else</span> <span class="n">end</span>
+        <span class="k">if</span> <span class="n">hi</span> <span class="o">&gt;</span> <span class="n">lo</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">))</span>
+        <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_clamp01</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
     <span class="k">return</span> <span class="mf">0.0</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="p">(</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mf">1.0</span> <span class="k">else</span> <span class="n">v</span><span class="p">)</span>
 
@@ -883,8 +923,14 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">head_length</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
     <span class="n">head_width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">dash</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">gap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">dash_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""What the runtime draws: ``{"stroke": [points], "head": [3 points] | None}``.</span>
+
+<span class="sd">    ``dash &gt; 0`` makes the stroke a dash pattern: ``stroke`` is then ``[]`` and</span>
+<span class="sd">    a ``"dashes"`` key (absent otherwise) holds one polyline per visible dash.</span>
 
 <span class="sd">    ``head_length &gt; 0`` turns the arrowhead on. While the visible length is</span>
 <span class="sd">    shorter than the head, the head is scaled by ``visible / head_length`` so</span>
@@ -924,6 +970,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">ny</span> <span class="o">=</span> <span class="n">ux</span> <span class="o">*</span> <span class="p">(</span><span class="n">hw</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">head</span> <span class="o">=</span> <span class="p">[(</span><span class="n">tx</span><span class="p">,</span> <span class="n">ty</span><span class="p">),</span> <span class="p">(</span><span class="n">bx</span> <span class="o">+</span> <span class="n">nx</span><span class="p">,</span> <span class="n">by</span> <span class="o">+</span> <span class="n">ny</span><span class="p">),</span> <span class="p">(</span><span class="n">bx</span> <span class="o">-</span> <span class="n">nx</span><span class="p">,</span> <span class="n">by</span> <span class="o">-</span> <span class="n">ny</span><span class="p">)]</span>
         <span class="n">stroke_end</span> <span class="o">=</span> <span class="n">b</span> <span class="o">-</span> <span class="n">hl</span> <span class="o">*</span> <span class="n">HEAD_STROKE_INSET</span>
+    <span class="k">if</span> <span class="n">dash</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">spans</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">dash_spans</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">stroke_end</span><span class="p">,</span> <span class="n">dash</span><span class="p">,</span> <span class="n">gap</span><span class="p">,</span> <span class="n">dash_offset</span><span class="p">)</span> <span class="k">if</span> <span class="n">stroke_end</span> <span class="o">&gt;</span> <span class="n">a</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="p">)</span>
+        <span class="n">dashes</span> <span class="o">=</span> <span class="p">[</span><span class="n">trim_polyline</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">cum</span><span class="p">,</span> <span class="n">lo_s</span><span class="p">,</span> <span class="n">hi_s</span><span class="p">)</span> <span class="k">for</span> <span class="n">lo_s</span><span class="p">,</span> <span class="n">hi_s</span> <span class="ow">in</span> <span class="n">spans</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"stroke"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"head"</span><span class="p">:</span> <span class="n">head</span><span class="p">,</span> <span class="s2">"dashes"</span><span class="p">:</span> <span class="n">dashes</span><span class="p">}</span>
     <span class="n">stroke</span> <span class="o">=</span> <span class="n">trim_polyline</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">cum</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">stroke_end</span><span class="p">)</span> <span class="k">if</span> <span class="n">stroke_end</span> <span class="o">&gt;</span> <span class="n">a</span> <span class="k">else</span> <span class="p">[]</span>
     <span class="k">return</span> <span class="p">{</span><span class="s2">"stroke"</span><span class="p">:</span> <span class="n">stroke</span><span class="p">,</span> <span class="s2">"head"</span><span class="p">:</span> <span class="n">head</span><span class="p">}</span></div>
 

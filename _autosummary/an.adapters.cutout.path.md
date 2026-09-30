@@ -7,6 +7,9 @@ The runtime draws a path (an#160) from three things this module defines:
 - **arc length** — cumulative straight-segment lengths over the polyline;
 - **trim** — the visible span `[min(ts, te), max(ts, te)]`, clamped to
   `[0, 1]`, as fractions of that length;
+- **dashes** — an optional on/off pattern laid along the WHOLE path from arc
+  length 0 (shifted by an offset) and only then clipped to the trimmed span, so
+  a draw-on reveals dashes in place rather than making them crawl (an#161);
 - **the arrowhead** — a triangle whose tip is the trimmed end, oriented along
   the direction of the segment the tip lies on (the *incoming* segment when
   the tip sits exactly on a vertex).
@@ -45,6 +48,7 @@ True
 | [`cumulative_lengths`](#an.adapters.cutout.path.cumulative_lengths)(points)                      | Arc length at each vertex.                                                                               |
 | [`point_at`](#an.adapters.cutout.path.point_at)(points, cum, s)                        | The point at arc length `s`.                                                                             |
 | [`trim_polyline`](#an.adapters.cutout.path.trim_polyline)(points, cum, a, b)                | The sub-polyline between arc lengths `a < b`: the two cut points and every vertex strictly between them. |
+| [`dash_spans`](#an.adapters.cutout.path.dash_spans)(a, b, dash, gap, offset)             | The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.                                      |
 | [`path_geometry`](#an.adapters.cutout.path.path_geometry)(points, trim_start, trim_end, \*) | What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.                               |
 
 ### an.adapters.cutout.path.HEAD_STROKE_INSET *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.5*
@@ -63,6 +67,27 @@ Arc length at each vertex. Mirror of `runtime.js::pathLengths`.
 ```pycon
 >>> cumulative_lengths([(0, 0), (3, 4), (3, 10)])
 [0.0, 5.0, 11.0]
+```
+
+### an.adapters.cutout.path.dash_spans(a, b, dash, gap, offset)
+
+The arc-length spans `[lo, hi]` inside `[a, b]` that a dash covers.
+
+The pattern is anchored at arc length `0` — dash `k` covers
+`[offset + k*period, offset + k*period + dash]` — and is clipped to the
+window afterwards, so moving `a` or `b` never moves a dash. Only IEEE
+`+ - * /` and `floor`, in the order `runtime.js::pathDashSpans` uses.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+```pycon
+>>> dash_spans(0.0, 100.0, 10.0, 15.0, 0.0)
+[(0.0, 10.0), (25.0, 35.0), (50.0, 60.0), (75.0, 85.0)]
+>>> dash_spans(30.0, 60.0, 10.0, 15.0, 0.0)  # clipped, not re-anchored
+[(30.0, 35.0), (50.0, 60.0)]
+>>> dash_spans(0.0, 30.0, 10.0, 10.0, 5.0)  # offset slides the pattern forward
+[(5.0, 15.0), (25.0, 30.0)]
 ```
 
 ### an.adapters.cutout.path.flatten_curve(points, , curve='polyline', samples=24)
@@ -84,9 +109,12 @@ at `samples` steps; shared endpoints appear once.
 [(0.0, 0.0), (5.0, 7.5), (10.0, 0.0)]
 ```
 
-### an.adapters.cutout.path.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0)
+### an.adapters.cutout.path.path_geometry(points, trim_start, trim_end, , head_length=0.0, head_width=0.0, dash=0.0, gap=0.0, dash_offset=0.0)
 
 What the runtime draws: `{"stroke": [points], "head": [3 points] | None}`.
+
+`dash > 0` makes the stroke a dash pattern: `stroke` is then `[]` and
+a `"dashes"` key (absent otherwise) holds one polyline per visible dash.
 
 `head_length > 0` turns the arrowhead on. While the visible length is
 shorter than the head, the head is scaled by `visible / head_length` so

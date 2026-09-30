@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stores.voices" href="an.stores.voices.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -582,12 +582,15 @@ representation doubles the surface on which the two can silently diverge.</p>
 </div>
 <dl class="py data">
 <dt class="sig sig-object py" id="an.styles.REACHABLE_ROLES">
-<span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">REACHABLE_ROLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'clothing',</span> <span class="pre">'ground',</span> <span class="pre">'hair',</span> <span class="pre">'leg',</span> <span class="pre">'pupil',</span> <span class="pre">'skin',</span> <span class="pre">'sky'})</span></span><a class="headerlink" href="#an.styles.REACHABLE_ROLES" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">REACHABLE_ROLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'clothing',</span> <span class="pre">'ground',</span> <span class="pre">'hair',</span> <span class="pre">'leg',</span> <span class="pre">'pupil',</span> <span class="pre">'skin',</span> <span class="pre">'sky',</span> <span class="pre">'stroke'})</span></span><a class="headerlink" href="#an.styles.REACHABLE_ROLES" title="Link to this definition">#</a></dt>
 <dd><p>Roles a pack can actually change, because the COMPILER decides them and
 stamps them into the document the runtime draws.</p>
 <p><code class="code docutils literal notranslate"><span class="pre">skin</span></code>, <code class="code docutils literal notranslate"><span class="pre">clothing</span></code> and <code class="code docutils literal notranslate"><span class="pre">hair</span></code> are <code class="code docutils literal notranslate"><span class="pre">_CHARACTER_PALETTES</span></code>’ three components;
 <code class="code docutils literal notranslate"><span class="pre">leg</span></code> and <code class="code docutils literal notranslate"><span class="pre">pupil</span></code> are the compiler’s own literals (<code class="code docutils literal notranslate"><span class="pre">DFLT_LEG_COLOUR</span></code>,
-<code class="code docutils literal notranslate"><span class="pre">DFLT_PUPIL_COLOUR</span></code>); <code class="code docutils literal notranslate"><span class="pre">sky</span></code> and <code class="code docutils literal notranslate"><span class="pre">ground</span></code> are the environment presets’.</p>
+<code class="code docutils literal notranslate"><span class="pre">DFLT_PUPIL_COLOUR</span></code>); <code class="code docutils literal notranslate"><span class="pre">sky</span></code> and <code class="code docutils literal notranslate"><span class="pre">ground</span></code> are the environment presets’;
+<code class="code docutils literal notranslate"><span class="pre">stroke</span></code> is a stroked path’s default colour (<code class="code docutils literal notranslate"><span class="pre">an.paths.DFLT_STROKE_COLOUR</span></code>,
+an#161) — the arrowhead is filled in the same colour, so it is not a second
+role. A path that names its own <code class="code docutils literal notranslate"><span class="pre">color</span></code> is art and is left alone.</p>
 <p>Every one of these is compiled with a marker colour and asserted to reach
 the document by <code class="code docutils literal notranslate"><span class="pre">tests/test_styles.py</span></code>. <code class="code docutils literal notranslate"><span class="pre">pupil</span></code> shipped in this set wired to
 NOTHING (an#112 review) because the guard checked set membership against the

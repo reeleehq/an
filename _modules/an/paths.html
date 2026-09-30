@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -768,6 +768,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"PathDescriptor"</span><span class="p">,</span>
     <span class="s2">"resolve_path"</span><span class="p">,</span>
     <span class="s2">"DFLT_STROKE_COLOUR"</span><span class="p">,</span>
+    <span class="s2">"MIN_DASH_PERIOD"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">PATH_SCHEMA_VERSION</span> <span class="o">=</span> <span class="s2">"0.1.0"</span>
@@ -782,13 +783,17 @@ window.runMermaid = runMermaid;</script>
     <span class="p">)</span>
 <span class="p">)</span>
 
-<span class="c1">#: The stroke colour when the document names none.</span>
-<span class="c1">#:</span>
-<span class="c1">#: Not yet a `StylePack` role: `an.styles.REACHABLE_ROLES` is a closed set, and</span>
-<span class="c1">#: every role in it is asserted to reach a compiled document from one fixed</span>
-<span class="c1">#: scene (`tests/test_styles.py`). A `stroke` role is a small follow-up, not a</span>
-<span class="c1">#: field that silently does nothing today.</span>
+<span class="c1">#: The stroke colour when the document names none. A `StylePack`'s `stroke`</span>
+<span class="c1">#: role replaces it (an#161) — but only this default: a document that sets</span>
+<span class="c1">#: `color` itself is art, not a default, and a pack does not rewrite art (the</span>
+<span class="c1">#: same line `an.styles` draws for SVG). A per-entity `stroke` override in the</span>
+<span class="c1">#: pack wins over both.</span>
 <span class="n">DFLT_STROKE_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#c0392b"</span>
+
+<span class="c1">#: The shortest dash period (dash + gap), scene pixels. Bounds the number of</span>
+<span class="c1">#: dashes a path can ask the runtime to redraw every frame: a path a few</span>
+<span class="c1">#: thousand pixels long is a few thousand dashes at most.</span>
+<span class="n">MIN_DASH_PERIOD</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
 
 <span class="c1">#: Default stroke width, scene pixels.</span>
 <span class="n">DFLT_STROKE_WIDTH</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">8.0</span>
@@ -849,6 +854,16 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: with no ``from_value`` starts from these values (not the global rest).</span>
     <span class="n">trim_start</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
     <span class="n">trim_end</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="c1">#: A dash pattern, scene pixels: ``dash`` on, ``gap`` off, repeating along</span>
+    <span class="c1">#: the path from ITS start — anchored to the path, not to the trimmed span,</span>
+    <span class="c1">#: so a draw-on reveals dashes in place instead of making them crawl.</span>
+    <span class="c1">#: ``gap`` defaults to ``dash``. ``None`` = a solid stroke.</span>
+    <span class="n">dash</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">gap</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1">#: Shifts the pattern along the path (positive = forward). An ordinary</span>
+    <span class="c1">#: numeric node property like ``trim_end``, so ``tween route dash_offset``</span>
+    <span class="c1">#: is the "marching ants" route; only a dashed path has one.</span>
+    <span class="n">dash_offset</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">arrowhead</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="c1">#: Scene pixels; ``None`` = a multiple of ``width``.</span>
     <span class="n">head_length</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -890,6 +905,17 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"head_length/head_width are set but arrowhead is false, so "</span>
                 <span class="s2">"they would draw nothing; set `arrowhead: true` or drop them"</span>
             <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dash</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">given</span> <span class="o">&amp;</span> <span class="p">{</span><span class="s2">"gap"</span><span class="p">,</span> <span class="s2">"dash_offset"</span><span class="p">}:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">"gap/dash_offset are set but `dash` is not, so the stroke is "</span>
+                <span class="s2">"solid and they would draw nothing; set `dash` or drop them"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dash</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dash</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gap_px</span> <span class="o">&lt;</span> <span class="n">MIN_DASH_PERIOD</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"dash + gap = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dash</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">gap_px</span><span class="si">}</span><span class="s2"> scene px is below "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">MIN_DASH_PERIOD</span><span class="si">}</span><span class="s2">: that is thousands of dashes redrawn every "</span>
+                <span class="s2">"frame and finer than a pixel"</span>
+            <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">curve</span> <span class="o">==</span> <span class="s2">"polyline"</span> <span class="ow">and</span> <span class="s2">"samples_per_segment"</span> <span class="ow">in</span> <span class="n">given</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="s2">"samples_per_segment only applies to curve='cubic'; a "</span>
@@ -901,6 +927,13 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"length and would draw nothing"</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gap_px</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The gap of the dash pattern, scene pixels (``dash`` when unset)."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gap</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dash</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dash</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">0.0</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">head_length_px</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>

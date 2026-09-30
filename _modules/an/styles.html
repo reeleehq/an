@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=09f5639d"></script>
+    <script src="../../_static/documentation_options.js?v=ad8de784"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.98" />
+  <meta name="docsearch:version" content="0.1.99" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -787,7 +787,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#:</span>
 <span class="c1">#: `skin`, `clothing` and `hair` are `_CHARACTER_PALETTES`' three components;</span>
 <span class="c1">#: `leg` and `pupil` are the compiler's own literals (`DFLT_LEG_COLOUR`,</span>
-<span class="c1">#: `DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets'.</span>
+<span class="c1">#: `DFLT_PUPIL_COLOUR`); `sky` and `ground` are the environment presets';</span>
+<span class="c1">#: `stroke` is a stroked path's default colour (`an.paths.DFLT_STROKE_COLOUR`,</span>
+<span class="c1">#: an#161) — the arrowhead is filled in the same colour, so it is not a second</span>
+<span class="c1">#: role. A path that names its own `color` is art and is left alone.</span>
 <span class="c1">#:</span>
 <span class="c1">#: Every one of these is compiled with a marker colour and asserted to reach</span>
 <span class="c1">#: the document by `tests/test_styles.py`. `pupil` shipped in this set wired to</span>
@@ -795,7 +798,7 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: set it was checking — a declared-reachable role that reaches nothing is the</span>
 <span class="c1">#: same defect as an unreachable one, and it needs the same kind of test.</span>
 <span class="n">REACHABLE_ROLES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
-    <span class="p">{</span><span class="s2">"skin"</span><span class="p">,</span> <span class="s2">"clothing"</span><span class="p">,</span> <span class="s2">"hair"</span><span class="p">,</span> <span class="s2">"leg"</span><span class="p">,</span> <span class="s2">"pupil"</span><span class="p">,</span> <span class="s2">"sky"</span><span class="p">,</span> <span class="s2">"ground"</span><span class="p">}</span>
+    <span class="p">{</span><span class="s2">"skin"</span><span class="p">,</span> <span class="s2">"clothing"</span><span class="p">,</span> <span class="s2">"hair"</span><span class="p">,</span> <span class="s2">"leg"</span><span class="p">,</span> <span class="s2">"pupil"</span><span class="p">,</span> <span class="s2">"sky"</span><span class="p">,</span> <span class="s2">"ground"</span><span class="p">,</span> <span class="s2">"stroke"</span><span class="p">}</span>
 <span class="p">)</span>
 
 <span class="c1">#: Roles a pack must NOT declare, with what makes each unreachable. These are</span>
