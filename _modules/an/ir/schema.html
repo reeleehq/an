@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=32ac96fb"></script>
+    <script src="../../../_static/documentation_options.js?v=96d412e2"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.106" />
+  <meta name="docsearch:version" content="0.1.107" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1386,6 +1386,82 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Captions (built from the dialogue's word timings at render time — see</span>
+<span class="c1"># `an.captions`; no renderer reads this model directly)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: Characters per caption line and lines per caption page: the broadcast</span>
+<span class="c1">#: convention (BBC / Netflix timed-text guidance: 42 characters, two lines).</span>
+<span class="n">DEFAULT_CAPTION_MAX_CHARS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="n">DEFAULT_CAPTION_MAX_LINES</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1">#: Caption type size as a fraction of frame height — a little under the title</span>
+<span class="c1">#: default, as captions are read while something else is watched.</span>
+<span class="n">DEFAULT_CAPTION_SIZE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+
+<div class="viewcode-block" id="Captions">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.Captions">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Captions</span><span class="p">(</span><span class="n">_IRModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Captions for the whole film, built from the dialogue's word timings.</span>
+
+<span class="sd">    Present = on; ``meta.captions`` unset (the default) is no captions and no</span>
+<span class="sd">    trace in any document. One cue list (:func:`an.captions.caption_pages`)</span>
+<span class="sd">    feeds BOTH outputs, so the picture and the sidecar cannot disagree:</span>
+
+<span class="sd">    - ``burn``: each page is drawn as an overlay text block (camera-immune,</span>
+<span class="sd">      placed at ``anchor`` in the title-safe area), shown for exactly the</span>
+<span class="sd">      frames the sidecar says;</span>
+<span class="sd">    - ``sidecar``: a SubRip ``.srt`` written through the ``captions`` store,</span>
+<span class="sd">      next to the delivered mp4, in FILM time (a dissolve shortens the film,</span>
+<span class="sd">      and every later cue moves with it).</span>
+
+<span class="sd">    &gt;&gt;&gt; Captions().max_chars, Captions().anchor</span>
+<span class="sd">    (42, 'bottom')</span>
+<span class="sd">    &gt;&gt;&gt; Captions(highlight="#ffcc00").highlight</span>
+<span class="sd">    '#ffcc00'</span>
+<span class="sd">    """</span>
+
+    <span class="n">burn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">sidecar</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1">#: Line breaks are made HERE, by character count, and written into both</span>
+    <span class="c1">#: the burned block and the sidecar — the same lines in both. 42 fits the</span>
+    <span class="c1">#: title-safe width of a 16:9 or 4:3 frame at the default size; a square</span>
+    <span class="c1">#: or portrait frame needs fewer (about 32 at 1:1) or a smaller ``size`` —</span>
+    <span class="c1">#: a line that does not fit is REFUSED before the render, never clipped.</span>
+    <span class="n">max_chars</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_CAPTION_MAX_CHARS</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">max_lines</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_CAPTION_MAX_LINES</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">size</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">DEFAULT_CAPTION_SIZE</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#1a1a1a"</span>
+    <span class="c1">#: ``#rrggbb``: the word being spoken is drawn in this colour (karaoke);</span>
+    <span class="c1">#: ``None`` draws every word in ``color``.</span>
+    <span class="n">highlight</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: One of tituli's nine title-safe anchors.</span>
+    <span class="n">anchor</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"bottom"</span>
+    <span class="c1">#: ``None`` = the embedded face; else an ABSOLUTE font file path, or one</span>
+    <span class="c1">#: relative to the project directory.</span>
+    <span class="n">font</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: A line with no word timings is captioned with its words spread evenly</span>
+    <span class="c1">#: over its duration, with a warning; ``strict`` makes that an error.</span>
+    <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_hex_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Captions"</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"color"</span><span class="p">,</span> <span class="s2">"highlight"</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">_HEX_COLOR</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"captions </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be '#rrggbb'; got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">tituli</span><span class="w"> </span><span class="kn">import</span> <span class="n">ANCHORS</span>  <span class="c1"># the typesetter owns the anchor vocabulary</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">anchor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ANCHORS</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"unknown captions anchor </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">anchor</span><span class="si">!r}</span><span class="s2">; choose from </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ANCHORS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="c1"># Shot</span>
 <span class="c1"># -----------------------------------------------------------------------------</span>
 
@@ -1517,6 +1593,9 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: Sound cues in FILM time — a music bed, an ambience under every shot</span>
     <span class="c1">#: (:class:`SoundCue`). Empty, the default, is no sound layer at all.</span>
     <span class="n">sounds</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SoundCue</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+    <span class="c1">#: Captions from the dialogue's word timings (:class:`Captions`, an#175);</span>
+    <span class="c1">#: ``None`` — the default — is none, omitted from JSON like ``style_pack``.</span>
+    <span class="n">captions</span><span class="p">:</span> <span class="n">Captions</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_style_pack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
@@ -1542,6 +1621,9 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># `sounds` likewise: an empty list is what every existing meta means.</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sounds</span><span class="p">:</span>
             <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"sounds"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="c1"># `captions` likewise (an#175): unset is what every existing meta means.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">captions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"captions"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 

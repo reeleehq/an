@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=32ac96fb"></script>
+    <script src="../../_static/documentation_options.js?v=96d412e2"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.106" />
+  <meta name="docsearch:version" content="0.1.107" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -913,6 +913,10 @@ window.runMermaid = runMermaid;</script>
 <span class="s2">  - meta.sounds (optional): the same cue shape in FILM time — a music bed is</span>
 <span class="s2">    {sound: &lt;key&gt;, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks</span>
 <span class="s2">    it under every dialogue line.</span>
+<span class="s2">  - meta.captions (optional): captions built at render time from the dialogue's</span>
+<span class="s2">    word timings — </span><span class="si">{}</span><span class="s2"> for the defaults, or {highlight: "#rrggbb", color,</span>
+<span class="s2">    size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add</span>
+<span class="s2">    caption text entities by hand: they are derived from the dialogue.</span>
 
 <span class="s2">Path syntax for patches: slash-delimited, list indices are integers. Examples:</span>
 

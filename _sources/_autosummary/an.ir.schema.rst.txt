@@ -10,6 +10,8 @@ an.ir.schema
    
       DFLT_EXPRESSION_BLEND_S
       Action
+      DEFAULT_CAPTION_MAX_CHARS
+      DEFAULT_CAPTION_SIZE
    
    .. rubric:: Functions
 
@@ -24,6 +26,7 @@ an.ir.schema
       AssetRef
       Camera
       CameraKey
+      Captions
       DelayAction
       Dialogue
       ExpressionAction

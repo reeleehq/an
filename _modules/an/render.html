@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=32ac96fb"></script>
+    <script src="../../_static/documentation_options.js?v=96d412e2"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.106" />
+  <meta name="docsearch:version" content="0.1.107" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -747,6 +747,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1"># can always pass a higher number explicitly.</span>
 <span class="n">DEFAULT_PARALLEL_CAP</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span>
 
+<span class="c1">#: How far ``duration * fps`` may sit from a whole number and still count as</span>
+<span class="c1">#: whole frames (float error, not a fraction of a frame).</span>
+<span class="n">_FRAME_GRID_TOLERANCE</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
+
 
 <div class="viewcode-block" id="RenderError">
 <a class="viewcode-back" href="../../_autosummary/an.render.html#an.render.RenderError">[docs]</a>
@@ -982,10 +986,20 @@ window.runMermaid = runMermaid;</script>
         <span class="n">film_timeline</span><span class="p">(</span><span class="n">shots</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">)</span>
     <span class="n">pool_size</span> <span class="o">=</span> <span class="n">_resolve_parallel</span><span class="p">(</span><span class="n">parallel</span><span class="p">,</span> <span class="n">n_shots</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">shots</span><span class="p">))</span>
 
+    <span class="c1"># Captions (an#175): ONE page list, from which the burned-in picture and</span>
+    <span class="c1"># the sidecar are both derived, so they cannot disagree. Built before any</span>
+    <span class="c1"># browser launches, so a strict-captions refusal costs nothing.</span>
+    <span class="n">captions</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">captions</span>
+    <span class="n">pages</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">captions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.captions</span><span class="w"> </span><span class="kn">import</span> <span class="n">caption_pages</span>
+
+        <span class="n">pages</span> <span class="o">=</span> <span class="n">caption_pages</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">,</span> <span class="n">captions</span><span class="o">=</span><span class="n">captions</span><span class="p">)</span>
+
     <span class="c1"># Resolve renderers up front so a missing one fails fast (before we spawn</span>
     <span class="c1"># workers).</span>
     <span class="n">shot_renderers</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">shots</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shots</span><span class="p">):</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">_DEFAULT_REGISTRY</span><span class="o">.</span><span class="n">find_for</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">RenderError</span><span class="p">(</span>
@@ -993,19 +1007,24 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"(renderer=</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2">); registered: "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">_DEFAULT_REGISTRY</span><span class="o">.</span><span class="n">names</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
-        <span class="n">shot_renderers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">shot</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span>
+        <span class="n">shot_ctx</span> <span class="o">=</span> <span class="n">ctx</span>
+        <span class="k">if</span> <span class="n">captions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">captions</span><span class="o">.</span><span class="n">burn</span><span class="p">:</span>
+            <span class="n">shot</span><span class="p">,</span> <span class="n">shot_ctx</span> <span class="o">=</span> <span class="n">_burn_captions</span><span class="p">(</span>
+                <span class="n">shot</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
+            <span class="p">)</span>
+        <span class="n">shot_renderers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">shot</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">pool_size</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">shot_results</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">_render_one</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span> <span class="ow">in</span> <span class="n">shot_renderers</span>
+            <span class="n">_render_one</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span> <span class="ow">in</span> <span class="n">shot_renderers</span>
         <span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">results_by_id</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">RenderResult</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">pool_size</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="n">futures</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">ex</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_render_one</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span>
-                <span class="k">for</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span> <span class="ow">in</span> <span class="n">shot_renderers</span>
+                <span class="n">ex</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">_render_one</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span>
+                <span class="k">for</span> <span class="n">shot</span><span class="p">,</span> <span class="n">renderer</span><span class="p">,</span> <span class="n">shot_ctx</span> <span class="ow">in</span> <span class="n">shot_renderers</span>
             <span class="p">}</span>
             <span class="k">for</span> <span class="n">fut</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
                 <span class="n">shot_id</span> <span class="o">=</span> <span class="n">futures</span><span class="p">[</span><span class="n">fut</span><span class="p">]</span>
@@ -1016,11 +1035,15 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># Concatenate per-shot mp4s.</span>
     <span class="n">output_path</span> <span class="o">=</span> <span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">root</span> <span class="o">/</span> <span class="s2">"output"</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">output_name</span><span class="si">}</span><span class="s2">.mp4"</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
     <span class="n">output_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_sidecar_needs_frame_grid</span><span class="p">(</span>
+        <span class="n">scene</span><span class="p">,</span> <span class="n">shot_results</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
+    <span class="p">):</span>
         <span class="c1"># Transitions and/or a sound layer: composed in the frame stage and</span>
         <span class="c1"># mixed from sources (`an.assemble`). A scene with neither never</span>
         <span class="c1"># reaches this branch, so its delivered file is the concat's, byte</span>
-        <span class="c1"># for byte.</span>
+        <span class="c1"># for byte. (Captions can also send a scene here — see</span>
+        <span class="c1"># `_sidecar_needs_frame_grid`; captions are opt-in, so no existing</span>
+        <span class="c1"># scene's file changes.)</span>
         <span class="n">assemble_film</span><span class="p">(</span>
             <span class="n">scene</span><span class="p">,</span>
             <span class="n">shot_results</span><span class="p">,</span>
@@ -1037,8 +1060,122 @@ window.runMermaid = runMermaid;</script>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"output"</span><span class="p">][</span><span class="n">output_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
+    <span class="n">_write_caption_sidecar</span><span class="p">(</span>
+        <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">output_path</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_caption_sidecar</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Write ``output/&lt;name&gt;.srt`` from ``pages`` — or REMOVE a stale one.</span>
+
+<span class="sd">    A player loads a sidecar that sits beside the mp4 by name, so a file left</span>
+<span class="sd">    from an earlier captioned render would be shown over a film it no longer</span>
+<span class="sd">    describes; this render's answer replaces it either way.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.captions</span><span class="w"> </span><span class="kn">import</span> <span class="n">CaptionWarning</span>
+
+    <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"captions"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="n">captions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Not ours to delete: the scene never asked for captions, so a file</span>
+        <span class="c1"># there may be the author's own. Said, because a player will load it.</span>
+        <span class="k">if</span> <span class="n">output_name</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"a caption sidecar for </span><span class="si">{</span><span class="n">output_name</span><span class="si">!r}</span><span class="s2"> sits beside the mp4 but "</span>
+                <span class="s2">"the scene has no `captions`; it was NOT written by this render"</span><span class="p">,</span>
+                <span class="n">CaptionWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">captions</span><span class="o">.</span><span class="n">sidecar</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">pages</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">captions</span><span class="o">.</span><span class="n">sidecar</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">"captions are on but no line could be captioned; no sidecar written"</span><span class="p">,</span>
+                <span class="n">CaptionWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">store</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="c1"># Beside the mp4, under the same key (`output/main.srt`), in FILM time on</span>
+    <span class="c1"># the timeline the picture was just laid out on.</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.captions</span><span class="w"> </span><span class="kn">import</span> <span class="n">srt_for_scene</span>
+
+    <span class="n">srt</span> <span class="o">=</span> <span class="n">srt_for_scene</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">pages</span><span class="o">=</span><span class="n">pages</span><span class="p">)</span>
+    <span class="n">store</span><span class="p">[</span><span class="n">output_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">srt</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sidecar_needs_frame_grid</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">shot_results</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""True when a caption sidecar needs the film laid out on the frame grid.</span>
+
+<span class="sd">    The sidecar places shot ``i`` at its first FRAME (`film_timeline`). The</span>
+<span class="sd">    concat of shot mp4s places it at the previous shots' container lengths,</span>
+<span class="sd">    which differ whenever a shot's duration is not a whole number of frames —</span>
+<span class="sd">    and the error accumulates (review finding). The assembled path muxes the</span>
+<span class="sd">    film once from frames, frame ``i`` at ``i / fps``, which is exactly what</span>
+<span class="sd">    the sidecar says; so a captioned scene with such a shot is assembled. A</span>
+<span class="sd">    renderer that keeps no frames cannot be assembled: that is warned about,</span>
+<span class="sd">    and the concat is used.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="n">captions</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">captions</span>
+    <span class="k">if</span> <span class="n">captions</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">captions</span><span class="o">.</span><span class="n">sidecar</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">off_grid</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">id</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span class="n">fps</span> <span class="o">-</span> <span class="nb">round</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span class="n">fps</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">_FRAME_GRID_TOLERANCE</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">off_grid</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">frame_manifest</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">shot_results</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.captions</span><span class="w"> </span><span class="kn">import</span> <span class="n">CaptionWarning</span>
+
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"shots </span><span class="si">{</span><span class="n">off_grid</span><span class="si">}</span><span class="s2"> are not a whole number of frames long at </span><span class="si">{</span><span class="n">fps</span><span class="si">}</span><span class="s2"> fps, so "</span>
+        <span class="s2">"the concatenated film drifts from the caption sidecar's frame grid, and "</span>
+        <span class="s2">"a renderer here keeps no frames to assemble from; make those durations "</span>
+        <span class="s2">"whole frames"</span><span class="p">,</span>
+        <span class="n">CaptionWarning</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_burn_captions</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``shot`` with its caption pages added, and the context to render it in."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.captions</span><span class="w"> </span><span class="kn">import</span> <span class="n">CaptionWarning</span><span class="p">,</span> <span class="n">captioned_shot</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">shot</span> <span class="o">==</span> <span class="n">index</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pages</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span>
+    <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">renderer</span> <span class="o">!=</span> <span class="s2">"cutout"</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> is drawn by the </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="si">!r}</span><span class="s2"> renderer, which "</span>
+            <span class="s2">"has no overlay layer: its captions are in the sidecar only"</span><span class="p">,</span>
+            <span class="n">CaptionWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span> <span class="o">=</span> <span class="n">captioned_shot</span><span class="p">(</span>
+        <span class="n">shot</span><span class="p">,</span>
+        <span class="n">pages</span><span class="p">,</span>
+        <span class="n">captions</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+        <span class="n">mall</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
+        <span class="n">shot_index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+        <span class="n">base_dir</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">root</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">resolution</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">shot</span><span class="p">,</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">mall</span><span class="o">=</span><span class="n">mall</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_render_one</span><span class="p">(</span>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=32ac96fb"></script>
+    <script src="../_static/documentation_options.js?v=96d412e2"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stores" href="an.stores.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.106" />
+  <meta name="docsearch:version" content="0.1.107" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -363,6 +363,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
@@ -529,16 +530,19 @@ enforced by the caller (orchestrator), not the store.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.artifacts.AudioArtifactStore" title="an.stores.artifacts.AudioArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AudioArtifactStore</span></code></a>(root_dir)</p></td>
 <td><p>TTS-rendered audio clips (.wav).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.artifacts.OutputStore" title="an.stores.artifacts.OutputStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputStore</span></code></a>(root_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.artifacts.CaptionsStore" title="an.stores.artifacts.CaptionsStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CaptionsStore</span></code></a>(root_dir)</p></td>
+<td><p>SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they caption — <code class="docutils literal notranslate"><span class="pre">captions[&quot;main&quot;]</span></code> is <code class="docutils literal notranslate"><span class="pre">output/main.srt</span></code> (an#175).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.artifacts.OutputStore" title="an.stores.artifacts.OutputStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputStore</span></code></a>(root_dir)</p></td>
 <td><p>Final composited renders.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.artifacts.PreviewArtifactStore" title="an.stores.artifacts.PreviewArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PreviewArtifactStore</span></code></a>(root_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.artifacts.PreviewArtifactStore" title="an.stores.artifacts.PreviewArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PreviewArtifactStore</span></code></a>(root_dir)</p></td>
 <td><p>Low-res preview renders (mp4 or png sequence wrapper).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.artifacts.ShotArtifactStore" title="an.stores.artifacts.ShotArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShotArtifactStore</span></code></a>(root_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.artifacts.ShotArtifactStore" title="an.stores.artifacts.ShotArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShotArtifactStore</span></code></a>(root_dir)</p></td>
 <td><p>Per-shot rendered mp4s.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.artifacts.VisemeArtifactStore" title="an.stores.artifacts.VisemeArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeArtifactStore</span></code></a>(root_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.artifacts.VisemeArtifactStore" title="an.stores.artifacts.VisemeArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeArtifactStore</span></code></a>(root_dir)</p></td>
 <td><p>Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.</p></td>
 </tr>
 </tbody>
@@ -549,6 +553,16 @@ enforced by the caller (orchestrator), not the store.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.artifacts.</span></span><span class="sig-name descname"><span class="pre">AudioArtifactStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#AudioArtifactStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.artifacts.AudioArtifactStore" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
 <p>TTS-rendered audio clips (.wav).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stores.artifacts.CaptionsStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.artifacts.</span></span><span class="sig-name descname"><span class="pre">CaptionsStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#CaptionsStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.artifacts.CaptionsStore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
+<p>SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they
+caption — <code class="docutils literal notranslate"><span class="pre">captions[&quot;main&quot;]</span></code> is <code class="docutils literal notranslate"><span class="pre">output/main.srt</span></code> (an#175).</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -639,6 +653,7 @@ enforced by the caller (orchestrator), not the store.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.artifacts.AudioArtifactStore"><code class="docutils literal notranslate"><span class="pre">AudioArtifactStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.artifacts.CaptionsStore"><code class="docutils literal notranslate"><span class="pre">CaptionsStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.artifacts.OutputStore"><code class="docutils literal notranslate"><span class="pre">OutputStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.artifacts.PreviewArtifactStore"><code class="docutils literal notranslate"><span class="pre">PreviewArtifactStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.artifacts.ShotArtifactStore"><code class="docutils literal notranslate"><span class="pre">ShotArtifactStore</span></code></a></li>

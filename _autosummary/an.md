@@ -161,6 +161,11 @@ Bases: `_IRModel`
 
 Scene metadata.
 
+#### captions *: [Captions](an.ir.schema.md#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Captions from the dialogue’s word timings (`Captions`, an#175);
+`None` — the default — is none, omitted from JSON like `style_pack`.
+
 #### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The easing every authored `tween` that names none is drawn with
@@ -531,6 +536,7 @@ always passes it).
 | [`audio`](an.audio.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                           |
 | [`base`](an.base.md#module-an.base)                 | Core types, constants, and re-exports for an.                                          |
 | [`bench`](an.bench.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.     |
+| [`captions`](an.captions.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).           |
 | [`characters`](an.characters.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                          |
 | [`conftest`](an.conftest.md#module-an.conftest)         | Collection rules for the package's own doctests.                                       |
 | [`credits`](an.credits.md#module-an.credits)           | What a rendered video owes, and to whom.                                               |

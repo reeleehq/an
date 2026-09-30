@@ -90,7 +90,7 @@ Source: [`.claude/skills/an-dev-swap-channels`](https://github.com/thorwhalen/an
 
 ### `an-dev-text`
 
-Text on screen in the `an` repo (an#155, epic
+Text on screen in the `an` repo (an#155, an#175, epic
 
 Source: [`.claude/skills/an-dev-text`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-text).
 

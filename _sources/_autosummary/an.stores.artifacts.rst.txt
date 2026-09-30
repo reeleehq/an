@@ -9,6 +9,7 @@ an.stores.artifacts
    .. autosummary::
    
       AudioArtifactStore
+      CaptionsStore
       OutputStore
       PreviewArtifactStore
       ShotArtifactStore

@@ -1,4 +1,4 @@
-> built 2026-09-30 04:39 UTC from 5e2de98 (main) · an 0.1.106. Details: build_info.json
+> built 2026-09-30 04:56 UTC from a454d98 (main) · an 0.1.107. Details: build_info.json
 
 # index.html.md
 
@@ -6033,7 +6033,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'ellipse', 'rect', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'ellipse', 'mouth', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -9758,6 +9758,294 @@ anti-aliased edge pixel from its neighbour.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`int`](https://docs.python.org/3/builtins/functions.html#int)]]
+
+
+# _autosummary/an.captions.html.md
+
+# an.captions
+
+Captions from the word timings the audio pipeline already computes (an#175).
+
+Epic #9 Wave 8, second slice. The audio pipeline stamps each dialogue line
+with the provider’s word timings (`Dialogue.word_timings`, line-relative,
+an#96) for lip-sync; this module turns them into captions, opt-in through
+`meta.captions` ([`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions)).
+
+**One cue list, two outputs.** [`caption_pages()`](_autosummary/an.captions.html.md#an.captions.caption_pages) is the single statement
+of what is captioned and on which frames. Both outputs are derived from it:
+
+- the picture — [`captioned_shot()`](_autosummary/an.captions.html.md#an.captions.captioned_shot) adds each page as an OVERLAY text
+  block ([`an.text`](_autosummary/an.text.html.md#module-an.text); camera-immune, placed at a title-safe anchor) plus
+  ordinary `set` actions that show it for exactly its frames, and
+  optionally tint the word being spoken;
+- the sidecar — [`caption_cues()`](_autosummary/an.captions.html.md#an.captions.caption_cues) places the same pages in FILM time and
+  [`dump_srt()`](_autosummary/an.captions.html.md#an.captions.dump_srt) writes SubRip, stored through the `captions` store beside
+  > the delivered mp4.
+
+So the two cannot disagree: a page’s cue starts at the first frame that shows
+it and ends at the first frame that does not. Times are frames, not seconds,
+until the last step:
+
+```pycon
+>>> from an.ir.schema import Dialogue, SceneIR, Shot, WordTimingIR
+>>> line = Dialogue(speaker="a", text="Hello there, friend.", start=0.5, duration=1.5,
+...     word_timings=[WordTimingIR(text=w, start=s, end=s + 0.3)
+...                   for w, s in (("Hello", 0.0), ("there,", 0.4), ("friend.", 0.8))])
+>>> scene = SceneIR(timeline=[Shot(id="s", duration=3.0, dialogue=[line])])
+>>> [(p.start, p.end, p.text) for p in caption_pages(scene, fps=10)]
+[(5, 20, 'Hello there, friend.')]
+```
+
+**Film time follows the delivered timeline.** A cue’s time is its shot’s
+first frame in the film ([`an.assemble.film_timeline()`](_autosummary/an.assemble.html.md#an.assemble.film_timeline) — the same
+function the assembler lays the picture out with) plus its shot-local frame,
+so a dissolve, which overlaps two shots and shortens the film, moves every
+later cue earlier by exactly its overlap.
+
+**Timing is materialised into ordinary actions**, the way [`an.text.stagger()`](_autosummary/an.text.html.md#an.text.stagger)
+works: nothing in the compiler or the runtime knows what a caption is. The
+caption blocks are added to the shot at RENDER time, never written back to
+the scene — the word timings are the audio pipeline’s output, and a caption
+baked into `scene.json` would go stale the moment a line is re-voiced.
+
+**When a line has no word timings** (the offline and Rhubarb providers keep
+none), its words are spread evenly over the line’s duration and a
+[`CaptionTimingWarning`](_autosummary/an.captions.html.md#an.captions.CaptionTimingWarning) says so; `Captions(strict=True)` raises
+instead. A line the audio pipeline has not placed (no `start`) cannot be
+captioned and is skipped the same loud way.
+
+\*\*The SubRip cue type is a pinned mirror of `mixing.srt``**, not an import
+(epic #9, Decision 2, departed from on measurement): ``mixing`’s package
+facade is lazy, so importing `mixing.srt` is cheap — but INSTALLING
+`mixing` pulls `moviepy`, `opencv-contrib-python`, `scipy` and
+`imageio-ffmpeg`, whose wheel ships an ffmpeg binary built with
+`--enable-gpl`. A hard dependency would put a GPL binary inside every
+`pip install an`, past a licence perimeter that reads declared metadata
+(BSD-2) and would never see it. [`Cue`](_autosummary/an.captions.html.md#an.captions.Cue), [`seconds_to_srt_time()`](_autosummary/an.captions.html.md#an.captions.seconds_to_srt_time) and
+[`dump_srt()`](_autosummary/an.captions.html.md#an.captions.dump_srt) therefore mirror `mixing.srt` field for field and byte for
+byte, and `tests/test_captions.py` pins both against `mixing` whenever it
+is importable, and against a literal otherwise; thorwhalen/mixing#54 asks
+for the light base install that would let this become an import. WebVTT is `lacing`’s (its
+adapter owns the body schema), so it is not written here.
+
+### Module Attributes
+
+| [`CAPTION_ID_PREFIX`](_autosummary/an.captions.html.md#an.captions.CAPTION_ID_PREFIX)   | A caption page's entity id is this plus its index within the shot.                                                                           |
+|----------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CAPTION_PROP_REF`](_autosummary/an.captions.html.md#an.captions.CAPTION_PROP_REF)    | The props-store key the caption blocks resolve against — a style-only `TextDescriptor` supplied at render time, never stored in the project. |
+
+### Functions
+
+| [`caption_cues`](_autosummary/an.captions.html.md#an.captions.caption_cues)(pages, timeline)                  | `pages` in FILM time on `timeline` (an [`an.assemble.FilmTimeline`](_autosummary/an.assemble.html.md#an.assemble.FilmTimeline)).   |
+|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| [`caption_pages`](_autosummary/an.captions.html.md#an.captions.caption_pages)(scene, \*, fps[, captions])      | Every caption page of `scene`, shot by shot, in the order shown.                                                                              |
+| [`captioned_shot`](_autosummary/an.captions.html.md#an.captions.captioned_shot)(shot, pages, captions, \*, ...) | `shot` with its caption pages burned in, and the mall to compile it with.                                                                     |
+| [`dump_srt`](_autosummary/an.captions.html.md#an.captions.dump_srt)(cues)                                 | Serialize cues to SubRip text, renumbering from 1.                                                                                            |
+| [`paginate`](_autosummary/an.captions.html.md#an.captions.paginate)(words, \*, max_chars, max_lines)      | Split `words` into pages of at most `max_lines` wrapped lines, a new page starting after each sentence end.                                   |
+| [`seconds_to_srt_time`](_autosummary/an.captions.html.md#an.captions.seconds_to_srt_time)(seconds)                   | `HH:MM:SS,mmm`, milliseconds ROUNDED with carry; negatives clamp to 0.                                                                        |
+| [`srt_for_scene`](_autosummary/an.captions.html.md#an.captions.srt_for_scene)(scene, \*, fps[, pages])         | The SubRip sidecar of `scene` rendered at `fps`.                                                                                              |
+| [`wrap_words`](_autosummary/an.captions.html.md#an.captions.wrap_words)(words, max_chars)                   | Greedy line breaks at `max_chars` characters (spaces counted); a word longer than a line gets a line of its own and is never split.           |
+
+### Classes
+
+| [`CaptionPage`](_autosummary/an.captions.html.md#an.captions.CaptionPage)(shot, start, end, lines, word_frames)   | One caption as shown: which shot, which frames, which words.   |
+|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| [`Cue`](_autosummary/an.captions.html.md#an.captions.Cue)(index, start, end, text)                        | One SubRip cue — `mixing.srt.Cue`'s fields, in its order.      |
+
+### Exceptions
+
+| [`CaptionError`](_autosummary/an.captions.html.md#an.captions.CaptionError)         | Captions cannot be built as asked.                              |
+|-----------------------------------------------------------------------|-----------------------------------------------------------------|
+| [`CaptionTimingWarning`](_autosummary/an.captions.html.md#an.captions.CaptionTimingWarning) | A line is captioned on estimated timing, or not at all.         |
+| [`CaptionWarning`](_autosummary/an.captions.html.md#an.captions.CaptionWarning)       | Captions were built, but not everything was captioned as asked. |
+
+### an.captions.CAPTION_ID_PREFIX *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'caption_'*
+
+A caption page’s entity id is this plus its index within the shot.
+
+### an.captions.CAPTION_PROP_REF *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an.captions'*
+
+The props-store key the caption blocks resolve against — a style-only
+`TextDescriptor` supplied at render time, never stored in the project.
+
+### *exception* an.captions.CaptionError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+Captions cannot be built as asked. Carries the fix.
+
+### *class* an.captions.CaptionPage(shot, start, end, lines, word_frames, speaker=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One caption as shown: which shot, which frames, which words.
+
+`start`/`end` are SHOT-local frames — the first that shows the page and
+the first that does not. `lines` are the words per line, broken by
+[`wrap_words()`](_autosummary/an.captions.html.md#an.captions.wrap_words); `word_frames[j]` is the frame word `j` (in reading
+order) starts being spoken, clamped into the page.
+
+#### *property* text *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+words joined by spaces, lines by
+newlines.
+
+* **Type:**
+  The page as both outputs write it
+
+#### *property* words *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]*
+
+Every word of the page, in reading order.
+
+### *exception* an.captions.CaptionTimingWarning
+
+Bases: [`CaptionWarning`](_autosummary/an.captions.html.md#an.captions.CaptionWarning)
+
+A line is captioned on estimated timing, or not at all.
+
+### *exception* an.captions.CaptionWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+Captions were built, but not everything was captioned as asked.
+
+### *class* an.captions.Cue(index, start, end, text)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One SubRip cue — `mixing.srt.Cue`’s fields, in its order.
+
+```pycon
+>>> Cue(index=1, start=0.5, end=2.0, text="Hi").duration
+1.5
+```
+
+#### *property* duration *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Cue duration in seconds (never negative).
+
+### an.captions.caption_cues(pages, timeline)
+
+`pages` in FILM time on `timeline` (an [`an.assemble.FilmTimeline`](_autosummary/an.assemble.html.md#an.assemble.FilmTimeline)).
+
+A cue starts on the film frame that first shows its page and ends on the
+first that does not — the same frames the picture shows it on.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Cue`](_autosummary/an.captions.html.md#an.captions.Cue)]
+
+### an.captions.caption_pages(scene, , fps, captions=None)
+
+Every caption page of `scene`, shot by shot, in the order shown.
+
+`captions` defaults to `scene.meta.captions` (and to the defaults when
+that is unset). Dialogue and narration are both captioned (though the
+audio pipeline does not voice narration yet, so a narration line has no
+`start` in a rendered scene and is skipped with a warning). Within a
+shot a page is cut off when the next one starts, so two pages are never
+drawn over each other at one anchor; ACROSS a transition they can be — a
+dissolve blends the tail of one shot, captions included, with the head of
+the next, and a fade takes the burned caption through the colour with the
+rest of the picture, while the sidecar’s cue is simply on.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`CaptionPage`](_autosummary/an.captions.html.md#an.captions.CaptionPage)]
+
+### an.captions.captioned_shot(shot, pages, captions, , fps, mall, shot_index=None, base_dir=None, resolution=None)
+
+`shot` with its caption pages burned in, and the mall to compile it with.
+
+Each page becomes an overlay text block `caption_<k>` and the `set`
+actions that show it for exactly its frames. With `shot_index`, only the
+pages of that shot are used, so a caller can pass the scene’s whole list;
+without it every page must belong to one shot. The returned mall is
+`mall` with the caption style laid over its props store — nothing is
+written to the project. `base_dir` resolves a relative caption `font`.
+
+With `resolution`, every page is typeset now, so a caption the face
+cannot draw (an em dash in the embedded face) raises a [`CaptionError`](_autosummary/an.captions.html.md#an.captions.CaptionError)
+naming the shot and the words — before a browser launches, rather than
+from inside a shot’s compile after others have rendered.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Shot`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
+### an.captions.dump_srt(cues)
+
+Serialize cues to SubRip text, renumbering from 1.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> print(dump_srt([Cue(7, 1.0, 2.5, "Hello\nthere")]))
+1
+00:00:01,000 --> 00:00:02,500
+Hello
+there
+```
+
+### an.captions.paginate(words, , max_chars, max_lines)
+
+Split `words` into pages of at most `max_lines` wrapped lines, a new
+page starting after each sentence end. Returns index ranges.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`range`](https://docs.python.org/3/builtins/stdtypes.html#range)]
+
+```pycon
+>>> paginate("One two. Three four five six".split(), max_chars=10, max_lines=1)
+[range(0, 2), range(2, 4), range(4, 6)]
+```
+
+### an.captions.seconds_to_srt_time(seconds)
+
+`HH:MM:SS,mmm`, milliseconds ROUNDED with carry; negatives clamp to 0.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> seconds_to_srt_time(2592.187), seconds_to_srt_time(-3)
+('00:43:12,187', '00:00:00,000')
+```
+
+### an.captions.srt_for_scene(scene, , fps, pages=None)
+
+The SubRip sidecar of `scene` rendered at `fps`.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> from an.ir.schema import Dialogue, SceneIR, Shot, Transition, WordTimingIR
+>>> def shot(sid, **kw):
+...     line = Dialogue(speaker="a", text="Hi.", start=0.2, duration=0.5,
+...                     word_timings=[WordTimingIR(text="Hi.", start=0.0, end=0.4)])
+...     return Shot(id=sid, duration=2.0, dialogue=[line], **kw)
+>>> scene = SceneIR(timeline=[shot("a"), shot("b", transition=Transition(kind="dissolve"))])
+>>> print(srt_for_scene(scene, fps=10))   # b starts at 1.5 s: the dissolve's 0.5 s overlap
+1
+00:00:00,200 --> 00:00:00,700
+Hi.
+
+2
+00:00:01,700 --> 00:00:02,200
+Hi.
+```
+
+### an.captions.wrap_words(words, max_chars)
+
+Greedy line breaks at `max_chars` characters (spaces counted); a word
+longer than a line gets a line of its own and is never split.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+```pycon
+>>> wrap_words("the quick brown fox jumps".split(), 10)
+[['the', 'quick'], ['brown', 'fox'], ['jumps']]
+```
 
 
 # _autosummary/an.characters.cli.html.md
@@ -14069,6 +14357,11 @@ Bases: `_IRModel`
 
 Scene metadata.
 
+#### captions *: [Captions](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Captions from the dialogue’s word timings (`Captions`, an#175);
+`None` — the default — is none, omitted from JSON like `style_pack`.
+
 #### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The easing every authored `tween` that names none is drawn with
@@ -14439,6 +14732,7 @@ always passes it).
 | [`audio`](_autosummary/an.audio.html.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                           |
 | [`base`](_autosummary/an.base.html.md#module-an.base)                 | Core types, constants, and re-exports for an.                                          |
 | [`bench`](_autosummary/an.bench.html.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.     |
+| [`captions`](_autosummary/an.captions.html.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).           |
 | [`characters`](_autosummary/an.characters.html.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                          |
 | [`conftest`](_autosummary/an.conftest.html.md#module-an.conftest)         | Collection rules for the package's own doctests.                                       |
 | [`credits`](_autosummary/an.credits.html.md#module-an.credits)           | What a rendered video owes, and to whom.                                               |
@@ -16418,6 +16712,11 @@ Bases: `_IRModel`
 
 Scene metadata.
 
+#### captions *: [Captions](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Captions from the dialogue’s word timings (`Captions`, an#175);
+`None` — the default — is none, omitted from JSON like `style_pack`.
+
 #### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The easing every authored `tween` that names none is drawn with
@@ -16878,9 +17177,11 @@ True
 
 ### Module Attributes
 
-| [`DFLT_EXPRESSION_BLEND_S`](_autosummary/an.ir.schema.html.md#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).   |
-|----------------------------------------------------------------------------|------------------------------------------------------------|
-| [`Action`](_autosummary/an.ir.schema.html.md#an.ir.schema.Action)                    | Discriminated union of every action variant.               |
+| [`DFLT_EXPRESSION_BLEND_S`](_autosummary/an.ir.schema.html.md#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).                                                                                  |
+|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Action`](_autosummary/an.ir.schema.html.md#an.ir.schema.Action)                    | Discriminated union of every action variant.                                                                                              |
+| [`DEFAULT_CAPTION_MAX_CHARS`](_autosummary/an.ir.schema.html.md#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                   |
+| [`DEFAULT_CAPTION_SIZE`](_autosummary/an.ir.schema.html.md#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched. |
 
 ### Functions
 
@@ -16893,6 +17194,7 @@ True
 |-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Camera`](_autosummary/an.ir.schema.html.md#an.ir.schema.Camera)(\*\*data)           | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
 | [`CameraKey`](_autosummary/an.ir.schema.html.md#an.ir.schema.CameraKey)(\*\*data)        | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
+| [`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions)(\*\*data)         | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
 | [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)(\*\*data)      | Composition: an empty span that consumes time.                                                                                                                      |
 | [`Dialogue`](_autosummary/an.ir.schema.html.md#an.ir.schema.Dialogue)(\*\*data)         | One line of spoken dialogue.                                                                                                                                        |
 | [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)(\*\*data) | Hold a facial expression on an entity (an#98, epic #9 Wave 6).                                                                                                      |
@@ -17042,6 +17344,77 @@ Camera position in scene pixels. `+x` moves the camera right.
 On-screen magnification. Must be > 0 — a zero or negative zoom is not a
 camera, and the compiler would emit a degenerate root scale.
 
+### *class* an.ir.schema.Captions(\*\*data)
+
+Bases: `_IRModel`
+
+Captions for the whole film, built from the dialogue’s word timings.
+
+Present = on; `meta.captions` unset (the default) is no captions and no
+trace in any document. One cue list ([`an.captions.caption_pages()`](_autosummary/an.captions.html.md#an.captions.caption_pages))
+feeds BOTH outputs, so the picture and the sidecar cannot disagree:
+
+- `burn`: each page is drawn as an overlay text block (camera-immune,
+  placed at `anchor` in the title-safe area), shown for exactly the
+  frames the sidecar says;
+- `sidecar`: a SubRip `.srt` written through the `captions` store,
+  next to the delivered mp4, in FILM time (a dissolve shortens the film,
+  and every later cue moves with it).
+
+```pycon
+>>> Captions().max_chars, Captions().anchor
+(42, 'bottom')
+>>> Captions(highlight="#ffcc00").highlight
+'#ffcc00'
+```
+
+#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+One of tituli’s nine title-safe anchors.
+
+#### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`None` = the embedded face; else an ABSOLUTE font file path, or one
+relative to the project directory.
+
+#### highlight *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the word being spoken is drawn in this colour (karaoke);
+`None` draws every word in `color`.
+
+* **Type:**
+  `#rrggbb`
+
+#### max_chars *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+Line breaks are made HERE, by character count, and written into both
+the burned block and the sidecar — the same lines in both. 42 fits the
+title-safe width of a 16:9 or 4:3 frame at the default size; a square
+or portrait frame needs fewer (about 32 at 1:1) or a smaller `size` —
+a line that does not fit is REFUSED before the render, never clipped.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### strict *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+A line with no word timings is captioned with its words spread evenly
+over its duration, with a warning; `strict` makes that an error.
+
+### an.ir.schema.DEFAULT_CAPTION_MAX_CHARS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 42*
+
+the broadcast
+convention (BBC / Netflix timed-text guidance: 42 characters, two lines).
+
+* **Type:**
+  Characters per caption line and lines per caption page
+
+### an.ir.schema.DEFAULT_CAPTION_SIZE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.05*
+
+Caption type size as a fraction of frame height — a little under the title
+default, as captions are read while something else is watched.
+
 ### an.ir.schema.DFLT_EXPRESSION_BLEND_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
 
 Default ramp in/out of an expression, seconds (0 = cut). The dialogue
@@ -17117,6 +17490,11 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 Bases: `_IRModel`
 
 Scene metadata.
+
+#### captions *: [Captions](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Captions from the dialogue’s word timings ([`Captions`](_autosummary/an.ir.schema.html.md#an.ir.schema.Captions), an#175);
+`None` — the default — is none, omitted from JSON like `style_pack`.
 
 #### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -19069,18 +19447,26 @@ enforced by the caller (orchestrator), not the store.
 
 ### Classes
 
-| [`AudioArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                       |
-|---------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`OutputStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.OutputStore)(root_dir)          | Final composited renders.                                              |
-| [`PreviewArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                 |
-| [`ShotArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                |
-| [`VisemeArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity. |
+| [`AudioArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                    |
+|---------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| [`CaptionsStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.CaptionsStore)(root_dir)        | SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they caption — `captions["main"]` is `output/main.srt` (an#175). |
+| [`OutputStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.OutputStore)(root_dir)          | Final composited renders.                                                                                                           |
+| [`PreviewArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                              |
+| [`ShotArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                             |
+| [`VisemeArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                              |
 
 ### *class* an.stores.artifacts.AudioArtifactStore(root_dir)
 
 Bases: `_BlobStore`
 
 TTS-rendered audio clips (.wav).
+
+### *class* an.stores.artifacts.CaptionsStore(root_dir)
+
+Bases: `_BlobStore`
+
+SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they
+caption — `captions["main"]` is `output/main.srt` (an#175).
 
 ### *class* an.stores.artifacts.OutputStore(root_dir)
 
@@ -19209,7 +19595,8 @@ Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
-artifacts (audio, viseme tracks, per-shot mp4s), final output, and the agent’s
+artifacts (audio, viseme tracks, per-shot mp4s), final output and its caption
+sidecar, and the agent’s
 decision log — is keyed inside a store. Stores are dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
 
@@ -19219,7 +19606,7 @@ sites work against filesystem, SQLite, S3, etc.
 >>> with tempfile.TemporaryDirectory() as d:
 ...     mall = build_project_mall(d, ensure=True)
 ...     sorted(mall.keys()) == [
-...         'audio', 'characters', 'decisions', 'environments',
+...         'audio', 'captions', 'characters', 'decisions', 'environments',
 ...         'output', 'previews', 'props', 'scenes', 'shots',
 ...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
@@ -21126,18 +21513,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 04:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/5e2de982ce560bb235e7618ccadac0a7f2410cf9"><code>5e2de98</code></a> on branch <code>main</code>, for **an 0.1.106** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 04:56 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/a454d98ed747c6abf6d3843a804e176eac4fb9ea"><code>a454d98</code></a> on branch <code>main</code>, for **an 0.1.107** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.107) is ahead of the latest release on PyPI (0.1.106): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/5e2de982ce560bb235e7618ccadac0a7f2410cf9"><code>5e2de982ce560bb235e7618ccadac0a7f2410cf9</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/a454d98ed747c6abf6d3843a804e176eac4fb9ea"><code>a454d98ed747c6abf6d3843a804e176eac4fb9ea</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.106</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.107</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -21146,9 +21535,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36669557413">36669557413</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36670899455">36670899455</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>0dcce358cfbdd38de4c379acb6b31d3012f6b297</code> (in the history of the built commit) |
+| Event commit | <code>eb9951c4a2e6a05a950facb1629d8718134dcf3e</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -21173,13 +21562,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.106/">0.1.106</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.106/">0.1.106</a>, older than the documented version (0.1.107).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 5e2de982ce560bb235e7618ccadac0a7f2410cf9
+git checkout a454d98ed747c6abf6d3843a804e176eac4fb9ea
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
@@ -21281,7 +21670,7 @@ Source: [`.claude/skills/an-dev-swap-channels`](https://github.com/thorwhalen/an
 
 ### `an-dev-text`
 
-Text on screen in the `an` repo (an#155, epic
+Text on screen in the `an` repo (an#155, an#175, epic
 
 Source: [`.claude/skills/an-dev-text`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-text).
 

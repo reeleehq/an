@@ -61,6 +61,7 @@
 - [an.bench.registry](an.bench.registry.html.md): The metric declaration table — what each number is, and which way it should move.
 - [an.bench.run](an.bench.run.html.md): &#96;run_bench&#96;: render the corpus, compute the panel, write one ledger row.
 - [an.bench.stage](an.bench.stage.html.md): Measuring a pan: does the stage move as planes, or as one rigid image?
+- [an.captions](an.captions.html.md): Captions from the word timings the audio pipeline already computes (an#175).
 - [an.characters](an.characters.html.md): Character art system: Spine-shaped descriptor + SVG sidecars.
 - [an.characters.cli](an.characters.cli.html.md): User-facing character CLI subcommands.
 - [an.characters.dicebear](an.characters.dicebear.html.md): DiceBear HTTP API client + best-effort post-processing.

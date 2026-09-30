@@ -182,6 +182,11 @@ Bases: `_IRModel`
 
 Scene metadata.
 
+#### captions *: [Captions](an.ir.schema.md#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Captions from the dialogue’s word timings (`Captions`, an#175);
+`None` — the default — is none, omitted from JSON like `style_pack`.
+
 #### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The easing every authored `tween` that names none is drawn with

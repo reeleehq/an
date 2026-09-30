@@ -51,6 +51,7 @@
    audio
    base
    bench
+   captions
    characters
    conftest
    credits

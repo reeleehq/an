@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="captions.html.md">
+<link rel="describedby" href="../../llms.txt" type="text/markdown">
+    <title>an.captions &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../../_static/documentation_options.js?v=96d412e2"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/captions';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.107" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.captions</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.captions</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Captions from the word timings the audio pipeline already computes (an#175).</span>
+
+<span class="sd">Epic #9 Wave 8, second slice. The audio pipeline stamps each dialogue line</span>
+<span class="sd">with the provider's word timings (``Dialogue.word_timings``, line-relative,</span>
+<span class="sd">an#96) for lip-sync; this module turns them into captions, opt-in through</span>
+<span class="sd">``meta.captions`` (:class:`~an.ir.schema.Captions`).</span>
+
+<span class="sd">**One cue list, two outputs.** :func:`caption_pages` is the single statement</span>
+<span class="sd">of what is captioned and on which frames. Both outputs are derived from it:</span>
+
+<span class="sd">- the picture — :func:`captioned_shot` adds each page as an OVERLAY text</span>
+<span class="sd">  block (:mod:`an.text`; camera-immune, placed at a title-safe anchor) plus</span>
+<span class="sd">  ordinary ``set`` actions that show it for exactly its frames, and</span>
+<span class="sd">  optionally tint the word being spoken;</span>
+<span class="sd">- the sidecar — :func:`caption_cues` places the same pages in FILM time and</span>
+<span class="sd">  :func:`dump_srt` writes SubRip, stored through the ``captions`` store beside</span>
+<span class="sd">  the delivered mp4.</span>
+
+<span class="sd">So the two cannot disagree: a page's cue starts at the first frame that shows</span>
+<span class="sd">it and ends at the first frame that does not. Times are frames, not seconds,</span>
+<span class="sd">until the last step:</span>
+
+<span class="sd">&gt;&gt;&gt; from an.ir.schema import Dialogue, SceneIR, Shot, WordTimingIR</span>
+<span class="sd">&gt;&gt;&gt; line = Dialogue(speaker="a", text="Hello there, friend.", start=0.5, duration=1.5,</span>
+<span class="sd">...     word_timings=[WordTimingIR(text=w, start=s, end=s + 0.3)</span>
+<span class="sd">...                   for w, s in (("Hello", 0.0), ("there,", 0.4), ("friend.", 0.8))])</span>
+<span class="sd">&gt;&gt;&gt; scene = SceneIR(timeline=[Shot(id="s", duration=3.0, dialogue=[line])])</span>
+<span class="sd">&gt;&gt;&gt; [(p.start, p.end, p.text) for p in caption_pages(scene, fps=10)]</span>
+<span class="sd">[(5, 20, 'Hello there, friend.')]</span>
+
+<span class="sd">**Film time follows the delivered timeline.** A cue's time is its shot's</span>
+<span class="sd">first frame in the film (:func:`an.assemble.film_timeline` — the same</span>
+<span class="sd">function the assembler lays the picture out with) plus its shot-local frame,</span>
+<span class="sd">so a dissolve, which overlaps two shots and shortens the film, moves every</span>
+<span class="sd">later cue earlier by exactly its overlap.</span>
+
+<span class="sd">**Timing is materialised into ordinary actions**, the way :func:`an.text.stagger`</span>
+<span class="sd">works: nothing in the compiler or the runtime knows what a caption is. The</span>
+<span class="sd">caption blocks are added to the shot at RENDER time, never written back to</span>
+<span class="sd">the scene — the word timings are the audio pipeline's output, and a caption</span>
+<span class="sd">baked into ``scene.json`` would go stale the moment a line is re-voiced.</span>
+
+<span class="sd">**When a line has no word timings** (the offline and Rhubarb providers keep</span>
+<span class="sd">none), its words are spread evenly over the line's duration and a</span>
+<span class="sd">:class:`CaptionTimingWarning` says so; ``Captions(strict=True)`` raises</span>
+<span class="sd">instead. A line the audio pipeline has not placed (no ``start``) cannot be</span>
+<span class="sd">captioned and is skipped the same loud way.</span>
+
+<span class="sd">**The SubRip cue type is a pinned mirror of ``mixing.srt``**, not an import</span>
+<span class="sd">(epic #9, Decision 2, departed from on measurement): ``mixing``'s package</span>
+<span class="sd">facade is lazy, so importing ``mixing.srt`` is cheap — but INSTALLING</span>
+<span class="sd">``mixing`` pulls ``moviepy``, ``opencv-contrib-python``, ``scipy`` and</span>
+<span class="sd">``imageio-ffmpeg``, whose wheel ships an ffmpeg binary built with</span>
+<span class="sd">``--enable-gpl``. A hard dependency would put a GPL binary inside every</span>
+<span class="sd">``pip install an``, past a licence perimeter that reads declared metadata</span>
+<span class="sd">(BSD-2) and would never see it. :class:`Cue`, :func:`seconds_to_srt_time` and</span>
+<span class="sd">:func:`dump_srt` therefore mirror ``mixing.srt`` field for field and byte for</span>
+<span class="sd">byte, and ``tests/test_captions.py`` pins both against ``mixing`` whenever it</span>
+<span class="sd">is importable, and against a literal otherwise; thorwhalen/mixing#54 asks</span>
+<span class="sd">for the light base install that would let this become an import. WebVTT is ``lacing``'s (its</span>
+<span class="sd">adapter owns the body schema), so it is not written here.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="n">Captions</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"CAPTION_ID_PREFIX"</span><span class="p">,</span>
+    <span class="s2">"CAPTION_PROP_REF"</span><span class="p">,</span>
+    <span class="s2">"CaptionError"</span><span class="p">,</span>
+    <span class="s2">"CaptionPage"</span><span class="p">,</span>
+    <span class="s2">"CaptionTimingWarning"</span><span class="p">,</span>
+    <span class="s2">"CaptionWarning"</span><span class="p">,</span>
+    <span class="s2">"Cue"</span><span class="p">,</span>
+    <span class="s2">"caption_cues"</span><span class="p">,</span>
+    <span class="s2">"caption_pages"</span><span class="p">,</span>
+    <span class="s2">"captioned_shot"</span><span class="p">,</span>
+    <span class="s2">"dump_srt"</span><span class="p">,</span>
+    <span class="s2">"paginate"</span><span class="p">,</span>
+    <span class="s2">"seconds_to_srt_time"</span><span class="p">,</span>
+    <span class="s2">"srt_for_scene"</span><span class="p">,</span>
+    <span class="s2">"wrap_words"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: A caption page's entity id is this plus its index within the shot.</span>
+<span class="n">CAPTION_ID_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"caption_"</span>
+
+<span class="c1">#: The props-store key the caption blocks resolve against — a style-only</span>
+<span class="c1">#: ``TextDescriptor`` supplied at render time, never stored in the project.</span>
+<span class="n">CAPTION_PROP_REF</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an.captions"</span>
+
+<span class="c1">#: A word ending in one of these ends a sentence, and a new sentence starts a</span>
+<span class="c1">#: new page: a page that straddles two sentences reads as one run-on thought.</span>
+<span class="n">_SENTENCE_ENDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="s2">"?"</span><span class="p">,</span> <span class="s2">"!"</span><span class="p">,</span> <span class="s2">"..."</span><span class="p">,</span> <span class="s2">"…"</span><span class="p">)</span>
+
+<span class="c1">#: Tolerance when a time is turned into the first frame at or after it, so a</span>
+<span class="c1">#: time that is a frame boundary in exact arithmetic is not pushed a frame</span>
+<span class="c1">#: late by float error.</span>
+<span class="n">_FRAME_EPS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-9</span>
+
+<span class="c1">#: Where, between two frames, a caption's ``set`` lands: half a frame before</span>
+<span class="c1">#: the frame it takes effect on, so no float disagreement between Python and</span>
+<span class="c1">#: the runtime about ``i / fps`` can move it a frame.</span>
+<span class="n">_SET_OFFSET_FRAMES</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+
+<div class="viewcode-block" id="CaptionError">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.CaptionError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CaptionError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Captions cannot be built as asked. Carries the fix."""</span></div>
+
+
+
+<div class="viewcode-block" id="CaptionWarning">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.CaptionWarning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CaptionWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Captions were built, but not everything was captioned as asked."""</span></div>
+
+
+
+<div class="viewcode-block" id="CaptionTimingWarning">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.CaptionTimingWarning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CaptionTimingWarning</span><span class="p">(</span><span class="n">CaptionWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A line is captioned on estimated timing, or not at all."""</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># SubRip — a pinned mirror of `mixing.srt` (see the module docstring)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="Cue">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.Cue">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Cue</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One SubRip cue — ``mixing.srt.Cue``'s fields, in its order.</span>
+
+<span class="sd">    &gt;&gt;&gt; Cue(index=1, start=0.5, end=2.0, text="Hi").duration</span>
+<span class="sd">    1.5</span>
+<span class="sd">    """</span>
+
+    <span class="n">index</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">duration</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Cue duration in seconds (never negative)."""</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="seconds_to_srt_time">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.seconds_to_srt_time">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">seconds_to_srt_time</span><span class="p">(</span><span class="n">seconds</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``HH:MM:SS,mmm``, milliseconds ROUNDED with carry; negatives clamp to 0.</span>
+
+<span class="sd">    &gt;&gt;&gt; seconds_to_srt_time(2592.187), seconds_to_srt_time(-3)</span>
+<span class="sd">    ('00:43:12,187', '00:00:00,000')</span>
+<span class="sd">    """</span>
+    <span class="n">ms_total</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">seconds</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)))</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">ms_total</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">ms_total</span><span class="p">,</span> <span class="mi">3600</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">ms_total</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">ms_total</span><span class="p">,</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="n">s</span><span class="p">,</span> <span class="n">ms</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">ms_total</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">h</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">m</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">s</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">ms</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
+<div class="viewcode-block" id="dump_srt">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.dump_srt">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dump_srt</span><span class="p">(</span><span class="n">cues</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Cue</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Serialize cues to SubRip text, renumbering from 1.</span>
+
+<span class="sd">    &gt;&gt;&gt; print(dump_srt([Cue(7, 1.0, 2.5, "Hello\\nthere")]))</span>
+<span class="sd">    1</span>
+<span class="sd">    00:00:01,000 --&gt; 00:00:02,500</span>
+<span class="sd">    Hello</span>
+<span class="sd">    there</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    """</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">seconds_to_srt_time</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">)</span><span class="si">}</span><span class="s2"> --&gt; </span><span class="si">{</span><span class="n">seconds_to_srt_time</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">end</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cues</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Pages — the one cue list</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="CaptionPage">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.CaptionPage">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">CaptionPage</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One caption as shown: which shot, which frames, which words.</span>
+
+<span class="sd">    ``start``/``end`` are SHOT-local frames — the first that shows the page and</span>
+<span class="sd">    the first that does not. ``lines`` are the words per line, broken by</span>
+<span class="sd">    :func:`wrap_words`; ``word_frames[j]`` is the frame word ``j`` (in reading</span>
+<span class="sd">    order) starts being spoken, clamped into the page.</span>
+<span class="sd">    """</span>
+
+    <span class="n">shot</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">start</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">end</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">word_frames</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+    <span class="n">speaker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">words</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Every word of the page, in reading order."""</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">w</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">line</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The page as both outputs write it: words joined by spaces, lines by</span>
+<span class="sd">        newlines."""</span>
+        <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="wrap_words">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.wrap_words">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">wrap_words</span><span class="p">(</span><span class="n">words</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">max_chars</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Greedy line breaks at ``max_chars`` characters (spaces counted); a word</span>
+<span class="sd">    longer than a line gets a line of its own and is never split.</span>
+
+<span class="sd">    &gt;&gt;&gt; wrap_words("the quick brown fox jumps".split(), 10)</span>
+<span class="sd">    [['the', 'quick'], ['brown', 'fox'], ['jumps']]</span>
+<span class="sd">    """</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">lines</span> <span class="ow">and</span> <span class="n">width</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">max_chars</span><span class="p">:</span>
+            <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+            <span class="n">width</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">word</span><span class="p">])</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lines</span></div>
+
+
+
+<div class="viewcode-block" id="paginate">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.paginate">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">paginate</span><span class="p">(</span><span class="n">words</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_chars</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">max_lines</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">range</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Split ``words`` into pages of at most ``max_lines`` wrapped lines, a new</span>
+<span class="sd">    page starting after each sentence end. Returns index ranges.</span>
+
+<span class="sd">    &gt;&gt;&gt; paginate("One two. Three four five six".split(), max_chars=10, max_lines=1)</span>
+<span class="sd">    [range(0, 2), range(2, 4), range(4, 6)]</span>
+<span class="sd">    """</span>
+    <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">words</span><span class="p">):</span>
+            <span class="n">pages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="k">break</span>
+        <span class="n">sentence_ended</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">_SENTENCE_ENDS</span><span class="p">)</span>
+        <span class="n">overflows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wrap_words</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="n">first</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">max_chars</span><span class="p">))</span> <span class="o">&gt;</span> <span class="n">max_lines</span>
+        <span class="k">if</span> <span class="n">sentence_ended</span> <span class="ow">or</span> <span class="n">overflows</span><span class="p">:</span>
+            <span class="n">pages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="n">i</span>
+    <span class="k">return</span> <span class="n">pages</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_first_frame_at</span><span class="p">(</span><span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The first frame whose instant ``i / fps`` is at or after ``t``."""</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="n">fps</span> <span class="o">-</span> <span class="n">_FRAME_EPS</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_complain</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CaptionError</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s2">" (captions are strict)"</span><span class="p">)</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">CaptionTimingWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_split_token</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""A timed token the typesetter will set as several words ("New York")</span>
+<span class="sd">    becomes one entry per word, sharing the token's span evenly — so the</span>
+<span class="sd">    highlight's targets and the drawn word units stay one to one."""</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">part</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="n">k</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parts</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_timed_words</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(word, line-relative start)`` per word the caption shows, in time order."""</span>
+    <span class="n">script</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="n">timings</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">word_timings</span> <span class="ow">or</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">w</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="n">timings</span><span class="p">:</span>
+        <span class="n">ordered</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">timings</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">w</span><span class="p">:</span> <span class="n">w</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ordered</span> <span class="o">!=</span> <span class="n">timings</span><span class="p">:</span>
+            <span class="n">_complain</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: the provider's word timings are not in time order; "</span>
+                <span class="s2">"captioning them sorted, with the timed words' own text"</span><span class="p">,</span>
+                <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">timings</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">script</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[(</span><span class="n">word</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">))</span> <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="n">timings</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_complain</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: the script has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">script</span><span class="p">)</span><span class="si">}</span><span class="s2"> words but the provider "</span>
+                <span class="sa">f</span><span class="s2">"timed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">timings</span><span class="p">)</span><span class="si">}</span><span class="s2">; captioning the TIMED words, which is what "</span>
+                <span class="s2">"was said"</span><span class="p">,</span>
+                <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">pair</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ordered</span>
+            <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">_split_token</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
+        <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">script</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">_complain</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: no word timings (the offline and Rhubarb lip-sync providers "</span>
+        <span class="s2">"keep none), so its caption spreads the words evenly over the line — "</span>
+        <span class="s2">"use a provider with word timings (whisper, or WordTimingsLipSync) for "</span>
+        <span class="s2">"captions that follow the voice"</span><span class="p">,</span>
+        <span class="n">strict</span><span class="o">=</span><span class="n">strict</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">script</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[(</span><span class="n">word</span><span class="p">,</span> <span class="n">k</span> <span class="o">*</span> <span class="n">step</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">script</span><span class="p">)]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_line_pages</span><span class="p">(</span>
+    <span class="n">line</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">shot_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">shot_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">captions</span><span class="p">:</span> <span class="n">Captions</span><span class="p">,</span>
+    <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">speaker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CaptionPage</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_complain</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> has no start/duration yet (the audio pipeline places a line "</span>
+            <span class="s2">"when it voices it), so it cannot be captioned"</span><span class="p">,</span>
+            <span class="n">strict</span><span class="o">=</span><span class="n">captions</span><span class="o">.</span><span class="n">strict</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">words</span> <span class="o">=</span> <span class="n">_timed_words</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">captions</span><span class="o">.</span><span class="n">strict</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">words</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">words</span><span class="p">]</span>
+    <span class="n">at</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+    <span class="n">frame_of</span> <span class="o">=</span> <span class="p">[</span><span class="n">_first_frame_at</span><span class="p">(</span><span class="n">at</span> <span class="o">+</span> <span class="n">t</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">words</span><span class="p">]</span>
+    <span class="n">line_end</span> <span class="o">=</span> <span class="n">_first_frame_at</span><span class="p">(</span><span class="n">at</span> <span class="o">+</span> <span class="nb">max</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">),</span> <span class="n">words</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span> <span class="n">fps</span><span class="p">)</span>
+    <span class="c1"># A page whose successor starts on the same frame would never be seen</span>
+    <span class="c1"># ("Mr." then "Smith is here" 15 ms later): it joins its successor.</span>
+    <span class="n">ranges</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">range</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">paginate</span><span class="p">(</span>
+        <span class="n">texts</span><span class="p">,</span> <span class="n">max_chars</span><span class="o">=</span><span class="n">captions</span><span class="o">.</span><span class="n">max_chars</span><span class="p">,</span> <span class="n">max_lines</span><span class="o">=</span><span class="n">captions</span><span class="o">.</span><span class="n">max_lines</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">ranges</span> <span class="ow">and</span> <span class="n">frame_of</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">start</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">frame_of</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">]:</span>
+            <span class="n">ranges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">ranges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">stop</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ranges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+    <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CaptionPage</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ranges</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">frame_of</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">start</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;=</span> <span class="n">shot_frames</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">texts</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">start</span><span class="w"> </span><span class="p">:])</span><span class="si">!r}</span><span class="s2"> is spoken after the shot "</span>
+                <span class="sa">f</span><span class="s2">"ends (frame </span><span class="si">{</span><span class="n">start</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">shot_frames</span><span class="si">}</span><span class="s2">), so it is not captioned"</span><span class="p">,</span>
+                <span class="n">CaptionWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">break</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">frame_of</span><span class="p">[</span><span class="n">ranges</span><span class="p">[</span><span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">]</span> <span class="k">if</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ranges</span><span class="p">)</span> <span class="k">else</span> <span class="n">line_end</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">shot_frames</span><span class="p">)</span>  <span class="c1"># seen for at least one frame</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">frame_of</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">start</span><span class="p">),</span> <span class="n">end</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">r</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">wrap_words</span><span class="p">(</span><span class="n">texts</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">start</span> <span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">stop</span><span class="p">],</span> <span class="n">captions</span><span class="o">.</span><span class="n">max_chars</span><span class="p">)</span>
+        <span class="n">pages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">CaptionPage</span><span class="p">(</span>
+                <span class="n">shot</span><span class="o">=</span><span class="n">shot_index</span><span class="p">,</span>
+                <span class="n">start</span><span class="o">=</span><span class="n">start</span><span class="p">,</span>
+                <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                <span class="n">lines</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">line_words</span><span class="p">)</span> <span class="k">for</span> <span class="n">line_words</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">),</span>
+                <span class="n">word_frames</span><span class="o">=</span><span class="n">frames</span><span class="p">,</span>
+                <span class="n">speaker</span><span class="o">=</span><span class="n">speaker</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">pages</span>
+
+
+<div class="viewcode-block" id="caption_pages">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.caption_pages">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">caption_pages</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">captions</span><span class="p">:</span> <span class="n">Captions</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CaptionPage</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Every caption page of ``scene``, shot by shot, in the order shown.</span>
+
+<span class="sd">    ``captions`` defaults to ``scene.meta.captions`` (and to the defaults when</span>
+<span class="sd">    that is unset). Dialogue and narration are both captioned (though the</span>
+<span class="sd">    audio pipeline does not voice narration yet, so a narration line has no</span>
+<span class="sd">    ``start`` in a rendered scene and is skipped with a warning). Within a</span>
+<span class="sd">    shot a page is cut off when the next one starts, so two pages are never</span>
+<span class="sd">    drawn over each other at one anchor; ACROSS a transition they can be — a</span>
+<span class="sd">    dissolve blends the tail of one shot, captions included, with the head of</span>
+<span class="sd">    the next, and a fade takes the burned caption through the colour with the</span>
+<span class="sd">    rest of the picture, while the sidecar's cue is simply on.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.frame_clock</span><span class="w"> </span><span class="kn">import</span> <span class="n">frame_count</span>
+
+    <span class="n">captions</span> <span class="o">=</span> <span class="n">captions</span> <span class="ow">or</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">captions</span> <span class="ow">or</span> <span class="n">Captions</span><span class="p">()</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CaptionPage</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="n">n_frames</span> <span class="o">=</span> <span class="n">frame_count</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span>
+        <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">CaptionPage</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s2">"dialogue </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">ln</span><span class="o">.</span><span class="n">speaker</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="n">ln</span><span class="p">,</span> <span class="n">ln</span><span class="o">.</span><span class="n">speaker</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">ln</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">lines</span> <span class="o">+=</span> <span class="p">[(</span><span class="sa">f</span><span class="s2">"narration </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">ln</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">ln</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">narration</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">speaker</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">pages</span> <span class="o">+=</span> <span class="n">_line_pages</span><span class="p">(</span>
+                <span class="n">line</span><span class="p">,</span>
+                <span class="n">shot_index</span><span class="o">=</span><span class="n">i</span><span class="p">,</span>
+                <span class="n">shot_frames</span><span class="o">=</span><span class="n">n_frames</span><span class="p">,</span>
+                <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+                <span class="n">captions</span><span class="o">=</span><span class="n">captions</span><span class="p">,</span>
+                <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">speaker</span><span class="o">=</span><span class="n">speaker</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">pages</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">page</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pages</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">pages</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pages</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span> <span class="o">&lt;</span> <span class="n">page</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">pages</span><span class="p">[</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
+                <span class="k">if</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="n">page</span><span class="o">.</span><span class="n">start</span><span class="p">:</span>
+                    <span class="c1"># Two lines spoken at once, starting on one frame: one slot</span>
+                    <span class="c1"># can show one of them. Said, not silently dropped.</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: captions </span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> and "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pages</span><span class="p">[</span><span class="n">k</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> start on the same frame "</span>
+                        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">start</span><span class="si">}</span><span class="s2">); only the second is shown"</span><span class="p">,</span>
+                        <span class="n">CaptionWarning</span><span class="p">,</span>
+                        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="n">page</span> <span class="o">=</span> <span class="n">CaptionPage</span><span class="p">(</span>
+                    <span class="n">shot</span><span class="o">=</span><span class="n">page</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
+                    <span class="n">start</span><span class="o">=</span><span class="n">page</span><span class="o">.</span><span class="n">start</span><span class="p">,</span>
+                    <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">,</span>
+                    <span class="n">lines</span><span class="o">=</span><span class="n">page</span><span class="o">.</span><span class="n">lines</span><span class="p">,</span>
+                    <span class="n">word_frames</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">end</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">word_frames</span><span class="p">),</span>
+                    <span class="n">speaker</span><span class="o">=</span><span class="n">page</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="caption_cues">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.caption_cues">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">caption_cues</span><span class="p">(</span><span class="n">pages</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CaptionPage</span><span class="p">],</span> <span class="n">timeline</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Cue</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``pages`` in FILM time on ``timeline`` (an :class:`an.assemble.FilmTimeline`).</span>
+
+<span class="sd">    A cue starts on the film frame that first shows its page and ends on the</span>
+<span class="sd">    first that does not — the same frames the picture shows it on.</span>
+<span class="sd">    """</span>
+    <span class="n">fps</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">fps</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">Cue</span><span class="p">(</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+            <span class="n">start</span><span class="o">=</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">starts</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">shot</span><span class="p">]</span> <span class="o">+</span> <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">/</span> <span class="n">fps</span><span class="p">,</span>
+            <span class="n">end</span><span class="o">=</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">starts</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">shot</span><span class="p">]</span> <span class="o">+</span> <span class="n">p</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="o">/</span> <span class="n">fps</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="srt_for_scene">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.srt_for_scene">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">srt_for_scene</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">pages</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CaptionPage</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The SubRip sidecar of ``scene`` rendered at ``fps``.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Dialogue, SceneIR, Shot, Transition, WordTimingIR</span>
+<span class="sd">    &gt;&gt;&gt; def shot(sid, **kw):</span>
+<span class="sd">    ...     line = Dialogue(speaker="a", text="Hi.", start=0.2, duration=0.5,</span>
+<span class="sd">    ...                     word_timings=[WordTimingIR(text="Hi.", start=0.0, end=0.4)])</span>
+<span class="sd">    ...     return Shot(id=sid, duration=2.0, dialogue=[line], **kw)</span>
+<span class="sd">    &gt;&gt;&gt; scene = SceneIR(timeline=[shot("a"), shot("b", transition=Transition(kind="dissolve"))])</span>
+<span class="sd">    &gt;&gt;&gt; print(srt_for_scene(scene, fps=10))   # b starts at 1.5 s: the dissolve's 0.5 s overlap</span>
+<span class="sd">    1</span>
+<span class="sd">    00:00:00,200 --&gt; 00:00:00,700</span>
+<span class="sd">    Hi.</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    2</span>
+<span class="sd">    00:00:01,700 --&gt; 00:00:02,200</span>
+<span class="sd">    Hi.</span>
+<span class="sd">    &lt;BLANKLINE&gt;</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">film_timeline</span>
+
+    <span class="k">if</span> <span class="n">pages</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">pages</span> <span class="o">=</span> <span class="n">caption_pages</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">dump_srt</span><span class="p">(</span><span class="n">caption_cues</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="n">film_timeline</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)))</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The picture — pages as overlay text blocks plus ordinary actions</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_PropsWithCaptions</span><span class="p">(</span><span class="n">Mapping</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The project's props store with the caption style laid over it.</span>
+
+<span class="sd">    Everything else — including ``_root``, which is what an author's own text</span>
+<span class="sd">    block resolves a relative font against — is the underlying store's.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">docs</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_base</span> <span class="o">=</span> <span class="n">base</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_docs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docs</span> <span class="ow">or</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span>
+        <span class="k">yield from</span> <span class="p">(</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docs</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"_base"</span><span class="p">,</span> <span class="s2">"_docs"</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_base</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_caption_font</span><span class="p">(</span><span class="n">captions</span><span class="p">:</span> <span class="n">Captions</span><span class="p">,</span> <span class="n">base_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">captions</span><span class="o">.</span><span class="n">font</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">captions</span><span class="o">.</span><span class="n">font</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">is_absolute</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">base_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CaptionError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"captions font </span><span class="si">{</span><span class="n">captions</span><span class="o">.</span><span class="n">font</span><span class="si">!r}</span><span class="s2"> is relative and there is no "</span>
+                <span class="s2">"project directory to resolve it against; give an absolute path"</span>
+            <span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">base_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">path</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_set_time</span><span class="p">(</span><span class="n">frame</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">frame</span> <span class="o">-</span> <span class="n">_SET_OFFSET_FRAMES</span><span class="p">)</span> <span class="o">/</span> <span class="n">fps</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_page_actions</span><span class="p">(</span>
+    <span class="n">page</span><span class="p">:</span> <span class="n">CaptionPage</span><span class="p">,</span> <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">n_frames</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">captions</span><span class="p">:</span> <span class="n">Captions</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose</span> <span class="k">as</span> <span class="n">c</span>
+
+    <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">set_</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">set_</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">_set_time</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">fps</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">end</span> <span class="o">&lt;</span> <span class="n">n_frames</span><span class="p">:</span>
+        <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">set_</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">_set_time</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">end</span><span class="p">,</span> <span class="n">fps</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">captions</span><span class="o">.</span><span class="n">highlight</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">actions</span>
+    <span class="c1"># Karaoke: the glyphs are WHITE and `tint` (a multiply) paints them — the</span>
+    <span class="c1"># base colour everywhere, the highlight on the word being spoken, from its</span>
+    <span class="c1"># first frame until the next word's.</span>
+    <span class="n">frames</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">word_frames</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">first</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frames</span><span class="p">):</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">/word_</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">until</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="k">if</span> <span class="n">f</span> <span class="o">&gt;</span> <span class="n">first</span><span class="p">),</span> <span class="n">page</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
+        <span class="n">lit</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="ow">and</span> <span class="n">frames</span><span class="p">[</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">first</span><span class="p">)</span>
+        <span class="c1"># Lit from frame 0 is the set AT 0 itself: a set at -half a frame</span>
+        <span class="c1"># would be overridden by the base-colour set at 0 (review finding).</span>
+        <span class="n">from_start</span> <span class="o">=</span> <span class="n">lit</span> <span class="ow">and</span> <span class="n">first</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">set_</span><span class="p">(</span>
+                <span class="n">target</span><span class="p">,</span>
+                <span class="s2">"tint"</span><span class="p">,</span>
+                <span class="n">captions</span><span class="o">.</span><span class="n">highlight</span> <span class="k">if</span> <span class="n">from_start</span> <span class="k">else</span> <span class="n">captions</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+                <span class="n">at</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lit</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># the next word starts on the same frame: this one is never lit</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">from_start</span><span class="p">:</span>
+            <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">"tint"</span><span class="p">,</span> <span class="n">captions</span><span class="o">.</span><span class="n">highlight</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">_set_time</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">fps</span><span class="p">))</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">until</span> <span class="o">&lt;</span> <span class="n">page</span><span class="o">.</span><span class="n">end</span><span class="p">:</span>
+            <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">set_</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="s2">"tint"</span><span class="p">,</span> <span class="n">captions</span><span class="o">.</span><span class="n">color</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="n">_set_time</span><span class="p">(</span><span class="n">until</span><span class="p">,</span> <span class="n">fps</span><span class="p">))</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">actions</span>
+
+
+<div class="viewcode-block" id="captioned_shot">
+<a class="viewcode-back" href="../../_autosummary/an.captions.html#an.captions.captioned_shot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">captioned_shot</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">pages</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">CaptionPage</span><span class="p">],</span>
+    <span class="n">captions</span><span class="p">:</span> <span class="n">Captions</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">shot_index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">base_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Shot</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``shot`` with its caption pages burned in, and the mall to compile it with.</span>
+
+<span class="sd">    Each page becomes an overlay text block ``caption_&lt;k&gt;`` and the ``set``</span>
+<span class="sd">    actions that show it for exactly its frames. With ``shot_index``, only the</span>
+<span class="sd">    pages of that shot are used, so a caller can pass the scene's whole list;</span>
+<span class="sd">    without it every page must belong to one shot. The returned mall is</span>
+<span class="sd">    ``mall`` with the caption style laid over its props store — nothing is</span>
+<span class="sd">    written to the project. ``base_dir`` resolves a relative caption ``font``.</span>
+
+<span class="sd">    With ``resolution``, every page is typeset now, so a caption the face</span>
+<span class="sd">    cannot draw (an em dash in the embedded face) raises a :class:`CaptionError`</span>
+<span class="sd">    naming the shot and the words — before a browser launches, rather than</span>
+<span class="sd">    from inside a shot's compile after others have rendered.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.frame_clock</span><span class="w"> </span><span class="kn">import</span> <span class="n">frame_count</span>
+
+    <span class="k">if</span> <span class="n">shot_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">shots</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">shot</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pages</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shots</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CaptionError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"pages of several shots were passed (</span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">shots</span><span class="p">)</span><span class="si">}</span><span class="s2">); give "</span>
+                <span class="s2">"`shot_index` to say which are this shot's"</span>
+            <span class="p">)</span>
+        <span class="n">mine</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pages</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mine</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pages</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">shot</span> <span class="o">==</span> <span class="n">shot_index</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mine</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">shot</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mall</span><span class="p">)</span>
+    <span class="n">taken</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">}</span>
+    <span class="n">n_frames</span> <span class="o">=</span> <span class="n">frame_count</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span>
+    <span class="n">font</span> <span class="o">=</span> <span class="n">_caption_font</span><span class="p">(</span><span class="n">captions</span><span class="p">,</span> <span class="n">base_dir</span><span class="p">)</span>
+    <span class="n">entities</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
+    <span class="n">actions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">page</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mine</span><span class="p">):</span>
+        <span class="n">eid</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CAPTION_ID_PREFIX</span><span class="si">}{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">if</span> <span class="n">eid</span> <span class="ow">in</span> <span class="n">taken</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CaptionError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> already has an entity </span><span class="si">{</span><span class="n">eid</span><span class="si">!r}</span><span class="s2">, the id caption "</span>
+                <span class="sa">f</span><span class="s2">"page </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> is drawn as; rename that entity"</span>
+            <span class="p">)</span>
+        <span class="n">overrides</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"text"</span><span class="p">:</span> <span class="n">page</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+            <span class="s2">"layer"</span><span class="p">:</span> <span class="s2">"overlay"</span><span class="p">,</span>
+            <span class="s2">"anchor"</span><span class="p">:</span> <span class="n">captions</span><span class="o">.</span><span class="n">anchor</span><span class="p">,</span>
+            <span class="s2">"size"</span><span class="p">:</span> <span class="n">captions</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+            <span class="s2">"color"</span><span class="p">:</span> <span class="s2">"#ffffff"</span> <span class="k">if</span> <span class="n">captions</span><span class="o">.</span><span class="n">highlight</span> <span class="k">else</span> <span class="n">captions</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
+            <span class="s2">"unit"</span><span class="p">:</span> <span class="s2">"word"</span> <span class="k">if</span> <span class="n">captions</span><span class="o">.</span><span class="n">highlight</span> <span class="k">else</span> <span class="s2">"line"</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">font</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">overrides</span><span class="p">[</span><span class="s2">"font"</span><span class="p">]</span> <span class="o">=</span> <span class="n">font</span>
+        <span class="k">if</span> <span class="n">resolution</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_check_typesettable</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">page</span><span class="p">,</span> <span class="n">overrides</span><span class="p">,</span> <span class="n">resolution</span><span class="p">)</span>
+        <span class="n">entities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">AssetRef</span><span class="p">(</span>
+                <span class="n">kind</span><span class="o">=</span><span class="s2">"prop"</span><span class="p">,</span>
+                <span class="nb">id</span><span class="o">=</span><span class="n">eid</span><span class="p">,</span>
+                <span class="n">store</span><span class="o">=</span><span class="s2">"props"</span><span class="p">,</span>
+                <span class="n">ref</span><span class="o">=</span><span class="n">CAPTION_PROP_REF</span><span class="p">,</span>
+                <span class="n">overrides</span><span class="o">=</span><span class="n">overrides</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">actions</span> <span class="o">+=</span> <span class="n">_page_actions</span><span class="p">(</span>
+            <span class="n">page</span><span class="p">,</span> <span class="n">eid</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="n">n_frames</span><span class="o">=</span><span class="n">n_frames</span><span class="p">,</span> <span class="n">captions</span><span class="o">=</span><span class="n">captions</span>
+        <span class="p">)</span>
+    <span class="n">style</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"TextDescriptor"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"caption"</span><span class="p">}</span>
+    <span class="n">new_mall</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">mall</span><span class="p">)</span>
+    <span class="c1"># `is None`, not `or`: an EMPTY on-disk props store is falsy, and swapping</span>
+    <span class="c1"># it for `{}` would drop the `_root` an author's relative font needs.</span>
+    <span class="n">props</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"props"</span><span class="p">)</span>
+    <span class="n">new_mall</span><span class="p">[</span><span class="s2">"props"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_PropsWithCaptions</span><span class="p">(</span>
+        <span class="p">{}</span> <span class="k">if</span> <span class="n">props</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">props</span><span class="p">,</span> <span class="p">{</span><span class="n">CAPTION_PROP_REF</span><span class="p">:</span> <span class="n">style</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">shot</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span><span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"entities"</span><span class="p">:</span> <span class="n">entities</span><span class="p">,</span> <span class="s2">"actions"</span><span class="p">:</span> <span class="n">actions</span><span class="p">}),</span> <span class="n">new_mall</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_typesettable</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">,</span>
+    <span class="n">page</span><span class="p">:</span> <span class="n">CaptionPage</span><span class="p">,</span>
+    <span class="n">overrides</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">resolution</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Typeset one page now: it must be drawable, fit the title-safe width,</span>
+<span class="sd">    and (for a highlight) build exactly one unit per word."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">tituli</span><span class="w"> </span><span class="kn">import</span> <span class="n">safe_area</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_text</span><span class="p">,</span> <span class="n">resolve_text</span>
+
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">resolution</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">lay</span> <span class="o">=</span> <span class="n">layout_text</span><span class="p">(</span>
+            <span class="n">resolve_text</span><span class="p">({</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"TextDescriptor"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"caption"</span><span class="p">},</span> <span class="n">overrides</span><span class="p">),</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>  <span class="c1"># TextFontError, TextLayoutError, ValidationError</span>
+        <span class="k">raise</span> <span class="n">CaptionError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the caption </span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> cannot be set: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">. "</span>
+            <span class="s2">"A caption is set in `captions.font` (the embedded face when unset)."</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="n">safe_area</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+    <span class="n">x0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+    <span class="n">x1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">x0</span> <span class="o">&lt;</span> <span class="n">area</span><span class="o">.</span><span class="n">x0</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">x1</span> <span class="o">&gt;</span> <span class="n">area</span><span class="o">.</span><span class="n">x1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CaptionError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the caption line </span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> is </span><span class="si">{</span><span class="n">x1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x0</span><span class="si">}</span><span class="s2"> px "</span>
+            <span class="sa">f</span><span class="s2">"wide, wider than the title-safe area (</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">area</span><span class="o">.</span><span class="n">x1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">area</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span><span class="si">}</span><span class="s2"> px "</span>
+            <span class="sa">f</span><span class="s2">"of a </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2"> px frame); lower `captions.max_chars` or `captions.size`"</span>
+        <span class="p">)</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+    <span class="n">y1</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">y0</span> <span class="o">&lt;</span> <span class="n">area</span><span class="o">.</span><span class="n">y0</span> <span class="o">-</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">y1</span> <span class="o">&gt;</span> <span class="n">area</span><span class="o">.</span><span class="n">y1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CaptionError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the caption </span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> is </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">lines</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"lines, </span><span class="si">{</span><span class="n">y1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">y0</span><span class="si">}</span><span class="s2"> px tall, taller than the title-safe area allows "</span>
+            <span class="s2">"at its anchor; lower `captions.size` or `captions.max_lines`"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">overrides</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"unit"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"word"</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">words</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">CaptionError</span><span class="p">(</span>  <span class="c1"># pragma: no cover — the tokenisers agree today</span>
+            <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: the caption </span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> set as "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">lay</span><span class="o">.</span><span class="n">units</span><span class="p">)</span><span class="si">}</span><span class="s2"> word units but has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">words</span><span class="p">)</span><span class="si">}</span><span class="s2"> words, so "</span>
+            <span class="s2">"the highlight would light the wrong word"</span>
+        <span class="p">)</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

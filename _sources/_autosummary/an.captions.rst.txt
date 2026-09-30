@@ -1,0 +1,41 @@
+an.captions
+===========
+
+.. automodule:: an.captions
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CAPTION_ID_PREFIX
+      CAPTION_PROP_REF
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      caption_cues
+      caption_pages
+      captioned_shot
+      dump_srt
+      paginate
+      seconds_to_srt_time
+      srt_for_scene
+      wrap_words
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      CaptionPage
+      Cue
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CaptionError
+      CaptionTimingWarning
+      CaptionWarning
+   

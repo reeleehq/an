@@ -34,9 +34,11 @@ True
 
 ### Module Attributes
 
-| [`DFLT_EXPRESSION_BLEND_S`](#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).   |
-|----------------------------------------------------------------------------|------------------------------------------------------------|
-| [`Action`](#an.ir.schema.Action)                    | Discriminated union of every action variant.               |
+| [`DFLT_EXPRESSION_BLEND_S`](#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).                                                                                  |
+|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| [`Action`](#an.ir.schema.Action)                    | Discriminated union of every action variant.                                                                                              |
+| [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                   |
+| [`DEFAULT_CAPTION_SIZE`](#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched. |
 
 ### Functions
 
@@ -49,6 +51,7 @@ True
 |-----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`Camera`](#an.ir.schema.Camera)(\*\*data)           | Camera state for a shot: a named move, or explicit keys.                                                                                                            |
 | [`CameraKey`](#an.ir.schema.CameraKey)(\*\*data)        | One camera pose at one time — the explicit door behind the named moves.                                                                                             |
+| [`Captions`](#an.ir.schema.Captions)(\*\*data)         | Captions for the whole film, built from the dialogue's word timings.                                                                                                |
 | [`DelayAction`](#an.ir.schema.DelayAction)(\*\*data)      | Composition: an empty span that consumes time.                                                                                                                      |
 | [`Dialogue`](#an.ir.schema.Dialogue)(\*\*data)         | One line of spoken dialogue.                                                                                                                                        |
 | [`ExpressionAction`](#an.ir.schema.ExpressionAction)(\*\*data) | Hold a facial expression on an entity (an#98, epic #9 Wave 6).                                                                                                      |
@@ -198,6 +201,77 @@ Camera position in scene pixels. `+x` moves the camera right.
 On-screen magnification. Must be > 0 — a zero or negative zoom is not a
 camera, and the compiler would emit a degenerate root scale.
 
+### *class* an.ir.schema.Captions(\*\*data)
+
+Bases: `_IRModel`
+
+Captions for the whole film, built from the dialogue’s word timings.
+
+Present = on; `meta.captions` unset (the default) is no captions and no
+trace in any document. One cue list ([`an.captions.caption_pages()`](an.captions.md#an.captions.caption_pages))
+feeds BOTH outputs, so the picture and the sidecar cannot disagree:
+
+- `burn`: each page is drawn as an overlay text block (camera-immune,
+  placed at `anchor` in the title-safe area), shown for exactly the
+  frames the sidecar says;
+- `sidecar`: a SubRip `.srt` written through the `captions` store,
+  next to the delivered mp4, in FILM time (a dissolve shortens the film,
+  and every later cue moves with it).
+
+```pycon
+>>> Captions().max_chars, Captions().anchor
+(42, 'bottom')
+>>> Captions(highlight="#ffcc00").highlight
+'#ffcc00'
+```
+
+#### anchor *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+One of tituli’s nine title-safe anchors.
+
+#### font *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`None` = the embedded face; else an ABSOLUTE font file path, or one
+relative to the project directory.
+
+#### highlight *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+the word being spoken is drawn in this colour (karaoke);
+`None` draws every word in `color`.
+
+* **Type:**
+  `#rrggbb`
+
+#### max_chars *: [int](https://docs.python.org/3/builtins/functions.html#int)*
+
+Line breaks are made HERE, by character count, and written into both
+the burned block and the sidecar — the same lines in both. 42 fits the
+title-safe width of a 16:9 or 4:3 frame at the default size; a square
+or portrait frame needs fewer (about 32 at 1:1) or a smaller `size` —
+a line that does not fit is REFUSED before the render, never clipped.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### strict *: [bool](https://docs.python.org/3/builtins/functions.html#bool)*
+
+A line with no word timings is captioned with its words spread evenly
+over its duration, with a warning; `strict` makes that an error.
+
+### an.ir.schema.DEFAULT_CAPTION_MAX_CHARS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 42*
+
+the broadcast
+convention (BBC / Netflix timed-text guidance: 42 characters, two lines).
+
+* **Type:**
+  Characters per caption line and lines per caption page
+
+### an.ir.schema.DEFAULT_CAPTION_SIZE *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.05*
+
+Caption type size as a fraction of frame height — a little under the title
+default, as captions are read while something else is watched.
+
 ### an.ir.schema.DFLT_EXPRESSION_BLEND_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.15*
 
 Default ramp in/out of an expression, seconds (0 = cut). The dialogue
@@ -273,6 +347,11 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 Bases: `_IRModel`
 
 Scene metadata.
+
+#### captions *: [Captions](#an.ir.schema.Captions) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Captions from the dialogue’s word timings ([`Captions`](#an.ir.schema.Captions), an#175);
+`None` — the default — is none, omitted from JSON like `style_pack`.
 
 #### default_easing *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)] | [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[float](https://docs.python.org/3/builtins/functions.html#float)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
