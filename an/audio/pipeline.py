@@ -23,6 +23,7 @@ from collections.abc import Mapping, MutableMapping
 from dataclasses import asdict
 from typing import Any
 
+from an.audio.effects import EFFECT_SAMPLE_RATE, apply_voice_effects, voice_effects
 from an.audio.lipsync import LipSyncProvider, Viseme, VisemeTrack
 from an.audio.offline_lipsync import OfflineLipSync
 from an.audio.offline_tts import OfflineTTS
@@ -52,6 +53,7 @@ def produce_audio_for_dialogue(
     *,
     tts: TTSProvider | None = None,
     lipsync: LipSyncProvider | None = None,
+    effects: Mapping[str, float] | None = None,
 ) -> tuple[AudioClip, VisemeTrack]:
     """Synthesize audio + visemes for one dialogue line.
 
@@ -59,21 +61,26 @@ def produce_audio_for_dialogue(
     ``mall["audio"]`` keyed by the content-hash of the dialogue, and persists
     the viseme JSON to ``mall["visemes"]`` similarly. Cache-friendly: a
     second call with identical inputs returns the cached versions.
+
+    ``effects`` (default: what the line's voice declares in ``mall["voices"]``)
+    is applied to the synthesized audio BEFORE alignment, so the visemes are
+    computed on the audio the viewer hears. The raw synthesis stays cached under
+    its own key, so changing an effect never re-pays the TTS.
     """
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
     voice_id = dialogue.voice_ref or "default"
+    if effects is None:
+        effects = voice_effects(mall, voice_id)
 
-    # Content hash governs caching.
-    cache_key = _stable_hash(
-        {"text": dialogue.text, "voice": voice_id, "tts": tts.name}
-    )
+    raw_key = audio_key(dialogue.text, voice_id, tts.name)
+    cache_key = audio_key(dialogue.text, voice_id, tts.name, effects)
 
-    audio_clip = _load_or_synthesize(tts, dialogue.text, voice_id, mall, cache_key)
+    audio_clip = _load_or_synthesize(tts, dialogue.text, voice_id, mall, raw_key)
+    if cache_key != raw_key:
+        audio_clip = _load_or_apply_effects(audio_clip, effects, mall, cache_key)
 
-    viseme_cache_key = _stable_hash(
-        {"audio_key": cache_key, "lipsync": lipsync.name, "transcript": dialogue.text}
-    )
+    viseme_cache_key = viseme_key(cache_key, lipsync.name, dialogue.text)
     track = _load_or_align(lipsync, audio_clip, dialogue.text, mall, viseme_cache_key)
     return audio_clip, track
 
@@ -117,16 +124,9 @@ def produce_audio_for_scene(
             )
         for line in shot.dialogue:
             voice_id = line.voice_ref or voice_default
-            expected_audio_ref = _stable_hash(
-                {"text": line.text, "voice": voice_id, "tts": tts.name}
-            )
-            expected_viseme_ref = _stable_hash(
-                {
-                    "audio_key": expected_audio_ref,
-                    "lipsync": lipsync.name,
-                    "transcript": line.text,
-                }
-            )
+            effects = voice_effects(mall, voice_id)
+            expected_audio_ref = audio_key(line.text, voice_id, tts.name, effects)
+            expected_viseme_ref = viseme_key(expected_audio_ref, lipsync.name, line.text)
             audio_store = mall.get("audio") if mall is not None else None
             viseme_store = mall.get("visemes") if mall is not None else None
             already_done = (
@@ -153,7 +153,7 @@ def produce_audio_for_scene(
             # a user-supplied start.
             was_synthesized = line.audio_ref is not None
             audio, track = produce_audio_for_dialogue(
-                line, mall, tts=tts, lipsync=lipsync
+                line, mall, tts=tts, lipsync=lipsync, effects=effects
             )
             line.duration = audio.duration
             if was_synthesized or line.start is None:
@@ -167,8 +167,63 @@ def produce_audio_for_scene(
 
 
 # -----------------------------------------------------------------------------
+# Cache keys — the SSOT for what an audio / viseme artifact is a function of
+# -----------------------------------------------------------------------------
+
+
+def audio_key(
+    text: str, voice_id: str, tts_name: str, effects: Mapping[str, float] | None = None
+) -> str:
+    """Content key of a line's audio: text, voice, provider, and — only when the
+    voice declares one — its effects. With no effects the payload is exactly the
+    pre-effects one, so every key a project already has is unchanged.
+    """
+    payload: dict[str, Any] = {"text": text, "voice": voice_id, "tts": tts_name}
+    if effects:
+        payload["effects"] = dict(effects)
+    return _stable_hash(payload)
+
+
+def viseme_key(audio_key_: str, lipsync_name: str, transcript: str) -> str:
+    """Content key of a line's viseme track (a function of the audio HEARD)."""
+    return _stable_hash(
+        {"audio_key": audio_key_, "lipsync": lipsync_name, "transcript": transcript}
+    )
+
+
+# -----------------------------------------------------------------------------
 # Internals
 # -----------------------------------------------------------------------------
+
+
+def _load_or_apply_effects(
+    raw: AudioClip,
+    effects: Mapping[str, float],
+    mall: Mapping[str, MutableMapping] | None,
+    cache_key: str,
+) -> AudioClip:
+    """The clip with ``effects`` applied, cached under ``cache_key`` (a WAV)."""
+    if mall is not None and "audio" in mall and cache_key in mall["audio"]:
+        wav = mall["audio"][cache_key]
+    else:
+        source = raw.bytes_
+        if source is None and raw.path is not None:
+            source = raw.path.read_bytes()
+        if source is None:
+            raise AudioPipelineError(
+                "a voice declares effects but the TTS clip carries no audio bytes"
+            )
+        wav = apply_voice_effects(source, effects)
+        if mall is not None and "audio" in mall:
+            mall["audio"][cache_key] = wav
+    return AudioClip(
+        bytes_=wav,
+        duration=_wav_duration(wav),
+        sample_rate=EFFECT_SAMPLE_RATE,
+        channels=raw.channels,
+        voice_id=raw.voice_id,
+        transcript=raw.transcript,
+    )
 
 
 def _to_ir_viseme_track(track: VisemeTrack) -> IRVisemeTrack:

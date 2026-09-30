@@ -35,6 +35,8 @@ live:
     mouth_variants: [happy, sad]
   transitions:
     default: {kind: cut}     # hard cuts only [research: U]
+  voice:
+    effects: {pitch_semitones: 4}   # the `effects` of every kid's voice document in assets/voices/ (an#163); about 4 semitones is an estimate
 
 targets:
   identical_frame_share: [0.55, 0.70]   # measured 0.64
@@ -50,6 +52,6 @@ guidance:                    # not in `an` yet: apply by hand where you can, oth
   paper_gap_shadow: an offset, darkened duplicate of each part (about 3 px at 1080p); no surface treatment ships
   outline: near-black #231316 about 3 px at 1080p; not a StylePack role
   paper_grain: a static low-alpha texture plane; no grain ships
-  voice: pitch raised (about 4 semitones is an estimate); `an` has no voice-effect chain
+  voice: pitch raised; see `live.voice`. The amount is an estimate, and a stock-ffmpeg shift (asetrate + atempo) is a cruder shifter than a studio one
   sound: sparse stingers as shot `sounds` cues on the beat they punctuate, no music bed; `an` ships no sound library, so stingers are assets you add with their licence
   text: occasional location cards; `an` has no text node
