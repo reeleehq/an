@@ -848,6 +848,73 @@ def _check_turns(shot, path: str, report: "ValidationReport", resolved) -> None:
         )
 
 
+def _check_hidden_mouth_while_speaking(
+    shot, path: str, report: "ValidationReport", resolved, stores: Mapping[str, Any]
+) -> None:
+    """A line spoken while the speaker's view HIDES its mouth (an#220): the
+    view's ``swap_poses`` sets the mouth slot's ``alpha`` to 0 — the back
+    view does, and so did every profile carved with the mouth baked in — so
+    the audio plays over a face with no lip-sync. A warning, since a line
+    delivered over the shoulder can be meant; the fix for a profile is a
+    per-view mouth set (``viseme@side``) instead of the hide.
+    """
+    if resolved is None:
+        return
+    from an.ir.schema import SetAction
+
+    events = resolved[0].events
+    rigs = {e.id: e for e in shot.entities if e.kind == "character"}
+    for k, line in enumerate(shot.dialogue or ()):
+        entity = rigs.get(line.speaker)
+        if entity is None or line.start is None:
+            continue
+        doc = _rig_document(entity, stores)
+        try:
+            desc = CharacterDescriptor.model_validate(doc) if doc else None
+        except ValidationError:
+            continue
+        if desc is None or not desc.face_overlay:
+            continue
+        skin = desc.skins.get("default") or next(iter(desc.skins.values()), None)
+        mouth_names = set((desc.asset_sets.get("viseme") or {}).values())
+        mouths = {
+            slot
+            for slot, attachments in (skin.slots.items() if skin else ())
+            if mouth_names & set(attachments)
+        }
+        start = float(line.start)
+        end = start + float(line.duration or 0.0)
+        views = [facing_at(events, line.speaker, start).view or desc.rest_view]
+        views += [
+            f.action.value
+            for f in events
+            if isinstance(f.action, SetAction)
+            and f.action.target == line.speaker
+            and f.action.property == VIEW_CHANNEL
+            and start < f.start <= end
+        ]
+        poses = desc.swap_poses.get(VIEW_CHANNEL) or {}
+        for view in dict.fromkeys(v for v in views if v is not None):
+            hidden = sorted(
+                m for m in mouths if (p := poses.get(view, {}).get(m)) and p.alpha == 0
+            )
+            if not hidden:
+                continue
+            report.add(
+                "warning",
+                f"{path}/dialogue/{k}",
+                f"{line.speaker!r} speaks this line while its {view!r} view hides "
+                f"its mouth ({', '.join(hidden)}: swap_poses.{VIEW_CHANNEL}.{view} "
+                "alpha 0), so the line plays with no lip-sync on screen. "
+                + (
+                    "Turn before the line if the face should be seen."
+                    if view == "back"
+                    else f"Give the view its own mouth (a `viseme@{view}` set) "
+                    "instead of hiding it, or turn before the line."
+                ),
+            )
+
+
 def _check_view_continuity(
     scene: SceneIR, report: "ValidationReport", resolved: list
 ) -> None:
@@ -1562,6 +1629,9 @@ def validate_semantic(
         _check_swap_references(shot, path, report, rig_stores)
         turn_resolutions.append(_turn_resolution(shot, rig_stores))
         _check_turns(shot, path, report, turn_resolutions[-1])
+        _check_hidden_mouth_while_speaking(
+            shot, path, report, turn_resolutions[-1], rig_stores
+        )
         _check_trim_targets(shot, path, report, rig_stores)
         text_ids = _check_text_blocks(
             shot,

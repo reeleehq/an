@@ -248,6 +248,9 @@ PARTS_ARG = "parts"
 #: The keyword a preset whose move depends on the view in force takes it in;
 #: played by name, the compiler fills it from the timeline when not given.
 VIEW_ARG = "view"
+#: The keyword a walk takes its gait in (an#220); played by name, the compiler
+#: fills it from the descriptor's ``gait`` when not given.
+GAIT_ARG = "gait"
 
 
 def preset_takes(animation: str, name: str) -> bool:

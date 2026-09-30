@@ -312,7 +312,9 @@ def validate_character(
 
     _check_asset_sets(directory, descriptor, report, who=who)
     _check_raster_colour_roles(descriptor, report, who=who)
+    _check_declared_boxes(directory, descriptor, report, who=who)
     _check_swap_poses(descriptor, report, who=who)
+    _check_view_variants(descriptor, report, who=who)
 
     _check_mouth_variants(descriptor, report, who=who)
     _check_gaze_stack(descriptor, report, who=who)
@@ -446,6 +448,91 @@ def _check_raster_colour_roles(
                 "pack cannot recolour pixels, so the roles do nothing",
                 "Drop the entry, or ship that part as SVG if it must follow a pack.",
             )
+
+
+#: How far a declared box's aspect may differ from its art's before the
+#: containment is worth saying (a rounding of a pixel or two is not).
+DECLARED_ASPECT_TOLERANCE: float = 0.01
+
+
+def _check_declared_boxes(
+    directory: Path,
+    descriptor: CharacterDescriptor | None,
+    report: VerificationReport,
+    *,
+    who: str,
+) -> None:
+    """An attachment that declares BOTH ``width`` and ``height`` in an aspect
+    its art does not have is drawn contained, not stretched (an#220) —
+    ADVISORY, naming the size it actually draws at, so the author sees the
+    box they asked for is not the one on screen.
+    """
+    if descriptor is None:
+        return
+    from an.characters.schema import attachment_box
+    from an.raster import art_size
+
+    seen: set[str] = set()
+    for skin in descriptor.skins.values():
+        for slot_name, attachments in skin.slots.items():
+            for name, att in attachments.items():
+                if not (att.width and att.height) or att.path in seen:
+                    continue
+                seen.add(att.path)
+                try:
+                    art = art_size(directory / att.path)
+                except Exception:  # noqa: BLE001 — unreadable art is reported elsewhere
+                    continue
+                if not (art[0] > 0 and art[1] > 0):
+                    continue
+                w, h = float(att.width), float(att.height)
+                if abs((w / h) / (art[0] / art[1]) - 1.0) <= DECLARED_ASPECT_TOLERANCE:
+                    continue
+                cw, ch = attachment_box(w, h, art)
+                report.add(
+                    ADVISORY,
+                    f"character.json#skins.{skin.name}.slots.{slot_name}.{name}",
+                    f"{who}'s {slot_name}.{name} declares a {w:g}x{h:g} box, but "
+                    f"{att.path} is {art[0]:g}x{art[1]:g} — a different aspect, so it "
+                    f"draws contained at {cw:g}x{ch:g} (a part is never stretched)",
+                    "Declare only `width` (or only `height`) and let the art's aspect "
+                    "give the other.",
+                )
+
+
+def _check_view_variants(
+    descriptor: CharacterDescriptor | None, report: VerificationReport, *, who: str
+) -> None:
+    """A per-view face set (``eyelid@side``, ``viseme@side``, an#220) must vary a
+    set the rig has, and should carry that set's keys — ADVISORY, because a
+    key the variant lacks falls back to the neutral set's art, which is the
+    front drawing in a profile.
+    """
+    if descriptor is None:
+        return
+    from an.characters.schema import VIEW_CHANNEL, VIEWS, view_variant_sets
+
+    known_views = set(VIEWS) | set(descriptor.asset_sets.get(VIEW_CHANNEL) or {})
+    if descriptor.rest_view is not None and descriptor.rest_view not in known_views:
+        report.add(
+            ADVISORY,
+            "character.json#rest_view",
+            f"{who} declares rest_view {descriptor.rest_view!r}, which is not a view "
+            f"(known: {sorted(known_views)}) — nothing that reads the view matches it",
+            "Name the view the default art is drawn in, e.g. `side`.",
+        )
+    for base, per_view in view_variant_sets(descriptor).items():
+        base_keys = set(descriptor.asset_sets.get(base) or {})
+        for view, set_name in per_view.items():
+            missing = sorted(base_keys - set(descriptor.asset_sets[set_name]))
+            if missing:
+                report.add(
+                    ADVISORY,
+                    f"character.json#asset_sets.{set_name}",
+                    f"{who}'s {set_name!r} lacks the keys {missing} its {base!r} set "
+                    f"has; in the {view!r} view those keys show the {base!r} art",
+                    f"Draw the missing {view} shapes, or accept the fallback.",
+                )
 
 
 def _check_swap_poses(
@@ -754,7 +841,12 @@ def render_contract() -> str:
         "    whole rectangle, background and all",
         "  - draws something (not fully transparent)",
         "  - is drawn at its pixel size x the rig's one uniform scale, like an",
-        "    SVG part at its width/height",
+        "    SVG part at its width/height — one pixel is one view_box unit —",
+        "    unless the attachment declares `width` and/or `height` (view_box",
+        "    units, an#220): a declared size wins, so art carved at any",
+        "    resolution is sized without resampling. One of the two is enough —",
+        "    the other follows the art's aspect; with both, the art is contained",
+        "    in the box, never stretched",
         "  - is NOT recoloured by a style pack (its colours are pixels); outline",
         "    and shadow treatments still apply",
         "",
@@ -779,12 +871,24 @@ def render_contract() -> str:
         "x/y offsets (view_box units), scale_x/scale_y/alpha factors, per slot.",
         "The back view hides the face this way; a profile hides the far eye.",
         "`an character new --offline` draws all of this for its own characters.",
+        "",
+        "A face drawn differently in a view gets its OWN set rather than being",
+        "hidden (an#220): `eyelid@side` ({OPEN, CLOSED} -> the profile's eye",
+        "attachments, on the eye slots) and `viseme@side` (the profile's mouth",
+        "shapes, on the mouth slot) are used whenever that view is in force —",
+        "blinks, expressions and lip-sync keep running in profile. Art drawn",
+        "only in profile (no front at all) declares `rest_view: side` instead.",
+        "A robe whose leg slots are the two halves of its hem declares",
+        "`gait: hem`, so a walk tilts the halves in turn and sways the body.",
     ]
     lines += [
         "",
         "## Provenance",
         "",
         "Populate `source` unless the art is your own. A licence defect is the",
-        "only failure that reaches backwards through finished work.",
+        "only failure that reaches backwards through finished work. A part",
+        "whose art came from elsewhere than the rest (another clip, a CC0",
+        "prop) carries its own `source` on its attachment; `an credits` lists",
+        "each (an#220).",
     ]
     return "\n".join(lines)

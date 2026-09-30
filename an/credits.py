@@ -22,7 +22,9 @@ answers, and collapsing them is exactly how an obligation goes missing.
 
 Public domain (`pd`, `public-domain`, `cc-pdm-1.0`, `cc0-*`) is recognised as
 nothing owed, and an environment's planes may each carry their own `source`,
-so a composite stage — a carved plate plus a CC0 prop — credits both.
+so a composite stage — a carved plate plus a CC0 prop — credits both. A
+character's (or prop's) attachments may too (an#220): a figure composed from
+parts carved out of several clips credits each clip, part by part.
 """
 
 from __future__ import annotations
@@ -240,6 +242,8 @@ def collect_credits(
                 )
             if store_name == "environments":
                 report.entries.extend(_plane_credits(key, descriptor))
+            if store_name in ("characters", "props"):
+                report.entries.extend(_part_credits(store_name, key, descriptor))
     return report
 
 
@@ -285,6 +289,41 @@ def _plane_credits(key: str, descriptor: Any) -> list[CreditEntry]:
             )
         )
     return out
+
+
+def _part_credits(store_name: str, key: str, descriptor: Any) -> list[CreditEntry]:
+    """One entry per part (attachment) that declares its OWN `source` (an#220).
+
+    A character carved from several clips — a head from one, the arms from
+    another — cannot be credited by one descriptor `source`. Keyed by the part's
+    PATH, once, whichever slots or skins name it: the credit is for the art,
+    and one file used by two attachments is one piece of work.
+
+    >>> d = {"skins": {"default": {"slots": {"head": {"head": {
+    ...     "path": "parts/head.png",
+    ...     "source": {"provider": "youtube", "license": "all-rights-reserved"}}}}}}}
+    >>> [e.asset for e in _part_credits("characters", "bob", d)]
+    ['characters/bob/parts/head.png']
+    """
+    raw = descriptor if isinstance(descriptor, Mapping) else None
+    if raw is None and hasattr(descriptor, "model_dump"):
+        raw = descriptor.model_dump(mode="json")
+    out: dict[str, CreditEntry] = {}
+    for skin in ((raw or {}).get("skins") or {}).values():
+        if not isinstance(skin, Mapping):
+            continue
+        for attachments in (skin.get("slots") or {}).values():
+            if not isinstance(attachments, Mapping):
+                continue
+            for att in attachments.values():
+                if not isinstance(att, Mapping) or att.get("source") is None:
+                    continue  # an empty `{}` is still a claim: reported UNKNOWN
+                asset = f"{store_name}/{key}/{att.get('path', '?')}"
+                if asset not in out:
+                    out[asset] = CreditEntry(
+                        asset=asset, source=_source_or_unknown(att["source"], asset)
+                    )
+    return [out[a] for a in sorted(out)]
 
 
 def credits_for_scene(mall: Mapping[str, Any], scene: Any) -> CreditsReport:

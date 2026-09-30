@@ -68,6 +68,7 @@ from an.characters.play import (
     play_extent_for,
     play_problems,
     play_source,
+    GAIT_ARG,
     PARTS_ARG,
     VIEW_ARG,
     facing_at,
@@ -109,6 +110,8 @@ from an.adapters.cutout.serialize import (
 )
 from an.characters.schema import (
     CHARACTER_DOCUMENT_KIND,
+    VIEW_CHANNEL,
+    view_variant_sets,
     EYELID_CHANNEL,
     SLOT_POSE_ANGLES,
     SLOT_POSE_FACTORS,
@@ -116,6 +119,7 @@ from an.characters.schema import (
     MOUTH_SHAPES,
     VISEME_CHANNEL,
     Attachment,
+    attachment_box,
     Bone,
     CharacterDescriptor,
     Skin,
@@ -1091,6 +1095,10 @@ def compile_shot(
     # What each whole-character swap POSES (an#197) — folded into the face
     # solver's channels below, so a posed pupil still follows the gaze.
     poses = _swap_pose_layer(entity_swaps, vocab)
+    # Which view each character with per-view face sets is in, and when
+    # (an#220): the mouth and the lids draw from `viseme@side`/`eyelid@side`
+    # while the profile shows.
+    view_spans = _view_spans(entity_swaps, vocab, duration=shot.duration)
     provider = expression_provider or DefaultExpressionProvider()
     # Phase 4: emit a viseme channel per dialogue line that has a viseme_track.
     _add_viseme_clips(
@@ -1101,6 +1109,7 @@ def compile_shot(
         vocab=vocab,
         fps=fps,
         provider=provider,
+        view_spans=view_spans,
     )
     # The face (an#98): blinks, expressions and the silent mouth form — one
     # channel per (node, property), ahead of everything authored. An entity
@@ -1114,6 +1123,7 @@ def compile_shot(
         mall=mall,
         provider=provider,
         poses=poses,
+        view_spans=view_spans,
     )
     # Phase 7: wire camera.move ("push_in", "pull_out", "hold") into a scale
     # animation on the synthetic scene root so directors get visible camera
@@ -2652,10 +2662,11 @@ def _build_svg_character_subtree(
 
     ``probe(src) -> (exists, size)`` answers whether a part's art is on disk and
     what size it rasterises at. Existence decides whether a texture is declared
-    at all; size lets the sprite's box be the art's own extent rather than a
-    guess. With neither, the attachment's declared ``width``/``height`` are
-    used, and failing that the runtime's ``contain`` fit draws the art at its
-    natural shape — never stretched to a fabricated box.
+    at all. The sprite's box is the attachment's declared ``width``/``height``
+    when it has them — **a declared size wins**, with the art's aspect kept
+    (:func:`an.characters.schema.attachment_box`, an#220) — else the art's own
+    extent (a raster's pixel count); failing both, the runtime's ``contain``
+    fit draws the art at its natural shape — never stretched to a fabricated box.
     """
     # Two documents, one builder. `PropDescriptor` carries the same field NAMES
     # the rig maths reads — view_box, bones, slots, skins, asset_sets,
@@ -2699,12 +2710,13 @@ def _build_svg_character_subtree(
         return _register_texture(textures, alias, src)
 
     def _box_of(attachment: Attachment) -> tuple[float, float] | None:
-        # The art's own extent (from its header), else the declared box.
+        # The declared box wins, keeping the art's aspect; else the art's own
+        # extent (from its header) — a raster's pixel count (an#220).
         src = _svg_asset_src(ref, attachment.path, art_prefix=art_prefix)
-        return (probe(src)[1] if probe else None) or (
-            (attachment.width, attachment.height)
-            if attachment.width and attachment.height
-            else None
+        return attachment_box(
+            attachment.width,
+            attachment.height,
+            probe(src)[1] if probe else None,
         )
 
     # Every attachment in the skin is registered, not just the active one, so a
@@ -2969,6 +2981,18 @@ def _compile_actions(
         flat_list, vocab=vocab, resolutions=resolutions, record=entity_swaps
     )
     swap_props = _swap_property_names(flat_list)
+    # The view each entity is in over the shot, for a character with per-view
+    # face sets (an#220): a descriptor `play` (a blink) in a profile swaps the
+    # profile's eyelids. Read off the fan-out's record, so it sees every turn.
+    view_of = None
+    if vocab is not None and entity_swaps is not None:
+        spans_by_entity = _view_spans(entity_swaps, vocab, duration=shot_duration)
+        if spans_by_entity:
+
+            def view_of(flat: FlatAction) -> str | None:
+                entity = _track_root_of(flat.action.target)
+                return _view_at(spans_by_entity.get(entity), flat.start)
+
     if vocab is not None:
         for flat in flat_list:
             _check_trim_target(flat, vocab=vocab)
@@ -3002,6 +3026,7 @@ def _compile_actions(
                 fps=fps,
                 step_hz=step_hz,
                 default_easing=default_easing,
+                view_of=view_of,
             )
         if (
             isinstance(flat.action, PlayAction)
@@ -3312,6 +3337,82 @@ def _step_at(curve: _StepCurve, t: float) -> float:
     return value
 
 
+#: A per-view face clip ends this long before the next view's span begins, so
+#: at the instant of the swap only the NEW view's clip is playing — two swap
+#: sets playing at one instant on one sprite resolve by name, not by time.
+_VIEW_SPAN_EDGE_S: float = 1e-6
+
+#: ``(start, end, view)``: a stretch of the shot one view is in force over;
+#: ``None`` is the default art's view with no ``rest_view`` declared.
+_ViewSpan = tuple[float, float, "str | None"]
+
+
+def _view_spans(
+    swaps: list[_EntitySwap],
+    vocab: _SwapVocabulary,
+    *,
+    duration: float,
+    view_set: str = VIEW_CHANNEL,
+) -> dict[str, list[_ViewSpan]]:
+    """``{entity id: [(start, end, view)]}`` for every character whose
+    descriptor declares a per-view face set (``eyelid@side``, an#220), and
+    that some stretch of the shot shows in a view one of those sets serves.
+
+    The view is the latest whole-character ``view`` swap at or before each
+    instant (a ``turn`` lands its swap at its midpoint), else the
+    descriptor's ``rest_view``. An entity with no per-view set, or whose views
+    never reach one, is absent — so every other scene compiles exactly as it
+    did.
+    """
+    out: dict[str, list[_ViewSpan]] = {}
+    for entity_id, desc in sorted(vocab.descriptors.items()):
+        variants = view_variant_sets(desc, view_set=view_set)
+        served = {v for per_view in variants.values() for v in per_view}
+        if not served:
+            continue
+        events = sorted(
+            (e for e in swaps if e.entity_id == entity_id and e.set_name == view_set),
+            key=lambda e: e.time,
+        )
+        spans: list[_ViewSpan] = []
+        current, since = desc.rest_view, 0.0
+        for event in events:
+            t = min(max(0.0, event.time), float(duration))
+            if event.key == current:
+                continue
+            if t > since:
+                spans.append((since, t, current))
+            current, since = event.key, t
+        spans.append((since, float(duration), current))
+        if any(view in served for _, _, view in spans):
+            out[entity_id] = spans
+    return out
+
+
+def _view_at(spans: list[_ViewSpan] | None, t: float) -> str | None:
+    """The view in force at ``t`` over ``spans`` (``None`` without spans)."""
+    view = None
+    for start, _, v in spans or ():
+        if start <= t + 1e-9:
+            view = v
+    return view
+
+
+def _face_set_for(
+    vocab: _SwapVocabulary, entity_id: str, path: str, base: str, view: str | None
+) -> str:
+    """Which set ``path`` draws ``base`` from in ``view``: the per-view variant
+    (``eyelid@side``) when the descriptor declares it AND the node carries it
+    (its art resolved), else ``base`` (an#220)."""
+    desc = vocab.descriptors.get(entity_id)
+    if desc is None or view is None:
+        return base
+    variant = view_variant_sets(desc).get(base, {}).get(view)
+    if variant is not None and variant in vocab.node_sets.get(path, {}):
+        return variant
+    return base
+
+
 def _compile_one(
     flat: FlatAction, *, ordinal: int
 ) -> tuple[str | None, str, PlacedClipJSON]:
@@ -3444,10 +3545,17 @@ def _build_anim_for(
     fps: int = 30,
     step_hz: float | None = None,
     default_easing: Any = None,
+    view_of: Callable[[FlatAction], str | None] | None = None,
 ) -> AnimationClipJSON:
     action = flat.action
     if isinstance(action, PlayAction):
-        return _resolve_play(action, anim_id=anim_id, vocab=vocab, fps=fps)
+        return _resolve_play(
+            action,
+            anim_id=anim_id,
+            vocab=vocab,
+            fps=fps,
+            view=view_of(flat) if view_of is not None else None,
+        )
     if isinstance(action, TweenAction):
         from_value = action.from_value
         if from_value is None and vocab is not None:
@@ -3759,7 +3867,9 @@ def _with_view_and_posed_parts(
     vocab: _SwapVocabulary,
 ) -> tuple[PlayAction, Callable[[str], dict[str, float] | None]]:
     """For a preset that moves an entity's parts (``walk``, an#214): fill its
-    ``view`` from the timeline when the author did not, and read a part the
+    ``view`` from the timeline when the author did not (else from the
+    descriptor's ``rest_view``, and its ``gait`` from the descriptor's, an#220),
+    and read a part the
     view POSES at its posed value — a side view splays the legs (an#203), so a
     walk swings them about the splay, not about the front-view rest, and ends
     where the view's pose takes them back.
@@ -3781,15 +3891,30 @@ def _with_view_and_posed_parts(
         )
     ]
     view = args.get(VIEW_ARG)
+    desc = vocab.descriptors.get(entity)
+    posed_view = view
     if view is None and preset_takes(action.animation, VIEW_ARG):
-        view = facing_at(events, entity, t, view_set=view_set).view
+        view = posed_view = facing_at(events, entity, t, view_set=view_set).view
+        if view is None and desc is not None:
+            # No turn before it: the view the art is DRAWN in (an#220) — a
+            # character carved in profile walks as a profile, on its unposed
+            # rest (no swap has posed it).
+            view = desc.rest_view
         if view is not None:
             args[VIEW_ARG] = view
             action = action.model_copy(update={"args": args})
+    gait = getattr(desc, "gait", None)
+    if (
+        gait is not None
+        and GAIT_ARG not in args
+        and preset_takes(action.animation, GAIT_ARG)
+    ):
+        args[GAIT_ARG] = gait  # the character's own gait (an#220); an arg wins
+        action = action.model_copy(update={"args": args})
     posed: dict[tuple[str, str], _StepCurve] = {}
-    if view is not None and entity in vocab.descriptors:
+    if posed_view is not None and entity in vocab.descriptors:
         posed = _swap_pose_layer(
-            [_EntitySwap(entity, view_set, 0.0, str(view))], vocab
+            [_EntitySwap(entity, view_set, 0.0, str(posed_view))], vocab
         ).get(entity, {})
     if not posed:
         return action, rest_of
@@ -3936,7 +4061,12 @@ def _value_at(
 
 
 def _resolve_play(
-    action: PlayAction, *, anim_id: str, vocab: _SwapVocabulary | None, fps: int
+    action: PlayAction,
+    *,
+    anim_id: str,
+    vocab: _SwapVocabulary | None,
+    fps: int,
+    view: str | None = None,
 ) -> AnimationClipJSON:
     """A ``play`` becomes a clip built from the descriptor animation's tracks
     (an#7). Resolution — which node, which set, which key, and every way it
@@ -3963,6 +4093,11 @@ def _resolve_play(
     closing the cycle at the clip end; step and linear tracks map 1:1.
     ``loop`` is the action's override or, when the action says nothing, the
     animation's own.
+
+    ``view`` is the view the entity is in when the play starts (an#220): a
+    swap track rides the set's per-view variant (``eyelid@side``) when the
+    node carries it and it has every key the track uses — a blink played in
+    profile closes the profile's eye, not the front one.
     """
     entity_id = _track_root_of(action.target)
     if vocab is None or entity_id not in vocab.descriptors:
@@ -4022,10 +4157,15 @@ def _resolve_play(
                 ChannelJSON(target=path, property=rt.property, keyframes=kfs)
             )
         else:
+            set_name = _face_set_for(vocab, entity_id, path, rt.set_name, view)
+            if not {key for _, key in rt.frames} <= set(
+                vocab.node_sets.get(path, {}).get(set_name) or {}
+            ):
+                set_name = rt.set_name  # the variant lacks a key: the base set
             channels.append(
                 ChannelJSON(
                     target=path,
-                    property=rt.set_name,
+                    property=set_name,
                     keyframes=[
                         KeyframeJSON(time=t, value=key, easing="step")
                         for t, key in rt.frames
@@ -4285,9 +4425,16 @@ def _add_viseme_clips(
     vocab: _SwapVocabulary | None = None,
     fps: int = 30,
     provider: ExpressionProvider | None = None,
+    view_spans: Mapping[str, list[_ViewSpan]] | None = None,
 ) -> None:
     """For each dialogue line with a viseme_track, emit a step swap channel on
     every node of the speaker that can apply the line's mouth set.
+
+    **The view picks first** (an#220): a line that starts while the speaker
+    is in a view it declares a mouth for (``viseme@side``, per
+    ``view_spans``) speaks on that set, whatever the expression — a profile's
+    mouth is the profile's. A view set lacking a key the line uses falls back
+    to the chain below, with a warning.
 
     The mouth SET is selected per line (an#98): the expression in force at the
     line's start prefers a ``viseme@<form>`` variant, and
@@ -4361,6 +4508,8 @@ def _add_viseme_clips(
             continue
         set_name = VISEME_CHANNEL
         desc = vocab.descriptors.get(speaker) if vocab is not None else None
+        line_spans = (view_spans or {}).get(speaker)
+        view_set = _line_view_set(vocab, speaker, line, spans=line_spans, index=i)
         if (
             desc is not None
             and provider is not None
@@ -4402,6 +4551,12 @@ def _add_viseme_clips(
                             )
                             set_name = VISEME_CHANNEL
                             break
+        # The expression's set; a line that starts in a view with its own mouth
+        # speaks on that instead (an#220), and returns to this one if the
+        # speaker turns to a view without one mid-line.
+        plain_set = set_name
+        if view_set is not None:
+            set_name = view_set
         mouth_paths = (
             vocab.swap_capable_paths(speaker, set_name) if vocab is not None else []
         )
@@ -4505,6 +4660,50 @@ def _add_viseme_clips(
             # frame-ceil their windows for the same reason.
             window = math.ceil(float(line.duration) * fps - 1e-9) / fps
             anim_id = f"__viseme__{shot.id}_{i}_{target.replace('/', '.')}"
+            track = track_lookup.get(speaker)
+            if track is None:
+                track = TrackJSON(target_root=speaker, clips=[])
+                tracks.append(track)
+                track_lookup[speaker] = track
+            segments = _line_view_segments(
+                vocab,
+                speaker,
+                target,
+                line_spans,
+                start=float(line.start),
+                end=float(line.start) + max(window, float(line.duration)),
+                first=set_name,
+                plain=plain_set,
+                keys={kf.value for kf in kfs},
+            )
+            if len(segments) > 1:
+                for j, (a, b, seg_set) in enumerate(segments):
+                    seg_keys = set(vocab.node_sets[target].get(seg_set) or {})
+                    before = [kf for kf in kfs if kf.time <= a + 1e-9]
+                    opening = before[-1].value if before else kfs[0].value
+                    seg_kfs = [KeyframeJSON(time=0.0, value=opening, easing="step")] + [
+                        KeyframeJSON(time=kf.time - a, value=kf.value, easing="step")
+                        for kf in kfs
+                        if a + 1e-9 < kf.time <= b + 1e-9 and kf.value in seg_keys
+                    ]
+                    seg_id = f"{anim_id}_{j}"
+                    animations[seg_id] = AnimationClipJSON(
+                        name=seg_id,
+                        duration=max(0.001, b - a),
+                        channels=[
+                            ChannelJSON(
+                                target=target, property=seg_set, keyframes=seg_kfs
+                            )
+                        ],
+                    )
+                    track.clips.append(
+                        PlacedClipJSON(
+                            animation_id=seg_id,
+                            start_time=float(line.start) + a,
+                            duration=max(0.001, b - a),
+                        )
+                    )
+                continue
             animations[anim_id] = AnimationClipJSON(
                 name=anim_id,
                 duration=max(window, float(line.duration)),
@@ -4512,11 +4711,6 @@ def _add_viseme_clips(
                     ChannelJSON(target=target, property=set_name, keyframes=kfs),
                 ],
             )
-            track = track_lookup.get(speaker)
-            if track is None:
-                track = TrackJSON(target_root=speaker, clips=[])
-                tracks.append(track)
-                track_lookup[speaker] = track
             track.clips.append(
                 PlacedClipJSON(
                     animation_id=anim_id,
@@ -4526,16 +4720,101 @@ def _add_viseme_clips(
             )
 
 
-def _mouth_rest_key(vocab: _SwapVocabulary, target: str, set_name: str) -> str | None:
+def _line_view_segments(
+    vocab: _SwapVocabulary,
+    speaker: str,
+    target: str,
+    spans: list[_ViewSpan] | None,
+    *,
+    start: float,
+    end: float,
+    first: str,
+    plain: str,
+    keys: set[str],
+) -> list[tuple[float, float, str]]:
+    """``[(start, end, set)]`` relative to the line's start: the mouth set the
+    line speaks on over each view it passes through (an#220). The first is the
+    set chosen at the line's start; a later view speaks on its own mouth when
+    it has one covering every key the line uses, else on ``plain`` (the
+    expression's set). One segment when the line never changes view — the
+    line's single clip, exactly as before. Every segment but the last ends
+    :data:`_VIEW_SPAN_EDGE_S` before the next, so two mouth sets never play
+    at one instant."""
+    out: list[tuple[float, float, str]] = []
+    for a, b, view in spans or ():
+        lo, hi = max(a, start), min(b, end)
+        if hi <= lo + 1e-9:
+            continue  # the span ends before the line starts, or starts after it
+        if out:
+            set_name = _face_set_for(vocab, speaker, target, VISEME_CHANNEL, view)
+            covered = keys <= set(vocab.node_sets.get(target, {}).get(set_name) or {})
+            if set_name == VISEME_CHANNEL or not covered:
+                set_name = plain
+        else:
+            set_name = first
+        if out and out[-1][2] == set_name:
+            out[-1] = (out[-1][0], hi - start, set_name)
+        else:
+            out.append((lo - start, hi - start, set_name))
+    if not out:
+        return [(0.0, end - start, first)]
+    out[-1] = (out[-1][0], end - start, out[-1][2])
+    return [
+        (a, b if j == len(out) - 1 else b - _VIEW_SPAN_EDGE_S, set_name)
+        for j, (a, b, set_name) in enumerate(out)
+    ]
+
+
+def _line_view_set(
+    vocab: _SwapVocabulary | None,
+    speaker: str,
+    line: Any,
+    *,
+    spans: list[_ViewSpan] | None,
+    index: int,
+) -> str | None:
+    """The per-view mouth set a line speaks on (``viseme@side``, an#220), or
+    ``None`` when the speaker's view at the line's start has none — or the
+    view's set lacks a key the line uses (then with a warning: the front
+    mouth in a profile is visible, and should be said)."""
+    if vocab is None or not spans:
+        return None
+    view = _view_at(spans, float(line.start))
+    paths = vocab.swap_capable_paths(speaker, VISEME_CHANNEL)
+    chosen = {_face_set_for(vocab, speaker, p, VISEME_CHANNEL, view) for p in paths}
+    chosen.discard(VISEME_CHANNEL)
+    if len(chosen) != 1:
+        return None
+    (set_name,) = chosen
+    keys_used = {str(kf.viseme).upper() for kf in line.viseme_track.keyframes}
+    for p in vocab.swap_capable_paths(speaker, set_name):
+        missing = sorted(keys_used - set(vocab.node_sets[p][set_name]))
+        if missing:
+            warnings.warn(
+                f"dialogue line {index} of {speaker!r} starts in the {view!r} view, "
+                f"but {set_name!r} on {p!r} lacks {missing}; the line speaks on the "
+                f"{VISEME_CHANNEL!r} set instead (draw the missing {view} shapes).",
+                CutoutCompileWarning,
+                stacklevel=3,
+            )
+            return None
+    return set_name
+
+
+def _mouth_rest_key(
+    vocab: _SwapVocabulary, target: str, set_name: str, *, base: str = VISEME_CHANNEL
+) -> str | None:
     """The rest key of a mouth set on ``target``: derived from the node's default
-    attachment for the neutral set; a ``viseme@<form>`` variant closes on the
-    same KEY the neutral set closes on (its art is the variant's), or on ``X``.
+    attachment for the neutral set; a variant (``viseme@<form>``, an#98;
+    ``viseme@side`` or ``eyelid@side``, an#220 — ``base`` names the set it
+    varies) rests on the same KEY the neutral set rests on (its art is the
+    variant's), or on ``X``.
     """
     rest = vocab.rest_key(target, set_name)
     if rest is not None:
         return rest
-    if set_name != VISEME_CHANNEL:
-        neutral_rest = vocab.rest_key(target, VISEME_CHANNEL)
+    if set_name != base:
+        neutral_rest = vocab.rest_key(target, base)
         keys = vocab.node_sets.get(target, {}).get(set_name) or {}
         if neutral_rest in keys:
             return neutral_rest
@@ -4694,6 +4973,7 @@ def _add_face_clips(
     mall: Mapping[str, Mapping] | None = None,
     provider: ExpressionProvider | None = None,
     poses: Mapping[str, Mapping[tuple[str, str], _StepCurve]] | None = None,
+    view_spans: Mapping[str, list[_ViewSpan]] | None = None,
 ) -> tuple[dict[str, float], dict[str, int]]:
     """Emit the face of every character: blinks, expressions, the silent mouth
     form — **exactly one channel per (node, property)**, summed at compile
@@ -4726,6 +5006,11 @@ def _add_face_clips(
     entity always takes the solver path, which folds the pose into every
     channel it drives (a posed pupil keeps its gaze on top of the pose) and
     emits the rest of the pose as step channels in the same clip.
+
+    ``view_spans`` (an#220, :func:`_view_spans`): an entity shown in a view it
+    declares per-view face sets for takes the solver path too, whose lids and
+    silent mouth then draw from ``eyelid@<view>``/``viseme@<view>`` over that
+    view's spans.
     """
     provider = provider or DefaultExpressionProvider()
     phases: dict[str, float] = {}
@@ -4818,7 +5103,8 @@ def _add_face_clips(
             ]
         has_pupils = desc is not None and bool(_pupil_paths(vocab, entity.id))
         pose = (poses or {}).get(entity.id)
-        if (not spans and not has_pupils and not pose) or desc is None:
+        entity_views = (view_spans or {}).get(entity.id)
+        if (not spans and not has_pupils and not pose and not entity_views) or desc is None:
             if spans and desc is None:
                 warnings.warn(
                     f"shot {shot.id!r}: {entity.id!r} has no descriptor (a procedural "
@@ -4844,6 +5130,7 @@ def _add_face_clips(
                 provider=provider,
                 spans=spans,
                 pose=pose,
+                view_spans=entity_views,
             )
             if _eye_paths(vocab, entity.id):
                 phases[entity.id] = blink_phase(entity.id)
@@ -4875,12 +5162,19 @@ def _solve_face(
     provider: ExpressionProvider,
     spans,
     pose: Mapping[tuple[str, str], _StepCurve] | None = None,
+    view_spans: list[_ViewSpan] | None = None,
 ) -> list[PlacedClipJSON]:
     """The solved face of one expressed-on entity: one clip, one channel per key.
 
     A ``pose`` (an#197) replaces the rest a channel is summed onto, frame by
     frame, for every (node, property) the solver drives; the pose's other
     curves ride the same clip as step channels.
+
+    ``view_spans`` (an#220): over a span whose view the eye declares a lid set
+    for (``eyelid@side``), the lid — blinks and expression alike — is keyed
+    on that set, one clip per span, each ending just before the next begins
+    (two swap sets live at one instant would resolve by NAME, not by time);
+    the mouth holds its view set's rest outside the lines the same way.
     """
     curves = {
         c.axis: list(c.samples) for c in provider.curves(shot, entity_id, fps=fps)
@@ -4984,6 +5278,7 @@ def _solve_face(
             )
         )
     # Lids: every eye node, expression or not — a blink is a lid contributor.
+    placed_lids: list[PlacedClipJSON] = []
     for path in _eye_paths(vocab, entity_id):
         expr = lid_expr.get(path, [0.0] * n)
         eyelid = vocab.node_sets.get(path, {}).get(EYELID_CHANNEL) or {}
@@ -4992,8 +5287,32 @@ def _solve_face(
         if has_art and rest_key not in (None, LID_KEY_OPEN):
             continue  # rests closed: the author's call, not a blink's
         if has_art:
-            if (path, EYELID_CHANNEL) in authored:
+            per_view = _lid_view_spans(vocab, entity_id, path, view_spans)
+            lid_sets = {EYELID_CHANNEL} | {v for _, _, v in per_view or ()}
+            lid_authored = any((path, lid) in authored for lid in lid_sets)
+            if lid_authored and not per_view:
                 continue  # an authored eye channel overrides the lid entirely (an#88)
+            if per_view:
+                # Per-view lids (an#220) are emitted even under an authored lid
+                # channel — without them the profile's eye art never shows —
+                # but then carry no auto-blink (an#88: authored overrides the
+                # blinks), and the authored clips still win where they play.
+                blink_windows = [] if lid_authored else windows
+                placed_lids.extend(
+                    _lid_span_clips(
+                        shot,
+                        entity_id,
+                        path,
+                        per_view,
+                        animations,
+                        vocab=vocab,
+                        times=times,
+                        lid_at=lambda i, t, bw=blink_windows: min(
+                            expr[i], _lid_blink_at(t, bw)
+                        ),
+                    )
+                )
+                continue
             keys = [
                 lid_key(min(expr[i], _lid_blink_at(t, windows)), available=eyelid)
                 for i, t in enumerate(times)
@@ -5043,6 +5362,7 @@ def _solve_face(
         placed.append(
             PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)
         )
+    placed.extend(placed_lids)
 
     # The silent mouth form: hold the variant's rest key over each expression
     # span, outside this entity's dialogue lines — and, whenever any variant is
@@ -5082,9 +5402,30 @@ def _solve_face(
         target: str,
         spans_: list[tuple[float, float]],
         tag: str,
+        holes: list[tuple[float, float]] = (),
+        exact: bool = False,
     ) -> None:
+        # `exact` (per-view mouths, an#220): an edge that is a VIEW change —
+        # a span's own end, a hole's — stays where it is rather than snapping
+        # to a frame, and a hold ending at one stops just short of it: the two
+        # sets meeting there then never play at one instant, where they would
+        # resolve by name rather than by which view is in force.
+        view_edges = (
+            [x for a_, b_ in spans_ for x in (a_, b_)] + [x for h in holes for x in h]
+            if exact
+            else []
+        )
+
+        def at_edge(x: float) -> bool:
+            return any(abs(x - e) < 1e-12 for e in view_edges)
+
         for j, (a, b) in enumerate(spans_):
-            for k, (ha, hb) in enumerate(_subtract_intervals((a, b), line_windows)):
+            pieces = [
+                piece
+                for gap in _subtract_intervals((a, b), list(holes))
+                for piece in _subtract_intervals(gap, line_windows)
+            ]
+            for k, (ha, hb) in enumerate(pieces):
                 # Snap to frames: start on the first frame at/after `ha` (one
                 # frame after a line's last frame when `ha` is that frame),
                 # end on the last frame strictly before `hb`'s line.
@@ -5101,6 +5442,18 @@ def _solve_face(
                     )
                 ):
                     end -= frame
+                # A view edge that is also a line's edge keeps the frame push
+                # away from the line: the line's clip owns its last frame.
+                if at_edge(ha) and not any(
+                    abs(ha - le) < 1e-9 for _, le in line_windows
+                ):
+                    start = ha
+                if (
+                    at_edge(hb)
+                    and hb < float(shot.duration) - 1e-9
+                    and not any(abs(hb - ls) < 1e-9 for ls, _ in line_windows)
+                ):
+                    end = hb - _VIEW_SPAN_EDGE_S
                 if end - start < -1e-9:
                     continue
                 dur = max(0.001, end - start)
@@ -5122,6 +5475,27 @@ def _solve_face(
                     PlacedClipJSON(animation_id=anim_id, start_time=start, duration=dur)
                 )
 
+    # Per-view mouths (an#220): over a view the mouth has its own set for,
+    # hold THAT set's rest outside the lines (a line there speaks on it,
+    # `_add_viseme_clips`); over every other view hold the neutral rest, so
+    # the mouth leaves the profile's art when the character turns back. The
+    # expression holds above step aside over the view's spans — a profile's
+    # mouth is the profile's.
+    view_holes: dict[str, list[tuple[float, float]]] = {}
+    for target in vocab.swap_capable_paths(entity_id, VISEME_CHANNEL):
+        per_view = [
+            (a, b, _face_set_for(vocab, entity_id, target, VISEME_CHANNEL, v))
+            for a, b, v in view_spans or ()
+        ]
+        if not any(set_name != VISEME_CHANNEL for _, _, set_name in per_view):
+            continue
+        holes = view_holes.setdefault(target, [])
+        for j, (a, b, set_name) in enumerate(per_view):
+            rest = _mouth_rest_key(vocab, target, set_name)
+            if set_name != VISEME_CHANNEL:
+                holes.append((a, b))
+            if rest is not None and b > a:
+                hold_clips(set_name, rest, target, [(a, b)], f"view{j}", exact=True)
     if variant_used:
         for target in vocab.swap_capable_paths(entity_id, VISEME_CHANNEL):
             rest = _mouth_rest_key(vocab, target, VISEME_CHANNEL)
@@ -5132,6 +5506,8 @@ def _solve_face(
                     target,
                     [(0.0, float(shot.duration))],
                     "neutral",
+                    holes=view_holes.get(target, []),
+                    exact=bool(view_holes.get(target)),
                 )
     for idx, sp in enumerate(spans):
         if sp.mouth_form is None or sp.source != "action":
@@ -5141,7 +5517,85 @@ def _solve_face(
             rest = _mouth_rest_key(vocab, target, set_name)
             if rest is None:
                 continue
-            hold_clips(set_name, rest, target, [(sp.start, sp.end)], str(idx))
+            hold_clips(
+                set_name,
+                rest,
+                target,
+                [(sp.start, sp.end)],
+                str(idx),
+                holes=view_holes.get(target, []),
+                exact=bool(view_holes.get(target)),
+            )
+    return placed
+
+
+def _lid_view_spans(
+    vocab: _SwapVocabulary,
+    entity_id: str,
+    path: str,
+    view_spans: list[_ViewSpan] | None,
+) -> list[tuple[float, float, str]] | None:
+    """``[(start, end, eyelid set)]`` over the shot for one eye, or ``None``
+    when every span keys on the plain ``eyelid`` set (then the lid is the one
+    channel it always was). A per-view set without ``OPEN`` and ``CLOSED`` art
+    cannot blink, so that view's lid stays on the plain set (an#220)."""
+    out: list[tuple[float, float, str]] = []
+    for a, b, view in view_spans or ():
+        set_name = _face_set_for(vocab, entity_id, path, EYELID_CHANNEL, view)
+        keys = vocab.node_sets.get(path, {}).get(set_name) or {}
+        if LID_KEY_OPEN not in keys or LID_KEY_CLOSED not in keys:
+            set_name = EYELID_CHANNEL
+        out.append((a, b, set_name))
+    if not any(set_name != EYELID_CHANNEL for _, _, set_name in out):
+        return None
+    return out
+
+
+def _lid_span_clips(
+    shot: Shot,
+    entity_id: str,
+    path: str,
+    per_view: list[tuple[float, float, str]],
+    animations: dict[str, AnimationClipJSON],
+    *,
+    vocab: _SwapVocabulary,
+    times: list[float],
+    lid_at: Callable[[int, float], float],
+) -> list[PlacedClipJSON]:
+    """One lid clip per view span (an#220): the solver's lid value, read off
+    the ladder of THAT span's set, keyed from the span's start. Each clip but
+    the last ends :data:`_VIEW_SPAN_EDGE_S` before the next span, so at every
+    instant exactly one lid set is playing and the latest-written one shows."""
+    placed: list[PlacedClipJSON] = []
+    for j, (a, b, set_name) in enumerate(per_view):
+        last = j == len(per_view) - 1
+        end = b if last else b - _VIEW_SPAN_EDGE_S
+        if end <= a:
+            continue
+        available = vocab.node_sets[path][set_name]
+        frames = [
+            (t, lid_key(lid_at(i, t), available=available))
+            for i, t in enumerate(times)
+            if a - 1e-9 <= t <= end + 1e-9
+        ]
+        if not frames:  # a span shorter than a frame: the nearest frame's lid
+            i = min(range(len(times)), key=lambda i: abs(times[i] - a))
+            frames = [(a, lid_key(lid_at(i, times[i]), available=available))]
+        # Keyed from the span's start with its first frame's lid.
+        kfs = [KeyframeJSON(time=0.0, value=frames[0][1], easing="step")]
+        for (t, key), (_, prev) in zip(frames[1:], frames):
+            if key != prev:
+                kfs.append(KeyframeJSON(time=t - a, value=key, easing="step"))
+        anim_id = f"__face_lid__{shot.id}_{entity_id}_{j}_{path.replace('/', '.')}"
+        duration = max(0.001, end - a)
+        animations[anim_id] = AnimationClipJSON(
+            name=anim_id,
+            duration=duration,
+            channels=[ChannelJSON(target=path, property=set_name, keyframes=kfs)],
+        )
+        placed.append(
+            PlacedClipJSON(animation_id=anim_id, start_time=a, duration=duration)
+        )
     return placed
 
 

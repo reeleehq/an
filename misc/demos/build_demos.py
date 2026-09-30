@@ -1234,6 +1234,115 @@ def _build_walk(work: Path) -> Path:
     return _render(_project(work, scene_md=md, characters=("ned",)))
 
 
+#: View_box units per pixel the carved-art demo draws its PNG parts at — NOT
+#: one, on purpose: every part declares its `width` and is sized by it (an#220).
+CARVED_UNITS_PER_PX: int = 4
+
+
+def _draw_robe_character(chars_dir: Path, name: str) -> None:
+    """A robe figure drawn as PNG parts at a quarter of the rig's resolution,
+    the way carved art arrives: every attachment declares its size in view_box
+    units, the leg slots are the two halves of the hem (`gait: hem`), and the
+    profile's eye and mouth are their own per-view sets (`eyelid@side`,
+    `viseme@side`) rather than a hidden face. Synthetic, drawn here."""
+    from PIL import Image, ImageDraw
+
+    from an.characters.schema import CharacterDescriptor
+
+    u = CARVED_UNITS_PER_PX
+    robe, trim, skin, ink = (70, 40, 120, 255), (200, 170, 60, 255), (240, 200, 170, 255), (30, 20, 30, 255)
+    root = chars_dir / name
+    (root / "parts" / "mouth").mkdir(parents=True, exist_ok=True)
+
+    def part(rel: str, size, draw) -> dict:
+        im = Image.new("RGBA", size, (0, 0, 0, 0))
+        draw(ImageDraw.Draw(im), size)
+        im.save(root / rel)
+        return {"path": rel, "width": float(size[0] * u)}
+
+    doc = json.loads(CharacterDescriptor(name=name).model_dump_json())
+    slots = doc["skins"]["default"]["slots"]
+
+    def put(slot: str, att: str, rel: str, size, draw) -> None:
+        slots.setdefault(slot, {})[att] = {**slots[slot].get(att, next(iter(slots[slot].values()))), **part(rel, size, draw)}
+
+    # The robe's body runs down over the hips; only the hem below it is split
+    # into the two halves the leg slots carry, drawn BEHIND it.
+    put("torso", "torso", "parts/torso.png", (45, 98),
+        lambda d, s: d.polygon([(8, 0), (37, 0), (44, 97), (1, 97)], fill=robe))
+    slots["torso"]["torso"]["y"] = 150.0
+    for side, flip in (("leg_l", False), ("leg_r", True)):
+        def hem(d, s, flip=flip):
+            d.polygon([(24 - x, y) if flip else (x, y) for x, y in [(4, 0), (24, 0), (24, 74), (0, 74)]], fill=robe)
+            d.rectangle([0, 68, 24, 74], fill=trim)
+        put(side, side, f"parts/{side}.png", (25, 75), hem)
+    for side in ("arm_l", "arm_r"):
+        put(side, side, f"parts/{side}.png", (12, 48),
+            lambda d, s: (d.rectangle([0, 0, 11, 40], fill=robe), d.ellipse([1, 38, 10, 47], fill=skin)))
+    put("head", "head", "parts/head.png", (45, 45), lambda d, s: d.ellipse([0, 0, 44, 44], fill=skin))
+    slots["head"]["front"] = dict(slots["head"]["head"])
+    put("head", "side", "parts/head_side.png", (45, 45),
+        lambda d, s: (d.ellipse([0, 0, 40, 44], fill=skin), d.polygon([(36, 20), (44, 28), (36, 30)], fill=skin)))
+    doc["asset_sets"]["view"] = {"front": "front", "side": "side"}
+    for eye in ("left_eye", "right_eye"):
+        put(eye, "open", f"parts/{eye}_open.png", (7, 7), lambda d, s: d.ellipse([0, 0, 6, 6], fill=ink))
+        put(eye, "closed", f"parts/{eye}_closed.png", (7, 7), lambda d, s: d.line([0, 4, 6, 4], fill=ink, width=2))
+        put(eye, "open_side", f"parts/{eye}_open_side.png", (7, 7),
+            lambda d, s: (d.ellipse([1, 1, 6, 6], fill=ink), d.line([0, 0, 6, 1], fill=ink)))
+        put(eye, "closed_side", f"parts/{eye}_closed_side.png", (7, 7),
+            lambda d, s: d.arc([0, 0, 6, 6], 0, 180, fill=ink, width=2))
+    doc["asset_sets"]["eyelid@side"] = {"OPEN": "open_side", "CLOSED": "closed_side"}
+    openness = {"X": 0, "A": 1, "B": 2, "C": 4, "D": 6, "E": 4, "F": 2, "G": 1, "H": 3}
+    side_mouths = {}
+    for key, att in doc["asset_sets"]["viseme"].items():
+        h = openness.get(key, 2)
+        put("mouth", att, f"parts/mouth/{att}.png", (14, 9),
+            lambda d, s, h=h: d.ellipse([1, 4 - h // 2, 12, 5 + h // 2], fill=ink) if h else d.line([2, 4, 11, 4], fill=ink, width=2))
+        put("mouth", f"{att}_side", f"parts/mouth/{att}_side.png", (14, 9),
+            lambda d, s, h=h: d.pieslice([2, 4 - h // 2 - 1, 13, 5 + h // 2 + 1], 90, 270, fill=ink) if h else d.line([6, 4, 12, 4], fill=ink, width=2))
+        side_mouths[key] = f"{att}_side"
+    doc["asset_sets"]["viseme@side"] = side_mouths
+    for brow in ("left_brow", "right_brow"):
+        att = next(iter(slots[brow]))
+        put(brow, att, f"parts/{brow}.png", (9, 3), lambda d, s: d.rectangle([0, 0, 8, 2], fill=ink))
+    doc["swap_poses"] = {"view": {"front": {}, "side": {
+        "left_eye": {"alpha": 0.0}, "left_brow": {"alpha": 0.0}, "arm_l": {"alpha": 0.0},
+        "right_eye": {"x": 30.0}, "right_brow": {"x": 30.0}, "mouth": {"x": 44.0},
+    }}}
+    doc["gait"] = "hem"
+    doc["source"] = {"provider": "an-demo", "license": "cc0-1.0",
+                     "attribution": "drawn by misc/demos/build_demos.py"}
+    (root / "character.json").write_text(json.dumps(doc, indent=1), encoding="utf-8")
+
+
+def _build_carved_art(work: Path) -> Path:
+    """Carved-art rigs (an#220): a robe figure built from PNG parts drawn at a
+    quarter of the rig's resolution walks in with its hem halves tilting,
+    speaks, turns to profile and — on the profile's own eye and mouth — blinks
+    and speaks again, then walks off with its legs swinging."""
+    md = (
+        _meta("Carved art: sized parts, a hem walk, a face in profile", 8.0)
+        + "\n"
+        + _shot("robe", 8.0)
+        + "\n"
+        + _entities("rae")
+        + "\n```yaml actions\n"
+        "- {kind: set, target: rae, property: x, value: -330, at: 0.0}\n"
+        "- {kind: play, target: rae, animation: walk, args: {to_x: 0, steps: 6, step_s: 0.35}, start: 0.1}\n"
+        "- {kind: play, target: rae, animation: turn, args: {to: side}, start: 4.0}\n"
+        "- {kind: play, target: rae, animation: blink, start: 4.6}\n"
+        "- {kind: play, target: rae, animation: walk, args: {distance: 330, direction: right, steps: 5, step_s: 0.35}, start: 6.1}\n"
+        "```\n"
+        "\n```dialogue\n"
+        "rae (at 2.4): Hello there.\n"
+        "rae (at 4.9): And goodbye.\n"
+        "```\n"
+    )
+    project = _project(work, scene_md=md, characters=())
+    _draw_robe_character(project / "assets" / "characters", "rae")
+    return _render(project)
+
+
 def _build_play(work: Path) -> Path:
     """`play` of a descriptor animation (an#7): the seeded `idle_breath` loops
     to the shot end from ONE line, and two `blink`s ride the eyelid swap set."""
@@ -2491,6 +2600,27 @@ DEMOS: tuple[Demo, ...] = (
             "`{kind: set, target: ned, property: view, value: back}` for a cut."
         ),
         build=_build_turnaround,
+    ),
+    Demo(
+        slug="carved-art",
+        title="Carved art: sized parts, a hem walk, a face in profile",
+        shows=(
+            "A robe figure whose parts are PNGs drawn at a quarter of the rig's "
+            "resolution — each attachment declares its width, so nothing is "
+            "resampled — walks in on a `hem` gait (the two halves of its hem tilt "
+            "in turn under a swaying, bobbing body), speaks, turns to profile, and "
+            "blinks and speaks there on the profile's OWN eye and mouth "
+            "(`eyelid@side`, `viseme@side`), then walks off with its legs swinging. "
+            "Limits: a descriptor `play` (a blink) keeps the view it started in, "
+            "so one running across a turn finishes on the first view's art."
+        ),
+        how=(
+            "In `character.json`: an attachment's `width`/`height` (view_box "
+            "units), `\"gait\": \"hem\"`, and `asset_sets` `eyelid@side` / "
+            "`viseme@side` naming the profile's face attachments; the scene is "
+            "plain `play: walk` / `turn` / `blink` and two dialogue lines."
+        ),
+        build=_build_carved_art,
     ),
     Demo(
         slug="walk",
