@@ -125,6 +125,10 @@ DFLT_WALK_LIFT: float = 10.0  # scene px a stepping leg rises (front view)
 DFLT_WALK_BOB: float = 6.0  # scene px the body rises between contacts
 DFLT_WALK_ARM_SWING: float = 0.3  # radians
 DFLT_WALK_ROCK: float = 0.06  # radians, a legless figure's side-to-side rock
+#: Radians each hem half tilts about its hip, in turn, in a ``hem`` gait seen
+#: from the front (an#220) — what read on a carved robe figure, where lifting
+#: one half by ``lift`` px barely showed.
+DFLT_WALK_HEM_TILT: float = 0.24
 #: A limb's move ends with a constant tween this long at its end value instead
 #: of a settling ``set``: it lands the value exactly (a held tween END is
 #: evaluated at its own end, which float drift cannot put a grid step early),
@@ -587,7 +591,9 @@ def walk(
     bob: float = DFLT_WALK_BOB,
     arm_swing: float = DFLT_WALK_ARM_SWING,
     rock: float = DFLT_WALK_ROCK,
+    hem_tilt: float = DFLT_WALK_HEM_TILT,
     view: str | None = None,
+    gait: str | None = None,
     legs: tuple[str, str] | None = None,
     arms: tuple[str, str] | None = None,
     parts: Mapping[str, Rest] | None = None,
@@ -616,8 +622,18 @@ def walk(
     pass it to override. ``legs``/``arms`` name the two limb nodes; by
     default the first pair in :data:`WALK_LEG_NAMES` / :data:`WALK_ARM_NAMES`
     that the rig builds (``parts``: the entity's built parts with their pose
-    at the start, filled in by the compiler). A figure with no legs (a robe,
-    a blob) walks on the bob and a ``rock`` of the body instead. Limbs land on
+    at the start, filled in by the compiler). Played by name with no view on
+    the timeline, the view is the descriptor's ``rest_view`` (an#220) — a
+    character carved in profile swings its legs with nothing passed.
+
+    **Gait** (``gait``, one of :data:`an.characters.schema.GAITS`, an#220).
+    ``legs`` is the above. ``hem`` is a robe whose leg slots are the two
+    halves of its hem: facing the camera the halves TILT in turn by
+    ``hem_tilt`` radians about the hip while the body sways by ``rock`` and
+    bobs (in a profile they swing like legs). ``rock`` moves no leg: the body
+    rocks and bobs (a blob, a sack). Unset: the descriptor's ``gait`` when
+    played by name, else ``legs`` when the rig builds a leg pair and ``rock``
+    when it does not. Limbs land on
     their rest with a :data:`WALK_LANDING_S` constant tween, not a settling
     ``set``: a ``set``'s hold would outrank the view's pose channel and keep a
     profile's splay after a later turn to the front.
@@ -636,7 +652,14 @@ def walk(
     ['rotation']
     >>> sorted({f.action.target for f in _tweens(walk("blob", steps=2, legs=(), arms=()))})
     ['blob']
+    >>> sorted({(f.action.target, f.action.property) for f in _tweens(walk("al", steps=2, gait="hem"))
+    ...         if f.action.target in ("al", "al/leg_l")})
+    [('al', 'rotation'), ('al', 'y'), ('al/leg_l', 'rotation')]
     """
+    from an.characters.schema import GAITS
+
+    if gait is not None and gait not in GAITS:
+        raise ValueError(f"gait must be one of {list(GAITS)}, got {gait!r}")
     if to_x is not None and distance is not None:
         raise ValueError("give to_x (absolute) or distance (relative), not both")
     if direction is not None:
@@ -726,14 +749,31 @@ def walk(
             [DFLT_OSCILLATION_EASING] * steps,
         )
 
-    leg_pair = _limb_pair(legs, WALK_LEG_NAMES, parts)
+    def body_rock() -> Action:
+        r0 = _rest(rest, "rotation")
+        rock_values = [r0] + [
+            v for i in range(steps) for v in (r0 + rock * (-1) ** i, r0)
+        ]
+        return _through(
+            target, "rotation", rock_values, durations=[half] * n, easings=up_down
+        )
+
+    leg_pair = _limb_pair(legs, WALK_LEG_NAMES, parts) if gait != "rock" else None
     arm_pair = _limb_pair(arms, WALK_ARM_NAMES, parts)
     swinging = view in WALK_SWING_VIEWS
+    hem = gait == "hem" and not swinging
     if leg_pair is not None:
         for phase, name in zip((1.0, -1.0), leg_pair):
             pose = part_rest(name)
-            if swinging:
-                moves.append(swing(limb(name), _rest(pose, "rotation"), stride, phase))
+            if swinging or hem:
+                moves.append(
+                    swing(
+                        limb(name),
+                        _rest(pose, "rotation"),
+                        hem_tilt if hem else stride,
+                        phase,
+                    )
+                )
             else:
                 ly = _rest(pose, "y")
                 # This leg steps on every other step; the other one stands.
@@ -748,16 +788,10 @@ def walk(
                         durations += [step_s]
                         easings += ["linear"]
                 moves.append(unsettled(limb(name), "y", values, durations, easings))
+        if hem:
+            moves.append(body_rock())  # the sway that makes a robe read as walking
     else:
-        r0 = _rest(rest, "rotation")
-        rock_values = [r0] + [
-            v for i in range(steps) for v in (r0 + rock * (-1) ** i, r0)
-        ]
-        moves.append(
-            _through(
-                target, "rotation", rock_values, durations=[half] * n, easings=up_down
-            )
-        )
+        moves.append(body_rock())
     if arm_pair is not None:
         # Against the leg on the same side: the leg_l phase is +1, so arm_l's is -1.
         for phase, name in zip((-1.0, 1.0), arm_pair):

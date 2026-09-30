@@ -55,9 +55,14 @@ a required part may ship in either format. Rules, all checked by
 - **Cut it out.** A part with no alpha channel draws its whole rectangle,
   background included (warning); a fully transparent part draws nothing
   (error); an unreadable file is an error.
-- **Size is pixels × the rig's one uniform scale**, exactly as an SVG part's
-  `width`/`height` are — so carve every part of a character at the same source
-  scale.
+- **Size is pixels × the rig's one uniform scale** by default — one pixel is
+  one view_box unit, exactly as an SVG part's `width`/`height` are. **A
+  declared size wins** (an#220): an attachment's `width` and/or `height`, in
+  view_box units, sizes the part whatever its pixel count, so art carved at
+  any resolution needs no resampling. Declare ONE of the two and the other
+  follows the art's aspect; declare both and the art is contained in the box
+  (uniformly scaled, never stretched — `an character validate` warns when the
+  two aspects disagree).
 - **Not recolourable.** A StylePack's colour roles reach tagged SVG literals;
   a raster's colours are pixels, so it renders as drawn (the compiler says so
   once; a `colour_roles` entry on a `.png` is a warning). Outline and shadow
@@ -72,7 +77,28 @@ a required part may ship in either format. Rules, all checked by
   `license: "all-rights-reserved"` (or the free-text "all rights reserved —
   private study only"): `an credits` lists it under **NOT PUBLISHABLE** and a
   render using it ends with a warning. Never record a permissive licence you
-  do not hold.
+  do not hold. A part carved from ANOTHER clip than the rest carries its own
+  `source` on its attachment (an#220) — `an credits` lists each part by path.
+
+## Views that draw the face differently (an#220)
+
+A profile head carved with its eye and mouth in it is the trap: hiding the
+face slots in `swap_poses` makes blinks and lip-sync vanish in profile. Carve
+the profile's eye and mouth out as parts and declare them as **per-view
+sets**: `eyelid@side` → `{OPEN: open_side, CLOSED: closed_side}` (attachments
+on both eye slots) and `viseme@side` → the profile's nine mouth shapes (on the
+mouth slot). The compiler uses them whenever `side` is in force — any view key
+works (`eyelid@back`). `an validate` warns when a line is spoken in a view
+that hides the mouth.
+
+Two more declared facts about carved art, both in `character.json`:
+
+- **`rest_view`** — the view the default art is drawn in, when it is not the
+  front: a figure carved only in profile says `"side"`, and `walk` swings its
+  legs without being told.
+- **`gait`** — `"hem"` when the leg slots are the two halves of a robe's hem
+  (a walk tilts them in turn and sways the body), `"rock"` for a figure with
+  nothing to step with.
 
 ## The four things that actually matter
 

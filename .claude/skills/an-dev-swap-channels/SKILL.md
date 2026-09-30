@@ -152,6 +152,43 @@ chained turns need nothing by hand; a pose's `alpha` step to 0 is a hide, not
 a fade, so it never trips the surface-treatment fade warning (an#203).
 Tests: `tests/test_turnaround.py`.
 
+## Per-view face sets (an#220)
+
+`<set>@<view>` — `eyelid@side`, `viseme@side` — is the face drawn for a view:
+a declared set whose base (`eyelid`) is declared and whose suffix is a key of
+the `view` set (or the descriptor's `rest_view`); `an.characters.schema.
+view_variant_sets` is the one reader, and `declared_mouth_variants` excludes
+these so `viseme@side` is never taken for a mouth form. The compiler reads the
+view timeline off the fan-out record (`_view_spans`: the latest `view` swap,
+else `rest_view`) and, ONLY for an entity with a per-view set that some span
+actually shows (every other scene compiles byte-identically):
+
+- **lids** — the entity takes the face-solver path; an eye whose view set has
+  `OPEN`+`CLOSED` art gets one `__face_lid__` clip per view span on that
+  span's set (`_lid_span_clips`) instead of one `eyelid` channel;
+- **lines** — `_line_view_set` picks the set at the line's start (the view
+  before the expression chain; a missing key falls back to `viseme` with a
+  warning), and `_line_view_segments` splits the line's clip at every view
+  change inside it, so a line spoken through a turn changes mouth with it;
+- **the silent mouth** — `hold_clips(..., exact=True)` holds each span's set
+  rest outside the lines; the expression holds step aside over the view's
+  spans (`holes`);
+- **a descriptor `play`** (a blink) — `_resolve_play(view=...)` swaps on the
+  variant when the node carries it with every key the track uses. Known limit:
+  the view is read at the play's START, so a play running across a turn keeps
+  its first view's set to its end (a blink is 0.18 s; it is not split);
+- **authored lids** — an authored `eyelid` channel no longer switches the
+  per-view lid clips off (the profile's art would never show); they carry no
+  auto-blink then (an#88), and the authored clips still win where they play.
+
+**The trap this design avoids:** two swap sets playing at one instant on one
+sprite share the `<swap>` write group and tie on "most recently written", so
+they resolve by NAME order — `eyelid@side` beats `eyelid` regardless of the
+view. Every per-view clip therefore ends `_VIEW_SPAN_EDGE_S` before the next
+view's span begins (exact edges, not frame-snapped), so at each instant exactly
+one of them is playing and the latest-written one shows. Tests:
+`tests/test_carved_art_gaps.py`.
+
 ## `play` rides the same channels (an#7)
 
 A `play` of a descriptor animation compiles slot tracks into swap channels on

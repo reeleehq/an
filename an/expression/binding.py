@@ -195,11 +195,15 @@ def declared_mouth_variants(desc: CharacterDescriptor) -> dict[str, str]:
     >>> declared_mouth_variants(CharacterDescriptor(name="m"))
     {}
     """
+    from an.characters.schema import view_variant_sets
+
     prefix = VISEME_CHANNEL + "@"
+    # `viseme@side` is the mouth drawn for a VIEW (an#220), not a mouth form.
+    per_view = set(view_variant_sets(desc).get(VISEME_CHANNEL, {}).values())
     return {
         name[len(prefix) :]: name
         for name in desc.asset_sets
-        if name.startswith(prefix) and len(name) > len(prefix)
+        if name.startswith(prefix) and len(name) > len(prefix) and name not in per_view
     }
 
 
