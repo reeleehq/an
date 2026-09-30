@@ -648,7 +648,10 @@ class Captions(_IRModel):
     burn: bool = True
     sidecar: bool = True
     #: Line breaks are made HERE, by character count, and written into both
-    #: the burned block and the sidecar — the same lines in both.
+    #: the burned block and the sidecar — the same lines in both. 42 fits the
+    #: title-safe width of a 16:9 or 4:3 frame at the default size; a square
+    #: or portrait frame needs fewer (about 32 at 1:1) or a smaller ``size`` —
+    #: a line that does not fit is REFUSED before the render, never clipped.
     max_chars: int = Field(default=DEFAULT_CAPTION_MAX_CHARS, ge=1)
     max_lines: int = Field(default=DEFAULT_CAPTION_MAX_LINES, ge=1)
     size: float = Field(default=DEFAULT_CAPTION_SIZE, gt=0, le=1, allow_inf_nan=False)

@@ -684,6 +684,14 @@ def _check_typesettable(
             f"wide, wider than the title-safe area ({round(area.x1 - area.x0)} px "
             f"of a {width} px frame); lower `captions.max_chars` or `captions.size`"
         )
+    y0 = min(u.box[1] for u in lay.units)
+    y1 = max(u.box[3] for u in lay.units)
+    if y0 < area.y0 - 1 or y1 > area.y1 + 1:
+        raise CaptionError(
+            f"shot {shot.id!r}: the caption {page.text!r} is {len(page.lines)} "
+            f"lines, {y1 - y0} px tall, taller than the title-safe area allows "
+            "at its anchor; lower `captions.size` or `captions.max_lines`"
+        )
     if overrides.get("unit") == "word" and len(lay.units) != len(page.words):
         raise CaptionError(  # pragma: no cover — the tokenisers agree today
             f"shot {shot.id!r}: the caption {page.text!r} set as "
