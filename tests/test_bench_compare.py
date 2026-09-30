@@ -1478,8 +1478,8 @@ def test_strict_fails_on_an_unstable_movement(tmp_path):
     from an import tools
 
     b, a = tmp_path / "b.json", tmp_path / "a.json"
-    b.write_text(json.dumps(_row({_FFD: _swept(_GRADED_444)})))
-    a.write_text(json.dumps(_row({_FFD: _swept(_GRADED_420)})))
+    b.write_text(json.dumps(_row({_FFD: _swept(_GRADED_444)})), encoding="utf-8")
+    a.write_text(json.dumps(_row({_FFD: _swept(_GRADED_420)})), encoding="utf-8")
     with pytest.raises(SystemExit) as caught:
         tools.bench_compare(before=str(b), after=str(a), strict=True)
     assert caught.value.code == 1
