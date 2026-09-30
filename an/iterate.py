@@ -171,7 +171,13 @@ The IR shape (relevant fields):
         Axes (offsets in [-1, 1]; lids in [-1, 0.5]): brow_height_l/r, brow_angle_l/r,
         lid_open_l/r, gaze_x, gaze_y. "duration" omitted = to the shot end. A
         character whose descriptor says face_overlay: false cannot take one.
-      - dialogue: list of {speaker, text, emotion, voice_ref, start, duration, ...}
+      - dialogue: list of {speaker, text, emotion, voice_ref, pause, at, ...}.
+        Lines play back to back from the shot start. "pause" (seconds) is
+        silence before a line, after the previous one ends — a beat, a look, a
+        hesitation belongs here, NOT in a new shot. "at" (seconds) starts a line
+        at that shot time instead; a line takes one or the other, never both.
+        "start" and "duration" are stamped by the audio pipeline from these on
+        every render — never patch them.
       - narration: list (same shape as dialogue, no speaker pin).
         NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with
         narration now RAISES. To add a narrator, emit a dialogue line whose
@@ -202,6 +208,7 @@ Path syntax for patches: slash-delimited, list indices are integers. Examples:
   "timeline/1/dialogue/0/emotion"           → set the emotion (a preset name: "happy" | "sad"
                                               | "angry" | "surprised" | "afraid" | "disgusted"
                                               | "skeptical" | "amused" | "thinking" | "neutral")
+  "timeline/1/dialogue/1/pause"             → seconds of silence before that line
 
 Patch operations:
 
@@ -215,8 +222,8 @@ Rules:
   2. Preserve shot ids unless the user explicitly asks to rename one.
   3. When changing a dialogue line's text, also update its `emotion` if the new
      wording suggests a different mood.
-  4. When extending a dialogue line meaningfully, you may extend the parent shot's
-     duration (set timeline/N/duration) so the line fits.
+  4. When extending a dialogue line meaningfully, or adding a pause, you may
+     extend the parent shot's duration (set timeline/N/duration) so the line fits.
   5. Populate affected_shots with the ids of every shot whose render needs to be
      redone (i.e. any shot you patched).
   6. Do not invent new fields. Keep emotion values inside the allowed set.

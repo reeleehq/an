@@ -21,7 +21,7 @@ What exists, and where, moved here from `CLAUDE.md` (an#156) so there is one map
 | JS runtime: PixiJS v7, procedural rig, SVG-sprite rig, generic swap channels (`applySwap` — any declared asset set, `viseme` included; an#87); blinks are COMPILED channels since an#88 (eyelid swap where closed art resolves, `scale_y` squash otherwise) | `an/data/cutout_runtime/{index.html,runtime.js,preview.html}` | shipped |
 | TTS providers `offline` / `elevenlabs` / `mac_say` | `an/audio/{offline_tts,elevenlabs_tts,mac_say_tts}.py`, factories in `an/audio/providers.py` | shipped |
 | Lip-sync providers `offline` / `whisper` / `rhubarb`, plus `WordTimingsLipSync` for injecting precomputed word timings | `an/audio/{offline_lipsync,whisper_lipsync,rhubarb_lipsync,injectable_lipsync}.py` | shipped |
-| Audio pipeline with content-hash caching and provider-swap re-synthesis | `an/audio/pipeline.py` | shipped |
+| Audio pipeline with content-hash caching and provider-swap re-synthesis; **dialogue timing within a shot** (an#187): `Dialogue.pause` (silence after the previous line) / `Dialogue.at` (a start in shot seconds), omit-when-unset, `scene.md` `speaker [emotion] (pause 1.5): text`; `Dialogue.start` is DERIVED by `Dialogue.planned_start` on every pass (so an edited pause re-times without re-synthesis, and the mux, visemes, captions, ducking and validate's overrun check all follow), and a `start` on a never-synthesized line is kept as its `at`. Timing is in no cache key | `an/audio/pipeline.py`, `an/ir/schema.py` `Dialogue` | shipped |
 | Verifiers: layout lint, media quality, vision-LM, human-in-the-loop (+ ffmpeg/SSIM helpers) | `an/verify/{layout,media_quality,vision,human}.py`, `an/verify/media.py` | shipped |
 | **Style lint + style specs**: `an.verify.style.StyleLintVerifier` measures a render the way the cut-out styles research measured six real styles — held-frame share, the one/two/three-plus change-interval histogram, longest hold, cuts per minute and mean shot (cuts taken from the IR), saturation, dark-pixel share, top-16 colour coverage — and warns per missed `[low, high]` target with the knob that moves it — a knob the spec's own `live` settings allow (never "drop `step_hz`" to a stepped style); a per-shot cadence table (`measure_shots`); cuts from the authored shot list with dissolve overlaps (`film_shots`), found automatically for a `<project>/output/*.mp4` by `python -m an.verify.style`, with a warning when it falls back to pixel cut detection; numpy + ffmpeg only; a failure to measure reports at `FAILURE_SEVERITY`. The specs are skill files (`.claude/skills/an-style/styles/*.yaml`: `live` settings checked against the code by `tests/test_style_specs.py`, measured `targets`, `guidance` for what `an` cannot do), NOT a document the compiler reads — that is gap 1 of an#163 | `an/verify/style.py`, `.claude/skills/an-style/`, `misc/docs/cutout_styles_research.md` | shipped |
 | Project render: per-shot dispatch through the registry, shot archive, ffmpeg concat (or `an.assemble` when a scene has transitions or sounds) | `an/render.py` — `render_project()` / `render()` | shipped (no stub, no `NotImplementedError`) |
@@ -274,7 +274,7 @@ Project.load(dir)
 └─ render() in an/render.py
    ├─ if any dialogue & auto_audio:
    │     produce_audio_for_scene(scene, mall, tts=…, lipsync=…)
-   │     ↳ stamps dialogue.audio_ref + dialogue.viseme_ref + dialogue.start + dialogue.duration + dialogue.word_timings (the provider's words, line-relative, when it has any — an#96)
+   │     ↳ stamps dialogue.audio_ref + dialogue.viseme_ref + dialogue.start (re-derived from pause/at every pass — an#187) + dialogue.duration + dialogue.word_timings (the provider's words, line-relative, when it has any — an#96)
    │     ↳ each line's voice: its own voice_ref > its speaker entity's (descriptor voice_ref, entity overrides winning) > "default"
    │       (an.audio.voices, an#194); the voice document's `voice_id` is what the TTS is handed
    │     ↳ persists wav bytes to mall["audio"][hash], visemes JSON to mall["visemes"][hash]
@@ -458,6 +458,8 @@ charlie [thinking]: Did you ever wonder why we always meet here?
 maya [amused]: Because the pigeons trust us.
 ```
 ```
+
+A dialogue line may carry one timing in parentheses — `maya (pause 1.5): …` or `maya (at 3.0): …` — beside or instead of the emotion (an#187); parentheses hold only timing.
 
 The `[emotion]` brackets on dialogue lines are sugar for an `expression` leaf over the line (an#98): `an/expression/presets.py` holds the presets (`neutral / happy / sad / angry / surprised / afraid / disgusted / thinking / skeptical / amused`), the face solver `_add_face_clips` in compile.py sums them into one channel per `(node, property)` — brows, lids, and the mouth's `viseme@<form>` set — and an unknown name is a validate error, not a silent neutral.
 

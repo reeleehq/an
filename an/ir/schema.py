@@ -504,8 +504,9 @@ class WordTimingIR(_IRModel):
 class Dialogue(_IRModel):
     """One line of spoken dialogue.
 
-    ``timing`` is None until the audio pipeline runs (TTS gives us a real
-    duration); the orchestrator fills it in then.
+    ``start`` and ``duration`` are None until the audio pipeline runs (TTS
+    gives us a real duration); the pipeline stamps them then, deriving
+    ``start`` from the author's ``pause`` / ``at`` (:meth:`planned_start`).
     """
 
     speaker: str  # the entity id this line belongs to
@@ -520,6 +521,61 @@ class Dialogue(_IRModel):
     word_timings: list[WordTimingIR] | None = None
     audio_ref: str | None = None  # mall["audio"] key (content-hash of TTS input)
     viseme_ref: str | None = None  # mall["visemes"] key (content-hash of lipsync input)
+    #: Seconds of silence before this line, after the previous line ends (the
+    #: shot start, for the first line) — ``(pause 1.5)`` in ``scene.md``.
+    pause: Seconds | None = Field(default=None, ge=0)
+    #: Where this line starts, in SHOT seconds, whatever came before it —
+    #: ``(at 3.0)`` in ``scene.md``. ``start`` is what the audio pipeline
+    #: DERIVES from ``at``/``pause`` on every pass; these two are what the
+    #: author wrote (an#187).
+    at: Seconds | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def _one_timing(self) -> "Dialogue":
+        if self.pause is not None and self.at is not None:
+            raise ValueError(
+                f"dialogue line {self.text!r} sets both `pause` and `at`; a line "
+                "starts either a pause after the previous line or at a shot time, "
+                "not both — keep one"
+            )
+        return self
+
+    def planned_start(self, cursor: float) -> float:
+        """Where this line starts, given the previous line ends at ``cursor``.
+
+        The one rule the audio pipeline stamps into ``start`` and `an validate`
+        lays lines out by: ``at`` if set, else ``cursor + pause``. A ``start``
+        on a line never synthesized (no ``audio_ref``) was authored — the
+        spelling of ``at`` before an#187 — and counts as one; a synthesized
+        line's ``start`` is the pipeline's own stamp, re-derived here.
+
+        >>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
+        2.3
+        >>> Dialogue(speaker="a", text="bye", at=4.0).planned_start(0.8)
+        4.0
+        >>> Dialogue(speaker="a", text="bye").planned_start(0.8)
+        0.8
+        """
+        if self.at is not None:
+            return float(self.at)
+        if self.pause is None and self.start is not None and self.audio_ref is None:
+            return float(self.start)
+        return float(cursor) + float(self.pause or 0.0)
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_timing(self, handler):
+        """Serialize ``pause``/``at`` out of existence when unset.
+
+        `AssetRef._omit_unset_stage`'s rule: every committed ``ir/scene.json``
+        predates these fields, and a defaulted ``null`` on every line would
+        rewrite all of them on the next ``an sync``.
+        """
+        data = handler(self)
+        if isinstance(data, dict):
+            for key in ("pause", "at"):
+                if getattr(self, key) is None:
+                    data.pop(key, None)
+        return data
 
 
 class Narration(_IRModel):
