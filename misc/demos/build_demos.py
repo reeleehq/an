@@ -630,7 +630,9 @@ def _build_text(work: Path) -> Path:
             color="#b3261e",
         ),
     )
-    prop("label", TextDescriptor(name="label", text="Maya", size=0.075, color="#1f4e9a"))
+    prop(
+        "label", TextDescriptor(name="label", text="Maya", size=0.075, color="#1f4e9a")
+    )
     pop = "[0.34, 1.56, 0.64, 1.0]"  # ease-out-back: a small overshoot
     actions = []
     for i in range(len(words)):
