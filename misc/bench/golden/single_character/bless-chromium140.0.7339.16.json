@@ -1,5 +1,5 @@
 {
-  "blessed_at": "2026-08-24T21:22:48Z",
+  "blessed_at": "2026-09-30T18:52:34Z",
   "chromium_build": "140.0.7339.16",
   "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
   "fps": 24,
@@ -26,18 +26,18 @@
     }
   ],
   "git": {
-    "branch": "wave6-pr-b",
+    "branch": "bench/rebless-drift",
     "dirty": true,
-    "sha": "d2054c8acbefcbae4ea74cc5fad28036855be018"
+    "sha": "3a114a1339ceb722f38ae792cd57c626dcfd0456"
   },
-  "reason": "an#97: frame 0 shows the led first mouth shape (the anticipation lead, 81 px); frame 24 shows the mouth CLOSED after the 0.71 s line \u2014 the terminal rest was never sampled before (frame 17 is 0.708 s, frame 18 lay outside the old clip window), so the old golden had the mouth stuck open after the line (81 px)",
+  "reason": "Record re-anchored, no pixel moved. The scene contract moved in an#173 (PR #183: placeholder limbs pivot at the shoulder, node at the joint and rect hung from it), which covers the same pixels at rest; the arms are at rest in both pinned frames, so PR #183 re-blessed only aa_probe and this record kept naming the pre-#183 scene. Pinned frames byte-identical on main 646f9e4 and on 1a31093 (changed_px 0); found by the new bless-record contract guard.",
   "removed": [],
   "resolution": [
     320,
     240
   ],
   "scene": "single_character",
-  "scene_contract_sha256": "424b94aafbc882c23bc1113de088af1f1dfd95c50249d0c35660edf359cf4513",
+  "scene_contract_sha256": "367a9fa9d1dc0aee2d26062d9d7460dea0ce928c21ff32fd22f3019eef986fb8",
   "shot_ids": [
     "s1"
   ],
