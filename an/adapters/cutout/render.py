@@ -173,20 +173,21 @@ DEFAULT_PIX_FMT: str = "yuv420p"
 #: has not been measured against the panel.
 SUPPORTED_PIX_FMTS: tuple[str, ...] = ("yuv420p", "yuv444p")
 
-#: How frames leave the browser. ``"screenshot"``: a Playwright element
-#: screenshot of ``#stage`` per instant — the path every render took before the
-#: canvas path existed, and still the default. ``"canvas"``: the runtime's
-#: ``anCaptureFrames`` reads the canvas in-page and hands back PNG data URLs in
-#: batches (`an.adapters.cutout.canvas_capture`), which writes frames whose
-#: DECODED pixels equal the screenshot path's.
+#: How frames leave the browser. ``"canvas"`` (the default since an#192): the
+#: runtime's ``anCaptureFrames`` reads the canvas in-page and hands back PNG data
+#: URLs in batches (`an.adapters.cutout.canvas_capture`), which writes frames
+#: whose DECODED pixels equal the screenshot path's — ~7.8x faster in the frame
+#: stage on the golden corpus, ~2.3x at 1080p. ``"screenshot"``: a Playwright
+#: element screenshot of ``#stage`` per instant, the path every render took
+#: before; still available (``an render --capture screenshot``).
 #:
-#: **The default stays ``"screenshot"`` until the equivalence gate has held on
-#: the whole golden corpus on both the developer machine and the labelled Linux
-#: rendering lane** (epic #9's throughput track): a faster path that moved a
-#: pixel would silently invalidate every baseline recorded before it. The flip is
-#: its own one-line PR. Read as a MODULE GLOBAL at call time, for
-#: `DEFAULT_PIX_FMT`'s reason — a default argument would bind it at def time.
-DEFAULT_CAPTURE: str = "screenshot"
+#: Flipped only after the equivalence gate (`tests/test_canvas_capture_equivalence.py`)
+#: held on the whole golden corpus on a developer machine AND the labelled Linux
+#: rendering lane (an#189, re-run on an#192): a faster path that moved a pixel
+#: would silently invalidate every baseline recorded before it. Read as a MODULE
+#: GLOBAL at call time, for `DEFAULT_PIX_FMT`'s reason — a default argument
+#: would bind it at def time.
+DEFAULT_CAPTURE: str = "canvas"
 
 #: The capture paths `_check_capture` accepts. Not an open string: a typo must
 #: fail before a browser launches, not minutes into a render.
@@ -326,15 +327,16 @@ def _check_capture(capture: str | None) -> str:
     """Resolve and validate the capture path; ``None`` is the module default
     **at call time**, which keeps :data:`DEFAULT_CAPTURE` flippable from outside.
 
-    >>> _check_capture(None), _check_capture("canvas")
-    ('screenshot', 'canvas')
+    >>> _check_capture(None), _check_capture("screenshot")
+    ('canvas', 'screenshot')
     """
     resolved = capture or DEFAULT_CAPTURE
     if resolved not in SUPPORTED_CAPTURES:
         raise CutoutRenderError(
             f"capture={resolved!r} is not one of {SUPPORTED_CAPTURES}. "
-            "'screenshot' is the default; 'canvas' reads the canvas in-page and "
-            "writes frames whose decoded pixels equal the screenshot path's."
+            "'canvas' is the default and reads the canvas in-page; 'screenshot' "
+            "takes a Playwright element screenshot per instant. Both write frames "
+            "with the same decoded pixels."
         )
     return resolved
 

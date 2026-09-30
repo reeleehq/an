@@ -8,9 +8,10 @@ byte for byte, which follows when the frames do because the encode is pinned.
 File bytes are not compared: the two paths use different PNG encoders, and
 decoded pixels are the criterion the golden corpus itself uses.
 
-It is the gate epic #9's throughput track names. The default stays
-``"screenshot"`` until this holds on the whole corpus on a developer machine
-AND on the labelled Linux rendering lane; the flip is a separate PR.
+It is the gate epic #9's throughput track names. It held on the whole corpus
+on a developer machine AND on the labelled Linux rendering lane (an#189), and
+the default flipped to ``"canvas"`` on that evidence (an#192) — so a red here
+now means the DEFAULT path moved a pixel.
 
 Slow on purpose — every corpus scene twice — so it lives apart from the
 offline tests in ``tests/test_canvas_capture.py``.

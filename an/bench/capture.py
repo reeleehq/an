@@ -126,6 +126,12 @@ class SceneCapture:
     audio_cache: str
     wall_seconds: float
     determinism: dict = field(default_factory=dict)
+    #: How the frames left the browser (``"screenshot"`` / ``"canvas"``),
+    #: resolved the way the render resolves it. The decoded pixels are the same
+    #: either way, so no metric moves — but ``wall_seconds`` does, several-fold,
+    #: and a timing row is only readable beside the path that produced it
+    #: (an#192 flipped the default).
+    capture: str = ""
 
 
 class CaptureError(RuntimeError):
@@ -224,6 +230,9 @@ def capture_fixture(
     project = load(work_copy)
     scene = project.scene
 
+    from an.adapters.cutout.render import _check_capture
+
+    capture_path = _check_capture(BENCH_RENDER_KWARGS.get("capture"))
     started = time.perf_counter()
     output_mp4 = Path(render(project, **BENCH_RENDER_KWARGS))
     wall = time.perf_counter() - started
@@ -285,6 +294,7 @@ def capture_fixture(
         ],
         audio_cache=audio_cache,
         wall_seconds=round(wall, 3),
+        capture=capture_path,
     )
 
 

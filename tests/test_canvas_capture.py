@@ -137,15 +137,17 @@ def test_a_non_png_data_url_is_refused():
 
 
 def test_the_capture_knob_refuses_an_unknown_path_before_anything_launches():
-    assert render._check_capture(None) == render.DEFAULT_CAPTURE == "screenshot"
+    # an#192: the canvas path is the default; the screenshot path stays selectable.
+    assert render._check_capture(None) == render.DEFAULT_CAPTURE == "canvas"
+    assert render._check_capture("screenshot") == "screenshot"
     with pytest.raises(render.CutoutRenderError, match="not one of"):
         render._check_capture("webgl")
 
 
 def test_the_default_is_read_at_call_time(monkeypatch):
-    """So the eventual flip is a one-line change, and a lever can pull it."""
-    monkeypatch.setattr(render, "DEFAULT_CAPTURE", "canvas")
-    assert render._check_capture(None) == "canvas"
+    """So the default is a one-line change, and a lever can pull it."""
+    monkeypatch.setattr(render, "DEFAULT_CAPTURE", "screenshot")
+    assert render._check_capture(None) == "screenshot"
 
 
 # ------------------------------------------------ ordering and back-pressure

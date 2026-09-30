@@ -104,12 +104,12 @@ def render_project(
     with an exact block mean. **Opt-in, and 1 is free** — at 1 nothing is
     decoded and Chromium's own bytes reach disk. See :func:`render`.
 
-    ``capture`` picks how frames leave the browser: ``"screenshot"`` (the
-    default, via ``None``) or ``"canvas"`` — an in-page read of the canvas,
-    batched, writing frames whose decoded pixels equal the screenshot path's
-    and measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p (see
-    `an.adapters.cutout.canvas_capture`). Opt-in until the equivalence gate has
-    held on both rendering lanes.
+    ``capture`` picks how frames leave the browser: ``"canvas"`` (the default,
+    via ``None``, since an#192) — an in-page read of the canvas, batched,
+    writing frames whose decoded pixels equal the screenshot path's and
+    measured ~7.8x faster in the frame stage on the golden corpus, ~2.3x at
+    1080p (see `an.adapters.cutout.canvas_capture`) — or ``"screenshot"``, a
+    Playwright element screenshot per instant.
 
     ``step_hz`` overrides the scene's ``meta.step_hz`` for this render (a shot's
     own ``step_hz`` still wins): authored tweens are resampled onto a pose grid

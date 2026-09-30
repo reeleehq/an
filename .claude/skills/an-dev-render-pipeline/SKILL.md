@@ -45,7 +45,7 @@ an.render.render(project, …)
      │                                           own bytes, nothing decoded (OFF IS FREE)
      │                                     k>1 → screenshot to BYTES, block-mean resolve to the
      │                                           declared size, then write
-     │                                   — or, ctx.capture="canvas" (opt-in, §2b):
+     │                                   — or, ctx.capture="canvas" (THE DEFAULT since an#192, §2b):
      │                                     batches of anCaptureFrames → PNG data URLs →
      │                                     opaque check, the SAME resolves, RGB PNG, on a
      │                                     bounded encode pool. Same decoded frames.
@@ -237,9 +237,11 @@ the reason, `tests/test_cutout_runtime_files.py::test_the_capture_page_never_sto
 refuses it, and the mutant `capture_page_stops_compositing_the_canvas` proves
 that guard fails when it is reintroduced.
 
-## 2b. The canvas capture path (opt-in) — the win above, shipped behind a flag
+## 2b. The canvas capture path (the default since an#192) — the win above
 
-`RenderContext.capture = "canvas"` / `an render --capture canvas`. The page's
+`RenderContext.capture` / `an render --capture`: `"canvas"` is the default
+(`DEFAULT_CAPTURE`, read at call time); `--capture screenshot` still selects
+the element-screenshot loop above. The page's
 `window.anCaptureFrames(requests)` seeks each requested instant and returns
 `app.view.toDataURL('image/png')`; `an/adapters/cutout/canvas_capture.py` turns
 each into the frame the screenshot path writes; `render._capture_frames_canvas`
@@ -265,9 +267,11 @@ Every trap, and where it is closed — do not reopen any of them:
 every golden-corpus scene rendered both ways, every frame's decoded array and the
 delivered mp4 compared; a 3-shot, 288-frame render in a parallel pool of 3; and
 supersample 2 with a 3-sample open shutter through `CutoutRenderer` directly.
-**The default stays `"screenshot"`** until that gate holds on a developer machine
-AND the labelled Linux lane; the flip is a one-line PR of its own
-(`DEFAULT_CAPTURE`, read at call time).
+**The default flipped to `"canvas"` in an#192**, after that gate held on a
+developer machine AND the labelled Linux lane (an#189), and again on the flip
+itself. The bench records the resolved path as each scene's
+`provenance.capture`, beside `wall_seconds`: no metric moves across the flip,
+but timings on either side of it are not comparable.
 
 **Cost** (M1 Max, a heavily loaded machine — load average 120-230 on 10 cores —
 so read ratios, not absolutes; interleaved, medians):
@@ -454,10 +458,11 @@ Also still unmeasured, from `wave3_research.md` §7 — do not assume any of the
 - ~~Whether the compositing win grows with k.~~ **MOOT until the capture path
   changes** — the win is unrealisable while frames come from an element
   screenshot (§2). Worth re-asking only inside an in-page-capture PR, where the
-  measured contribution at 1x is 1.09x. The canvas path (§2b) now
-  exists but is opt-in and shares `index.html` with the screenshot path, so the
-  canvas must stay composited until the default flips; hiding it is a
-  follow-up to that flip, not to this path.
+  measured contribution at 1x is 1.09x. The canvas path (§2b) is the
+  default since an#192, but still shares `index.html` with the screenshot
+  path, which needs the canvas composited — so hiding it means making the
+  guard (`test_the_capture_page_never_stops_compositing_the_stage_canvas`) and
+  its mutant conditional on the capture path. Not done yet.
 - ~~`-f concat -c copy -movflags +faststart` on the pinned ffmpeg build.~~
   **SETTLED — it is a remux, not a transcode** (ffmpeg 8.1, Homebrew, macOS
   arm64, an#57). The concatenated elementary stream is sha256-identical to the
