@@ -1231,6 +1231,7 @@ def _build_preset_plays(work: Path) -> Path:
     easing (an#166): no Python, no `rest=`. `bo` stands at x = 110 in a
     two-character shot, and its `shake` stays centred there; the unnamed-easing
     slide takes the scene's `default_easing: linear`."""
+    y0 = frame_full_body()[0]  # a tween's `to` is absolute: lift from the framed y
     md = (
         _meta("Motion presets by name", 4.0).replace(
             "default_renderer: cutout",
@@ -1246,7 +1247,7 @@ def _build_preset_plays(work: Path) -> Path:
         "- {kind: play, target: maya, animation: hop, args: {height: 25}, start: 1.2}\n"
         "- {kind: play, target: bo, animation: nod, start: 1.8}\n"
         "- {kind: play, target: maya, animation: squash_stretch, duration: 0.6, start: 2.4}\n"
-        "- {kind: tween, target: bo, property: y, to: -30, duration: 0.5, start: 3.1}\n"
+        f"- {{kind: tween, target: bo, property: y, to: {y0 - 30:.2f}, duration: 0.5, start: 3.1}}\n"
         "```\n"
     )
     return _render(_project(work, scene_md=md, characters=("maya", "bo")))
