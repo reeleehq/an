@@ -733,3 +733,20 @@ def test_a_profile_silhouette_shows_two_legs(tmp_path):
     band = range(bottom - int(LOWER_LEG_BAND[1] * h), bottom - int(LOWER_LEG_BAND[0] * h))
     two = [r for r in band if _runs(ink[r]) == 2]
     assert len(two) >= len(band) // 2, [(r, _runs(ink[r])) for r in band]
+
+
+def test_facing_ties_go_to_the_later_authored_action_and_bad_values_are_skipped():
+    """A set authored AFTER a turn, landing at the instant the turn settles,
+    wins — as the compiler orders it — and a non-numeric scale_x is not a
+    crash inside validate (review of an#203)."""
+    from an.characters.play import resolve_turns
+
+    flats = flatten(sequence(
+        PlayAction(target="ned", animation="turn", args={"to": "side", "direction": "left", "duration": 0.3}),
+    )) + flatten(sequence(delay(0.3), set_("ned", "scale_x", 1.0)))
+    res = resolve_turns(flats, descriptor_of=lambda e: None, rest_of=lambda p: {"scale_x": 1.0})
+    from an.characters.play import facing_at
+
+    assert facing_at(res.events, "ned", 5.0).direction == "right"
+    bad = flatten(set_("ned", "scale_x", "abc"))
+    assert facing_at(bad, "ned", 1.0).direction is None

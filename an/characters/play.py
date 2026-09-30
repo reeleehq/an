@@ -695,7 +695,8 @@ def facing_at(events, entity: str, t: float, *, view_set: str = "view") -> Facin
     """What ``entity`` shows at time ``t``: the latest ``view_set`` swap set
     on the entity and the sign of the latest ``scale_x`` it was given, at or
     before ``t`` (a tween counts from its END, when its value has landed; at
-    one instant the later-authored action wins, as the compiler has it).
+    one instant the one LATER in ``events`` wins — so pass them in authoring
+    order, as :func:`resolve_turns` does).
 
     >>> from an.ir.compose import flatten, sequence
     >>> from an.motion import turn
@@ -719,10 +720,13 @@ def facing_at(events, entity: str, t: float, *, view_set: str = "view") -> Facin
     for time, _, prop, value in sorted(stamped, key=lambda e: (e[0], e[1])):
         if time > t + _FACING_SLACK:
             break
-        if prop == "scale_x":
-            sx = float(value)
-        else:
+        if prop != "scale_x":
             view = value
+            continue
+        try:
+            sx = float(value)
+        except (TypeError, ValueError):
+            continue  # a value the compiler refuses; validate reports it elsewhere
     direction = None if not sx else ("left" if sx < 0 else "right")
     return Facing(view=view, direction=direction)
 
@@ -759,7 +763,16 @@ def resolve_turns(
     from an.ir.schema import PlayAction
 
     out = list(flat_list)
-    events = [f for f in flat_list if not isinstance(f.action, PlayAction)]
+    # (authoring position, sub-step) -> flat: an expanded play's leaves sit
+    # where the play was authored, so a tie at one instant goes to whatever
+    # was authored later, as the compiler orders it.
+    ordered = [
+        ((i, 0), f) for i, f in enumerate(flat_list) if not isinstance(f.action, PlayAction)
+    ]
+
+    def events() -> list:
+        return [f for _, f in sorted(ordered, key=lambda e: e[0])]
+
     plays = sorted(
         (
             (i, f)
@@ -782,7 +795,7 @@ def resolve_turns(
             from an.motion import DFLT_TURN_SET
 
             before = facing_at(
-                events, entity, f.start, view_set=str(args.get("view_set", DFLT_TURN_SET))
+                events(), entity, f.start, view_set=str(args.get("view_set", DFLT_TURN_SET))
             )
             declared = args.get("from_direction")
             turns.append(TurnInference(i, f.start, entity, before, declared))
@@ -791,10 +804,11 @@ def resolve_turns(
                 action = action.model_copy(update={"args": args})
                 out[i] = FlatAction(start=f.start, end=f.end, action=action)
         try:
-            events.extend(expand_preset_play(action, start=f.start, rest_of=rest_of))
+            leaves = expand_preset_play(action, start=f.start, rest_of=rest_of)
         except (PlayResolutionError, TypeError, ValueError):
             continue  # play_problems says why; the facing just learns nothing
-    return TurnResolution(flats=out, turns=turns, events=events)
+        ordered.extend(((i, n + 1), leaf) for n, leaf in enumerate(leaves))
+    return TurnResolution(flats=out, turns=turns, events=events())
 
 
 def resolve_play(

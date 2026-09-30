@@ -679,8 +679,10 @@ def _turn_resolution(
     top-level action index each flat came from. ``None`` without a characters
     store — the check did not run, which is not the same as passing.
 
-    The rest pose is the identity: validate builds no stage, and the SIGN of
-    ``scale_x`` — all a facing is — does not depend on the rest's size.
+    The rest pose is the identity: validate builds no stage. A facing is only
+    the SIGN of ``scale_x``, so this is exact unless a character is staged
+    mirrored and a preset settles it back to its rest — then validate reads
+    it facing right where compile has it facing left (a known, narrow gap).
     """
     if stores.get("characters") is None:
         return None
@@ -739,7 +741,7 @@ def _check_view_continuity(
     scene: SceneIR, report: "ValidationReport", resolved: list
 ) -> None:
     """A character that ends one shot turned (a view other than the default,
-    or facing left) and appears in the NEXT shot starts that shot at its rest
+    or facing left) and appears in the very next shot starts that shot at its rest
     — shots are independent by design (each compiles alone; the per-shot
     archive and `render_project` depend on it), so a view does not carry
     across a cut (an#203). Said as a warning, with the one line that carries
@@ -753,7 +755,7 @@ def _check_view_continuity(
             return  # no characters store: the check did not run
         events = shot_resolved[0].events
         ids = [e.id for e in shot.entities if e.kind == "character"]
-        for j, entity_id in enumerate(ids):
+        for entity_id in ids:
             if entity_id not in previous:
                 continue
             prev_shot, ended = previous[entity_id]
