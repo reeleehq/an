@@ -389,7 +389,9 @@ def readable_sweep(sweep: Any) -> dict | None:
     return sweep
 
 
-def sweep_verdict(before: Any, after: Any, *, shipped: str | None = None) -> dict | None:
+def sweep_verdict(
+    before: Any, after: Any, *, shipped: str | None = None
+) -> dict | None:
     """Does a threshold counter's direction survive its own parameter grid?
 
     an#140. ``flat_field_deviation`` counts pixels past a hard threshold over a
@@ -700,9 +702,9 @@ def _compare_scene(
             ),
             direction=movement,
         )
-        shipped = (
-            (after["declarations"].get(key, {}).get("threshold_sweep") or {})
-        ).get("shipped")
+        shipped = (after["declarations"].get(key, {}).get("threshold_sweep") or {}).get(
+            "shipped"
+        )
         sweep = sweep_verdict(row_b.get("sweep"), row_a.get("sweep"), shipped=shipped)
         if sweep is not None:
             entry["sweep"] = sweep

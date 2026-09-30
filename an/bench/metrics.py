@@ -421,7 +421,10 @@ def flat_field_deviation_sweep(
         if not dev.size:
             continue
         for t in tols:
-            out[sweep_cell_key(dilate_k=k, tol=t)] = [int((dev > t).sum()), int(dev.size)]
+            out[sweep_cell_key(dilate_k=k, tol=t)] = [
+                int((dev > t).sum()),
+                int(dev.size),
+            ]
     return out
 
 
@@ -476,7 +479,9 @@ def encode_flicker_sweep(
     if not held.any():
         return {}
     moved = np.abs(v[1:] - v[:-1]).max(-1)[held]
-    return {sweep_cell_key(tol=t): [int((moved >= t).sum()), int(moved.size)] for t in tols}
+    return {
+        sweep_cell_key(tol=t): [int((moved >= t).sum()), int(moved.size)] for t in tols
+    }
 
 
 def overshoot_mean(dec_luma: Any, src_luma: Any, ring: Any) -> float:

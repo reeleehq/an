@@ -613,9 +613,7 @@ def _scene_metrics(
     # The panel's other hard-threshold counter, so the same sweep (an#140).
     flicker = _num(M.encode_flicker_on_held_pixels, ref_rgb[:n], dec_rgb[:n])
     values["encode_flicker_on_held_pixels"] = (
-        measured(
-            flicker.value, sweep=M.encode_flicker_sweep(ref_rgb[:n], dec_rgb[:n])
-        )
+        measured(flicker.value, sweep=M.encode_flicker_sweep(ref_rgb[:n], dec_rgb[:n]))
         if flicker.state == "measured"
         else flicker
     )
