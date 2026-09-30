@@ -109,6 +109,15 @@ class RenderContext:
     #: are CAPTURED, not what the scene is, so it must not move the compiled
     #: document. Its length must equal the render's frame count.
     frame_samples: tuple[tuple[float, ...], ...] | None = None
+    #: How frames leave the browser: ``"screenshot"`` (a Playwright element
+    #: screenshot per instant) or ``"canvas"`` (the runtime reads its own canvas
+    #: in-page, in batches). ``None`` is the renderer's module default, read at
+    #: call time — ``"screenshot"`` until the equivalence gate has held on the
+    #: whole corpus on both lanes. The two paths write frames whose DECODED
+    #: pixels are equal, so this is a throughput knob and never a picture knob;
+    #: a `RenderContext` field for `supersample`'s reason, and recorded in
+    #: per-shot provenance.
+    capture: str | None = None
     extra: dict[str, Any] = field(default_factory=dict)
 
 

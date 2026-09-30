@@ -11,6 +11,8 @@
  *   window.anSetTime(t) → seeks to time t (seconds) and re-evaluates poses.
  *   window.anCanvasReady() → resolves when the canvas is sized and PixiJS
  *       is initialized (so Playwright knows it's safe to screenshot).
+ *   window.anCaptureFrames(requests) → seeks each requested instant in order
+ *       and returns the canvas as PNG data URLs (the `capture="canvas"` path).
  *   window.anRuntimeVersion → '0.1.0'
  *
  * The runtime is deliberately self-contained: no module loader, no build step.
@@ -945,6 +947,56 @@
         applyPose(pose);
         app.render();
         return true;
+    };
+
+    // ------------------------------------------------------------------------
+    // In-page frame capture — the `capture="canvas"` path
+    // (an/adapters/cutout/canvas_capture.py is the Python half; read its
+    // docstring before changing anything here).
+    //
+    // requests: [{frame: i, times: [t, ...]}, ...], in the order the frames
+    // must be captured. Returns {frames: [{frame, width, height, pngs}]} with
+    // the frame numbers ECHOED, so the Python side can prove nothing was
+    // dropped or reordered, or {error, frame, t} for the first instant the
+    // runtime could not evaluate — the same located failure the screenshot
+    // path raises.
+    //
+    // Every instant is seeked through `NS.anSetTime`, in the order given,
+    // exactly as the screenshot path seeks it: the pose is NOT a pure function
+    // of t today (a seek back to an earlier time can leave state behind, an#185), so a
+    // capture that visited the instants in any other order would be a
+    // different render, not a faster one.
+    //
+    // `app.view.toDataURL`, not `app.renderer.extract` (which re-renders into
+    // a non-multisampled texture — a different picture) and not raw
+    // `gl.readPixels` bytes (bottom-up rows, premultiplied, and ~20x slower to
+    // move across the DevTools protocol than a PNG). It reads the drawing
+    // buffer `anSetTime` just rendered, which `preserveDrawingBuffer: true`
+    // keeps readable.
+    // ------------------------------------------------------------------------
+    NS.anCaptureFrames = function (requests) {
+        if (!app || !scene) {
+            throw new Error('anCaptureFrames: no scene is loaded');
+        }
+        const view = app.view;
+        const frames = [];
+        for (const req of requests) {
+            const pngs = [];
+            for (const t of req.times) {
+                try {
+                    NS.anSetTime(t);
+                } catch (e) {
+                    return {
+                        error: (e && e.name ? e.name + ': ' : '') + (e && e.message ? e.message : String(e)),
+                        frame: req.frame,
+                        t: t,
+                    };
+                }
+                pngs.push(view.toDataURL('image/png'));
+            }
+            frames.push({ frame: req.frame, width: view.width, height: view.height, pngs: pngs });
+        }
+        return { frames: frames };
     };
 
     // Blinks are COMPILED channels since an#88 — see compile.py's

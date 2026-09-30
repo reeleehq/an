@@ -45,6 +45,10 @@ an.render.render(project, …)
      │                                           own bytes, nothing decoded (OFF IS FREE)
      │                                     k>1 → screenshot to BYTES, block-mean resolve to the
      │                                           declared size, then write
+     │                                   — or, ctx.capture="canvas" (opt-in, §2b):
+     │                                     batches of anCaptureFrames → PNG data URLs →
+     │                                     opaque check, the SAME resolves, RGB PNG, on a
+     │                                     bounded encode pool. Same decoded frames.
      │    7. _ffmpeg_mux                → silent.mp4  (libx264, yuv420p, DETERMINISTIC_X264_ARGS,
      │                                                 MP4_FASTSTART_ARGS) — an INTERMEDIATE
      │    8. _ffmpeg_add_audio          → <shot>.mp4  (-c:v copy + AAC + MP4_FASTSTART_ARGS;
@@ -233,6 +237,54 @@ the reason, `tests/test_cutout_runtime_files.py::test_the_capture_page_never_sto
 refuses it, and the mutant `capture_page_stops_compositing_the_canvas` proves
 that guard fails when it is reintroduced.
 
+## 2b. The canvas capture path (opt-in) — the win above, shipped behind a flag
+
+`RenderContext.capture = "canvas"` / `an render --capture canvas`. The page's
+`window.anCaptureFrames(requests)` seeks each requested instant and returns
+`app.view.toDataURL('image/png')`; `an/adapters/cutout/canvas_capture.py` turns
+each into the frame the screenshot path writes; `render._capture_frames_canvas`
+drives it. **The contract is the DECODED frame**: same RGB array, same mode,
+same size — so the mux sees the same frames and the delivered mp4 is
+byte-identical. File bytes differ (Pillow's encoder, not Chromium's), which is
+why nothing may compare them.
+
+Every trap, and where it is closed — do not reopen any of them:
+
+| trap | what happens | closed by |
+|---|---|---|
+| row order | `gl.readPixels` is bottom-up; a PNG is top-down. A flipped frame has the declared size and passes every shape check | `toDataURL`, no flip; mutant `canvas_capture_flips_rows` + an in-test flip in the equivalence gate |
+| premultiplied alpha | NOT live today (`backgroundAlpha` 1, every measured pixel 255 — though `toDataURL` still hands back an RGBA PNG). Live the day a background is translucent: the drawing buffer is premultiplied, the PNG is not, the screenshot composites over the page's white; all three agree only at alpha 255 | `opaque_rgb` **refuses** any pixel below 255 — never blends |
+| `renderer.extract` | re-renders the stage into a render texture that is NOT multisampled — a different picture | the hook reads `app.view` |
+| raw RGBA over CDP | 8 MB/frame at 1080p: 830-950 ms/f via in-page base64, 5.9 s/f via Playwright's typed-array serialisation (measured) | the PNG data URL is the transfer encoding (~45 KB) |
+| seek order | the pose is not a pure function of t (an#185): t=0 after t=0.967 differs from a fresh t=0 by 122 px on `single_character` | instants are seeked in exactly the screenshot path's order, frame then sample |
+| dropped / reordered frames | a frame in the wrong file muxes, plays, and is wrong | the page echoes frame numbers; a reply that is not exactly the request writes nothing; every frame 0..N-1 must be written once |
+| unbounded buffering | a fast page and a slow encoder hold the whole shot in memory | at most `DEFAULT_CANVAS_MAX_INFLIGHT` frames wait on the pool; the loop blocks on the oldest |
+| decode/encode cost | ~40-60 ms/f of Pillow at 1080p, the same order as the page's own work | runs on `DEFAULT_CANVAS_ENCODE_WORKERS` threads while the page renders the next batch; Pillow-native alpha check and drop (a numpy `[..., :3]` copy was ~5x slower) |
+
+**The gate** is `tests/test_canvas_capture_equivalence.py` (browser + ffmpeg):
+every golden-corpus scene rendered both ways, every frame's decoded array and the
+delivered mp4 compared; a 3-shot, 288-frame render in a parallel pool of 3; and
+supersample 2 with a 3-sample open shutter through `CutoutRenderer` directly.
+**The default stays `"screenshot"`** until that gate holds on a developer machine
+AND the labelled Linux lane; the flip is a one-line PR of its own
+(`DEFAULT_CAPTURE`, read at call time).
+
+**Cost** (M1 Max, a heavily loaded machine — load average 120-230 on 10 cores —
+so read ratios, not absolutes; interleaved, medians):
+
+- **Golden corpus, 11 scenes, 2 rounds**: the frame stage (`_capture_frames`)
+  **29.3 s -> 3.8 s (7.8x)**, ~100 ms/f -> ~12 ms/f at 320x240, where the
+  element screenshot's fixed per-call cost is everything. Whole-render
+  wall-clock only **462 s -> 383 s (1.2x)**: at corpus size, browser launch,
+  compile, audio and ffmpeg dominate, and under that load they are noisy
+  (one scene read the other way).
+- **1080p, `single_character`, 3 rounds**: frame stage **186 -> 76-82 ms/f
+  (~2.3x)**. Here the page's own `toDataURL` (~45 ms/f) and the Python
+  decode/re-encode (~40-60 ms/f of CPU, overlapped on the pool) are real work.
+- The in-page encoder is the next cost: a readback that reaches Python as
+  pixels without a PNG round trip would need a faster channel than CDP (§2b
+  table, raw RGBA row).
+
 **`-tune animation`** — measured at **0.8%**. Dropped: it is not a wave, and
 adding it moves `x264_argv` and refuses every encode-side metric for nothing.
 
@@ -402,7 +454,10 @@ Also still unmeasured, from `wave3_research.md` §7 — do not assume any of the
 - ~~Whether the compositing win grows with k.~~ **MOOT until the capture path
   changes** — the win is unrealisable while frames come from an element
   screenshot (§2). Worth re-asking only inside an in-page-capture PR, where the
-  measured contribution at 1x is 1.09x.
+  measured contribution at 1x is 1.09x. The canvas path (§2b) now
+  exists but is opt-in and shares `index.html` with the screenshot path, so the
+  canvas must stay composited until the default flips; hiding it is a
+  follow-up to that flip, not to this path.
 - ~~`-f concat -c copy -movflags +faststart` on the pinned ffmpeg build.~~
   **SETTLED — it is a remux, not a transcode** (ffmpeg 8.1, Homebrew, macOS
   arm64, an#57). The concatenated elementary stream is sha256-identical to the
