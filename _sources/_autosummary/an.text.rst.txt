@@ -1,0 +1,42 @@
+an.text
+=======
+
+.. automodule:: an.text
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      TEXT_DOCUMENT_KIND
+      DFLT_TEXT_SIZE
+      DFLT_TEXT_COLOUR
+      RESERVED_TEXT_IDS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      resolve_text
+      font_base_dir
+      text_entity_problem
+      layout_text
+      unit_names
+      stagger
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      TextDescriptor
+      TextUnit
+      TextLayout
+      FontIdentity
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      TextFontError
+      TextLayoutError
+   

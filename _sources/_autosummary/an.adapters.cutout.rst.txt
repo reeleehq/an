@@ -53,4 +53,5 @@ an.adapters.cutout
    serialize
    shutter
    supersample
+   text
    timeline

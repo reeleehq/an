@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=45974446"></script>
+    <script src="../../_static/documentation_options.js?v=e1efc05f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.96" />
+  <meta name="docsearch:version" content="0.1.97" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1347,6 +1347,9 @@ window.runMermaid = runMermaid;</script>
             <span class="n">walk</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">child_prefix</span><span class="p">)</span>
 
     <span class="n">walk</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">overlay</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># an#155: overlay text is addressable too</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">overlay</span><span class="o">.</span><span class="n">children</span><span class="p">:</span>
+            <span class="n">walk</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">found</span></div>
 
 

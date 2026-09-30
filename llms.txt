@@ -23,6 +23,7 @@
 - [an.adapters.cutout.serialize](_autosummary/an.adapters.cutout.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
 - [an.adapters.cutout.shutter](_autosummary/an.adapters.cutout.shutter.html.md): The temporal half of the frame stage: average several instants into one frame.
 - [an.adapters.cutout.supersample](_autosummary/an.adapters.cutout.supersample.html.md): Render bigger, then resolve back exactly — the supersample knob’s two halves.
+- [an.adapters.cutout.text](_autosummary/an.adapters.cutout.text.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
 - [an.adapters.cutout.timeline](_autosummary/an.adapters.cutout.timeline.html.md): Timeline: tracks of placed clips with absolute times and blend ramps.
 - [an.adapters.manim_adapter](_autosummary/an.adapters.manim_adapter.html.md): ManimRenderer — generate a minimal Manim scene + invoke &#96;manim&#96; as subprocess.
 - [an.adapters.remotion_adapter](_autosummary/an.adapters.remotion_adapter.html.md): RemotionRenderer — invoke &#96;npx remotion render&#96; against a generated TSX project.
@@ -117,6 +118,7 @@
 - [an.stores.styles](_autosummary/an.stores.styles.html.md): Styles store — visual style presets (color palette, line weight, fonts).
 - [an.stores.voices](_autosummary/an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
 - [an.styles](_autosummary/an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.
+- [an.text](_autosummary/an.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
 - [an.tools](_autosummary/an.tools.html.md): User-facing utility functions, plus the SSOT list for CLI dispatch.
 - [an.util](_autosummary/an.util.html.md): Internal helpers: file I/O, hashing, time arithmetic, light path utilities.
 - [an.verify](_autosummary/an.verify.html.md): Verification protocol — same interface for human, lint, vision-LM, MoVer.
@@ -127,7 +129,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-30 02:01 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-30 02:21 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

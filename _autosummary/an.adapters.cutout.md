@@ -171,6 +171,18 @@ harness and the golden-corpus bless to assert WHICH render path ran.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### overlay *: [NodeJSON](an.adapters.cutout.serialize.md#an.adapters.cutout.serialize.NodeJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a second top-level container the
+runtime centres on the canvas and never indexes, so no channel — the
+camera’s `root.pivot`/`root.scale` included — can reach it. Its
+children are indexed by their own paths exactly like `scene`’s, so an
+overlay title’s words tween like anything else. `None` when the shot
+has no overlay, and then omitted from the serialized document.
+
+* **Type:**
+  The camera-immune layer (an#155)
+
 ### *class* an.adapters.cutout.KeyframeJSON(\*\*data)
 
 Bases: `_JSONModel`
@@ -322,4 +334,5 @@ clothes (an#33).
 | [`serialize`](an.adapters.cutout.serialize.md#module-an.adapters.cutout.serialize)         | JSON contract between the Python compiler and the (future) JS runtime.                                                                          |
 | [`shutter`](an.adapters.cutout.shutter.md#module-an.adapters.cutout.shutter)             | The temporal half of the frame stage: average several instants into one frame.                                                                  |
 | [`supersample`](an.adapters.cutout.supersample.md#module-an.adapters.cutout.supersample)     | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                   |
+| [`text`](an.adapters.cutout.text.md#module-an.adapters.cutout.text)                   | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                         |
 | [`timeline`](an.adapters.cutout.timeline.md#module-an.adapters.cutout.timeline)           | Timeline: tracks of placed clips with absolute times and blend ramps.                                                                           |

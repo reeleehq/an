@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=45974446"></script>
+    <script src="../../../../_static/documentation_options.js?v=e1efc05f"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.96" />
+  <meta name="docsearch:version" content="0.1.97" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -755,6 +755,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.shutter</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_frame_samples</span><span class="p">,</span> <span class="n">mean_png_bytes</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.runtime_files</span><span class="w"> </span><span class="kn">import</span> <span class="n">runtime_dir</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_dict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">INLINE_SRC_PREFIX</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Shot</span><span class="p">,</span> <span class="n">resolve_step_hz</span>
 
 
@@ -1351,6 +1352,11 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">CutoutAssetWarning</span><span class="p">,</span>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">src_rel</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">INLINE_SRC_PREFIX</span><span class="p">):</span>
+            <span class="c1"># The bytes are IN the document (a text unit's glyphs, an#155):</span>
+            <span class="c1"># there is nothing to copy, and nothing is missing.</span>
             <span class="k">continue</span>
 
         <span class="n">prefix</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>

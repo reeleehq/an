@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=45974446"></script>
+    <script src="../_static/documentation_options.js?v=e1efc05f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.runtime_files" href="an.adapters.cutout.runtime_files.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.96" />
+  <meta name="docsearch:version" content="0.1.97" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -431,6 +431,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -743,6 +744,22 @@ harness and the golden-corpus bless to assert WHICH render path ran.</p>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.CutoutSceneJSON.overlay">
+<span class="sig-name descname"><span class="pre">overlay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#an.adapters.cutout.serialize.NodeJSON" title="an.adapters.cutout.serialize.NodeJSON"><span class="pre">NodeJSON</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.serialize.CutoutSceneJSON.overlay" title="Link to this definition">#</a></dt>
+<dd><p>a second top-level container the
+runtime centres on the canvas and never indexes, so no channel — the
+camera’s <code class="code docutils literal notranslate"><span class="pre">root.pivot</span></code>/<code class="code docutils literal notranslate"><span class="pre">root.scale</span></code> included — can reach it. Its
+children are indexed by their own paths exactly like <code class="code docutils literal notranslate"><span class="pre">scene</span></code>’s, so an
+overlay title’s words tween like anything else. <code class="docutils literal notranslate"><span class="pre">None</span></code> when the shot
+has no overlay, and then omitted from the serialized document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The camera-immune layer (an#155)</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -762,6 +779,20 @@ character silently re-phases every blink and moves every pixel metric;
 a stamped phase turns that into a visible diff instead of an
 unexplained metric shift. (The runtime’s determinism probe used to
 carry this; the fact moved with the mechanism.)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.CutoutSceneMetaJSON.fonts">
+<span class="sig-name descname"><span class="pre">fonts</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.adapters.cutout.serialize.CutoutSceneMetaJSON.fonts" title="Link to this definition">#</a></dt>
+<dd><p>entity id -&gt;
+<code class="docutils literal notranslate"><span class="pre">&quot;&lt;family&gt;</span> <span class="pre">&lt;style&gt;</span> <span class="pre">[(embedded)]</span> <span class="pre">sha256:&lt;digest&gt;&quot;</span></code> — identity by the
+font’s BYTES, since a family name is not one. Provenance, inert to the
+runtime (the glyphs are already SVG). <strong>Serialized only when non-empty.</strong></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Per text block, the face that set it (an#155)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1067,10 +1098,12 @@ the compiler emits <code class="docutils literal notranslate"><span class="pre">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneJSON"><code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneJSON.asset_resolution"><code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON.asset_resolution</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneJSON.model_config"><code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneJSON.overlay"><code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON.overlay</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneMetaJSON"><code class="docutils literal notranslate"><span class="pre">CutoutSceneMetaJSON</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneMetaJSON.blink_phases"><code class="docutils literal notranslate"><span class="pre">CutoutSceneMetaJSON.blink_phases</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneMetaJSON.fonts"><code class="docutils literal notranslate"><span class="pre">CutoutSceneMetaJSON.fonts</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneMetaJSON.gaze_seeds"><code class="docutils literal notranslate"><span class="pre">CutoutSceneMetaJSON.gaze_seeds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneMetaJSON.model_config"><code class="docutils literal notranslate"><span class="pre">CutoutSceneMetaJSON.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.CutoutSceneMetaJSON.step_hz"><code class="docutils literal notranslate"><span class="pre">CutoutSceneMetaJSON.step_hz</span></code></a></li>

@@ -89,6 +89,12 @@ How swap channels work in the `an` repo — the one generic replacement-animatio
 
 Source: [`.claude/skills/an-dev-swap-channels`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-swap-channels).
 
+### `an-dev-text`
+
+Text on screen in the `an` repo (an#155, epic
+
+Source: [`.claude/skills/an-dev-text`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-text).
+
 ### `an-spec`
 
 Use when the user is starting a new an scene and needs help dialogically developing a scene specification — clarifying questions about characters, dialogue, art style, voices, pacing, and camera. Triggers on "let's design a scene", "I want to make a video about…", "help me sketch a cartoon", or any open-ended creative request handed to an.

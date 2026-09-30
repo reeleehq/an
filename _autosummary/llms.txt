@@ -21,6 +21,7 @@
 - [an.adapters.cutout.serialize](an.adapters.cutout.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
 - [an.adapters.cutout.shutter](an.adapters.cutout.shutter.html.md): The temporal half of the frame stage: average several instants into one frame.
 - [an.adapters.cutout.supersample](an.adapters.cutout.supersample.html.md): Render bigger, then resolve back exactly — the supersample knob’s two halves.
+- [an.adapters.cutout.text](an.adapters.cutout.text.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
 - [an.adapters.cutout.timeline](an.adapters.cutout.timeline.html.md): Timeline: tracks of placed clips with absolute times and blend ramps.
 - [an.adapters.manim_adapter](an.adapters.manim_adapter.html.md): ManimRenderer — generate a minimal Manim scene + invoke &#96;manim&#96; as subprocess.
 - [an.adapters.remotion_adapter](an.adapters.remotion_adapter.html.md): RemotionRenderer — invoke &#96;npx remotion render&#96; against a generated TSX project.
@@ -115,6 +116,7 @@
 - [an.stores.styles](an.stores.styles.html.md): Styles store — visual style presets (color palette, line weight, fonts).
 - [an.stores.voices](an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
 - [an.styles](an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.
+- [an.text](an.text.html.md): Words on screen: title cards, labels, and text you can animate word by word.
 - [an.tools](an.tools.html.md): User-facing utility functions, plus the SSOT list for CLI dispatch.
 - [an.util](an.util.html.md): Internal helpers: file I/O, hashing, time arithmetic, light path utilities.
 - [an.verify](an.verify.html.md): Verification protocol — same interface for human, lint, vision-LM, MoVer.

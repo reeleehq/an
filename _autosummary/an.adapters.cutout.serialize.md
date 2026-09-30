@@ -160,6 +160,18 @@ harness and the golden-corpus bless to assert WHICH render path ran.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+#### overlay *: [NodeJSON](#an.adapters.cutout.serialize.NodeJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+a second top-level container the
+runtime centres on the canvas and never indexes, so no channel — the
+camera’s `root.pivot`/`root.scale` included — can reach it. Its
+children are indexed by their own paths exactly like `scene`’s, so an
+overlay title’s words tween like anything else. `None` when the shot
+has no overlay, and then omitted from the serialized document.
+
+* **Type:**
+  The camera-immune layer (an#155)
+
 ### *class* an.adapters.cutout.serialize.CutoutSceneMetaJSON(\*\*data)
 
 Bases: `_JSONModel`
@@ -175,6 +187,16 @@ character silently re-phases every blink and moves every pixel metric;
 a stamped phase turns that into a visible diff instead of an
 unexplained metric shift. (The runtime’s determinism probe used to
 carry this; the fact moved with the mechanism.)
+
+#### fonts *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]*
+
+entity id ->
+`"<family> <style> [(embedded)] sha256:<digest>"` — identity by the
+font’s BYTES, since a family name is not one. Provenance, inert to the
+runtime (the glyphs are already SVG). **Serialized only when non-empty.**
+
+* **Type:**
+  Per text block, the face that set it (an#155)
 
 #### gaze_seeds *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [int](https://docs.python.org/3/builtins/functions.html#int)]*
 

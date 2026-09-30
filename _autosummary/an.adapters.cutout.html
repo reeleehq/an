@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=45974446"></script>
+    <script src="../_static/documentation_options.js?v=e1efc05f"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters" href="an.adapters.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.96" />
+  <meta name="docsearch:version" content="0.1.97" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -431,6 +431,7 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -755,6 +756,22 @@ harness and the golden-corpus bless to assert WHICH render path ran.</p>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.CutoutSceneJSON.overlay">
+<span class="sig-name descname"><span class="pre">overlay</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="an.adapters.cutout.serialize.html#an.adapters.cutout.serialize.NodeJSON" title="an.adapters.cutout.serialize.NodeJSON"><span class="pre">NodeJSON</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.CutoutSceneJSON.overlay" title="Link to this definition">#</a></dt>
+<dd><p>a second top-level container the
+runtime centres on the canvas and never indexes, so no channel — the
+camera’s <code class="code docutils literal notranslate"><span class="pre">root.pivot</span></code>/<code class="code docutils literal notranslate"><span class="pre">root.scale</span></code> included — can reach it. Its
+children are indexed by their own paths exactly like <code class="code docutils literal notranslate"><span class="pre">scene</span></code>’s, so an
+overlay title’s words tween like anything else. <code class="docutils literal notranslate"><span class="pre">None</span></code> when the shot
+has no overlay, and then omitted from the serialized document.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The camera-immune layer (an#155)</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -963,7 +980,10 @@ clothes (an#33).</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.supersample.html#module-an.adapters.cutout.supersample" title="an.adapters.cutout.supersample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supersample</span></code></a></p></td>
 <td><p>Render bigger, then resolve back exactly — the supersample knob's two halves.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.timeline.html#module-an.adapters.cutout.timeline" title="an.adapters.cutout.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.text.html#module-an.adapters.cutout.text" title="an.adapters.cutout.text"><code class="xref py py-obj docutils literal notranslate"><span class="pre">text</span></code></a></p></td>
+<td><p>A text block, compiled: one node per unit, each an SVG sprite (an#155).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.timeline.html#module-an.adapters.cutout.timeline" title="an.adapters.cutout.timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timeline</span></code></a></p></td>
 <td><p>Timeline: tracks of placed clips with absolute times and blend ramps.</p></td>
 </tr>
 </tbody>
@@ -1049,6 +1069,7 @@ clothes (an#33).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutSceneJSON"><code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutSceneJSON.asset_resolution"><code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON.asset_resolution</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutSceneJSON.model_config"><code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutSceneJSON.overlay"><code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON.overlay</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.KeyframeJSON"><code class="docutils literal notranslate"><span class="pre">KeyframeJSON</span></code></a><ul class="nav section-nav flex-column">

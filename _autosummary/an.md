@@ -522,6 +522,7 @@ always passes it).
 | [`render`](an.render.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.        |
 | [`stores`](an.stores.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                            |
 | [`styles`](an.styles.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had. |
+| [`text`](an.text.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.           |
 | [`tools`](an.tools.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                    |
 | [`util`](an.util.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.            |
 | [`verify`](an.verify.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.              |
