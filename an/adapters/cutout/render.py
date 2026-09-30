@@ -537,6 +537,11 @@ def _stage_job(
     runtime_target = base / "runtime"
     frames_dir = base / "frames"
     base.mkdir(parents=True, exist_ok=True)
+    # Cleared, not reused: `.an/render_work` persists, and frames left by a
+    # longer earlier render of this shot would otherwise sit past this one's
+    # last frame — in `frame_manifest`, and in the pattern the mux reads.
+    if frames_dir.exists():
+        shutil.rmtree(frames_dir)
     frames_dir.mkdir(parents=True, exist_ok=True)
     if runtime_target.exists():
         shutil.rmtree(runtime_target)

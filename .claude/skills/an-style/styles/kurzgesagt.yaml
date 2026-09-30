@@ -30,6 +30,11 @@ live:
     range_s: [3, 12]
   characters:
     generate: offline        # stand-ins; the real look needs hand-drawn birds and blobs (promote an SVG)
+  transitions:
+    default: {kind: cut}     # mostly continuous camera; a flash is a short white fade
+    flash: {kind: fade, duration: 0.25, color: "#ffffff"}   # an estimate of the clip's sub-second flashes
+  sound:
+    bed: {loop: true, gain_db: -10, duck_db: -10, fade_in: 2.0, fade_out: 2.0}   # an ambient score under the narrator; levels are an estimate
 
 targets:
   identical_frame_share: [0.15, 0.30]   # measured 0.24: the picture is almost never still
@@ -44,5 +49,5 @@ guidance:
   glow: an additive gradient sprite; no surface treatment ships
   dolly: depth-aware zoom is the real technique and is not built (an#110 deferred it); a zoom is uniform across planes
   text: rounded labels with coloured borders, diagrams with drawn-on lines; no text node ships
-  sound: a calm single narrator, custom orchestral-ambient score, designed SFX; `an` renders dialogue audio only
-  transitions: match-moves and flashes; `an` only hard-cuts
+  sound: a calm single narrator (dialogue), the score as `live.sound`'s bed (bring a licensed track), designed SFX as shot `sounds` cues
+  transitions: match-moves (object continuity across the cut) and wipes are not built; flashes are `live.transitions.flash`

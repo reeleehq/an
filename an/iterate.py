@@ -176,6 +176,19 @@ The IR shape (relevant fields):
         NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with
         narration now RAISES. To add a narrator, emit a dialogue line whose
         speaker is not an entity in the shot; it gets audio and no lip-sync.
+      - transition (optional): how the shot is ENTERED —
+        {kind: "cut"|"fade"|"dissolve", duration: seconds, color: "#rrggbb"}.
+        Omitted = a hard cut. "fade" dips through color (half out of the
+        previous shot, half into this one; on the first shot, a fade up).
+        "dissolve" overlaps the two shots by duration, so the film gets that
+        much shorter; never on the first shot. A shot must be long enough to
+        hold its own transition and the next shot's.
+      - sounds (optional): SFX cues in SHOT-local time —
+        [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop],
+        [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.
+  - meta.sounds (optional): the same cue shape in FILM time — a music bed is
+    {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks
+    it under every dialogue line.
 
 Path syntax for patches: slash-delimited, list indices are integers. Examples:
 
@@ -269,6 +282,7 @@ def iterate(
         available_characters=project.mall.get("characters"),
         available_props=project.mall.get("props"),
         available_environments=project.mall.get("environments"),
+        available_sounds=project.mall.get("sounds"),
     )
     full_report = schema_report.merge(semantic_report)
 

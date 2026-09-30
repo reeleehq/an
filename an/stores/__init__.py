@@ -1,7 +1,7 @@
 """Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
-(characters, props, environments, voices, styles), the scene file pair, intermediate
+(characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
 artifacts (audio, viseme tracks, per-shot mp4s), final output, and the agent's
 decision log — is keyed inside a store. Stores are dol-backed so the same call
 sites work against filesystem, SQLite, S3, etc.
@@ -13,7 +13,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...     sorted(mall.keys()) == [
 ...         'audio', 'characters', 'decisions', 'environments',
 ...         'output', 'previews', 'props', 'scenes', 'shots',
-...         'styles', 'visemes', 'voices',
+...         'sounds', 'styles', 'visemes', 'voices',
 ...     ]
 True
 """
@@ -28,6 +28,7 @@ from an.stores.decisions import DecisionLogStore
 from an.stores.environments import EnvironmentsStore
 from an.stores.props import PropsStore
 from an.stores.scenes import ScenesStore
+from an.stores.sounds import SoundsStore
 from an.stores.styles import StylesStore
 from an.stores.voices import VoicesStore
 from an.stores.artifacts import (
@@ -45,6 +46,7 @@ __all__ = [
     "StylesStore",
     "PropsStore",
     "ScenesStore",
+    "SoundsStore",
     "AudioArtifactStore",
     "VisemeArtifactStore",
     "ShotArtifactStore",
@@ -72,6 +74,7 @@ def build_project_mall(
             "assets/props",
             "assets/voices",
             "assets/styles",
+            "assets/sounds",
             "ir",
             "artifacts/audio",
             "artifacts/visemes",
@@ -88,6 +91,7 @@ def build_project_mall(
         "props": PropsStore(pdir / "assets" / "props"),
         "voices": VoicesStore(pdir / "assets" / "voices"),
         "styles": StylesStore(pdir / "assets" / "styles"),
+        "sounds": SoundsStore(pdir / "assets" / "sounds"),
         "scenes": ScenesStore(pdir),
         "audio": AudioArtifactStore(pdir / "artifacts" / "audio"),
         "visemes": VisemeArtifactStore(pdir / "artifacts" / "visemes"),

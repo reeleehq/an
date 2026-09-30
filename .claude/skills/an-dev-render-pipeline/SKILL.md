@@ -54,6 +54,15 @@ an.render.render(project, …)
      ├ _render_one → project.mall["shots"][shot.id] = mp4 bytes        ← WRITE-ONLY, see §5
      ├ _ffmpeg_concat  1 shot: shutil.copy  |  ≥2 shots: concat demuxer -c copy
      │                 + MP4_FASTSTART_ARGS on the concat leg (a remux, verified)
+     │   — or, ONLY when the scene has a non-cut transition or any sound cue,
+     │   an.assemble.assemble_film (an#163): the film's picture muxed ONCE by the
+     │   same _ffmpeg_mux from the shots' PNGs (transitions composed in with
+     │   exact integer blends; untouched frames copied byte for byte) — even with
+     │   no transition, because a concat's picture starts 23 ms late (AAC
+     │   priming) and advances by container length; then the film audio rebuilt
+     │   from sources (dialogue WAVs + sounds-store cues, ducked) and muxed with
+     │   -c:v copy + AAC + MP4_FASTSTART_ARGS. Never xfade over encoded shots:
+     │   that is a second x264 generation on every frame of the film.
      └ project.mall["output"][name] = bytes
 ```
 

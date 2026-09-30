@@ -16,7 +16,7 @@ import yaml
 from an.adapters.cutout.easing import EASING_FUNCS, apply_easing
 from an.environments import EnvironmentDescriptor
 from an.ir.camera import CAMERA_MOVES
-from an.ir.schema import Meta
+from an.ir.schema import Meta, SoundCue, Transition
 from an.motion import PRESETS
 from an.styles import StylePack
 from an.verify.style import StyleLintVerifier
@@ -28,6 +28,7 @@ SPECS = sorted(SPEC_DIR.glob("*.yaml"))
 LIVE_KEYS = {
     "meta", "style_pack", "environment", "camera", "easing",
     "tween_duration_s", "shots", "characters", "motion_presets",
+    "transitions", "sound",
 }
 TOP_KEYS = {"style", "title", "cost_class", "cost_note", "live", "targets", "guidance"}
 COST_CLASSES = {"low", "low_to_medium", "medium", "high", "very_high"}
@@ -129,3 +130,23 @@ def test_targets_are_measurable(spec):
 
 def test_motion_presets_exist(spec):
     assert set(spec["live"].get("motion_presets", [])) <= set(PRESETS)
+
+
+def test_transitions_are_valid_transitions(spec):
+    """`live.transitions` maps a name to a `Transition`; `default` is required."""
+    transitions = spec["live"].get("transitions")
+    if transitions is None:
+        return
+    assert "default" in transitions
+    for name, t in transitions.items():
+        Transition(**t)  # refuses an unknown kind or a bad colour
+
+
+def test_sound_bed_is_a_valid_cue(spec):
+    """`live.sound.bed` is a `SoundCue` minus the asset key the user supplies."""
+    sound = spec["live"].get("sound")
+    if sound is None:
+        return
+    assert set(sound) <= {"bed"}
+    cue = SoundCue(sound="bed", **sound["bed"])
+    assert cue.loop  # a bed runs under the whole film

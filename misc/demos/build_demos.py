@@ -1271,6 +1271,66 @@ def _build_south_park_style(work: Path) -> Path:
     return mp4
 
 
+def _build_transitions_and_sound(work: Path) -> Path:
+    """Two shots joined by a dissolve, under a ducked music bed, with an SFX hit.
+
+    All three sounds are synthesized by `an.sounds` on the spot — seeded numpy,
+    no third-party audio — and enter the project through the `sounds` store with
+    their provenance, which is what `an credits` reads.
+    """
+    from an.sounds import SYNTH_SOURCE, add_sound, synth_bed, synth_hit
+    from an.stores import build_project_mall
+
+    w, h = DEMO_RESOLUTION
+    md = _scene(
+        f"""
+        # A dissolve, a music bed and a hit
+
+        ```yaml meta
+        title: A dissolve, a music bed and a hit
+        author: an
+        duration: 5.4
+        fps: {DEMO_FPS}
+        resolution:
+          width: {w}
+          height: {h}
+        default_renderer: cutout
+        sounds:
+        - sound: bed
+          loop: true
+          gain_db: -4
+          fade_in: 0.5
+          fade_out: 0.8
+          duck_db: -14
+        ```
+
+        ## Shot s1 (cutout)
+
+        ```yaml shot
+        duration: 3.0
+        ```
+        """
+    ) + (
+        "\n" + _entities("maya")
+        + "\n```dialogue\nmaya: Listen. The music dips while I talk.\n```\n"
+        + "\n## Shot s2 (cutout)\n\n```yaml shot\nduration: 3.0\n"
+        "transition:\n  kind: dissolve\n  duration: 0.6\n"
+        "sounds:\n- sound: hit\n  at: 1.5\n```\n"
+        + "\n" + _entities("maya", "charlie")
+        + "\n```yaml actions\n"
+        "- kind: set\n  target: charlie\n  property: alpha\n  value: 0.0\n  at: 0.0\n"
+        "- kind: set\n  target: charlie\n  property: alpha\n  value: 1.0\n  at: 1.5\n"
+        "```\n"
+    )
+    project = _project(work, scene_md=md, characters=("maya", "charlie"))
+    sounds = build_project_mall(project, ensure=True)["sounds"]
+    add_sound(sounds, "bed", synth_bed(2.0), source=SYNTH_SOURCE,
+              description="a pulsing A-major chord, 2 s, loops seamlessly")
+    add_sound(sounds, "hit", synth_hit(seed=1), source=SYNTH_SOURCE,
+              description="a noise burst over a 90 Hz thump")
+    return _render(project)
+
+
 def _copy_example(rel: str) -> Callable[[Path], Path]:
     def build(work: Path) -> Path:
         src = REPO_ROOT / rel
@@ -1789,6 +1849,26 @@ DEMOS: tuple[Demo, ...] = (
             "(`an.verify.style.StyleLintVerifier`)."
         ),
         build=_build_south_park_style,
+    ),
+    Demo(
+        slug="transitions-and-sound",
+        title="A dissolve, a music bed and a hit",
+        shows=(
+            "Two shots joined by a 0.6 s dissolve — composed on the frames in exact "
+            "integer arithmetic, and the film is 0.6 s shorter than its shots "
+            "because a dissolve overlaps them. Under it, a looped music bed that "
+            "fades in, ducks 14 dB while Maya talks and fades out, and a hit on the "
+            "frame Charlie pops in. The GIF is silent; the mp4 carries the mix. "
+            "Every sound is synthesized locally by `an.sounds` — no third-party audio."
+        ),
+        how=(
+            "`transition: {kind: dissolve, duration: 0.6}` and `sounds: [{sound: hit, "
+            "at: 1.5}]` in the shot's yaml, `sounds: [{sound: bed, loop: true, "
+            "duck_db: -14}]` in the meta; the assets go in with "
+            "`an.sounds.add_sound(mall['sounds'], key, wav, source=...)`. "
+            "Assembled by `an.assemble`."
+        ),
+        build=_build_transitions_and_sound,
     ),
     Demo(
         slug="impacts",

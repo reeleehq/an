@@ -174,6 +174,10 @@ def markdown_to_ir(md_text: str) -> SceneIR:
         # (and the writer above enumerates too, so on write) — an#89.
         if "step_hz" in shot_yaml:
             shot_kwargs["step_hz"] = shot_yaml["step_hz"]
+        # The assembly fields (transitions, the sound layer): same whitelist.
+        for key in ("transition", "sounds"):
+            if key in shot_yaml:
+                shot_kwargs[key] = shot_yaml[key]
         shots.append(Shot(**shot_kwargs))
 
     if meta.duration == 0.0:
@@ -529,6 +533,8 @@ def ir_to_markdown(scene: SceneIR) -> str:
         meta_dict["default_easing"] = (
             list(easing) if isinstance(easing, tuple) else easing
         )
+    if scene.meta.sounds:
+        meta_dict["sounds"] = [c.model_dump(exclude_defaults=True) for c in scene.meta.sounds]
     parts.append("```yaml meta")
     parts.append(yaml.safe_dump(meta_dict, sort_keys=False).rstrip())
     parts.append("```\n")
@@ -545,6 +551,10 @@ def ir_to_markdown(scene: SceneIR) -> str:
             shot_yaml["camera"] = shot.camera.model_dump(exclude_none=True)
         if shot.options:
             shot_yaml["options"] = shot.options
+        if shot.transition is not None:
+            shot_yaml["transition"] = shot.transition.model_dump(exclude_defaults=True)
+        if shot.sounds:
+            shot_yaml["sounds"] = [c.model_dump(exclude_defaults=True) for c in shot.sounds]
         parts.append("```yaml shot")
         parts.append(yaml.safe_dump(shot_yaml, sort_keys=False).rstrip())
         parts.append("```\n")

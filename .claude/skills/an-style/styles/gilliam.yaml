@@ -21,6 +21,8 @@ live:
     range_s: [8, 30]
   characters:
     generate: promote        # `an.characters.promote` from a hand-cut SVG; photographic parts, pinned joints
+  transitions:
+    default: {kind: cut}     # hard-cut snap timing
 
 targets:
   one_frame_interval_share: [0.70, 0.85]   # measured 0.77
@@ -33,5 +35,5 @@ guidance:
   motion_vocabulary_unmapped: [drop, beheading, morph]   # no preset
   texture: photographic, many colours; flat fills read wrong
   text: period-type titles and hand-lettered signs; no text node ships
-  sound: absurd, dense SFX; `an` renders dialogue audio only
-  transitions: objects transform across the cut; `an` only hard-cuts
+  sound: absurd, dense SFX as shot `sounds` cues on each pop-up and squash; bring licensed or public-domain assets
+  transitions: objects transform across the cut (a morph); not built — cut or dissolve

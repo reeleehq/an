@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Iterable
 
 from an.adapters._base import RenderContext, RenderResult
+from an.assemble import assemble_film, film_timeline, needs_assembly
 from an.adapters.cutout.compile import style_pack_for
 from an.adapters._base import _DEFAULT_REGISTRY
 from an.base import (
@@ -244,6 +245,10 @@ def render(
     )
 
     shots = list(scene.timeline)
+    if needs_assembly(scene, fps=effective_fps):
+        # Before any browser launches: a transition the shots are too short
+        # for is microseconds to find and minutes of rendering to discover.
+        film_timeline(shots, fps=effective_fps)
     pool_size = _resolve_parallel(parallel, n_shots=len(shots))
 
     # Resolve renderers up front so a missing one fails fast (before we spawn
@@ -280,7 +285,22 @@ def render(
     # Concatenate per-shot mp4s.
     output_path = (project.root / "output" / f"{output_name}.mp4").resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    _ffmpeg_concat([r.mp4_path for r in shot_results], output_path)
+    if needs_assembly(scene, fps=effective_fps):
+        # Transitions and/or a sound layer: composed in the frame stage and
+        # mixed from sources (`an.assemble`). A scene with neither never
+        # reaches this branch, so its delivered file is the concat's, byte
+        # for byte.
+        assemble_film(
+            scene,
+            shot_results,
+            output_path,
+            fps=effective_fps,
+            mall=project.mall,
+            work_dir=work_dir,
+            pix_fmt=pix_fmt,
+        )
+    else:
+        _ffmpeg_concat([r.mp4_path for r in shot_results], output_path)
 
     # Also write to the output store for parity with other artifacts.
     with open(output_path, "rb") as f:
