@@ -225,6 +225,98 @@ def _path_document_problem(entity, store) -> "str | None | bool":
     return None
 
 
+def _check_text_blocks(
+    shot,
+    path: str,
+    report: "ValidationReport",
+    stores: Mapping[str, Any],
+    *,
+    width: int,
+    height: int,
+) -> set[str]:
+    """Typeset every text block the way the compiler will, and report what it
+    would refuse (an#155): a font that is not a file, a glyph the face lacks,
+    an override the schema does not know — and an authored target inside a
+    block that names a unit the block does not build (``word_9`` of a
+    three-word title, or any ``word_*`` of a ``unit: glyph`` block).
+
+    Returns the ids of the entities that ARE text blocks, so the entity loop
+    does not also judge them as rigs. Needs the props store; without it nothing
+    runs (an absent store means the check did not run, never that it failed).
+    """
+    props = stores.get("props")
+    if props is None:
+        return set()
+    from an.text import (
+        font_base_dir,
+        layout_text,
+        resolve_text,
+        text_entity_problem,
+    )
+
+    text_ids: set[str] = set()
+    built: dict[str, set[str]] = {}
+    for j, entity in enumerate(shot.entities):
+        if entity.kind != "prop":
+            continue
+        try:
+            doc = props[entity.ref]
+        except (KeyError, TypeError):
+            continue
+        if not isinstance(doc, dict) or doc.get("kind") != "TextDescriptor":
+            continue
+        if entity.id in text_ids:
+            report.add(
+                "error",
+                f"{path}/entities/{j}",
+                f"two text blocks share the id {entity.id!r} — compiling this "
+                "shot raises",
+            )
+        text_ids.add(entity.id)
+        try:
+            desc = resolve_text(doc, entity.overrides)
+            lay = layout_text(
+                desc,
+                width=width,
+                height=height,
+                base_dir=font_base_dir(props, entity.ref),
+            )
+        except ValueError as err:
+            report.add(
+                "error",
+                f"{path}/entities/{j}",
+                f"text {entity.ref!r} (with this entity's overrides) cannot be "
+                f"set — rendering this shot raises: {err}",
+            )
+            continue
+        problem = text_entity_problem(entity, desc)
+        others = {e.id for e in shot.entities if e is not entity}
+        if problem is None and desc.layer == "overlay" and entity.id in others:
+            problem = (
+                f"overlay text {entity.id!r} shares its id with another entity; "
+                "the runtime indexes both layers by path"
+            )
+        if problem is not None:
+            report.add(
+                "error",
+                f"{path}/entities/{j}",
+                f"{problem} — compiling this shot raises",
+            )
+        built[entity.id] = {f"{entity.id}/{u.name}" for u in lay.units}
+    for k, action in enumerate(shot.actions):
+        for flat in flatten(action):
+            target = getattr(flat.action, "target", "") or ""
+            root = target.split("/", 1)[0]
+            if "/" in target and root in built and target not in built[root]:
+                report.add(
+                    "error",
+                    f"{path}/actions/{k}",
+                    f"{target!r} is not a unit of text block {root!r} (it builds "
+                    f"{sorted(built[root])}) — compiling this shot raises.",
+                )
+    return text_ids
+
+
 def _check_trim_targets(
     shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
 ) -> None:
@@ -918,10 +1010,18 @@ def validate_semantic(
         _check_renderable(shot, path, report, stores=rig_stores)
         _check_swap_references(shot, path, report, rig_stores)
         _check_trim_targets(shot, path, report, rig_stores)
+        text_ids = _check_text_blocks(
+            shot,
+            path,
+            report,
+            rig_stores,
+            width=scene.meta.resolution.width,
+            height=scene.meta.resolution.height,
+        )
 
         # Entity references resolve?
         for j, entity in enumerate(shot.entities):
-            if entity.kind not in RIG_STORES:
+            if entity.kind not in RIG_STORES or entity.id in text_ids:
                 continue
             store_name, want_kind = RIG_STORES[entity.kind]
             store = rig_stores.get(store_name)

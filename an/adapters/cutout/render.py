@@ -43,6 +43,7 @@ from an.adapters.cutout.compile import compile_shot
 from an.adapters.cutout.shutter import check_frame_samples, mean_png_bytes
 from an.adapters.cutout.runtime_files import runtime_dir
 from an.adapters.cutout.serialize import to_dict
+from an.adapters.cutout.text import INLINE_SRC_PREFIX
 from an.ir.schema import Shot, resolve_step_hz
 
 
@@ -624,6 +625,11 @@ def _stage_scene_assets(
                 CutoutAssetWarning,
                 stacklevel=2,
             )
+            continue
+
+        if src_rel.startswith(INLINE_SRC_PREFIX):
+            # The bytes are IN the document (a text unit's glyphs, an#155):
+            # there is nothing to copy, and nothing is missing.
             continue
 
         prefix = next(

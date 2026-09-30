@@ -122,6 +122,8 @@ from an.environments import (
 )
 from an.props import PROP_DOCUMENT_KIND, PropDescriptor
 from an.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
+from an.adapters.cutout.text import build_text_subtree, text_document
+from an.text import font_base_dir, text_entity_problem
 from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette
 
 
@@ -758,10 +760,36 @@ def compile_shot(
 
     textures: dict[str, AssetJSON] = {}
     resolutions: list[AssetResolutionJSON] = []
+    overlay_children: list[NodeJSON] = []
+    fonts: dict[str, str] = {}
     scene_root = _build_scene_root(
-        shot, mall, textures=textures, resolutions=resolutions, style_pack=style_pack
+        shot,
+        mall,
+        textures=textures,
+        resolutions=resolutions,
+        style_pack=style_pack,
+        overlay=overlay_children,
+        fonts=fonts,
+        width=width,
+        height=height,
     )
-    vocab = _swap_vocabulary(scene_root, shot, mall)
+    # The vocabulary sees the overlay too: its nodes are indexed by the
+    # runtime under their own paths (`title/word_0`), exactly like the scene's,
+    # so an authored tween on one is checked like any other target.
+    vocab = _swap_vocabulary(
+        NodeJSON(name="root", children=scene_root.children + overlay_children)
+        if overlay_children
+        else scene_root,
+        shot,
+        mall,
+    )
+    _check_text_unit_targets(shot, fonts, vocab)
+    clash = {n.name for n in overlay_children} & {n.name for n in scene_root.children}
+    if clash:
+        raise CutoutCompileError(
+            f"overlay and scene both build a node named {sorted(clash)}; the "
+            "runtime indexes both layers by path, so one would shadow the other"
+        )
     animations, tracks = _compile_actions(
         shot.actions,
         shot.duration,
@@ -816,8 +844,14 @@ def compile_shot(
             step_hz=step_hz,
             gaze_seeds=gaze_seeds,
             style_pack=style_pack.name if style_pack is not None else None,
+            fonts=fonts,
         ),
         scene=scene_root,
+        overlay=(
+            NodeJSON(name="overlay", children=overlay_children)
+            if overlay_children
+            else None
+        ),
         animations=animations,
         timeline=timeline,
         assets=AssetsJSON(textures=textures),
@@ -837,6 +871,10 @@ def _build_scene_root(
     textures: dict[str, AssetJSON] | None = None,
     resolutions: list[AssetResolutionJSON] | None = None,
     style_pack: "StylePack | None" = None,
+    overlay: list[NodeJSON] | None = None,
+    fonts: dict[str, str] | None = None,
+    width: int = 1920,
+    height: int = 1080,
 ) -> NodeJSON:
     """Construct the cutout scene tree under a single root from shot.entities.
 
@@ -847,11 +885,21 @@ def _build_scene_root(
     ``resolutions`` is an out-parameter, filled the same way ``textures`` is:
     one :class:`AssetResolutionJSON` per drawable entity, in scene order,
     recording what each declared ref actually became.
+
+    ``overlay`` and ``fonts`` are out-parameters too (an#155): an overlay-layer
+    text block is built into ``overlay`` — the camera-immune container, not
+    this root — and every text block records the face that set it in
+    ``fonts`` (entity id -> identity label). ``width``/``height`` are the frame
+    a text block is typeset for.
     """
     if textures is None:
         textures = {}
     if resolutions is None:
         resolutions = []
+    if overlay is None:
+        overlay = []
+    if fonts is None:
+        fonts = {}
     children: list[NodeJSON] = []
     characters_store = mall.get("characters") or {}
     environments_store = mall.get("environments") or {}
@@ -897,6 +945,20 @@ def _build_scene_root(
             _apply_stage_placement(sub, entity)
             children.append(sub)
         elif entity.kind == "prop":
+            text_doc = text_document(entity, props_store)
+            if text_doc is not None:
+                sub, layer = _build_text_block(
+                    entity,
+                    text_doc,
+                    props_store,
+                    textures=textures,
+                    resolutions=resolutions,
+                    fonts=fonts,
+                    width=width,
+                    height=height,
+                )
+                (overlay if layer == "overlay" else children).append(sub)
+                continue
             sub = _build_prop_subtree(
                 entity, props_store, textures=textures, resolutions=resolutions
             )
@@ -1576,6 +1638,77 @@ def _build_path_subtree(
             ),
         ),
     )
+
+
+def _build_text_block(
+    entity: AssetRef,
+    document: Mapping[str, Any],
+    props_store: Mapping,
+    *,
+    textures: dict[str, AssetJSON],
+    resolutions: list[AssetResolutionJSON],
+    fonts: dict[str, str],
+    width: int,
+    height: int,
+) -> tuple[NodeJSON, str]:
+    """A text block (an#155): its node, and the layer it belongs to.
+
+    Every refusal of the typesetting path — a font that is not a file, a
+    glyph the face lacks, an override the schema does not know — becomes a
+    :class:`CutoutCompileError` naming the entity; nothing falls back.
+    """
+    try:
+        node, desc, lay = build_text_subtree(
+            entity,
+            document,
+            width=width,
+            height=height,
+            base_dir=font_base_dir(props_store, entity.ref),
+            textures=textures,
+            resolutions=resolutions,
+        )
+    except ValueError as err:  # TextFontError, TextLayoutError, ValidationError
+        raise CutoutCompileError(
+            f"text {entity.id!r} ({entity.store!r}/{entity.ref!r}, with its "
+            f"overrides) cannot be set: {err}"
+        ) from err
+    problem = text_entity_problem(entity, desc)
+    if problem is not None:
+        raise CutoutCompileError(problem)
+    if entity.id in fonts:
+        raise CutoutCompileError(
+            f"two text blocks in shot share the id {entity.id!r}; a unit path "
+            f"({entity.id}/word_0) must name one node"
+        )
+    _apply_stage_placement(node, entity)
+    fonts[entity.id] = lay.font.label()
+    return node, desc.layer
+
+
+def _check_text_unit_targets(
+    shot: Shot, fonts: Mapping[str, str], vocab: "_SwapVocabulary"
+) -> None:
+    """An authored target inside a text block must name a unit it built.
+
+    Transform targets are otherwise runtime-checked; a text block's units are
+    DERIVED (``word_3`` exists only if the block has four words, and a block
+    of ``unit="glyph"`` has no ``word_*`` at all), so the mistake is easy and
+    is refused here, before a browser launches, naming what does exist.
+    """
+    if not fonts:
+        return
+    for action in shot.actions:
+        for flat in flatten(action):
+            target = getattr(flat.action, "target", None)
+            if not target or "/" not in target:
+                continue
+            root = target.split("/", 1)[0]
+            if root in fonts and target not in vocab.paths:
+                built = sorted(p for p in vocab.paths if p.startswith(root + "/"))
+                raise CutoutCompileError(
+                    f"action targets {target!r}, which text block {root!r} does "
+                    f"not build. Its units are: {built}"
+                )
 
 
 def _build_character_subtree(

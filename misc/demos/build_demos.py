@@ -596,6 +596,68 @@ def _build_path_arrow(work: Path) -> Path:
     return _render(work)
 
 
+def _build_text(work: Path) -> Path:
+    """Words on screen (an#155): an overlay title card, a staggered pop per
+    word, and an in-world label — all through one push-in.
+
+    Two `TextDescriptor` props. The title is on the OVERLAY layer (anchored
+    to the bottom of the title-safe area), so the camera cannot reach it: it
+    holds perfectly still while the push-in magnifies everything else. The
+    label is on the WORLD layer at a stage position beside the character, so
+    it grows and drifts with the scene. The reveal is ordinary actions, one
+    per word — `an.text.stagger` generates exactly these.
+    """
+    import json
+
+    from an.text import TextDescriptor
+
+    def prop(ref: str, desc: TextDescriptor) -> None:
+        d = work / "assets" / "props" / ref
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "prop.json").write_text(
+            json.dumps(json.loads(desc.model_dump_json()), indent=2), encoding="utf-8"
+        )
+
+    words = "Words on screen".split()
+    prop(
+        "title",
+        TextDescriptor(
+            name="title",
+            text=" ".join(words),
+            layer="overlay",
+            anchor="bottom",
+            size=0.11,
+            color="#b3261e",
+        ),
+    )
+    prop("label", TextDescriptor(name="label", text="Maya", size=0.075, color="#1f4e9a"))
+    pop = "[0.34, 1.56, 0.64, 1.0]"  # ease-out-back: a small overshoot
+    actions = []
+    for i in range(len(words)):
+        start = 0.3 + 0.35 * i
+        for prop_name in ("scale_x", "scale_y", "alpha"):
+            actions.append(
+                f"- kind: set\n  target: title/word_{i}\n  property: {prop_name}\n"
+                "  value: 0.0\n  at: 0.0\n"
+                f"- kind: tween\n  target: title/word_{i}\n  property: {prop_name}\n"
+                f"  from: 0.0\n  to: 1.0\n  start: {start}\n  duration: 0.35\n"
+                f"  easing: {pop if prop_name != 'alpha' else 'ease_out'}\n"
+            )
+    md = (
+        _meta("Words on screen", 3.0)
+        + "\n"
+        + _shot("s1", 3.0, camera="push_in")
+        + "\n```yaml entities\n"
+        "- kind: character\n  id: maya\n  store: characters\n  ref: maya\n"
+        "- kind: prop\n  id: title\n  store: props\n  ref: title\n"
+        "- kind: prop\n  id: name\n  store: props\n  ref: label\n"
+        "  stage:\n    at: [95.0, -20.0]\n"
+        "```\n"
+        "\n```yaml actions\n" + "".join(actions) + "```\n"
+    )
+    return _render(_project(work, scene_md=md, characters=("maya",)))
+
+
 def _declare_placeholder_rig(project: Path, entity_ref: str) -> None:
     """Declare the built-in procedural rig, so it is a choice not a fallback.
 
@@ -1662,6 +1724,30 @@ DEMOS: tuple[Demo, ...] = (
         ),
         how="`python examples/character_gallery/build.py` — `an render --parallel auto`.",
         build=_copy_example("examples/character_gallery/videos/cartoon.mp4"),
+    ),
+    Demo(
+        slug="text",
+        title="Words on screen: a title card the camera cannot touch",
+        shows=(
+            "A push-in on a character, with two pieces of text. The title card is "
+            "on the OVERLAY layer: it pops in word by word and then does not move "
+            "a pixel while everything behind it is magnified. The name label is "
+            "IN the world: it grows and drifts with the scene. Every word is a "
+            "node (`title/word_0`, `title/word_1`, …), so the pop is an ordinary "
+            "tween on `scale_x`/`scale_y`/`alpha` per word, staggered."
+        ),
+        how=(
+            "Two `an.text.TextDescriptor` props (`kind: TextDescriptor`) in the "
+            "props store: `layer: overlay` + `anchor: bottom` for the title, the "
+            "default `layer: world` + `stage.at` for the label. Typesetting is "
+            "`tituli`'s (metrics, alignment, the title-safe area); each word's "
+            "glyphs become an SVG sprite at compile time, so the runtime never "
+            "rasterises a font. The default face is Pillow's embedded Aileron "
+            "(CC0), so nothing depends on the machine's fonts; `font:` takes a "
+            "font FILE and a missing one raises. `an.text.stagger(...)` generates "
+            "the per-word `set` + delayed `tween` pairs written out here."
+        ),
+        build=_build_text,
     ),
     Demo(
         slug="path-arrow",
