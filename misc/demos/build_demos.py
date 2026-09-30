@@ -1210,6 +1210,30 @@ def _build_turnaround(work: Path) -> Path:
     return _render(_project(work, scene_md=md, characters=("ned", "carl")))
 
 
+def _build_walk(work: Path) -> Path:
+    """The walk preset (an#214): Ned walks in from off-screen left in profile,
+    stops, turns to the camera, turns back to profile and walks off right —
+    two `play: walk` lines, no hand-built cycle. In profile the legs swing
+    about the hip; the entry starts from the `set` off-screen because a play
+    reads the pose the timeline has at its start (an#212)."""
+    md = (
+        _meta("Walk: in from the left, turn, off to the right", 7.2)
+        + "\n"
+        + _shot("walk", 7.2)
+        + "\n"
+        + _entities("ned")
+        + "\n```yaml actions\n"
+        "- {kind: set, target: ned, property: view, value: side, at: 0.0}\n"
+        "- {kind: set, target: ned, property: x, value: -420, at: 0.0}\n"
+        "- {kind: play, target: ned, animation: walk, args: {to_x: 0, steps: 6}, start: 0.2}\n"
+        "- {kind: play, target: ned, animation: turn, args: {to: front}, start: 2.8}\n"
+        "- {kind: play, target: ned, animation: turn, args: {to: side, direction: right}, start: 3.8}\n"
+        "- {kind: play, target: ned, animation: walk, args: {distance: 460, direction: right}, start: 4.4}\n"
+        "```\n"
+    )
+    return _render(_project(work, scene_md=md, characters=("ned",)))
+
+
 def _build_play(work: Path) -> Path:
     """`play` of a descriptor animation (an#7): the seeded `idle_breath` loops
     to the shot end from ONE line, and two `blink`s ride the eyelid swap set."""
@@ -2467,6 +2491,29 @@ DEMOS: tuple[Demo, ...] = (
             "`{kind: set, target: ned, property: view, value: back}` for a cut."
         ),
         build=_build_turnaround,
+    ),
+    Demo(
+        slug="walk",
+        title="Walk: in from the left, turn, off to the right",
+        shows=(
+            "Ned walks in from off-screen left in profile, stops, turns to the "
+            "camera, turns back and walks off right. Each walk is one line: the "
+            "body travels and bobs once per step, the legs swing about the hip in "
+            "opposition (in a front view they step up and down instead), and the "
+            "near arm swings against them. The first walk starts off-screen "
+            "because a play starts from the pose the timeline has at its start. "
+            "Limits: a walk does not turn the character, so face the way it walks "
+            "first; a walk to an absolute `to_x` takes a fixed number of steps "
+            "unless you give `steps` (or use `distance`), because a play's length "
+            "must be known before it is placed; the feet slide a little, since "
+            "nothing plants them."
+        ),
+        how=(
+            "`{kind: play, target: ned, animation: walk, args: {to_x: 0, steps: 6}}` "
+            "or `args: {distance: 460, direction: right}`; `stride`, `bob`, "
+            "`arm_swing`, `step_s` and `view` override the defaults."
+        ),
+        build=_build_walk,
     ),
     Demo(
         slug="play-animation",

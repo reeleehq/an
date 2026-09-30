@@ -43,6 +43,7 @@ from an.motion import (
     squash_stretch,
     turn,
     waddle,
+    walk,
 )
 from an.stores.characters import CharactersStore
 
@@ -104,6 +105,8 @@ PROCEDURAL_CALLS = {
     "slide_out": lambda: slide_out("charlie"),
     "squash_stretch": lambda: squash_stretch("charlie"),
     "waddle": lambda: waddle("charlie", travel=80.0),
+    # The placeholder builds no legs (an#214): the legless walk, arms named.
+    "walk": lambda: walk("charlie", legs=(), arms=("left_arm", "right_arm")),
 }
 #: Presets that swap a SET, which only a descriptor declares (an#197): `turn`
 #: swaps the view. The procedural rig refuses them loudly (below); on `gale`,

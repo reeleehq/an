@@ -1,7 +1,7 @@
 """Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 
 ``pop_in``, ``hop``, ``shake``, ``nod``, ``point``, ``slide_in``, ``slide_out``,
-``squash_stretch``, ``waddle`` and ``turn`` each EXPAND to ordinary ``tween``
+``squash_stretch``, ``waddle``, ``turn`` and ``walk`` each EXPAND to ordinary ``tween``
 actions on transform properties (``turn`` adds one swap ``set``), composed with :func:`~an.ir.compose.sequence` and
 :func:`~an.ir.compose.parallel`. Called from Python, nothing downstream
 learns a preset exists: the flat timeline, ``an validate``, the verifiers and
@@ -114,6 +114,30 @@ DFLT_WADDLE_STEP_DURATION: Seconds = 0.3
 DFLT_WADDLE_ANGLE: float = 0.1  # radians
 DFLT_WADDLE_LIFT: float = 6.0  # scene px
 DFLT_TURN_DURATION: Seconds = 0.3
+DFLT_WALK_STEP_S: Seconds = 0.4
+#: Steps a walk takes when neither ``steps`` nor ``distance`` sets them: a walk
+#: to an ABSOLUTE ``to_x`` cannot count its steps from where it starts, because
+#: a ``sequence`` must know a play's length before anything is placed.
+DFLT_WALK_STEPS: int = 6
+DFLT_WALK_STEP_LENGTH: float = 80.0  # scene px per step, for ``distance``
+DFLT_WALK_STRIDE: float = 0.35  # radians a leg swings either side (side view)
+DFLT_WALK_LIFT: float = 10.0  # scene px a stepping leg rises (front view)
+DFLT_WALK_BOB: float = 6.0  # scene px the body rises between contacts
+DFLT_WALK_ARM_SWING: float = 0.3  # radians
+DFLT_WALK_ROCK: float = 0.06  # radians, a legless figure's side-to-side rock
+#: A limb's move ends with a constant tween this long at its end value instead
+#: of a settling ``set``: it lands the value exactly (a held tween END is
+#: evaluated at its own end, which float drift cannot put a grid step early),
+#: and unlike a ``set`` — whose hold outranks a view's pose channel — it lets
+#: a later view change pose the limb again.
+WALK_LANDING_S: Seconds = 1e-3
+#: Leg and arm node names a walk looks for, in order: the rig contract's
+#: (descriptor rigs, ``an character new``), then the procedural placeholder's.
+WALK_LEG_NAMES: tuple[tuple[str, str], ...] = (("leg_l", "leg_r"), ("left_leg", "right_leg"))
+WALK_ARM_NAMES: tuple[tuple[str, str], ...] = (("arm_l", "arm_r"), ("left_arm", "right_arm"))
+#: Views whose legs SWING about the hip (the character seen from the side);
+#: every other view (``front``, ``back``, none) steps them up and down.
+WALK_SWING_VIEWS: frozenset[str] = frozenset({"side", "three_quarter"})
 #: The swap set a turn swaps: the factory's turnaround (an#197).
 DFLT_TURN_SET: str = "view"
 DFLT_TURN_TO: str = "back"
@@ -526,6 +550,189 @@ def waddle(
     return parallel(*moves)
 
 
+def _limb_pair(
+    names: tuple[str, str] | None,
+    candidates: tuple[tuple[str, str], ...],
+    parts: Mapping[str, Rest] | None,
+) -> tuple[str, str] | None:
+    """The two limb nodes a walk moves: ``names`` when given (``()``: none),
+    else the first candidate pair the rig builds (``parts``), else — with no
+    rig to look at — the rig contract's names."""
+    if names is not None:
+        if len(names) not in (0, 2):
+            raise ValueError(f"give two limb names (or none), got {names!r}")
+        return tuple(names) if names else None  # type: ignore[return-value]
+    if parts is None:
+        return candidates[0]
+    return next((pair for pair in candidates if all(n in parts for n in pair)), None)
+
+
+def walk(
+    target: PathStr,
+    *,
+    to_x: float | None = None,
+    distance: float | None = None,
+    direction: str | None = None,
+    steps: int | None = None,
+    step_s: Seconds = DFLT_WALK_STEP_S,
+    step_length: float = DFLT_WALK_STEP_LENGTH,
+    stride: float = DFLT_WALK_STRIDE,
+    lift: float = DFLT_WALK_LIFT,
+    bob: float = DFLT_WALK_BOB,
+    arm_swing: float = DFLT_WALK_ARM_SWING,
+    rock: float = DFLT_WALK_ROCK,
+    view: str | None = None,
+    legs: tuple[str, str] | None = None,
+    arms: tuple[str, str] | None = None,
+    parts: Mapping[str, Rest] | None = None,
+    rest: Rest | None = None,
+) -> Action:
+    """Walk: the body travels on ``x`` and bobs once per step while the legs
+    alternate and the arms swing against them (an#214).
+
+    **Where to.** ``to_x`` (absolute scene x) or ``distance`` (signed px; with
+    ``direction`` ``"left"``/``"right"`` its sign is the direction's), or
+    neither to walk on the spot. The walk starts where the entity IS —
+    played by name, ``rest`` is its pose at the play's start (an#212), so
+    ``set x -800`` then ``walk to_x: -100`` walks in from off-screen.
+
+    **How many steps.** ``steps``, else ``|distance| / step_length``, else
+    :data:`DFLT_WALK_STEPS` — never counted from the start position, so the
+    walk's length (``steps × step_s``) is known before it is placed and a
+    ``sequence`` waits for exactly that long.
+
+    **Legs, by view.** In a view in :data:`WALK_SWING_VIEWS` (``side``,
+    ``three_quarter``) each leg swings ``stride`` radians either side of its
+    rest about the hip, the two in opposition; in any other view (``front``,
+    ``back``, or none) the stepping leg rises ``lift`` px and sets down again,
+    the two alternating. Played by name, ``view`` is the one in force on the
+    timeline at the play's start (the view the last ``turn`` or ``set`` left);
+    pass it to override. ``legs``/``arms`` name the two limb nodes; by
+    default the first pair in :data:`WALK_LEG_NAMES` / :data:`WALK_ARM_NAMES`
+    that the rig builds (``parts``: the entity's built parts with their pose
+    at the start, filled in by the compiler). A figure with no legs (a robe,
+    a blob) walks on the bob and a ``rock`` of the body instead. Limbs land on
+    their rest with a :data:`WALK_LANDING_S` constant tween, not a settling
+    ``set``: a ``set``'s hold would outrank the view's pose channel and keep a
+    profile's splay after a later turn to the front.
+
+    The walk does not turn the character: in a side view, face the way it
+    walks first (``turn``, ``direction``) — the classic walk-off is ``turn``
+    then ``walk``.
+
+    >>> w = walk("bob", distance=160, steps=2, step_s=0.5)
+    >>> sorted({(f.action.target, f.action.property) for f in _tweens(w)})
+    [('bob', 'x'), ('bob', 'y'), ('bob/arm_l', 'rotation'), ('bob/arm_r', 'rotation'), ('bob/leg_l', 'y'), ('bob/leg_r', 'y')]
+    >>> max(f.end for f in flatten(w)), [f.action.to_value for f in _tweens(w) if f.action.property == "x"]
+    (1.0, [160.0])
+    >>> sorted({f.action.property for f in _tweens(walk("bob", distance=80, view="side"))
+    ...         if f.action.target == "bob/leg_l"})
+    ['rotation']
+    >>> sorted({f.action.target for f in _tweens(walk("blob", steps=2, legs=(), arms=()))})
+    ['blob']
+    """
+    if to_x is not None and distance is not None:
+        raise ValueError("give to_x (absolute) or distance (relative), not both")
+    if direction is not None:
+        sign = _side_sign(direction)
+        if distance is None:
+            raise ValueError("direction goes with distance (to_x is already a place)")
+        distance = sign * abs(distance)
+    _positive(step_s=step_s, step_length=step_length)
+    if step_s <= 4 * WALK_LANDING_S:
+        raise ValueError(f"step_s must be longer than {4 * WALK_LANDING_S}s, got {step_s!r}")
+    if steps is None:
+        steps = (
+            max(1, round(abs(distance) / step_length))
+            if distance is not None
+            else DFLT_WALK_STEPS
+        )
+    if steps < 1:
+        raise ValueError(f"walk needs at least one step, got {steps}")
+    x0, y0 = _rest(rest, "x"), _rest(rest, "y")
+    x1 = to_x if to_x is not None else x0 + (distance or 0.0)
+    half = step_s / 2
+    n = 2 * steps
+    up_down = _alternating(n, DFLT_OUT_EASING, DFLT_IN_EASING)
+    moves: list[Action] = []
+    if x1 != x0:
+        moves.append(
+            _settled(
+                target,
+                "x",
+                x1,
+                tween(target, "x", to=x1, duration=steps * step_s, from_=x0, easing="linear"),
+            )
+        )
+    bob_values = [y0]
+    for _ in range(steps):
+        bob_values += [y0 - bob, y0]
+    moves.append(_through(target, "y", bob_values, durations=[half] * n, easings=up_down))
+
+    def limb(name: str) -> str:
+        return f"{target}/{name}"
+
+    def part_rest(name: str) -> Rest | None:
+        return (parts or {}).get(name)
+
+    def unsettled(path: str, prop: str, values: list[float], durations, easings) -> Action:
+        # The landing takes its time out of the last segment: the walk's length
+        # is exactly `steps × step_s`, which `play_extent` promised.
+        durations = [*durations[:-1], durations[-1] - WALK_LANDING_S]
+        return sequence(
+            *(
+                tween(path, prop, to=b, duration=d, from_=a, easing=e)
+                for a, b, d, e in zip(values, values[1:], durations, easings)
+            ),
+            tween(
+                path, prop, to=values[-1], duration=WALK_LANDING_S, from_=values[-1], easing="linear"
+            ),
+        )
+
+    def swing(path: str, r0: float, amount: float, phase: float) -> Action:
+        # Extremes at every contact (a step boundary), the rest at both ends.
+        values = [r0] + [r0 + phase * amount * (-1) ** k for k in range(steps - 1)] + [r0]
+        return unsettled(
+            path, "rotation", values, [step_s] * steps, [DFLT_OSCILLATION_EASING] * steps
+        )
+
+    leg_pair = _limb_pair(legs, WALK_LEG_NAMES, parts)
+    arm_pair = _limb_pair(arms, WALK_ARM_NAMES, parts)
+    swinging = view in WALK_SWING_VIEWS
+    if leg_pair is not None:
+        for phase, name in zip((1.0, -1.0), leg_pair):
+            pose = part_rest(name)
+            if swinging:
+                moves.append(swing(limb(name), _rest(pose, "rotation"), stride, phase))
+            else:
+                ly = _rest(pose, "y")
+                # This leg steps on every other step; the other one stands.
+                values, durations, easings = [ly], [], []
+                for i in range(steps):
+                    if (i % 2 == 0) == (phase > 0):
+                        values += [ly - lift, ly]
+                        durations += [half, half]
+                        easings += [DFLT_OUT_EASING, DFLT_IN_EASING]
+                    else:
+                        values += [ly]
+                        durations += [step_s]
+                        easings += ["linear"]
+                moves.append(unsettled(limb(name), "y", values, durations, easings))
+    else:
+        r0 = _rest(rest, "rotation")
+        rock_values = [r0] + [v for i in range(steps) for v in (r0 + rock * (-1) ** i, r0)]
+        moves.append(
+            _through(target, "rotation", rock_values, durations=[half] * n, easings=up_down)
+        )
+    if arm_pair is not None:
+        # Against the leg on the same side: the leg_l phase is +1, so arm_l's is -1.
+        for phase, name in zip((-1.0, 1.0), arm_pair):
+            moves.append(
+                swing(limb(name), _rest(part_rest(name), "rotation"), arm_swing, phase)
+            )
+    return parallel(*moves)
+
+
 _FACINGS: tuple[str, ...] = ("right", "left")
 
 
@@ -661,6 +868,7 @@ PRESETS: dict[str, Callable[..., Action]] = {
         squash_stretch,
         waddle,
         turn,
+        walk,
     )
 }
 
@@ -802,4 +1010,5 @@ __all__ = [
     "squash_stretch",
     "turn",
     "waddle",
+    "walk",
 ]

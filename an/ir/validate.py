@@ -29,7 +29,7 @@ from an.characters.play import (
     play_extent_for,
     play_problems,
     play_source,
-    preset_moved_node,
+    preset_moved_nodes,
     preset_play_span,
     resolve_turns,
     slot_node_path,
@@ -521,14 +521,24 @@ def _check_swap_references(
                         f"({shot.duration:g}s): the rest of the move never shows.",
                     )
                 if stage_nodes is not None:
-                    node = preset_moved_node(leaf.target, leaf.animation, leaf.args)
-                    if node not in stage_nodes:
+                    prefix = f"{leaf.target}/"
+                    moved = preset_moved_nodes(
+                        leaf.target,
+                        leaf.animation,
+                        leaf.args,
+                        parts=[
+                            p[len(prefix) :] for p in stage_nodes if p.startswith(prefix)
+                        ],
+                    )
+                    missing = [n for n in moved if n not in stage_nodes]
+                    if missing:
                         built = sorted(
                             p for p in stage_nodes if p.split("/")[0] == entity_id
                         )
                         problems = [
-                            f"motion preset {leaf.animation!r} moves node {node!r}, "
+                            f"motion preset {leaf.animation!r} moves node {n!r}, "
                             f"which the built scene does not carry (built: {built})"
+                            for n in missing
                         ]
             for problem in problems:
                 report.add(

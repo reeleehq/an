@@ -68,6 +68,10 @@ from an.characters.play import (
     play_extent_for,
     play_problems,
     play_source,
+    PARTS_ARG,
+    VIEW_ARG,
+    facing_at,
+    preset_takes,
     primary_slot_per_bone,
     resolve_play,
     resolve_turns,
@@ -3688,15 +3692,28 @@ def _expand_preset_plays(
         flat = flat_list[i]
         action = flat.action
         if i in presets:
+            rest_of = (
+                built_rest
+                if action.animation in HOME_PRESETS
+                else lambda path, t=flat.start: pose_at(path, t)
+            )
+            parts_of = None
+            if preset_takes(action.animation, PARTS_ARG) and vocab is not None:
+                action, rest_of = _with_view_and_posed_parts(
+                    action, flat.start, rest_of, history=history, vocab=vocab
+                )
+
+                def parts_of(entity: str) -> list[str]:
+                    prefix = f"{entity}/"
+                    return [
+                        p[len(prefix) :]
+                        for p in vocab.node_transforms
+                        if p.startswith(prefix)
+                    ]
+
             try:
                 leaves = expand_preset_play(
-                    action,
-                    start=flat.start,
-                    rest_of=(
-                        built_rest
-                        if action.animation in HOME_PRESETS
-                        else lambda path, t=flat.start: pose_at(path, t)
-                    ),
+                    action, start=flat.start, rest_of=rest_of, parts_of=parts_of
                 )
             except PlayResolutionError as e:
                 entity_id = _track_root_of(action.target)
@@ -3731,6 +3748,61 @@ def _expand_preset_plays(
                 key = (leaf.action.target, write_group(leaf.action.property))
                 history.setdefault(key, []).append(((i, sub), leaf))
     return [leaf for i in range(len(flat_list)) for leaf in placed[i]]
+
+
+def _with_view_and_posed_parts(
+    action: PlayAction,
+    t: float,
+    rest_of: Callable[[str], dict[str, float] | None],
+    *,
+    history: Mapping[tuple[str, str], list[tuple[tuple[int, int], FlatAction]]],
+    vocab: _SwapVocabulary,
+) -> tuple[PlayAction, Callable[[str], dict[str, float] | None]]:
+    """For a preset that moves an entity's parts (``walk``, an#214): fill its
+    ``view`` from the timeline when the author did not, and read a part the
+    view POSES at its posed value — a side view splays the legs (an#203), so a
+    walk swings them about the splay, not about the front-view rest, and ends
+    where the view's pose takes them back.
+
+    The view is the last ``view`` swap set on the entity at or before ``t``
+    (:func:`an.characters.play.facing_at`); none leaves ``view`` unset (the
+    preset's default). A part the author has animated keeps its timeline pose.
+    """
+    from an.adapters.cutout.timeline import SWAP_WRITE_GROUP, write_group
+    from an.motion import DFLT_TURN_SET
+
+    entity = action.target
+    args = dict(action.args or {})
+    view_set = DFLT_TURN_SET
+    events = [f for _, f in sorted(history.get((entity, SWAP_WRITE_GROUP), []), key=lambda e: e[0])]
+    view = args.get(VIEW_ARG)
+    if view is None and preset_takes(action.animation, VIEW_ARG):
+        view = facing_at(events, entity, t, view_set=view_set).view
+        if view is not None:
+            args[VIEW_ARG] = view
+            action = action.model_copy(update={"args": args})
+    posed: dict[tuple[str, str], _StepCurve] = {}
+    if view is not None and entity in vocab.descriptors:
+        posed = _swap_pose_layer(
+            [_EntitySwap(entity, view_set, 0.0, str(view))], vocab
+        ).get(entity, {})
+    if not posed:
+        return action, rest_of
+
+    def posed_rest_of(path: str) -> dict[str, float] | None:
+        pose = rest_of(path)
+        if pose is None:
+            return None
+        return {
+            prop: (
+                posed[(path, prop)][-1][1]
+                if (path, prop) in posed and (path, write_group(prop)) not in history
+                else value
+            )
+            for prop, value in pose.items()
+        }
+
+    return action, posed_rest_of
 
 
 def _built_value(target: str, prop: str, *, vocab: _SwapVocabulary | None) -> float:
