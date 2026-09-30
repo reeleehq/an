@@ -402,3 +402,109 @@ def test_an_iterate_patch_of_a_pause_validates_and_re_times():
     produce_audio_for_scene(patched)
     a, b = patched.timeline[0].dialogue
     assert b.start == pytest.approx(a.duration + 0.25)
+
+
+# -----------------------------------------------------------------------------
+# Review follow-ups: sync on disk, number spellings, dissolves, paths that skip
+# synthesis, and the committed scenes
+# -----------------------------------------------------------------------------
+
+
+def test_the_timing_survives_an_sync_both_ways(tmp_path):
+    """The acceptance line: md → json, then json (the pipeline's stamps, via
+    the store) → md, with real files and the mtime rule `sync` runs on."""
+    import os
+
+    from an.ir.sync import sync
+    from an.stores import build_project_mall
+
+    root = tmp_path / "p"
+    (root / "ir").mkdir(parents=True)
+    (root / "scene.md").write_text(
+        _md("x: Hi, Y.", "y [sad] (pause 1.5): Bye.", "x (at 4): Wait."), encoding="utf-8"
+    )
+    assert sync(root).wrote_json
+    doc = json.loads((root / "ir" / "scene.json").read_text(encoding="utf-8"))
+    assert [(d.get("pause"), d.get("at")) for d in doc["timeline"][0]["dialogue"]] == [
+        (None, None), (1.5, None), (None, 4.0)
+    ]
+
+    mall = build_project_mall(root)
+    scene = produce_audio_for_scene(mall["scenes"]["main"], mall)
+    mall["scenes"]["main"] = scene  # writes both files, mtimes equalized
+    t = (root / "ir" / "scene.json").stat().st_mtime
+    os.utime(root / "ir" / "scene.json", (t + 5, t + 5))  # json is now newer
+    assert sync(root).wrote_md
+    md = (root / "scene.md").read_text(encoding="utf-8")
+    assert "y [sad] (pause 1.5): Bye." in md and "x (at 4): Wait." in md
+    reread = markdown_to_ir(md).timeline[0].dialogue
+    assert [(d.pause, d.at) for d in reread] == [(None, None), (1.5, None), (None, 4.0)]
+
+
+@pytest.mark.parametrize("value", [0.0, -0.0, 1e-05, 1e16, 0.1 + 0.2, 2.5, 7.0, 1 / 3])
+def test_every_timing_the_schema_accepts_is_written_as_the_parser_reads_it(value):
+    for key in ("pause", "at"):
+        line = Dialogue(speaker="a", text="b", **{key: value})
+        (back,) = _lines(ir_to_markdown(_scene(line)).split("```dialogue\n")[1].split("\n")[0])
+        assert getattr(back, key) == value and not str(getattr(back, key)).startswith("-")
+
+
+def test_non_finite_timing_is_refused():
+    for bad in (float("inf"), float("nan")):
+        with pytest.raises(ValueError):
+            Dialogue(speaker="a", text="b", at=bad)
+
+
+def test_a_pause_that_pushes_a_line_into_a_dissolve_is_flagged_before_synthesis():
+    from an.ir.schema import Transition
+
+    def scene(pause):
+        return SceneIR(timeline=[
+            Shot(id="a", duration=3.0,
+                 dialogue=[Dialogue(speaker="x", text="Hi.", pause=pause)]),
+            Shot(id="b", duration=2.0, transition=Transition(kind="dissolve", duration=0.5)),
+        ])
+
+    def flagged(s):
+        return [f for f in validate_semantic(s).findings if "dissolve" in f.description]
+
+    assert flagged(scene(None)) == []
+    (f,) = flagged(scene(2.4))
+    assert f.ir_path == "timeline/0/dialogue/0"
+
+
+def test_retime_without_synthesis_follows_an_edited_pause_and_leaves_untimed_shots_alone():
+    """`render(auto_audio=False)` and `an preview` never run the pipeline, so
+    they retime in memory — but only shots that use the timing, so a scene
+    that stamps its own `start` (a fixture) is left exactly as written."""
+    from an.audio.pipeline import retime_dialogue
+
+    scene = produce_audio_for_scene(_hi_pause_bye())
+    a, b = scene.timeline[0].dialogue
+    b.pause = 0.25  # edited after synthesis
+    hand = Shot(id="h", dialogue=[
+        Dialogue(speaker="x", text="hi", start=1.0, duration=0.5, audio_ref="k")])
+    scene.timeline.append(hand)
+    retime_dialogue(scene, timed_shots_only=True)
+    assert b.start == pytest.approx(a.duration + 0.25)
+    assert hand.dialogue[0].start == 1.0
+
+
+def test_every_committed_scene_is_stamped_where_the_derivation_puts_it():
+    """The byte-identity claim, as a test: re-timing a committed `scene.json`
+    moves no `start`."""
+    from pathlib import Path
+
+    from an.audio.pipeline import retime_dialogue
+
+    root = Path(__file__).resolve().parents[1]
+    paths = sorted(root.glob("examples/*/ir/scene.json")) + sorted(
+        root.glob("misc/bench/corpus/*/ir/scene.json")
+    )
+    assert paths
+    for path in paths:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        scene = SceneIR.model_validate(doc)
+        before = json.loads(scene.model_dump_json())
+        retime_dialogue(scene)
+        assert json.loads(scene.model_dump_json()) == before, path

@@ -1259,6 +1259,28 @@ def validate_semantic(
 DIALOGUE_OVERRUN_TOLERANCE_S: float = 1 / 60
 
 
+def _dialogue_layout(shot: Any):
+    """``(k, line, start, end, estimated)`` for each dialogue line of ``shot``.
+
+    Where each line WILL play: the audio pipeline's own rule
+    (:meth:`an.ir.schema.Dialogue.planned_start`) over the real duration when
+    the line was synthesized, else the offline voice's estimate
+    (:func:`an.audio.offline_tts.estimate_speech_duration`). Never the stamped
+    ``start``, which a pause edited since the last synthesis has made stale.
+    """
+    from an.audio.offline_tts import estimate_speech_duration
+
+    cursor = 0.0
+    for k, line in enumerate(shot.dialogue):
+        estimated = line.duration is None
+        length = (
+            estimate_speech_duration(line.text) if estimated else float(line.duration)
+        )
+        start = line.planned_start(cursor)
+        cursor = start + length
+        yield k, line, start, cursor, estimated
+
+
 def _check_dialogue_fits(shot: Any, path: str, report: "ValidationReport") -> None:
     """Warn when a shot's dialogue runs past the shot's end.
 
@@ -1282,28 +1304,18 @@ def _check_dialogue_fits(shot: Any, path: str, report: "ValidationReport") -> No
     line ends: one mouth cannot say two lines (an ``at`` can do that; a
     ``pause`` cannot). Two speakers talking over each other is legal.
     """
-    if not shot.dialogue:
-        return
-    from an.audio.offline_tts import estimate_speech_duration
-
-    cursor = 0.0
     speaking_until: dict[str, tuple[int, float]] = {}
-    for k, line in enumerate(shot.dialogue):
-        estimated = line.duration is None
-        length = (
-            estimate_speech_duration(line.text) if estimated else float(line.duration)
-        )
-        start = line.planned_start(cursor)
-        end = start + length
-        cursor = end
+    for k, line, start, end, estimated in _dialogue_layout(shot):
         previous = speaking_until.get(line.speaker)
         if previous is not None and start < previous[1] - DIALOGUE_OVERRUN_TOLERANCE_S:
             report.add(
                 "warning",
                 f"{path}/dialogue/{k}",
                 f"line {k} ({line.speaker}) starts at {start:.2f}s, before the "
-                f"same speaker's line {previous[0]} ends at {previous[1]:.2f}s: "
-                "one mouth cannot say both. Move its `at` later or use a `pause`",
+                f"same speaker's line {previous[0]} ends at {previous[1]:.2f}s"
+                + (" (at the offline voice's rate)" if estimated else "")
+                + ": one mouth cannot say both. Start it later (its `at`) or "
+                "give it a `pause` instead",
             )
         speaking_until[line.speaker] = (k, end)
         if end <= shot.duration + DIALOGUE_OVERRUN_TOLERANCE_S:
@@ -1348,11 +1360,8 @@ def _check_assembly(
                 else 0.0
             )
             overlap_in = timeline.dissolve_in[i] / fps
-            for k, line in enumerate(shot.dialogue):
-                if line.start is None:
-                    continue
-                end = line.start + (line.duration or 0.0)
-                if (overlap_in and line.start < overlap_in) or (
+            for k, _line, start, end, _estimated in _dialogue_layout(shot):
+                if (overlap_in and start < overlap_in) or (
                     overlap_out and end > shot.duration - overlap_out
                 ):
                     report.add(

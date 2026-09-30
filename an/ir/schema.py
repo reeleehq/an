@@ -523,15 +523,18 @@ class Dialogue(_IRModel):
     viseme_ref: str | None = None  # mall["visemes"] key (content-hash of lipsync input)
     #: Seconds of silence before this line, after the previous line ends (the
     #: shot start, for the first line) — ``(pause 1.5)`` in ``scene.md``.
-    pause: Seconds | None = Field(default=None, ge=0)
+    pause: Seconds | None = Field(default=None, ge=0, allow_inf_nan=False)
     #: Where this line starts, in SHOT seconds, whatever came before it —
     #: ``(at 3.0)`` in ``scene.md``. ``start`` is what the audio pipeline
     #: DERIVES from ``at``/``pause`` on every pass; these two are what the
     #: author wrote (an#187).
-    at: Seconds | None = Field(default=None, ge=0)
+    at: Seconds | None = Field(default=None, ge=0, allow_inf_nan=False)
 
     @model_validator(mode="after")
     def _one_timing(self) -> "Dialogue":
+        for key in ("pause", "at"):  # -0.0 would be written `(pause -0)`
+            if getattr(self, key) == 0:
+                object.__setattr__(self, key, 0.0)
         if self.pause is not None and self.at is not None:
             raise ValueError(
                 f"dialogue line {self.text!r} sets both `pause` and `at`; a line "

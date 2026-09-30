@@ -285,7 +285,7 @@ _EMOTION_RE = re.compile(r"[\w-]+")
 #: dialogue line may carry in ``scene.md`` (an#187). Parentheses hold timing,
 #: square brackets hold the emotion.
 _DIALOGUE_TIMING_RE = re.compile(
-    r"^\s*(?P<key>pause|at)\s+(?P<value>\d+(?:\.\d+)?|\.\d+)\s*s?\s*$",
+    r"^\s*(?P<key>pause|at)\s+(?P<value>\d+(?:\.\d*)?|\.\d+)\s*s?\s*$",
     re.IGNORECASE,
 )
 _DIALOGUE_GRAMMAR = (
@@ -347,8 +347,14 @@ def _format_dialogue_line(line: Dialogue) -> str:
 
 
 def _format_seconds(value: float) -> str:
-    """``1.5`` → ``'1.5'``, ``3.0`` → ``'3'``: the shortest exact spelling."""
-    text = repr(float(value))
+    """The shortest exact spelling `_DIALOGUE_TIMING_RE` reads back — no exponent.
+
+    >>> [_format_seconds(v) for v in (1.5, 3.0, 1e-05, 1e16, 0.1 + 0.2)]
+    ['1.5', '3', '0.00001', '10000000000000000', '0.30000000000000004']
+    """
+    from decimal import Decimal
+
+    text = format(Decimal(repr(float(value))), "f")
     return text[:-2] if text.endswith(".0") else text
 
 

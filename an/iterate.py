@@ -175,7 +175,8 @@ The IR shape (relevant fields):
         Lines play back to back from the shot start. "pause" (seconds) is
         silence before a line, after the previous one ends — a beat, a look, a
         hesitation belongs here, NOT in a new shot. "at" (seconds) starts a line
-        at that shot time instead; a line takes one or the other, never both.
+        at that shot time instead; a line takes one or the other, never both
+        (to switch, delete the one you are replacing in the same patch list).
         "start" and "duration" are stamped by the audio pipeline from these on
         every render — never patch them.
       - narration: list (same shape as dialogue, no speaker pin).

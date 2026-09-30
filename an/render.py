@@ -228,6 +228,12 @@ def render(
         )
         # Persist the now-stamped scene back to disk so subsequent loads see it.
         project.mall["scenes"]["main"] = scene
+    else:
+        # No synthesis, but a pause edited since the last one must still play
+        # where it now says, not at the stale stamp (an#187). In memory only.
+        from an.audio.pipeline import retime_dialogue
+
+        retime_dialogue(scene, timed_shots_only=True)
 
     work_dir = project.root / ".an" / "render_work"
     work_dir.mkdir(parents=True, exist_ok=True)

@@ -77,7 +77,7 @@ ships none of it.
 offline and Rhubarb leave `None`). Persist by adding `"words"` to the viseme sidecar payload —
 the key does **not** change (words are a function of the same inputs). IR:
 `Dialogue.word_timings` / `Narration.word_timings`, line-relative, optional with a default, so
-no `SCHEMA_VERSION` bump; JSON-only (the md writer emits `speaker [emotion]: text`).
+no `SCHEMA_VERSION` bump; JSON-only (the md writer emits `speaker [emotion] (timing): text`, no words).
 `already_done` gains `and line.word_timings is not None` **only** for providers that can
 supply words — or every Rhubarb project re-synthesizes forever. muvid feeds timings through
 `WordTimingsLipSync` and gets the round trip for free; Wave 8 reads `line.start + word.start`.

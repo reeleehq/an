@@ -124,9 +124,7 @@ def produce_audio_for_scene(
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
     voice_default = DEFAULT_VOICE
-    cursor = 0.0
     for shot in scene.timeline:
-        cursor = 0.0
         if shot.narration:
             # `Shot.narration` is fully modelled in the IR — text, voice_ref,
             # start, duration, viseme_track, audio_ref — and nothing has ever
@@ -189,9 +187,44 @@ def produce_audio_for_scene(
                 line.word_timings = _to_ir_word_timings(track)
                 line.audio_ref = expected_audio_ref
                 line.viseme_ref = expected_viseme_ref
-            # Re-derived every pass, so a stamped start is never stale.
+    return retime_dialogue(scene)
+
+
+def retime_dialogue(scene: SceneIR, *, timed_shots_only: bool = False) -> SceneIR:
+    """Stamp every synthesized line's ``start`` from its ``pause`` / ``at``.
+
+    Pure — synthesizes nothing, reads no store — and idempotent. The audio
+    pipeline ends with it, and every path that skips the pipeline (``render``
+    with ``auto_audio=False``, ``an preview``) runs it too, so a pause edited
+    after synthesis is never played at the stale stamp (an#187). A shot is
+    re-timed up to its first line with no ``duration`` (never synthesized:
+    nothing after it has a known start). Mutates in place and returns
+    ``scene``.
+
+    ``timed_shots_only=True`` — what the paths that skip synthesis pass —
+    leaves a shot whose lines carry no ``pause``/``at`` exactly as stamped:
+    a hand-built scene may stamp ``start`` itself (a test, a fixture), and
+    without the pipeline there is no authority to say that stamp is stale.
+
+    >>> from an.ir.schema import Dialogue, SceneIR, Shot
+    >>> shot = Shot(id="s", dialogue=[
+    ...     Dialogue(speaker="a", text="hi", start=0.0, duration=0.5, audio_ref="k1"),
+    ...     Dialogue(speaker="b", text="bye", start=0.5, duration=0.4, audio_ref="k2",
+    ...              pause=1.5)])
+    >>> [d.start for d in retime_dialogue(SceneIR(timeline=[shot])).timeline[0].dialogue]
+    [0.0, 2.0]
+    """
+    for shot in scene.timeline:
+        if timed_shots_only and all(
+            line.pause is None and line.at is None for line in shot.dialogue
+        ):
+            continue
+        cursor = 0.0
+        for line in shot.dialogue:
+            if line.duration is None:
+                break
             line.start = line.planned_start(cursor)
-            cursor = line.start + line.duration
+            cursor = line.start + float(line.duration)
     return scene
 
 
