@@ -75,6 +75,48 @@ def test_the_concat_of_off_grid_shots_plays_at_the_scene_rate(tmp_path, monkeypa
     _assert_plays_at(out, sum(frame_count(d, FPS) for d in DURATIONS.values()))
 
 
+def _frame_pts(mp4: Path) -> list[float]:
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+         "frame=pts_time", "-of", "csv=p=0", str(mp4)],
+        capture_output=True, text=True, check=True,
+    ).stdout
+    return [float(x.strip(",")) for x in out.split()]
+
+
+@pytest.mark.ffmpeg
+def test_a_captioned_film_of_off_grid_shots_is_concatenated_on_the_sidecar_grid(
+    tmp_path, monkeypatch
+):
+    """an#200: the concat now puts frame i at i / fps — the grid the caption
+    sidecar is written on (`film_timeline`) — so a captioned scene of off-grid
+    shots no longer needs the assembler. The only offset is the AAC priming
+    every concat carries, one constant for the whole film; the drift the
+    routing guarded against would grow shot by shot."""
+    from an.ir.schema import Captions, WordTimingIR
+
+    words = "Hi there".split()
+    line = Dialogue(
+        speaker="x", text="Hi there", start=0.2, duration=0.8,
+        word_timings=[WordTimingIR(text=w, start=0.4 * k, end=0.4 * k + 0.3) for k, w in enumerate(words)],
+    )
+    shots = _shots(red={"dialogue": [line]})
+    scene = SceneIR(
+        meta=_meta(sum(DURATIONS.values()), captions=Captions(burn=False, sidecar=True)),
+        timeline=shots,
+    )
+    project = _project(tmp_path, scene)
+    monkeypatch.setattr(render_mod, "assemble_film", lambda *a, **k: pytest.fail("assembled"))
+    out = _render(project, monkeypatch, auto_audio=False)
+    n = film_timeline(shots, fps=FPS).total_frames
+    _assert_plays_at(out, n)
+    pts = _frame_pts(out)
+    assert len(pts) == n
+    assert 0 <= pts[0] <= AAC_PRIMING_S + 1e-3, pts[0]
+    assert max(abs(p - pts[0] - i / FPS) for i, p in enumerate(pts)) < 1e-3
+    assert (project.root / "output" / "main.srt").exists()
+
+
 @pytest.mark.ffmpeg
 def test_a_sound_and_a_dissolve_play_at_the_scene_rate(tmp_path, monkeypatch):
     from an.sounds import SYNTH_SOURCE, add_sound, synth_hit, synth_tone

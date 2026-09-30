@@ -35,10 +35,6 @@ from an.project import Project, load
 # can always pass a higher number explicitly.
 DEFAULT_PARALLEL_CAP: int = 4
 
-#: How far ``duration * fps`` may sit from a whole number and still count as
-#: whole frames (float error, not a fraction of a frame).
-_FRAME_GRID_TOLERANCE: float = 1e-6
-
 
 class RenderError(RuntimeError):
     """Raised on render-pipeline failures with actionable detail."""
@@ -321,15 +317,15 @@ def render(
     # Concatenate per-shot mp4s.
     output_path = (project.root / "output" / f"{output_name}.mp4").resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    if needs_assembly(scene, fps=effective_fps) or _sidecar_needs_frame_grid(
-        scene, shot_results, fps=effective_fps
-    ):
+    if needs_assembly(scene, fps=effective_fps):
         # Transitions and/or a sound layer: composed in the frame stage and
         # mixed from sources (`an.assemble`). A scene with neither never
         # reaches this branch, so its delivered file is the concat's, byte
-        # for byte. (Captions can also send a scene here — see
-        # `_sidecar_needs_frame_grid`; captions are opt-in, so no existing
-        # scene's file changes.)
+        # for byte. Captions do not send a scene here (an#200): since each
+        # shot's audio is cut to its picture (an#195), the concat puts frame
+        # i at i/fps — the caption sidecar's grid — whether or not the shots
+        # are whole frames long, offset only by the AAC priming every concat
+        # carries.
         assemble_film(
             scene,
             shot_results,
@@ -392,45 +388,6 @@ def _write_caption_sidecar(mall, output_name, scene, captions, pages, *, fps):
 
     srt = srt_for_scene(scene, fps=fps, pages=pages)
     store[output_name] = srt.encode("utf-8")
-
-
-def _sidecar_needs_frame_grid(scene, shot_results, *, fps) -> bool:
-    """True when a caption sidecar needs the film laid out on the frame grid.
-
-    The sidecar places shot ``i`` at its first FRAME (`film_timeline`). The
-    concat of shot mp4s places it at the previous shots' container lengths,
-    which differ whenever a shot's duration is not a whole number of frames —
-    and the error accumulates (review finding). The assembled path muxes the
-    film once from frames, frame ``i`` at ``i / fps``, which is exactly what
-    the sidecar says; so a captioned scene with such a shot is assembled. A
-    renderer that keeps no frames cannot be assembled: that is warned about,
-    and the concat is used.
-    """
-    import warnings
-
-    captions = scene.meta.captions
-    if captions is None or not captions.sidecar:
-        return False
-    off_grid = [
-        s.id
-        for s in scene.timeline
-        if abs(s.duration * fps - round(s.duration * fps)) > _FRAME_GRID_TOLERANCE
-    ]
-    if not off_grid:
-        return False
-    if all(r.frame_manifest for r in shot_results):
-        return True
-    from an.captions import CaptionWarning
-
-    warnings.warn(
-        f"shots {off_grid} are not a whole number of frames long at {fps} fps, so "
-        "the concatenated film drifts from the caption sidecar's frame grid, and "
-        "a renderer here keeps no frames to assemble from; make those durations "
-        "whole frames",
-        CaptionWarning,
-        stacklevel=3,
-    )
-    return False
 
 
 def _burn_captions(shot, index, pages, captions, ctx, project, *, fps):
