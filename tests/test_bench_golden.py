@@ -440,12 +440,12 @@ def test_every_bless_record_names_the_scene_that_compiles_today():
     assert {m.parent.name for m, _ in records} == set(DFLT_FIXTURES), (
         "every corpus scene has a bless record and every record is a corpus scene"
     )
-    stale = {
-        manifest.parent.name: (record["scene_contract_sha256"][:12], today[:12])
-        for manifest, record in records
-        if record["scene_contract_sha256"]
-        != (today := compiled_contract_sha256(DFLT_FIXTURES[manifest.parent.name], repo_root=root))
-    }
+    stale = {}
+    for manifest, record in records:
+        scene = manifest.parent.name
+        today = compiled_contract_sha256(DFLT_FIXTURES[scene], repo_root=root)
+        if record["scene_contract_sha256"] != today:
+            stale[scene] = (record["scene_contract_sha256"][:12], today[:12])
     assert not stale, f"bless records naming a scene that no longer compiles (blessed, today): {stale}"
 
 

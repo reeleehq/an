@@ -207,6 +207,9 @@ def compiled_contract_sha256(fixture: Fixture, *, repo_root: Path) -> str:
     contract hash is a function of the compiled JSON alone, so the guards that
     check it — against the newest ledger row and against each golden's bless
     record — run on every PR, not only in the labelled browser lane.
+
+    It is the contract of a bench render, which passes no overrides: a render
+    given its own ``step_hz``, fps or resolution compiles something else.
     """
     from an.adapters.cutout.compile import compile_shot, style_pack_for
     from an.adapters.cutout.serialize import to_dict
