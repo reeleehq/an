@@ -137,15 +137,17 @@ def test_a_non_png_data_url_is_refused():
 
 
 def test_the_capture_knob_refuses_an_unknown_path_before_anything_launches():
-    assert render._check_capture(None) == render.DEFAULT_CAPTURE == "screenshot"
+    # an#192: the canvas path is the default; the screenshot path stays selectable.
+    assert render._check_capture(None) == render.DEFAULT_CAPTURE == "canvas"
+    assert render._check_capture("screenshot") == "screenshot"
     with pytest.raises(render.CutoutRenderError, match="not one of"):
         render._check_capture("webgl")
 
 
 def test_the_default_is_read_at_call_time(monkeypatch):
-    """So the eventual flip is a one-line change, and a lever can pull it."""
-    monkeypatch.setattr(render, "DEFAULT_CAPTURE", "canvas")
-    assert render._check_capture(None) == "canvas"
+    """So the default is a one-line change, and a lever can pull it."""
+    monkeypatch.setattr(render, "DEFAULT_CAPTURE", "screenshot")
+    assert render._check_capture(None) == "screenshot"
 
 
 # ------------------------------------------------ ordering and back-pressure
@@ -322,3 +324,46 @@ def test_the_runtime_exposes_the_capture_hook():
     assert "view.toDataURL('image/png')" in source
     assert "frame: req.frame" in source
     assert "extract" not in source.split("NS.anCaptureFrames")[1].split("};")[0]
+
+
+# ------------------------------------------- the byte bound (review of an#192)
+
+
+def test_a_round_trip_carries_at_most_the_pixel_budget(tmp_path):
+    """A frame count bounds nothing when a frame is a k-times, many-sample
+    canvas: the review measured one reply overflowing the driver's string limit
+    (the render then hung). Each round trip is held to ``batch_pixels``."""
+    per_frame = WIDTH * HEIGHT
+    page = _FakePage()
+    render._capture_frames_canvas(
+        page, 10, 24, tmp_path, resolution=(WIDTH, HEIGHT), batch=8,
+        batch_pixels=3 * per_frame,
+    )
+    assert [len(r) for r in page.requests] == [3, 3, 3, 1]
+    assert len(list(tmp_path.glob("*.png"))) == 10
+
+
+def test_a_frame_bigger_than_the_budget_is_split_and_written_once(tmp_path):
+    """Five instants at a two-instant budget: three round trips for the frame,
+    one file, the same pixels as capturing it in one go."""
+    samples = ((0.0, 0.01, 0.02, 0.03, 0.04), (0.05,))
+    page = _FakePage()
+    render._capture_frames_canvas(
+        page, 2, 24, tmp_path, frame_samples=samples, resolution=(WIDTH, HEIGHT),
+        batch_pixels=2 * WIDTH * HEIGHT,
+    )
+    assert [[len(q["times"]) for q in r] for r in page.requests] == [[2], [2], [1, 1]]
+    assert page.seeks == [t for frame in samples for t in frame]
+    whole = tmp_path / "whole"
+    whole.mkdir()
+    render._capture_frames_canvas(
+        _FakePage(), 2, 24, whole, frame_samples=samples, resolution=(WIDTH, HEIGHT)
+    )
+    for i in range(2):
+        name = render.DEFAULT_FRAME_PNG_PATTERN % i
+        assert np.array_equal(
+            _decoded((tmp_path / name).read_bytes())[1], _decoded((whole / name).read_bytes())[1]
+        )
+    assert sorted(p.name for p in tmp_path.glob("*.png")) == [
+        render.DEFAULT_FRAME_PNG_PATTERN % i for i in range(2)
+    ]

@@ -6,8 +6,10 @@
     <style>
         html, body { margin: 0; padding: 0; background: transparent; }
         /* The stage canvas MUST stay composited on the RENDER page, and this is
-           the opposite of what an#57 assumed. `_capture_frames` takes a
-           Playwright ELEMENT screenshot, which Playwright implements as a PAGE
+           the opposite of what an#57 assumed. The screenshot capture path
+           (`--capture screenshot`; the canvas path is the default since an#192
+           but shares this page) takes a Playwright ELEMENT screenshot, which
+           Playwright implements as a PAGE
            capture clipped to the element's document rect
            (`screenshotter.js::screenshotElement`, pinned playwright==1.55.0):
              - it gates on `_waitAndScrollIntoViewIfNeeded(waitForVisible=true)`,

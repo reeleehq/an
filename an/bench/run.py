@@ -1126,6 +1126,10 @@ def run_bench(
                 "asset_resolution": capture.asset_resolution,
                 "audio_cache": capture.audio_cache,
                 "wall_seconds": capture.wall_seconds,
+                # Beside the timing it explains: the canvas path is several
+                # times faster and moves no pixel (an#192), so wall_seconds on
+                # either side of the default flip are not comparable.
+                "capture": capture.capture,
                 **scene_prov,
             }
             if provenance["frames_on_disk"] != expected:

@@ -45,7 +45,7 @@ an.render.render(project, …)
      │                                           own bytes, nothing decoded (OFF IS FREE)
      │                                     k>1 → screenshot to BYTES, block-mean resolve to the
      │                                           declared size, then write
-     │                                   — or, ctx.capture="canvas" (opt-in, §2b):
+     │                                   — or, ctx.capture="canvas" (THE DEFAULT since an#192, §2b):
      │                                     batches of anCaptureFrames → PNG data URLs →
      │                                     opaque check, the SAME resolves, RGB PNG, on a
      │                                     bounded encode pool. Same decoded frames.
@@ -237,9 +237,11 @@ the reason, `tests/test_cutout_runtime_files.py::test_the_capture_page_never_sto
 refuses it, and the mutant `capture_page_stops_compositing_the_canvas` proves
 that guard fails when it is reintroduced.
 
-## 2b. The canvas capture path (opt-in) — the win above, shipped behind a flag
+## 2b. The canvas capture path (the default since an#192) — the win above
 
-`RenderContext.capture = "canvas"` / `an render --capture canvas`. The page's
+`RenderContext.capture` / `an render --capture`: `"canvas"` is the default
+(`DEFAULT_CAPTURE`, read at call time); `--capture screenshot` still selects
+the element-screenshot loop above. The page's
 `window.anCaptureFrames(requests)` seeks each requested instant and returns
 `app.view.toDataURL('image/png')`; `an/adapters/cutout/canvas_capture.py` turns
 each into the frame the screenshot path writes; `render._capture_frames_canvas`
@@ -259,15 +261,18 @@ Every trap, and where it is closed — do not reopen any of them:
 | seek order | before an#185 the pose was not a pure function of t: t=0 after t=0.967 differed from a fresh t=0 by 122 px on `single_character` (an ended clip stopped writing, so its node kept the last SEEK's value) | closed at the source: `anSetTime` restores every animated key nothing has started writing to what `anLoadScene` built, and an ended clip holds its END value — so a clip ending between frames now lands on its end value where it used to stop at its last sampled frame (a deliberate change; no golden-corpus clip ends off the grid) — and of keys writing one thing on a node (the swap sets of one visual) only the latest write survives (spec: `timeline.evaluate_timeline`). Guard: `tests/test_pure_pose.py` — node parity, forward-order == pure on every corpus frame (why no golden moved), and every corpus frame captured forward then backward in one page. Instants are still seeked frame then sample, because the page echoes frame numbers in that order |
 | dropped / reordered frames | a frame in the wrong file muxes, plays, and is wrong | the page echoes frame numbers; a reply that is not exactly the request writes nothing; every frame 0..N-1 must be written once |
 | unbounded buffering | a fast page and a slow encoder hold the whole shot in memory | at most `DEFAULT_CANVAS_MAX_INFLIGHT` frames wait on the pool; the loop blocks on the oldest |
+| bytes per round trip | a frame COUNT bounds nothing when a frame is a k-times, many-sample, incompressible canvas: a grain pack at supersample 2 x an 8-sample shutter overflowed the driver's string limit in one reply and the render hung in `browser.close()`; supersample 3 took ~16 GB of Python (an#192 review) | round trips and the encode pool are ALSO bounded in captured pixels (`DEFAULT_CANVAS_BATCH_PIXELS`, two 1080p instants; the pool twice that — at 1080p the batch size does not matter for a flat scene and decides everything for grain: 11.0 s / 0.38 GB at 2 against 17.8 s / 2.1 GB at 8); a frame whose instants alone exceed it is split over round trips and encoded once; `canvas_frame_png` resolves each sample as it decodes it, so one k-times canvas is alive at a time |
 | decode/encode cost | ~40-60 ms/f of Pillow at 1080p, the same order as the page's own work | runs on `DEFAULT_CANVAS_ENCODE_WORKERS` threads while the page renders the next batch; Pillow-native alpha check and drop (a numpy `[..., :3]` copy was ~5x slower) |
 
 **The gate** is `tests/test_canvas_capture_equivalence.py` (browser + ffmpeg):
 every golden-corpus scene rendered both ways, every frame's decoded array and the
 delivered mp4 compared; a 3-shot, 288-frame render in a parallel pool of 3; and
 supersample 2 with a 3-sample open shutter through `CutoutRenderer` directly.
-**The default stays `"screenshot"`** until that gate holds on a developer machine
-AND the labelled Linux lane; the flip is a one-line PR of its own
-(`DEFAULT_CAPTURE`, read at call time).
+**The default flipped to `"canvas"` in an#192**, after that gate held on a
+developer machine AND the labelled Linux lane (an#189), and again on the flip
+itself. The bench records the resolved path as each scene's
+`provenance.capture`, beside `wall_seconds`: no metric moves across the flip,
+but timings on either side of it are not comparable.
 
 **Cost** (M1 Max, a heavily loaded machine — load average 120-230 on 10 cores —
 so read ratios, not absolutes; interleaved, medians):
@@ -454,10 +459,11 @@ Also still unmeasured, from `wave3_research.md` §7 — do not assume any of the
 - ~~Whether the compositing win grows with k.~~ **MOOT until the capture path
   changes** — the win is unrealisable while frames come from an element
   screenshot (§2). Worth re-asking only inside an in-page-capture PR, where the
-  measured contribution at 1x is 1.09x. The canvas path (§2b) now
-  exists but is opt-in and shares `index.html` with the screenshot path, so the
-  canvas must stay composited until the default flips; hiding it is a
-  follow-up to that flip, not to this path.
+  measured contribution at 1x is 1.09x. The canvas path (§2b) is the
+  default since an#192, but still shares `index.html` with the screenshot
+  path, which needs the canvas composited — so hiding it means making the
+  guard (`test_the_capture_page_never_stops_compositing_the_stage_canvas`) and
+  its mutant conditional on the capture path. Not done yet.
 - ~~`-f concat -c copy -movflags +faststart` on the pinned ffmpeg build.~~
   **SETTLED — it is a remux, not a transcode** (ffmpeg 8.1, Homebrew, macOS
   arm64, an#57). The concatenated elementary stream is sha256-identical to the

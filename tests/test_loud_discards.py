@@ -710,7 +710,12 @@ def test_a_js_runtime_throw_arrives_as_a_typed_error_naming_the_frame():
             )
 
     with pytest.raises(CutoutRenderError) as e:
-        _capture_frames(_ThrowingPage(), total_frames=3, fps=12, frames_dir=Path("/tmp"))
+        # The screenshot path by name (the canvas path, the default since
+        # an#192, locates a runtime throw in-page: tests/test_canvas_capture.py).
+        _capture_frames(
+            _ThrowingPage(), total_frames=3, fps=12, frames_dir=Path("/tmp"),
+            capture="screenshot",
+        )
 
     msg = str(e.value)
     assert "frame 0" in msg, "the error must name which frame failed"

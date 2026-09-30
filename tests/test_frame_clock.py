@@ -170,7 +170,8 @@ class _FakePage:
 
 def test_no_frame_samples_is_the_old_capture_call_for_call(tmp_path):
     page = _FakePage()
-    _capture_frames(page, 3, 30, tmp_path)
+    # The screenshot path by name: it is no longer the default (an#192).
+    _capture_frames(page, 3, 30, tmp_path, capture="screenshot")
     assert page.log == [
         ("t", 0.0),
         ("shot", str(tmp_path / (DEFAULT_FRAME_PNG_PATTERN % 0))),
@@ -183,7 +184,9 @@ def test_no_frame_samples_is_the_old_capture_call_for_call(tmp_path):
 
 def test_single_instant_frame_samples_capture_exactly_those_instants(tmp_path):
     page = _FakePage()
-    _capture_frames(page, 2, 30, tmp_path, frame_samples=((0.01,), (0.05,)))
+    _capture_frames(
+        page, 2, 30, tmp_path, frame_samples=((0.01,), (0.05,)), capture="screenshot"
+    )
     assert [e for e in page.log if e[0] == "t"] == [("t", 0.01), ("t", 0.05)]
     assert [e[1] for e in page.log if e[0] == "shot"] == [
         str(tmp_path / (DEFAULT_FRAME_PNG_PATTERN % 0)),

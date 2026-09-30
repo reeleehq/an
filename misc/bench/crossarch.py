@@ -42,6 +42,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Iterator
 
+from an.adapters.cutout.render import _check_capture
 from an.bench.corpus import (
     BENCH_RENDER_KWARGS,
     DFLT_FIXTURES,
@@ -375,6 +376,10 @@ def capture_scene(
         # Which render path this actually exercised — the fact whose absence
         # made the first run of this experiment measure the wrong thing.
         "visual_kinds": sorted(staged_kinds),
+        # How the frames left the browser (an#192 flipped the default): the two
+        # paths agree on decoded pixels, NOT on PNG bytes, so a PNG-byte
+        # difference between two captures is only readable beside this.
+        "capture": _check_capture(CAPTURE_RENDER_KWARGS.get("capture")),
         "video": video,
         "resolution": [scene.meta.resolution.width, scene.meta.resolution.height],
         "fps": scene.meta.fps,
@@ -563,6 +568,7 @@ def compare(a_dir: str | Path, b_dir: str | Path) -> dict[str, Any]:
             "pixels_identical": not pixel_diffs,
             "frames_with_differing_pixels": len(pixel_diffs),
             "frames_with_differing_png_bytes": png_byte_diffs,
+            "capture": [sa.get("capture"), sb.get("capture")],
             "worst": max(
                 (d for d in pixel_diffs if "max_channel_delta" in d),
                 key=lambda d: (d["max_channel_delta"], d["differing_pixels"]),

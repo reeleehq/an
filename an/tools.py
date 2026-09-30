@@ -109,10 +109,10 @@ def render(
         behaviour by it — Rhubarb's recognizer today: English (the default)
         uses `pocketSphinx` with the transcript, anything else `phonetic`
         without one (an#96)
-    capture: how frames leave the browser — "screenshot" (the default) or
-        "canvas", an in-page read of the canvas in batches that writes frames
-        with the same decoded pixels; ~7.8x faster frame stage on the corpus, ~2.3x at 1080p. Opt-in until the
-        equivalence gate has held on both rendering lanes
+    capture: how frames leave the browser — "canvas" (the default), an in-page
+        read of the canvas in batches, ~7.8x faster frame stage on the corpus,
+        ~2.3x at 1080p; or "screenshot", a Playwright element screenshot per
+        instant. Both write frames with the same decoded pixels
     """
     parallel_arg: int | str | None
     if not parallel:
