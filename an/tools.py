@@ -273,7 +273,13 @@ def bench(
         # undeclared name would otherwise surface as a bare `KeyError` from
         # inside `mutated_row` after all of it.
         from an.bench.mutations import LEVERS, mutated_row
+        from an.bench.registry import REFUSED_LEVERS
 
+        if mutation in REFUSED_LEVERS:
+            return (
+                f"{mutation!r} is not a lever: it was tried and refused. "
+                f"{REFUSED_LEVERS[mutation]}"
+            )
         if mutation not in LEVERS:
             return (
                 f"unknown mutation {mutation!r}; declared: {sorted(LEVERS)}. A"
@@ -366,8 +372,10 @@ def bench_compare(
     mutation: evaluate the per-mutation predictions instead of asking whether
         the second row is worse. One of the mutations the rows declare.
     strict: exit nonzero when the answer is bad — a regression without a
-        mutation, an unmet criterion with one, a comparison that answered
-        nothing, or a row that could not be read at all. For CI.
+        mutation, or a direction that reverses on its own metric's threshold
+        grid (an#140: some cell of it got worse), an unmet criterion with one,
+        a comparison that answered nothing, or a row that could not be read at
+        all. For CI.
     raw: print the report as JSON instead of the human digest
 
     Refusing is the feature. Two rows measured on different scenes, at
@@ -435,7 +443,11 @@ def bench_compare(
             or (
                 not report.get("criterion_met")
                 if mutation
-                else bool(report.get("has_regressions"))
+                # an#140: `unstable` is not a regression and not a pass. With
+                # no mutation it means some cell of the metric's own grid got
+                # worse, and a gate that exits 0 on it is reading "cannot tell"
+                # as "fine".
+                else bool(report.get("has_regressions") or report.get("unstable"))
             )
         )
         if bad:

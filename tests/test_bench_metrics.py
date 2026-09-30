@@ -150,6 +150,67 @@ def test_an_undamaged_flat_field_reads_zero():
     assert M.flat_field_deviation(src, src.copy(), np.ones((1, 4, 4), bool))[0] == 0.0
 
 
+def _noisy_pair(seed: int = 0):
+    """A source with flat fields and an edge, and a decode off by a spread of
+    deviations, so every cell of the sweep counts something different."""
+    rng = np.random.default_rng(seed)
+    src = np.zeros((3, 24, 24, 3), np.uint8)
+    src[:, :, 12:] = 200
+    noise = rng.integers(-10, 11, size=src.shape)
+    dec = np.clip(src.astype(np.int16) + noise, 0, 255).astype(np.uint8)
+    return src, dec
+
+
+def test_the_sweeps_shipped_cell_IS_the_metric():
+    """an#140. The sweep is not a second number: its shipped cell must be
+    exactly `flat_field_deviation`, or `an bench-compare` would be checking the
+    robustness of a statistic the row does not report.
+
+    MUTATION: `dev > t` -> `dev >= t` in `flat_field_deviation_sweep`
+    (declared in `an.bench.mutants`).
+    """
+    mask_src, dec = _noisy_pair()
+    # The reference and the mask source are DIFFERENT arrays, as in `run.py`
+    # (lossless leg vs PNG source): passing one array for both roles cannot
+    # tell a sweep that masks from the wrong one.
+    ref = np.clip(mask_src.astype(np.int16) + 3, 0, 255).astype(np.uint8)
+    ref[:, :4, :4] = 90
+    sweep = M.flat_field_deviation_sweep(ref, dec, mask_rgb=mask_src)
+    shipped = sweep[M.sweep_cell_key(dilate_k=masks.FLAT_DILATE_K, tol=M.FLAT_DEV_TOL)]
+    frac, _ = M.flat_field_deviation(ref, dec, masks.flat_mask(mask_src))
+    assert shipped[0] / shipped[1] == frac
+    wrong_mask = M.flat_field_deviation_sweep(ref, dec, mask_rgb=ref)
+    assert wrong_mask != sweep, "the fixture must separate the two roles"
+    assert len(sweep) == len(M.FLAT_DEV_TOL_SWEEP) * len(M.FLAT_DILATE_K_SWEEP)
+
+
+def test_every_shipped_threshold_sits_inside_its_own_sweep():
+    """A sweep that does not contain the shipped parameters is not a
+    neighbourhood of the verdict — it is a different metric's verdict."""
+    assert M.FLAT_DEV_TOL in M.FLAT_DEV_TOL_SWEEP
+    assert masks.FLAT_DILATE_K in M.FLAT_DILATE_K_SWEEP
+    assert M.FLICKER_DELTA_TOL in M.FLICKER_DELTA_TOL_SWEEP
+
+
+def test_the_flicker_sweeps_shipped_cell_IS_the_metric():
+    src, _ = _noisy_pair()
+    src = np.repeat(src[:1], 4, axis=0)  # held everywhere
+    _, dec = _noisy_pair(seed=1)
+    dec = np.concatenate([dec, dec[:1]])
+    sweep = M.encode_flicker_sweep(src, dec)
+    shipped = sweep[M.sweep_cell_key(tol=M.FLICKER_DELTA_TOL)]
+    assert shipped[0] / shipped[1] == M.encode_flicker_on_held_pixels(src, dec)
+
+
+def test_a_sweep_counts_fall_as_the_threshold_rises():
+    """A survival function: a larger `tol` can only count fewer pixels."""
+    src, dec = _noisy_pair()
+    sweep = M.flat_field_deviation_sweep(src, dec, mask_rgb=src)
+    for k in M.FLAT_DILATE_K_SWEEP:
+        counts = [sweep[M.sweep_cell_key(dilate_k=k, tol=t)][0] for t in M.FLAT_DEV_TOL_SWEEP]
+        assert counts == sorted(counts, reverse=True) and counts[0] > counts[-1]
+
+
 def test_the_flat_mask_excludes_the_pixels_around_an_edge():
     """The metric covers the ~90% of the frame no edge metric touches."""
     a = _step(width=9, split=5)

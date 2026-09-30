@@ -246,7 +246,9 @@ def test_a_deliberate_degradation_moves_three_causal_families(mutation):
     measurably scene-dependent and that is a property of the pipeline rather
     than of the instrument:
 
-    - `high_crf` is met on all six (C + D + F everywhere, plus E on five).
+    - `high_crf` is met on nine of ten (ffmpeg 9.0.1): `graded_field` falls
+      to C + F because its D and E counts reverse inside their own
+      parameter sweeps and are `unstable`, not witnesses (an#140).
     - `disabled_aa` is met on the three scenes with non-axis-aligned edges —
       `aa_probe`, `multi_shot`, `saturated_outline`. MSAA applies to WebGL
       geometry, so an SVG sprite is nearly blind to it and axis-aligned

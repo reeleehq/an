@@ -34,6 +34,15 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
+from an.bench.masks import FLAT_DILATE_K
+from an.bench.metrics import (
+    FLAT_DEV_TOL,
+    FLAT_DEV_TOL_SWEEP,
+    FLAT_DILATE_K_SWEEP,
+    FLICKER_DELTA_TOL,
+    FLICKER_DELTA_TOL_SWEEP,
+)
+
 #: The levers an#41 and an#56 use. At least one per SIDE is mandatory: an
 #: encoder lever cannot touch a golden-frame metric because the corpus is
 #: UPSTREAM of the encoder, so requiring ">=3 metrics" from a CRF change alone
@@ -47,6 +56,43 @@ from typing import Literal
 #: false regressions and 7 unearned improvements (an#56). Declaring it is how
 #: that gets found before it is believed.
 MUTATIONS: tuple[str, ...] = ("high_crf", "disabled_aa", "supersample")
+
+#: Levers that were TRIED and refused, each with the measured reason — data, so
+#: `an bench --mutation <name>` answers with the reason instead of "unknown",
+#: and the next person meets the measurement before re-registering one. Never
+#: pulled, never predicted for; disjoint from `MUTATIONS` by test.
+REFUSED_LEVERS: dict[str, str] = {
+    "pix_fmt": (
+        "4:2:0 -> 4:4:4 at fixed CRF fails its own exam on the machine it was "
+        "designed on, not only on Linux (an#72). Re-measured 2026-09-30 on "
+        "macOS/arm64, ffmpeg 9.0.1, lossless leg tracking the delivered format "
+        "(an#138) and with an#140's robustness gate: the three-family criterion "
+        "is met on 1 of 10 scenes (`dialogue`); the pre-an#138 'four scenes' "
+        "was taken against a contaminated reference. Three reasons, each "
+        "measured: (1) the lever is not one variable — at fixed CRF 4:4:4 "
+        "encodes at a coarser quantiser (I-frame Avg QP +2.9 to +9.5) and "
+        "spends fewer bits, so every encode-side direction is the sum of two "
+        "opposed effects; (2) family D cannot carry it — the flat-field "
+        "deviation distributions CROSS (16 of 18 scene x dilate cells on the six lever scenes), so its "
+        "direction is `unstable` over its own tol/dilate grid on 5 of 10 "
+        "scenes; (3) family E's held mask is derived from the lossless leg, "
+        "which moves with the format (0.02-2.65% of held pixels), so E has no "
+        "fixed mask under this lever. The one witness whose subject IS chroma, "
+        "`chroma_edge_dCr`, references `source_png` and may not count. The "
+        "knob ships (`an render --pix-fmt`); a QUANTISER-matched lever is the "
+        "route the evidence leaves open."
+    ),
+    "step_hz": (
+        "moves `scene_contract_sha256` on every scene with a tween, so "
+        "`bench-compare` refuses the row before any family is examined; the "
+        "instrument is per-frame and stepping is a temporal choice (an#89)."
+    ),
+    "flat_camera": (
+        "a compile-time change to the plane-compensation channels, refused at "
+        "comparability for the same reason as `step_hz`; the parallax claim "
+        "is carried render-side by `stage_min_plane_ratio_gap` (an#111)."
+    ),
+}
 
 
 #: What each lever is EXPECTED to change about the recorded environment.
@@ -247,6 +293,47 @@ class Prediction:
 
 
 @dataclass(frozen=True, slots=True)
+class Sweep:
+    """The grid of a threshold counter's OWN free parameters its verdict is checked on.
+
+    Declared rather than merely written by `run.py`, so a row says a metric
+    SHOULD carry a sweep: a sweep deleted from a row is then refused by
+    `an bench-compare` instead of silently reading as "never had one" (an#140).
+    ``shipped`` names the cell that IS the metric's value.
+    """
+
+    grid: tuple[tuple[str, tuple[int, ...]], ...]
+    shipped: tuple[tuple[str, int], ...]
+
+    def __post_init__(self) -> None:
+        axes = dict(self.grid)
+        chosen = dict(self.shipped)
+        if set(axes) != set(chosen):
+            raise RegistryError(
+                f"sweep axes {sorted(axes)} and shipped parameters "
+                f"{sorted(chosen)} must name the same parameters"
+            )
+        outside = {k: v for k, v in chosen.items() if v not in axes[k]}
+        if outside:
+            raise RegistryError(
+                f"the shipped parameters {outside} sit outside their own sweep, "
+                "so the sweep is not a neighbourhood of the recorded verdict"
+            )
+
+    @property
+    def shipped_cell(self) -> str:
+        from an.bench.metrics import sweep_cell_key
+
+        return sweep_cell_key(**dict(self.shipped))
+
+    def to_dict(self) -> dict:
+        return {
+            "grid": {k: list(v) for k, v in self.grid},
+            "shipped": self.shipped_cell,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class Optimum:
     """Which way "better" points, and whether the optimum is interior."""
 
@@ -304,6 +391,8 @@ class MetricSpec:
     #: registry does not know about.
     requires: str = ""
     notes: tuple[str, ...] = field(default_factory=tuple)
+    #: Set only on a hard-threshold counter (an#140); see :class:`Sweep`.
+    sweep: Sweep | None = None
 
     def __post_init__(self) -> None:
         if self.family not in FAMILY_SIDE:
@@ -349,6 +438,8 @@ class MetricSpec:
             out["counts"] = 0
         if self.notes:
             out["notes"] = list(self.notes)
+        if self.sweep is not None:
+            out["threshold_sweep"] = self.sweep.to_dict()
         # Encode-side rows are MACHINE-SCOPED: same ISA + same x264 build is
         # byte-identical, a different ISA moves the decoded stream, and a
         # different x264 build moves it by two orders of magnitude. A band wide
@@ -843,9 +934,27 @@ METRICS: dict[str, MetricSpec] = {
                     ),
                 ),
             },
+            sweep=Sweep(
+                grid=(("dilate_k", FLAT_DILATE_K_SWEEP), ("tol", FLAT_DEV_TOL_SWEEP)),
+                shipped=(("dilate_k", FLAT_DILATE_K), ("tol", FLAT_DEV_TOL)),
+            ),
             notes=(
                 "Covers the ~90% of the frame no edge metric touches. Banding "
                 "regressions are invisible without it.",
+                "A hard-threshold count over a mask eroded by a second free "
+                "parameter, so its row carries the count at every "
+                "(dilate_k, tol) of `metrics.FLAT_DILATE_K_SWEEP` x "
+                "`FLAT_DEV_TOL_SWEEP`, and `an bench-compare` reports a "
+                "direction the grid disagrees with as `unstable` — neither "
+                "counted nor contrary (an#140). Measured under 4:2:0 -> 4:4:4: "
+                "3 of 6 scenes reverse on that grid (`graded_field` +84.2% at "
+                "tol 6, -81.6% at tol 8), and so does `graded_field` under "
+                "`high_crf` (tol 5). No scalar replacement was stable on the "
+                "same grid — mean excess over tol, the threshold-free mean, "
+                "p99 and p99.9 each reverse on at least one scene — because "
+                "the two deviation distributions CROSS (16 of 18 scene x k "
+                "cells): some deviations shrink and others grow, and any "
+                "scalar then encodes a choice of weighting as a direction.",
             ),
         ),
         _spec(
@@ -943,6 +1052,19 @@ METRICS: dict[str, MetricSpec] = {
                     ),
                 ),
             },
+            sweep=Sweep(
+                grid=(("tol", FLICKER_DELTA_TOL_SWEEP),),
+                shipped=(("tol", FLICKER_DELTA_TOL),),
+            ),
+            notes=(
+                "The panel's other hard-threshold counter, so its row carries "
+                "the count at every tol of `metrics.FLICKER_DELTA_TOL_SWEEP` "
+                "and `an bench-compare` reports a direction that grid "
+                "disagrees with as `unstable` (an#140). Measured: under "
+                "`high_crf` `graded_field` reads -9% at tol 1 and +29% at tol "
+                "2; under 4:2:0 -> 4:4:4 `single_character` reads +25% at tol "
+                "2 and -15% at tol 3.",
+            ),
         ),
         _spec(
             key="encode_ringing_excess",

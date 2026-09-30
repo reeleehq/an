@@ -97,6 +97,29 @@ _ROW_PROVENANCE = {
 }
 
 
+def _uniform_sweep(key: str, number: float):
+    """A threshold counter (an#140) as `run.py` writes it, from a plain number.
+
+    Its value is a FRACTION and carries a sweep whose shipped cell must equal
+    it, so the arbitrary numbers the tests below use (1.0, 2.0, 0.5 ...) are
+    mapped to ``number / 10`` with every cell of the declared grid at that same
+    fraction — so every cell moves the way the shipped value does, the sweep is
+    `stable`, and a test written before the sweep keeps its meaning.
+    """
+    import itertools
+
+    from an.bench.metrics import sweep_cell_key
+
+    of = 10**6
+    counted = round(number * 10**5)
+    grid = dict(METRICS[key].sweep.grid)
+    cells = {
+        sweep_cell_key(**dict(zip(grid, combo))): [counted, of]
+        for combo in itertools.product(*grid.values())
+    }
+    return measured(round(counted / of, 6), sweep=cells)
+
+
 def _row(
     values: dict | None = None,
     *,
@@ -108,7 +131,11 @@ def _row(
     numbers = {key: 1.0 for key in METRICS}
     numbers.update(values or {})
     metrics = {
-        key: value if hasattr(value, "state") else measured(value)
+        key: value
+        if hasattr(value, "state")
+        else _uniform_sweep(key, value)
+        if METRICS[key].sweep is not None
+        else measured(value)
         for key, value in numbers.items()
     }
     tripwires = {key: measured(True) for key in TRIPWIRES}
@@ -1259,3 +1286,209 @@ def test_a_blessed_row_is_surfaced_as_a_caveat_rather_than_left_write_only(tmp_p
     assert report["before"]["blessed_scenes"] == []
     text = format_comparison(report)
     assert "--bless run" in text and "aa_probe" in text
+
+
+# ------------------------------------------ an#140: a verdict must survive its own knobs
+
+#: `flat_field_deviation`'s MEASURED sweep (dilate_k=3 row), on `graded_field`
+#: at 4:2:0 and at 4:4:4 — macOS/arm64, one x264 build, the lossless leg
+#: tracking the delivered format in both. The shipped cell (tol 6) goes
+#: 533 -> 982 of 429,623 (+84.2%), and tol 8 goes 152 -> 28: a change of the
+#: metric's own threshold inside its declared grid reverses its verdict (an#140).
+_GRADED_420 = {f"dilate_k=3,tol={t}": [n, 429623] for t, n in zip(range(4, 9), (1505, 780, 533, 309, 152))}
+_GRADED_444 = {f"dilate_k=3,tol={t}": [n, 429623] for t, n in zip(range(4, 9), (1647, 1016, 982, 836, 28))}
+#: `saturated_outline` under `high_crf` (crf23 -> crf40), same grid row: every
+#: cell rises, which is what a verdict that is not a threshold accident reads.
+_SATURATED_23 = {f"dilate_k=3,tol={t}": [n, 823898] for t, n in zip(range(4, 9), (12101, 10553, 3952, 2217, 1987))}
+_SATURATED_40 = {f"dilate_k=3,tol={t}": [n, 823898] for t, n in zip(range(4, 9), (67644, 61660, 39895, 34962, 29147))}
+
+_FFD = "flat_field_deviation"
+
+
+def _swept(cells: dict) -> object:
+    """`flat_field_deviation` as `run.py` writes it: the shipped cell's
+    fraction, carrying the whole sweep."""
+    n, of = cells["dilate_k=3,tol=6"]
+    return measured(round(n / of, 6), sweep=cells)
+
+
+def test_a_direction_its_own_threshold_reverses_is_unstable_and_counts_for_nothing():
+    """an#140, on the measured numbers. At the shipped tol the witness moves
+    exactly as `high_crf` declares (up), so without the sweep it would count
+    toward family D; at tol 8, inside its own declared grid, it moves the
+    other way.
+
+    MUTATION: `tally["decrease"] > 0` -> `< 0` in `sweep_verdict` (declared in
+    `an.bench.mutants`), or drop the `unstable` override in `_compare_scene`.
+    """
+    assert METRICS[_FFD].predictions["high_crf"].expect == "increase"
+    assert METRICS[_FFD].predictions["high_crf"].counts
+    report = compare(
+        _row({_FFD: _swept(_GRADED_420)}),
+        _row({_FFD: _swept(_GRADED_444)}),
+        mutation="high_crf",
+    )
+    scene = report["scenes"]["s"]
+    entry = scene["metrics"][_FFD]
+    assert entry["direction"] == "increase"
+    assert entry["verdict"] == "unstable", entry
+    assert entry["verdict_before_sweep"] == "as_declared"
+    assert entry["sweep"]["increase"] == 4 and entry["sweep"]["decrease"] == 1
+    assert "D" not in scene["families_satisfied"]
+    assert _FFD not in scene["contrary"], "unstable is not evidence AGAINST either"
+    assert _FFD in scene["unstable"]
+    assert "UNSTABLE over its own parameters" in format_comparison(report)
+
+
+def test_a_direction_every_cell_agrees_with_still_counts():
+    """The gate must not blind family D where it was always right: under the
+    real `high_crf` lever `saturated_outline` rises on every cell."""
+    scene = compare(
+        _row({_FFD: _swept(_SATURATED_23)}),
+        _row({_FFD: _swept(_SATURATED_40)}),
+        mutation="high_crf",
+    )["scenes"]["s"]
+    entry = scene["metrics"][_FFD]
+    assert entry["sweep"]["state"] == "stable"
+    assert entry["verdict"] == "as_declared"
+    assert scene["families_satisfied"]["D"] == [_FFD]
+
+
+def test_an_unstable_movement_is_not_a_regression_either():
+    """Same rule with no mutation: "is the second row worse" is a directional
+    claim, and a direction the metric's own knob reverses is not one."""
+    scene = compare(
+        _row({_FFD: _swept(_GRADED_420)}), _row({_FFD: _swept(_GRADED_444)})
+    )["scenes"]["s"]
+    assert scene["metrics"][_FFD]["verdict"] == "unstable"
+    assert _FFD not in scene["regressions"] and _FFD in scene["unstable"]
+
+
+def _pre_140(row: dict) -> dict:
+    """A row as written before an#140: no sweep declared, none carried."""
+    for key in (_FFD, "encode_flicker_on_held_pixels"):
+        row["metric_declarations"]["metrics"][key].pop("threshold_sweep", None)
+        row["scenes"]["s"]["metrics"][key].pop("sweep", None)
+    return row
+
+
+def test_a_row_written_before_the_sweep_is_still_compared_with_a_caveat():
+    """Rows committed before an#140 carry no sweep. That is unknown, not
+    unstable: refusing it would make one additive field retroactively destroy
+    comparability with every row already written."""
+    scene = compare(
+        _pre_140(_row({_FFD: _swept(_GRADED_420)})),
+        _row({_FFD: _swept(_GRADED_444)}),
+        mutation="high_crf",
+    )["scenes"]["s"]
+    entry = scene["metrics"][_FFD]
+    assert entry["sweep"]["state"] == "unknown"
+    assert entry["verdict"] == "as_declared"
+
+
+def test_a_sweep_deleted_from_a_row_that_declares_one_is_refused():
+    """Deleting `sweep` is as cheap an edit as flipping an `expect`, and without
+    this it turns `unstable` back into a witness. The row's own declaration
+    says the sweep should be there, so its absence is refused, not excused.
+
+    MUTATION: make `_sweep_refusal` return None.
+    """
+    after = _row({_FFD: _swept(_GRADED_444)})
+    del after["scenes"]["s"]["metrics"][_FFD]["sweep"]
+    scene = compare(_row({_FFD: _swept(_GRADED_420)}), after, mutation="high_crf")[
+        "scenes"
+    ]["s"]
+    entry = scene["metrics"][_FFD]
+    assert entry["state"] == "refused" and entry["refusal"] == "sweep_unusable"
+    assert "D" not in scene["families_satisfied"]
+
+
+def test_a_sweep_whose_shipped_cell_is_not_the_value_is_refused():
+    """The sweep must be OF the recorded statistic. A shipped cell that
+    disagrees with the value certifies the robustness of something else."""
+    cells = dict(_GRADED_444)
+    cells["dilate_k=3,tol=6"] = [1016, 429623]  # tol 5's count, not tol 6's
+    after = _row({_FFD: measured(round(982 / 429623, 6), sweep=cells)})
+    entry = compare(_row({_FFD: _swept(_GRADED_420)}), after)["scenes"]["s"][
+        "metrics"
+    ][_FFD]
+    assert entry["state"] == "refused" and entry["refusal"] == "sweep_unusable"
+
+
+def test_an_impossible_cell_is_not_readable():
+    from an.bench.compare import readable_sweep
+
+    assert readable_sweep({"t=1": [5, 4]}) is None
+    assert readable_sweep({"t=1": [-1, 4]}) is None
+    assert readable_sweep({"t=1": [1, 0]}) is None
+    assert readable_sweep({"t=1": [1.0, 4]}) is None
+    assert readable_sweep({"t=1": [1, 4]}) == {"t=1": [1, 4]}
+
+
+def test_a_cell_missing_from_one_row_does_not_discard_the_rest():
+    """A dilation whose mask is empty is omitted from that row only. The other
+    cells must still be checked, or one empty mask un-gates the verdict."""
+    fewer = {k: v for k, v in _GRADED_444.items() if not k.endswith("tol=4")}
+    after = _row({_FFD: _swept(fewer)})
+    entry = compare(_row({_FFD: _swept(_GRADED_420)}), after, mutation="high_crf")[
+        "scenes"
+    ]["s"]["metrics"][_FFD]
+    assert entry["sweep"]["state"] == "unstable"
+    assert entry["sweep"]["unshared_cells"] == 1
+
+
+def test_a_sweep_that_lost_the_shipped_cell_is_unknown():
+    other = {k.replace("dilate_k=3", "dilate_k=7"): v for k, v in _GRADED_444.items()}
+    from an.bench.compare import sweep_verdict
+
+    assert (
+        sweep_verdict(_GRADED_420, other, shipped="dilate_k=3,tol=6")["state"]
+        == "unknown"
+    )
+
+
+def test_an_unstable_movement_is_never_contrary_either():
+    """The other half of the headline: a sweep that disagrees with itself is
+    evidence neither for nor against a prediction. Here the prediction points
+    DOWN, so without the gate the shipped rise would read `contrary`."""
+    before, after = _row({_FFD: _swept(_GRADED_420)}), _row({_FFD: _swept(_GRADED_444)})
+    for row in (before, after):
+        _declare(row, _FFD, "high_crf", {"expect": "decrease", "counts": True})
+    scene = compare(before, after, mutation="high_crf")["scenes"]["s"]
+    entry = scene["metrics"][_FFD]
+    assert entry["verdict_before_sweep"] == "contrary"
+    assert entry["verdict"] == "unstable" and _FFD not in scene["contrary"]
+
+
+def test_an_unstable_improvement_is_not_an_improvement():
+    scene = compare(
+        _row({_FFD: _swept(_GRADED_444)}), _row({_FFD: _swept(_GRADED_420)})
+    )["scenes"]["s"]
+    entry = scene["metrics"][_FFD]
+    assert entry["verdict_before_sweep"] == "improvement"
+    assert entry["verdict"] == "unstable" and _FFD not in scene["improvements"]
+
+
+def test_strict_fails_on_an_unstable_movement(tmp_path):
+    """With no mutation, `unstable` means some cell of the metric's own grid
+    got WORSE. A CI gate that passes that is reading "no answer" as a pass.
+
+    MUTATION: drop `report.get("unstable")` from `bench_compare`'s strict test.
+    """
+    from an import tools
+
+    b, a = tmp_path / "b.json", tmp_path / "a.json"
+    b.write_text(json.dumps(_row({_FFD: _swept(_GRADED_444)})), encoding="utf-8")
+    a.write_text(json.dumps(_row({_FFD: _swept(_GRADED_420)})), encoding="utf-8")
+    with pytest.raises(SystemExit) as caught:
+        tools.bench_compare(before=str(b), after=str(a), strict=True)
+    assert caught.value.code == 1
+
+
+def test_a_sweep_is_compared_exactly_not_as_rounded_fractions():
+    """Two counts over different denominators that round to the same six
+    decimals are still different fractions; cross-multiplication sees it."""
+    from an.bench.compare import sweep_verdict
+
+    v = sweep_verdict({"t=1": [1, 3_000_001]}, {"t=1": [1, 3_000_000]})
+    assert v["increase"] == 1 and v["state"] == "stable"

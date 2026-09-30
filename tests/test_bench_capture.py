@@ -131,6 +131,21 @@ def test_every_counting_encode_metric_references_the_lossless_leg(ledger):
             )
 
 
+@pytest.mark.parametrize(
+    "key", sorted(k for k, spec in METRICS.items() if spec.sweep is not None)
+)
+def test_every_threshold_counter_carries_the_sweep_its_verdict_is_checked_on(
+    ledger, key
+):
+    """an#140. Without the sweep on a REAL row, `an bench-compare` reports
+    `unknown` and the robustness gate silently never runs. And the shipped cell
+    must be the recorded value, or it gates a different statistic."""
+    row = ledger["scenes"][SCENE]["metrics"][key]
+    assert row["state"] == "measured"
+    n, of = row["sweep"][METRICS[key].sweep.shipped_cell]
+    assert round(n / of, 6) == row["value"]
+
+
 def test_the_frame_count_matches_what_the_scene_declares(ledger):
     """ffmpeg's image2 demuxer reads the contiguous run from 0.
 

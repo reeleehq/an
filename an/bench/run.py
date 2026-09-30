@@ -590,18 +590,34 @@ def _scene_metrics(
     )
 
     frac, p99 = M.flat_field_deviation(ref_rgb[:n], dec_rgb[:n], flat)
+    # The count at every cell of its own declared parameter grid, carried on
+    # the value (an#140). Not a second number: the shipped cell IS this metric
+    # (`an bench-compare` refuses the row if it is not), and the rest decide
+    # whether its direction is a direction or a threshold accident. The mask
+    # source is the same `src_rgb[:n]` the `flat` mask above was built from.
     values["flat_field_deviation"] = (
         unavailable("no flat field in this scene")
         if frac != frac
-        else measured(round(frac, 6))
+        else measured(
+            round(frac, 6),
+            sweep=M.flat_field_deviation_sweep(
+                ref_rgb[:n], dec_rgb[:n], mask_rgb=src_rgb[:n]
+            ),
+        )
     )
     values["flat_field_p99_dev"] = (
         unavailable("no flat field in this scene")
         if p99 != p99
         else measured(round(float(p99), 4))
     )
-    values["encode_flicker_on_held_pixels"] = _num(
-        M.encode_flicker_on_held_pixels, ref_rgb[:n], dec_rgb[:n]
+    # The panel's other hard-threshold counter, so the same sweep (an#140).
+    flicker = _num(M.encode_flicker_on_held_pixels, ref_rgb[:n], dec_rgb[:n])
+    values["encode_flicker_on_held_pixels"] = (
+        measured(
+            flicker.value, sweep=M.encode_flicker_sweep(ref_rgb[:n], dec_rgb[:n])
+        )
+        if flicker.state == "measured"
+        else flicker
     )
     # The Q4 pair, both on the PNG reference. `encode_ringing_excess` cancels a
     # term that exists only when both its legs share that reference — against

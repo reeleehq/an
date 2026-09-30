@@ -33,6 +33,16 @@ Measured: two consecutive `an bench` runs on the same machine produce
 delta of exactly zero is the normal case and any nonzero delta is a real change.
 An epsilon here would only hide small real movements.
 
+**A direction must survive the metric's own knobs** (an#140). The two
+hard-threshold counters (``flat_field_deviation``, ``encode_flicker_on_held_pixels``)
+carry their count at every cell of a small grid of their own free parameters,
+and a movement whose direction some cells contradict is reported ``unstable``
+— neither counted toward a family nor ``contrary``. Measured: under 4:2:0 ->
+4:4:4, ``graded_field``'s flat-field count read +84.2% at tol 6 and -81.6% at
+tol 8, and the panel had no way to say so. That is not a tolerance band: every
+cell is still compared exactly; what changes is whether the answer is a
+direction at all.
+
 A fourth, quieter one: **a metric's own declaration is a comparability key**.
 If ``family`` or ``optimum`` changed between the two rows, the metric means
 something different in each and the comparison is refused for that metric alone
@@ -48,7 +58,7 @@ from pathlib import Path
 from typing import Any
 
 from an.bench.ledger import SCHEMA_VERSION
-from an.bench.registry import MUTATION_TOUCHES
+from an.bench.registry import MUTATION_TOUCHES, REFUSED_LEVERS
 
 #: Row schema versions this comparer understands. A row it cannot read is
 #: refused rather than guessed at — the whole point of the version field.
@@ -340,6 +350,149 @@ def _verdict_by_optimum(optimum: dict, direction: str) -> str:
     return "changed"
 
 
+#: Verdicts a sweep can overturn. Only a claimed DIRECTION is overturned:
+#: `did_not_move` and `unexpected_movement` are claims about whether the number
+#: moved at all, which a disagreement between the neighbours does not refute.
+_DIRECTIONAL_VERDICTS: tuple[str, ...] = (
+    "as_declared",
+    "contrary",
+    "regression",
+    "improvement",
+)
+
+
+def readable_sweep(sweep: Any) -> dict | None:
+    """``sweep`` if every cell is a possible ``[counted, of]`` pair, else ``None``.
+
+    Possible means integers (a bool is not a count), ``of > 0`` and
+    ``0 <= counted <= of`` — a cell no measurement could have produced is an
+    edited row, and reading it would let the edit choose the verdict.
+
+    >>> readable_sweep({"t=1": [3, 10]})
+    {'t=1': [3, 10]}
+    >>> readable_sweep({"t=1": [11, 10]}) is None
+    True
+    >>> readable_sweep({"t=1": [True, 10]}) is None
+    True
+    """
+    if not isinstance(sweep, dict) or not sweep:
+        return None
+    for cell in sweep.values():
+        if not (
+            isinstance(cell, list)
+            and len(cell) == 2
+            and all(isinstance(x, int) and not isinstance(x, bool) for x in cell)
+            and 0 <= cell[0] <= cell[1]
+            and cell[1] > 0
+        ):
+            return None
+    return sweep
+
+
+def sweep_verdict(before: Any, after: Any, *, shipped: str | None = None) -> dict | None:
+    """Does a threshold counter's direction survive its own parameter grid?
+
+    an#140. ``flat_field_deviation`` counts pixels past a hard threshold over a
+    mask eroded by a second free parameter, and a row carries its count at
+    every cell of a declared grid of both (``sweep``: ``{cell: [counted, of]}``).
+    This reads the direction at every cell the two rows SHARE. When some cells
+    rise and others fall, the shipped value's direction is a property of where
+    the threshold happened to be set, not of the change under test — measured,
+    a 4:2:0 -> 4:4:4 change moved ``graded_field`` +84.2% at tol 6 and -81.6%
+    at tol 8 — and ``state`` is ``unstable``. ``no_change`` cells contradict
+    nothing.
+
+    Exact, like everything else here: fractions are compared by cross-multiplying
+    the integer counts, never as rounded floats.
+
+    Shared cells rather than identical grids: a dilation whose mask is empty in
+    one row is omitted from that row, and discarding the other fourteen cells
+    for it would let the verdict count unchecked. ``unknown`` only when a side
+    has no readable sweep, or the ``shipped`` cell is not among the shared ones
+    — the check could not run, which is a caveat and not a refusal, because a
+    row written before an#140 has no sweep and is otherwise perfectly readable.
+    (A row that DECLARES a sweep and carries none is refused upstream, in
+    ``_compare_scene``.)
+
+    >>> sweep_verdict({"t=1": [1, 10], "t=2": [5, 10]}, {"t=1": [2, 10], "t=2": [4, 10]})["state"]
+    'unstable'
+    >>> sweep_verdict({"t=1": [1, 10]}, {"t=1": [2, 20]})["state"]
+    'stable'
+    >>> sweep_verdict({"t=1": [1, 10]}, None)["state"]
+    'unknown'
+    >>> sweep_verdict(None, None) is None
+    True
+    """
+    if before is None and after is None:
+        return None
+    cb, ca = readable_sweep(before), readable_sweep(after)
+    unreadable = [
+        label for label, cells in (("before", cb), ("after", ca)) if cells is None
+    ]
+    if unreadable:
+        return {
+            "state": "unknown",
+            "detail": (
+                f"the {' and '.join(unreadable)} row(s) carry no readable "
+                "parameter sweep (a row written before an#140 has none), so "
+                "whether this direction survives the metric's own threshold "
+                "grid is not known"
+            ),
+        }
+    shared = sorted(set(cb) & set(ca))
+    if not shared or (shipped is not None and shipped not in shared):
+        return {
+            "state": "unknown",
+            "detail": "the two rows' sweeps share no cell, or not the shipped one",
+        }
+    tally = {"increase": 0, "decrease": 0, "no_change": 0}
+    for cell in shared:
+        (nb, db), (na, da) = cb[cell], ca[cell]
+        # na/da vs nb/db, exactly.
+        tally[direction_of(nb * da, na * db)] += 1
+    unstable = tally["increase"] > 0 and tally["decrease"] > 0
+    out = {"state": "unstable" if unstable else "stable", "cells": len(shared), **tally}
+    unshared = len(set(cb) ^ set(ca))
+    if unshared:
+        out["unshared_cells"] = unshared
+    return out
+
+
+def _sweep_refusal(key: str, row: dict, declared: dict, label: str) -> dict | None:
+    """Why a measured row's sweep cannot be trusted, or ``None``.
+
+    Two ways, both edits or bugs rather than measurements: the metric's own
+    declaration says it carries a sweep and the value has none (deleting it
+    would otherwise quietly turn an ``unstable`` back into a witness), or the
+    shipped cell is not the recorded value (the sweep then certifies the
+    robustness of a statistic the row does not report).
+    """
+    spec = declared.get("threshold_sweep")
+    if not isinstance(spec, dict):
+        return None
+    cells = readable_sweep(row.get("sweep"))
+    if cells is None:
+        return {
+            "key": f"{label}.sweep",
+            "detail": (
+                "the metric's declaration carries a threshold sweep and this "
+                "row's value has no readable one"
+            ),
+        }
+    shipped = spec.get("shipped")
+    if shipped in cells:
+        n, of = cells[shipped]
+        if round(n / of, 6) != row.get("value"):
+            return {
+                "key": f"{label}.sweep[{shipped}]",
+                "detail": (
+                    f"the shipped cell reads {n}/{of} = {round(n / of, 6)}, not "
+                    f"the recorded value {row.get('value')!r}"
+                ),
+            }
+    return None
+
+
 def _compare_scene(
     before: dict, after: dict, *, mutation: str | None, env_refusals: dict
 ) -> dict:
@@ -503,6 +656,28 @@ def _compare_scene(
             metrics[key] = entry
             continue
 
+        sweep_problems = [
+            p
+            for label, row, declared in (
+                ("before", row_b, before["declarations"].get(key, {})),
+                ("after", row_a, after["declarations"].get(key, {})),
+            )
+            if (p := _sweep_refusal(key, row, declared, label)) is not None
+        ]
+        if sweep_problems:
+            entry.update(
+                state="refused",
+                refusal="sweep_unusable",
+                mismatches=sweep_problems,
+                detail=(
+                    "the metric declares a threshold sweep (an#140) and a row's "
+                    "sweep is missing or disagrees with its own value, so "
+                    "whether its direction is a direction cannot be checked"
+                ),
+            )
+            metrics[key] = entry
+            continue
+
         value_b, value_a = row_b["value"], row_a["value"]
         movement = direction_of(value_b, value_a)
         delta = _delta(value_b, value_a)
@@ -525,6 +700,12 @@ def _compare_scene(
             ),
             direction=movement,
         )
+        shipped = (
+            (after["declarations"].get(key, {}).get("threshold_sweep") or {})
+        ).get("shipped")
+        sweep = sweep_verdict(row_b.get("sweep"), row_a.get("sweep"), shipped=shipped)
+        if sweep is not None:
+            entry["sweep"] = sweep
         if mutation is None:
             entry["optimum"] = after["declarations"].get(key, {}).get("optimum", {})
             entry["verdict"] = _verdict_by_optimum(entry["optimum"], movement)
@@ -548,6 +729,17 @@ def _compare_scene(
                     "can never be a satisfied prediction"
                 )
             entry["verdict"] = _verdict_under_mutation(prediction, movement)
+        # an#140: a direction that reverses somewhere on the metric's own
+        # declared threshold grid is not a direction. Neither as_declared (so it
+        # cannot count) nor contrary (so it is not evidence against a
+        # prediction) — the instrument could not tell, and says so.
+        if (
+            sweep is not None
+            and sweep["state"] == "unstable"
+            and entry["verdict"] in _DIRECTIONAL_VERDICTS
+        ):
+            entry["verdict_before_sweep"] = entry["verdict"]
+            entry["verdict"] = "unstable"
         metrics[key] = entry
 
     block: dict[str, Any] = {
@@ -561,6 +753,9 @@ def _compare_scene(
             k for k, e in metrics.items() if e.get("coverage") == "gained"
         ),
         "metrics": metrics,
+        "unstable": sorted(
+            k for k, e in metrics.items() if e.get("verdict") == "unstable"
+        ),
     }
     if mutation is not None:
         families: dict[str, list[str]] = {}
@@ -629,6 +824,12 @@ def compare(before: dict, after: dict, *, mutation: str | None = None) -> dict:
         raise ComparisonError(
             f"neither row declares the mutation {mutation!r}; they declare "
             f"{sorted(known)}"
+            + (
+                f". {mutation!r} was tried and refused as a lever: "
+                f"{REFUSED_LEVERS[mutation]}"
+                if mutation in REFUSED_LEVERS
+                else ""
+            )
         )
 
     common, common_caveats = _compare_keys(
@@ -744,6 +945,12 @@ def compare(before: dict, after: dict, *, mutation: str | None = None) -> dict:
     )
     report["metrics_compared"] = compared
     report["answered"] = bool(scenes) and compared > 0
+    # an#140. Surfaced at the top level because an `unstable` verdict is
+    # neither a regression nor a witness, so without this it appears in no
+    # summary at all — and `--strict` reads this, see `an.tools.bench_compare`.
+    report["unstable"] = {
+        n: s["unstable"] for n, s in scenes.items() if s.get("unstable")
+    }
     if mutation is not None:
         met = [n for n, s in scenes.items() if s.get("criterion_met")]
         report["criterion_met_on"] = sorted(met)
@@ -837,6 +1044,18 @@ def latest_rows(*, root: Path | None = None, count: int = 2) -> list[Path]:
     return sorted(rows, key=key)[-count:]
 
 
+def _sweep_suffix(sweep: dict | None) -> str:
+    """The sweep's tally, shown only where it changes what the line means."""
+    if not sweep or sweep.get("state") == "stable":
+        return ""
+    if sweep.get("state") == "unknown":
+        return "  [sweep unknown]"
+    return (
+        f"  [UNSTABLE over its own parameters: {sweep['increase']} up, "
+        f"{sweep['decrease']} down, {sweep['no_change']} flat of {sweep['cells']}]"
+    )
+
+
 def format_comparison(report: dict) -> str:
     """The human-readable digest. Refusals first, because they are the verdict."""
     lines: list[str] = []
@@ -906,6 +1125,11 @@ def format_comparison(report: dict) -> str:
                 f"{name}  {len(scene['regressions'])} regression(s), "
                 f"{len(scene['improvements'])} improvement(s), "
                 f"{len(scene['changed'])} change(s) with no better direction"
+                + (
+                    f", {len(scene['unstable'])} UNSTABLE"
+                    if scene.get("unstable")
+                    else ""
+                )
             )
         for key, entry in sorted(scene["metrics"].items()):
             state = entry.get("state")
@@ -921,7 +1145,13 @@ def format_comparison(report: dict) -> str:
                     f"    [{entry['side'][:3]}/{entry['family']}] {key:32s} "
                     f"{entry['before']} -> {entry['after']}  {magnitude:>9s}  "
                     f"{entry['verdict']}"
+                    + (
+                        f" (was {entry['verdict_before_sweep']})"
+                        if entry.get("verdict_before_sweep")
+                        else ""
+                    )
                     + (f" (expected {entry['expect']})" if entry.get("expect") else "")
+                    + _sweep_suffix(entry.get("sweep"))
                 )
             elif state == "refused":
                 lines.append(f"    [refused] {key:32s} {entry['refusal']}")
@@ -946,6 +1176,11 @@ def format_comparison(report: dict) -> str:
         lines.append(f"\ncriterion met on: {report['criterion_met_on'] or 'NO SCENE'}")
     elif report.get("has_regressions"):
         lines.append(f"\nregressions: {report['regressions']}")
+    if report.get("unstable"):
+        lines.append(
+            f"UNSTABLE (direction reverses on the metric's own threshold grid): "
+            f"{report['unstable']}"
+        )
     lines.append(f"metrics compared: {report.get('metrics_compared')}")
     if report.get("coverage_lost"):
         lines.append(f"COVERAGE LOST: {report['coverage_lost']}")
