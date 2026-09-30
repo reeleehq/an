@@ -787,7 +787,10 @@ def project_of_render(mp4: str | Path) -> Path | None:
     beside ``<project>/ir/scene.json`` — or ``None`` for any other video."""
     mp4 = Path(mp4)
     candidate = mp4.resolve().parent.parent
-    if mp4.resolve().parent.name == "output" and (candidate / PROJECT_SCENE_JSON).is_file():
+    if (
+        mp4.resolve().parent.name == "output"
+        and (candidate / PROJECT_SCENE_JSON).is_file()
+    ):
         return candidate
     return None
 
@@ -959,12 +962,16 @@ class StyleLintVerifier:
         ).report
 
 
-def _format_text(result: StyleLintResult, targets: Mapping[str, Sequence[float]]) -> str:
+def _format_text(
+    result: StyleLintResult, targets: Mapping[str, Sequence[float]]
+) -> str:
     """The human-readable report: metrics beside targets, findings, per shot."""
     m = result.metrics
     out = []
     if m is not None:
-        out.append(f"{m.duration_s} s at {m.fps} fps, {m.cuts} cut(s) from {m.cut_source}")
+        out.append(
+            f"{m.duration_s} s at {m.fps} fps, {m.cuts} cut(s) from {m.cut_source}"
+        )
         out.append("")
         out.append(f"{'metric':28} {'value':>8}  target")
         for name in METRICS:
@@ -995,7 +1002,11 @@ def _format_text(result: StyleLintResult, targets: Mapping[str, Sequence[float]]
             out.append(
                 f"{r.shot:{width}} " + " ".join(f"{getattr(r, c)!s:>10}" for c in cols)
             )
-    notes = [f for f in result.report.findings if f.severity != "info" or f.ir_path != "<style>"]
+    notes = [
+        f
+        for f in result.report.findings
+        if f.severity != "info" or f.ir_path != "<style>"
+    ]
     if notes:
         out.append("")
         for f in notes:
@@ -1024,7 +1035,9 @@ def _main(argv: Sequence[str]) -> int:
         description="Measure a render against a style spec's targets.",
     )
     parser.add_argument("video", help="the rendered mp4")
-    parser.add_argument("spec", help="a style spec YAML (an-style skill: styles/<name>.yaml)")
+    parser.add_argument(
+        "spec", help="a style spec YAML (an-style skill: styles/<name>.yaml)"
+    )
     parser.add_argument(
         "--project",
         "--scene",
@@ -1033,7 +1046,9 @@ def _main(argv: Sequence[str]) -> int:
         help="the project directory (or its ir/scene.json) the video was rendered "
         "from, for exact cuts; found automatically for <project>/output/*.mp4",
     )
-    parser.add_argument("--json", action="store_true", help="print JSON instead of text")
+    parser.add_argument(
+        "--json", action="store_true", help="print JSON instead of text"
+    )
     args = parser.parse_args(list(argv))
 
     project = args.project or project_of_render(args.video)

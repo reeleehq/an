@@ -133,12 +133,16 @@ from an.text import TextDescriptor
 root = init(Path("my_film"))  # = `an init my_film`
 mall = build_project_mall(root)
 
-for name in ("stan", "kyle"):  # = `an character new <name> --offline --out-dir my_film/assets/characters`
+for name in (
+    "stan",
+    "kyle",
+):  # = `an character new <name> --offline --out-dir my_film/assets/characters`
     new_character(root / "assets" / "characters", name=name, use_dicebear=False)
 
 # A title card: one fill plane with no `size` covers the canvas; depth 0 never pans.
 mall["environments"]["card"] = EnvironmentDescriptor(
-    name="card", planes=[Plane(name="bg", art=PlaneArt(kind="fill", color="#040404"), depth=0.0)]
+    name="card",
+    planes=[Plane(name="bg", art=PlaneArt(kind="fill", color="#040404"), depth=0.0)],
 ).model_dump(mode="json")
 
 # A map: sea, land, and a WHITE territory, so a `tint` tween can colour it (tint multiplies).
@@ -147,16 +151,30 @@ mall["environments"]["map"] = EnvironmentDescriptor(
     planes=[
         Plane(name="sea", art=PlaneArt(kind="fill", color="#a7b1b9"), depth=0.0),
         # depth 1.0 = the character plane: pans exactly with props (the route, labels)
-        Plane(name="land", art=PlaneArt(kind="fill", color="#cda469"), depth=1.0, size=(1100, 420)),
-        Plane(name="west", art=PlaneArt(kind="fill", color="#ffffff"), depth=1.0,
-              offset=(-250, 0), size=(400, 300)),
+        Plane(
+            name="land",
+            art=PlaneArt(kind="fill", color="#cda469"),
+            depth=1.0,
+            size=(1100, 420),
+        ),
+        Plane(
+            name="west",
+            art=PlaneArt(kind="fill", color="#ffffff"),
+            depth=1.0,
+            offset=(-250, 0),
+            size=(400, 300),
+        ),
     ],
 ).model_dump(mode="json")
 
 # Words: an overlay title (the camera never moves it) and a reusable world label.
 mall["props"]["date"] = TextDescriptor(
-    name="date", text="OCTOBER 1ST, 2026", layer="overlay", unit="line",
-    size=0.1, color="#ffffff",
+    name="date",
+    text="OCTOBER 1ST, 2026",
+    layer="overlay",
+    unit="line",
+    size=0.1,
+    color="#ffffff",
 ).model_dump(mode="json")
 mall["props"]["label"] = TextDescriptor(
     name="label", text="label", size=0.05, color="#1a1a1a"
@@ -164,8 +182,12 @@ mall["props"]["label"] = TextDescriptor(
 
 # A route arrow that starts hidden (trim_end 0), drawn on by a trim_end tween.
 mall["props"]["route"] = PathDescriptor(
-    name="route", points=[(-300, 60), (0, -40), (260, 30)], arrowhead=True,
-    trim_end=0.0, color="#ba5f31", width=10,
+    name="route",
+    points=[(-300, 60), (0, -40), (260, 30)],
+    arrowhead=True,
+    trim_end=0.0,
+    color="#ba5f31",
+    width=10,
 ).model_dump(mode="json")
 
 # Art direction, named by `style_pack:` in the meta block.
