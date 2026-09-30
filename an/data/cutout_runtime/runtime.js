@@ -893,19 +893,39 @@
         return Math.min(t, duration);  // 'once', and the default for anything unknown
     }
 
+    // The properties `applyProperty` handles itself; anything else names a
+    // swap set on the node's visual. Mirror of `an.base.TRANSFORM_PROPERTIES`
+    // (tests/test_pure_pose.py pins the two, and this list against the switch).
+    const RUNTIME_PROPERTIES = new Set([
+        'x', 'y', 'rotation', 'rotation_rad', 'scale_x', 'scale_y', 'skew_x',
+        'skew_y', 'pivot_x', 'pivot_y', 'alpha', 'tint_r', 'tint_g', 'tint_b',
+        'trim_start', 'trim_end', 'dash_offset',
+    ]);
+    const SWAP_WRITE_GROUP = '<swap>';
+    const SHARED_WRITES = { rotation_rad: 'rotation' };
+
+    // Port of `timeline.py::write_group`: what a property WRITES on its node.
+    // Every swap set on a node swaps its one visual; `rotation_rad` is
+    // `rotation`; everything else writes only itself.
+    function writeGroup(prop) {
+        if (RUNTIME_PROPERTIES.has(prop)) return SHARED_WRITES[prop] || prop;
+        return SWAP_WRITE_GROUP;
+    }
+
     // Port of `an/adapters/cutout/timeline.py::evaluate_timeline` — that
     // function is the spec, and tests/test_pure_pose.py runs this one against
     // it. The pose is a PURE function of t (an#185): a key a playing clip
     // writes takes its value (later wins); a key whose clips have all ENDED
     // holds the value the latest-ending one reached at its end (a tie goes to
     // the later clip); a key nothing has started writing is ABSENT, and
-    // `anSetTime` restores it to what `anLoadScene` built. Before an#185 an
-    // ended clip simply stopped writing, so the node kept whatever the
-    // previous SEEK applied — identical when seeks run forward, and a
-    // different picture after any seek backwards.
+    // `anSetTime` restores it to what `anLoadScene` built. Of the keys that
+    // write the same thing on one node (`writeGroup`), only the most recently
+    // written survives. Before an#185 an ended clip simply stopped writing,
+    // so the node kept whatever the previous SEEK applied — identical when
+    // seeks run forward, and a different picture after any seek backwards.
     function evaluateTimeline(t) {
-        const active = {};
-        const held = {};     // key → { end, value }
+        const written = {};  // key → { when, value }
+        const held = {};     // key → { when, value }
         for (const track of scene.timeline.tracks || []) {
             for (const placed of track.clips || []) {
                 const anim = scene.animations[placed.animation_id];
@@ -927,7 +947,7 @@
                     for (const ch of anim.channels) {
                         const v = evaluateChannel(ch, localT);
                         if (v != null) {
-                            active[ch.target + '::' + ch.property] = v;
+                            written[ch.target + '::' + ch.property] = { when: t, value: v };
                         }
                     }
                 } else if (t > end) {
@@ -938,18 +958,34 @@
                         const v = evaluateChannel(ch, localEnd);
                         if (v == null) continue;
                         const key = ch.target + '::' + ch.property;
-                        if (!(key in held) || end >= held[key].end) {
-                            held[key] = { end: end, value: v };
+                        if (!(key in held) || end >= held[key].when) {
+                            held[key] = { when: end, value: v };
                         }
                     }
                 }
             }
         }
-        const pose = {};
-        for (const key of Object.keys(held)) {
-            if (!(key in active)) pose[key] = held[key].value;
+        // Sorted: the pose's keys are re-sorted before they are applied, so
+        // this order cannot reach a pixel — sorted anyway, per the runtime's
+        // Object.keys rule (tests/test_determinism_perimeter.py).
+        for (const key of Object.keys(held).sort()) {
+            if (!(key in written)) written[key] = held[key];
         }
-        return Object.assign(pose, active);
+        const groupOf = key => {
+            const [target, prop] = key.split('::');
+            return target + '::' + writeGroup(prop);
+        };
+        const latest = {};
+        const keys = Object.keys(written).sort();
+        for (const key of keys) {
+            const g = groupOf(key);
+            if (!(g in latest) || written[key].when > latest[g]) latest[g] = written[key].when;
+        }
+        const pose = {};
+        for (const key of keys) {
+            if (written[key].when >= latest[groupOf(key)]) pose[key] = written[key].value;
+        }
+        return pose;
     }
 
     // What `anSetTime` puts back for a key the pose leaves ABSENT (nothing

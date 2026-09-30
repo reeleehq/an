@@ -40,12 +40,13 @@ def test_clip_inactive_before_start():
     assert pose == {}
 
 
-def test_clip_inactive_after_end():
+def test_an_ended_clip_holds_its_end_value():
     clip = _ramp_clip()
     tl = Timeline(duration=5.0, tracks=[Track(clips=[PlacedClip(clip, start_time=0.0)])])
     pose = evaluate_timeline(tl, 4.0)
-    # Clip ended at t=1.0; nothing active at t=4.
-    assert pose == {}
+    # Clip ended at t=1.0; its end value holds (an#185 — the pose is a pure
+    # function of t, so "what the last frame applied" is stated, not assumed).
+    assert pose == {("a", "x"): 10.0}
 
 
 def test_two_tracks_merge_distinct_targets():
@@ -83,9 +84,9 @@ def test_speed_scaling_compresses_clip():
     # effective duration = 1.0; midpoint t=0.5 → local_t=1.0 → value=5.0
     pose = evaluate_timeline(tl, 0.5)
     assert pose[("a", "x")] == pytest.approx(5.0)
-    # past effective end should be inactive
+    # past the effective end (1.0), not the natural one (2.0), the END holds
     pose_after = evaluate_timeline(tl, 1.5)
-    assert pose_after == {}
+    assert pose_after == {("a", "x"): pytest.approx(10.0)}
 
 
 def test_placed_clip_validates_speed():

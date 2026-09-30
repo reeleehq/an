@@ -36,6 +36,7 @@ from an.adapters.cutout.clip import Clip, LoopMode, Pose, merge_poses
 from an.adapters.cutout.clip import evaluate as _evaluate_clip
 
 from an.adapters.cutout.serialize import TransformJSON
+from an.base import TRANSFORM_PROPERTIES
 
 if TYPE_CHECKING:  # pragma: no cover - types only
     from an.adapters.cutout.serialize import CutoutSceneJSON, NodeJSON
@@ -89,28 +90,54 @@ class Timeline:
     tracks: list[Track] = field(default_factory=list)
 
 
+#: The group a property WRITES, on its node: two keys in one group set the same
+#: thing, so only the more recently written can be showing. Every swap set on a
+#: node swaps the one visual it carries (``viseme`` and ``viseme@happy`` both set
+#: the mouth's texture, an#88), and ``rotation_rad`` is ``rotation``. Every other
+#: runtime property (:data:`an.base.TRANSFORM_PROPERTIES`, the runtime's own
+#: switch) writes only itself.
+SWAP_WRITE_GROUP: str = "<swap>"
+_SHARED_WRITES: dict[str, str] = {"rotation_rad": "rotation"}
+
+
+def write_group(prop: str) -> str:
+    """What ``prop`` writes on its node — see :data:`SWAP_WRITE_GROUP`.
+
+    >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
+    ('x', 'rotation', '<swap>')
+    """
+    if prop in TRANSFORM_PROPERTIES:
+        return _SHARED_WRITES.get(prop, prop)
+    return SWAP_WRITE_GROUP
+
+
 def evaluate_timeline(timeline: Timeline, t: float) -> Pose:
     """Evaluate ``timeline`` at time ``t``, merging poses across tracks/clips.
 
-    The result is a PURE function of ``t`` (an#185): what a key shows at ``t``
-    never depends on which instants were evaluated before it. Three cases, per
+    The result is a PURE function of ``t`` (an#185): what a node shows at ``t``
+    never depends on which instants were evaluated before it. Per
     ``(target, property)``:
 
     - **Active** — some clip writing it is playing at ``t`` (inclusive end:
       a clip at ``[s, e]`` is active at ``t == e`` too, so the final frame of
       "play this from 0 to 1 s" is visible at 1.0). Later wins: track order,
-      then clip order within a track.
+      then clip order within a track. Written at ``t``.
     - **Held** — no clip writing it is playing, but one has ended: the value
       the clip reached AT ITS END holds. The latest end wins; a tie goes to
-      the later clip, the same "later wins" as above.
+      the later clip, the same "later wins" as above. Written at that end.
     - **At rest** — nothing writing it has started yet. The key is ABSENT from
       the pose, and its value is the node's own (``transform_of`` reads it
       from the document; ``runtime.js`` restores what it built).
 
-    The held rule is what forward-order rendering always showed — the runtime
-    kept the last pose it applied — stated so it no longer needs the previous
-    frame to have been rendered. They agree whenever a clip's last frame is
-    its end value, which is what the compiler's settling ``set`` guarantees.
+    Keys that write the same thing on one node (:func:`write_group`: the swap
+    sets of one visual, ``rotation``/``rotation_rad``) keep only the most
+    recently WRITTEN — an ended ``viseme@happy`` span does not outlive the
+    ``viseme`` track that took the mouth back.
+
+    This is exactly what forward-order rendering always showed (the runtime
+    kept whatever it last applied), stated so it no longer needs the previous
+    frame to have been rendered: the two agree whenever a clip's last frame
+    shows its end value, which the compiler's settling ``set`` guarantees.
 
     ``runtime.js::evaluateTimeline`` is a port of this function and
     ``tests/test_pure_pose.py`` holds the two to it.
@@ -126,14 +153,15 @@ def evaluate_timeline(timeline: Timeline, t: float) -> Pose:
     >>> evaluate_timeline(tl, 1.75)[("a", "x")]  # ended: its end value holds
     10.0
     """
-    active: Pose = {}
+    written: dict[tuple[str, str], tuple[float, Any]] = {}  # key -> (when, value)
     held: dict[tuple[str, str], tuple[float, Any]] = {}
     for track in timeline.tracks:
         for placed in track.clips:
             end = placed.end_time
             if placed.start_time <= t <= end:
                 local_t = (t - placed.start_time) * placed.speed
-                active.update(_evaluate_clip(placed.clip, local_t))
+                for key, value in _evaluate_clip(placed.clip, local_t).items():
+                    written[key] = (t, value)
             elif t > end:
                 end_pose = _evaluate_clip(
                     placed.clip, (end - placed.start_time) * placed.speed
@@ -141,9 +169,17 @@ def evaluate_timeline(timeline: Timeline, t: float) -> Pose:
                 for key, value in end_pose.items():
                     if key not in held or end >= held[key][0]:
                         held[key] = (end, value)
-    pose: Pose = {key: value for key, (_, value) in held.items() if key not in active}
-    pose.update(active)
-    return pose
+    for key, entry in held.items():
+        written.setdefault(key, entry)
+    latest: dict[tuple[str, str], float] = {}
+    for (target, prop), (when, _) in written.items():
+        group = (target, write_group(prop))
+        latest[group] = max(latest.get(group, when), when)
+    return {
+        key: value
+        for key, (when, value) in written.items()
+        if when >= latest[(key[0], write_group(key[1]))]
+    }
 
 
 def timeline_from_scene(scene: CutoutSceneJSON) -> Timeline:

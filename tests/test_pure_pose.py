@@ -39,8 +39,10 @@ from an.adapters.cutout.timeline import (
     PlacedClip,
     Timeline,
     Track,
+    SWAP_WRITE_GROUP,
     evaluate_timeline,
     timeline_from_scene,
+    write_group,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -98,6 +100,19 @@ def test_the_latest_end_holds_and_a_tie_goes_to_the_later_clip():
     assert evaluate_timeline(tie, 5.0)[("a", "x")] == 2.0
 
 
+def test_of_two_swap_sets_on_one_node_only_the_latest_written_shows():
+    """`viseme` and `viseme@happy` both set the mouth's texture (an#88): an
+    ended variant span must not outlive the `viseme` track that took the mouth
+    back, and a playing variant beats a held plain key."""
+    plain = Clip("plain", 1.0, [Channel("m", "viseme", [Keyframe(0.0, "A", "step"), Keyframe(0.5, "X")])])
+    happy = Clip("happy", 0.5, [Channel("m", "viseme@happy", [Keyframe(0.0, "D", "step")])])
+    tl = Timeline(10.0, [Track("m", [PlacedClip(plain, 0.0), PlacedClip(happy, 1.5), PlacedClip(plain, 2.5)])])
+    assert evaluate_timeline(tl, 1.75) == {("m", "viseme@happy"): "D"}
+    assert evaluate_timeline(tl, 2.25) == {("m", "viseme@happy"): "D"}  # held, later end
+    assert evaluate_timeline(tl, 3.0) == {("m", "viseme"): "X"}
+    assert evaluate_timeline(tl, 9.0) == {("m", "viseme"): "X"}
+
+
 def _forward_only(tl, t):
     """The pre-an#185 rule: only the clips PLAYING at t write."""
     out = {}
@@ -106,6 +121,21 @@ def _forward_only(tl, t):
             if p.start_time <= t <= p.end_time:
                 out.update(evaluate_clip(p.clip, (t - p.start_time) * p.speed))
     return out
+
+
+def _application_order(key):
+    """`runtime.js::poseKeysInApplicationOrder`: shallowest target first."""
+    target, prop = key
+    return (target.count("/"), f"{target}::{prop}")
+
+
+def _apply(visible: dict, pose: dict) -> None:
+    """What the runtime's node state becomes: per node, per WRITE GROUP, the
+    last key applied — and for a swap group, which set it was."""
+    for key in sorted(pose, key=_application_order):
+        target, prop = key
+        group = write_group(prop)
+        visible[(target, group)] = (prop if group == SWAP_WRITE_GROUP else None, pose[key])
 
 
 def _corpus_shots():
@@ -146,11 +176,13 @@ def test_forward_order_and_the_pure_pose_agree_on_every_corpus_frame(tmp_path):
     bad = []
     for name, shot, fps, _, doc in _corpus_shots()(tmp_path):
         tl = timeline_from_scene(doc)
-        state: dict = {}
+        forward: dict = {}
         for i in range(max(1, int(round(shot.duration * fps)))):
             t = i / float(fps)
-            state.update(_forward_only(tl, t))
-            if state != evaluate_timeline(tl, t):
+            _apply(forward, _forward_only(tl, t))
+            pure: dict = {}
+            _apply(pure, evaluate_timeline(tl, t))
+            if forward != pure:
                 bad.append(f"{name}/{shot.id} frame {i}")
     assert not bad, bad[:10]
 
@@ -167,8 +199,13 @@ def _battery() -> list[Timeline]:
         1.0,
         [Channel("a", "view", [Keyframe(0.0, "FRONT", "step"), Keyframe(0.5, "SIDE")])],
     )
+    plain = Clip("plain", 1.0, [Channel("m", "viseme", [Keyframe(0.0, "A", "step"), Keyframe(0.5, "X")])])
+    happy = Clip("happy", 0.5, [Channel("m", "viseme@happy", [Keyframe(0.0, "D", "step")])])
+    rot = _ramp("rot", prop="rotation_rad", end=1.0)
     return [
         _one(ramp, 0.5),
+        Timeline(10.0, [Track("m", [PlacedClip(plain, 0.0), PlacedClip(happy, 1.5), PlacedClip(plain, 2.5)])]),
+        Timeline(10.0, [Track("a", [PlacedClip(_ramp("r", prop="rotation", end=3.0), 0.0), PlacedClip(rot, 1.25)])]),
         _one(ramp, 0.5, speed=2.0),
         _one(_ramp("loop", loop_mode=LoopMode.LOOP), 0.0, duration=2.5),
         _one(_ramp("pp", loop_mode=LoopMode.PING_PONG), 0.25, duration=1.6),
@@ -241,6 +278,8 @@ def test_the_runtime_evaluates_the_timeline_exactly_as_the_spec():
             _extract_js_block(src, "function applyEasing"),
             _extract_js_block(src, "function evaluateChannel"),
             _extract_js_block(src, "function wrapTime"),
+            # The write-group table and `writeGroup` sit right above it.
+            src[src.index("const RUNTIME_PROPERTIES") : src.index("// Port of `an/adapters/cutout/timeline.py::evaluate_timeline`")],
             _extract_js_block(src, "function evaluateTimeline"),
             "let scene = null;",
             f"const scenes = {json.dumps([_as_scene(tl) for tl in battery])};",
@@ -326,3 +365,18 @@ def test_every_corpus_frame_is_the_same_picture_seeked_backwards(tmp_path):
         finally:
             browser.close()
     assert not bad, f"{len(bad)} frames depend on seek order, e.g. {bad[:5]}"
+
+
+def test_the_runtime_s_property_list_is_the_python_one_and_its_switch():
+    """`RUNTIME_PROPERTIES` decides what shares a write group, so it must be
+    exactly what `applyProperty` handles — and what Python calls transforms."""
+    import re
+
+    from an.base import TRANSFORM_PROPERTIES
+
+    src = RUNTIME_JS.read_text(encoding="utf-8")
+    listed = src[src.index("const RUNTIME_PROPERTIES") : src.index("const SWAP_WRITE_GROUP")]
+    runtime = set(re.findall(r"'([a-z_]+)'", listed))
+    switch = _extract_js_block(src, "function applyProperty")
+    cases = set(re.findall(r"case '([a-z_]+)':", switch))
+    assert runtime == set(TRANSFORM_PROPERTIES) == cases

@@ -263,7 +263,7 @@ def test_an_authored_eye_scale_y_tween_survives_to_the_pose():
 
 
 def test_an_authored_eye_value_persists_between_blinks_like_any_property():
-    """One clip PER WINDOW: outside a blink the pose carries no eye value, so
+    """One clip PER WINDOW: outside a blink no blink clip writes the eye, so
     an authored tween's end value holds the way `scale_x`'s does. A
     whole-shot 1.0 fill snapped `scale_y` back the frame after the tween
     ended while `scale_x` held — the an#88 review's D2."""
@@ -282,8 +282,10 @@ def test_an_authored_eye_value_persists_between_blinks_like_any_property():
     scene = compile_shot(shot, mall={"characters": {}}, fps=24)
     tl = timeline_from_scene(scene)
     pose = evaluate_timeline(tl, 0.75)  # after the tweens, outside any blink window
-    assert ("charlie/head/left_eye", "scale_y") not in pose
-    assert ("charlie/head/left_eye", "scale_x") not in pose
+    # Held at the tweens' end value (an#185: the pose states what the runtime
+    # used to keep implicitly), not reset by the blink machinery.
+    assert pose[("charlie/head/left_eye", "scale_y")] == 3.0
+    assert pose[("charlie/head/left_eye", "scale_x")] == 3.0
 
 
 def test_an_eye_that_rests_closed_does_not_blink(gale_store, tmp_path):
