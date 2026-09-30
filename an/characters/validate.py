@@ -673,7 +673,7 @@ def render_contract() -> str:
         f"torso, typically; `{DFLT_VIEW}` names the slot's default art). Draw each",
         "view on the SAME canvas as the default part: a swap carries texture only.",
         "Then say what else each view does in `swap_poses` —",
-        f"`{{\"{VIEW_CHANNEL}\": {{\"back\": {{\"mouth\": {{\"alpha\": 0}}}}}}}}`:",
+        f'`{{"{VIEW_CHANNEL}": {{"back": {{"mouth": {{"alpha": 0}}}}}}}}`:',
         "x/y offsets (view_box units), scale_x/scale_y/alpha factors, per slot.",
         "The back view hides the face this way; a profile hides the far eye.",
         "`an character new --offline` draws all of this for its own characters.",

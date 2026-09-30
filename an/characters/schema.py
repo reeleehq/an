@@ -449,9 +449,7 @@ class CharacterDescriptor(_CharModel):
     #: edge — while blinks, gaze and lip-sync keep running on what is visible
     #: (the face solver folds a pose into its own channels). Additive: no
     #: schema bump, and a descriptor without it reads back unposed.
-    swap_poses: dict[str, dict[str, dict[str, SlotPose]]] = Field(
-        default_factory=dict
-    )
+    swap_poses: dict[str, dict[str, dict[str, SlotPose]]] = Field(default_factory=dict)
 
     def model_post_init(self, __context: Any) -> None:
         # If the caller didn't seed bones/slots/skins, fill in a sensible default

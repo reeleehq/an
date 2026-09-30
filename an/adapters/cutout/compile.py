@@ -3018,7 +3018,9 @@ def _swap_pose_layer(
 
 
 def _pose_step_channels(
-    pose: Mapping[tuple[str, str], _StepCurve], *, skip: set[tuple[str, str]] = frozenset()
+    pose: Mapping[tuple[str, str], _StepCurve],
+    *,
+    skip: set[tuple[str, str]] = frozenset(),
 ) -> list[ChannelJSON]:
     """The pose's curves as held step channels, keyed where each swap lands."""
     return [
@@ -4209,7 +4211,11 @@ def _add_face_clips(
                 )
                 place_first(
                     entity.id,
-                    [PlacedClipJSON(animation_id=anim_id, start_time=0.0, duration=duration)],
+                    [
+                        PlacedClipJSON(
+                            animation_id=anim_id, start_time=0.0, duration=duration
+                        )
+                    ],
                 )
             continue
         desc = vocab.descriptors.get(entity.id)

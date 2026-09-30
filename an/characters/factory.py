@@ -1275,13 +1275,12 @@ _VIEW_HEAD_SVG: dict[str, str] = {
 }
 
 
-def _view_head_svg(
-    view: str, *, skin: str, hair: str, hat: str, accessory: str
-) -> str:
+def _view_head_svg(view: str, *, skin: str, hair: str, hat: str, accessory: str) -> str:
     """The offline head of ``view`` (not ``front``, which is
     :func:`_fallback_face_svg`), with its hat seen from that side."""
     hat_svg = (
-        _HAT_VIEW_SVG.get(view, {}).get(hat, _HAT_SVG[hat])
+        _HAT_VIEW_SVG.get(view, {})
+        .get(hat, _HAT_SVG[hat])
         .format(acc=accessory, ink=OUTLINE_COLOUR)
     )
     # The ear's outline is the drawing's ink — unless the skin or hair IS that
@@ -1359,13 +1358,30 @@ def _write_view_torso_part(
 
 #: The face slots of the default rig with the eye stack (an#99).
 FACE_SLOTS: tuple[str, ...] = (
-    "left_eye", "right_eye", "left_sclera", "right_sclera",
-    "left_pupil", "right_pupil", "mouth", "left_brow", "right_brow",
+    "left_eye",
+    "right_eye",
+    "left_sclera",
+    "right_sclera",
+    "left_pupil",
+    "right_pupil",
+    "mouth",
+    "left_brow",
+    "right_brow",
 )
 #: The side of the face that turns AWAY in a view facing right: the viewer's
 #: left eye, and everything stacked with it.
-_FAR_FACE_SLOTS: tuple[str, ...] = ("left_eye", "left_sclera", "left_pupil", "left_brow")
-_NEAR_FACE_SLOTS: tuple[str, ...] = ("right_eye", "right_sclera", "right_pupil", "right_brow")
+_FAR_FACE_SLOTS: tuple[str, ...] = (
+    "left_eye",
+    "left_sclera",
+    "left_pupil",
+    "left_brow",
+)
+_NEAR_FACE_SLOTS: tuple[str, ...] = (
+    "right_eye",
+    "right_sclera",
+    "right_pupil",
+    "right_brow",
+)
 
 #: Profile (facing right): how far the near eye, its stack and brow slide toward
 #: the face's edge, and the mouth with them (view_box units at head_scale 1);
@@ -1432,7 +1448,9 @@ def view_poses(
         "back": {n: SlotPose(alpha=0.0) for n in FACE_SLOTS},
     }
     if slots is not None:
-        poses = {v: {n: p for n, p in m.items() if n in slots} for v, m in poses.items()}
+        poses = {
+            v: {n: p for n, p in m.items() if n in slots} for v, m in poses.items()
+        }
     return poses
 
 

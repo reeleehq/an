@@ -568,7 +568,9 @@ def turn(
     """
     _positive(duration=duration)
     if not isinstance(to, str) or not to:
-        raise ValueError(f"to must name a view (a key of the {view_set!r} set), got {to!r}")
+        raise ValueError(
+            f"to must name a view (a key of the {view_set!r} set), got {to!r}"
+        )
     rest_sx = _rest(rest, "scale_x")
     s0 = abs(rest_sx)
     if from_direction is None:
@@ -577,7 +579,14 @@ def turn(
     after = _facing_sign("direction", direction) * s0
     half = duration / 2
     return sequence(
-        tween(target, "scale_x", to=0.0, duration=half, from_=before, easing=DFLT_IN_EASING),
+        tween(
+            target,
+            "scale_x",
+            to=0.0,
+            duration=half,
+            from_=before,
+            easing=DFLT_IN_EASING,
+        ),
         parallel(
             set_(target, view_set, to),
             _settled(

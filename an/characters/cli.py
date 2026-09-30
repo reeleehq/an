@@ -121,8 +121,10 @@ def new(
     note = (
         "; no views: a DiceBear head's face is baked, so its back and profile "
         "cannot be drawn (use --offline to turn it)"
-        if views and not offline
-        and "view" not in json.loads(desc.read_text(encoding="utf-8")).get("asset_sets", {})
+        if views
+        and not offline
+        and "view"
+        not in json.loads(desc.read_text(encoding="utf-8")).get("asset_sets", {})
         else ""
     )
     return f"created character at {desc.parent} (descriptor: {desc.name}){note}"
