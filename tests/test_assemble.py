@@ -281,23 +281,19 @@ class _SolidRenderer:
     def render(self, shot, ctx):
         from PIL import Image
 
-        from an.adapters.cutout.render import (
-            DEFAULT_FRAME_PNG_PATTERN,
-            _ffmpeg_add_audio,
-            _ffmpeg_mux,
-            _stage_audio_inputs,
-        )
+        from an.adapters.cutout.render import DEFAULT_FRAME_PNG_PATTERN, _mux_shot
         from an.frame_clock import frame_count
 
         work = Path(ctx.work_dir) / f"solid_{shot.id}"
         frames = work / "frames"
         frames.mkdir(parents=True, exist_ok=True)
         image = Image.new("RGB", ctx.resolution, _COLOURS[shot.id])
-        for i in range(frame_count(shot.duration, ctx.fps)):
+        n = frame_count(shot.duration, ctx.fps)
+        for i in range(n):
             image.save(frames / (DEFAULT_FRAME_PNG_PATTERN % i), format="PNG")
-        silent, out = work / "silent.mp4", work / f"{shot.id}.mp4"
-        _ffmpeg_mux(frames, ctx.fps, silent)
-        _ffmpeg_add_audio(silent, _stage_audio_inputs(shot, ctx, work), out, shot.duration)
+        out = work / f"{shot.id}.mp4"
+        # The real renderer's own mux, so the stand-in cannot drift from it.
+        _mux_shot(frames, shot, ctx, work, out, n_frames=n)
         return RenderResult(
             mp4_path=out, duration=shot.duration,
             frame_manifest=sorted(frames.glob("*.png")),

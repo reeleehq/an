@@ -28,6 +28,7 @@ from an.audio.lipsync import LipSyncProvider, Viseme, VisemeTrack
 from an.audio.offline_lipsync import OfflineLipSync
 from an.audio.offline_tts import OfflineTTS
 from an.audio.tts import AudioClip, TTSProvider
+from an.audio.voices import DEFAULT_VOICE, line_voice_id, provider_voice
 from an.ir.schema import Dialogue, SceneIR, VisemeKeyframe, WordTimingIR
 from an.ir.schema import VisemeTrack as IRVisemeTrack
 from an.util import _stable_hash
@@ -54,6 +55,7 @@ def produce_audio_for_dialogue(
     tts: TTSProvider | None = None,
     lipsync: LipSyncProvider | None = None,
     effects: Mapping[str, float] | None = None,
+    voice_id: str | None = None,
 ) -> tuple[AudioClip, VisemeTrack]:
     """Synthesize audio + visemes for one dialogue line.
 
@@ -66,17 +68,28 @@ def produce_audio_for_dialogue(
     is applied to the synthesized audio BEFORE alignment, so the visemes are
     computed on the audio the viewer hears. The raw synthesis stays cached under
     its own key, so changing an effect never re-pays the TTS.
+
+    ``voice_id`` (default: the line's ``voice_ref``, else ``"default"``) is the
+    ``voices``-store key; :func:`produce_audio_for_scene` passes the one
+    :func:`an.audio.voices.line_voice_id` resolves, so a character's bound
+    voice reaches here (an#194). The provider is handed the voice document's
+    own ``voice_id`` when it names one.
     """
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
-    voice_id = dialogue.voice_ref or "default"
+    voice_id = voice_id or dialogue.voice_ref or DEFAULT_VOICE
     if effects is None:
         effects = voice_effects(mall, voice_id)
+    named = provider_voice(mall, voice_id)
 
-    raw_key = audio_key(dialogue.text, voice_id, tts.name)
-    cache_key = audio_key(dialogue.text, voice_id, tts.name, effects)
+    raw_key = audio_key(dialogue.text, voice_id, tts.name, provider_voice=named)
+    cache_key = audio_key(
+        dialogue.text, voice_id, tts.name, effects, provider_voice=named
+    )
 
-    audio_clip = _load_or_synthesize(tts, dialogue.text, voice_id, mall, raw_key)
+    audio_clip = _load_or_synthesize(
+        tts, dialogue.text, named or voice_id, mall, raw_key
+    )
     if cache_key != raw_key:
         audio_clip = _load_or_apply_effects(audio_clip, effects, mall, cache_key)
 
@@ -102,7 +115,7 @@ def produce_audio_for_scene(
     """
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
-    voice_default = "default"
+    voice_default = DEFAULT_VOICE
     cursor = 0.0
     for shot in scene.timeline:
         cursor = 0.0
@@ -123,9 +136,15 @@ def produce_audio_for_scene(
                 "https://github.com/thorwhalen/an/issues/9."
             )
         for line in shot.dialogue:
-            voice_id = line.voice_ref or voice_default
+            voice_id = line_voice_id(line, shot, mall, default=voice_default)
             effects = voice_effects(mall, voice_id)
-            expected_audio_ref = audio_key(line.text, voice_id, tts.name, effects)
+            expected_audio_ref = audio_key(
+                line.text,
+                voice_id,
+                tts.name,
+                effects,
+                provider_voice=provider_voice(mall, voice_id),
+            )
             expected_viseme_ref = viseme_key(
                 expected_audio_ref, lipsync.name, line.text
             )
@@ -155,7 +174,7 @@ def produce_audio_for_scene(
             # a user-supplied start.
             was_synthesized = line.audio_ref is not None
             audio, track = produce_audio_for_dialogue(
-                line, mall, tts=tts, lipsync=lipsync, effects=effects
+                line, mall, tts=tts, lipsync=lipsync, effects=effects, voice_id=voice_id
             )
             line.duration = audio.duration
             if was_synthesized or line.start is None:
@@ -174,15 +193,23 @@ def produce_audio_for_scene(
 
 
 def audio_key(
-    text: str, voice_id: str, tts_name: str, effects: Mapping[str, float] | None = None
+    text: str,
+    voice_id: str,
+    tts_name: str,
+    effects: Mapping[str, float] | None = None,
+    *,
+    provider_voice: str | None = None,
 ) -> str:
     """Content key of a line's audio: text, voice, provider, and — only when the
-    voice declares one — its effects. With no effects the payload is exactly the
-    pre-effects one, so every key a project already has is unchanged.
+    voice declares them — its effects and the provider voice it names (an#194).
+    With neither, the payload is exactly the pre-effects one, so every key a
+    project already has is unchanged.
     """
     payload: dict[str, Any] = {"text": text, "voice": voice_id, "tts": tts_name}
     if effects:
         payload["effects"] = dict(effects)
+    if provider_voice:
+        payload["provider_voice"] = provider_voice
     return _stable_hash(payload)
 
 

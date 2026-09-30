@@ -482,13 +482,15 @@ class CutoutRenderer:
             finally:
                 browser.close()
 
-        # Mux frames → silent video, then layer (silence base + dialogue) audio on top.
-        # Every shot mp4 carries an AAC stream (silent if no dialogue) so the
-        # final ffmpeg concat across heterogeneous shots works without surprises.
-        silent_mp4 = job.work_dir / "silent.mp4"
-        _ffmpeg_mux(job.frames_dir, ctx.fps, silent_mp4, pix_fmt)
-        audio_inputs = _stage_audio_inputs(shot, ctx, job.work_dir)
-        _ffmpeg_add_audio(silent_mp4, audio_inputs, job.output_mp4, shot.duration)
+        n_audio_tracks = _mux_shot(
+            job.frames_dir,
+            shot,
+            ctx,
+            job.work_dir,
+            job.output_mp4,
+            n_frames=total_frames,
+            pix_fmt=pix_fmt,
+        )
 
         return RenderResult(
             mp4_path=job.output_mp4,
@@ -509,7 +511,7 @@ class CutoutRenderer:
                 # frame-byte diff between two runs is only interpretable beside it.
                 "capture": capture,
                 "frame_count": total_frames,
-                "audio_tracks": len(audio_inputs),
+                "audio_tracks": n_audio_tracks,
                 # The launch argv verbatim: all four rasteriser configurations
                 # report a byte-identical WebGL renderer string, so the string
                 # cannot witness the choice and the argv is the only guard.
@@ -1122,6 +1124,35 @@ def _stage_audio_inputs(
     return out
 
 
+def _mux_shot(
+    frames_dir: Path,
+    shot: Shot,
+    ctx: RenderContext,
+    work_dir: Path,
+    output_mp4: Path,
+    *,
+    n_frames: int,
+    pix_fmt: str | None = None,
+) -> int:
+    """Frames → the delivered per-shot mp4: a silent mux, then the audio mux.
+    Returns how many dialogue audio tracks were laid under the picture.
+
+    Every shot mp4 carries an AAC stream (silent if no dialogue) so the final
+    ffmpeg concat across heterogeneous shots works without surprises. The audio
+    is cut to the PICTURE's length, ``n_frames / fps``, not ``shot.duration``:
+    a duration that is not a whole number of frames (2.6 s at 24 fps is 62.4)
+    gets ``round(d * fps)`` frames, and an audio track padded to ``d`` made the
+    shot's container longer than its picture — the concat then advanced by the
+    container and left sub-frame holes in the film's video timestamps, which
+    ffprobe reads as ``r_frame_rate=120/1`` (an#195).
+    """
+    silent_mp4 = work_dir / "silent.mp4"
+    _ffmpeg_mux(frames_dir, ctx.fps, silent_mp4, pix_fmt)
+    audio_inputs = _stage_audio_inputs(shot, ctx, work_dir)
+    _ffmpeg_add_audio(silent_mp4, audio_inputs, output_mp4, n_frames / ctx.fps)
+    return len(audio_inputs)
+
+
 def _ffmpeg_add_audio(
     video_path: Path,
     audio_inputs: list[tuple[Path, float]],
@@ -1132,7 +1163,9 @@ def _ffmpeg_add_audio(
 
     Always emits an audio stream. ``anullsrc`` provides the silent base track
     of length ``duration_s`` so concat across shots is safe; dialogue lines
-    are overlaid via ``adelay`` + ``amix``.
+    are overlaid via ``adelay`` + ``amix``. ``duration_s`` must be the
+    picture's length (frames / fps): the concat advances each shot by its
+    container length, which is the longer of the two streams (an#195).
     """
     sr = 44100
     cmd = [
@@ -1146,7 +1179,7 @@ def _ffmpeg_add_audio(
         "-f",
         "lavfi",
         "-t",
-        f"{duration_s:.3f}",
+        f"{duration_s:.6f}",
         "-i",
         f"anullsrc=channel_layout=mono:sample_rate={sr}",
     ]
@@ -1195,7 +1228,7 @@ def _ffmpeg_add_audio(
         "-ac",
         "1",
         "-t",
-        f"{duration_s:.3f}",
+        f"{duration_s:.6f}",
         # THE DELIVERED per-shot mp4 is this one, not `_ffmpeg_mux`'s. `-c:v
         # copy` re-lays the container and writes `moov` last, so without this
         # every shot mp4 `an` has ever produced is progressive-download

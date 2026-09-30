@@ -271,6 +271,8 @@ Project.load(dir)
    ├─ if any dialogue & auto_audio:
    │     produce_audio_for_scene(scene, mall, tts=…, lipsync=…)
    │     ↳ stamps dialogue.audio_ref + dialogue.viseme_ref + dialogue.start + dialogue.duration + dialogue.word_timings (the provider's words, line-relative, when it has any — an#96)
+   │     ↳ each line's voice: its own voice_ref > its speaker entity's (descriptor voice_ref, entity overrides winning) > "default"
+   │       (an.audio.voices, an#194); the voice document's `voice_id` is what the TTS is handed
    │     ↳ persists wav bytes to mall["audio"][hash], visemes JSON to mall["visemes"][hash]
    │     ↳ writes scene back to mall["scenes"]["main"] (mtime equalized)
    │
@@ -278,6 +280,8 @@ Project.load(dir)
    │     renderer = RendererRegistry.find_for(shot)        ← matches on shot.renderer
    │     result = renderer.render(shot, ctx)
    │     ↳ cutout: compile_shot(shot, mall) → CutoutSceneJSON
+   │              (every channel target checked against the built tree — an
+   │               unknown node is a CutoutCompileError with suggestions, an#193)
    │              → spin Chromium via Playwright
    │              → load runtime + JSON
    │              → for each frame: anSetTime(t) + screenshot canvas
@@ -285,7 +289,9 @@ Project.load(dir)
    │                — or, with ctx.capture="canvas", batches of frames read
    │                in-page (anCaptureFrames → PNG data URLs), same decoded frames
    │              → ffmpeg mux PNG sequence → silent.mp4
-   │              → ffmpeg overlay dialogue audio (anullsrc base + adelay+amix per line)
+   │              → ffmpeg overlay dialogue audio (anullsrc base + adelay+amix per line),
+   │                cut to the PICTURE's length (frames / fps), so the concat
+   │                advances by whole frames (an#195)
    │              → shot.mp4
    │     mall["shots"][shot.id] = mp4 bytes
    │
@@ -321,7 +327,7 @@ Then `an render` regenerates only the invalidated shots, reusing the rest from `
 
 ### 5.3 `an validate <dir>` (cheap pre-flight)
 
-`load(dir)` → `validate_schema(scene)` + `validate_semantic(scene, available_voices=…, available_characters=…)` → `ValidationReport`. No side effects.
+`load(dir)` → `validate_schema(scene)` + `validate_semantic(scene, available_voices=…, available_characters=…)` → `ValidationReport`. No side effects. Every `set`/`tween` target is resolved against the node tree the compiler builds for the shot's stage (`an.motion.stage_poses`, the builder a preset `play` is checked against), and an unknown one is an error carrying the compiler's own message and "did you mean" paths (an#193).
 
 ---
 

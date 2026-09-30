@@ -30,6 +30,7 @@ from an.characters.play import (
     preset_play_span,
 )
 from an.audio.effects import VoiceEffectError, voice_effects
+from an.audio.voices import speaker_voice_ref
 from an.characters.schema import CharacterDescriptor
 from an.expression.binding import expression_problems
 from an.ir.camera import CAMERA_MOVES, CameraError, camera_keys
@@ -660,6 +661,65 @@ def _check_swap_references(
                 )
 
 
+#: Leaf kinds whose ``target`` is a NODE path the runtime animates. `play` and
+#: `expression` target an entity and are resolved by their own checks above.
+_NODE_TARGETING_KINDS = frozenset({"set", "tween"})
+
+
+def _check_action_targets(
+    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
+) -> None:
+    """Every `set`/`tween` target must be a node the compiler BUILDS (an#193).
+
+    Resolved against :func:`_built_node_paths` — the compiler's own stage
+    builder, the one a preset `play` is checked against (an#166) — so the rig
+    is never restated here; the message is the compiler's
+    (:func:`an.adapters.cutout.compile.unknown_target_message`), with "did you
+    mean" suggestions from the real paths. A target on an entity whose store
+    was not supplied is skipped: without it a stand-in (the placeholder rig,
+    the default backdrop) would be built, and its paths are not the asset's.
+    """
+    if not stores or shot.renderer != "cutout":
+        return
+    from an.adapters.cutout.compile import unknown_target_message
+
+    store_of = {kind: name for kind, (name, _doc) in RIG_STORES.items()}
+    store_of["environment"] = "environments"  # its planes are nodes too
+    unchecked = {
+        e.id
+        for e in shot.entities
+        if e.kind in store_of and stores.get(store_of[e.kind]) is None
+    }
+    leaves = [
+        (k, flat.action)
+        for k, action in enumerate(shot.actions)
+        for flat in flatten(action)
+        if getattr(flat.action, "kind", None) in _NODE_TARGETING_KINDS
+    ]
+    targets = [
+        (k, a.target)
+        for k, a in leaves
+        if (a.target or "").split("/", 1)[0] not in unchecked
+    ]
+    if not targets:
+        return
+    built, why = _built_node_paths(shot, stores)
+    if built is None:
+        report.add(
+            "warning",
+            f"{path}/entities",
+            f"animation targets were NOT checked: the shot's stage did not build ({why}).",
+        )
+        return
+    for k, target in targets:
+        if target not in built:
+            report.add(
+                "error",
+                f"{path}/actions/{k}",
+                f"{unknown_target_message(target, built)} — rendering this shot raises.",
+            )
+
+
 def _built_node_paths(
     shot, stores: Mapping[str, Any]
 ) -> tuple[set[str] | None, str | None]:
@@ -1063,6 +1123,7 @@ def validate_semantic(
 
         _check_renderable(shot, path, report, stores=rig_stores)
         _check_swap_references(shot, path, report, rig_stores)
+        _check_action_targets(shot, path, report, rig_stores)
         _check_trim_targets(shot, path, report, rig_stores)
         text_ids = _check_text_blocks(
             shot,
@@ -1126,21 +1187,29 @@ def validate_semantic(
                 )
 
         # Dialogue voice refs resolve?
+        # The line's own voice_ref, else the one its speaker is bound to — the
+        # resolver the audio pipeline speaks with (an#194).
         if available_voices is not None:
             for k, line in enumerate(shot.dialogue):
-                if (
-                    line.voice_ref is not None
-                    and line.voice_ref not in available_voices
-                ):
+                voice_ref = line.voice_ref or speaker_voice_ref(
+                    line.speaker, shot, {"characters": available_characters}
+                )
+                if voice_ref is None:
+                    continue
+                if voice_ref not in available_voices:
+                    bound = (
+                        ""
+                        if line.voice_ref
+                        else f" (the voice character {line.speaker!r} is bound to)"
+                    )
                     report.add(
                         "warning",
                         f"{path}/dialogue/{k}/voice_ref",
-                        f"voice ref {line.voice_ref!r} not in voices store",
+                        f"voice ref {voice_ref!r}{bound} not in voices store; "
+                        "the TTS provider is handed the name itself",
                     )
-                elif line.voice_ref is not None:
-                    _check_voice_effects(
-                        report, path, k, line.voice_ref, available_voices
-                    )
+                else:
+                    _check_voice_effects(report, path, k, voice_ref, available_voices)
 
         for k, line in enumerate(shot.dialogue):
             if not line.text.strip():
