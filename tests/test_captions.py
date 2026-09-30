@@ -533,34 +533,25 @@ def test_an_authors_own_srt_is_left_alone_when_the_scene_has_no_captions(tmp_pat
     assert (root / "output" / "main.srt").read_text("utf-8") == "mine"
 
 
-def test_a_shot_off_the_frame_grid_sends_a_captioned_film_through_assembly(tmp_path, monkeypatch):
-    """A concat places shots at container lengths, the sidecar on frames; they
-    differ when a duration is not whole frames, so the film is assembled
-    (frame i at i/fps) — or, with no frames to assemble, it is said."""
+def test_a_shot_off_the_frame_grid_does_not_send_a_captioned_film_to_the_assembler(
+    tmp_path, monkeypatch
+):
+    """an#200: a captioned film whose shots are not whole frames long used to be
+    ASSEMBLED, because the concat advanced by container length and drifted off
+    the sidecar's frame grid. Each shot's audio is cut to its picture since
+    an#195, so the concat is on the grid (measured in
+    `tests/test_delivered_frame_rate.py`) and the ordinary path delivers it —
+    with no warning, even from a renderer that keeps no frames."""
+    import warnings
+
     import an.render as render_mod
 
+    monkeypatch.setattr(render_mod, "assemble_film", lambda *a, **k: pytest.fail("assembled"))
     scene = _scene(Shot(id="a", duration=1.04, dialogue=[_line("hi")]), Shot(id="b", duration=1.0))
-    with pytest.warns(UserWarning, match="not a whole number of frames"):
-        _render(tmp_path / "x", monkeypatch, scene)  # recording renderer: no frames
-
-    assembled = []
-    monkeypatch.setattr(render_mod, "assemble_film",
-                        lambda scene, results, out, **kw: (assembled.append(out), out.write_bytes(b"x")))
-
-    class _WithFrames(_RecordingRenderer):
-        def render(self, shot, ctx):
-            result = super().render(shot, ctx)
-            result.frame_manifest = [Path("f.png")]
-            return result
-
-    from an import init
-    from an.project import load
-
-    root = init(tmp_path / "y" / "demo")
-    load(root).mall["scenes"]["main"] = scene
-    monkeypatch.setattr(render_mod._DEFAULT_REGISTRY, "find_for", lambda shot: _WithFrames())
-    render_mod.render(load(root), auto_audio=False)
-    assert len(assembled) == 1
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", UserWarning)
+        project, _, _ = _render(tmp_path, monkeypatch, scene)
+    assert (project.root / "output" / "main.srt").exists()
 
 
 # --- the SubRip mirror and the import boundary (Decision 2 of epic #9) ----------------------
