@@ -1,4 +1,4 @@
-> built 2026-09-30 10:54 UTC from 70c28bb (main) · an 0.1.110. Details: build_info.json
+> built 2026-09-30 11:10 UTC from e4a7901 (main) · an 0.1.111. Details: build_info.json
 
 # index.html.md
 
@@ -4626,10 +4626,18 @@ own `voice_id` when it names one.
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
 Mutates the `scene` in place AND returns it (for chaining).
-Stamps `Dialogue.duration`, `Dialogue.start` (if unset),
-`Dialogue.viseme_track`, and `Dialogue.audio_ref` (mall[“audio”] key)
-so the renderer can find the audio later. Lines with an existing
-viseme_track AND audio_ref are skipped (idempotent).
+Stamps `Dialogue.duration`, `Dialogue.viseme_track`, and
+`Dialogue.audio_ref` (mall[“audio”] key) so the renderer can find the
+audio later. Lines with an existing viseme_track AND audio_ref are not
+re-synthesized (idempotent).
+
+`Dialogue.start` is DERIVED on every pass, synthesized or not, by
+`Dialogue.planned_start()`: the line’s `at` if set, else the previous
+line’s end plus its `pause` (an#187). So editing a pause re-times the
+shot without touching the audio, and every consumer of `start` — the
+mux, the visemes, captions, ducking — follows. A `start` on a line that
+was never synthesized is an authored start from before `at` existed,
+and is kept as the line’s `at`.
 
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
@@ -5040,6 +5048,7 @@ the entire pipeline runs without API keys or external binaries.
 | [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                 |
 | [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                       |
 | [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                     |
+| [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                         |
 | [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                   |
 
 ### Exceptions
@@ -5105,13 +5114,51 @@ own `voice_id` when it names one.
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
 Mutates the `scene` in place AND returns it (for chaining).
-Stamps `Dialogue.duration`, `Dialogue.start` (if unset),
-`Dialogue.viseme_track`, and `Dialogue.audio_ref` (mall[“audio”] key)
-so the renderer can find the audio later. Lines with an existing
-viseme_track AND audio_ref are skipped (idempotent).
+Stamps `Dialogue.duration`, `Dialogue.viseme_track`, and
+`Dialogue.audio_ref` (mall[“audio”] key) so the renderer can find the
+audio later. Lines with an existing viseme_track AND audio_ref are not
+re-synthesized (idempotent).
+
+`Dialogue.start` is DERIVED on every pass, synthesized or not, by
+`Dialogue.planned_start()`: the line’s `at` if set, else the previous
+line’s end plus its `pause` (an#187). So editing a pause re-times the
+shot without touching the audio, and every consumer of `start` — the
+mux, the visemes, captions, ducking — follows. A `start` on a line that
+was never synthesized is an authored start from before `at` existed,
+and is kept as the line’s `at`.
 
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.audio.pipeline.retime_dialogue(scene, , timed_shots_only=False)
+
+Stamp every synthesized line’s `start` from its `pause` / `at`.
+
+Pure — synthesizes nothing, reads no store — and idempotent. The audio
+pipeline ends with it, and every path that skips the pipeline (`render`
+with `auto_audio=False`, `an preview`) runs it too, so a pause edited
+after synthesis is never played at the stale stamp (an#187). A shot is
+re-timed up to its first line with no `duration` (never synthesized:
+nothing after it has a known start). Mutates in place and returns
+`scene`.
+
+`timed_shots_only=True` — what the paths that skip synthesis pass —
+leaves a shot whose lines carry no `pause`/`at` exactly as stamped:
+a hand-built scene may stamp `start` itself (a test, a fixture), and
+without the pipeline there is no authority to say that stamp is stale.
+
+* **Return type:**
+  [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+```pycon
+>>> from an.ir.schema import Dialogue, SceneIR, Shot
+>>> shot = Shot(id="s", dialogue=[
+...     Dialogue(speaker="a", text="hi", start=0.0, duration=0.5, audio_ref="k1"),
+...     Dialogue(speaker="b", text="bye", start=0.5, duration=0.4, audio_ref="k2",
+...              pause=1.5)])
+>>> [d.start for d in retime_dialogue(SceneIR(timeline=[shot])).timeline[0].dialogue]
+[0.0, 2.0]
+```
 
 ### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
 
@@ -6456,7 +6503,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'rect', 'mouth', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse', 'mouth', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -15073,12 +15120,47 @@ Bases: `_IRModel`
 
 One line of spoken dialogue.
 
-`timing` is None until the audio pipeline runs (TTS gives us a real
-duration); the orchestrator fills it in then.
+`start` and `duration` are None until the audio pipeline runs (TTS
+gives us a real duration); the pipeline stamps them then, deriving
+`start` from the author’s `pause` / `at` ([`planned_start()`](_autosummary/an.html.md#an.Dialogue.planned_start)).
+
+#### at *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where this line starts, in SHOT seconds, whatever came before it —
+`(at 3.0)` in `scene.md`. `start` is what the audio pipeline
+DERIVES from `at`/`pause` on every pass; these two are what the
+author wrote (an#187).
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Seconds of silence before this line, after the previous line ends (the
+shot start, for the first line) — `(pause 1.5)` in `scene.md`.
+
+#### planned_start(cursor)
+
+Where this line starts, given the previous line ends at `cursor`.
+
+The one rule the audio pipeline stamps into `start` and `an validate`
+lays lines out by: `at` if set, else `cursor + pause`. A `start`
+on a line never synthesized (no `audio_ref`) was authored — the
+spelling of `at` before an#187 — and counts as one; a synthesized
+line’s `start` is the pipeline’s own stamp, re-derived here.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
+2.3
+>>> Dialogue(speaker="a", text="bye", at=4.0).planned_start(0.8)
+4.0
+>>> Dialogue(speaker="a", text="bye").planned_start(0.8)
+0.8
+```
 
 #### word_timings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[WordTimingIR](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -17411,12 +17493,47 @@ Bases: `_IRModel`
 
 One line of spoken dialogue.
 
-`timing` is None until the audio pipeline runs (TTS gives us a real
-duration); the orchestrator fills it in then.
+`start` and `duration` are None until the audio pipeline runs (TTS
+gives us a real duration); the pipeline stamps them then, deriving
+`start` from the author’s `pause` / `at` ([`planned_start()`](_autosummary/an.ir.html.md#an.ir.Dialogue.planned_start)).
+
+#### at *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where this line starts, in SHOT seconds, whatever came before it —
+`(at 3.0)` in `scene.md`. `start` is what the audio pipeline
+DERIVES from `at`/`pause` on every pass; these two are what the
+author wrote (an#187).
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Seconds of silence before this line, after the previous line ends (the
+shot start, for the first line) — `(pause 1.5)` in `scene.md`.
+
+#### planned_start(cursor)
+
+Where this line starts, given the previous line ends at `cursor`.
+
+The one rule the audio pipeline stamps into `start` and `an validate`
+lays lines out by: `at` if set, else `cursor + pause`. A `start`
+on a line never synthesized (no `audio_ref`) was authored — the
+spelling of `at` before an#187 — and counts as one; a synthesized
+line’s `start` is the pipeline’s own stamp, re-derived here.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
+2.3
+>>> Dialogue(speaker="a", text="bye", at=4.0).planned_start(0.8)
+4.0
+>>> Dialogue(speaker="a", text="bye").planned_start(0.8)
+0.8
+```
 
 #### word_timings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[WordTimingIR](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -18180,12 +18297,47 @@ Bases: `_IRModel`
 
 One line of spoken dialogue.
 
-`timing` is None until the audio pipeline runs (TTS gives us a real
-duration); the orchestrator fills it in then.
+`start` and `duration` are None until the audio pipeline runs (TTS
+gives us a real duration); the pipeline stamps them then, deriving
+`start` from the author’s `pause` / `at` ([`planned_start()`](_autosummary/an.ir.schema.html.md#an.ir.schema.Dialogue.planned_start)).
+
+#### at *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where this line starts, in SHOT seconds, whatever came before it —
+`(at 3.0)` in `scene.md`. `start` is what the audio pipeline
+DERIVES from `at`/`pause` on every pass; these two are what the
+author wrote (an#187).
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Seconds of silence before this line, after the previous line ends (the
+shot start, for the first line) — `(pause 1.5)` in `scene.md`.
+
+#### planned_start(cursor)
+
+Where this line starts, given the previous line ends at `cursor`.
+
+The one rule the audio pipeline stamps into `start` and `an validate`
+lays lines out by: `at` if set, else `cursor + pause`. A `start`
+on a line never synthesized (no `audio_ref`) was authored — the
+spelling of `at` before an#187 — and counts as one; a synthesized
+line’s `start` is the pipeline’s own stamp, re-derived here.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
+2.3
+>>> Dialogue(speaker="a", text="bye", at=4.0).planned_start(0.8)
+4.0
+>>> Dialogue(speaker="a", text="bye").planned_start(0.8)
+0.8
+```
 
 #### word_timings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[WordTimingIR](_autosummary/an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
@@ -22421,20 +22573,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 10:54 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/70c28bbe459722be4a30d46ef5e12b0bf7f5610f"><code>70c28bb</code></a> on branch <code>main</code>, for **an 0.1.110** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 11:10 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/e4a790165b1bb1ca931abeff23f6e5fb93aa7130"><code>e4a7901</code></a> on branch <code>main</code>, for **an 0.1.111** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.110) is ahead of the latest release on PyPI (0.1.109): these docs describe unreleased code.
+- The documented version (0.1.111) is ahead of the latest release on PyPI (0.1.110): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/70c28bbe459722be4a30d46ef5e12b0bf7f5610f"><code>70c28bbe459722be4a30d46ef5e12b0bf7f5610f</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/e4a790165b1bb1ca931abeff23f6e5fb93aa7130"><code>e4a790165b1bb1ca931abeff23f6e5fb93aa7130</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.110</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.111</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -22443,9 +22595,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36704863111">36704863111</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36706457331">36706457331</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>b863d50e693c7667042929f9c05f7fd37c498a41</code> (in the history of the built commit) |
+| Event commit | <code>0927f3266e67c2d322a164d4d4186f0a67303b04</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -22470,13 +22622,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.109/">0.1.109</a>, older than the documented version (0.1.110).
+Latest release: <a href="https://pypi.org/project/an/0.1.110/">0.1.110</a>, older than the documented version (0.1.111).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 70c28bbe459722be4a30d46ef5e12b0bf7f5610f
+git checkout e4a790165b1bb1ca931abeff23f6e5fb93aa7130
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

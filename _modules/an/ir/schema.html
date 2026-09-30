@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=3992526b"></script>
+    <script src="../../../_static/documentation_options.js?v=9dead672"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.110" />
+  <meta name="docsearch:version" content="0.1.111" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1269,8 +1269,9 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">Dialogue</span><span class="p">(</span><span class="n">_IRModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""One line of spoken dialogue.</span>
 
-<span class="sd">    ``timing`` is None until the audio pipeline runs (TTS gives us a real</span>
-<span class="sd">    duration); the orchestrator fills it in then.</span>
+<span class="sd">    ``start`` and ``duration`` are None until the audio pipeline runs (TTS</span>
+<span class="sd">    gives us a real duration); the pipeline stamps them then, deriving</span>
+<span class="sd">    ``start`` from the author's ``pause`` / ``at`` (:meth:`planned_start`).</span>
 <span class="sd">    """</span>
 
     <span class="n">speaker</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># the entity id this line belongs to</span>
@@ -1284,7 +1285,68 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: has none (offline, Rhubarb) or the line was stamped before an#96.</span>
     <span class="n">word_timings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">WordTimingIR</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">audio_ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># mall["audio"] key (content-hash of TTS input)</span>
-    <span class="n">viseme_ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># mall["visemes"] key (content-hash of lipsync input)</span></div>
+    <span class="n">viseme_ref</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># mall["visemes"] key (content-hash of lipsync input)</span>
+    <span class="c1">#: Seconds of silence before this line, after the previous line ends (the</span>
+    <span class="c1">#: shot start, for the first line) — ``(pause 1.5)`` in ``scene.md``.</span>
+    <span class="n">pause</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1">#: Where this line starts, in SHOT seconds, whatever came before it —</span>
+    <span class="c1">#: ``(at 3.0)`` in ``scene.md``. ``start`` is what the audio pipeline</span>
+    <span class="c1">#: DERIVES from ``at``/``pause`` on every pass; these two are what the</span>
+    <span class="c1">#: author wrote (an#187).</span>
+    <span class="n">at</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">allow_inf_nan</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_one_timing</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Dialogue"</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"pause"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">):</span>  <span class="c1"># -0.0 would be written `(pause -0)`</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"dialogue line </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> sets both `pause` and `at`; a line "</span>
+                <span class="s2">"starts either a pause after the previous line or at a shot time, "</span>
+                <span class="s2">"not both — keep one"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="Dialogue.planned_start">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.Dialogue.planned_start">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">planned_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Where this line starts, given the previous line ends at ``cursor``.</span>
+
+<span class="sd">        The one rule the audio pipeline stamps into ``start`` and `an validate`</span>
+<span class="sd">        lays lines out by: ``at`` if set, else ``cursor + pause``. A ``start``</span>
+<span class="sd">        on a line never synthesized (no ``audio_ref``) was authored — the</span>
+<span class="sd">        spelling of ``at`` before an#187 — and counts as one; a synthesized</span>
+<span class="sd">        line's ``start`` is the pipeline's own stamp, re-derived here.</span>
+
+<span class="sd">        &gt;&gt;&gt; Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)</span>
+<span class="sd">        2.3</span>
+<span class="sd">        &gt;&gt;&gt; Dialogue(speaker="a", text="bye", at=4.0).planned_start(0.8)</span>
+<span class="sd">        4.0</span>
+<span class="sd">        &gt;&gt;&gt; Dialogue(speaker="a", text="bye").planned_start(0.8)</span>
+<span class="sd">        0.8</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">at</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">at</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_timing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Serialize ``pause``/``at`` out of existence when unset.</span>
+
+<span class="sd">        `AssetRef._omit_unset_stage`'s rule: every committed ``ir/scene.json``</span>
+<span class="sd">        predates these fields, and a defaulted ``null`` on every line would</span>
+<span class="sd">        rewrite all of them on the next ``an sync``.</span>
+<span class="sd">        """</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"pause"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">data</span></div>
 
 
 

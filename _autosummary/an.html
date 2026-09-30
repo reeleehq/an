@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=3992526b"></script>
+    <script src="../_static/documentation_options.js?v=9dead672"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="API reference" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.110" />
+  <meta name="docsearch:version" content="0.1.111" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -712,14 +712,55 @@ raises is the failure <code class="code docutils literal notranslate"><span clas
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.</span></span><span class="sig-name descname"><span class="pre">Dialogue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#Dialogue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.Dialogue" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_IRModel</span></code></p>
 <p>One line of spoken dialogue.</p>
-<p><code class="docutils literal notranslate"><span class="pre">timing</span></code> is None until the audio pipeline runs (TTS gives us a real
-duration); the orchestrator fills it in then.</p>
+<p><code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">duration</span></code> are None until the audio pipeline runs (TTS
+gives us a real duration); the pipeline stamps them then, deriving
+<code class="docutils literal notranslate"><span class="pre">start</span></code> from the author’s <code class="docutils literal notranslate"><span class="pre">pause</span></code> / <code class="docutils literal notranslate"><span class="pre">at</span></code> (<a class="reference internal" href="#an.Dialogue.planned_start" title="an.Dialogue.planned_start"><code class="xref py py-meth docutils literal notranslate"><span class="pre">planned_start()</span></code></a>).</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.Dialogue.at">
+<span class="sig-name descname"><span class="pre">at</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.Dialogue.at" title="Link to this definition">#</a></dt>
+<dd><p>Where this line starts, in SHOT seconds, whatever came before it —
+<code class="docutils literal notranslate"><span class="pre">(at</span> <span class="pre">3.0)</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>. <code class="docutils literal notranslate"><span class="pre">start</span></code> is what the audio pipeline
+DERIVES from <code class="docutils literal notranslate"><span class="pre">at</span></code>/<code class="docutils literal notranslate"><span class="pre">pause</span></code> on every pass; these two are what the
+author wrote (an#187).</p>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.Dialogue.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.Dialogue.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.Dialogue.pause">
+<span class="sig-name descname"><span class="pre">pause</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.Dialogue.pause" title="Link to this definition">#</a></dt>
+<dd><p>Seconds of silence before this line, after the previous line ends (the
+shot start, for the first line) — <code class="docutils literal notranslate"><span class="pre">(pause</span> <span class="pre">1.5)</span></code> in <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.Dialogue.planned_start">
+<span class="sig-name descname"><span class="pre">planned_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cursor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/schema.html#Dialogue.planned_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.Dialogue.planned_start" title="Link to this definition">#</a></dt>
+<dd><p>Where this line starts, given the previous line ends at <code class="docutils literal notranslate"><span class="pre">cursor</span></code>.</p>
+<p>The one rule the audio pipeline stamps into <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>
+lays lines out by: <code class="docutils literal notranslate"><span class="pre">at</span></code> if set, else <code class="docutils literal notranslate"><span class="pre">cursor</span> <span class="pre">+</span> <span class="pre">pause</span></code>. A <code class="docutils literal notranslate"><span class="pre">start</span></code>
+on a line never synthesized (no <code class="docutils literal notranslate"><span class="pre">audio_ref</span></code>) was authored — the
+spelling of <code class="docutils literal notranslate"><span class="pre">at</span></code> before an#187 — and counts as one; a synthesized
+line’s <code class="docutils literal notranslate"><span class="pre">start</span></code> is the pipeline’s own stamp, re-derived here.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Dialogue</span><span class="p">(</span><span class="n">speaker</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"bye"</span><span class="p">,</span> <span class="n">pause</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span><span class="o">.</span><span class="n">planned_start</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="go">2.3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Dialogue</span><span class="p">(</span><span class="n">speaker</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"bye"</span><span class="p">,</span> <span class="n">at</span><span class="o">=</span><span class="mf">4.0</span><span class="p">)</span><span class="o">.</span><span class="n">planned_start</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="go">4.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Dialogue</span><span class="p">(</span><span class="n">speaker</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"bye"</span><span class="p">)</span><span class="o">.</span><span class="n">planned_start</span><span class="p">(</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="go">0.8</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1369,7 +1410,10 @@ always passes it).</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue"><code class="docutils literal notranslate"><span class="pre">Dialogue</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.at"><code class="docutils literal notranslate"><span class="pre">Dialogue.at</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.model_config"><code class="docutils literal notranslate"><span class="pre">Dialogue.model_config</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.pause"><code class="docutils literal notranslate"><span class="pre">Dialogue.pause</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.planned_start"><code class="docutils literal notranslate"><span class="pre">Dialogue.planned_start()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.Dialogue.word_timings"><code class="docutils literal notranslate"><span class="pre">Dialogue.word_timings</span></code></a></li>
 </ul>
 </li>

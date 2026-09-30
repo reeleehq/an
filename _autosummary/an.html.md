@@ -133,12 +133,47 @@ Bases: `_IRModel`
 
 One line of spoken dialogue.
 
-`timing` is None until the audio pipeline runs (TTS gives us a real
-duration); the orchestrator fills it in then.
+`start` and `duration` are None until the audio pipeline runs (TTS
+gives us a real duration); the pipeline stamps them then, deriving
+`start` from the author’s `pause` / `at` ([`planned_start()`](#an.Dialogue.planned_start)).
+
+#### at *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Where this line starts, in SHOT seconds, whatever came before it —
+`(at 3.0)` in `scene.md`. `start` is what the audio pipeline
+DERIVES from `at`/`pause` on every pass; these two are what the
+author wrote (an#187).
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### pause *: [float](https://docs.python.org/3/builtins/functions.html#float) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Seconds of silence before this line, after the previous line ends (the
+shot start, for the first line) — `(pause 1.5)` in `scene.md`.
+
+#### planned_start(cursor)
+
+Where this line starts, given the previous line ends at `cursor`.
+
+The one rule the audio pipeline stamps into `start` and `an validate`
+lays lines out by: `at` if set, else `cursor + pause`. A `start`
+on a line never synthesized (no `audio_ref`) was authored — the
+spelling of `at` before an#187 — and counts as one; a synthesized
+line’s `start` is the pipeline’s own stamp, re-derived here.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> Dialogue(speaker="a", text="bye", pause=1.5).planned_start(0.8)
+2.3
+>>> Dialogue(speaker="a", text="bye", at=4.0).planned_start(0.8)
+4.0
+>>> Dialogue(speaker="a", text="bye").planned_start(0.8)
+0.8
+```
 
 #### word_timings *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[WordTimingIR](an.ir.schema.html.md#an.ir.schema.WordTimingIR)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
 

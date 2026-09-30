@@ -13,6 +13,7 @@ an.audio.pipeline
       default_tts
       produce_audio_for_dialogue
       produce_audio_for_scene
+      retime_dialogue
       viseme_key
    
    .. rubric:: Exceptions

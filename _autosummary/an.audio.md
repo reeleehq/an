@@ -311,10 +311,18 @@ own `voice_id` when it names one.
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
 Mutates the `scene` in place AND returns it (for chaining).
-Stamps `Dialogue.duration`, `Dialogue.start` (if unset),
-`Dialogue.viseme_track`, and `Dialogue.audio_ref` (mall[“audio”] key)
-so the renderer can find the audio later. Lines with an existing
-viseme_track AND audio_ref are skipped (idempotent).
+Stamps `Dialogue.duration`, `Dialogue.viseme_track`, and
+`Dialogue.audio_ref` (mall[“audio”] key) so the renderer can find the
+audio later. Lines with an existing viseme_track AND audio_ref are not
+re-synthesized (idempotent).
+
+`Dialogue.start` is DERIVED on every pass, synthesized or not, by
+`Dialogue.planned_start()`: the line’s `at` if set, else the previous
+line’s end plus its `pause` (an#187). So editing a pause re-times the
+shot without touching the audio, and every consumer of `start` — the
+mux, the visemes, captions, ducking — follows. A `start` on a line that
+was never synthesized is an authored start from before `at` existed,
+and is kept as the line’s `at`.
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.md#an.ir.schema.SceneIR)
