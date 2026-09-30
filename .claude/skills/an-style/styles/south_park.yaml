@@ -14,11 +14,15 @@ live:
     default_easing: linear          # short snaps, never an overshoot; every unnamed tween takes it
     step_hz: 12              # on twos at 24 fps; body tweens hold every other frame
     style_pack: south_park
-  style_pack:                # save as assets/styles/south_park.json; reaches environment presets, procedural rigs and factory characters' tagged colours
+  style_pack:                # save as assets/styles/south_park.json; reaches environment presets, procedural rigs and factory characters' tagged colours; surface treatments reach every character and prop
     name: south_park
     roles:
       sky: "#c0c6c7"         # measured backdrop grey
       ground: "#987a43"      # measured ochre
+    surface:                 # an#163: compile-time copies of each part, drawn behind it; widths in rig pixels (~frame pixels at a 1080p two-shot)
+      outline: {width: 3, color: "#231316"}           # measured near-black, 8% dark pixels
+      shadow: {dx: 3, dy: 3, color: "#000000", alpha: 0.35}   # the "no-platen" paper-gap shadow
+    grain: {amount: 0.05, seed: 0}   # static paper grain over the frame; not measurable at 360p (research §3), so the amount is an estimate
   environment:
     preset: indoor           # flat set; `park` for exteriors
   camera:
@@ -54,9 +58,6 @@ guidance:                    # not in `an` yet: apply by hand where you can, oth
   views: front and three-quarter heads as a swap set (`asset_sets`), turned by a hard swap
   coverage: [two_shot, single_close, over_shoulder]
   motion_vocabulary_unmapped: [whole_piece_rotate]   # no preset: a short rotation tween on the entity
-  paper_gap_shadow: an offset, darkened duplicate of each part (about 3 px at 1080p); no surface treatment ships
-  outline: near-black #231316 about 3 px at 1080p; not a StylePack role
-  paper_grain: a static low-alpha texture plane; no grain ships
   voice: pitch raised; see `live.voice`. The amount is an estimate, and a stock-ffmpeg shift (asetrate + atempo) is a cruder shifter than a studio one
   sound: sparse stingers as shot `sounds` cues on the beat they punctuate, no music bed; `an` ships no sound library, so stingers are assets you add with their licence
   text: occasional location cards — an overlay text prop (a TextDescriptor on the overlay layer) over the set or a fill plane; the an skill's recipe builds one

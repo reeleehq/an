@@ -134,6 +134,17 @@
 
         if (node.visual) {
             const visual = makeVisual(node.visual);
+            // an#163: the outline and the paper-gap shadow are COPIES of this
+            // visual, added to the SAME container first so they draw behind
+            // it — which is why a tween, a play or the camera moves them with
+            // no channel of their own. Built once, from the document; nothing
+            // here is a filter and nothing is random.
+            for (const copy of makeUnderlays(node.visual, visual)) {
+                container.addChild(copy);
+            }
+            if (node.visual.blend) {
+                visual.blendMode = blendModeOf(node.visual.blend);
+            }
             container.addChild(visual);
             visualIndex[path] = { container, visual };
         }
@@ -174,6 +185,113 @@
         }
         // sprite without textures + everything else falls back to a rect.
         return makeRect(visualSpec);
+    }
+
+    // ------------------------------------------------------------------------
+    // Surface treatments (an#163). The compiler decides every copy, colour and
+    // offset (an/adapters/cutout/surface.py); this only draws what the
+    // document says. Blend modes are the engine's native ones — PixiJS 7 does
+    // ADD and MULTIPLY in the blend equation, with no filter and no render
+    // texture — so the determinism probe below still sees zero filters.
+    // ------------------------------------------------------------------------
+
+    const BLENDS = { add: 'ADD', multiply: 'MULTIPLY' };
+
+    function blendModeOf(name) {
+        const key = BLENDS[name];
+        if (!key) {
+            throw new Error(
+                'unknown blend ' + JSON.stringify(name) + '. Known: ' +
+                JSON.stringify(Object.keys(BLENDS).sort())
+            );
+        }
+        return PIXI.BLEND_MODES[key];
+    }
+
+    function mulTint(a, b) {
+        // Per-channel product of two packed RGB colours, rounded like the
+        // tint channel's quantiser.
+        const ch = (x, s) => (x >> s) & 0xff;
+        const m = s => Math.round(ch(a, s) * ch(b, s) / 255);
+        return (m(16) << 16) | (m(8) << 8) | m(0);
+    }
+
+    function fitUnderlay(main, copy) {
+        // A sprite copy shares the main sprite's texture, anchor and scale,
+        // then grows about the ART'S CENTRE (not the anchor) so its box gains
+        // `grow` on every side. Re-run after every swap: the box follows the
+        // texture.
+        const g = copy._anGrow;
+        const off = copy._anOffset;
+        const w = main.width, h = main.height;  // displayed, absolute
+        const sx = w > 0 ? (w + 2 * g) / w : 1;
+        const sy = h > 0 ? (h + 2 * g) / h : 1;
+        copy.texture = main.texture;
+        copy.anchor.copyFrom(main.anchor);
+        copy.scale.set(main.scale.x * sx, main.scale.y * sy);
+        copy.x = off[0] + (0.5 - main.anchor.x) * w * (1 - sx);
+        copy.y = off[1] + (0.5 - main.anchor.y) * h * (1 - sy);
+    }
+
+    function makeUnderlays(visualSpec, main) {
+        const out = [];
+        const specs = visualSpec.underlays || [];
+        if (!specs.length) return out;
+        const kind = visualSpec.kind;
+        if (kind !== 'rect' && kind !== 'ellipse' && kind !== 'svg_sprite') {
+            throw new Error(
+                'underlays on a visual of kind ' + JSON.stringify(kind) +
+                ': only rect, ellipse and svg_sprite take them.'
+            );
+        }
+        main._anUnderlays = [];
+        for (const u of specs) {
+            const color = parseColor(u.color || '#000000');
+            const grow = u.grow || 0;
+            for (const off of (u.offsets || [[0, 0]])) {
+                let copy;
+                if (kind === 'svg_sprite') {
+                    copy = new PIXI.Sprite(main.texture);
+                    copy._anGrow = grow;
+                    copy._anOffset = off;
+                    // A tint is a MULTIPLY: exactly `color` over white art,
+                    // darker elsewhere, exactly black for black. Remembered as
+                    // the copy's base so an entity tint composes with it
+                    // instead of replacing it (applyTintDeep).
+                    copy.tint = color;
+                    copy._anBaseTint = color;
+                    fitUnderlay(main, copy);
+                    main._anUnderlays.push(copy);
+                } else {
+                    // A procedural shape is REDRAWN grown: a rect with round
+                    // corners of radius `grow` is exactly the rect dilated by
+                    // a disk; an ellipse gets both radii grown.
+                    copy = new PIXI.Graphics();
+                    const w = visualSpec.width || 50;
+                    const h = visualSpec.height || 50;
+                    copy.beginFill(color, 1.0);
+                    if (kind === 'ellipse') {
+                        copy.drawEllipse(0, 0, w / 2 + grow, h / 2 + grow);
+                    } else {
+                        const ax = visualSpec.anchor_x != null ? visualSpec.anchor_x : 0.5;
+                        const ay = visualSpec.anchor_y != null ? visualSpec.anchor_y : 0.5;
+                        if (grow > 0) {
+                            copy.drawRoundedRect(
+                                -w * ax - grow, -h * ay - grow, w + 2 * grow, h + 2 * grow, grow
+                            );
+                        } else {
+                            copy.drawRect(-w * ax, -h * ay, w, h);
+                        }
+                    }
+                    copy.endFill();
+                    copy.x = off[0];
+                    copy.y = off[1];
+                }
+                copy.alpha = u.alpha != null ? u.alpha : 1;
+                out.push(copy);
+            }
+        }
+        return out;
     }
 
     // Phase 11b: build a Sprite from a pre-loaded SVG texture. The texture
@@ -644,6 +762,12 @@
         // and only visible as art that is subtly the wrong size on some
         // frames.
         refitToBox(child);
+        // an#163: the part's outline/shadow copies swap WITH it — a mouth's
+        // outline that kept the rest shape would be the wrong mouth drawn
+        // behind the right one.
+        for (const copy of (child._anUnderlays || [])) {
+            fitUnderlay(child, copy);
+        }
     }
 
     function applyTintDeep(node, packed) {
@@ -658,7 +782,9 @@
         // Authors reasonably expect it to behave like `alpha` — the docs call
         // that "the fade primitive that cascades to a character's parts" — so
         // the cascade is done here instead of being left as a footgun.
-        node.tint = packed;
+        // An underlay copy's own tint IS its colour (an#163), so an entity
+        // tint multiplies into it rather than replacing it.
+        node.tint = node._anBaseTint != null ? mulTint(node._anBaseTint, packed) : packed;
         for (const child of (node.children || [])) {
             applyTintDeep(child, packed);
         }
@@ -1019,7 +1145,8 @@
     // `app.render()` calls, and because nothing attaches a filter. Both facts
     // are accidents of the current code with nothing asserting them — adding a
     // grain filter in a later wave would randomise every frame with nothing
-    // going red.
+    // going red. (an#163 shipped grain the other way: a seeded texture made at
+    // compile time and drawn with a native blend mode, not a filter.)
     // ------------------------------------------------------------------------
 
     function _filteredNodePaths() {

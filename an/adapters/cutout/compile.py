@@ -127,7 +127,8 @@ from an.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
 from an.adapters.cutout.text import build_text_subtree, svg_data_uri, text_document
 from an.characters.colour_roles import recolour_svg, role_recolouring
 from an.text import font_base_dir, text_entity_problem
-from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette
+from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette, surface_for
+from an.adapters.cutout.surface import apply_surface, grain_node
 
 
 # Default placeholder character: a recognizable stick-figure layout in pixel
@@ -239,13 +240,21 @@ def _warn_about_art_a_pack_cannot_reach(
     not a paragraph per shot (the e2e style test counted ~5 wrapped lines per
     shot). A cast that changes between shots gets one line per distinct set.
     """
-    if pack is None or not skipped:
+    if pack is None or not skipped or not (pack.roles or pack.entities):
+        # A pack with no colour roles (surface treatments only, say) has
+        # nothing it could have failed to recolour.
         return
+    also = (
+        " Its surface treatments (outline, shadow, glow) are copies, not "
+        "recolours, and those do reach them (an#163)."
+        if pack.surface is not None or pack.entity_surfaces
+        else ""
+    )
     warnings.warn(
         f"style pack {pack.name!r} could not reach {sorted(skipped)}: that SVG "
         "art carries no colour role for what the pack sets (hand-drawn or "
         "DiceBear art is untagged), so it renders as drawn; "
-        "`an character new --offline` tags every part.",
+        "`an character new --offline` tags every part." + also,
         CutoutCompileWarning,
         stacklevel=3,
     )
@@ -969,6 +978,12 @@ def compile_shot(
         width=width,
         height=height,
     )
+    if style_pack is not None and style_pack.grain is not None:
+        # an#163: the paper grain, FIRST on the overlay so any text draws over
+        # it, and on the overlay at all so the camera cannot move or scale it.
+        overlay_children.insert(
+            0, grain_node(style_pack.grain, width=width, height=height, textures=textures)
+        )
     # The vocabulary sees the overlay too: its nodes are indexed by the
     # runtime under their own paths (`title/word_0`), exactly like the scene's,
     # so an authored tween on one is checked like any other target.
@@ -1142,6 +1157,8 @@ def _build_scene_root(
             )
             sub.transform.x = x
             _apply_stage_placement(sub, entity)
+            # an#163: outline / paper-gap shadow / glow, when the pack asks.
+            apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
             children.append(sub)
         elif entity.kind == "prop":
             text_doc = text_document(entity, props_store)
@@ -1167,6 +1184,7 @@ def _build_scene_root(
                 reached=reached,
             )
             _apply_stage_placement(sub, entity)
+            apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
             children.append(sub)
         # `voice` entities are legitimately not drawable: they
         # configure the render rather than appearing in it.
