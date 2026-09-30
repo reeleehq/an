@@ -1940,16 +1940,12 @@ def _build_prop_subtree(
         document_kind=PROP_DOCUMENT_KIND,
         digest=_raster_digest(props_store, art_prefix=PROP_ART_PREFIX),
     )
-    if not _draws_anything(node) and not any(
-        r.fallback for r in resolutions[already:]
-    ):
+    if not _draws_anything(node) and not any(r.fallback for r in resolutions[already:]):
         # Nothing on disk is MISSING — the document simply names no art (no
         # skin, or slots with no attachment) — so `_record_missing_parts` has
         # nothing to say, and the prop used to vanish with `strict_assets`
         # silent (an#211). It is a hole in the picture like any other.
-        slots = sorted(s.get("name", "?") for s in meta.get("slots") or []) or [
-            "body"
-        ]
+        slots = sorted(s.get("name", "?") for s in meta.get("slots") or []) or ["body"]
         resolutions.append(
             AssetResolutionJSON(
                 id=entity.id,
@@ -1962,8 +1958,8 @@ def _build_prop_subtree(
                     f"prop {entity.ref!r} draws NOTHING: none of its slot(s) "
                     f"{slots} resolves to an attachment in its `skins` (no skin, "
                     "or a slot whose `attachment` names none the skin has). "
-                    "Add a skin, e.g. {\"default\": {\"slots\": "
-                    "{\"body\": {\"body\": {\"path\": \"parts/body.png\"}}}}}"
+                    'Add a skin, e.g. {"default": {"slots": '
+                    '{"body": {"body": {"path": "parts/body.png"}}}}}'
                 ),
             )
         )
@@ -2867,7 +2863,10 @@ def _swap_key_geometry(
             geometry = (
                 (float(box[0]) * k, float(box[1]) * k),
                 (float(att.anchor[0]), float(att.anchor[1])),
-                ((float(att.x) - float(drawn.x)) * k, (float(att.y) - float(drawn.y)) * k),
+                (
+                    (float(att.x) - float(drawn.x)) * k,
+                    (float(att.y) - float(drawn.y)) * k,
+                ),
             )
             if geometry == built_geometry:
                 continue

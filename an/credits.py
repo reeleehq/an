@@ -198,8 +198,15 @@ def collect_credits(
             keys = sorted(
                 store
                 if only is None
-                else (k for k in (u.split("/", 1)[1] for u in only
-                                  if u.startswith(store_name + "/")) if k in store)
+                else (
+                    k
+                    for k in (
+                        u.split("/", 1)[1]
+                        for u in only
+                        if u.startswith(store_name + "/")
+                    )
+                    if k in store
+                )
             )
         except Exception:  # noqa: BLE001 — see below
             # The ITERATION, not just the per-key read. an#110 took this walk

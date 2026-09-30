@@ -1201,7 +1201,10 @@ def _check_framing(
             raw = env_store[entity.ref]
         except (KeyError, TypeError):
             return  # a preset or the default backdrop: huge bands, covered
-        if not isinstance(raw, dict) or raw.get("kind") != ENVIRONMENT_DOCUMENT_KIND.name:
+        if (
+            not isinstance(raw, dict)
+            or raw.get("kind") != ENVIRONMENT_DOCUMENT_KIND.name
+        ):
             return
         try:
             env = EnvironmentDescriptor.model_validate(

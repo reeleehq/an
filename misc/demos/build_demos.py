@@ -657,20 +657,32 @@ def _build_raster(work: Path) -> Path:
             t = y / 89
             px[x, y] = (int(120 + 110 * t), int(170 + 60 * t), int(235 - 40 * t))
     draw = ImageDraw.Draw(plate)
-    for cx, cy, r, base in ((40, 120, 70, (70, 130, 60)), (125, 130, 75, (55, 110, 50))):
+    for cx, cy, r, base in (
+        (40, 120, 70, (70, 130, 60)),
+        (125, 130, 75, (55, 110, 50)),
+    ):
         for k in range(r, 0, -1):  # darker at the rim: a shaded hill, not a flat one
             f = 0.6 + 0.4 * (1 - k / r)
-            draw.ellipse((cx - k, cy - k, cx + k, cy + k),
-                         fill=tuple(int(c * f) for c in base))
+            draw.ellipse(
+                (cx - k, cy - k, cx + k, cy + k), fill=tuple(int(c * f) for c in base)
+            )
     plate = plate.filter(ImageFilter.GaussianBlur(0.6))
     plate.save(env_dir / "plate.png")
     env = EnvironmentDescriptor(
         name="hills",
-        planes=[Plane(name="plate", art=PlaneArt(kind="image", src="plate.png"),
-                      depth=0.0, size=(float(w), float(h)), fit="stretch")],
+        planes=[
+            Plane(
+                name="plate",
+                art=PlaneArt(kind="image", src="plate.png"),
+                depth=0.0,
+                size=(float(w), float(h)),
+                fit="stretch",
+            )
+        ],
     )
-    (env_dir / "meta.json").write_text(json.dumps(json.loads(env.model_dump_json())),
-                                      encoding="utf-8")
+    (env_dir / "meta.json").write_text(
+        json.dumps(json.loads(env.model_dump_json())), encoding="utf-8"
+    )
 
     def ball(path: Path, base) -> None:
         n = 96
@@ -691,12 +703,17 @@ def _build_raster(work: Path) -> Path:
         prop = PropDescriptor(
             name=key,
             view_box=(0, 0, 345, 345),  # k = 1: the PNG draws at its pixel size
-            skins={"default": Skin(slots={"body": {"ball": Attachment(path="parts/ball.png")}})},
+            skins={
+                "default": Skin(
+                    slots={"body": {"ball": Attachment(path="parts/ball.png")}}
+                )
+            },
         )
         doc = json.loads(prop.model_dump_json())
         doc["slots"][0]["attachment"] = "ball"
         (work / "assets" / "props" / key / "prop.json").write_text(
-            json.dumps(doc), encoding="utf-8")
+            json.dumps(doc), encoding="utf-8"
+        )
     md = (
         _meta("Raster plate and raster props", 2.0)
         + "\n"
@@ -2234,7 +2251,7 @@ DEMOS: tuple[Demo, ...] = (
             "(their colours are pixels), and the golden corpus stays vector."
         ),
         how=(
-            "`PlaneArt(kind=\"image\", src=\"plate.png\")` with `size` set — the "
+            '`PlaneArt(kind="image", src="plate.png")` with `size` set — the '
             "declared size is the box (an#211) — and an attachment `path` of "
             "`parts/ball.png`. Sized from the image header, loaded by PixiJS "
             "natively, addressed by a content digest. Draw order among props and "
