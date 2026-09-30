@@ -144,7 +144,7 @@ def home_relative(path: Any, *, home: Path | None = None) -> str:
 
     Ledger rows are committed to a public repository, so a row must not carry
     the absolute path of the machine that wrote it. Provenance only: nothing
-    compares on this field.
+    compares on this field. POSIX-spelled on every platform.
 
     >>> home_relative("/home/u/.cache/ms-playwright/chrome", home=Path("/home/u"))
     '~/.cache/ms-playwright/chrome'
@@ -154,9 +154,9 @@ def home_relative(path: Any, *, home: Path | None = None) -> str:
     p = Path(str(path))
     base = Path.home() if home is None else Path(home)
     try:
-        return str(Path("~") / p.relative_to(base))
+        return "~/" + p.relative_to(base).as_posix()
     except ValueError:
-        return str(p)
+        return p.as_posix()
 
 
 def runtime_sha256() -> str:
