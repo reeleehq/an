@@ -64,6 +64,7 @@ from an.characters.play import (
     art_exists_for,
     drawn_attachment,
     expand_preset_play,
+    play_extent_for,
     play_problems,
     play_source,
     primary_slot_per_bone,
@@ -2445,8 +2446,13 @@ def _compile_actions(
     placed_by_track: dict[str, list[PlacedClipJSON]] = {}
 
     flat_list: list[FlatAction] = []
+    # A duration-less play advances a `sequence` by its NATURAL length, read
+    # through the entity's descriptor: the resolver `an validate` uses too.
+    extent = play_extent_for(
+        lambda entity_id: vocab.descriptors.get(entity_id) if vocab else None
+    )
     for action in actions:
-        flat_list.extend(flatten(action))
+        flat_list.extend(flatten(action, play_extent=extent))
     flat_list = _expand_preset_plays(flat_list, vocab=vocab)
 
     # `expression` leaves (an#98) are the face solver's input, not clips of

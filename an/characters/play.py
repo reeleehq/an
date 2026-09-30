@@ -404,10 +404,9 @@ def _easing_problems(animation: str, tree) -> list[str]:
 
 def preset_play_span(action) -> float:
     """How long a preset ``play`` runs, in seconds: its ``duration`` when set,
-    else the preset's natural length divided by ``speed``. A play with no
-    ``duration`` is still ZERO-width inside a ``sequence`` (the rule every
-    ``play`` follows, because ``flatten`` cannot know which source wins); this
-    is the span it actually animates.
+    else the preset's natural length divided by ``speed``. What a
+    ``sequence`` advances by is :func:`play_extent`, which is this for a preset
+    source.
 
     >>> from an.ir.schema import PlayAction
     >>> preset_play_span(PlayAction(target="a", animation="hop"))
@@ -421,6 +420,60 @@ def preset_play_span(action) -> float:
         return float(action.duration)
     tree = _presets()[action.animation](action.target, **dict(action.args or {}))
     return duration_of(tree) / float(action.speed)
+
+
+def play_extent(desc: CharacterDescriptor | None, action) -> float:
+    """How long a ``play`` occupies inside a ``sequence``, in seconds — THE
+    resolver ``flatten`` is given by the compiler and ``an validate`` (with the
+    entity's ``desc``) and by default (``desc=None``: presets only).
+
+    An explicit ``duration`` is its own extent. Otherwise the play's NATURAL
+    length over ``speed``: a motion preset's (:func:`preset_play_span`), or a
+    descriptor animation's ``duration``. A **looping** play (``loop`` true, or
+    the animation's own) runs to the shot end and occupies ZERO: it has no
+    natural length, and a sibling after it must not wait for the shot end. A
+    play that cannot resolve occupies zero too — the same
+    :func:`play_problems` verdict reports it, and this must never raise inside
+    ``flatten``.
+
+    >>> from an.ir.schema import PlayAction
+    >>> play_extent(None, PlayAction(target="a", animation="hop", speed=2.0))
+    0.25
+    >>> play_extent(None, PlayAction(target="a", animation="hop", duration=3.0))
+    3.0
+    >>> play_extent(None, PlayAction(target="a", animation="nope"))
+    0.0
+    """
+    if action.duration is not None:
+        return float(action.duration)
+    try:
+        source = play_source(desc, action.animation)
+    except PlayResolutionError:
+        return 0.0
+    if source == PRESET_SOURCE:
+        try:
+            return preset_play_span(action)
+        except (TypeError, ValueError):
+            return 0.0
+    anim = desc.animations[action.animation]
+    loop = action.loop if action.loop is not None else bool(anim.loop)
+    if loop:
+        return 0.0
+    return float(anim.duration) / float(action.speed)
+
+
+def play_extent_for(
+    descriptor_of: Callable[[str], CharacterDescriptor | None],
+) -> Callable[[object], float]:
+    """A ``PlayAction -> seconds`` resolver (:func:`play_extent`) that reads
+    each play's descriptor from ``descriptor_of(entity_id)``, the entity being
+    the first segment of the play's target."""
+
+    def extent(action) -> float:
+        entity_id = (getattr(action, "target", "") or "").split("/", 1)[0]
+        return play_extent(descriptor_of(entity_id), action)
+
+    return extent
 
 
 def preset_moved_node(action_target: str, animation: str, args=None) -> str:
