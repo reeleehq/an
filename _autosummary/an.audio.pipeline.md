@@ -21,11 +21,13 @@ the entire pipeline runs without API keys or external binaries.
 
 ### Functions
 
-| [`default_lipsync`](#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                    |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| [`default_tts`](#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                             |
-| [`produce_audio_for_dialogue`](#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                   |
-| [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back. |
+| [`audio_key`](#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, effects])    | Content key of a line's audio: text, voice, provider, and — only when the voice declares one — its effects.   |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| [`default_lipsync`](#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                              |
+| [`default_tts`](#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                       |
+| [`produce_audio_for_dialogue`](#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                             |
+| [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                           |
+| [`viseme_key`](#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                         |
 
 ### Exceptions
 
@@ -37,6 +39,15 @@ the entire pipeline runs without API keys or external binaries.
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The scene declares audio the pipeline cannot produce. Carries detail.
+
+### an.audio.pipeline.audio_key(text, voice_id, tts_name, effects=None)
+
+Content key of a line’s audio: text, voice, provider, and — only when the
+voice declares one — its effects. With no effects the payload is exactly the
+pre-effects one, so every key a project already has is unchanged.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.pipeline.default_lipsync()
 
@@ -52,7 +63,7 @@ The default TTS provider: `OfflineTTS`.
 * **Return type:**
   [`TTSProvider`](an.audio.tts.md#an.audio.tts.TTSProvider)
 
-### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None)
+### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None, effects=None)
 
 Synthesize audio + visemes for one dialogue line.
 
@@ -60,6 +71,11 @@ Side effects: when `mall` is provided, persists the WAV to
 `mall["audio"]` keyed by the content-hash of the dialogue, and persists
 the viseme JSON to `mall["visemes"]` similarly. Cache-friendly: a
 second call with identical inputs returns the cached versions.
+
+`effects` (default: what the line’s voice declares in `mall["voices"]`)
+is applied to the synthesized audio BEFORE alignment, so the visemes are
+computed on the audio the viewer hears. The raw synthesis stays cached under
+its own key, so changing an effect never re-pays the TTS.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.md#an.audio.lipsync.VisemeTrack)]
@@ -76,3 +92,10 @@ viseme_track AND audio_ref are skipped (idempotent).
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.md#an.ir.schema.SceneIR)
+
+### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
+
+Content key of a line’s viseme track (a function of the audio HEARD).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

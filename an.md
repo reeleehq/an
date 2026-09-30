@@ -1,4 +1,4 @@
-> built 2026-09-30 03:29 UTC from a390c11 (main) · an 0.1.102. Details: build_info.json
+> built 2026-09-30 03:46 UTC from 86d41be (main) · an 0.1.103. Details: build_info.json
 
 # index.html.md
 
@@ -3619,6 +3619,120 @@ Every reason these shots’ transitions cannot be assembled, as
 ```
 
 
+# _autosummary/an.audio.effects.html.md
+
+# an.audio.effects
+
+Voice effects: a deterministic transform applied to a synthesized line (an#163).
+
+A voice document in the `voices` store may declare `effects`. The one effect
+that exists is `pitch_semitones` — South Park raises its voices to sound like
+fourth graders, and a raised voice is a property of the *character*, not of the
+TTS provider, so it lives beside the voice the line already resolves through
+rather than in the IR.
+
+```pycon
+>>> normalize_effects({"pitch_semitones": 4})
+{'pitch_semitones': 4.0}
+>>> normalize_effects({"pitch_semitones": 0}) == normalize_effects(None) == {}
+True
+>>> round(_pitch_filter(12), 3)
+0.5
+>>> normalize_effects({"reverb": 1})
+Traceback (most recent call last):
+    ...
+an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones']
+```
+
+Design, in the order the pipeline uses it:
+
+- **The transform runs after synthesis and before alignment.** Lip-sync reads the
+  audio the viewer hears. The chain keeps the duration (see below), so word
+  timings computed on raw and on shifted audio agree to a frame, but the shifted
+  bytes are what is aligned regardless.
+- **The cache keys on the effect.** `effects_key` is empty for no effect, and
+  `an.audio.pipeline` adds it to the audio key only when it is non-empty, so a
+  project that declares none keeps every key it ever had.
+- **Stock ffmpeg only.** The chain is `aresample → asetrate → aresample →
+  atempo`: the sample rate is relabelled by the pitch ratio (pitch and speed both
+  move) and `atempo` removes the speed change. `rubberband` is a better
+  shifter but is a build option, and its output would differ between machines —
+  which a content-hash cache cannot tolerate. The output is bit-exact WAV (no
+  encoder tag, no metadata), so two runs produce identical bytes.
+
+### Module Attributes
+
+| [`PITCH_SEMITONES_LIMIT`](_autosummary/an.audio.effects.html.md#an.audio.effects.PITCH_SEMITONES_LIMIT)   | Effects a voice document may declare, with the range each accepts.     |
+|--------------------------------------------------------------------------|------------------------------------------------------------------------|
+| [`EFFECT_SAMPLE_RATE`](_autosummary/an.audio.effects.html.md#an.audio.effects.EFFECT_SAMPLE_RATE)      | The sample rate the chain runs at (and the shifted WAV is written at). |
+
+### Functions
+
+| [`apply_voice_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.apply_voice_effects)(audio, effects)   | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.   |
+|----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`filter_chain`](_autosummary/an.audio.effects.html.md#an.audio.effects.filter_chain)(effects)                 | The ffmpeg `-af` chain for normalised `effects` (`""` for none).              |
+| [`normalize_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.normalize_effects)(raw)                | The canonical effects dict for a voice's `effects` value.                     |
+| [`voice_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.voice_effects)(mall, voice_id)         | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.       |
+
+### Exceptions
+
+| [`VoiceEffectError`](_autosummary/an.audio.effects.html.md#an.audio.effects.VoiceEffectError)   | A voice declares an effect that is unknown, malformed or out of range.   |
+|---------------------------------------------------------------------|--------------------------------------------------------------------------|
+
+### an.audio.effects.EFFECT_SAMPLE_RATE *= 44100*
+
+The sample rate the chain runs at (and the shifted WAV is written at).
+
+### an.audio.effects.PITCH_SEMITONES_LIMIT *= 12.0*
+
+Effects a voice document may declare, with the range each accepts.
+
+### *exception* an.audio.effects.VoiceEffectError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A voice declares an effect that is unknown, malformed or out of range.
+
+### an.audio.effects.apply_voice_effects(audio, effects)
+
+`audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.
+
+Returns the input unchanged for no effects. Raises `VoiceEffectError` when
+ffmpeg is missing or fails — never returns unshifted audio for a voice that
+asked for a shift.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+### an.audio.effects.filter_chain(effects)
+
+The ffmpeg `-af` chain for normalised `effects` (`""` for none).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.effects.normalize_effects(raw)
+
+The canonical effects dict for a voice’s `effects` value.
+
+Omit-when-unset: `None`, `{}` and a zero-valued effect all normalise to
+`{}`, which the pipeline treats as “no effect” (and keys nothing on).
+Unknown keys raise — an effect that silently does nothing is worse than none.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.audio.effects.voice_effects(mall, voice_id)
+
+The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.
+
+A voice that is not in the store (the offline default, a raw provider voice
+id) has no effects; so does a store that does not exist.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+
 # _autosummary/an.audio.elevenlabs_tts.html.md
 
 # an.audio.elevenlabs_tts
@@ -3931,7 +4045,7 @@ Raises `ValueError` for unknown names with a list of known options.
 * **Return type:**
   [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
-### an.audio.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None)
+### an.audio.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None, effects=None)
 
 Synthesize audio + visemes for one dialogue line.
 
@@ -3939,6 +4053,11 @@ Side effects: when `mall` is provided, persists the WAV to
 `mall["audio"]` keyed by the content-hash of the dialogue, and persists
 the viseme JSON to `mall["visemes"]` similarly. Cache-friendly: a
 second call with identical inputs returns the cached versions.
+
+`effects` (default: what the line’s voice declares in `mall["voices"]`)
+is applied to the synthesized audio BEFORE alignment, so the visemes are
+computed on the audio the viewer hears. The raw synthesis stays cached under
+its own key, so changing an effect never re-pays the TTS.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
@@ -3976,18 +4095,19 @@ audio’s actual length.
 
 ### Modules
 
-| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                             |
-|--------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`injectable_lipsync`](_autosummary/an.audio.injectable_lipsync.html.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                      |
-| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                |
-| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.          |
-| [`offline_lipsync`](_autosummary/an.audio.offline_lipsync.html.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                       |
-| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                       |
-| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.         |
-| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                |
-| [`rhubarb_lipsync`](_autosummary/an.audio.rhubarb_lipsync.html.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes. |
-| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                 |
-| [`whisper_lipsync`](_autosummary/an.audio.whisper_lipsync.html.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.             |
+| [`effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163).   |
+|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                                |
+| [`injectable_lipsync`](_autosummary/an.audio.injectable_lipsync.html.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                         |
+| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                   |
+| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.             |
+| [`offline_lipsync`](_autosummary/an.audio.offline_lipsync.html.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                          |
+| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                          |
+| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.            |
+| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                   |
+| [`rhubarb_lipsync`](_autosummary/an.audio.rhubarb_lipsync.html.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.    |
+| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                    |
+| [`whisper_lipsync`](_autosummary/an.audio.whisper_lipsync.html.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.                |
 
 
 # _autosummary/an.audio.injectable_lipsync.html.md
@@ -4331,11 +4451,13 @@ the entire pipeline runs without API keys or external binaries.
 
 ### Functions
 
-| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                    |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------|
-| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                             |
-| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                   |
-| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back. |
+| [`audio_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, effects])    | Content key of a line's audio: text, voice, provider, and — only when the voice declares one — its effects.   |
+|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                              |
+| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                       |
+| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                             |
+| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                           |
+| [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                         |
 
 ### Exceptions
 
@@ -4347,6 +4469,15 @@ the entire pipeline runs without API keys or external binaries.
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
 The scene declares audio the pipeline cannot produce. Carries detail.
+
+### an.audio.pipeline.audio_key(text, voice_id, tts_name, effects=None)
+
+Content key of a line’s audio: text, voice, provider, and — only when the
+voice declares one — its effects. With no effects the payload is exactly the
+pre-effects one, so every key a project already has is unchanged.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.pipeline.default_lipsync()
 
@@ -4362,7 +4493,7 @@ The default TTS provider: `OfflineTTS`.
 * **Return type:**
   [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
-### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None)
+### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None, effects=None)
 
 Synthesize audio + visemes for one dialogue line.
 
@@ -4370,6 +4501,11 @@ Side effects: when `mall` is provided, persists the WAV to
 `mall["audio"]` keyed by the content-hash of the dialogue, and persists
 the viseme JSON to `mall["visemes"]` similarly. Cache-friendly: a
 second call with identical inputs returns the cached versions.
+
+`effects` (default: what the line’s voice declares in `mall["voices"]`)
+is applied to the synthesized audio BEFORE alignment, so the visemes are
+computed on the audio the viewer hears. The raw synthesis stays cached under
+its own key, so changing an effect never re-pays the TTS.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
@@ -4386,6 +4522,13 @@ viseme_track AND audio_ref are skipped (idempotent).
 
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
+
+Content key of a line’s viseme track (a function of the audio HEARD).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 
 # _autosummary/an.audio.providers.html.md
@@ -5627,7 +5770,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'mouth', 'eye', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'ellipse', 'rect', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -20531,20 +20674,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 03:29 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/a390c1120c8b6c234fc7d5dabedefd14e2011b1d"><code>a390c11</code></a> on branch <code>main</code>, for **an 0.1.102** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 03:46 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/86d41bea0648aceb0c1749c0de8feb0c23b0d34e"><code>86d41be</code></a> on branch <code>main</code>, for **an 0.1.103** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.102) is ahead of the latest release on PyPI (0.1.101): these docs describe unreleased code.
+- The documented version (0.1.103) is ahead of the latest release on PyPI (0.1.102): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/a390c1120c8b6c234fc7d5dabedefd14e2011b1d"><code>a390c1120c8b6c234fc7d5dabedefd14e2011b1d</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/86d41bea0648aceb0c1749c0de8feb0c23b0d34e"><code>86d41bea0648aceb0c1749c0de8feb0c23b0d34e</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.102</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.103</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -20553,9 +20696,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36664352435">36664352435</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36665651397">36665651397</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>83d5ab3b250be3b7e10dd83ccceb97277098c1db</code> (in the history of the built commit) |
+| Event commit | <code>867d9e9aa4141f1d4df8bf47bfd7cec9769446c2</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -20580,13 +20723,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.101/">0.1.101</a>, older than the documented version (0.1.102).
+Latest release: <a href="https://pypi.org/project/an/0.1.102/">0.1.102</a>, older than the documented version (0.1.103).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout a390c1120c8b6c234fc7d5dabedefd14e2011b1d
+git checkout 86d41bea0648aceb0c1749c0de8feb0c23b0d34e
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

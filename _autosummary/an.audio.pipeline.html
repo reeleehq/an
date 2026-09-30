@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=cedd8c5c"></script>
+    <script src="../_static/documentation_options.js?v=6aa50845"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.offline_tts" href="an.audio.offline_tts.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.102" />
+  <meta name="docsearch:version" content="0.1.103" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -327,6 +327,7 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
@@ -534,17 +535,23 @@ the entire pipeline runs without API keys or external binaries.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.default_lipsync" title="an.audio.pipeline.default_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_lipsync</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.audio_key" title="an.audio.pipeline.audio_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">audio_key</span></code></a>(text, voice_id, tts_name[, effects])</p></td>
+<td><p>Content key of a line's audio: text, voice, provider, and — only when the voice declares one — its effects.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.default_lipsync" title="an.audio.pipeline.default_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_lipsync</span></code></a>()</p></td>
 <td><p>The default lip-sync provider: <code class="docutils literal notranslate"><span class="pre">OfflineLipSync</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.default_tts" title="an.audio.pipeline.default_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_tts</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.default_tts" title="an.audio.pipeline.default_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_tts</span></code></a>()</p></td>
 <td><p>The default TTS provider: <code class="docutils literal notranslate"><span class="pre">OfflineTTS</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.produce_audio_for_dialogue" title="an.audio.pipeline.produce_audio_for_dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_dialogue</span></code></a>(dialogue[, mall, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.produce_audio_for_dialogue" title="an.audio.pipeline.produce_audio_for_dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_dialogue</span></code></a>(dialogue[, mall, ...])</p></td>
 <td><p>Synthesize audio + visemes for one dialogue line.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.produce_audio_for_scene" title="an.audio.pipeline.produce_audio_for_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_scene</span></code></a>(scene[, mall, tts, ...])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.produce_audio_for_scene" title="an.audio.pipeline.produce_audio_for_scene"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_scene</span></code></a>(scene[, mall, tts, ...])</p></td>
 <td><p>Walk every dialogue line, synthesize, and stamp viseme tracks back.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.viseme_key" title="an.audio.pipeline.viseme_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">viseme_key</span></code></a>(audio_key_, lipsync_name, transcript)</p></td>
+<td><p>Content key of a line's viseme track (a function of the audio HEARD).</p></td>
 </tr>
 </tbody>
 </table>
@@ -563,6 +570,19 @@ the entire pipeline runs without API keys or external binaries.</p>
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">AudioPipelineError</span></span><a class="reference internal" href="../_modules/an/audio/pipeline.html#AudioPipelineError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.AudioPipelineError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
 <p>The scene declares audio the pipeline cannot produce. Carries detail.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.pipeline.audio_key">
+<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">audio_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#audio_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.audio_key" title="Link to this definition">#</a></dt>
+<dd><p>Content key of a line’s audio: text, voice, provider, and — only when the
+voice declares one — its effects. With no effects the payload is exactly the
+pre-effects one, so every key a project already has is unchanged.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -589,12 +609,16 @@ the entire pipeline runs without API keys or external binaries.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.pipeline.produce_audio_for_dialogue">
-<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_dialogue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dialogue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_dialogue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.produce_audio_for_dialogue" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_dialogue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dialogue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_dialogue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.produce_audio_for_dialogue" title="Link to this definition">#</a></dt>
 <dd><p>Synthesize audio + visemes for one dialogue line.</p>
 <p>Side effects: when <code class="docutils literal notranslate"><span class="pre">mall</span></code> is provided, persists the WAV to
 <code class="docutils literal notranslate"><span class="pre">mall[&quot;audio&quot;]</span></code> keyed by the content-hash of the dialogue, and persists
 the viseme JSON to <code class="docutils literal notranslate"><span class="pre">mall[&quot;visemes&quot;]</span></code> similarly. Cache-friendly: a
 second call with identical inputs returns the cached versions.</p>
+<p><code class="docutils literal notranslate"><span class="pre">effects</span></code> (default: what the line’s voice declares in <code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;]</span></code>)
+is applied to the synthesized audio BEFORE alignment, so the visemes are
+computed on the audio the viewer hears. The raw synthesis stays cached under
+its own key, so changing an effect never re-pays the TTS.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.audio.tts.html#an.audio.tts.AudioClip" title="an.audio.tts.AudioClip"><code class="xref py py-class docutils literal notranslate"><span class="pre">AudioClip</span></code></a>, <a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.VisemeTrack" title="an.audio.lipsync.VisemeTrack"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>]</span></p>
@@ -614,6 +638,17 @@ viseme_track AND audio_ref are skipped (idempotent).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-class docutils literal notranslate"><span class="pre">SceneIR</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.pipeline.viseme_key">
+<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">viseme_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_key_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#viseme_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.viseme_key" title="Link to this definition">#</a></dt>
+<dd><p>Content key of a line’s viseme track (a function of the audio HEARD).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -668,10 +703,12 @@ viseme_track AND audio_ref are skipped (idempotent).</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.AudioPipelineError"><code class="docutils literal notranslate"><span class="pre">AudioPipelineError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.audio_key"><code class="docutils literal notranslate"><span class="pre">audio_key()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.default_lipsync"><code class="docutils literal notranslate"><span class="pre">default_lipsync()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.default_tts"><code class="docutils literal notranslate"><span class="pre">default_tts()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.produce_audio_for_dialogue"><code class="docutils literal notranslate"><span class="pre">produce_audio_for_dialogue()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.produce_audio_for_scene"><code class="docutils literal notranslate"><span class="pre">produce_audio_for_scene()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.pipeline.viseme_key"><code class="docutils literal notranslate"><span class="pre">viseme_key()</span></code></a></li>
 </ul>
   </nav></div>
 

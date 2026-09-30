@@ -1,0 +1,28 @@
+an.audio.effects
+================
+
+.. automodule:: an.audio.effects
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PITCH_SEMITONES_LIMIT
+      EFFECT_SAMPLE_RATE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      apply_voice_effects
+      filter_chain
+      normalize_effects
+      voice_effects
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      VoiceEffectError
+   

@@ -30,6 +30,7 @@
 - [an.adapters.whiteboard](_autosummary/an.adapters.whiteboard.html.md): WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.
 - [an.assemble](_autosummary/an.assemble.html.md): Film assembly: rendered shots → one film, with transitions and a sound layer.
 - [an.audio](_autosummary/an.audio.html.md): Audio pipeline — TTS and lip-sync providers + orchestration.
+- [an.audio.effects](_autosummary/an.audio.effects.html.md): Voice effects: a deterministic transform applied to a synthesized line (an#163).
 - [an.audio.elevenlabs_tts](_autosummary/an.audio.elevenlabs_tts.html.md): ElevenLabsTTS — real speech via the ElevenLabs API. Requires ELEVEN_API_KEY.
 - [an.audio.injectable_lipsync](_autosummary/an.audio.injectable_lipsync.html.md): Lip-sync provider that consumes pre-computed word timings.
 - [an.audio.lipsync](_autosummary/an.audio.lipsync.html.md): Lip-sync provider protocol + viseme dataclasses.
@@ -132,7 +133,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-30 03:29 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-09-30 03:46 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

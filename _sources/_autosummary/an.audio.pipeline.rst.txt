@@ -8,10 +8,12 @@ an.audio.pipeline
 
    .. autosummary::
    
+      audio_key
       default_lipsync
       default_tts
       produce_audio_for_dialogue
       produce_audio_for_scene
+      viseme_key
    
    .. rubric:: Exceptions
 

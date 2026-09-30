@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=cedd8c5c"></script>
+    <script src="../_static/documentation_options.js?v=6aa50845"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,11 +52,11 @@
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="an.audio.elevenlabs_tts" href="an.audio.elevenlabs_tts.html" />
+    <link rel="next" title="an.audio.effects" href="an.audio.effects.html" />
     <link rel="prev" title="an.assemble" href="an.assemble.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.102" />
+  <meta name="docsearch:version" content="0.1.103" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -327,6 +327,7 @@
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
 <li class="toctree-l2 current active has-children"><a aria-current="page" class="current reference internal" href="#">an.audio</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
@@ -923,12 +924,16 @@ Rhubarb’s recognizer today; a future aligner’s weight allowlist.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.produce_audio_for_dialogue">
-<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_dialogue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dialogue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_dialogue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.produce_audio_for_dialogue" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_dialogue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dialogue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_dialogue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.produce_audio_for_dialogue" title="Link to this definition">#</a></dt>
 <dd><p>Synthesize audio + visemes for one dialogue line.</p>
 <p>Side effects: when <code class="docutils literal notranslate"><span class="pre">mall</span></code> is provided, persists the WAV to
 <code class="docutils literal notranslate"><span class="pre">mall[&quot;audio&quot;]</span></code> keyed by the content-hash of the dialogue, and persists
 the viseme JSON to <code class="docutils literal notranslate"><span class="pre">mall[&quot;visemes&quot;]</span></code> similarly. Cache-friendly: a
 second call with identical inputs returns the cached versions.</p>
+<p><code class="docutils literal notranslate"><span class="pre">effects</span></code> (default: what the line’s voice declares in <code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;]</span></code>)
+is applied to the synthesized audio BEFORE alignment, so the visemes are
+computed on the audio the viewer hears. The raw synthesis stays cached under
+its own key, so changing an effect never re-pays the TTS.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.audio.tts.html#an.audio.tts.AudioClip" title="an.audio.tts.AudioClip"><code class="xref py py-class docutils literal notranslate"><span class="pre">AudioClip</span></code></a>, <a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.VisemeTrack" title="an.audio.lipsync.VisemeTrack"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>]</span></p>
@@ -975,37 +980,40 @@ audio’s actual length.</p>
 <p class="rubric">Modules</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.elevenlabs_tts.html#module-an.audio.elevenlabs_tts" title="an.audio.elevenlabs_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">elevenlabs_tts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.effects.html#module-an.audio.effects" title="an.audio.effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">effects</span></code></a></p></td>
+<td><p>Voice effects: a deterministic transform applied to a synthesized line (an#163).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.elevenlabs_tts.html#module-an.audio.elevenlabs_tts" title="an.audio.elevenlabs_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">elevenlabs_tts</span></code></a></p></td>
 <td><p>ElevenLabsTTS — real speech via the ElevenLabs API.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.injectable_lipsync.html#module-an.audio.injectable_lipsync" title="an.audio.injectable_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">injectable_lipsync</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.injectable_lipsync.html#module-an.audio.injectable_lipsync" title="an.audio.injectable_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">injectable_lipsync</span></code></a></p></td>
 <td><p>Lip-sync provider that consumes pre-computed word timings.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.lipsync.html#module-an.audio.lipsync" title="an.audio.lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lipsync</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.lipsync.html#module-an.audio.lipsync" title="an.audio.lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lipsync</span></code></a></p></td>
 <td><p>Lip-sync provider protocol + viseme dataclasses.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.mac_say_tts.html#module-an.audio.mac_say_tts" title="an.audio.mac_say_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mac_say_tts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.mac_say_tts.html#module-an.audio.mac_say_tts" title="an.audio.mac_say_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mac_say_tts</span></code></a></p></td>
 <td><p>MacSayTTS — audible offline speech via macOS's built-in <code class="docutils literal notranslate"><span class="pre">say</span></code> command.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.offline_lipsync.html#module-an.audio.offline_lipsync" title="an.audio.offline_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">offline_lipsync</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.offline_lipsync.html#module-an.audio.offline_lipsync" title="an.audio.offline_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">offline_lipsync</span></code></a></p></td>
 <td><p>OfflineLipSync — deterministic transcript → viseme track.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.offline_tts.html#module-an.audio.offline_tts" title="an.audio.offline_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">offline_tts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.offline_tts.html#module-an.audio.offline_tts" title="an.audio.offline_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">offline_tts</span></code></a></p></td>
 <td><p>OfflineTTS — produces silent audio of plausible duration.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.pipeline.html#module-an.audio.pipeline" title="an.audio.pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.pipeline.html#module-an.audio.pipeline" title="an.audio.pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pipeline</span></code></a></p></td>
 <td><p>Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.providers.html#module-an.audio.providers" title="an.audio.providers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">providers</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.providers.html#module-an.audio.providers" title="an.audio.providers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">providers</span></code></a></p></td>
 <td><p>Provider factory: name → concrete TTS/LipSync provider instance.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.rhubarb_lipsync.html#module-an.audio.rhubarb_lipsync" title="an.audio.rhubarb_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rhubarb_lipsync</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.rhubarb_lipsync.html#module-an.audio.rhubarb_lipsync" title="an.audio.rhubarb_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rhubarb_lipsync</span></code></a></p></td>
 <td><p>RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
 <td><p>TTS provider protocol + supporting dataclasses.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.whisper_lipsync.html#module-an.audio.whisper_lipsync" title="an.audio.whisper_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">whisper_lipsync</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.whisper_lipsync.html#module-an.audio.whisper_lipsync" title="an.audio.whisper_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">whisper_lipsync</span></code></a></p></td>
 <td><p>WhisperLipSync — faster-whisper word timestamps → viseme keyframes.</p></td>
 </tr>
 </tbody>
@@ -1033,11 +1041,11 @@ audio’s actual length.</p>
       </div>
     </a>
     <a class="right-next"
-       href="an.audio.elevenlabs_tts.html"
+       href="an.audio.effects.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">an.audio.elevenlabs_tts</p>
+        <p class="prev-next-title">an.audio.effects</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

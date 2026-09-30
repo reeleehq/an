@@ -44,6 +44,7 @@ an.audio
    :toctree:
    :recursive:
 
+   effects
    elevenlabs_tts
    injectable_lipsync
    lipsync

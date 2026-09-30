@@ -283,7 +283,7 @@ Raises `ValueError` for unknown names with a list of known options.
 * **Return type:**
   [`TTSProvider`](an.audio.tts.md#an.audio.tts.TTSProvider)
 
-### an.audio.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None)
+### an.audio.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None, effects=None)
 
 Synthesize audio + visemes for one dialogue line.
 
@@ -291,6 +291,11 @@ Side effects: when `mall` is provided, persists the WAV to
 `mall["audio"]` keyed by the content-hash of the dialogue, and persists
 the viseme JSON to `mall["visemes"]` similarly. Cache-friendly: a
 second call with identical inputs returns the cached versions.
+
+`effects` (default: what the line’s voice declares in `mall["voices"]`)
+is applied to the synthesized audio BEFORE alignment, so the visemes are
+computed on the audio the viewer hears. The raw synthesis stays cached under
+its own key, so changing an effect never re-pays the TTS.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.md#an.audio.lipsync.VisemeTrack)]
@@ -328,15 +333,16 @@ audio’s actual length.
 
 ### Modules
 
-| [`elevenlabs_tts`](an.audio.elevenlabs_tts.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                             |
-|--------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
-| [`injectable_lipsync`](an.audio.injectable_lipsync.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                      |
-| [`lipsync`](an.audio.lipsync.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                |
-| [`mac_say_tts`](an.audio.mac_say_tts.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.          |
-| [`offline_lipsync`](an.audio.offline_lipsync.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                       |
-| [`offline_tts`](an.audio.offline_tts.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                       |
-| [`pipeline`](an.audio.pipeline.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.         |
-| [`providers`](an.audio.providers.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                |
-| [`rhubarb_lipsync`](an.audio.rhubarb_lipsync.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes. |
-| [`tts`](an.audio.tts.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                 |
-| [`whisper_lipsync`](an.audio.whisper_lipsync.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.             |
+| [`effects`](an.audio.effects.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163).   |
+|--------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`elevenlabs_tts`](an.audio.elevenlabs_tts.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                                |
+| [`injectable_lipsync`](an.audio.injectable_lipsync.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                         |
+| [`lipsync`](an.audio.lipsync.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                   |
+| [`mac_say_tts`](an.audio.mac_say_tts.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.             |
+| [`offline_lipsync`](an.audio.offline_lipsync.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                          |
+| [`offline_tts`](an.audio.offline_tts.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                          |
+| [`pipeline`](an.audio.pipeline.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.            |
+| [`providers`](an.audio.providers.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                   |
+| [`rhubarb_lipsync`](an.audio.rhubarb_lipsync.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.    |
+| [`tts`](an.audio.tts.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                    |
+| [`whisper_lipsync`](an.audio.whisper_lipsync.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.                |
