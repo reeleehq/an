@@ -2704,9 +2704,6 @@ def _compile_actions(
     for action in actions:
         flat_list.extend(flatten(action, play_extent=extent))
     flat_list = _expand_preset_plays(flat_list, vocab=vocab)
-    flat_list = _fan_out_entity_swaps(
-        flat_list, vocab=vocab, resolutions=resolutions, record=entity_swaps
-    )
 
     # `expression` leaves (an#98) are the face solver's input, not clips of
     # their own: `_add_face_clips` sums them per (node, property).
@@ -2714,6 +2711,11 @@ def _compile_actions(
     # BEFORE the swap dispatch: `tint` is not in the transform vocabulary, so a
     # leaf still spelling it would be read as an asset-set name (an#62).
     flat_list = _expand_tint_actions(flat_list)
+    # AFTER the tint expansion, like the swap dispatch: a `tint` set on a
+    # character root is a colour, not a whole-character swap (an#197 review).
+    flat_list = _fan_out_entity_swaps(
+        flat_list, vocab=vocab, resolutions=resolutions, record=entity_swaps
+    )
     swap_props = _swap_property_names(flat_list)
     if vocab is not None:
         for flat in flat_list:
@@ -2882,6 +2884,8 @@ def _fan_out_entity_swaps(
             not isinstance(action, SetAction)
             or "/" in action.target
             or prop in _PROPERTY_REST_VALUES
+            or prop in TRANSFORM_PROPERTIES
+            or prop == TINT_PROPERTY
             or action.target not in vocab.descriptors
             or prop in vocab.node_sets.get(action.target, {})
         ):

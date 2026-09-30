@@ -296,6 +296,20 @@ def test_the_mouth_lip_syncs_in_profile_and_hides_with_the_back(project):
         assert _value(doc, pose, "ned/head/mouth", "alpha") == shown
 
 
+def test_a_tint_on_the_character_is_not_taken_for_a_swap(project):
+    """Reiniger's silhouette is a black `tint` on each character root beside a
+    `view: side` — a transform-ish property on the entity must never be fanned
+    out as a whole-character swap (found rendering the Reiniger spec)."""
+    doc = _compile(project, _shot([
+        SetAction(target="ned", property="tint", value="#000000", at=0.0),
+        SetAction(target="ned", property="alpha", value=0.5, at=0.0),
+        SetAction(target="ned", property="view", value="side", at=0.0),
+    ]))
+    pose = _pose_at(doc, 0.5)
+    assert pose[("ned", "tint_r")] == 0.0 and pose[("ned", "alpha")] == 0.5
+    assert pose[("ned/head", VIEW_CHANNEL)] == "side"
+
+
 def test_a_view_swap_on_a_character_without_views_is_refused(project, tmp_path):
     root = init(tmp_path / "q")
     new_character(root / "assets" / "characters", name="old", use_dicebear=False, views=False)
