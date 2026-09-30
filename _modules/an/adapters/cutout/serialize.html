@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=dab63539"></script>
+    <script src="../../../../_static/documentation_options.js?v=3992526b"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.109" />
+  <meta name="docsearch:version" content="0.1.110" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -824,6 +824,30 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="UnderlayJSON">
+<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.serialize.html#an.adapters.cutout.UnderlayJSON">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnderlayJSON</span><span class="p">(</span><span class="n">_JSONModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A copy of a node's own visual, drawn BEHIND it in the same container</span>
+<span class="sd">    (an#163 gap 5: the outline and the paper-gap shadow).</span>
+
+<span class="sd">    Being in the node's container is the whole design: the copy takes every</span>
+<span class="sd">    transform the node takes — tweens, `play`, the camera — with no channel of</span>
+<span class="sd">    its own, and a swap on the node re-textures its copies (`runtime.js`</span>
+<span class="sd">    `applySwap`). One copy is drawn per entry of ``offsets`` (in the node's own</span>
+<span class="sd">    frame), each grown by ``grow`` pixels: a rect/ellipse is redrawn with its</span>
+<span class="sd">    geometry grown, an SVG sprite is scaled about its art's centre so its box</span>
+<span class="sd">    grows by ``grow`` on every side. ``color`` is the fill of a redrawn shape</span>
+<span class="sd">    and the `tint` (a multiply) of a sprite copy. Compiled by</span>
+<span class="sd">    `an.adapters.cutout.surface`; never authored.</span>
+<span class="sd">    """</span>
+
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">offsets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)])</span>
+    <span class="n">grow</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+
+
+
 <div class="viewcode-block" id="VisualJSON">
 <a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.serialize.html#an.adapters.cutout.VisualJSON">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">VisualJSON</span><span class="p">(</span><span class="n">_JSONModel</span><span class="p">):</span>
@@ -869,19 +893,29 @@ window.runMermaid = runMermaid;</script>
     <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#888888"</span>
     <span class="c1">#: The stroke for ``kind="path"`` (an#160); ``None`` on every other visual.</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">PathJSON</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: Copies drawn behind this visual, back to front (an#163) — the outline</span>
+    <span class="c1">#: and the paper-gap shadow. Only ``rect``, ``ellipse`` and ``svg_sprite``</span>
+    <span class="c1">#: take them; the runtime refuses any other kind.</span>
+    <span class="n">underlays</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UnderlayJSON</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: The engine's native blend mode for this visual (an#163): ``"add"`` for a</span>
+    <span class="c1">#: glow, ``"multiply"`` for the paper grain. PixiJS 7 does both in the</span>
+    <span class="c1">#: blend equation — no filter, no render texture. ``None`` = normal.</span>
+    <span class="n">blend</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"add"</span><span class="p">,</span> <span class="s2">"multiply"</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_omit_unset_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Serialize ``path: null`` out of existence.</span>
+<span class="w">        </span><span class="sd">"""Serialize ``path: null`` (and ``underlays``/``blend``) out of existence.</span>
 
-<span class="sd">        Written in the same commit as the field (the an#112 rule): `to_dict`</span>
+<span class="sd">        Written in the same commit as each field (the an#112 rule): `to_dict`</span>
 <span class="sd">        prunes no `None`s and the bench's scene contract hashes the whole</span>
-<span class="sd">        document, so a defaulted `path` on every visual would move every</span>
+<span class="sd">        document, so a defaulted field on every visual would move every</span>
 <span class="sd">        corpus hash for a feature no corpus scene uses.</span>
 <span class="sd">        """</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"path"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"path"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"path"</span><span class="p">,</span> <span class="s2">"underlays"</span><span class="p">,</span> <span class="s2">"blend"</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
 

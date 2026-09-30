@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=dab63539"></script>
+    <script src="../../../../_static/documentation_options.js?v=3992526b"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.109" />
+  <meta name="docsearch:version" content="0.1.110" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -839,7 +839,12 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_text_subtree</span><span class="p">,</span> <span class="n">svg_data_uri</span><span class="p">,</span> <span class="n">text_document</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.colour_roles</span><span class="w"> </span><span class="kn">import</span> <span class="n">recolour_svg</span><span class="p">,</span> <span class="n">role_recolouring</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_base_dir</span><span class="p">,</span> <span class="n">text_entity_problem</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">STYLE_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">StylePack</span><span class="p">,</span> <span class="n">resolve_palette</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">STYLE_DOCUMENT_KIND</span><span class="p">,</span> <span class="n">StylePack</span><span class="p">,</span> <span class="n">resolve_palette</span><span class="p">,</span> <span class="n">surface_for</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.surface</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">apply_surface</span><span class="p">,</span>
+    <span class="n">faded_treated_targets</span><span class="p">,</span>
+    <span class="n">grain_node</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <span class="c1"># Default placeholder character: a recognizable stick-figure layout in pixel</span>
@@ -954,13 +959,21 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    not a paragraph per shot (the e2e style test counted ~5 wrapped lines per</span>
 <span class="sd">    shot). A cast that changes between shots gets one line per distinct set.</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="n">pack</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">skipped</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">pack</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">skipped</span> <span class="ow">or</span> <span class="ow">not</span> <span class="p">(</span><span class="n">pack</span><span class="o">.</span><span class="n">roles</span> <span class="ow">or</span> <span class="n">pack</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
+        <span class="c1"># A pack with no colour roles (surface treatments only, say) has</span>
+        <span class="c1"># nothing it could have failed to recolour.</span>
         <span class="k">return</span>
+    <span class="n">also</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">" Its surface treatments (outline, shadow, glow) are copies, not "</span>
+        <span class="s2">"recolours, and those do reach them (an#163)."</span>
+        <span class="k">if</span> <span class="n">pack</span><span class="o">.</span><span class="n">surface</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">pack</span><span class="o">.</span><span class="n">entity_surfaces</span>
+        <span class="k">else</span> <span class="s2">""</span>
+    <span class="p">)</span>
     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"style pack </span><span class="si">{</span><span class="n">pack</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> could not reach </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">skipped</span><span class="p">)</span><span class="si">}</span><span class="s2">: that SVG "</span>
         <span class="s2">"art carries no colour role for what the pack sets (hand-drawn or "</span>
         <span class="s2">"DiceBear art is untagged), so it renders as drawn; "</span>
-        <span class="s2">"`an character new --offline` tags every part."</span><span class="p">,</span>
+        <span class="s2">"`an character new --offline` tags every part."</span> <span class="o">+</span> <span class="n">also</span><span class="p">,</span>
         <span class="n">CutoutCompileWarning</span><span class="p">,</span>
         <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
     <span class="p">)</span>
@@ -1044,6 +1057,12 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: the eye WHITE beside it is a literal and cannot be reached, which is the</span>
 <span class="c1">#: split `REACHABLE_ROLES` / `UNREACHABLE_ROLES` records.</span>
 <span class="n">DFLT_PUPIL_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#1a1a1a"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_warn_surface</span><span class="p">(</span><span class="n">notes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Say what a surface treatment could not do (an#163) — never silently."""</span>
+    <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">notes</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">"surface treatment: </span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">CutoutCompileWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_palette_for</span><span class="p">(</span><span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
@@ -1703,6 +1722,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
         <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="n">style_pack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">style_pack</span><span class="o">.</span><span class="n">grain</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># an#163: the paper grain, FIRST on the overlay so any text draws over</span>
+        <span class="c1"># it, and on the overlay at all so the camera cannot move or scale it.</span>
+        <span class="n">overlay_children</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">grain_node</span><span class="p">(</span><span class="n">style_pack</span><span class="o">.</span><span class="n">grain</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">textures</span><span class="o">=</span><span class="n">textures</span><span class="p">),</span>
+        <span class="p">)</span>
     <span class="c1"># The vocabulary sees the overlay too: its nodes are indexed by the</span>
     <span class="c1"># runtime under their own paths (`title/word_0`), exactly like the scene's,</span>
     <span class="c1"># so an authored tween on one is checked like any other target.</span>
@@ -1763,6 +1789,19 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># those passes (usage-aware escalation, an#87), and this is the one place</span>
     <span class="c1"># that decides warn-vs-raise for every fallback.</span>
     <span class="n">_raise_or_warn_on_asset_fallbacks</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">resolutions</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">style_pack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">faded</span> <span class="o">=</span> <span class="n">faded_treated_targets</span><span class="p">(</span><span class="n">scene_root</span><span class="p">,</span> <span class="n">animations</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">faded</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"an alpha channel fades </span><span class="si">{</span><span class="n">faded</span><span class="si">}</span><span class="s2">, which carry surface treatments "</span>
+                <span class="s2">"(an#163): their outline/shadow copies are drawn separately, so a "</span>
+                <span class="s2">"fade shows the outline colour through the part rather than the "</span>
+                <span class="s2">"background. Fade with the treatment switched off for that entity "</span>
+                <span class="s2">"(`entity_surfaces: {&lt;id&gt;: {outline: false, shadow: false}}`), or "</span>
+                <span class="s2">"accept it for a short fade."</span><span class="p">,</span>
+                <span class="n">CutoutCompileWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
 
     <span class="n">timeline</span> <span class="o">=</span> <span class="n">TimelineJSON</span><span class="p">(</span><span class="n">duration</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">tracks</span><span class="o">=</span><span class="n">tracks</span><span class="p">)</span>
 
@@ -1877,6 +1916,12 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="n">sub</span><span class="o">.</span><span class="n">transform</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
             <span class="n">_apply_stage_placement</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
+            <span class="c1"># an#163: outline / paper-gap shadow / glow, when the pack asks.</span>
+            <span class="n">_warn_surface</span><span class="p">(</span>
+                <span class="n">apply_surface</span><span class="p">(</span>
+                    <span class="n">sub</span><span class="p">,</span> <span class="n">surface_for</span><span class="p">(</span><span class="n">style_pack</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">textures</span><span class="o">=</span><span class="n">textures</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"prop"</span><span class="p">:</span>
             <span class="n">text_doc</span> <span class="o">=</span> <span class="n">text_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">props_store</span><span class="p">)</span>
@@ -1902,6 +1947,11 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">reached</span><span class="o">=</span><span class="n">reached</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">_apply_stage_placement</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">entity</span><span class="p">)</span>
+            <span class="n">_warn_surface</span><span class="p">(</span>
+                <span class="n">apply_surface</span><span class="p">(</span>
+                    <span class="n">sub</span><span class="p">,</span> <span class="n">surface_for</span><span class="p">(</span><span class="n">style_pack</span><span class="p">,</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="p">),</span> <span class="n">textures</span><span class="o">=</span><span class="n">textures</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
         <span class="c1"># `voice` entities are legitimately not drawable: they</span>
         <span class="c1"># configure the render rather than appearing in it.</span>

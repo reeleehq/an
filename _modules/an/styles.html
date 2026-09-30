@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=dab63539"></script>
+    <script src="../../_static/documentation_options.js?v=3992526b"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.109" />
+  <meta name="docsearch:version" content="0.1.110" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -745,13 +745,32 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">Colours are **hex strings**, deliberately not DTCG colour objects:</span>
 <span class="sd">`bench/palette.py` mirrors `runtime.js` verbatim, and a second colour</span>
 <span class="sd">representation doubles the surface on which the two can silently diverge.</span>
+
+<span class="sd">**Surface treatments** (an#163 gap 5) are the pack's second job: an outline, a</span>
+<span class="sd">paper-gap drop shadow and a glow per drawable entity (:class:`SurfaceTreatment`,</span>
+<span class="sd">``surface`` with a per-entity ``entity_surfaces`` override), and one static</span>
+<span class="sd">paper grain over the frame (:class:`Grain`). Every one is a COMPILE-TIME</span>
+<span class="sd">expansion into ordinary document content — underlay copies of a part's own</span>
+<span class="sd">visual, a gradient sprite, a seeded noise tile — never a runtime filter, and</span>
+<span class="sd">never anything random at render time. `an.adapters.cutout.surface` does the</span>
+<span class="sd">expanding. The outline and the shadow reach ANY SVG art, role-tagged or not:</span>
+<span class="sd">they copy a part's texture rather than recolour it. Every width and offset is in</span>
+<span class="sd">the rig's own pixels, so a treatment scales with the character like paper would.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">ConfigDict</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">model_validator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BaseModel</span><span class="p">,</span>
+    <span class="n">ConfigDict</span><span class="p">,</span>
+    <span class="n">Field</span><span class="p">,</span>
+    <span class="n">field_validator</span><span class="p">,</span>
+    <span class="n">model_serializer</span><span class="p">,</span>
+    <span class="n">model_validator</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentKind</span><span class="p">,</span> <span class="n">register_kind</span>
@@ -763,6 +782,12 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"UNREACHABLE_ROLES"</span><span class="p">,</span>
     <span class="s2">"StylePack"</span><span class="p">,</span>
     <span class="s2">"resolve_palette"</span><span class="p">,</span>
+    <span class="s2">"Outline"</span><span class="p">,</span>
+    <span class="s2">"PaperShadow"</span><span class="p">,</span>
+    <span class="s2">"Glow"</span><span class="p">,</span>
+    <span class="s2">"Grain"</span><span class="p">,</span>
+    <span class="s2">"SurfaceTreatment"</span><span class="p">,</span>
+    <span class="s2">"surface_for"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">STYLE_SCHEMA_VERSION</span> <span class="o">=</span> <span class="s2">"0.1.0"</span>
@@ -812,6 +837,189 @@ window.runMermaid = runMermaid;</script>
 <span class="p">}</span>
 
 
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># Surface treatments (an#163 gap 5)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: Outline defaults, in RIG pixels (a treatment scales with its character). The</span>
+<span class="c1">#: colour is a near-black rather than black because that is what the measured</span>
+<span class="c1">#: styles use (South Park's is `#231316`); on SVG art it is a multiply, see</span>
+<span class="c1">#: :class:`Outline`.</span>
+<span class="n">DFLT_OUTLINE_WIDTH</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3.0</span>
+<span class="n">DFLT_OUTLINE_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#1a1a1a"</span>
+
+<span class="c1">#: Paper-gap shadow defaults: down and to the right, like an overhead light a</span>
+<span class="c1">#: little in front of the table. Rig pixels.</span>
+<span class="n">DFLT_SHADOW_DX</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span>
+<span class="n">DFLT_SHADOW_DY</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">4.0</span>
+<span class="n">DFLT_SHADOW_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#000000"</span>
+<span class="n">DFLT_SHADOW_ALPHA</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.35</span>
+
+<span class="c1">#: Glow defaults: a warm white halo `radius` rig pixels past the entity's drawn</span>
+<span class="c1">#: box, `intensity` = the gradient's opacity at its core (it is ADDED to what is</span>
+<span class="c1">#: behind it, so 1.0 can clip to white).</span>
+<span class="n">DFLT_GLOW_COLOUR</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"#fff4c2"</span>
+<span class="n">DFLT_GLOW_RADIUS</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">60.0</span>
+<span class="n">DFLT_GLOW_INTENSITY</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="c1">#: Paper grain defaults. `amount` is how far the darkest grain texel multiplies</span>
+<span class="c1">#: toward black (0.06 = the frame is kept at 94-100 %); `tile` is the noise</span>
+<span class="c1">#: tile's side in FRAME pixels (the grain lives on the camera-immune overlay).</span>
+<span class="n">DFLT_GRAIN_AMOUNT</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.06</span>
+<span class="n">DFLT_GRAIN_SEED</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">DFLT_GRAIN_TILE</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span>
+
+<span class="n">_HEX</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^#[0-9a-fA-F]</span><span class="si">{6}</span><span class="s2">$"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_hex_colour</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_HEX</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"expected a '#rrggbb' colour, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_Treatment</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A precise instruction to draw something, so unknown keys are refused —</span>
+<span class="sd">    the `Plane` reasoning (an#110): a misspelt `widht` that silently did</span>
+<span class="sd">    nothing is the failure this package refuses everywhere else."""</span>
+
+    <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">extra</span><span class="o">=</span><span class="s2">"forbid"</span><span class="p">)</span>
+
+    <span class="nd">@field_validator</span><span class="p">(</span><span class="s2">"color"</span><span class="p">,</span> <span class="n">check_fields</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_colour_is_hex</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_hex_colour</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Outline">
+<a class="viewcode-back" href="../../_autosummary/an.styles.html#an.styles.Outline">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Outline</span><span class="p">(</span><span class="n">_Treatment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A darker, dilated copy drawn behind each part.</span>
+
+<span class="sd">    On a procedural part (rect, ellipse) it is the part's own shape grown by</span>
+<span class="sd">    ``width`` — exact for a rect (rounded corners of radius ``width``, which is</span>
+<span class="sd">    what dilating by a disk gives) and, for an ellipse, the ellipse with both</span>
+<span class="sd">    radii grown (exact on the axes and for circles). On an SVG part it is a</span>
+<span class="sd">    ring of copies of the part's texture offset by ``width`` in</span>
+<span class="sd">    ``an.adapters.cutout.surface.OUTLINE_RING`` directions, drawn in ``color``</span>
+<span class="sd">    as a `tint`: tint MULTIPLIES, so the outline is exactly ``color`` where the</span>
+<span class="sd">    art is white and darker elsewhere — exact everywhere for black, and within a</span>
+<span class="sd">    few levels of it for the default near-black.</span>
+
+<span class="sd">    ``nested`` extends it to parts nested inside another part (face features</span>
+<span class="sd">    on the head). Off by default: the pieces of a cut-out are the paper; the</span>
+<span class="sd">    face is drawn on them. A procedural eye or mouth never gets one (they are</span>
+<span class="sd">    not copyable shapes); an SVG rig's eyes and mouth do, under ``nested``.</span>
+
+<span class="sd">    **Fading a treated part darkens it.** The copies are opaque and drawn</span>
+<span class="sd">    separately, so at ``alpha`` 0.5 the part shows its outline colour through</span>
+<span class="sd">    itself rather than the background. A group fade needs the subtree drawn to</span>
+<span class="sd">    a texture first (a filter), which this package refuses; the compiler warns</span>
+<span class="sd">    when an ``alpha`` channel reaches a treated part.</span>
+<span class="sd">    """</span>
+
+    <span class="n">width</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">DFLT_OUTLINE_WIDTH</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_OUTLINE_COLOUR</span>
+    <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="PaperShadow">
+<a class="viewcode-back" href="../../_autosummary/an.styles.html#an.styles.PaperShadow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PaperShadow</span><span class="p">(</span><span class="n">_Treatment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The "no-platen" paper-gap shadow: an offset, darkened copy of each part.</span>
+
+<span class="sd">    The copy sits in the part's own container, so it follows every tween,</span>
+<span class="sd">    `play` and swap of the part with no channel of its own. The offset is</span>
+<span class="sd">    therefore in the PART's frame: a part that rotates takes its shadow round</span>
+<span class="sd">    with it (a light fixed to the paper, not the room) — invisible at the</span>
+<span class="sd">    small offsets this is for, and a limit to know for a large one.</span>
+
+<span class="sd">    With an outline, the shadow is grown by the outline width so it shows past</span>
+<span class="sd">    the outline rather than hiding under it: exactly the outlined silhouette on</span>
+<span class="sd">    a procedural part; on an SVG part one copy scaled about the art's centre, so</span>
+<span class="sd">    it grows the art's BOX by the width (one copy, because translucent copies</span>
+<span class="sd">    would compound where they overlap).</span>
+<span class="sd">    """</span>
+
+    <span class="n">dx</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_SHADOW_DX</span>
+    <span class="n">dy</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_SHADOW_DY</span>
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_SHADOW_COLOUR</span>
+    <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">DFLT_SHADOW_ALPHA</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">nested</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="Glow">
+<a class="viewcode-back" href="../../_autosummary/an.styles.html#an.styles.Glow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Glow</span><span class="p">(</span><span class="n">_Treatment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""An additive radial-gradient sprite behind an entity.</span>
+
+<span class="sd">    Its box is the entity's drawn box grown by ``radius``, and the gradient is</span>
+<span class="sd">    an ELLIPSE over that box: it holds ``intensity`` out to the entity's box</span>
+<span class="sd">    along its shorter axis and fades to nothing at the edge — so on a tall</span>
+<span class="sd">    entity the halo is fainter at the top and bottom than at the sides.</span>
+<span class="sd">    Drawn with the engine's native ADD blend (PixiJS 7 does it in the blend</span>
+<span class="sd">    equation, no filter), as the entity's first child, so it moves with the</span>
+<span class="sd">    entity and lights the background around it, not the entity itself.</span>
+<span class="sd">    """</span>
+
+    <span class="n">color</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DFLT_GLOW_COLOUR</span>
+    <span class="n">radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">DFLT_GLOW_RADIUS</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">intensity</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">DFLT_GLOW_INTENSITY</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Grain">
+<a class="viewcode-back" href="../../_autosummary/an.styles.html#an.styles.Grain">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Grain</span><span class="p">(</span><span class="n">_Treatment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""One static paper-grain texture over the whole frame.</span>
+
+<span class="sd">    Seeded noise generated at COMPILE time (``an.adapters.cutout.surface``),</span>
+<span class="sd">    tiled on the camera-immune overlay under any text, and MULTIPLIED onto the</span>
+<span class="sd">    frame — so it only ever darkens, by at most ``amount``. The same seed is the</span>
+<span class="sd">    same grain on every frame and every machine; nothing is random at render</span>
+<span class="sd">    time.</span>
+<span class="sd">    """</span>
+
+    <span class="n">amount</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">DFLT_GRAIN_AMOUNT</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DFLT_GRAIN_SEED</span>
+    <span class="n">tile</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">DFLT_GRAIN_TILE</span><span class="p">,</span> <span class="n">ge</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SurfaceTreatment">
+<a class="viewcode-back" href="../../_autosummary/an.styles.html#an.styles.SurfaceTreatment">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SurfaceTreatment</span><span class="p">(</span><span class="n">_Treatment</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Which treatments an entity gets. Each is off when absent.</span>
+
+<span class="sd">    In ``StylePack.entity_surfaces`` an entry OVERRIDES the pack's ``surface``</span>
+<span class="sd">    key by key, for the keys it sets: ``{"glow": {...}}`` adds a glow and keeps</span>
+<span class="sd">    the pack's outline; ``{"outline": false}`` removes the outline. Which keys</span>
+<span class="sd">    were set survives a dump (only they are serialized), so a pack written with</span>
+<span class="sd">    ``model_dump()`` and read back means the same thing. ``null`` switches one</span>
+<span class="sd">    off too, but a dump with ``exclude_none=True`` drops it — and the override</span>
+<span class="sd">    then silently inherits the pack's treatment — so ``false`` is the spelling</span>
+<span class="sd">    to store.</span>
+
+<span class="sd">    &gt;&gt;&gt; SurfaceTreatment(glow={}).model_dump()</span>
+<span class="sd">    {'glow': {'color': '#fff4c2', 'radius': 60.0, 'intensity': 0.5}}</span>
+<span class="sd">    """</span>
+
+    <span class="n">outline</span><span class="p">:</span> <span class="n">Outline</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">shadow</span><span class="p">:</span> <span class="n">PaperShadow</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">glow</span><span class="p">:</span> <span class="n">Glow</span> <span class="o">|</span> <span class="n">Literal</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@model_serializer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_only_what_was_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handler</span><span class="p">):</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">handler</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_fields_set</span><span class="p">}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outline</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">shadow</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">glow</span><span class="p">)</span></div>
+
+
+
 <div class="viewcode-block" id="StylePack">
 <a class="viewcode-back" href="../../_autosummary/an.styles.html#an.styles.StylePack">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">StylePack</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
@@ -852,6 +1060,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">entities</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: Surface treatments for every drawable entity (characters and props);</span>
+    <span class="c1">#: ``None`` = none. See :class:`SurfaceTreatment` and :func:`surface_for`.</span>
+    <span class="n">surface</span><span class="p">:</span> <span class="n">SurfaceTreatment</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: ``{entity id: SurfaceTreatment}`` — per-entity, key-by-key override of</span>
+    <span class="c1">#: ``surface``.</span>
+    <span class="n">entity_surfaces</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">SurfaceTreatment</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: One static paper grain over the frame; ``None`` = none.</span>
+    <span class="n">grain</span><span class="p">:</span> <span class="n">Grain</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_every_role_is_reachable</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"StylePack"</span><span class="p">:</span>
@@ -876,6 +1092,27 @@ window.runMermaid = runMermaid;</script>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">role</span><span class="si">}</span><span class="s2"> is not a role this renderer knows. "</span>
                         <span class="sa">f</span><span class="s2">"Reachable roles are </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">REACHABLE_ROLES</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span>
                     <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"after"</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_no_near_miss_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"StylePack"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Refuse an unknown key that is one slip from a real one.</span>
+
+<span class="sd">        The pack is ``extra="allow"`` (forward compatibility), which would let</span>
+<span class="sd">        ``grian: {...}`` or ``entity_surface: {...}`` validate and draw nothing</span>
+<span class="sd">        — the silent no-op the treatment models refuse with ``extra="forbid"``.</span>
+<span class="sd">        """</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">difflib</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_extra</span> <span class="ow">or</span> <span class="p">{}:</span>
+            <span class="n">close</span> <span class="o">=</span> <span class="n">difflib</span><span class="o">.</span><span class="n">get_close_matches</span><span class="p">(</span>
+                <span class="n">key</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">model_fields</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">0.8</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">close</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2"> is not a StylePack field; did you mean </span><span class="si">{</span><span class="n">close</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">!r}</span><span class="s2">? "</span>
+                    <span class="s2">"An unknown key is kept but read by nothing."</span>
+                <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span>
 
 <div class="viewcode-block" id="StylePack.colour_for">
@@ -923,6 +1160,39 @@ window.runMermaid = runMermaid;</script>
         <span class="n">pack</span><span class="o">.</span><span class="n">colour_for</span><span class="p">(</span><span class="s2">"clothing"</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="n">entity</span><span class="p">)</span> <span class="ow">or</span> <span class="n">clothing</span><span class="p">,</span>
         <span class="n">pack</span><span class="o">.</span><span class="n">colour_for</span><span class="p">(</span><span class="s2">"hair"</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="n">entity</span><span class="p">)</span> <span class="ow">or</span> <span class="n">hair</span><span class="p">,</span>
     <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="surface_for">
+<a class="viewcode-back" href="../../_autosummary/an.styles.html#an.styles.surface_for">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">surface_for</span><span class="p">(</span><span class="n">pack</span><span class="p">:</span> <span class="s2">"StylePack | None"</span><span class="p">,</span> <span class="n">entity</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SurfaceTreatment</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The treatments ``entity`` gets under ``pack``, or ``None`` for none.</span>
+
+<span class="sd">    ``None`` is the answer for no pack, a pack without treatments, and an</span>
+<span class="sd">    entity whose override switched everything off — which is what keeps every</span>
+<span class="sd">    such scene's compiled document byte-identical to before an#163.</span>
+
+<span class="sd">    &gt;&gt;&gt; pack = StylePack(name="sp", surface={"outline": {}},</span>
+<span class="sd">    ...                  entity_surfaces={"sun": {"glow": {}}, "bob": {"outline": False}})</span>
+<span class="sd">    &gt;&gt;&gt; sorted(surface_for(pack, "sun").model_dump())</span>
+<span class="sd">    ['glow', 'outline']</span>
+<span class="sd">    &gt;&gt;&gt; surface_for(pack, "bob") is None</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; surface_for(pack, "maya").outline.width</span>
+<span class="sd">    3.0</span>
+<span class="sd">    &gt;&gt;&gt; surface_for(None, "maya") is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">pack</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">merged</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">pack</span><span class="o">.</span><span class="n">surface</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">merged</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pack</span><span class="o">.</span><span class="n">surface</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">pack</span><span class="o">.</span><span class="n">surface</span><span class="o">.</span><span class="n">model_fields_set</span><span class="p">}</span>
+    <span class="n">override</span> <span class="o">=</span> <span class="n">pack</span><span class="o">.</span><span class="n">entity_surfaces</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entity</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">override</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">merged</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">override</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">override</span><span class="o">.</span><span class="n">model_fields_set</span><span class="p">})</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">SurfaceTreatment</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">merged</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">})</span>
+    <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">is_empty</span><span class="p">()</span> <span class="k">else</span> <span class="n">result</span></div>
 
 </pre></div>
 

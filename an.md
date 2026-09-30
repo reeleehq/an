@@ -1,4 +1,4 @@
-> built 2026-09-30 10:34 UTC from 6c1e213 (main) · an 0.1.109. Details: build_info.json
+> built 2026-09-30 10:54 UTC from 70c28bb (main) · an 0.1.110. Details: build_info.json
 
 # index.html.md
 
@@ -1867,6 +1867,15 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
+#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"add"` for a
+glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
+blend equation — no filter, no render texture. `None` = normal.
+
+* **Type:**
+  The engine’s native blend mode for this visual (an#163)
+
 #### fit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['stretch', 'contain']*
 
 How the art is fitted to `width`/`height`.
@@ -1886,6 +1895,12 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### path *: [PathJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
+
+#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Copies drawn behind this visual, back to front (an#163) — the outline
+and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`
+take them; the runtime refuses any other kind.
 
 ### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
 
@@ -1947,6 +1962,7 @@ clothes (an#33).
 | [`serialize`](_autosummary/an.adapters.cutout.serialize.html.md#module-an.adapters.cutout.serialize)             | JSON contract between the Python compiler and the (future) JS runtime.                                                                          |
 | [`shutter`](_autosummary/an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)                 | The temporal half of the frame stage: average several instants into one frame.                                                                  |
 | [`supersample`](_autosummary/an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)         | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                   |
+| [`surface`](_autosummary/an.adapters.cutout.surface.html.md#module-an.adapters.cutout.surface)                 | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                            |
 | [`text`](_autosummary/an.adapters.cutout.text.html.md#module-an.adapters.cutout.text)                       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                         |
 | [`timeline`](_autosummary/an.adapters.cutout.timeline.html.md#module-an.adapters.cutout.timeline)               | Timeline: tracks of placed clips with absolute times and blend ramps.                                                                           |
 
@@ -2504,22 +2520,23 @@ True
 
 ### Classes
 
-| [`AnimationClipJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                          |
-|--------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`AssetJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                     |
-| [`AssetResolutionJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time.  |
-| [`AssetsJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                                |
-| [`ChannelJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                       |
-| [`CutoutSceneJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.             |
-| [`CutoutSceneMetaJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                         |
-| [`KeyframeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                   |
-| [`NodeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                                |
-| [`PathJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON)(\*\*data)            | A stroked path's drawing instruction (an#160), carried on a `path` visual. |
-| [`PlacedClipJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                         |
-| [`TimelineJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                               |
-| [`TrackJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.           |
-| [`TransformJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                    |
-| [`VisualJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                       |
+| [`AnimationClipJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                                                                          |
+|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| [`AssetJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                                                                     |
+| [`AssetResolutionJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time.                                                  |
+| [`AssetsJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                                                                                |
+| [`ChannelJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                                                                       |
+| [`CutoutSceneJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.                                                             |
+| [`CutoutSceneMetaJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                                                                         |
+| [`KeyframeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                                                                   |
+| [`NodeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                                                                                |
+| [`PathJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON)(\*\*data)            | A stroked path's drawing instruction (an#160), carried on a `path` visual.                                                 |
+| [`PlacedClipJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                                                                         |
+| [`TimelineJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                                                                               |
+| [`TrackJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.                                                           |
+| [`TransformJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                                                                    |
+| [`UnderlayJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)(\*\*data)        | A copy of a node's own visual, drawn BEHIND it in the same container (an#163 gap 5: the outline and the paper-gap shadow). |
+| [`VisualJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                                                                       |
 
 ### *class* an.adapters.cutout.serialize.AnimationClipJSON(\*\*data)
 
@@ -2790,6 +2807,27 @@ which is derived from them rather than restated.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### *class* an.adapters.cutout.serialize.UnderlayJSON(\*\*data)
+
+Bases: `_JSONModel`
+
+A copy of a node’s own visual, drawn BEHIND it in the same container
+(an#163 gap 5: the outline and the paper-gap shadow).
+
+Being in the node’s container is the whole design: the copy takes every
+transform the node takes — tweens, `play`, the camera — with no channel of
+its own, and a swap on the node re-textures its copies (`runtime.js`
+`applySwap`). One copy is drawn per entry of `offsets` (in the node’s own
+frame), each grown by `grow` pixels: a rect/ellipse is redrawn with its
+geometry grown, an SVG sprite is scaled about its art’s centre so its box
+grows by `grow` on every side. `color` is the fill of a redrawn shape
+and the `tint` (a multiply) of a sprite copy. Compiled by
+`an.adapters.cutout.surface`; never authored.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.adapters.cutout.serialize.VisualJSON(\*\*data)
 
 Bases: `_JSONModel`
@@ -2812,6 +2850,15 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
+#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"add"` for a
+glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
+blend equation — no filter, no render texture. `None` = normal.
+
+* **Type:**
+  The engine’s native blend mode for this visual (an#163)
+
 #### fit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['stretch', 'contain']*
 
 How the art is fitted to `width`/`height`.
@@ -2831,6 +2878,12 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### path *: [PathJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
+
+#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Copies drawn behind this visual, back to front (an#163) — the outline
+and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`
+take them; the runtime refuses any other kind.
 
 ### an.adapters.cutout.serialize.from_dict(d)
 
@@ -3064,6 +3117,215 @@ unrunnable in the default CI lane, which installs `dev,test` and not
 
 * **Return type:**
   [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+
+# _autosummary/an.adapters.cutout.surface.html.md
+
+# an.adapters.cutout.surface
+
+Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
+
+Every treatment here is a COMPILE-TIME expansion into ordinary document
+content. None is a runtime filter, and none draws anything random at render
+time. `runtime.js` keeps its rule against per-frame randomness, and its
+determinism probe still sees zero filters.
+
+- **Outline and paper-gap shadow**: [`UnderlayJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.UnderlayJSON)
+  entries on a part’s visual. The runtime draws each one as a copy of the
+  part’s own visual, BEHIND it, in the part’s own container. So the copy takes
+  every transform the part takes (tweens, `play`, the camera, a stage scale)
+  and needs no channel of its own. A swap on the part (a viseme, a blink)
+  re-textures its copies in the same call.
+- **Glow**: one extra child node, first in the entity so it draws behind every
+  part. It is a radial-gradient SVG sprite, drawn with the engine’s native
+  `add` blend.
+- **Grain**: one seeded noise tile, made here as a palette PNG and tiled on the
+  camera-immune overlay under any text, drawn with the native `multiply`
+  blend. The PNG bytes are fully determined by the seed. The deflate stream is
+  written as STORED blocks by hand, because a compressor’s output is not
+  stable across zlib builds (zlib-ng differs), and the texture is part of the
+  scene contract.
+
+A scene whose pack sets none of these compiles byte-identically to before.
+Nothing here runs without a treatment, and the new wire fields are omitted
+when unset.
+
+### Module Attributes
+
+| [`UNDERLAY_KINDS`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.UNDERLAY_KINDS)   | The visual kinds a copy can be drawn for.                                                                                                                                                                            |
+|-------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`GLOW_NODE`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.GLOW_NODE)        | The glow's node name inside its entity, and the grain's on the overlay.                                                                                                                                              |
+| [`GRAIN_LEVELS`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.GRAIN_LEVELS)     | Grey levels in the grain tile. 16 = a 4-bit palette PNG (half the bytes of an 8-bit one), and finer steps than 8-bit output could show at the small <br/><br/>```<br/>`<br/>```<br/><br/>amount\`s grain is used at. |
+
+### Functions
+
+| [`ring_offsets`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.ring_offsets)(radius)                               | The outline ring's copy offsets at `radius` pixels.                                                                    |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
+| [`apply_surface`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.apply_surface)(node, surface, \*, textures)         | Expand `surface` into `node` (an entity's subtree), in place.                                                          |
+| [`drawn_box`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.drawn_box)(node)                                    | `(x0, y0, x1, y1)` of what `node`'s parts draw, in its own frame.                                                      |
+| [`glow_svg`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.glow_svg)(width, height, \*, color, intensity, ...) | The glow's texture: an elliptical radial gradient filling its box.                                                     |
+| [`grain_indices`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.grain_indices)(seed, tile)                          | `tile × tile` grey-level indices in `[0, GRAIN_LEVELS)`, row-major.                                                    |
+| [`grain_greys`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.grain_greys)(amount)                                | The palette: level `n` multiplies the frame by `grey/255`, from white (level 0) down to `1 − amount` (the last level). |
+| [`grain_png`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.grain_png)(\*, seed, amount, tile)                  | The grain tile as a 4-bit palette PNG: opaque and lossless.                                                            |
+| [`grain_node`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.grain_node)(grain, \*, width, height, textures)     | The grain layer: one tile texture, tiled over the frame in frame pixels.                                               |
+| [`faded_treated_targets`](_autosummary/an.adapters.cutout.surface.html.md#an.adapters.cutout.surface.faded_treated_targets)(scene, animations)           | The `alpha` channel targets that fade a part carrying underlays.                                                       |
+
+### an.adapters.cutout.surface.GLOW_NODE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '_glow'*
+
+The glow’s node name inside its entity, and the grain’s on the overlay.
+Leading underscore: no rig slot or entity id is spelled like this, and a
+collision with an overlay entity still raises in `compile_shot`.
+
+### an.adapters.cutout.surface.GRAIN_LEVELS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
+
+Grey levels in the grain tile. 16 = a 4-bit palette PNG (half the bytes
+of an 8-bit one), and finer steps than 8-bit output could show at the small
+
+```
+`
+```
+
+amount\`s grain is used at.
+
+### an.adapters.cutout.surface.UNDERLAY_KINDS *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'ellipse', 'rect', 'svg_sprite'})*
+
+The visual kinds a copy can be drawn for. `runtime.js` refuses any other.
+An eye already draws its own rim, a procedural mouth is a redraw function,
+and a path is already a line.
+
+### an.adapters.cutout.surface.apply_surface(node, surface, , textures)
+
+Expand `surface` into `node` (an entity’s subtree), in place.
+
+Returns what it could not do, for the compiler to warn with (a glow on an
+entity that draws nothing). A no-op for `None`, which is every entity of
+a scene whose pack sets no treatment. The outline and the shadow go on each part: the entity’s
+direct children, and deeper parts too when the treatment is `nested`.
+The glow is added after the parts are walked, so it never gets an outline
+of its own.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from an.styles import SurfaceTreatment
+>>> part = NodeJSON(name="torso", visual=VisualJSON(kind="rect", width=40, height=60))
+>>> ent = NodeJSON(name="bob", children=[part])
+>>> apply_surface(ent, SurfaceTreatment(outline={"width": 2}, shadow={}), textures={})
+[]
+>>> [(u.grow, u.offsets) for u in part.visual.underlays]
+[(2.0, [(4.0, 4.0)]), (2.0, [(0.0, 0.0)])]
+```
+
+### an.adapters.cutout.surface.drawn_box(node)
+
+`(x0, y0, x1, y1)` of what `node`’s parts draw, in its own frame.
+
+The entity’s own visual and every descendant’s: rest translations and each
+visual’s box and anchor. Rest rotations and
+scales are not applied: the compiled rigs have none below the entity
+root. That is an assumption about the rigs this compiler builds, not
+about arbitrary documents.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> head = NodeJSON(name="h", transform=TransformJSON(y=-50),
+...                 visual=VisualJSON(kind="ellipse", width=40, height=40))
+>>> drawn_box(NodeJSON(name="e", children=[head]))
+(-20.0, -70.0, 20.0, -30.0)
+```
+
+### an.adapters.cutout.surface.faded_treated_targets(scene, animations)
+
+The `alpha` channel targets that fade a part carrying underlays.
+
+A treated part’s copies are drawn separately, so a fade shows them
+through the part instead of the background (see `an.styles.Outline`).
+An alpha on the glow node only fades the glow, which is fine.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+### an.adapters.cutout.surface.glow_svg(width, height, , color, intensity, core)
+
+The glow’s texture: an elliptical radial gradient filling its box.
+
+It holds `intensity` out to `core` (a fraction of the radius) and
+fades to nothing at the edge.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> glow_svg(10, 10, color="#ffffff", intensity=0.5, core=0.4)[:52]
+'<svg xmlns="http://www.w3.org/2000/svg" width="10" h'
+```
+
+### an.adapters.cutout.surface.grain_greys(amount)
+
+The palette: level `n` multiplies the frame by `grey/255`, from
+white (level 0) down to `1 − amount` (the last level).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
+
+```pycon
+>>> grain_greys(0.06)[:3], grain_greys(0.06)[-1]
+([255, 254, 253], 240)
+```
+
+### an.adapters.cutout.surface.grain_indices(seed, tile)
+
+`tile × tile` grey-level indices in `[0, GRAIN_LEVELS)`, row-major.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`int`](https://docs.python.org/3/builtins/functions.html#int)]
+
+```pycon
+>>> grain_indices(0, 4)
+[14, 6, 0, 15, 1, 5, 2, 12, 3, 15, 6, 12, 8, 8, 11, 8]
+>>> grain_indices(0, 4) == grain_indices(0, 4) != grain_indices(1, 4)
+True
+```
+
+### an.adapters.cutout.surface.grain_node(grain, , width, height, textures)
+
+The grain layer: one tile texture, tiled over the frame in frame pixels.
+
+It goes on the OVERLAY, which is centred on the canvas and cannot be
+reached by the camera. Each tile sits at an integer frame position at
+scale 1, so at `supersample` 1 a texel is exactly one pixel. Tiling is
+done with nodes rather than a `TilingSprite`, which the runtime does not
+wire (an#110’s rule: wire it fully or not at all).
+
+* **Return type:**
+  [`NodeJSON`](_autosummary/an.adapters.cutout.serialize.html.md#an.adapters.cutout.serialize.NodeJSON)
+
+### an.adapters.cutout.surface.grain_png(, seed, amount, tile)
+
+The grain tile as a 4-bit palette PNG: opaque and lossless.
+
+It is opaque on purpose. With no alpha channel there is no premultiply
+step on load that could differ between engines.
+
+* **Return type:**
+  [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+### an.adapters.cutout.surface.ring_offsets(radius)
+
+The outline ring’s copy offsets at `radius` pixels.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
+
+```pycon
+>>> ring_offsets(2.0)[:3]
+[(2.0, 0.0), (1.414214, 1.414214), (0.0, 2.0)]
+>>> len(ring_offsets(3.0)) == OUTLINE_RING
+True
+```
 
 
 # _autosummary/an.adapters.cutout.text.html.md
@@ -6194,7 +6456,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'mouth', 'ellipse', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'rect', 'mouth', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -20489,6 +20751,17 @@ Colours are **hex strings**, deliberately not DTCG colour objects:
 `bench/palette.py` mirrors `runtime.js` verbatim, and a second colour
 representation doubles the surface on which the two can silently diverge.
 
+**Surface treatments** (an#163 gap 5) are the pack’s second job: an outline, a
+paper-gap drop shadow and a glow per drawable entity ([`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment),
+`surface` with a per-entity `entity_surfaces` override), and one static
+paper grain over the frame ([`Grain`](_autosummary/an.styles.html.md#an.styles.Grain)). Every one is a COMPILE-TIME
+expansion into ordinary document content — underlay copies of a part’s own
+visual, a gradient sprite, a seeded noise tile — never a runtime filter, and
+never anything random at render time. `an.adapters.cutout.surface` does the
+expanding. The outline and the shadow reach ANY SVG art, role-tagged or not:
+they copy a part’s texture rather than recolour it. Every width and offset is in
+the rig’s own pixels, so a treatment scales with the character like paper would.
+
 ### Module Attributes
 
 | [`REACHABLE_ROLES`](_autosummary/an.styles.html.md#an.styles.REACHABLE_ROLES)   | Roles a pack can actually change, because the COMPILER decides them and stamps them into the document the runtime draws.   |
@@ -20497,13 +20770,106 @@ representation doubles the surface on which the two can silently diverge.
 
 ### Functions
 
-| [`resolve_palette`](_autosummary/an.styles.html.md#an.styles.resolve_palette)(pack, entity, default)   | `(skin, clothing, hair)` for one entity under `pack`.   |
-|-------------------------------------------------------------------------------------------|---------------------------------------------------------|
+| [`resolve_palette`](_autosummary/an.styles.html.md#an.styles.resolve_palette)(pack, entity, default)   | `(skin, clothing, hair)` for one entity under `pack`.          |
+|-------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| [`surface_for`](_autosummary/an.styles.html.md#an.styles.surface_for)(pack, entity)                | The treatments `entity` gets under `pack`, or `None` for none. |
 
 ### Classes
 
-| [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack)(\*\*data)   | Art direction for a project.   |
-|------------------------------------------------------------------------|--------------------------------|
+| [`StylePack`](_autosummary/an.styles.html.md#an.styles.StylePack)(\*\*data)        | Art direction for a project.                                             |
+|-----------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`Outline`](_autosummary/an.styles.html.md#an.styles.Outline)(\*\*data)          | A darker, dilated copy drawn behind each part.                           |
+| [`PaperShadow`](_autosummary/an.styles.html.md#an.styles.PaperShadow)(\*\*data)      | The "no-platen" paper-gap shadow: an offset, darkened copy of each part. |
+| [`Glow`](_autosummary/an.styles.html.md#an.styles.Glow)(\*\*data)             | An additive radial-gradient sprite behind an entity.                     |
+| [`Grain`](_autosummary/an.styles.html.md#an.styles.Grain)(\*\*data)            | One static paper-grain texture over the whole frame.                     |
+| [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment)(\*\*data) | Which treatments an entity gets.                                         |
+
+### *class* an.styles.Glow(\*\*data)
+
+Bases: `_Treatment`
+
+An additive radial-gradient sprite behind an entity.
+
+Its box is the entity’s drawn box grown by `radius`, and the gradient is
+an ELLIPSE over that box: it holds `intensity` out to the entity’s box
+along its shorter axis and fades to nothing at the edge — so on a tall
+entity the halo is fainter at the top and bottom than at the sides.
+Drawn with the engine’s native ADD blend (PixiJS 7 does it in the blend
+equation, no filter), as the entity’s first child, so it moves with the
+entity and lights the background around it, not the entity itself.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.styles.Grain(\*\*data)
+
+Bases: `_Treatment`
+
+One static paper-grain texture over the whole frame.
+
+Seeded noise generated at COMPILE time (`an.adapters.cutout.surface`),
+tiled on the camera-immune overlay under any text, and MULTIPLIED onto the
+frame — so it only ever darkens, by at most `amount`. The same seed is the
+same grain on every frame and every machine; nothing is random at render
+time.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.styles.Outline(\*\*data)
+
+Bases: `_Treatment`
+
+A darker, dilated copy drawn behind each part.
+
+On a procedural part (rect, ellipse) it is the part’s own shape grown by
+`width` — exact for a rect (rounded corners of radius `width`, which is
+what dilating by a disk gives) and, for an ellipse, the ellipse with both
+radii grown (exact on the axes and for circles). On an SVG part it is a
+ring of copies of the part’s texture offset by `width` in
+`an.adapters.cutout.surface.OUTLINE_RING` directions, drawn in `color`
+as a `tint`: tint MULTIPLIES, so the outline is exactly `color` where the
+art is white and darker elsewhere — exact everywhere for black, and within a
+few levels of it for the default near-black.
+
+`nested` extends it to parts nested inside another part (face features
+on the head). Off by default: the pieces of a cut-out are the paper; the
+face is drawn on them. A procedural eye or mouth never gets one (they are
+not copyable shapes); an SVG rig’s eyes and mouth do, under `nested`.
+
+**Fading a treated part darkens it.** The copies are opaque and drawn
+separately, so at `alpha` 0.5 the part shows its outline colour through
+itself rather than the background. A group fade needs the subtree drawn to
+a texture first (a filter), which this package refuses; the compiler warns
+when an `alpha` channel reaches a treated part.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.styles.PaperShadow(\*\*data)
+
+Bases: `_Treatment`
+
+The “no-platen” paper-gap shadow: an offset, darkened copy of each part.
+
+The copy sits in the part’s own container, so it follows every tween,
+`play` and swap of the part with no channel of its own. The offset is
+therefore in the PART’s frame: a part that rotates takes its shadow round
+with it (a light fixed to the paper, not the room) — invisible at the
+small offsets this is for, and a limit to know for a large one.
+
+With an outline, the shadow is grown by the outline width so it shows past
+the outline rather than hiding under it: exactly the outlined silhouette on
+a procedural part; on an SVG part one copy scaled about the art’s centre, so
+it grows the art’s BOX by the width (one copy, because translucent copies
+would compound where they overlap).
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### an.styles.REACHABLE_ROLES *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)[[str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= frozenset({'accessory', 'clothing', 'ground', 'hair', 'leg', 'pupil', 'skin', 'sky', 'stroke'})*
 
@@ -20574,6 +20940,15 @@ which is what keeps a scene with no pack byte-identical.
 
 `{entity id: {role: "#rrggbb"}}` — a per-entity override of `roles`.
 
+#### entity_surfaces *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [SurfaceTreatment](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment)]*
+
+`{entity id: SurfaceTreatment}` — per-entity, key-by-key override of
+`surface`.
+
+#### grain *: [Grain](_autosummary/an.styles.html.md#an.styles.Grain) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+One static paper grain over the frame; `None` = none.
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -20582,6 +20957,35 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 `{role: "#rrggbb"}`. Hex strings, not colour objects — see the module
 docstring for why a second representation is a liability here.
+
+#### surface *: [SurfaceTreatment](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Surface treatments for every drawable entity (characters and props);
+`None` = none. See [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) and [`surface_for()`](_autosummary/an.styles.html.md#an.styles.surface_for).
+
+### *class* an.styles.SurfaceTreatment(\*\*data)
+
+Bases: `_Treatment`
+
+Which treatments an entity gets. Each is off when absent.
+
+In `StylePack.entity_surfaces` an entry OVERRIDES the pack’s `surface`
+key by key, for the keys it sets: `{"glow": {...}}` adds a glow and keeps
+the pack’s outline; `{"outline": false}` removes the outline. Which keys
+were set survives a dump (only they are serialized), so a pack written with
+`model_dump()` and read back means the same thing. `null` switches one
+off too, but a dump with `exclude_none=True` drops it — and the override
+then silently inherits the pack’s treatment — so `false` is the spelling
+to store.
+
+```pycon
+>>> SurfaceTreatment(glow={}).model_dump()
+{'glow': {'color': '#fff4c2', 'radius': 60.0, 'intensity': 0.5}}
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'forbid'}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
 ### an.styles.UNREACHABLE_ROLES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'eye_sclera': 'runtime.js draws the eye white as a literal 0xffffff in makeEye', 'lip': 'runtime.js \`_LIP_COLOR\`, drawn by makeMouth and never read from the document', 'mouth_fill': 'runtime.js \`_MOUTH_FILL\`', 'teeth': 'runtime.js \`_TEETH_COLOR\`', 'tongue': 'runtime.js \`_TONGUE_COLOR\`'}*
 
@@ -20609,6 +21013,30 @@ unchanged and the compiled document does not move a byte.
 >>> pack = StylePack(name="noir", roles={"clothing": "#202028"})
 >>> resolve_palette(pack, "maya", ("#f4c89a", "#3a6ea5", "#3b2a1a"))
 ('#f4c89a', '#202028', '#3b2a1a')
+```
+
+### an.styles.surface_for(pack, entity)
+
+The treatments `entity` gets under `pack`, or `None` for none.
+
+`None` is the answer for no pack, a pack without treatments, and an
+entity whose override switched everything off — which is what keeps every
+such scene’s compiled document byte-identical to before an#163.
+
+* **Return type:**
+  [`SurfaceTreatment`](_autosummary/an.styles.html.md#an.styles.SurfaceTreatment) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> pack = StylePack(name="sp", surface={"outline": {}},
+...                  entity_surfaces={"sun": {"glow": {}}, "bob": {"outline": False}})
+>>> sorted(surface_for(pack, "sun").model_dump())
+['glow', 'outline']
+>>> surface_for(pack, "bob") is None
+True
+>>> surface_for(pack, "maya").outline.width
+3.0
+>>> surface_for(None, "maya") is None
+True
 ```
 
 
@@ -21993,18 +22421,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-09-30 10:34 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/6c1e21348ba409d2d7275b97a06d6f7d95757161"><code>6c1e213</code></a> on branch <code>main</code>, for **an 0.1.109** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-09-30 10:54 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/70c28bbe459722be4a30d46ef5e12b0bf7f5610f"><code>70c28bb</code></a> on branch <code>main</code>, for **an 0.1.110** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.110) is ahead of the latest release on PyPI (0.1.109): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/6c1e21348ba409d2d7275b97a06d6f7d95757161"><code>6c1e21348ba409d2d7275b97a06d6f7d95757161</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/70c28bbe459722be4a30d46ef5e12b0bf7f5610f"><code>70c28bbe459722be4a30d46ef5e12b0bf7f5610f</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.109</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.110</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -22013,9 +22443,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36702782782">36702782782</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36704863111">36704863111</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>58df064f51a35847e0c30a7c8bb01f9911af7212</code> (in the history of the built commit) |
+| Event commit | <code>b863d50e693c7667042929f9c05f7fd37c498a41</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -22040,13 +22470,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.109/">0.1.109</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.109/">0.1.109</a>, older than the documented version (0.1.110).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 6c1e21348ba409d2d7275b97a06d6f7d95757161
+git checkout 70c28bbe459722be4a30d46ef5e12b0bf7f5610f
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

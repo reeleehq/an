@@ -29,5 +29,6 @@ an.adapters.cutout.serialize
       TimelineJSON
       TrackJSON
       TransformJSON
+      UnderlayJSON
       VisualJSON
    

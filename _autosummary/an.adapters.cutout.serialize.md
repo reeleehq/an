@@ -40,22 +40,23 @@ True
 
 ### Classes
 
-| [`AnimationClipJSON`](#an.adapters.cutout.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                          |
-|--------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`AssetJSON`](#an.adapters.cutout.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                     |
-| [`AssetResolutionJSON`](#an.adapters.cutout.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time.  |
-| [`AssetsJSON`](#an.adapters.cutout.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                                |
-| [`ChannelJSON`](#an.adapters.cutout.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                       |
-| [`CutoutSceneJSON`](#an.adapters.cutout.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.             |
-| [`CutoutSceneMetaJSON`](#an.adapters.cutout.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                         |
-| [`KeyframeJSON`](#an.adapters.cutout.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                   |
-| [`NodeJSON`](#an.adapters.cutout.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                                |
-| [`PathJSON`](#an.adapters.cutout.serialize.PathJSON)(\*\*data)            | A stroked path's drawing instruction (an#160), carried on a `path` visual. |
-| [`PlacedClipJSON`](#an.adapters.cutout.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                         |
-| [`TimelineJSON`](#an.adapters.cutout.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                               |
-| [`TrackJSON`](#an.adapters.cutout.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.           |
-| [`TransformJSON`](#an.adapters.cutout.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                    |
-| [`VisualJSON`](#an.adapters.cutout.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                       |
+| [`AnimationClipJSON`](#an.adapters.cutout.serialize.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                                                                          |
+|--------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+| [`AssetJSON`](#an.adapters.cutout.serialize.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                                                                     |
+| [`AssetResolutionJSON`](#an.adapters.cutout.serialize.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time.                                                  |
+| [`AssetsJSON`](#an.adapters.cutout.serialize.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                                                                                |
+| [`ChannelJSON`](#an.adapters.cutout.serialize.ChannelJSON)(\*\*data)         | One animated property of one target.                                                                                       |
+| [`CutoutSceneJSON`](#an.adapters.cutout.serialize.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.                                                             |
+| [`CutoutSceneMetaJSON`](#an.adapters.cutout.serialize.CutoutSceneMetaJSON)(\*\*data) | Per-shot metadata.                                                                                                         |
+| [`KeyframeJSON`](#an.adapters.cutout.serialize.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                                                                   |
+| [`NodeJSON`](#an.adapters.cutout.serialize.NodeJSON)(\*\*data)            | One node in the scene tree.                                                                                                |
+| [`PathJSON`](#an.adapters.cutout.serialize.PathJSON)(\*\*data)            | A stroked path's drawing instruction (an#160), carried on a `path` visual.                                                 |
+| [`PlacedClipJSON`](#an.adapters.cutout.serialize.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                                                                         |
+| [`TimelineJSON`](#an.adapters.cutout.serialize.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                                                                               |
+| [`TrackJSON`](#an.adapters.cutout.serialize.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.                                                           |
+| [`TransformJSON`](#an.adapters.cutout.serialize.TransformJSON)(\*\*data)       | Local transform of a scene-graph node (authoring form).                                                                    |
+| [`UnderlayJSON`](#an.adapters.cutout.serialize.UnderlayJSON)(\*\*data)        | A copy of a node's own visual, drawn BEHIND it in the same container (an#163 gap 5: the outline and the paper-gap shadow). |
+| [`VisualJSON`](#an.adapters.cutout.serialize.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                                                                       |
 
 ### *class* an.adapters.cutout.serialize.AnimationClipJSON(\*\*data)
 
@@ -326,6 +327,27 @@ which is derived from them rather than restated.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
+### *class* an.adapters.cutout.serialize.UnderlayJSON(\*\*data)
+
+Bases: `_JSONModel`
+
+A copy of a node’s own visual, drawn BEHIND it in the same container
+(an#163 gap 5: the outline and the paper-gap shadow).
+
+Being in the node’s container is the whole design: the copy takes every
+transform the node takes — tweens, `play`, the camera — with no channel of
+its own, and a swap on the node re-textures its copies (`runtime.js`
+`applySwap`). One copy is drawn per entry of `offsets` (in the node’s own
+frame), each grown by `grow` pixels: a rect/ellipse is redrawn with its
+geometry grown, an SVG sprite is scaled about its art’s centre so its box
+grows by `grow` on every side. `color` is the fill of a redrawn shape
+and the `tint` (a multiply) of a sprite copy. Compiled by
+`an.adapters.cutout.surface`; never authored.
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
 ### *class* an.adapters.cutout.serialize.VisualJSON(\*\*data)
 
 Bases: `_JSONModel`
@@ -348,6 +370,15 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
+#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"add"` for a
+glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
+blend equation — no filter, no render texture. `None` = normal.
+
+* **Type:**
+  The engine’s native blend mode for this visual (an#163)
+
 #### fit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['stretch', 'contain']*
 
 How the art is fitted to `width`/`height`.
@@ -367,6 +398,12 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### path *: [PathJSON](#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
+
+#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](#an.adapters.cutout.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Copies drawn behind this visual, back to front (an#163) — the outline
+and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`
+take them; the runtime refuses any other kind.
 
 ### an.adapters.cutout.serialize.from_dict(d)
 

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=dab63539"></script>
+    <script src="../_static/documentation_options.js?v=3992526b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stores.voices" href="an.stores.voices.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.109" />
+  <meta name="docsearch:version" content="0.1.110" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -547,6 +547,16 @@ if it exempts the module that states it. It comes back when something reads it.<
 <p>Colours are <strong>hex strings</strong>, deliberately not DTCG colour objects:
 <code class="code docutils literal notranslate"><span class="pre">bench/palette.py</span></code> mirrors <code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code> verbatim, and a second colour
 representation doubles the surface on which the two can silently diverge.</p>
+<p><strong>Surface treatments</strong> (an#163 gap 5) are the pack’s second job: an outline, a
+paper-gap drop shadow and a glow per drawable entity (<a class="reference internal" href="#an.styles.SurfaceTreatment" title="an.styles.SurfaceTreatment"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTreatment</span></code></a>,
+<code class="docutils literal notranslate"><span class="pre">surface</span></code> with a per-entity <code class="docutils literal notranslate"><span class="pre">entity_surfaces</span></code> override), and one static
+paper grain over the frame (<a class="reference internal" href="#an.styles.Grain" title="an.styles.Grain"><code class="xref py py-class docutils literal notranslate"><span class="pre">Grain</span></code></a>). Every one is a COMPILE-TIME
+expansion into ordinary document content — underlay copies of a part’s own
+visual, a gradient sprite, a seeded noise tile — never a runtime filter, and
+never anything random at render time. <code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.surface</span></code> does the
+expanding. The outline and the shadow reach ANY SVG art, role-tagged or not:
+they copy a part’s texture rather than recolour it. Every width and offset is in
+the rig’s own pixels, so a treatment scales with the character like paper would.</p>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -565,6 +575,9 @@ representation doubles the surface on which the two can silently diverge.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.styles.resolve_palette" title="an.styles.resolve_palette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_palette</span></code></a>(pack, entity, default)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(skin,</span> <span class="pre">clothing,</span> <span class="pre">hair)</span></code> for one entity under <code class="docutils literal notranslate"><span class="pre">pack</span></code>.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.styles.surface_for" title="an.styles.surface_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface_for</span></code></a>(pack, entity)</p></td>
+<td><p>The treatments <code class="docutils literal notranslate"><span class="pre">entity</span></code> gets under <code class="docutils literal notranslate"><span class="pre">pack</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -574,9 +587,124 @@ representation doubles the surface on which the two can silently diverge.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.styles.StylePack" title="an.styles.StylePack"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StylePack</span></code></a>(**data)</p></td>
 <td><p>Art direction for a project.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.styles.Outline" title="an.styles.Outline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Outline</span></code></a>(**data)</p></td>
+<td><p>A darker, dilated copy drawn behind each part.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.styles.PaperShadow" title="an.styles.PaperShadow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PaperShadow</span></code></a>(**data)</p></td>
+<td><p>The &quot;no-platen&quot; paper-gap shadow: an offset, darkened copy of each part.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.styles.Glow" title="an.styles.Glow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Glow</span></code></a>(**data)</p></td>
+<td><p>An additive radial-gradient sprite behind an entity.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.styles.Grain" title="an.styles.Grain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Grain</span></code></a>(**data)</p></td>
+<td><p>One static paper-grain texture over the whole frame.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.styles.SurfaceTreatment" title="an.styles.SurfaceTreatment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SurfaceTreatment</span></code></a>(**data)</p></td>
+<td><p>Which treatments an entity gets.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
+<dl class="py class">
+<dt class="sig sig-object py" id="an.styles.Glow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">Glow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/styles.html#Glow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.styles.Glow" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Treatment</span></code></p>
+<p>An additive radial-gradient sprite behind an entity.</p>
+<p>Its box is the entity’s drawn box grown by <code class="docutils literal notranslate"><span class="pre">radius</span></code>, and the gradient is
+an ELLIPSE over that box: it holds <code class="docutils literal notranslate"><span class="pre">intensity</span></code> out to the entity’s box
+along its shorter axis and fades to nothing at the edge — so on a tall
+entity the halo is fainter at the top and bottom than at the sides.
+Drawn with the engine’s native ADD blend (PixiJS 7 does it in the blend
+equation, no filter), as the entity’s first child, so it moves with the
+entity and lights the background around it, not the entity itself.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.styles.Glow.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'forbid'}</span></span><a class="headerlink" href="#an.styles.Glow.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.styles.Grain">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">Grain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/styles.html#Grain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.styles.Grain" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Treatment</span></code></p>
+<p>One static paper-grain texture over the whole frame.</p>
+<p>Seeded noise generated at COMPILE time (<code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.surface</span></code>),
+tiled on the camera-immune overlay under any text, and MULTIPLIED onto the
+frame — so it only ever darkens, by at most <code class="docutils literal notranslate"><span class="pre">amount</span></code>. The same seed is the
+same grain on every frame and every machine; nothing is random at render
+time.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.styles.Grain.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'forbid'}</span></span><a class="headerlink" href="#an.styles.Grain.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.styles.Outline">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">Outline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/styles.html#Outline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.styles.Outline" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Treatment</span></code></p>
+<p>A darker, dilated copy drawn behind each part.</p>
+<p>On a procedural part (rect, ellipse) it is the part’s own shape grown by
+<code class="docutils literal notranslate"><span class="pre">width</span></code> — exact for a rect (rounded corners of radius <code class="docutils literal notranslate"><span class="pre">width</span></code>, which is
+what dilating by a disk gives) and, for an ellipse, the ellipse with both
+radii grown (exact on the axes and for circles). On an SVG part it is a
+ring of copies of the part’s texture offset by <code class="docutils literal notranslate"><span class="pre">width</span></code> in
+<code class="docutils literal notranslate"><span class="pre">an.adapters.cutout.surface.OUTLINE_RING</span></code> directions, drawn in <code class="docutils literal notranslate"><span class="pre">color</span></code>
+as a <code class="code docutils literal notranslate"><span class="pre">tint</span></code>: tint MULTIPLIES, so the outline is exactly <code class="docutils literal notranslate"><span class="pre">color</span></code> where the
+art is white and darker elsewhere — exact everywhere for black, and within a
+few levels of it for the default near-black.</p>
+<p><code class="docutils literal notranslate"><span class="pre">nested</span></code> extends it to parts nested inside another part (face features
+on the head). Off by default: the pieces of a cut-out are the paper; the
+face is drawn on them. A procedural eye or mouth never gets one (they are
+not copyable shapes); an SVG rig’s eyes and mouth do, under <code class="docutils literal notranslate"><span class="pre">nested</span></code>.</p>
+<p><strong>Fading a treated part darkens it.</strong> The copies are opaque and drawn
+separately, so at <code class="docutils literal notranslate"><span class="pre">alpha</span></code> 0.5 the part shows its outline colour through
+itself rather than the background. A group fade needs the subtree drawn to
+a texture first (a filter), which this package refuses; the compiler warns
+when an <code class="docutils literal notranslate"><span class="pre">alpha</span></code> channel reaches a treated part.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.styles.Outline.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'forbid'}</span></span><a class="headerlink" href="#an.styles.Outline.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.styles.PaperShadow">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">PaperShadow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/styles.html#PaperShadow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.styles.PaperShadow" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Treatment</span></code></p>
+<p>The “no-platen” paper-gap shadow: an offset, darkened copy of each part.</p>
+<p>The copy sits in the part’s own container, so it follows every tween,
+<code class="code docutils literal notranslate"><span class="pre">play</span></code> and swap of the part with no channel of its own. The offset is
+therefore in the PART’s frame: a part that rotates takes its shadow round
+with it (a light fixed to the paper, not the room) — invisible at the
+small offsets this is for, and a limit to know for a large one.</p>
+<p>With an outline, the shadow is grown by the outline width so it shows past
+the outline rather than hiding under it: exactly the outlined silhouette on
+a procedural part; on an SVG part one copy scaled about the art’s centre, so
+it grows the art’s BOX by the width (one copy, because translucent copies
+would compound where they overlap).</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.styles.PaperShadow.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'forbid'}</span></span><a class="headerlink" href="#an.styles.PaperShadow.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.styles.REACHABLE_ROLES">
 <span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">REACHABLE_ROLES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#frozenset" title="(in Python v3.14)"><span class="pre">frozenset</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">frozenset({'accessory',</span> <span class="pre">'clothing',</span> <span class="pre">'ground',</span> <span class="pre">'hair',</span> <span class="pre">'leg',</span> <span class="pre">'pupil',</span> <span class="pre">'skin',</span> <span class="pre">'sky',</span> <span class="pre">'stroke'})</span></span><a class="headerlink" href="#an.styles.REACHABLE_ROLES" title="Link to this definition">#</a></dt>
@@ -648,6 +776,19 @@ which is what keeps a scene with no pack byte-identical.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.styles.StylePack.entity_surfaces">
+<span class="sig-name descname"><span class="pre">entity_surfaces</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#an.styles.SurfaceTreatment" title="an.styles.SurfaceTreatment"><span class="pre">SurfaceTreatment</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.styles.StylePack.entity_surfaces" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">{entity</span> <span class="pre">id:</span> <span class="pre">SurfaceTreatment}</span></code> — per-entity, key-by-key override of
+<code class="docutils literal notranslate"><span class="pre">surface</span></code>.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.styles.StylePack.grain">
+<span class="sig-name descname"><span class="pre">grain</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#an.styles.Grain" title="an.styles.Grain"><span class="pre">Grain</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.styles.StylePack.grain" title="Link to this definition">#</a></dt>
+<dd><p>One static paper grain over the frame; <code class="docutils literal notranslate"><span class="pre">None</span></code> = none.</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.styles.StylePack.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.styles.StylePack.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
@@ -658,6 +799,40 @@ which is what keeps a scene with no pack byte-identical.</p>
 <span class="sig-name descname"><span class="pre">roles</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.styles.StylePack.roles" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">{role:</span> <span class="pre">&quot;#rrggbb&quot;}</span></code>. Hex strings, not colour objects — see the module
 docstring for why a second representation is a liability here.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.styles.StylePack.surface">
+<span class="sig-name descname"><span class="pre">surface</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#an.styles.SurfaceTreatment" title="an.styles.SurfaceTreatment"><span class="pre">SurfaceTreatment</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.styles.StylePack.surface" title="Link to this definition">#</a></dt>
+<dd><p>Surface treatments for every drawable entity (characters and props);
+<code class="docutils literal notranslate"><span class="pre">None</span></code> = none. See <a class="reference internal" href="#an.styles.SurfaceTreatment" title="an.styles.SurfaceTreatment"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTreatment</span></code></a> and <a class="reference internal" href="#an.styles.surface_for" title="an.styles.surface_for"><code class="xref py py-func docutils literal notranslate"><span class="pre">surface_for()</span></code></a>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.styles.SurfaceTreatment">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">SurfaceTreatment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/styles.html#SurfaceTreatment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.styles.SurfaceTreatment" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Treatment</span></code></p>
+<p>Which treatments an entity gets. Each is off when absent.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">StylePack.entity_surfaces</span></code> an entry OVERRIDES the pack’s <code class="docutils literal notranslate"><span class="pre">surface</span></code>
+key by key, for the keys it sets: <code class="docutils literal notranslate"><span class="pre">{&quot;glow&quot;:</span> <span class="pre">{...}}</span></code> adds a glow and keeps
+the pack’s outline; <code class="docutils literal notranslate"><span class="pre">{&quot;outline&quot;:</span> <span class="pre">false}</span></code> removes the outline. Which keys
+were set survives a dump (only they are serialized), so a pack written with
+<code class="docutils literal notranslate"><span class="pre">model_dump()</span></code> and read back means the same thing. <code class="docutils literal notranslate"><span class="pre">null</span></code> switches one
+off too, but a dump with <code class="docutils literal notranslate"><span class="pre">exclude_none=True</span></code> drops it — and the override
+then silently inherits the pack’s treatment — so <code class="docutils literal notranslate"><span class="pre">false</span></code> is the spelling
+to store.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">SurfaceTreatment</span><span class="p">(</span><span class="n">glow</span><span class="o">=</span><span class="p">{})</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+<span class="go">{'glow': {'color': '#fff4c2', 'radius': 60.0, 'intensity': 0.5}}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.styles.SurfaceTreatment.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'forbid'}</span></span><a class="headerlink" href="#an.styles.SurfaceTreatment.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
 </dd></dl>
 
 </dd></dl>
@@ -690,6 +865,32 @@ unchanged and the compiled document does not move a byte.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pack</span> <span class="o">=</span> <span class="n">StylePack</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"noir"</span><span class="p">,</span> <span class="n">roles</span><span class="o">=</span><span class="p">{</span><span class="s2">"clothing"</span><span class="p">:</span> <span class="s2">"#202028"</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_palette</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="s2">"maya"</span><span class="p">,</span> <span class="p">(</span><span class="s2">"#f4c89a"</span><span class="p">,</span> <span class="s2">"#3a6ea5"</span><span class="p">,</span> <span class="s2">"#3b2a1a"</span><span class="p">))</span>
 <span class="go">('#f4c89a', '#202028', '#3b2a1a')</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.styles.surface_for">
+<span class="sig-prename descclassname"><span class="pre">an.styles.</span></span><span class="sig-name descname"><span class="pre">surface_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pack</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">entity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/styles.html#surface_for"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.styles.surface_for" title="Link to this definition">#</a></dt>
+<dd><p>The treatments <code class="docutils literal notranslate"><span class="pre">entity</span></code> gets under <code class="docutils literal notranslate"><span class="pre">pack</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for none.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> is the answer for no pack, a pack without treatments, and an
+entity whose override switched everything off — which is what keeps every
+such scene’s compiled document byte-identical to before an#163.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.styles.SurfaceTreatment" title="an.styles.SurfaceTreatment"><code class="xref py py-class docutils literal notranslate"><span class="pre">SurfaceTreatment</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pack</span> <span class="o">=</span> <span class="n">StylePack</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"sp"</span><span class="p">,</span> <span class="n">surface</span><span class="o">=</span><span class="p">{</span><span class="s2">"outline"</span><span class="p">:</span> <span class="p">{}},</span>
+<span class="gp">... </span>                 <span class="n">entity_surfaces</span><span class="o">=</span><span class="p">{</span><span class="s2">"sun"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"glow"</span><span class="p">:</span> <span class="p">{}},</span> <span class="s2">"bob"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"outline"</span><span class="p">:</span> <span class="kc">False</span><span class="p">}})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">surface_for</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="s2">"sun"</span><span class="p">)</span><span class="o">.</span><span class="n">model_dump</span><span class="p">())</span>
+<span class="go">['glow', 'outline']</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_for</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="s2">"bob"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_for</span><span class="p">(</span><span class="n">pack</span><span class="p">,</span> <span class="s2">"maya"</span><span class="p">)</span><span class="o">.</span><span class="n">outline</span><span class="o">.</span><span class="n">width</span>
+<span class="go">3.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">surface_for</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"maya"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -743,16 +944,40 @@ unchanged and the compiled document does not move a byte.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.Glow"><code class="docutils literal notranslate"><span class="pre">Glow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.Glow.model_config"><code class="docutils literal notranslate"><span class="pre">Glow.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.Grain"><code class="docutils literal notranslate"><span class="pre">Grain</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.Grain.model_config"><code class="docutils literal notranslate"><span class="pre">Grain.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.Outline"><code class="docutils literal notranslate"><span class="pre">Outline</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.Outline.model_config"><code class="docutils literal notranslate"><span class="pre">Outline.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.PaperShadow"><code class="docutils literal notranslate"><span class="pre">PaperShadow</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.PaperShadow.model_config"><code class="docutils literal notranslate"><span class="pre">PaperShadow.model_config</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.REACHABLE_ROLES"><code class="docutils literal notranslate"><span class="pre">REACHABLE_ROLES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack"><code class="docutils literal notranslate"><span class="pre">StylePack</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.colour_for"><code class="docutils literal notranslate"><span class="pre">StylePack.colour_for()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.entities"><code class="docutils literal notranslate"><span class="pre">StylePack.entities</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.entity_surfaces"><code class="docutils literal notranslate"><span class="pre">StylePack.entity_surfaces</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.grain"><code class="docutils literal notranslate"><span class="pre">StylePack.grain</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.model_config"><code class="docutils literal notranslate"><span class="pre">StylePack.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.roles"><code class="docutils literal notranslate"><span class="pre">StylePack.roles</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.StylePack.surface"><code class="docutils literal notranslate"><span class="pre">StylePack.surface</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.SurfaceTreatment"><code class="docutils literal notranslate"><span class="pre">SurfaceTreatment</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.SurfaceTreatment.model_config"><code class="docutils literal notranslate"><span class="pre">SurfaceTreatment.model_config</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.UNREACHABLE_ROLES"><code class="docutils literal notranslate"><span class="pre">UNREACHABLE_ROLES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.resolve_palette"><code class="docutils literal notranslate"><span class="pre">resolve_palette()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.styles.surface_for"><code class="docutils literal notranslate"><span class="pre">surface_for()</span></code></a></li>
 </ul>
   </nav></div>
 

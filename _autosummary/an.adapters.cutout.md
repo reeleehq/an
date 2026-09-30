@@ -255,6 +255,15 @@ texture aliases). Replaces the mouth-only `viseme_assets`.
 is forced to. Under `fit="contain"` the art keeps its own aspect ratio and
 may leave slack on one axis; that slack is the correct rendering, not a bug.
 
+#### blend *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['add', 'multiply'] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"add"` for a
+glow, `"multiply"` for the paper grain. PixiJS 7 does both in the
+blend equation — no filter, no render texture. `None` = normal.
+
+* **Type:**
+  The engine’s native blend mode for this visual (an#163)
+
 #### fit *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['stretch', 'contain']*
 
 How the art is fitted to `width`/`height`.
@@ -274,6 +283,12 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 #### path *: [PathJSON](an.adapters.cutout.serialize.md#an.adapters.cutout.serialize.PathJSON) | [None](https://docs.python.org/3/builtins/constants.html#None)*
 
 The stroke for `kind="path"` (an#160); `None` on every other visual.
+
+#### underlays *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[UnderlayJSON](an.adapters.cutout.serialize.md#an.adapters.cutout.serialize.UnderlayJSON)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Copies drawn behind this visual, back to front (an#163) — the outline
+and the paper-gap shadow. Only `rect`, `ellipse` and `svg_sprite`
+take them; the runtime refuses any other kind.
 
 ### an.adapters.cutout.compile_shot(shot, mall=None, , fps=30, width=1920, height=1080, background='#ffffff', strict_assets=False, step_hz=None, expression_provider=None, style_pack=None, default_easing=None)
 
@@ -335,5 +350,6 @@ clothes (an#33).
 | [`serialize`](an.adapters.cutout.serialize.md#module-an.adapters.cutout.serialize)             | JSON contract between the Python compiler and the (future) JS runtime.                                                                          |
 | [`shutter`](an.adapters.cutout.shutter.md#module-an.adapters.cutout.shutter)                 | The temporal half of the frame stage: average several instants into one frame.                                                                  |
 | [`supersample`](an.adapters.cutout.supersample.md#module-an.adapters.cutout.supersample)         | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                   |
+| [`surface`](an.adapters.cutout.surface.md#module-an.adapters.cutout.surface)                 | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                            |
 | [`text`](an.adapters.cutout.text.md#module-an.adapters.cutout.text)                       | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                         |
 | [`timeline`](an.adapters.cutout.timeline.md#module-an.adapters.cutout.timeline)               | Timeline: tracks of placed clips with absolute times and blend ramps.                                                                           |

@@ -16,10 +16,16 @@ an.styles
    .. autosummary::
    
       resolve_palette
+      surface_for
    
    .. rubric:: Classes
 
    .. autosummary::
    
       StylePack
+      Outline
+      PaperShadow
+      Glow
+      Grain
+      SurfaceTreatment
    

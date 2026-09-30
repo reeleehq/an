@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=dab63539"></script>
+    <script src="../_static/documentation_options.js?v=3992526b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.runtime_files" href="an.adapters.cutout.runtime_files.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.109" />
+  <meta name="docsearch:version" content="0.1.110" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -608,7 +608,10 @@ the same change.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.TransformJSON" title="an.adapters.cutout.serialize.TransformJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformJSON</span></code></a>(**data)</p></td>
 <td><p>Local transform of a scene-graph node (authoring form).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.VisualJSON" title="an.adapters.cutout.serialize.VisualJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisualJSON</span></code></a>(**data)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.UnderlayJSON" title="an.adapters.cutout.serialize.UnderlayJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnderlayJSON</span></code></a>(**data)</p></td>
+<td><p>A copy of a node's own visual, drawn BEHIND it in the same container (an#163 gap 5: the outline and the paper-gap shadow).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.serialize.VisualJSON" title="an.adapters.cutout.serialize.VisualJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisualJSON</span></code></a>(**data)</p></td>
 <td><p>Drawable content attached to a node.</p></td>
 </tr>
 </tbody>
@@ -976,6 +979,31 @@ which is derived from them rather than restated.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.UnderlayJSON">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.serialize.</span></span><span class="sig-name descname"><span class="pre">UnderlayJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#UnderlayJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.serialize.UnderlayJSON" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
+<p>A copy of a node’s own visual, drawn BEHIND it in the same container
+(an#163 gap 5: the outline and the paper-gap shadow).</p>
+<p>Being in the node’s container is the whole design: the copy takes every
+transform the node takes — tweens, <code class="code docutils literal notranslate"><span class="pre">play</span></code>, the camera — with no channel of
+its own, and a swap on the node re-textures its copies (<code class="code docutils literal notranslate"><span class="pre">runtime.js</span></code>
+<code class="code docutils literal notranslate"><span class="pre">applySwap</span></code>). One copy is drawn per entry of <code class="docutils literal notranslate"><span class="pre">offsets</span></code> (in the node’s own
+frame), each grown by <code class="docutils literal notranslate"><span class="pre">grow</span></code> pixels: a rect/ellipse is redrawn with its
+geometry grown, an SVG sprite is scaled about its art’s centre so its box
+grows by <code class="docutils literal notranslate"><span class="pre">grow</span></code> on every side. <code class="docutils literal notranslate"><span class="pre">color</span></code> is the fill of a redrawn shape
+and the <code class="code docutils literal notranslate"><span class="pre">tint</span></code> (a multiply) of a sprite copy. Compiled by
+<code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.surface</span></code>; never authored.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.UnderlayJSON.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.adapters.cutout.serialize.UnderlayJSON.model_config" title="Link to this definition">#</a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.serialize.VisualJSON">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.serialize.</span></span><span class="sig-name descname"><span class="pre">VisualJSON</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/serialize.html#VisualJSON"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.serialize.VisualJSON" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_JSONModel</span></code></p>
@@ -995,6 +1023,19 @@ is forced to. Under <code class="docutils literal notranslate"><span class="pre"
 may leave slack on one axis; that slack is the correct rendering, not a bug.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.VisualJSON.blend">
+<span class="sig-name descname"><span class="pre">blend</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'add'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'multiply'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.serialize.VisualJSON.blend" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;add&quot;</span></code> for a
+glow, <code class="docutils literal notranslate"><span class="pre">&quot;multiply&quot;</span></code> for the paper grain. PixiJS 7 does both in the
+blend equation — no filter, no render texture. <code class="docutils literal notranslate"><span class="pre">None</span></code> = normal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The engine’s native blend mode for this visual (an#163)</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.adapters.cutout.serialize.VisualJSON.fit">
 <span class="sig-name descname"><span class="pre">fit</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'stretch'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'contain'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.adapters.cutout.serialize.VisualJSON.fit" title="Link to this definition">#</a></dt>
@@ -1017,6 +1058,14 @@ the compiler emits <code class="docutils literal notranslate"><span class="pre">
 <dt class="sig sig-object py" id="an.adapters.cutout.serialize.VisualJSON.path">
 <span class="sig-name descname"><span class="pre">path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#an.adapters.cutout.serialize.PathJSON" title="an.adapters.cutout.serialize.PathJSON"><span class="pre">PathJSON</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.serialize.VisualJSON.path" title="Link to this definition">#</a></dt>
 <dd><p>The stroke for <code class="docutils literal notranslate"><span class="pre">kind=&quot;path&quot;</span></code> (an#160); <code class="docutils literal notranslate"><span class="pre">None</span></code> on every other visual.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.serialize.VisualJSON.underlays">
+<span class="sig-name descname"><span class="pre">underlays</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#an.adapters.cutout.serialize.UnderlayJSON" title="an.adapters.cutout.serialize.UnderlayJSON"><span class="pre">UnderlayJSON</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><a class="headerlink" href="#an.adapters.cutout.serialize.VisualJSON.underlays" title="Link to this definition">#</a></dt>
+<dd><p>Copies drawn behind this visual, back to front (an#163) — the outline
+and the paper-gap shadow. Only <code class="docutils literal notranslate"><span class="pre">rect</span></code>, <code class="docutils literal notranslate"><span class="pre">ellipse</span></code> and <code class="docutils literal notranslate"><span class="pre">svg_sprite</span></code>
+take them; the runtime refuses any other kind.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1159,10 +1208,16 @@ the compiler emits <code class="docutils literal notranslate"><span class="pre">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.TransformJSON.model_config"><code class="docutils literal notranslate"><span class="pre">TransformJSON.model_config</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.UnderlayJSON"><code class="docutils literal notranslate"><span class="pre">UnderlayJSON</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.UnderlayJSON.model_config"><code class="docutils literal notranslate"><span class="pre">UnderlayJSON.model_config</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON"><code class="docutils literal notranslate"><span class="pre">VisualJSON</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.blend"><code class="docutils literal notranslate"><span class="pre">VisualJSON.blend</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.fit"><code class="docutils literal notranslate"><span class="pre">VisualJSON.fit</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.model_config"><code class="docutils literal notranslate"><span class="pre">VisualJSON.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.path"><code class="docutils literal notranslate"><span class="pre">VisualJSON.path</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.VisualJSON.underlays"><code class="docutils literal notranslate"><span class="pre">VisualJSON.underlays</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.serialize.from_dict"><code class="docutils literal notranslate"><span class="pre">from_dict()</span></code></a></li>
