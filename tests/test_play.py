@@ -145,8 +145,8 @@ def test_loop_is_the_action_s_override_or_the_animation_s_own(gale_store):
 
 
 def test_an_undeclared_animation_is_refused_naming_the_declared_ones(gale_store):
-    with pytest.raises(CutoutCompileError, match=r"walk.*blink.*idle_breath|idle_breath.*walk"):
-        compile_shot(_shot([play("gale", "walk")]), mall={"characters": gale_store})
+    with pytest.raises(CutoutCompileError, match=r"moonwalk.*blink.*idle_breath|idle_breath.*moonwalk"):
+        compile_shot(_shot([play("gale", "moonwalk")]), mall={"characters": gale_store})
 
 
 def test_a_procedural_entity_plays_motion_presets_only():
@@ -192,10 +192,10 @@ def test_validate_refuses_an_undeclared_animation_before_compile(gale_store):
     from an.ir.schema import Meta, SceneIR
     from an.ir.validate import validate_semantic
 
-    bad = SceneIR(meta=Meta(title="t", duration=2.0), timeline=[_shot([play("gale", "walk")])])
+    bad = SceneIR(meta=Meta(title="t", duration=2.0), timeline=[_shot([play("gale", "moonwalk")])])
     report = validate_semantic(bad, available_characters=gale_store)
     assert not report.passed
-    assert any("walk" in f.description and "blink" in f.description for f in report.findings)
+    assert any("moonwalk" in f.description and "blink" in f.description for f in report.findings)
     good = SceneIR(meta=Meta(title="t", duration=2.0), timeline=[_shot([play("gale", "blink")])])
     assert validate_semantic(good, available_characters=gale_store).passed
 
@@ -436,7 +436,7 @@ def _boolean_bone_frame(d):
 
 
 _REFUSALS = {
-    "undeclared animation": (None, "walk", ["walk", "blink", "idle_breath"]),
+    "undeclared animation": (None, "moonwalk", ["moonwalk", "blink", "idle_breath"]),
     "bone without a primary slot": (_bone_without_a_primary_slot, "wave", ["hand_l", "primary slot", "left_hand"]),
     "unknown bone property": (_unknown_bone_property, "fade", ["alpha", "rotation_deg"]),
     "undeclared bone": (_undeclared_bone, "tail", ["tail", "declares no bone"]),
@@ -482,10 +482,10 @@ def test_validate_sees_a_play_wrapped_by_start(gale_store):
 
     scene = SceneIR(
         meta=Meta(title="t", duration=2.0),
-        timeline=[_shot([sequence(delay(1.0), play("gale", "walk"))])],
+        timeline=[_shot([sequence(delay(1.0), play("gale", "moonwalk"))])],
     )
     report = validate_semantic(scene, available_characters=gale_store)
-    assert any("walk" in f.description for f in report.findings if f.severity == "error")
+    assert any("moonwalk" in f.description for f in report.findings if f.severity == "error")
 
 
 def test_scene_md_play_without_loop_keeps_the_descriptor_s_own(gale_store):

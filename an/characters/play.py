@@ -44,10 +44,10 @@ compiler alike. A preset resolves to tweens, not a clip:
 caller reads off the built scene and the timeline before the play (an#212),
 so an author never passes ``rest``.
 
->>> play_problems(desc, "walk")  # doctest: +NORMALIZE_WHITESPACE
-["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no
+>>> play_problems(desc, "moonwalk")  # doctest: +NORMALIZE_WHITESPACE
+["no animation 'moonwalk': the descriptor declares ['blink', 'idle_breath'] and no
   motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
-  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle'])"]
+  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle', 'walk'])"]
 >>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
 ('preset', 'preset', 'descriptor')
 """
@@ -55,7 +55,7 @@ so an author never passes ``rest``.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Union
@@ -241,7 +241,24 @@ PRESET_SOURCE = "preset"
 
 #: Preset parameters an author may NOT pass through ``args``: the target is
 #: the play's own, and the rest pose is read off the built scene.
-RESERVED_PRESET_ARGS: frozenset[str] = frozenset({"target", "rest"})
+RESERVED_PRESET_ARGS: frozenset[str] = frozenset({"target", "rest", "parts"})
+#: The keyword a preset that moves SEVERAL nodes of an entity (``walk``, an#214)
+#: takes its built parts in: ``{part path relative to the entity: pose}``.
+PARTS_ARG = "parts"
+#: The keyword a preset whose move depends on the view in force takes it in;
+#: played by name, the compiler fills it from the timeline when not given.
+VIEW_ARG = "view"
+
+
+def preset_takes(animation: str, name: str) -> bool:
+    """Whether the motion preset ``animation`` has the keyword ``name``.
+
+    >>> preset_takes("walk", "parts"), preset_takes("hop", "parts")
+    (True, False)
+    """
+    import inspect
+
+    return name in inspect.signature(_presets()[animation]).parameters
 
 
 def _presets() -> dict[str, Callable]:
@@ -356,6 +373,8 @@ def preset_problems(
                 + (
                     "the rest pose is read off the built scene"
                     if name == "rest"
+                    else "the parts are read off the built scene"
+                    if name == PARTS_ARG
                     else "the target is the play's own `target`"
                 )
             )
@@ -617,11 +636,10 @@ def preset_moved_node(action_target: str, animation: str, args=None) -> str:
     >>> preset_moved_node("charlie", "nod"), preset_moved_node("charlie", "hop")
     ('charlie/head', 'charlie')
     """
-    from an.ir.compose import flatten
-
-    tree = _presets()[animation](action_target, **dict(args or {}))
-    moved = sorted({f.action.target for f in flatten(tree)})
-    if len(moved) != 1:  # every shipped preset moves one node; a new one must too
+    if preset_takes(animation, PARTS_ARG):
+        return action_target  # a multi-node preset reads its parts separately
+    moved = preset_moved_nodes(action_target, animation, args)
+    if len(moved) != 1:  # a preset moves one node, or takes `parts` for several
         raise PlayResolutionError(
             animation,
             [
@@ -631,11 +649,37 @@ def preset_moved_node(action_target: str, animation: str, args=None) -> str:
     return moved[0]
 
 
+def preset_moved_nodes(
+    action_target: str,
+    animation: str,
+    args=None,
+    *,
+    parts: Iterable[str] | None = None,
+) -> list[str]:
+    """Every node path a preset play moves. ``parts`` (the entity's built part
+    paths, relative to it) is what a multi-node preset chooses its limbs from;
+    ``None`` lets it assume the rig contract's names.
+
+    >>> preset_moved_nodes("bob", "walk", {"distance": 80}, parts=["torso", "left_leg", "right_leg"])
+    ['bob', 'bob/left_leg', 'bob/right_leg']
+    >>> preset_moved_nodes("charlie", "nod")
+    ['charlie/head']
+    """
+    from an.ir.compose import flatten
+
+    kwargs = dict(args or {})
+    if parts is not None and preset_takes(animation, PARTS_ARG):
+        kwargs[PARTS_ARG] = {p: {} for p in parts}
+    tree = _presets()[animation](action_target, **kwargs)
+    return sorted({f.action.target for f in flatten(tree)})
+
+
 def expand_preset_play(
     action,
     *,
     start: float,
     rest_of: Callable[[str], Mapping[str, float] | None],
+    parts_of: Callable[[str], Iterable[str]] | None = None,
 ) -> list:
     """A preset ``play`` as the flat tweens and settling ``set``s it stands
     for, at absolute times from ``start`` (an#166).
@@ -647,6 +691,10 @@ def expand_preset_play(
     what the runtime would otherwise do mid-render. ``duration`` stretches the
     move to that length; ``speed`` divides it. Assumes
     :func:`preset_problems` came back empty.
+
+    A preset that moves several nodes of the entity (it takes ``parts``,
+    :data:`PARTS_ARG` — ``walk``) gets ``parts_of(entity)``'s paths with their
+    ``rest_of`` poses, and every node its expansion moves is checked.
 
     >>> from an.ir.schema import PlayAction
     >>> flats = expand_preset_play(
@@ -662,17 +710,32 @@ def expand_preset_play(
 
     preset = _presets()[action.animation]
     args = dict(action.args or {})
-    node = preset_moved_node(action.target, action.animation, args)
-    rest = rest_of(node)
-    if rest is None:
-        raise PlayResolutionError(
+
+    def unbuilt(node: str) -> PlayResolutionError:
+        return PlayResolutionError(
             action.animation,
             [
                 f"motion preset {action.animation!r} on {action.target!r} moves "
                 f"node {node!r}, which the built scene does not carry"
             ],
         )
-    tree = preset(action.target, rest=rest, **args)
+
+    node = preset_moved_node(action.target, action.animation, args)
+    rest = rest_of(node)
+    if rest is None:
+        raise unbuilt(node)
+    if preset_takes(action.animation, PARTS_ARG):
+        if parts_of is not None:
+            prefix = f"{action.target}/"
+            args[PARTS_ARG] = {
+                p: rest_of(prefix + p) or {} for p in parts_of(action.target)
+            }
+        tree = preset(action.target, rest=rest, **args)
+        for moved in sorted({f.action.target for f in flatten(tree)}):
+            if rest_of(moved) is None:
+                raise unbuilt(moved)
+    else:
+        tree = preset(action.target, rest=rest, **args)
     natural = duration_of(tree)
     if action.duration is not None and natural > 0:
         scale = float(action.duration) / natural
@@ -1181,6 +1244,8 @@ __all__ = [
     "play_problems",
     "play_source",
     "preset_moved_node",
+    "preset_moved_nodes",
+    "preset_takes",
     "preset_play_span",
     "preset_problems",
     "primary_slot_per_bone",

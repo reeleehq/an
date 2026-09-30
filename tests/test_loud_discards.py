@@ -166,9 +166,9 @@ def test_a_play_on_a_descriptor_less_entity_is_refused_not_faked():
         renderer="cutout",
         duration=4.0,
         entities=[_character()],
-        actions=[PlayAction(target="charlie", animation="walk", duration=4.0)],
+        actions=[PlayAction(target="charlie", animation="moonwalk", duration=4.0)],
     )
-    with pytest.raises(CutoutCompileError, match="walk"):
+    with pytest.raises(CutoutCompileError, match="moonwalk"):
         compile_shot(shot)
 
 
@@ -735,7 +735,7 @@ _UNRENDERABLE_SHOTS = {
     "narration": lambda: Shot(id="s1", renderer="cutout", duration=1.0,
                               narration=[Narration(text="once")]),
     "play": lambda: Shot(id="s1", renderer="cutout", duration=1.0, entities=[_character()],
-                         actions=[PlayAction(target="charlie", animation="walk", duration=1.0)]),
+                         actions=[PlayAction(target="charlie", animation="moonwalk", duration=1.0)]),
 }
 
 
@@ -830,7 +830,7 @@ def test_scene_md_accepts_play_and_the_mistake_is_caught_where_it_can_be_seen():
     remains — naming an animation the target's descriptor does not declare —
     is reported by `an validate` (given the characters store) and refused at
     compile, each naming the declared animations. A procedural character has
-    no descriptor, so it can play motion presets only (an#166) — `walk` is none.
+    no descriptor, so it can play motion presets only (an#166) — `moonwalk` is none.
     """
     from an.ir.sync import markdown_to_ir
     from an.ir.validate import validate_semantic
@@ -842,14 +842,14 @@ def test_scene_md_accepts_play_and_the_mistake_is_caught_where_it_can_be_seen():
         "```yaml shot\nduration: 1.0\n```\n\n"
         "```yaml entities\n- kind: character\n  id: charlie\n  store: characters\n  ref: c-v1\n```\n\n"
         "```yaml actions\n"
-        "- {kind: play, target: charlie, animation: walk, duration: 1.0}\n"
+        "- {kind: play, target: charlie, animation: moonwalk, duration: 1.0}\n"
         "```\n"
     )
     scene = markdown_to_ir(md)  # accepted at the authoring surface
     assert scene.timeline[0].actions[0].kind == "play"
     report = validate_semantic(scene, available_characters={})
-    assert not report.passed and any("walk" in f.description for f in report.findings)
-    with pytest.raises(CutoutCompileError, match="walk"):
+    assert not report.passed and any("moonwalk" in f.description for f in report.findings)
+    with pytest.raises(CutoutCompileError, match="moonwalk"):
         compile_shot(scene.timeline[0], mall={"characters": {}})
 
 
