@@ -134,10 +134,17 @@ def evaluate_timeline(timeline: Timeline, t: float) -> Pose:
     recently WRITTEN — an ended ``viseme@happy`` span does not outlive the
     ``viseme`` track that took the mouth back.
 
-    This is exactly what forward-order rendering always showed (the runtime
-    kept whatever it last applied), stated so it no longer needs the previous
-    frame to have been rendered: the two agree whenever a clip's last frame
-    shows its end value, which the compiler's settling ``set`` guarantees.
+    Forward-order rendering used to show the value at the clip's last SAMPLED
+    frame instead (the runtime kept whatever it last applied). The two agree
+    whenever a clip ends on the frame grid — true of every golden-corpus clip
+    — and differ when it ends between frames: a 0.37 s tween to 10 at 24 fps
+    used to stop at 9.80 and now lands on 10, as authored. That landing is
+    deliberate (it is the bug the motion presets' settling ``set`` patched one
+    preset at a time), and it is what makes the pose independent of the grid.
+    Also deliberate: a clip shorter than a frame that no frame lands in now
+    leaves its end value, and a held descendant tint stays on top of an
+    ancestor's later tint (the more specific target wins, as it always did
+    while both played).
 
     ``runtime.js::evaluateTimeline`` is a port of this function and
     ``tests/test_pure_pose.py`` holds the two to it.

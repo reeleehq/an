@@ -100,6 +100,24 @@ def test_the_latest_end_holds_and_a_tie_goes_to_the_later_clip():
     assert evaluate_timeline(tie, 5.0)[("a", "x")] == 2.0
 
 
+def test_a_tween_ending_between_frames_lands_on_its_end_value():
+    """The deliberate change (review of an#185): forward order used to hold the
+    last SAMPLED value — a 0.37 s tween to 10 at 24 fps stopped at 9.80 on
+    every later frame. The pure pose holds the value at the end, as authored."""
+    from an.adapters.cutout.compile import compile_shot
+    from an.ir.compose import tween
+    from an.ir.schema import Shot
+
+    shot = Shot(id="s", renderer="cutout", duration=1.0,
+                actions=[tween("root", "x", 10.0, 0.37, from_=0.0)])
+    tl = timeline_from_scene(compile_shot(shot, mall=None, fps=24))
+    state: dict = {}
+    for i in range(24):
+        state.update(_forward_only(tl, i / 24))
+    assert state[("root", "x")] == pytest.approx(9.8036, abs=1e-4)  # frame 8, eased
+    assert evaluate_timeline(tl, 12 / 24)[("root", "x")] == 10.0
+
+
 def test_of_two_swap_sets_on_one_node_only_the_latest_written_shows():
     """`viseme` and `viseme@happy` both set the mouth's texture (an#88): an
     ended variant span must not outlive the `viseme` track that took the mouth
@@ -131,11 +149,17 @@ def _application_order(key):
 
 def _apply(visible: dict, pose: dict) -> None:
     """What the runtime's node state becomes: per node, per WRITE GROUP, the
-    last key applied — and for a swap group, which set it was."""
+    last key applied — for a swap group, which set it was — and a tint
+    component CASCADES, overwriting every animated descendant's (`applyTintDeep`)."""
     for key in sorted(pose, key=_application_order):
         target, prop = key
         group = write_group(prop)
-        visible[(target, group)] = (prop if group == SWAP_WRITE_GROUP else None, pose[key])
+        value = (prop if group == SWAP_WRITE_GROUP else None, pose[key])
+        if prop.startswith("tint_"):
+            for node, g in list(visible):
+                if g == group and node.startswith(target + "/"):
+                    visible[(node, g)] = value
+        visible[(target, group)] = value
 
 
 def _corpus_shots():
@@ -170,9 +194,12 @@ def _corpus_shots():
 
 def test_forward_order_and_the_pure_pose_agree_on_every_corpus_frame(tmp_path):
     """Why no golden frame moved: rendering seeks 0..N-1 in order, and on that
-    path the old keep-the-last-value behaviour and the pure pose give the same
-    pose on every frame of every corpus scene. A future scene where a clip ends
-    off the frame grid mid-move would make them differ — and this names it."""
+    path the old keep-the-last-applied behaviour and the pure pose leave every
+    node in the same state on every frame of every corpus scene. They are NOT
+    the same rule in general (see the two tests below): the corpus has no clip
+    that ends between frames and no child tint held under a later parent tint.
+    A corpus scene that adds one fails here, naming the frame, before the
+    golden gate has to explain it."""
     bad = []
     for name, shot, fps, _, doc in _corpus_shots()(tmp_path):
         tl = timeline_from_scene(doc)
