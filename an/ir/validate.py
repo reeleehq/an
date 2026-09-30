@@ -915,7 +915,7 @@ def _descriptor_for(ref, available_characters) -> CharacterDescriptor | None:
 
 
 def _check_voice_effects(
-    report: "ValidationReport", path: str, k: int, voice_ref: str, voices
+    report: "ValidationReport", path: str, k: int, voice_ref: str, voices, *, line
 ) -> None:
     """An unknown or out-of-range ``effects`` entry on a line's voice is an
     error — rendering would raise the same ``VoiceEffectError``."""
@@ -925,6 +925,35 @@ def _check_voice_effects(
         report.add(
             "error", f"{path}/dialogue/{k}/voice_ref", f"voice {voice_ref!r}: {exc}"
         )
+    _check_elevenlabs_voice(report, path, k, voice_ref, voices, line=line)
+
+
+def _check_elevenlabs_voice(
+    report: "ValidationReport", path: str, k: int, voice_ref: str, voices, *, line
+) -> None:
+    """An ElevenLabs voice's malformed ``voice_settings``/``seed``/``model_id``
+    is an error (synthesis would raise it); a ``direction`` its model cannot
+    read is a warning — the cue is dropped (an#209)."""
+    import warnings
+
+    from an.audio.elevenlabs_tts import ElevenLabsTTS, ElevenLabsVoiceError
+    from an.audio.voices import voice_applies, voice_document
+
+    doc = voice_document({"voices": voices}, voice_ref)
+    tts = ElevenLabsTTS(api_key="validate-never-calls")
+    if not doc.get("provider") or not voice_applies(doc, tts.name):
+        return
+    try:
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always")
+            tts.synthesis_options(doc, emotion=line.emotion, direction=line.direction)
+    except ElevenLabsVoiceError as exc:
+        report.add(
+            "error", f"{path}/dialogue/{k}/voice_ref", f"voice {voice_ref!r}: {exc}"
+        )
+        return
+    for w in caught:
+        report.add("warning", f"{path}/dialogue/{k}/direction", str(w.message))
 
 
 def _check_camera(shot, path: str, report: "ValidationReport", stores=None) -> None:
@@ -1379,7 +1408,9 @@ def validate_semantic(
                         "the TTS provider is handed the name itself",
                     )
                 else:
-                    _check_voice_effects(report, path, k, voice_ref, available_voices)
+                    _check_voice_effects(
+                        report, path, k, voice_ref, available_voices, line=line
+                    )
 
         for k, line in enumerate(shot.dialogue):
             if not line.text.strip():

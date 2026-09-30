@@ -276,10 +276,12 @@ def _extract_yaml_block(text: str, label: str) -> dict[str, Any] | None:
 
 _DIALOGUE_LINE_RE = re.compile(
     r"^\s*(?P<speaker>[\w-]+)"
-    r"(?P<mods>(?:\s*(?:\[[^\]]*\]|\([^)]*\)))*)"
+    r"(?P<mods>(?:\s*(?:\[[^\]]*\]|\([^)]*\)|\{[^}]*\}))*)"
     r"\s*:\s*(?P<text>.*?)\s*$"
 )
-_DIALOGUE_MOD_RE = re.compile(r"\[(?P<bracket>[^\]]*)\]|\((?P<paren>[^)]*)\)")
+_DIALOGUE_MOD_RE = re.compile(
+    r"\[(?P<bracket>[^\]]*)\]|\((?P<paren>[^)]*)\)|\{(?P<brace>[^}]*)\}"
+)
 _EMOTION_RE = re.compile(r"[\w-]+")
 #: ``(pause 1.5)``, ``(pause 1.5s)``, ``(at 3)``, ``(at 3.0s)`` — the timing a
 #: dialogue line may carry in ``scene.md`` (an#187). Parentheses hold timing,
@@ -289,15 +291,16 @@ _DIALOGUE_TIMING_RE = re.compile(
     re.IGNORECASE,
 )
 _DIALOGUE_GRAMMAR = (
-    "`speaker [emotion] (pause 1.5): text` — the emotion in square brackets and "
-    "the timing in parentheses are each optional: `(pause <s>)` is silence "
-    "after the previous line, `(at <s>)` a start in shot seconds; speaker ids "
-    "are `[\\w-]+`"
+    "`speaker [emotion] {direction} (pause 1.5): text` — the emotion in square "
+    "brackets, the delivery direction in braces (comma-separated cues such as "
+    "`{sighs, annoyed}`) and the timing in parentheses are each optional: "
+    "`(pause <s>)` is silence after the previous line, `(at <s>)` a start in "
+    "shot seconds; speaker ids are `[\\w-]+`"
 )
 
 
 def _parse_dialogue_line(line: str, *, where: str) -> Dialogue:
-    """One ``speaker [emotion] (timing): text`` line → a `Dialogue`."""
+    """One ``speaker [emotion] {direction} (timing): text`` line → a `Dialogue`."""
 
     def refuse(why: str) -> SceneMarkdownError:
         return SceneMarkdownError(
@@ -314,6 +317,17 @@ def _parse_dialogue_line(line: str, *, where: str) -> Dialogue:
         "text": match.group("text").strip(),
     }
     for mod in _DIALOGUE_MOD_RE.finditer(match.group("mods")):
+        if mod.group("brace") is not None:
+            if "direction" in kwargs:
+                raise refuse("carries two directions; list every cue in one `{...}`")
+            cues = [c.strip() for c in mod.group("brace").split(",")]
+            if not all(cues):
+                raise refuse(
+                    f"has {{{mod.group('brace')}}}, an empty direction cue; cues "
+                    "are comma-separated, e.g. `{sighs, annoyed}`"
+                )
+            kwargs["direction"] = cues
+            continue
         if mod.group("bracket") is not None:
             emotion = mod.group("bracket").strip()
             if not _EMOTION_RE.fullmatch(emotion):
@@ -331,7 +345,12 @@ def _parse_dialogue_line(line: str, *, where: str) -> Dialogue:
         if "pause" in kwargs or "at" in kwargs:
             raise refuse("carries two timings; a line takes one `pause` or one `at`")
         kwargs[timing.group("key").lower()] = float(timing.group("value"))
-    return Dialogue(**kwargs)
+    try:
+        return Dialogue(**kwargs)
+    except ValueError as e:  # pydantic's ValidationError is one
+        errors = getattr(e, "errors", None)
+        why = "; ".join(err["msg"] for err in errors()) if errors else str(e)
+        raise refuse(f"does not validate ({why})") from None
 
 
 def _format_dialogue_line(line: Dialogue) -> str:
@@ -339,6 +358,8 @@ def _format_dialogue_line(line: Dialogue) -> str:
     head = line.speaker
     if line.emotion:
         head += f" [{line.emotion}]"
+    if line.direction:
+        head += " {" + ", ".join(line.direction) + "}"
     for key in ("pause", "at"):
         value = getattr(line, key, None)
         if value is not None:
@@ -361,14 +382,17 @@ def _format_seconds(value: float) -> str:
 def _extract_dialogue_block(text: str, *, shot_id: str | None = None) -> list[Dialogue]:
     """Parse a ```dialogue block.
 
-    Each non-empty, non-comment line follows ``speaker [emotion] (timing): text``
-    where the bracketed emotion and the parenthesised timing are optional, in
-    either order. Examples:
+    Each non-empty, non-comment line follows
+    ``speaker [emotion] {direction} (timing): text`` where the bracketed
+    emotion, the braced delivery direction (an#209) and the parenthesised
+    timing are optional, in any order. Examples:
 
         charlie: Hello.
         charlie [happy]: Hello!
         maya [skeptical] (pause 1.5): Sure.
         maya (at 4): Goodbye.
+        bob [happy] {excited}: Hi!
+        ned {sighs, annoyed}: Fine.
 
     ``(pause <s>)`` is silence after the previous line ends; ``(at <s>)`` starts
     the line at that shot time (an#187). A line that matches none of those

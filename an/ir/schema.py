@@ -34,7 +34,14 @@ from __future__ import annotations
 import re
 from typing import Annotated, Any, Literal, Union
 
-from pydantic import model_serializer, BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    model_serializer,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from an.base import (
     COMPATIBLE_VERSION,
@@ -501,6 +508,11 @@ class WordTimingIR(_IRModel):
         return self
 
 
+#: One delivery cue of a dialogue line's ``direction`` (an#209): words, spaces,
+#: apostrophes, hyphens — ``excited``, ``clears throat``, ``in a hurry``.
+_DIRECTION_CUE_RE = re.compile(r"[\w'][\w' -]*")
+
+
 class Dialogue(_IRModel):
     """One line of spoken dialogue.
 
@@ -529,6 +541,27 @@ class Dialogue(_IRModel):
     #: DERIVES from ``at``/``pause`` on every pass; these two are what the
     #: author wrote (an#187).
     at: Seconds | None = Field(default=None, ge=0, allow_inf_nan=False)
+    #: How the line is DELIVERED — cues such as ``["excited"]`` or
+    #: ``["sighs", "annoyed"]``, ``{excited}`` in ``scene.md`` (an#209). A TTS
+    #: model that takes inline audio tags (ElevenLabs v3/v4) receives them as
+    #: ``[excited] Hi!``; others ignore them. Never part of ``text``, so
+    #: captions and lip-sync alignment never see a cue.
+    direction: list[str] | None = None
+
+    @field_validator("direction")
+    @classmethod
+    def _clean_direction(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return None
+        cues = [str(c).strip() for c in value]
+        bad = [c for c in cues if not _DIRECTION_CUE_RE.fullmatch(c)]
+        if bad:
+            raise ValueError(
+                f"direction cue(s) {bad} are not cues: a cue is words, spaces, "
+                "apostrophes and hyphens (`excited`, `clears throat`), with no "
+                "brackets — the provider adds its own"
+            )
+        return cues or None
 
     @model_validator(mode="after")
     def _one_timing(self) -> "Dialogue":
@@ -575,7 +608,7 @@ class Dialogue(_IRModel):
         """
         data = handler(self)
         if isinstance(data, dict):
-            for key in ("pause", "at"):
+            for key in ("pause", "at", "direction"):
                 if getattr(self, key) is None:
                     data.pop(key, None)
         return data

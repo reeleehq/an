@@ -12,7 +12,12 @@ order, first hit wins:
 
 A voice document may name the TTS provider's own voice with ``voice_id`` (a
 ``say -v`` name for ``mac_say``, a voice id for ElevenLabs); the provider is
-handed that, and otherwise the store key itself. Nothing declared anywhere
+handed that, and otherwise the store key itself. A document that declares
+``provider`` scopes its provider-specific keys (``voice_id``, and the
+``model_id`` / ``voice_settings`` / ``seed`` ElevenLabs reads — an#209) to that
+provider: rendered with another one, the line is handed ``"default"``, so an
+ElevenLabs-voiced project previews with ``mac_say`` or ``offline`` instead of
+failing on a foreign voice id. Nothing declared anywhere
 resolves every line to ``"default"`` handed to the provider as ``"default"`` —
 exactly what the pipeline did before this module, so no cache key moves.
 
@@ -29,6 +34,9 @@ exactly what the pipeline did before this module, so no cache key moves.
 'own'
 >>> provider_voice(mall, "carl_kid"), provider_voice(mall, "default")
 ('Junior', None)
+>>> mall["voices"]["bob"] = {"provider": "elevenlabs", "voice_id": "abc123"}
+>>> provider_voice(mall, "bob", tts_name="elevenlabs"), provider_voice(mall, "bob", tts_name="mac_say")
+('abc123', 'default')
 """
 
 from __future__ import annotations
@@ -40,6 +48,8 @@ from typing import Any
 DEFAULT_VOICE: str = "default"
 #: The key, in a voice document, naming the TTS provider's own voice.
 PROVIDER_VOICE_KEY: str = "voice_id"
+#: The key, in a voice document, naming the TTS provider it is written for.
+PROVIDER_KEY: str = "provider"
 #: The key, in a character descriptor (or an entity's ``overrides``), naming
 #: the character's voice in the ``voices`` store.
 CHARACTER_VOICE_KEY: str = "voice_ref"
@@ -84,18 +94,49 @@ def line_voice_id(
     return line.voice_ref or speaker_voice_ref(line.speaker, shot, mall) or default
 
 
-def provider_voice(mall: Mapping | None, voice_id: str) -> str | None:
+def voice_document(mall: Mapping | None, voice_id: str) -> Mapping:
+    """``mall["voices"][voice_id]`` when it is a mapping, else ``{}``."""
+    voices = mall.get("voices") if mall is not None else None
+    if voices is None or voice_id not in voices:
+        return {}
+    doc = voices[voice_id]
+    return doc if isinstance(doc, Mapping) else {}
+
+
+def voice_applies(doc: Mapping, tts_name: str | None) -> bool:
+    """Whether ``doc``'s provider-specific keys apply under the TTS ``tts_name``.
+
+    True when the document names no ``provider``, or names this one (case
+    ignored), or when the caller does not say which provider is speaking.
+
+    >>> voice_applies({}, "offline"), voice_applies({"provider": "ElevenLabs"}, "elevenlabs")
+    (True, True)
+    >>> voice_applies({"provider": "elevenlabs"}, "offline")
+    False
+    """
+    declared = doc.get(PROVIDER_KEY)
+    if not declared or tts_name is None:
+        return True
+    return str(declared).lower() == str(tts_name).lower()
+
+
+def provider_voice(
+    mall: Mapping | None, voice_id: str, *, tts_name: str | None = None
+) -> str | None:
     """The provider voice ``mall["voices"][voice_id]`` names, or ``None``.
 
     ``None`` means "hand the provider ``voice_id`` itself" — a voice that is not
     in the store, a document without ``voice_id``, or one whose ``voice_id`` is
     its own key (which changes nothing, so it must not move a cache key).
+    Given ``tts_name``, a document written for ANOTHER provider gives
+    :data:`DEFAULT_VOICE` — never a foreign voice id (an#209).
     """
-    voices = mall.get("voices") if mall is not None else None
-    if voices is None or voice_id not in voices:
+    doc = voice_document(mall, voice_id)
+    if not doc:
         return None
-    doc = voices[voice_id]
-    named = doc.get(PROVIDER_VOICE_KEY) if isinstance(doc, Mapping) else None
+    if not voice_applies(doc, tts_name):
+        return DEFAULT_VOICE if voice_id != DEFAULT_VOICE else None
+    named = doc.get(PROVIDER_VOICE_KEY)
     if not isinstance(named, str) or not named or named == voice_id:
         return None
     return named
