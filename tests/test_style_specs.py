@@ -138,9 +138,38 @@ def test_ranges_and_characters(spec):
     assert shots["range_s"][0] <= shots["mean_s"] <= shots["range_s"][1]
     chars = live["characters"]
     assert chars["generate"] in GENERATORS
-    assert set(chars) <= {"generate", "mouth_variants", "tint"} | set(FACTORY_KNOBS)
+    assert set(chars) <= {"generate", "mouth_variants", "tint", "view"} | set(FACTORY_KNOBS)
     if "tint" in chars:
         assert chars["tint"].startswith("#") and len(chars["tint"]) == 7
+
+
+def test_a_spec_s_default_view_is_one_the_factory_draws(spec, tmp_path):
+    """`live.characters.view` (an#197; Reiniger's profile) is a `set` of `view`
+    on each character root, so it must be a key of the `view` set an offline
+    character is built with — checked on a BUILT character, not a constant."""
+    from an.characters import new_character
+    from an.characters.schema import VIEW_CHANNEL, CharacterDescriptor
+
+    view = spec["live"]["characters"].get("view")
+    if view is None:
+        return
+    assert spec["live"]["characters"]["generate"] == "offline", "only the factory draws views"
+    path = new_character(tmp_path, name="c", use_dicebear=False)
+    desc = CharacterDescriptor.model_validate_json(path.read_text("utf-8"))
+    assert view in desc.asset_sets[VIEW_CHANNEL]
+
+
+def test_the_reiniger_silhouette_defaults_to_the_profile():
+    """The evidence run faked Reiniger's profile with a squash: the spec says
+    `side`, and its turns stay in profile."""
+    live = _load(SPEC_DIR / "reiniger.yaml")["live"]
+    assert live["characters"]["view"] == "side"
+    assert "turn" in live["motion_presets"]
+
+
+@pytest.mark.parametrize("style", ["south_park", "oversimplified"])
+def test_the_dialogue_styles_turn_with_the_preset(style):
+    assert "turn" in _load(SPEC_DIR / f"{style}.yaml")["live"]["motion_presets"]
 
 
 #: `live.characters` keys that are `new_character` keyword arguments, with how a
@@ -267,6 +296,7 @@ STALE_ABSENCE_CLAIMS = {
     r"\bno (plane|parallax|multiplane) (layer|support)": "plane environments ship (an#110)",
     r"\bno (sound|audio) (layer|support|track)": "shot and meta `sounds` ship (an#176)",
     r"\bno transitions?\b": "shot transitions ship (an#176)",
+    r"\b(use|needs?) side-view art|\bno (profile|side[- ]view|turnaround)": "views ship (an#197): `live.characters.view`, `play: turn`",
 }
 
 SKILL_MD = SPEC_DIR.parent / "SKILL.md"

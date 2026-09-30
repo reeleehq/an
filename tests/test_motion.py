@@ -41,6 +41,7 @@ from an.motion import (
     slide_in,
     slide_out,
     squash_stretch,
+    turn,
     waddle,
 )
 from an.stores.characters import CharactersStore
@@ -104,17 +105,32 @@ PROCEDURAL_CALLS = {
     "squash_stretch": lambda: squash_stretch("charlie"),
     "waddle": lambda: waddle("charlie", travel=80.0),
 }
+#: Presets that swap a SET, which only a descriptor declares (an#197): `turn`
+#: swaps the view. The procedural rig refuses them loudly (below); on `gale`,
+#: `turn` swaps the fixture's own `body_facing` set — the whole-character swap
+#: is set-agnostic, and a view set is only the factory's convention.
+DESCRIPTOR_ONLY: frozenset[str] = frozenset({"turn"})
 DESCRIPTOR_CALLS = {
-    **{k: (lambda f=f: f("gale")) for k, f in PRESETS.items() if k != "point"},
+    **{k: (lambda f=f: f("gale")) for k, f in PRESETS.items() if k not in ("point", "turn")},
     "point": lambda: point("gale/arm_r", angle=1.3),
+    "turn": lambda: turn("gale", to="left", view_set="body_facing"),
 }
+PROCEDURAL_PRESETS = sorted(set(PRESETS) - DESCRIPTOR_ONLY)
 
 
 def test_every_preset_is_covered_on_both_rigs():
-    assert set(PROCEDURAL_CALLS) == set(PRESETS) == set(DESCRIPTOR_CALLS)
+    assert set(PROCEDURAL_CALLS) | DESCRIPTOR_ONLY == set(PRESETS) == set(DESCRIPTOR_CALLS)
 
 
-@pytest.mark.parametrize("name", sorted(PRESETS))
+def test_a_swapping_preset_on_the_procedural_rig_is_refused_by_name():
+    from an.adapters.cutout.compile import CutoutCompileError
+    from an.ir.schema import PlayAction
+
+    with pytest.raises(CutoutCompileError, match="'view'"):
+        _compile(_shot([PlayAction(target="charlie", animation="turn")]))
+
+
+@pytest.mark.parametrize("name", PROCEDURAL_PRESETS)
 def test_preset_targets_nodes_the_procedural_rig_builds(name):
     action = PROCEDURAL_CALLS[name]()
     scene = _compile(_shot([action]))
@@ -145,7 +161,7 @@ def test_the_rigs_name_their_arms_differently():
     assert "charlie/right_arm" in _node_paths(scene)
 
 
-@pytest.mark.parametrize("name", sorted(set(PRESETS) - {"slide_out"}))
+@pytest.mark.parametrize("name", sorted(set(PROCEDURAL_PRESETS) - {"slide_out"}))
 def test_preset_ends_at_rest(name):
     """Every preset but the exit leaves each property it touched at REST."""
     action = PROCEDURAL_CALLS[name]()
@@ -171,7 +187,7 @@ def _landed(scene, *, fps, duration):
 
 
 @pytest.mark.parametrize("fps,step_hz", [(30, None), (24, None), (30, 10.0), (30, 15.0)])
-@pytest.mark.parametrize("name", sorted(PRESETS))
+@pytest.mark.parametrize("name", PROCEDURAL_PRESETS)
 def test_preset_lands_on_its_end_value_at_frame_times(name, fps, step_hz):
     """The review's catch: a 0.36 s squash at 30 fps used to be left at
     scale 0.96/1.04, and a shake under step_hz 10 stranded 8 px off rest,
@@ -191,6 +207,20 @@ def test_preset_lands_on_its_end_value_at_frame_times(name, fps, step_hz):
     shown = _landed(scene, fps=fps, duration=shot.duration)
     for key, (_, value) in ends.items():
         assert shown[key] == pytest.approx(value, abs=1e-9), key
+
+
+@pytest.mark.parametrize("fps,step_hz", [(30, None), (24, None), (30, 10.0)])
+def test_turn_lands_mirrored_on_the_swapped_key(fps, step_hz, gale_store):
+    """`turn` on a descriptor rig: `scale_x` lands on minus the rest for a left
+    facing, and the torso shows the swapped key, at frame times (an#197)."""
+    action = turn("gale", to="left", direction="left", view_set="body_facing")
+    shot = _shot([action], entities=[_char("gale")], duration=duration_of(action) + 0.5)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        scene = compile_shot(shot, {"characters": gale_store}, fps=fps, step_hz=step_hz)
+    shown = _landed(scene, fps=fps, duration=shot.duration)
+    assert shown[("gale", "scale_x")] == pytest.approx(-1.0, abs=1e-9)
+    assert shown[("gale/torso", "body_facing")] == "left"
 
 
 def test_hop_reaches_its_apex_mid_move():

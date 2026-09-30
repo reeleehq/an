@@ -46,7 +46,7 @@ the caller reads off the built scene, so an author never passes ``rest``.
 >>> play_problems(desc, "walk")  # doctest: +NORMALIZE_WHITESPACE
 ["no animation 'walk': the descriptor declares ['blink', 'idle_breath'] and no
   motion preset has that name (presets: ['hop', 'nod', 'point', 'pop_in',
-  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'waddle'])"]
+  'shake', 'slide_in', 'slide_out', 'squash_stretch', 'turn', 'waddle'])"]
 >>> play_source(desc, "hop"), play_source(None, "hop"), play_source(desc, "blink")
 ('preset', 'preset', 'descriptor')
 """
@@ -303,8 +303,11 @@ def play_problems(
     except PlayResolutionError as e:
         return list(e.problems)
     if source == PRESET_SOURCE:
-        return preset_problems(
+        problems = preset_problems(
             animation, args=args, duration=duration, speed=speed, loop=loop
+        )
+        return problems or preset_swap_problems(
+            desc, animation, args=args, art_exists=art_exists
         )
     problems: list[str] = []
     if args:
@@ -382,6 +385,72 @@ def preset_problems(
             problems.append(f"motion preset {animation!r} refuses {args!r}: {e}")
         else:
             problems.extend(_easing_problems(animation, tree))
+    return problems
+
+
+def preset_swap_problems(
+    desc: CharacterDescriptor | None,
+    animation: str,
+    *,
+    args: Mapping[str, object] | None = None,
+    art_exists: Callable[[str], bool] | None = None,
+) -> list[str]:
+    """Why the swap ``set`` s a motion preset emits cannot land on ``desc`` —
+    ``turn`` swaps the character's ``view`` set (an#197), which a character
+    made before views, a DiceBear head or a procedural rig does not declare.
+    Checked here so ``an validate`` says it before the render does — including
+    a key whose art is missing on a slot it swaps (``art_exists``, when the
+    caller can tell), which the compiler drops and ``strict_assets`` refuses.
+
+    >>> preset_swap_problems(None, "turn")  # doctest: +ELLIPSIS
+    ["motion preset 'turn' swaps 'view' to 'back', but the entity has no descriptor..."]
+    >>> preset_swap_problems(None, "hop")
+    []
+    """
+    from an.base import TRANSFORM_PROPERTIES
+    from an.ir.compose import flatten
+    from an.ir.schema import SetAction
+
+    tree = _presets()[animation]("_", **dict(args or {}))
+    problems: list[str] = []
+    for f in flatten(tree):
+        leaf = f.action
+        if not isinstance(leaf, SetAction) or leaf.property in TRANSFORM_PROPERTIES:
+            continue
+        what = f"motion preset {animation!r} swaps {leaf.property!r} to {leaf.value!r}"
+        hint = (
+            " — `an character new --offline` draws the views, and `an character "
+            "add-views` adds them to a factory character made before them"
+            if leaf.property == "view"
+            else ""
+        )
+        if desc is None:
+            problems.append(
+                f"{what}, but the entity has no descriptor, so it declares no "
+                f"swap sets{hint}"
+            )
+        elif leaf.property not in desc.asset_sets:
+            problems.append(
+                f"{what}, but the descriptor declares no {leaf.property!r} set "
+                f"(it has: {sorted(desc.asset_sets)}){hint}"
+            )
+        elif leaf.value not in desc.asset_sets[leaf.property]:
+            problems.append(
+                f"{what}, which is not a key of its {leaf.property!r} set "
+                f"(keys: {sorted(desc.asset_sets[leaf.property])})"
+            )
+        elif art_exists is not None:
+            name = desc.asset_sets[leaf.property][leaf.value]
+            skin = desc.skins.get("default") or next(iter(desc.skins.values()), None)
+            missing = sorted(
+                att.path
+                for atts in (skin.slots.values() if skin is not None else ())
+                if name in atts
+                for att in (atts[name],)
+                if not art_exists(att.path)
+            )
+            if missing:
+                problems.append(f"{what}, but its art is not on disk: {missing}")
     return problems
 
 

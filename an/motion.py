@@ -1,8 +1,8 @@
 """Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 
 ``pop_in``, ``hop``, ``shake``, ``nod``, ``point``, ``slide_in``, ``slide_out``,
-``squash_stretch`` and ``waddle`` each EXPAND to ordinary ``tween`` actions on
-transform properties, composed with :func:`~an.ir.compose.sequence` and
+``squash_stretch``, ``waddle`` and ``turn`` each EXPAND to ordinary ``tween``
+actions on transform properties (``turn`` adds one swap ``set``), composed with :func:`~an.ir.compose.sequence` and
 :func:`~an.ir.compose.parallel`. Called from Python, nothing downstream
 learns a preset exists: the flat timeline, ``an validate``, the verifiers and
 the renderer see the same tweens an author could have written by hand. Played
@@ -110,6 +110,10 @@ DFLT_WADDLE_STEPS: int = 4
 DFLT_WADDLE_STEP_DURATION: Seconds = 0.3
 DFLT_WADDLE_ANGLE: float = 0.1  # radians
 DFLT_WADDLE_LIFT: float = 6.0  # scene px
+DFLT_TURN_DURATION: Seconds = 0.3
+#: The swap set a turn swaps: the factory's turnaround (an#197).
+DFLT_TURN_SET: str = "view"
+DFLT_TURN_TO: str = "back"
 
 #: The properties a preset may read a rest value for.
 POSE_PROPERTIES: tuple[str, ...] = ("x", "y", "rotation", "scale_x", "scale_y", "alpha")
@@ -519,6 +523,115 @@ def waddle(
     return parallel(*moves)
 
 
+_FACINGS: tuple[str, ...] = ("right", "left")
+
+
+def _facing_sign(name: str, value: str) -> float:
+    if value not in _FACINGS:
+        raise ValueError(f"{name} must be one of {list(_FACINGS)}, got {value!r}")
+    return -1.0 if value == "left" else 1.0
+
+
+def turn(
+    target: PathStr,
+    *,
+    to: str = DFLT_TURN_TO,
+    direction: str = "right",
+    from_direction: str | None = None,
+    duration: Seconds = DFLT_TURN_DURATION,
+    view_set: str = DFLT_TURN_SET,
+    rest: Rest | None = None,
+) -> Action:
+    """Turn a character to the view ``to`` — the classic cut-out turn (an#197).
+
+    ``scale_x`` squashes to 0 (the character edge-on), the view swaps at that
+    midpoint, and ``scale_x`` opens again to the rest scale — mirrored when
+    ``direction="left"``: a ``side`` view is drawn facing the viewer's right,
+    so ``direction`` is which way the character FACES after the turn.
+    ``from_direction`` is which way it faced before — by default the sign of
+    the rest ``scale_x`` (a character staged mirrored faces left); the preset
+    cannot see an EARLIER turn, so turning back from a left-facing profile is
+    ``turn(to="front", from_direction="left")``.
+
+    ``to`` is a key of the character's ``view`` set — ``front``, ``back``,
+    ``side`` or ``three_quarter`` on a factory character
+    (``an character new --offline``); the swap is a ``set`` on the ENTITY,
+    which the compiler fans out to the head and torso and which poses the face
+    (the back hides it, the profile keeps one eye). ``rest`` is the entity's:
+    its ``scale_x`` magnitude is where the turn opens to.
+
+    >>> def lands(a):  # a tween's end value, a set's value
+    ...     return a.to_value if a.kind == "tween" else a.value
+    >>> [(round(f.start, 2), f.action.property, lands(f.action))
+    ...  for f in flatten(turn("ned", to="side", direction="left"))]
+    [(0.0, 'scale_x', 0.0), (0.15, 'view', 'side'), (0.15, 'scale_x', -1.0), (0.3, 'scale_x', -1.0)]
+    """
+    _positive(duration=duration)
+    if not isinstance(to, str) or not to:
+        raise ValueError(f"to must name a view (a key of the {view_set!r} set), got {to!r}")
+    rest_sx = _rest(rest, "scale_x")
+    s0 = abs(rest_sx)
+    if from_direction is None:
+        from_direction = "left" if rest_sx < 0 else "right"
+    before = _facing_sign("from_direction", from_direction) * s0
+    after = _facing_sign("direction", direction) * s0
+    half = duration / 2
+    return sequence(
+        tween(target, "scale_x", to=0.0, duration=half, from_=before, easing=DFLT_IN_EASING),
+        parallel(
+            set_(target, view_set, to),
+            _settled(
+                target,
+                "scale_x",
+                after,
+                tween(
+                    target,
+                    "scale_x",
+                    to=after,
+                    duration=half,
+                    from_=0.0,
+                    easing=DFLT_OUT_EASING,
+                ),
+            ),
+        ),
+    )
+
+
+def face_toward(
+    shot: Shot,
+    who: str,
+    other: str,
+    *,
+    view: str = "side",
+    from_direction: str | None = None,
+    duration: Seconds = DFLT_TURN_DURATION,
+    mall: Mapping[str, Mapping] | None = None,
+) -> Action:
+    """:func:`turn` ``who`` to ``view``, facing ``other`` — the direction read
+    off the stage, so a profile looks at the other character wherever the
+    layout put them.
+
+    >>> from an.ir.schema import AssetRef
+    >>> two = Shot(id="s", entities=[
+    ...     AssetRef(kind="character", id=n, store="characters", ref=n) for n in ("a", "b")])
+    >>> [f.action.to_value for f in _tweens(face_toward(two, "b", "a"))]
+    [0.0, -1.0]
+    """
+    poses = stage_poses(shot, mall=mall)
+    for name in (who, other):
+        if name not in poses:
+            raise KeyError(f"no entity {name!r} in the shot; built: {sorted(poses)}")
+    direction = "right" if poses[other]["x"] >= poses[who]["x"] else "left"
+    return turn(
+        who,
+        to=view,
+        direction=direction,
+        from_direction=from_direction,
+        duration=duration,
+        rest=poses[who],
+    )
+
+
 #: Every preset by name — the one list the skill, the demo and the ``play``
 #: fallback (:func:`an.characters.play.play_source`, an#166) read.
 PRESETS: dict[str, Callable[..., Action]] = {
@@ -533,6 +646,7 @@ PRESETS: dict[str, Callable[..., Action]] = {
         slide_out,
         squash_stretch,
         waddle,
+        turn,
     )
 }
 
@@ -649,6 +763,7 @@ def as_leaves(action: Action, *, start: Seconds = 0.0) -> list[Action]:
 
 __all__ = [
     "IDENTITY_POSE",
+    "face_toward",
     "OVERSHOOT",
     "PRESETS",
     "as_leaves",
@@ -662,5 +777,6 @@ __all__ = [
     "slide_in",
     "slide_out",
     "squash_stretch",
+    "turn",
     "waddle",
 ]

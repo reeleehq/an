@@ -1,6 +1,6 @@
 ---
 name: an-dev-swap-channels
-description: How swap channels work in the `an` repo — the one generic replacement-animation mechanism (an#87) that viseme, eyelid, hands, body_facing and every future set ride. Use when touching `asset_sets`, the per-slot projection in `compile.py`, `applySwap`/`applyProperty` in `runtime.js`, `VisualJSON.asset_sets`, swap validation, texture aliases, or when adding a new swap set or authoring swaps from scene.md. Triggers on "swap channel", "asset set", "attachment swap", "texture swap", "viseme special case", "the mouth doesn't change", "unknown swap key", "add a hands set", "turnaround", "body_facing", "eyelid".
+description: How swap channels work in the `an` repo — the one generic replacement-animation mechanism (an#87) that viseme, eyelid, hands, body_facing, view and every future set ride, plus whole-character swaps and `swap_poses` (an#197). Use when touching `asset_sets`, the per-slot projection in `compile.py`, `applySwap`/`applyProperty` in `runtime.js`, `VisualJSON.asset_sets`, swap validation, texture aliases, or when adding a new swap set or authoring swaps from scene.md. Triggers on "swap channel", "asset set", "attachment swap", "texture swap", "viseme special case", "the mouth doesn't change", "unknown swap key", "add a hands set", "turnaround", "body_facing", "eyelid".
 ---
 
 # Swap channels: one implementation, sets as data
@@ -113,6 +113,27 @@ If your new set needed code, you broke the generalisation; stop and fix that.
 | Pre-render validation | `an/ir/validate.py::_check_swap_references` (transform list duplicated-and-pinned); `an/characters/validate.py::_check_asset_sets` |
 | Proof fixture + tests | `tests/fixtures/characters/gale/`, `tests/test_swap_channels.py` |
 | Demo | `misc/demos/build_demos.py::_build_swap_channels` |
+
+## Whole-character swaps and `swap_poses` (an#197)
+
+A `set` of a swap set on the ENTITY itself (`{kind: set, target: ned,
+property: view, value: side}`) is fanned out by `_fan_out_entity_swaps` into
+the same `set` on every path `swap_capable_paths(entity, set)` returns, each
+then checked like an authored swap; it only fires for a descriptor character
+whose root node does not carry the set. Each fan-out is recorded, and
+`_swap_pose_layer` turns the descriptor's `swap_poses[set][key][slot]`
+(`SlotPose`: `x`/`y` offsets in view_box units, `scale_x`/`scale_y`/`alpha`
+factors) into step curves per (node, property) — a slot posed under any key
+of the set returns to rest under the others. The face solver takes a posed
+entity down its solver path and FOLDS a curve into any channel it drives
+(the pupil's gaze `x` is summed onto the posed `x`, never a second channel
+fighting it); the rest ride its `__face__` clip as step channels. Nothing
+names `view`: it is the factory's convention (`an.characters.schema.
+VIEW_CHANNEL`), and the `gale` fixture's `body_facing` turns the same way
+(`tests/test_motion.py`). This is the "multi-slot turnaround" the Wave 5
+ruling deferred — done as a fan-out plus data, not a skin switch: the swap
+still carries texture only, so view art lives on the default part's canvas.
+Tests: `tests/test_turnaround.py`.
 
 ## `play` rides the same channels (an#7)
 

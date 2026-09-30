@@ -22,7 +22,7 @@ live:
     allowed: [hold, push_in, pan_left, pan_right]   # push-ins on still prints, pans over maps
   easing: [ease_out, linear]
   tween_duration_s: [0.13, 0.4]   # 4-12 frames, then a hold: burst-and-hold
-  motion_presets: [pop_in, slide_in, slide_out, shake]   # an.motion
+  motion_presets: [pop_in, slide_in, slide_out, shake, turn]   # an.motion; `turn` for an about-face (to back) or a profile march (to side)
   shots:
     mean_s: 6.0              # measured, median 4.7, n=10
     range_s: [2, 12]

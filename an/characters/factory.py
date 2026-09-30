@@ -434,6 +434,7 @@ def new_character(
     head_scale: float = 1.0,
     hat: str = DFLT_HAT,
     sash: bool = False,
+    views: bool = True,
 ) -> Path:
     """Build a complete character on disk.
 
@@ -451,6 +452,12 @@ def new_character(
       offsets, the pupil travel) scaled together, so a big head keeps its face.
     - ``hat`` — a key of :data:`HATS` (offline head only), in ``accessory``.
     - ``sash`` — a diagonal band across the torso, in ``accessory``.
+    - ``views`` (an#197) — draw the turnaround: ``back``, ``side`` (a profile
+      facing the viewer's right) and ``three_quarter`` beside the front, as a
+      ``view`` swap set with a pose per view (:func:`add_views`), so
+      :func:`an.motion.turn` can turn the character around. Offline head only
+      (a DiceBear face is baked into its art); ignored for a DiceBear head.
+      Additive: a shot that never sets a view renders exactly as without it.
 
     Every colour the factory draws in a role is recorded in the descriptor's
     ``colour_roles`` so a style pack can recolour it later (palette swapping,
@@ -633,6 +640,8 @@ def new_character(
         add_gaze(out)  # the lid's fill is read off the head art it just wrote
     if head_scale != 1.0:
         _scale_face(out, head_scale)
+    if views and head_is_ours:
+        add_views(out)
     return desc_path
 
 
@@ -1072,11 +1081,16 @@ def _write_head_part(
     762×762 one nearly three times it (an#168). Only the root's
     ``width``/``height`` change; the drawing and its viewBox are untouched.
     """
+    path.write_text(_head_part_text(avatar_svg, height=height), encoding="utf-8")
+    return path
+
+
+def _head_part_text(avatar_svg: str, *, height: float = REFERENCE_HEAD_HEIGHT) -> str:
+    """What :func:`_write_head_part` writes: the avatar sized to ``height``."""
     avatar_svg = _sized_to_height(avatar_svg, height)
     if not avatar_svg.lstrip().startswith("<?xml"):
         avatar_svg = '<?xml version="1.0" encoding="UTF-8"?>\n' + avatar_svg.lstrip()
-    path.write_text(avatar_svg, encoding="utf-8")
-    return path
+    return avatar_svg
 
 
 def _write_torso_part(
@@ -1192,3 +1206,347 @@ def _synthesize_brow(path: Path, *, side: str, color: str = DFLT_BROW_COLOUR) ->
     )
     path.write_text(svg, encoding="utf-8")
     return path
+
+
+# -----------------------------------------------------------------------------
+# Views: the turnaround (an#197)
+# -----------------------------------------------------------------------------
+
+#: How a view's head is drawn, per hat, where it differs from the front
+#: (``_HAT_SVG``). Same 80x80 drawing space, same ``{acc}``/``{ink}`` slots. A
+#: side view faces the viewer's RIGHT: the cap's peak points that way, and a
+#: bicorne worn athwart shows its narrow end.
+_HAT_VIEW_SVG: dict[str, dict[str, str]] = {
+    "back": {
+        # From behind, a cap is its crown: no peak.
+        "cap": (
+            '<path d="M 12 22 C 12 3 68 3 68 22 Z" fill="{acc}" stroke="{ink}" stroke-width="1.5"/>'
+            '<circle cx="40" cy="4.5" r="2" fill="{acc}" stroke="{ink}" stroke-width="1"/>'
+        ),
+    },
+    "side": {
+        "cap": (
+            '<path d="M 12 22 C 12 3 68 3 68 22 Z" fill="{acc}" stroke="{ink}" stroke-width="1.5"/>'
+            '<path d="M 56 21 Q 72 16 80 22 Q 70 26 56 24 Z" fill="{acc}" stroke="{ink}" stroke-width="1.5"/>'
+            '<circle cx="40" cy="4.5" r="2" fill="{acc}" stroke="{ink}" stroke-width="1"/>'
+        ),
+        "bicorne": (
+            '<path d="M 22 21 Q 40 -8 58 21 Q 40 14 22 21 Z" fill="{acc}" stroke="{ink}" stroke-width="1.5"/>'
+        ),
+    },
+    "three_quarter": {
+        "cap": (
+            '<path d="M 12 22 C 12 3 68 3 68 22 Z" fill="{acc}" stroke="{ink}" stroke-width="1.5"/>'
+            '<path d="M 30 22 Q 58 15 76 22 Q 56 27 30 24 Z" fill="{acc}" stroke="{ink}" stroke-width="1.5"/>'
+            '<circle cx="40" cy="4.5" r="2" fill="{acc}" stroke="{ink}" stroke-width="1"/>'
+        ),
+        "bicorne": (
+            '<path d="M 10 21 Q 40 -8 70 21 Q 40 13 10 21 Z" fill="{acc}" stroke="{ink}" stroke-width="1.5"/>'
+        ),
+    },
+}
+
+#: The head (skin) and hair of each non-front view, in the offline head's 80x80
+#: drawing — the SAME canvas as the front, because a swap carries texture only
+#: and is fitted into the front's box (an#87). ``{skin}``/``{hair}``/``{ink}``.
+#: The ear is outlined in ink: skin on skin would not show.
+_VIEW_HEAD_SVG: dict[str, str] = {
+    # From behind: the hair covers the head down to the nape; the ears show.
+    "back": (
+        '<ellipse cx="12.5" cy="46" rx="3.5" ry="6" fill="{skin}" stroke="{ink}" stroke-width="1"/>'
+        '<ellipse cx="67.5" cy="46" rx="3.5" ry="6" fill="{skin}" stroke="{ink}" stroke-width="1"/>'
+        '<circle cx="40" cy="44" r="28" fill="{skin}"/>'
+        '<path d="M 12 42 Q 12 14 40 14 Q 68 14 68 42 Q 68 58 58 64 Q 40 60 22 64 Q 12 58 12 42 Z" fill="{hair}"/>'
+    ),
+    # A profile facing right: the nose past the edge, the ear mid-head, the
+    # hair over the crown and down the back of the skull.
+    "side": (
+        '<circle cx="40" cy="44" r="28" fill="{skin}"/>'
+        '<path d="M 66 38 Q 75 44 66.5 49 Z" fill="{skin}"/>'
+        '<path d="M 13 50 Q 9 18 40 15 Q 62 14 68 34 L 58 25 Q 46 21 38 27 Q 31 36 32 52 Q 22 60 13 50 Z" fill="{hair}"/>'
+        '<ellipse cx="36" cy="47" rx="4" ry="6" fill="{skin}" stroke="{ink}" stroke-width="1"/>'
+    ),
+    # Turned partway right: the part of the hair and one ear swing left.
+    "three_quarter": (
+        '<ellipse cx="13" cy="46" rx="3.5" ry="6" fill="{skin}" stroke="{ink}" stroke-width="1"/>'
+        '<circle cx="40" cy="44" r="28" fill="{skin}"/>'
+        '<path d="M 12 40 Q 22 6 56 16 Q 66 22 68 34 L 58 24 L 42 17 L 24 26 Q 16 32 15 44 Z" fill="{hair}"/>'
+    ),
+}
+
+
+def _view_head_svg(
+    view: str, *, skin: str, hair: str, hat: str, accessory: str
+) -> str:
+    """The offline head of ``view`` (not ``front``, which is
+    :func:`_fallback_face_svg`), with its hat seen from that side."""
+    hat_svg = (
+        _HAT_VIEW_SVG.get(view, {}).get(hat, _HAT_SVG[hat])
+        .format(acc=accessory, ink=OUTLINE_COLOUR)
+    )
+    # The ear's outline is the drawing's ink — unless the skin or hair IS that
+    # literal, when a pack recolouring the role would repaint the outline too.
+    ink = distinct_literal(OUTLINE_COLOUR, {skin, hair})
+    body = _VIEW_HEAD_SVG[view].format(skin=skin, hair=hair, ink=ink)
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">'
+        f"{body}{hat_svg}</svg>"
+    )
+
+
+#: How much of the front body's width each view's torso keeps, and where its
+#: collar sits (a fraction of the half-width, toward the facing side).
+_VIEW_TORSO_WIDTH: dict[str, float] = {"back": 1.0, "three_quarter": 0.85, "side": 0.62}
+_VIEW_COLLAR_SHIFT: dict[str, float] = {"three_quarter": 0.35, "side": 0.55}
+
+
+def _write_view_torso_part(
+    path: Path,
+    *,
+    view: str,
+    clothing: str,
+    accent: str,
+    body: BodyBuild,
+    sash: str | None = None,
+) -> dict[str, str]:
+    """The torso of ``view`` on the front torso's canvas (the swap is fitted
+    into the front's box): narrower as it turns, the collar swinging toward the
+    facing side, a plain neckline from behind. Returns the part's colour roles.
+    """
+    w, h = body.torso_size
+    hb = h - 20 - body.torso_inset_bottom
+    bw = (w - 40) * _VIEW_TORSO_WIDTH[view]
+    x0 = (w - bw) / 2
+    r = min(body.torso_radius, bw / 2)
+    rect = f'x="{x0:g}" y="20" width="{bw:g}" height="{hb:g}" rx="{r:g}" ry="{r:g}"'
+    if view == "back":
+        # The neckline from behind: a shallow band, no V.
+        collar = (
+            f'<path d="M {w / 2 - 28:g} 22 Q {w / 2:g} 30 {w / 2 + 28:g} 22" '
+            f'stroke="{accent}" stroke-width="6" fill="none"/>'
+        )
+    else:
+        cx = w / 2 + _VIEW_COLLAR_SHIFT[view] * bw / 2
+        half = 32 * _VIEW_TORSO_WIDTH[view] / 2
+        collar = (
+            f'<path d="M {cx - half:g} 20 Q {cx:g} 50 {cx + half:g} 20" '
+            f'stroke="{accent}" stroke-width="6" fill="none"/>'
+        )
+    roles = {clothing: "clothing", accent: "hair"}
+    ink = f'<rect {rect} fill="none" stroke="{OUTLINE_COLOUR}" stroke-width="6"/>'
+    if sash is None:
+        inner = f'<rect {rect} fill="{clothing}"/>' + collar + ink
+    else:
+        band = 0.16 * min(w - 40, hb)
+        # From behind the band runs the other diagonal.
+        y_a, y_b = (0.88, 0.12) if view == "back" else (0.12, 0.88)
+        inner = (
+            f'<clipPath id="torso_body"><rect {rect}/></clipPath>'
+            f'<rect {rect} fill="{clothing}"/>'
+            f'<path d="M {x0:g} {20 + y_a * hb:g} L {x0 + bw:g} {20 + y_b * hb:g}" '
+            f'stroke="{sash}" stroke-width="{band:g}" fill="none" '
+            'clip-path="url(#torso_body)"/>' + collar + ink
+        )
+        roles[sash] = "accessory"
+    svg = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        f'<svg xmlns="{SVG_NS}" viewBox="0 0 {w:g} {h:g}" width="{w:g}" height="{h:g}">'
+        f'<g id="torso_{view}">{inner}</g></svg>'
+    )
+    path.write_text(svg, encoding="utf-8")
+    return roles
+
+
+#: The face slots of the default rig with the eye stack (an#99).
+FACE_SLOTS: tuple[str, ...] = (
+    "left_eye", "right_eye", "left_sclera", "right_sclera",
+    "left_pupil", "right_pupil", "mouth", "left_brow", "right_brow",
+)
+#: The side of the face that turns AWAY in a view facing right: the viewer's
+#: left eye, and everything stacked with it.
+_FAR_FACE_SLOTS: tuple[str, ...] = ("left_eye", "left_sclera", "left_pupil", "left_brow")
+_NEAR_FACE_SLOTS: tuple[str, ...] = ("right_eye", "right_sclera", "right_pupil", "right_brow")
+
+#: Profile (facing right): how far the near eye, its stack and brow slide toward
+#: the face's edge, and the mouth with them (view_box units at head_scale 1);
+#: the mouth is narrowed, seen edge-on.
+SIDE_EYE_SHIFT: float = 14.0
+SIDE_MOUTH_SHIFT: float = 56.0
+SIDE_MOUTH_SQUASH: float = 0.6
+#: The fraction of the hip spread each leg moves toward the centre line in
+#: profile — the legs overlap, and a walk scissors them.
+SIDE_LEG_TUCK: float = 0.7
+#: Three-quarter (facing right): the whole face slides toward the facing side,
+#: the far eye narrows, the far arm tucks in toward the body and the legs in.
+THREE_QUARTER_FACE_SHIFT: float = 20.0
+THREE_QUARTER_MOUTH_SHIFT: float = 24.0
+THREE_QUARTER_FAR_SQUASH: float = 0.85
+THREE_QUARTER_ARM_TUCK: float = 0.3
+THREE_QUARTER_LEG_TUCK: float = 0.25
+
+
+def view_poses(
+    body: BodyBuild = BUILDS[DFLT_BUILD],
+    *,
+    head_scale: float = 1.0,
+    slots: tuple[str, ...] | None = None,
+) -> dict[str, dict[str, "SlotPose"]]:
+    """``{view: {slot: SlotPose}}`` for the factory's rig built as ``body`` — what
+    a view does besides swapping art: the back hides the face, the side hides
+    the far eye and arm and slides the near eye and mouth to the profile edge.
+
+    Face offsets scale with ``head_scale`` (the face was drawn at it), limb
+    offsets come from the build's own joints. ``slots`` limits the poses to the
+    slots a rig has (a rig without the eye stack has no pupils to pose).
+
+    >>> poses = view_poses()
+    >>> sorted(poses)
+    ['back', 'front', 'side', 'three_quarter']
+    >>> poses["front"], poses["back"]["mouth"].alpha, poses["side"]["arm_r"].x
+    ({}, 0.0, -90.0)
+    """
+    from an.characters.schema import SlotPose
+
+    sx, _ = body.shoulder
+    s = head_scale
+    side: dict[str, SlotPose] = {n: SlotPose(alpha=0.0) for n in _FAR_FACE_SLOTS}
+    side.update({n: SlotPose(x=SIDE_EYE_SHIFT * s) for n in _NEAR_FACE_SLOTS})
+    side["mouth"] = SlotPose(x=SIDE_MOUTH_SHIFT * s, scale_x=SIDE_MOUTH_SQUASH)
+    side["arm_l"] = SlotPose(alpha=0.0)
+    side["arm_r"] = SlotPose(x=-sx)
+    side["leg_l"] = SlotPose(x=SIDE_LEG_TUCK * body.hip_x)
+    side["leg_r"] = SlotPose(x=-SIDE_LEG_TUCK * body.hip_x)
+    shift = THREE_QUARTER_FACE_SHIFT * s
+    tq: dict[str, SlotPose] = {
+        n: SlotPose(x=shift, scale_x=THREE_QUARTER_FAR_SQUASH) for n in _FAR_FACE_SLOTS
+    }
+    tq.update({n: SlotPose(x=shift) for n in _NEAR_FACE_SLOTS})
+    tq["mouth"] = SlotPose(x=THREE_QUARTER_MOUTH_SHIFT * s)
+    tq["arm_l"] = SlotPose(x=THREE_QUARTER_ARM_TUCK * sx)
+    tq["leg_l"] = SlotPose(x=THREE_QUARTER_LEG_TUCK * body.hip_x)
+    tq["leg_r"] = SlotPose(x=-THREE_QUARTER_LEG_TUCK * body.hip_x)
+    poses = {
+        "front": {},
+        "three_quarter": tq,
+        "side": side,
+        "back": {n: SlotPose(alpha=0.0) for n in FACE_SLOTS},
+    }
+    if slots is not None:
+        poses = {v: {n: p for n, p in m.items() if n in slots} for v, m in poses.items()}
+    return poses
+
+
+def add_views(char_dir: str | Path) -> Path:
+    """Give a factory character its turnaround (an#197): ``back``, ``side`` and
+    ``three_quarter`` head and torso art beside the front, a ``view`` swap set
+    projected onto those two slots, and a pose per view (``swap_poses``) — so
+    ``{kind: set, target: <entity>, property: view, value: side}`` or
+    :func:`an.motion.turn` turns the whole character. Idempotent. Returns the
+    descriptor path.
+
+    The views are REDRAWN from the recorded knobs (seed, palette, build, hat,
+    sash, head scale), so it refuses a rig whose head is not this factory's
+    drawing for them — a DiceBear head (its face is baked, and there is no
+    back of it to draw), a promoted hand rig, or an edited head: its views are
+    an illustrator's to draw, declared the same way (a ``view`` set whose keys
+    name attachments on the head and torso slots, and ``swap_poses``).
+
+    Every colour is role-tagged like the front's, so a StylePack recolours the
+    views exactly as it recolours the front (an#191). The existing art is not
+    touched: a shot that never sets a view renders byte-identically.
+    """
+    from an.characters.schema import (
+        DFLT_VIEW,
+        VIEW_CHANNEL,
+        VIEWS,
+        CharacterDescriptor,
+    )
+    from an.ir.migrate import migrate
+
+    char_dir = Path(char_dir)
+    desc_path = char_dir / "character.json"
+    raw = json.loads(desc_path.read_text(encoding="utf-8"))
+    desc = CharacterDescriptor.model_validate(migrate(raw, kind="CharacterDescriptor"))
+    meta = desc.metadata
+    parts = char_dir / "parts"
+    if not desc.face_overlay or meta.get("art_provenance") != "fallback_geometric":
+        raise ValueError(
+            f"{desc.name!r} is not a character this factory drew offline (its head "
+            f"is {meta.get('art_provenance') or 'not recorded'}): its back and "
+            "profile cannot be synthesized. Draw them and declare a `view` set "
+            "and `swap_poses` (see `an character contract`), or make the "
+            "character with `an character new --offline`."
+        )
+    hat = str(meta.get("hat") or DFLT_HAT)
+    body = _check_build(str(meta.get("build") or DFLT_BUILD))
+    head_scale = float(meta.get("head_scale") or 1.0)
+    looks = _resolve_looks(
+        str(meta.get("seed") or desc.name),
+        _check_palette(meta.get("palette")),
+        hat=hat,
+    )
+    height = REFERENCE_HEAD_HEIGHT * head_scale
+    head_path = parts / "head.svg"
+    if not head_path.is_file() or head_path.read_text(encoding="utf-8") != (
+        _head_part_text(looks.head_svg, height=height)
+    ):
+        raise ValueError(
+            f"{desc.name!r}'s head art is not the factory's drawing for its recorded "
+            "seed and knobs (edited by hand?), so views drawn from them would not "
+            "match it. Draw the views to the edited head and declare them instead."
+        )
+    skin_ = desc.skins.get("default")
+    if skin_ is None or not {"head", "torso"} <= set(skin_.slots):
+        raise ValueError(f"{desc.name!r} has no default skin with a head and a torso")
+    head_skin, head_hair = (
+        next(lit for lit, r in looks.head_roles.items() if r == role)
+        for role in ("skin", "hair")
+    )
+    head_acc = next(
+        (lit for lit, r in looks.head_roles.items() if r == "accessory"),
+        _ACCESSORY_TONES[0],
+    )
+    sash = looks.accessory if meta.get("sash") else None
+    roles: dict[str, dict[str, str]] = {}
+    for view in VIEWS:
+        if view == DFLT_VIEW:
+            continue
+        head_rel = f"parts/head_{view}.svg"
+        (char_dir / head_rel).write_text(
+            _head_part_text(
+                _view_head_svg(
+                    view, skin=head_skin, hair=head_hair, hat=hat, accessory=head_acc
+                ),
+                height=height,
+            ),
+            encoding="utf-8",
+        )
+        roles[head_rel] = dict(looks.head_roles)
+        torso_rel = f"parts/torso_{view}.svg"
+        roles[torso_rel] = _write_view_torso_part(
+            char_dir / torso_rel,
+            view=view,
+            clothing=looks.clothing,
+            accent=looks.accent,
+            body=body,
+            sash=sash,
+        )
+    by_slot = {s.name: s for s in desc.slots}
+    for slot_name in ("head", "torso"):
+        attachments = skin_.slots[slot_name]
+        default_name = by_slot[slot_name].attachment if slot_name in by_slot else None
+        template = attachments.get(default_name) or next(iter(attachments.values()))
+        for view in VIEWS:
+            path = (
+                template.path if view == DFLT_VIEW else f"parts/{slot_name}_{view}.svg"
+            )
+            attachments[view] = template.model_copy(update={"path": path})
+    desc.asset_sets[VIEW_CHANNEL] = {view: view for view in VIEWS}
+    desc.swap_poses[VIEW_CHANNEL] = view_poses(
+        body, head_scale=head_scale, slots=tuple(by_slot)
+    )
+    if desc.colour_roles:  # tagged like the front — never half-tagged
+        desc.colour_roles.update(roles)
+    meta["views"] = list(VIEWS)
+    desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
+    return desc_path

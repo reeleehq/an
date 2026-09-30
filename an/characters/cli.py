@@ -7,6 +7,7 @@ and returns a string for terminal display.
 Subcommands (used as ``an character <verb> ...``):
 
 - ``new``       — generate a fresh character from DiceBear or fallback art.
+- ``add-views`` — give an offline character its turnaround (an#197).
 - ``mouths``    — regenerate the 9-shape default mouth set.
 - ``validate``  — completeness check.
 - ``silhouette``— rasterize silhouettes; for two characters, also IoU.
@@ -54,6 +55,7 @@ def new(
     head_scale: float = 1.0,
     hat: str = "none",
     sash: bool = False,
+    views: bool = True,
 ) -> str:
     """Create a new character at ``out_dir``/``name``.
 
@@ -79,6 +81,9 @@ def new(
     hat: none, cap, beanie, bowler or bicorne (offline head only), in the
         accessory colour
     sash: a diagonal band across the torso, in the accessory colour
+    views: draw the turnaround — back, side (a profile facing right) and
+        three_quarter beside the front, as a `view` swap set (offline head
+        only), so `play: turn` can turn the character (an#197)
     """
     target = _resolve_target(out_dir)
     target.mkdir(parents=True, exist_ok=True)
@@ -105,6 +110,7 @@ def new(
             head_scale=head_scale,
             hat=hat,
             sash=sash,
+            views=views,
         )
     except ValueError as e:
         # A licence refusal is a message for a human, not a traceback. The
@@ -112,7 +118,14 @@ def new(
         # gate added below the CLI without a flag above it made every CC BY
         # style unreachable AND ugly.
         return str(e)
-    return f"created character at {desc.parent} (descriptor: {desc.name})"
+    note = (
+        "; no views: a DiceBear head's face is baked, so its back and profile "
+        "cannot be drawn (use --offline to turn it)"
+        if views and not offline
+        and "view" not in json.loads(desc.read_text(encoding="utf-8")).get("asset_sets", {})
+        else ""
+    )
+    return f"created character at {desc.parent} (descriptor: {desc.name}){note}"
 
 
 def mouths(
@@ -186,6 +199,28 @@ def add_gaze(name: str, out_dir: str = "", overwrite_eyes: bool = False) -> str:
     except ValueError as e:
         return str(e)
     return f"added the eye stack to {desc.parent} (descriptor: {desc.name})"
+
+
+def add_views(name: str, out_dir: str = "") -> str:
+    """Give ``name`` its turnaround (an#197): back, side and three-quarter head
+    and torso art, a `view` swap set, and a pose per view — so `play: turn`
+    and `set <name> view <key>` turn it. The expand step for an offline
+    character made before views; idempotent. Refused for a DiceBear head or a
+    hand-drawn rig, whose views are an illustrator's to draw.
+
+    name: character id
+    out_dir: parent directory; defaults to ./assets/characters
+    """
+    from an.characters.factory import add_views as _add_views
+
+    char_dir = _resolve_target(out_dir) / name
+    if not (char_dir / "character.json").is_file():
+        return f"no character at {char_dir}"
+    try:
+        desc = _add_views(char_dir)
+    except ValueError as e:
+        return str(e)
+    return f"added the views to {desc.parent} (descriptor: {desc.name})"
 
 
 def _parse_palette(spec: str) -> dict[str, str]:
@@ -501,6 +536,7 @@ _dispatch_funcs = [
     new,
     mouths,
     add_gaze,
+    add_views,
     validate,
     contract,
     silhouette,
