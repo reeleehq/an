@@ -418,6 +418,37 @@ def test_every_bless_record_carries_a_reason_and_a_criterion():
         assert record["git"]["sha"], f"{manifest} records no commit"
 
 
+def test_every_bless_record_names_the_scene_that_compiles_today():
+    """A bless record's contract hash is the scene the human looked at.
+
+    Written at bless time and read by nothing else, so a PR that moves a
+    scene's contract without moving a pinned pixel left the record naming a
+    scene that no longer exists: five of eleven were stale at once (an#88's
+    review round, an#173), while the ledger guard stayed green because each
+    PR had committed a new row. Compiled, not rendered — this runs in the
+    default leg. Fix a failure with `an bench --scenes <name> --bless
+    "<reason naming the PR>"`; if the pinned pixels did not move, the PNGs come
+    back byte-identical and only the record changes.
+
+    MUTATION: change any fixture's scene.md so it compiles differently.
+    """
+    from an.bench.capture import compiled_contract_sha256
+    from an.bench.corpus import DFLT_FIXTURES
+
+    root = repo_root()
+    records = list(_committed_records())
+    assert {m.parent.name for m, _ in records} == set(DFLT_FIXTURES), (
+        "every corpus scene has a bless record and every record is a corpus scene"
+    )
+    stale = {
+        manifest.parent.name: (record["scene_contract_sha256"][:12], today[:12])
+        for manifest, record in records
+        if record["scene_contract_sha256"]
+        != (today := compiled_contract_sha256(DFLT_FIXTURES[manifest.parent.name], repo_root=root))
+    }
+    assert not stale, f"bless records naming a scene that no longer compiles (blessed, today): {stale}"
+
+
 # ------------------------------------------------------- the real render lane
 
 

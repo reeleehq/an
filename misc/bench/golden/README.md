@@ -77,6 +77,16 @@ frame it no longer blesses and names the removal in the record. Without that, a
 PNG nothing reads stays committed forever, indistinguishable from one that is
 still a gate.
 
+**A contract move re-blesses even when no pinned pixel moved.** The record's
+`scene_contract_sha256` names the scene a human looked at. A PR that changes
+what a fixture compiles to — a keyframe, a pivot, a clip boundary — can leave
+every pinned frame byte-identical, and the record then names a scene that no
+longer exists; five of eleven had drifted that way before anything checked.
+`tests/test_bench_golden.py::test_every_bless_record_names_the_scene_that_compiles_today`
+compiles every fixture in the default leg (no browser) and fails on such a
+record. Re-bless that scene with a reason naming the PR; the PNGs come back
+byte-identical and only the record changes.
+
 ## Re-blessing inside a wave: three rows, in this order (an#54)
 
 A `--bless` run **writes** the goldens it would otherwise have compared against,

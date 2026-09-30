@@ -148,9 +148,7 @@ def test_every_corpus_contract_hash_equals_the_committed_ledger_row():
     """The measurement ledger's evidence stays valid across the solver: the
     seven corpus scenes' contract hashes are the row's. Not just pixels —
     `bench-compare` refuses rows whose hash moved."""
-    from an.bench import contract
-    from an.bench.capture import stage_copy
-    from an.adapters.cutout.compile import style_pack_for
+    from an.bench.capture import compiled_contract_sha256
     from an.bench.corpus import DFLT_FIXTURES
 
     # The newest CLEAN row — by its own timestamp, not its filename (a stale
@@ -162,17 +160,7 @@ def test_every_corpus_contract_hash_equals_the_committed_ledger_row():
         if name not in row["scenes"] or name in NEW_IN_WAVE:
             continue  # only a scene the newest clean row has never measured
         checked += 1
-        with tempfile.TemporaryDirectory() as tmp:
-            work = stage_copy(ROOT / fx.path, Path(tmp))
-            if fx.prepare:
-                fx.prepare(work)
-            proj = load(work)
-            scene = proj.scene
-            docs = [
-                to_dict(compile_shot(s, mall=proj.mall, fps=scene.meta.fps, width=scene.meta.resolution.width, height=scene.meta.resolution.height, strict_assets=True, style_pack=style_pack_for(scene.meta, proj.mall.get("styles") or {}), default_easing=scene.meta.default_easing))
-                for s in scene.timeline
-            ]
-        assert contract.scenes_contract_sha256(docs) == row["scenes"][name]["provenance"]["scene_contract_sha256"], name
+        assert compiled_contract_sha256(fx, repo_root=ROOT) == row["scenes"][name]["provenance"]["scene_contract_sha256"], name
     # Every fixture, not "at least most of them". A floor below the corpus size
     # lets a scene fall out of the guard — by an exemption, or by dropping out
     # of the ledger row — while the count still passes.
