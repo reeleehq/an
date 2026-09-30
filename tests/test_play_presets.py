@@ -403,3 +403,42 @@ def test_a_preset_play_renders_smoke():
             warnings.simplefilter("ignore")
             result = CutoutRenderer().render(shot, ctx)
         assert result.mp4_path.exists() and result.mp4_path.stat().st_size > 0
+
+
+# ------------------------------------------------------- review follow-ups
+
+
+def test_a_bad_easing_in_args_is_refused_by_both():
+    shot = _shot([play("charlie", "pop_in", args={"easing": "bogus"})])
+    report = validate_semantic(_scene(shot), available_characters={})
+    assert any("bogus" in f.description for f in report.findings if f.severity == "error")
+    with pytest.raises(CutoutCompileError, match="bogus"):
+        _compile(shot)
+
+
+def test_validate_warns_when_a_preset_play_runs_past_the_shot_end():
+    shot = _shot([sequence(delay(0.9), play("charlie", "hop"))], duration=1.0)
+    report = validate_semantic(_scene(shot), available_characters={})
+    assert any(
+        f.severity == "warning" and "past the shot's end" in f.description
+        for f in report.findings
+    )
+
+
+def test_validate_says_when_it_could_not_check_the_node(monkeypatch):
+    import an.motion
+
+    def broken(*a, **k):
+        raise RuntimeError("stage exploded")
+
+    monkeypatch.setattr(an.motion, "stage_poses", broken)
+    report = validate_semantic(_scene(_shot([play("charlie", "hop")])), available_characters={})
+    assert any("NOT" in f.description and "stage exploded" in f.description for f in report.findings)
+
+
+def test_validate_warns_when_the_scene_default_meets_explicit_ease_in_out():
+    shot = _shot([tween("charlie", "x", to=1.0, duration=1.0, easing="ease_in_out")])
+    report = validate_semantic(_scene(shot, default_easing="linear"))
+    assert any(f.ir_path == "meta/default_easing" and f.severity == "warning" for f in report.findings)
+    quiet = validate_semantic(_scene(_shot([tween("charlie", "x", to=1.0, duration=1.0)]), default_easing="linear"))
+    assert not any(f.ir_path == "meta/default_easing" for f in quiet.findings)

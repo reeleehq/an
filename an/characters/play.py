@@ -377,10 +377,50 @@ def preset_problems(
         problems.append(f"motion preset {animation!r}: speed must be > 0")
     if not problems:
         try:
-            preset("_", **args)
+            tree = preset("_", **args)
         except (TypeError, ValueError) as e:
             problems.append(f"motion preset {animation!r} refuses {args!r}: {e}")
+        else:
+            problems.extend(_easing_problems(animation, tree))
     return problems
+
+
+def _easing_problems(animation: str, tree) -> list[str]:
+    """An ``easing`` passed through ``args`` reaches the compiled keyframes
+    verbatim, and the runtime throws on an unknown one mid-render — so check
+    every tween's easing the way the evaluators will read it."""
+    from an.adapters.cutout.easing import apply_easing
+    from an.ir.compose import flatten
+    from an.ir.schema import TweenAction
+
+    for f in flatten(tree):
+        if isinstance(f.action, TweenAction):
+            try:
+                apply_easing(f.action.easing, 0.5)
+            except (ValueError, TypeError) as e:
+                return [f"motion preset {animation!r}: easing {f.action.easing!r}: {e}"]
+    return []
+
+
+def preset_play_span(action) -> float:
+    """How long a preset ``play`` runs, in seconds: its ``duration`` when set,
+    else the preset's natural length divided by ``speed``. A play with no
+    ``duration`` is still ZERO-width inside a ``sequence`` (the rule every
+    ``play`` follows, because ``flatten`` cannot know which source wins); this
+    is the span it actually animates.
+
+    >>> from an.ir.schema import PlayAction
+    >>> preset_play_span(PlayAction(target="a", animation="hop"))
+    0.5
+    >>> preset_play_span(PlayAction(target="a", animation="hop", speed=2.0))
+    0.25
+    """
+    from an.ir.compose import duration_of
+
+    if action.duration is not None:
+        return float(action.duration)
+    tree = _presets()[action.animation](action.target, **dict(action.args or {}))
+    return duration_of(tree) / float(action.speed)
 
 
 def preset_moved_node(action_target: str, animation: str, args=None) -> str:
@@ -761,6 +801,7 @@ __all__ = [
     "play_problems",
     "play_source",
     "preset_moved_node",
+    "preset_play_span",
     "preset_problems",
     "primary_slot_per_bone",
     "resolve_play",

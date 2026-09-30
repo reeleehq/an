@@ -26,6 +26,7 @@ from an.characters.play import (
     play_problems,
     play_source,
     preset_moved_node,
+    preset_play_span,
 )
 from an.characters.schema import CharacterDescriptor
 from an.expression.binding import expression_problems
@@ -321,6 +322,7 @@ def _check_swap_references(
     # be BUILT, which only the compiler's scene builder knows: the stage is
     # built once per shot, lazily, and only when a preset play is present.
     stage_nodes: set[str] | None = None
+    stage_tried = False
     for k, action in enumerate(shot.actions):
         for flat in flatten(action):
             leaf = flat.action
@@ -357,8 +359,27 @@ def _check_swap_references(
                 loop=leaf.loop,
             )
             if not problems and play_source(desc, leaf.animation) == PRESET_SOURCE:
-                if stage_nodes is None:
-                    stage_nodes = _built_node_paths(shot, stores)
+                if not stage_tried:
+                    stage_tried = True
+                    stage_nodes, why = _built_node_paths(shot, stores)
+                    if why is not None:
+                        # Said out loud, never a silent pass: validate could
+                        # not see what compile will look the node up in.
+                        report.add(
+                            "warning",
+                            f"{path}/actions/{k}",
+                            "the node a motion-preset `play` moves was NOT "
+                            f"checked: the shot's stage did not build ({why}).",
+                        )
+                end = flat.start + preset_play_span(leaf)
+                if end > shot.duration + 1e-9:
+                    report.add(
+                        "warning",
+                        f"{path}/actions/{k}",
+                        f"`play` of motion preset {leaf.animation!r} on "
+                        f"{entity_id!r} runs to t={end:g}s, past the shot's end "
+                        f"({shot.duration:g}s): the rest of the move never shows.",
+                    )
                 if stage_nodes is not None:
                     node = preset_moved_node(leaf.target, leaf.animation, leaf.args)
                     if node not in stage_nodes:
@@ -507,12 +528,16 @@ def _check_swap_references(
                 )
 
 
-def _built_node_paths(shot, stores: Mapping[str, Any]) -> set[str] | None:
-    """Every node path the cutout compiler builds for ``shot``'s STAGE (its
-    entities; no actions), from the supplied stores — or ``None`` when the
-    stage does not build, whose reasons the entity checks report on their own.
-    Read off the compiler rather than restated: a preset play's node is
-    checked against exactly what compile will look it up in (an#166)."""
+def _built_node_paths(
+    shot, stores: Mapping[str, Any]
+) -> tuple[set[str] | None, str | None]:
+    """``(node paths, None)`` — every node path the cutout compiler builds for
+    ``shot``'s STAGE (its entities; no actions), from the supplied stores — or
+    ``(None, why)`` when the stage does not build. Read off the compiler rather
+    than restated: a preset play's node is checked against exactly what compile
+    will look it up in (an#166). The failure is RETURNED so the caller reports
+    that the check was skipped; swallowing it would be validate saying "fine"
+    about a play it never looked at."""
     import warnings
 
     from an.motion import stage_poses
@@ -520,9 +545,9 @@ def _built_node_paths(shot, stores: Mapping[str, Any]) -> set[str] | None:
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # the render's warnings, not validate's
-            return set(stage_poses(shot, mall=stores))
-    except Exception:  # noqa: BLE001 — reported by the checks that own it
-        return None
+            return set(stage_poses(shot, mall=stores)), None
+    except Exception as e:  # noqa: BLE001 — reported by the caller, by name
+        return None, f"{type(e).__name__}: {e}"
 
 
 def _descriptor_for(ref, available_characters) -> CharacterDescriptor | None:
@@ -718,6 +743,37 @@ def _check_default_easing(spec: Any, *, report: "ValidationReport") -> None:
         report.add("error", "meta/default_easing", f"{spec!r} is not an easing: {e}")
 
 
+def _check_default_easing_reach(scene: SceneIR, *, report: "ValidationReport") -> None:
+    """Warn when ``meta.default_easing`` is set and some tweens spell
+    ``ease_in_out`` explicitly — the shape every ``scene.json`` written before
+    an#166 has (the old serializer wrote the default out), where the scene
+    default silently reaches nothing. Explicit is explicit, so it is a
+    warning naming the count, not a rewrite."""
+    if scene.meta.default_easing is None:
+        return
+    from an.ir.schema import TweenAction
+
+    pinned = [
+        f"timeline/{i}/actions/{k}"
+        for i, shot in enumerate(scene.timeline)
+        for k, action in enumerate(shot.actions)
+        for flat in flatten(action)
+        if isinstance(flat.action, TweenAction)
+        and "easing" in flat.action.model_fields_set
+        and flat.action.easing == "ease_in_out"
+    ]
+    if pinned:
+        report.add(
+            "warning",
+            "meta/default_easing",
+            f"{len(pinned)} tween(s) name `easing: ease_in_out` explicitly, so "
+            f"default_easing {scene.meta.default_easing!r} does not reach them "
+            f"(first: {pinned[0]}). A scene.json written before an#166 spells the "
+            "old default out on every tween; drop the key where the scene "
+            "default is meant.",
+        )
+
+
 #: Keys an#106 retired, and what to write instead. `SceneIR`'s models are
 #: `extra="allow"` (deliberately — forward compatibility), so a document that
 #: still carries one of these validates cleanly and renders with the DEFAULT
@@ -835,6 +891,7 @@ def validate_semantic(
         scene.meta.step_hz, fps=scene.meta.fps, path="meta/step_hz", report=report
     )
     _check_default_easing(scene.meta.default_easing, report=report)
+    _check_default_easing_reach(scene, report=report)
     if not scene.timeline:
         report.add(
             "warning",

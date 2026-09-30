@@ -3,10 +3,13 @@
 ``pop_in``, ``hop``, ``shake``, ``nod``, ``point``, ``slide_in``, ``slide_out``,
 ``squash_stretch`` and ``waddle`` each EXPAND to ordinary ``tween`` actions on
 transform properties, composed with :func:`~an.ir.compose.sequence` and
-:func:`~an.ir.compose.parallel`. Nothing downstream learns a preset exists: the
-flat timeline, ``an validate``, the verifiers and the renderer see the same
-tweens an author could have written by hand, so no IR field, no runtime
-change, and no compiled document that does not use a preset moves by a byte.
+:func:`~an.ir.compose.parallel`. Called from Python, nothing downstream
+learns a preset exists: the flat timeline, ``an validate``, the verifiers and
+the renderer see the same tweens an author could have written by hand. Played
+by NAME from ``scene.md`` (an#166, below), the compiler expands the ``play``
+into those same tweens before anything else looks; ``PlayAction.args`` is the
+one IR field that added. No runtime change either way, and no compiled
+document that does not use a preset moves by a byte.
 
 >>> from an.ir.compose import flatten, sequence
 >>> leaves = _tweens(sequence(pop_in("charlie"), hop("charlie"), nod("charlie")))
