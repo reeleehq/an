@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=f9250636"></script>
+    <script src="../../../../_static/documentation_options.js?v=cedd8c5c"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.101" />
+  <meta name="docsearch:version" content="0.1.102" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -844,13 +844,49 @@ window.runMermaid = runMermaid;</script>
 <span class="c1"># a (x, y) offset; colors come from a per-character palette so multiple</span>
 <span class="c1"># characters look distinct. Used only when the characters store has no rig.</span>
 <span class="n">_PLACEHOLDER_PARTS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"head"</span><span class="p">,</span> <span class="s2">"torso"</span><span class="p">,</span> <span class="s2">"left_arm"</span><span class="p">,</span> <span class="s2">"right_arm"</span><span class="p">)</span>
+
+<span class="c1">#: Fraction of a limb rect's height, from its top edge, at which the joint sits:</span>
+<span class="c1">#: ``0.0`` is the shoulder/hip. A part without a ``pivot_y`` rotates about its</span>
+<span class="c1">#: centre (``0.5``), which is right for a head or a torso and wrong for a limb —</span>
+<span class="c1">#: a centre-pivoted arm swings its hand up while its top swings down into the</span>
+<span class="c1">#: torso (an#173). Named so the limb entries below say what they mean.</span>
+<span class="n">_LIMB_PIVOT_Y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+<span class="n">_DFLT_PIVOT_Y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+
+<span class="c1">#: ``x``/``y`` are the rect's CENTRE when at rest (the layout); ``pivot_y``, when</span>
+<span class="c1">#: present, moves the NODE to the joint and hangs the rect from it, so the same</span>
+<span class="c1">#: pixels are covered at rest and a rotation pivots at the joint.</span>
 <span class="n">_PLACEHOLDER_PART_GEOMETRY</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"head"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="o">-</span><span class="mf">55.0</span><span class="p">,</span> <span class="s2">"width"</span><span class="p">:</span> <span class="mf">50.0</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">:</span> <span class="mf">50.0</span><span class="p">},</span>
     <span class="s2">"torso"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">"width"</span><span class="p">:</span> <span class="mf">60.0</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">:</span> <span class="mf">80.0</span><span class="p">},</span>
-    <span class="s2">"left_arm"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">,</span> <span class="s2">"width"</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">:</span> <span class="mf">70.0</span><span class="p">},</span>
-    <span class="s2">"right_arm"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mf">50.0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">,</span> <span class="s2">"width"</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">:</span> <span class="mf">70.0</span><span class="p">},</span>
-    <span class="s2">"left_leg"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="o">-</span><span class="mf">18.0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mf">65.0</span><span class="p">,</span> <span class="s2">"width"</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">:</span> <span class="mf">70.0</span><span class="p">},</span>
-    <span class="s2">"right_leg"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="mf">18.0</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="mf">65.0</span><span class="p">,</span> <span class="s2">"width"</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span> <span class="s2">"height"</span><span class="p">:</span> <span class="mf">70.0</span><span class="p">},</span>
+    <span class="s2">"left_arm"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"x"</span><span class="p">:</span> <span class="o">-</span><span class="mf">50.0</span><span class="p">,</span>
+        <span class="s2">"y"</span><span class="p">:</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">,</span>
+        <span class="s2">"width"</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span>
+        <span class="s2">"height"</span><span class="p">:</span> <span class="mf">70.0</span><span class="p">,</span>
+        <span class="s2">"pivot_y"</span><span class="p">:</span> <span class="n">_LIMB_PIVOT_Y</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">"right_arm"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"x"</span><span class="p">:</span> <span class="mf">50.0</span><span class="p">,</span>
+        <span class="s2">"y"</span><span class="p">:</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">,</span>
+        <span class="s2">"width"</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span>
+        <span class="s2">"height"</span><span class="p">:</span> <span class="mf">70.0</span><span class="p">,</span>
+        <span class="s2">"pivot_y"</span><span class="p">:</span> <span class="n">_LIMB_PIVOT_Y</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">"left_leg"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"x"</span><span class="p">:</span> <span class="o">-</span><span class="mf">18.0</span><span class="p">,</span>
+        <span class="s2">"y"</span><span class="p">:</span> <span class="mf">65.0</span><span class="p">,</span>
+        <span class="s2">"width"</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span>
+        <span class="s2">"height"</span><span class="p">:</span> <span class="mf">70.0</span><span class="p">,</span>
+        <span class="s2">"pivot_y"</span><span class="p">:</span> <span class="n">_LIMB_PIVOT_Y</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">"right_leg"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"x"</span><span class="p">:</span> <span class="mf">18.0</span><span class="p">,</span>
+        <span class="s2">"y"</span><span class="p">:</span> <span class="mf">65.0</span><span class="p">,</span>
+        <span class="s2">"width"</span><span class="p">:</span> <span class="mf">30.0</span><span class="p">,</span>
+        <span class="s2">"height"</span><span class="p">:</span> <span class="mf">70.0</span><span class="p">,</span>
+        <span class="s2">"pivot_y"</span><span class="p">:</span> <span class="n">_LIMB_PIVOT_Y</span><span class="p">,</span>
+    <span class="p">},</span>
 <span class="p">}</span>
 
 <span class="c1"># Per-character color palettes. Each entry is (skin, clothing, hair). Picked</span>
@@ -2623,14 +2659,18 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="c1"># Head renders as a fleshier ellipse; everything else stays a rect.</span>
         <span class="n">kind</span> <span class="o">=</span> <span class="s2">"ellipse"</span> <span class="k">if</span> <span class="n">part</span> <span class="o">==</span> <span class="s2">"head"</span> <span class="k">else</span> <span class="s2">"rect"</span>
+        <span class="c1"># The node sits at the joint, the rect hangs from it (an#173).</span>
+        <span class="n">pivot_y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">geom</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pivot_y"</span><span class="p">,</span> <span class="n">_DFLT_PIVOT_Y</span><span class="p">))</span>
+        <span class="n">node_y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">"y"</span><span class="p">])</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">"height"</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span><span class="n">_DFLT_PIVOT_Y</span> <span class="o">-</span> <span class="n">pivot_y</span><span class="p">)</span>
         <span class="n">children</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">NodeJSON</span><span class="p">(</span>
                 <span class="n">name</span><span class="o">=</span><span class="n">part</span><span class="p">,</span>
-                <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">"x"</span><span class="p">]),</span> <span class="n">y</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">"y"</span><span class="p">])),</span>
+                <span class="n">transform</span><span class="o">=</span><span class="n">TransformJSON</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">"x"</span><span class="p">]),</span> <span class="n">y</span><span class="o">=</span><span class="n">node_y</span><span class="p">),</span>
                 <span class="n">visual</span><span class="o">=</span><span class="n">VisualJSON</span><span class="p">(</span>
                     <span class="n">kind</span><span class="o">=</span><span class="n">kind</span><span class="p">,</span>
                     <span class="n">width</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">"width"</span><span class="p">]),</span>
                     <span class="n">height</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">"height"</span><span class="p">]),</span>
+                    <span class="n">anchor_y</span><span class="o">=</span><span class="n">pivot_y</span><span class="p">,</span>
                     <span class="n">color</span><span class="o">=</span><span class="n">part_color</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="s2">"#cccccc"</span><span class="p">),</span>
                 <span class="p">),</span>
             <span class="p">)</span>
