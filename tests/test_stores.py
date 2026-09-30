@@ -110,6 +110,7 @@ def test_mall_keys_match_spec():
             "props",
             "scenes",
             "shots",
+            "sounds",
             "styles",
             "visemes",
             "voices",

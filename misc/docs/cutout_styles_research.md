@@ -30,7 +30,7 @@ Recommendation, in order:
 - **The procedure**: the `an-style` skill (script → pick a style → state the cost class → set meta and StylePack → shots to the cut-rate and shot-length targets → characters → render → lint → adjust).
 - **A worked example**: the `south-park-style` demo in `misc/demos/build_demos.py`.
 
-Not built, and ranked in section 7 and tracked in [an#163](https://github.com/thorwhalen/an/issues/163): `StyleSpec` as a versioned document the compiler reads, a sound layer, text, surface treatments, transitions. The motion library (gap 4) has since shipped as `an.motion` (an#165); the specs map each style's moves to its presets under `live.motion_presets`.
+Not built, and ranked in section 7 and tracked in [an#163](https://github.com/thorwhalen/an/issues/163): `StyleSpec` as a versioned document the compiler reads, a sound layer, text, surface treatments, transitions. The motion library (gap 4) has since shipped as `an.motion` (an#165); the specs map each style's moves to its presets under `live.motion_presets`. Transitions (cut, fade, dissolve — not wipes or morphs) and a sound layer v1 (music bed, SFX cues, ducking — not voice effects) have since shipped as `an.assemble` (an#163); the specs carry them under `live.transitions` and `live.sound`.
 
 ## 1. Evidence and its limits
 

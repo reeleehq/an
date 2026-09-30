@@ -255,3 +255,32 @@ RendererName: TypeAlias = Literal[
 #: from it, because a hand-typed second copy is a second SSOT that drifts on
 #: the day a renderer is added and nothing fails.
 SUPPORTED_RENDERERS: tuple[str, ...] = get_args(RendererName)
+
+
+# -- Shot transitions and the sound layer ---------------------------------------
+
+#: The transition kinds a shot may be entered by. ``cut`` is the default and
+#: what every document written before transitions existed means.
+TRANSITION_KINDS: tuple[str, ...] = ("cut", "fade", "dissolve")
+
+#: Seconds, when a ``fade`` or ``dissolve`` names no duration: half a second
+#: is a conventional editor's default, short enough not to eat a line of
+#: dialogue and long enough to read as deliberate.
+DEFAULT_TRANSITION_DURATION: float = 0.5
+
+#: The colour a ``fade`` passes through when it names none.
+DEFAULT_TRANSITION_COLOR: str = "#000000"
+
+#: The film mix's sample rate and channel count. The SAME values the per-shot
+#: audio mux (`an.adapters.cutout.render._ffmpeg_add_audio`) writes, so a film
+#: assembled from sources and one concatenated from shot mp4s carry the same
+#: audio format.
+FILM_AUDIO_SAMPLE_RATE: int = 44100
+FILM_AUDIO_CHANNELS: int = 1
+FILM_AUDIO_BITRATE: str = "128k"
+
+#: Ducking defaults: how far a ducked cue drops under dialogue, and how fast
+#: it gets there and comes back. The ramps are linear in gain.
+DEFAULT_DUCK_DB: float = -12.0
+DEFAULT_DUCK_ATTACK_S: float = 0.08
+DEFAULT_DUCK_RELEASE_S: float = 0.3

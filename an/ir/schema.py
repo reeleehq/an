@@ -31,6 +31,7 @@ True
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Any, Literal, Union
 
 from pydantic import model_serializer, BaseModel, ConfigDict, Field, model_validator
@@ -40,6 +41,10 @@ from an.base import (
     DEFAULT_DURATION,
     DEFAULT_FPS,
     DEFAULT_RESOLUTION,
+    DEFAULT_DUCK_ATTACK_S,
+    DEFAULT_DUCK_RELEASE_S,
+    DEFAULT_TRANSITION_COLOR,
+    DEFAULT_TRANSITION_DURATION,
     SCHEMA_VERSION,
     EasingSpec,
     PathStr,
@@ -529,6 +534,81 @@ class Narration(_IRModel):
 
 
 # -----------------------------------------------------------------------------
+# Transitions and the sound layer (assembled AFTER the shots render; no
+# renderer ever sees these — see `an.assemble`)
+# -----------------------------------------------------------------------------
+
+_HEX_COLOR = re.compile(r"#[0-9a-fA-F]{6}")
+
+
+class Transition(_IRModel):
+    """How a shot is ENTERED — from the previous shot, or (for the first shot)
+    from nothing.
+
+    >>> Transition(kind="dissolve", duration=0.5).duration
+    0.5
+    >>> Transition(kind="fade").color
+    '#000000'
+
+    - ``cut`` — the default, and what a shot with no ``transition`` means.
+    - ``fade`` — through ``color``: the previous shot's last ``duration / 2``
+      fades to the colour and this shot's first ``duration / 2`` fades up from
+      it. On the FIRST shot the whole ``duration`` is a fade up from the
+      colour. **Holds the film's length**: nothing overlaps.
+    - ``dissolve`` — the previous shot's last ``duration`` seconds and this
+      shot's first ``duration`` seconds are seen through each other. **The
+      film gets ``duration`` shorter** than the sum of its shots: both shots
+      play in full, overlapped (the editor's convention — the overlapped
+      seconds are each shot's "handle"). Dialogue stays in sync with its own
+      shot's picture; audio from both shots is heard in the overlap. Not
+      allowed on the first shot.
+    """
+
+    kind: Literal["cut", "fade", "dissolve"] = "cut"
+    duration: Seconds = Field(default=DEFAULT_TRANSITION_DURATION, ge=0)
+    color: str = DEFAULT_TRANSITION_COLOR
+
+    @model_validator(mode="after")
+    def _hex_color(self) -> "Transition":
+        if not _HEX_COLOR.fullmatch(self.color):
+            raise ValueError(f"transition color must be '#rrggbb'; got {self.color!r}")
+        return self
+
+
+class SoundCue(_IRModel):
+    """One sound placed on the timeline: an SFX hit, an ambience, a music bed.
+
+    ``sound`` is a key in the project's ``sounds`` store (`an.sounds`), where
+    the bytes and their licence live — the IR never inlines audio.
+
+    ``at`` is seconds from the start of whatever holds the cue: a shot's
+    ``sounds`` are SHOT-local (they move with the shot, across transitions
+    and re-orderings), ``meta.sounds`` are FILM time (a music bed under the
+    whole thing).
+
+    >>> SoundCue(sound="hit", at=1.2).gain_db
+    0.0
+    >>> SoundCue(sound="bed", loop=True, duck_db=-12).duck_db
+    -12.0
+    """
+
+    sound: str
+    at: Seconds = Field(default=0.0, ge=0)
+    #: How long it plays. ``None``: the asset's own length, or — when
+    #: ``loop`` — to the end of its shot (shot cue) or of the film (meta cue).
+    duration: Seconds | None = Field(default=None, gt=0)
+    gain_db: float = 0.0
+    loop: bool = False
+    fade_in: Seconds = Field(default=0.0, ge=0)
+    fade_out: Seconds = Field(default=0.0, ge=0)
+    #: Attenuation, in dB, while any dialogue line plays; ``None`` never ducks.
+    #: A music bed usually wants ``DEFAULT_DUCK_DB``; an SFX hit wants none.
+    duck_db: float | None = Field(default=None, le=0)
+    duck_attack: Seconds = Field(default=DEFAULT_DUCK_ATTACK_S, gt=0)
+    duck_release: Seconds = Field(default=DEFAULT_DUCK_RELEASE_S, gt=0)
+
+
+# -----------------------------------------------------------------------------
 # Shot
 # -----------------------------------------------------------------------------
 
@@ -556,6 +636,26 @@ class Shot(_IRModel):
     options: dict[str, Any] = Field(default_factory=dict)
     #: Per-shot override of :attr:`Meta.step_hz` (``None`` = inherit).
     step_hz: float | None = Field(default=None, gt=0)
+    #: How this shot is entered (:class:`Transition`); ``None`` is a hard cut.
+    transition: Transition | None = None
+    #: Sound cues in SHOT-local time (:class:`SoundCue`).
+    sounds: list[SoundCue] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_assembly(self, handler):
+        """Serialize ``transition``/``sounds`` out of existence when unset.
+
+        `AssetRef._omit_unset_stage`'s rule: every committed ``ir/scene.json``
+        predates these fields, and a defaulted ``null`` / ``[]`` on every shot
+        would rewrite all of them on the next ``an sync``.
+        """
+        data = handler(self)
+        if isinstance(data, dict):
+            if self.transition is None:
+                data.pop("transition", None)
+            if not self.sounds:
+                data.pop("sounds", None)
+        return data
 
 
 def resolve_step_hz(shot: "Shot", scene_step_hz: float | None) -> float | None:
@@ -629,6 +729,9 @@ class Meta(_IRModel):
     #: theirs, and blinks, ``play`` clips and swap channels have none to
     #: inherit. There is no per-shot override yet — style is a scene's.
     default_easing: EasingSpec | None = None
+    #: Sound cues in FILM time — a music bed, an ambience under every shot
+    #: (:class:`SoundCue`). Empty, the default, is no sound layer at all.
+    sounds: list[SoundCue] = Field(default_factory=list)
 
     @model_serializer(mode="wrap")
     def _omit_unset_style_pack(self, handler):
@@ -651,6 +754,9 @@ class Meta(_IRModel):
         # because a model has one.
         if isinstance(data, dict) and data.get("default_easing") is None:
             data.pop("default_easing", None)
+        # `sounds` likewise: an empty list is what every existing meta means.
+        if isinstance(data, dict) and not self.sounds:
+            data.pop("sounds", None)
         return data
 
 

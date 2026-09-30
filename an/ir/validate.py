@@ -940,6 +940,7 @@ def validate_semantic(
     available_characters: Mapping[str, Any] | None = None,
     available_props: Mapping[str, Any] | None = None,
     available_environments: Mapping[str, Any] | None = None,
+    available_sounds: Mapping[str, Any] | None = None,
 ) -> ValidationReport:
     """Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -1096,4 +1097,73 @@ def validate_semantic(
                     "dialogue requires a speaker",
                 )
 
+    _check_assembly(scene, report, sounds=available_sounds)
     return report
+
+
+def _check_assembly(
+    scene: SceneIR, report: "ValidationReport", *, sounds: Mapping[str, Any] | None
+) -> None:
+    """Transitions and the sound layer (`an.assemble`): what assembling the film
+    would refuse is an error here, from the SAME list the assembler raises on."""
+    from an.assemble import film_timeline, transition_problems
+
+    fps = scene.meta.fps
+    if fps <= 0:
+        return  # already its own error
+    problems = transition_problems(scene.timeline, fps)
+    for i, message in problems:
+        report.add("error", f"timeline/{i}/transition", message)
+    if not problems:
+        timeline = film_timeline(scene.timeline, fps=fps)
+        for i, shot in enumerate(scene.timeline):
+            # A dissolve plays both shots' audio in the overlap: a line there
+            # is heard over the other shot's picture. Legal, and worth a word.
+            overlap_out = timeline.dissolve_in[i + 1] / fps if i + 1 < len(scene.timeline) else 0.0
+            overlap_in = timeline.dissolve_in[i] / fps
+            for k, line in enumerate(shot.dialogue):
+                if line.start is None:
+                    continue
+                end = line.start + (line.duration or 0.0)
+                if (overlap_in and line.start < overlap_in) or (
+                    overlap_out and end > shot.duration - overlap_out
+                ):
+                    report.add(
+                        "warning",
+                        f"timeline/{i}/dialogue/{k}",
+                        "this line plays during a dissolve, so it is heard over "
+                        "the neighbouring shot's picture too; move it clear of "
+                        "the overlap or shorten the dissolve",
+                    )
+
+    cues = [("meta/sounds", j, c) for j, c in enumerate(scene.meta.sounds)]
+    for i, shot in enumerate(scene.timeline):
+        for j, cue in enumerate(shot.sounds):
+            cues.append((f"timeline/{i}/sounds", j, cue))
+            if cue.at >= shot.duration:
+                report.add(
+                    "warning",
+                    f"timeline/{i}/sounds/{j}/at",
+                    f"cue at {cue.at}s starts after shot {shot.id!r} ends "
+                    f"({shot.duration}s); a shot cue's time is shot-local",
+                )
+    if sounds is None:
+        return  # store not supplied: the reference checks did not run
+    for base, j, cue in cues:
+        path = f"{base}/{j}/sound"
+        if cue.sound not in sounds:
+            report.add(
+                "error",
+                path,
+                f"sound {cue.sound!r} is not in the sounds store (rendering "
+                "raises); add it with an.sounds.add_sound",
+            )
+            continue
+        source = (sounds[cue.sound] or {}).get("source") or {}
+        if not source.get("license"):
+            report.add(
+                "warning",
+                path,
+                f"sound {cue.sound!r} has no recorded licence; `an credits` "
+                "reports it UNVERIFIED — unknown is not unencumbered",
+            )

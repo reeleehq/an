@@ -77,6 +77,7 @@ def validate_project(project_dir: str | Path) -> ValidationReport:
         available_characters=project.mall.get("characters"),
         available_props=project.mall.get("props"),
         available_environments=project.mall.get("environments"),
+        available_sounds=project.mall.get("sounds"),
     )
     return schema_report.merge(semantic_report)
 

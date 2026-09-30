@@ -23,6 +23,7 @@ def test_init_creates_full_layout():
             "assets/environments",
             "assets/voices",
             "assets/styles",
+            "assets/sounds",
             "artifacts/audio",
             "artifacts/visemes",
             "artifacts/shots",

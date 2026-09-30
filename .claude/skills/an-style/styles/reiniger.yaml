@@ -31,6 +31,10 @@ live:
   characters:
     generate: offline
     tint: "#000000"          # a `tint` set on each character root: a black multiply is a silhouette
+  transitions:
+    default: {kind: dissolve, duration: 1.0}   # between painted plates; the duration is an estimate
+  sound:
+    bed: {loop: true, fade_in: 2.0, fade_out: 3.0}   # the score carries the film: no dialogue, so no ducking
 
 targets:
   top16_colour_coverage: [0.65, 0.80]   # measured 0.74, the flattest of the six
@@ -39,7 +43,6 @@ targets:
 guidance:
   construction: black cardboard puppets of 20-50 pieces with wire hinges; rigs are flat in `an` today, so deep hierarchies are untested
   expression: pose and profile only, no mouth animation; use side-view art
-  shot_timing: shot lengths counted to the music; no music layer ships
+  shot_timing: shot lengths counted to the music; cut to the bed's bars by hand (nothing reads the music's tempo)
   text: ornamental-script intertitles, cyan on dark blue with a geometric border; no text node ships
-  sound: a composed score, no dialogue; `an` renders dialogue audio only
-  transitions: dissolves between painted plates; `an` only hard-cuts
+  sound: a composed score, no dialogue; bring a licensed or public-domain recording for `live.sound`'s bed

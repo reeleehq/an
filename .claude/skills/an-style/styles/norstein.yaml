@@ -30,6 +30,9 @@ live:
     range_s: [4, 16]
   characters:
     generate: promote        # painted cel cut-outs with limbs separate
+  transitions:
+    default: {kind: dissolve, duration: 1.5}   # slow dissolves; the duration is an estimate
+    fog_fade: {kind: fade, duration: 2.0, color: "#d8dde0"}   # a fade through fog grey, an estimate
 
 targets:
   mean_saturation: [0.20, 0.30]   # measured 0.25
@@ -42,5 +45,4 @@ guidance:
   edges: soft, without a blur filter; needs painted art
   expression: body angle, gaze and light; little or no lip-sync
   text: none
-  sound: sparse, naturalistic; `an` renders dialogue audio only
-  transitions: slow dissolves and fog fades; `an` only hard-cuts
+  sound: sparse, naturalistic ambience as a quiet looped `meta.sounds` cue plus occasional shot cues; bring licensed assets

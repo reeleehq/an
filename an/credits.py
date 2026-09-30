@@ -116,18 +116,20 @@ class CreditsWarning(UserWarning):
 def collect_credits(mall: Mapping[str, Any]) -> CreditsReport:
     """Walk a project mall and gather every recorded :class:`AssetSource`.
 
-    Three stores carry provenance: characters, **props** (an#108) and
-    **environments** (an#110). Each was added by the PR that gave that store
+    Four stores carry provenance: characters, **props** (an#108),
+    **environments** (an#110) and **sounds**. Each was added by the PR that gave that store
     real art, which is the rule rather than a coincidence — a walk that skips a
     store holding third-party plates does not return less information, it
     returns an affirmative false statement to exactly the people who need the
-    opposite. Styles will join when a StylePack has art (#112).
+    opposite. **Sounds** joined with the sound layer (an#163) — a sound is
+    third-party work more often than any other asset. Styles will join when a
+    StylePack has art (#112).
 
     Legacy reconstruction runs on characters only: it recovers a DiceBear
     record from `metadata.dicebear_*`, which no other store has ever written.
     """
     report = CreditsReport()
-    for store_name in ("characters", "props", "environments"):
+    for store_name in ("characters", "props", "environments", "sounds"):
         store = mall.get(store_name)
         if store is None:
             continue

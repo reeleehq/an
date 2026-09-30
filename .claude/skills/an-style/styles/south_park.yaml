@@ -33,6 +33,8 @@ live:
   characters:
     generate: offline        # `an character new <name> --offline`
     mouth_variants: [happy, sad]
+  transitions:
+    default: {kind: cut}     # hard cuts only [research: U]
 
 targets:
   identical_frame_share: [0.55, 0.70]   # measured 0.64
@@ -49,6 +51,5 @@ guidance:                    # not in `an` yet: apply by hand where you can, oth
   outline: near-black #231316 about 3 px at 1080p; not a StylePack role
   paper_grain: a static low-alpha texture plane; no grain ships
   voice: pitch raised (about 4 semitones is an estimate); `an` has no voice-effect chain
-  sound: sparse stingers, crisp hard cuts; `an` renders dialogue audio only
+  sound: sparse stingers as shot `sounds` cues on the beat they punctuate, no music bed; `an` ships no sound library, so stingers are assets you add with their licence
   text: occasional location cards; `an` has no text node
-  transitions: hard cuts only, which is what `an` does between shots

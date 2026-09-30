@@ -29,6 +29,10 @@ live:
   characters:
     generate: offline
     mouth_variants: [happy, sad]
+  transitions:
+    default: {kind: cut}     # hard cuts plus gags
+  sound:
+    bed: {loop: true, gain_db: -8, duck_db: -12, fade_in: 1.0, fade_out: 1.5}   # a music bed ducked under the narrator; levels are an estimate
 
 targets:
   identical_frame_share: [0.55, 0.65]    # measured 0.59
@@ -45,5 +49,5 @@ guidance:
   maps: red and blue territory fills that cross-fade; no map layer ships
   text: date cards (bold white sans on black, 1.5-2.5 s), top-of-frame bullet captions, small speech text; no text node ships
   motion_vocabulary_unmapped: [fall, freeze_frame, bait_and_switch]   # no preset
-  sound: a Creative Commons music bed and dense SFX; `an` renders dialogue audio only
-  transitions: hard cuts plus gag interrupts
+  sound: the bed is `live.sound` (bring a licensed track; the originals are Kevin MacLeod, CC BY, attribution required); dense SFX are shot `sounds` cues you place by hand
+  transitions: gag interrupts are an edit, not a transition; cut to them
