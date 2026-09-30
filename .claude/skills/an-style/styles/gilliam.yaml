@@ -34,6 +34,6 @@ guidance:
   mouth: a hinged jaw piece (a rotation tween) or a swap set
   motion_vocabulary_unmapped: [drop, beheading, morph]   # no preset
   texture: photographic, many colours; flat fills read wrong
-  text: period-type titles and hand-lettered signs; no text node ships
+  text: period-type titles are text props with a period font FILE in `font`; hand-lettered signs are SVG prop art
   sound: absurd, dense SFX as shot `sounds` cues on each pop-up and squash; bring licensed or public-domain assets
   transitions: objects transform across the cut (a morph); not built — cut or dissolve

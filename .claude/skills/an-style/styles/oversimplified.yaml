@@ -46,8 +46,8 @@ guidance:
   structure: [narrated_map, dramatization, date_card]
   narration: one narrator voices every character, third person
   palette_accents: {brick: "#ba5f31", sage: "#67796a", card_bg: "#040404"}   # not StylePack roles
-  maps: red and blue territory fills that cross-fade; no map layer ships
-  text: date cards (bold white sans on black, 1.5-2.5 s), top-of-frame bullet captions, small speech text; no text node ships
+  maps: a plane environment (a depth-0 fill for the sea, depth-1 fill planes for land and territories) plus path props for routes and arrows drawn on with a `trim_end` tween and world text props for labels (the an skill's recipe builds one); a territory changing hands is a `tint` tween on a WHITE fill plane (colours cross-fade per channel); real coastlines need image planes or SVG prop art
+  text: date cards (bold white sans on black, 1.5-2.5 s) are an overlay text prop over a black fill plane; top-of-frame bullet captions are overlay text anchored at `top`; small speech text is world text. Only the built-in regular face ships, so bold needs a bold font FILE in the text's `font`
   motion_vocabulary_unmapped: [fall, freeze_frame, bait_and_switch]   # no preset
   sound: the bed is `live.sound` (bring a licensed track; the originals are Kevin MacLeod, CC BY, attribution required); dense SFX are shot `sounds` cues you place by hand
   transitions: gag interrupts are an edit, not a transition; cut to them

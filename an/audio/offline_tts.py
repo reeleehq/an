@@ -36,6 +36,25 @@ _SECONDS_PER_CHAR: float = 0.06  # ~10 cps speech rate proxy
 _LEADING_SILENCE_S: float = 0.05  # tiny pad for natural feel
 
 
+def estimate_speech_duration(
+    text: str, *, seconds_per_char: float = _SECONDS_PER_CHAR
+) -> float:
+    """Seconds the offline voice takes to say ``text`` — a leading pad plus a
+    per-character rate over the non-space characters, clamped.
+
+    It is exactly what an offline render gives a line, so ``an validate`` uses
+    it to warn about a shot too short for its dialogue BEFORE anything is
+    synthesized. A real voice is usually a little slower, so for one this is an
+    under-estimate: a line it says overruns will overrun.
+
+    >>> round(estimate_speech_duration("It only takes exact change."), 3)
+    1.43
+    """
+    meaningful = sum(1 for ch in text if not ch.isspace())
+    raw = _LEADING_SILENCE_S + meaningful * seconds_per_char
+    return max(_MIN_DURATION_S, min(_MAX_DURATION_S, raw))
+
+
 class OfflineTTS:
     """Default TTS provider: silent WAV of length proportional to text.
 
@@ -94,9 +113,7 @@ class OfflineTTS:
 
     def _estimate_duration(self, text: str) -> float:
         """Approximate duration: leading pad + per-char accumulation, clamped."""
-        meaningful = sum(1 for ch in text if not ch.isspace())
-        raw = _LEADING_SILENCE_S + meaningful * self.seconds_per_char
-        return max(_MIN_DURATION_S, min(_MAX_DURATION_S, raw))
+        return estimate_speech_duration(text, seconds_per_char=self.seconds_per_char)
 
     def _silent_wav_bytes_for_frames(self, n_frames: int) -> bytes:
         """Build a valid WAV file (in-memory) of pure silence with ``n_frames`` samples."""

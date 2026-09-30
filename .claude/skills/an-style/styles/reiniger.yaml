@@ -44,5 +44,5 @@ guidance:
   construction: black cardboard puppets of 20-50 pieces with wire hinges; rigs are flat in `an` today, so deep hierarchies are untested
   expression: pose and profile only, no mouth animation; use side-view art
   shot_timing: shot lengths counted to the music; cut to the bed's bars by hand (nothing reads the music's tempo)
-  text: ornamental-script intertitles, cyan on dark blue with a geometric border; no text node ships
+  text: ornamental-script intertitles, cyan on dark blue — an overlay text prop with an ornamental font FILE over a dark-blue fill plane; the geometric border is SVG prop art or path props
   sound: a composed score, no dialogue; bring a licensed or public-domain recording for `live.sound`'s bed

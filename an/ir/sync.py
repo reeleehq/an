@@ -62,6 +62,11 @@ from an.ir.schema import AssetRef, Dialogue, Meta, SceneIR, Shot
 from an.util import _read_text, _write_json, _write_text
 
 
+#: Two files whose mtimes are closer than this are "the same age" to `sync`,
+#: which then rewrites neither (write order inside one store call must not
+#: flip-flop the source of truth).
+SYNC_MTIME_TOLERANCE_S: float = 0.5
+
 _FENCE_RE = re.compile(
     r"^```(\w+)(?:\s+(\w+))?\s*\n(.*?)\n```", re.MULTILINE | re.DOTALL
 )
@@ -810,7 +815,7 @@ def sync(project_dir: str | Path) -> SyncResult:
         md_mtime = md_path.stat().st_mtime
         json_mtime = json_path.stat().st_mtime
         skew = json_mtime - md_mtime
-        if skew > 0.5:
+        if skew > SYNC_MTIME_TOLERANCE_S:
             data = json.loads(_read_text(json_path))
             scene = scene_from_json_doc(data, source=json_path)
             _write_text(md_path, ir_to_markdown(scene))
@@ -820,7 +825,7 @@ def sync(project_dir: str | Path) -> SyncResult:
 
             os.utime(md_path, (json_mtime, json_mtime))
             result.wrote_md = True
-        elif skew < -0.5:
+        elif skew < -SYNC_MTIME_TOLERANCE_S:
             scene = markdown_to_ir(_read_text(md_path))
             _write_json(json_path, json.loads(scene.model_dump_json()))
             import os

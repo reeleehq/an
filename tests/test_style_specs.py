@@ -166,3 +166,91 @@ def test_voice_effects_are_valid_voice_effects(spec):
 def test_south_park_raises_its_voices():
     fx = _load(SPEC_DIR / "south_park.yaml")["live"]["voice"]["effects"]
     assert 0 < fx["pitch_semitones"] <= 12
+
+
+# -----------------------------------------------------------------------------
+# The lint's advice agrees with the spec (e2e finding 5)
+# -----------------------------------------------------------------------------
+
+#: Advice that would break a spec that SETS step_hz.
+_UNSTEP_ADVICE = ("drop `step_hz`", "step_hz: null", "raise `step_hz`", "lower `step_hz`",
+                  "higher `step_hz`", "set `step_hz` to")
+#: Advice that would break a spec that leaves step_hz UNSET.
+_STEP_ADVICE = ("set `step_hz`", "raise `step_hz`", "lower `step_hz`", "higher `step_hz`",
+                "`step_hz` to fps")
+
+
+def test_the_lint_never_advises_against_the_spec(spec):
+    """South Park (step_hz 12) was told "drop `step_hz`" for a high held-frame
+    share, and OverSimplified (no step_hz) "set `step_hz`" for a low one — both
+    break the style they were measuring. Every fix, both directions, every metric."""
+    from an.verify.style import METRICS, _fix_for
+
+    live = spec["live"]
+    stepped = live["meta"].get("step_hz") is not None
+    banned = _UNSTEP_ADVICE if stepped else _STEP_ADVICE
+    for name in METRICS:
+        for low in (True, False):
+            fix = _fix_for(name, low, live)
+            hits = [b for b in banned if b in fix]
+            assert not hits, (spec["style"], name, "low" if low else "high", fix)
+            assert "{" not in fix, fix  # every placeholder filled
+
+
+# -----------------------------------------------------------------------------
+# Guidance must not call a shipped feature missing (e2e finding 1)
+# -----------------------------------------------------------------------------
+
+#: A phrase that says a feature is absent, and the shipped thing that makes it
+#: false. The e2e agent, following an-style literally, would have told its user
+#: the date card and the map arrow were unsupported — while the `an` skill
+#: documented text props, path props and plane environments.
+STALE_ABSENCE_CLAIMS = {
+    r"\bno text (node|layer|primitive|prop)": "text props ship (an#155, an.text.TextDescriptor)",
+    r"has no text\b": "text props ship (an#155)",
+    r"\bno map layer": "plane environments (an#110) + path props (an#160) build a map",
+    r"\bno (path|stroke|line|arrow) (node|primitive|prop|layer)": "path props ship (an#160, an.paths.PathDescriptor)",
+    r"\bno (plane|parallax|multiplane) (layer|support)": "plane environments ship (an#110)",
+    r"\bno (sound|audio) (layer|support|track)": "shot and meta `sounds` ship (an#176)",
+    r"\bno transitions?\b": "shot transitions ship (an#176)",
+}
+
+SKILL_MD = SPEC_DIR.parent / "SKILL.md"
+
+
+def _strings(obj):
+    if isinstance(obj, str):
+        yield obj
+    elif isinstance(obj, dict):
+        for v in obj.values():
+            yield from _strings(v)
+    elif isinstance(obj, list):
+        for v in obj:
+            yield from _strings(v)
+
+
+def test_guidance_does_not_call_a_shipped_feature_missing(spec):
+    import re
+
+    found = [
+        (text, why)
+        for text in _strings(spec.get("guidance", {}))
+        for pat, why in STALE_ABSENCE_CLAIMS.items()
+        if re.search(pat, text.lower())
+    ]
+    assert not found, found
+
+
+def test_the_an_style_skill_does_not_call_a_shipped_feature_missing():
+    import re
+
+    text = SKILL_MD.read_text(encoding="utf-8").lower()
+    found = [why for pat, why in STALE_ABSENCE_CLAIMS.items() if re.search(pat, text)]
+    assert not found, found
+
+
+def test_the_an_style_skill_points_at_its_specs_relative_to_itself():
+    """A downstream agent has the skill directory, not the `an` repo: a spec
+    path written as `.claude/skills/an-style/styles/...` does not exist there."""
+    text = SKILL_MD.read_text(encoding="utf-8")
+    assert ".claude/skills/an-style/styles" not in text

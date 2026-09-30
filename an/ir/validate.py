@@ -1134,9 +1134,60 @@ def validate_semantic(
                     f"{path}/dialogue/{k}/speaker",
                     "dialogue requires a speaker",
                 )
+        _check_dialogue_fits(shot, path, report)
 
     _check_assembly(scene, report, sounds=available_sounds)
     return report
+
+
+#: Slack before a line counts as running past its shot: a frame at 60 fps.
+DIALOGUE_OVERRUN_TOLERANCE_S: float = 1 / 60
+
+
+def _check_dialogue_fits(shot: Any, path: str, report: "ValidationReport") -> None:
+    """Warn when a shot's dialogue runs past the shot's end.
+
+    The audio is cut at the shot end (each shot's mix is trimmed to its
+    duration), and the lines play back to back, so a shot shortened below its
+    dialogue loses the tail of it — silently, until now (an e2e run shrank an
+    8.2 s shot holding 7.1 s of speech to 3.0 s and `an validate` said nothing).
+
+    What is known depends on when this runs. After the audio pipeline, a line
+    carries its real ``start`` and ``duration`` and the check is exact. Before
+    it, the duration is the offline voice's estimate
+    (:func:`an.audio.offline_tts.estimate_speech_duration` — exactly what an
+    offline render will give, and an under-estimate for a real voice), laid
+    out back to back from the shot start the way the pipeline lays them.
+    """
+    if not shot.dialogue:
+        return
+    from an.audio.offline_tts import estimate_speech_duration
+
+    cursor = 0.0
+    for k, line in enumerate(shot.dialogue):
+        estimated = line.duration is None
+        length = (
+            estimate_speech_duration(line.text) if estimated else float(line.duration)
+        )
+        start = float(line.start) if line.start is not None else cursor
+        end = start + length
+        cursor = end
+        if end <= shot.duration + DIALOGUE_OVERRUN_TOLERANCE_S:
+            continue
+        how = (
+            "at the offline voice's rate (a real voice is usually slower)"
+            if estimated
+            else "as synthesized"
+        )
+        report.add(
+            "warning",
+            f"{path}/dialogue/{k}",
+            f"line {k} ({line.speaker}) ends at {end:.2f}s {how}, past the shot's "
+            f"{shot.duration:g}s end, so its last {end - shot.duration:.2f}s are "
+            "cut off: the shot's audio stops where the shot does. Lengthen the "
+            f"shot to at least {end:.2f}s, shorten the line, or move it to the "
+            "next shot",
+        )
 
 
 def _check_assembly(

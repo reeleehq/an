@@ -53,10 +53,10 @@ from __future__ import annotations
 
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 from an.ir.assets import AssetSource
-from an.ir.migrate import DocumentKind, register_kind
+from an.ir.migrate import DocumentKind, omit_unset, register_kind
 
 __all__ = [
     "ENVIRONMENT_SCHEMA_VERSION",
@@ -219,6 +219,13 @@ class EnvironmentDescriptor(_EnvModel):
     source: AssetSource | None = None
 
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @model_serializer(mode="wrap")
+    def _dump_what_was_authored(self, handler):
+        """Dump only what the author set (plus ``kind``/``schema_version``), like
+        `PathDescriptor` and `TextDescriptor`: the stored ``meta.json`` is the
+        document that was written, not every default spelled out."""
+        return omit_unset(self, handler(self))
 
     @model_validator(mode="after")
     def _plane_names_are_unique(self) -> "EnvironmentDescriptor":
