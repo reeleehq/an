@@ -134,9 +134,9 @@ def provider_voice(
     doc = voice_document(mall, voice_id)
     if not doc:
         return None
-    if not voice_applies(doc, tts_name):
-        return DEFAULT_VOICE if voice_id != DEFAULT_VOICE else None
     named = doc.get(PROVIDER_VOICE_KEY)
     if not isinstance(named, str) or not named or named == voice_id:
         return None
+    if not voice_applies(doc, tts_name):
+        return DEFAULT_VOICE
     return named

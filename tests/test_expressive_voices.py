@@ -175,6 +175,16 @@ def test_neutral_is_not_a_tag_and_prefixes_match_variants():
     tts, _ = _tts()
     assert tts.synthesis_options({"model_id": "eleven_v3"}, emotion="neutral") == {"model_id": "eleven_v3"}
     assert tts.synthesis_options({"model_id": "eleven_v4_turbo"}, emotion="sad")["audio_tags"] == ["sad"]
+    assert tts.synthesis_options(
+        {"model_id": "eleven_v3"}, emotion="happy", direction=["happy", "laughs"]
+    )["audio_tags"] == ["happy", "laughs"]
+
+
+def test_a_foreign_provider_without_a_voice_id_keeps_its_key():
+    from an.audio.voices import provider_voice
+
+    mall = {"voices": {"bob": {"provider": "elevenlabs"}}}
+    assert provider_voice(mall, "bob", tts_name="offline") is None
 
 
 @pytest.mark.parametrize(
@@ -274,6 +284,13 @@ class _Page:
         self.voices, self.next_page_token, self.has_more = voices, token, token is not None
 
 
+def test_a_repeated_page_token_ends_the_listing():
+    same = _Page([_Voice("a1", "Ada")], token="t")
+    client = _FakeClient(pages=[same, same, same])
+    tts, _ = _tts(client)
+    assert [v.voice_id for v in tts.list_voices()] == ["a1", "a1"]
+
+
 def test_list_voices_pages_and_formats():
     client = _FakeClient(
         pages=[_Page([_Voice("a1", "Ada", accent="british")], token="t"), _Page([_Voice("b2", "Bob")])]
@@ -286,9 +303,10 @@ def test_list_voices_pages_and_formats():
 
 
 def test_the_cli_mounts_voices_list():
-    from typer.testing import CliRunner
+    import typer
 
     from an.__main__ import build_app
 
-    result = CliRunner().invoke(build_app(), ["voices", "list", "--help"])
-    assert result.exit_code == 0 and "--provider" in result.output
+    group = typer.main.get_command(build_app())
+    command = group.commands["voices"].commands["list"]
+    assert {p.name for p in command.params} >= {"provider", "search"}

@@ -205,7 +205,7 @@ class ElevenLabsTTS:
             opts["seed"] = seed
         emotion = (emotion or "").strip()
         tags = ([emotion] if emotion and emotion.lower() not in _UNTAGGED_EMOTIONS else [])
-        tags += list(direction or [])
+        tags += [c for c in direction or [] if c not in tags]
         effective_model = opts.get("model_id", self.model_id)
         if tags and takes_audio_tags(effective_model, prefixes=self.audio_tag_model_prefixes):
             opts["audio_tags"] = tags
@@ -277,11 +277,11 @@ class ElevenLabsTTS:
         except RuntimeError:
             return []
         out: list[VoiceMeta] = []
-        token = None
-        while True:
-            page = client.voices.search(
-                search=search or None, page_size=100, next_page_token=token
-            )
+        if not hasattr(client.voices, "search"):  # SDK < 2: one unfiltered page
+            pages = iter([client.voices.get_all()])
+        else:
+            pages = _search_pages(client, search)
+        for page in pages:
             for v in page.voices:
                 labels = dict(getattr(v, "labels", None) or {})
                 out.append(
@@ -298,9 +298,22 @@ class ElevenLabsTTS:
                         },
                     )
                 )
-            token = getattr(page, "next_page_token", None)
-            if not getattr(page, "has_more", False) or not token:
-                return out
+        return out
+
+
+def _search_pages(client, search: str | None, *, page_size: int = 100):
+    """``voices.search`` pages until the server says there are no more (or
+    repeats a token, which would otherwise loop forever)."""
+    token, seen = None, set()
+    while True:
+        page = client.voices.search(
+            search=search or None, page_size=page_size, next_page_token=token
+        )
+        yield page
+        token = getattr(page, "next_page_token", None)
+        if not getattr(page, "has_more", False) or not token or token in seen:
+            return
+        seen.add(token)
 
 
 def _sdk_voice_settings(settings: Mapping[str, Any]):
