@@ -425,3 +425,100 @@ def test_out_of_order_dialogue_lines_are_emitted_in_time_order():
         assert evaluate_timeline(timeline_from_scene(compiled), 18 / 24)[("c/head/mouth", "viseme")] == "A", order
         (trk,) = [t for t in js["timeline"]["tracks"] if t["target_root"] == "c"]
         assert [c["start_time"] for c in trk["clips"] if "__viseme__" in c["animation_id"]] == [0.0, 0.71]
+
+
+def test_the_mouth_rests_after_the_last_word_not_at_the_clip_end():
+    """an#213, the evidence: ElevenLabs' "Bye." is 0.5 s of speech in a 1.84 s
+    clip, and the whisper track keyed no rest after the word, so the mouth
+    held ``C`` through 1.3 s of silence. With the line's word timings the
+    compiler closes it where the word ends (after the decay); a line without
+    word timings is unchanged."""
+    from an.ir.schema import WordTimingIR
+
+    keys = [(0.0, "X"), (0.0, "A"), (0.167, "B"), (0.333, "C"), (1.838, "X")]
+    shot = _shot(keys, duration=1.838)
+    timed = shot.model_copy(deep=True)
+    timed.dialogue[0].word_timings = [WordTimingIR(text="Bye.", start=0.0, end=0.5)]
+
+    def mouth(scene, t):
+        return evaluate_timeline(timeline_from_scene(scene), t)[("c/head/mouth", "viseme")]
+
+    closed, open_ = _compile(timed), _compile(shot)
+    assert mouth(closed, 0.3) != "X"  # still speaking
+    assert mouth(closed, 0.5 + 0.12) == "X"  # rested within the decay of the word's end
+    assert mouth(closed, 1.5) == "X"
+    assert mouth(open_, 1.5) != "X"  # no words, no speech end: as before
+    assert _mouth_keys(closed)[-1] == (1.838, "X")  # the terminal rest invariant holds
+
+
+def test_the_provider_keys_a_rest_after_the_last_word():
+    """The raw track is honest too: the trailing silence gets the same rest a
+    gap between words gets (an#213)."""
+    from an.audio.lipsync import word_timings_to_visemes
+    from an.audio.offline_lipsync import _CHAR_TO_VISEME
+
+    out = word_timings_to_visemes(
+        [("bye", 0.0, 0.5)], total_duration=1.838, char_to_viseme=_CHAR_TO_VISEME
+    )
+    assert [(round(v.time, 3), v.code) for v in out][-2:] == [(0.55, "X"), (1.838, "X")]
+    tight = word_timings_to_visemes(
+        [("bye", 0.0, 0.5)], total_duration=0.6, char_to_viseme=_CHAR_TO_VISEME
+    )
+    assert [v.code for v in tight].count("X") == 2  # a short tail: the terminal rest only
+
+
+def _shown(cues, t):
+    return [c.code for c in cues if c.time <= t][-1]
+
+
+def test_closing_uses_the_tracks_own_rest_code(monkeypatch):
+    """Review of an#213: a word-timed track keyed in another convention
+    (``WordTimingsLipSync(rest_viseme="0")``) closes with ITS rest, and the
+    compiler hands the passes that code."""
+    track = [(0, "0"), (0.2, "5"), (0.3, "7"), (1.5, "0")]
+    out = coarticulate(track, fps=24, end=1.5, speech_end=0.45, rest="0")
+    assert _shown(out, 0.7) == "0" and "X" not in {c.code for c in out}
+
+    from an.ir.schema import WordTimingIR
+
+    seen = {}
+    real = compile_mod.coarticulate
+
+    def spy(keys, **kw):
+        seen.update(kw)
+        return real(keys, **kw)
+
+    monkeypatch.setattr(compile_mod, "coarticulate", spy)
+    shot = _shot([(0.0, "X"), (0.2, "D"), (1.0, "Q")], duration=1.0)
+    shot.dialogue[0].word_timings = [WordTimingIR(text="hi", start=0.0, end=0.4)]
+    _compile(shot)
+    assert seen["rest"] == "Q" and seen["speech_end"] == 0.4
+
+
+def test_a_short_last_word_on_a_cached_track_still_closes():
+    """Review of an#213: the provider spreads a word's shapes over at least
+    50 ms, so a 20 ms last word keys a shape AFTER its end; the rest follows
+    that shape instead of being dropped before it."""
+    cached = [(0, "X"), (0.3, "C"), (0.45, "B"), (0.65, "X"), (1.0, "E"), (1.025, "B"), (2.0, "X")]
+    out = coarticulate(cached, fps=24, end=2.0, speech_end=1.02)
+    assert _shown(out, 1.3) == "X"
+    # With no lead the late shape stays after the word's end: still closed.
+    unled = coarticulate(cached, fps=24, end=2.0, speech_end=1.02, lead_s=0.0)
+    assert _shown(unled, 1.3) == "X"
+
+
+def test_a_word_shorter_than_the_lead_still_opens_the_mouth():
+    """Review of an#213: the closing rest goes in AFTER the lead, so a word
+    whose shapes the lead clamps to 0 is not erased by its own rest."""
+    from an.audio.lipsync import word_timings_to_visemes
+    from an.audio.offline_lipsync import _CHAR_TO_VISEME
+
+    raw = [
+        (v.time, v.code)
+        for v in word_timings_to_visemes(
+            [("oh", 0.0, 0.08)], total_duration=1.0, char_to_viseme=_CHAR_TO_VISEME
+        )
+    ]
+    out = coarticulate(raw, fps=24, end=1.0, speech_end=0.08)
+    assert any(c.code != "X" for c in out), out
+    assert _shown(out, 0.5) == "X"
