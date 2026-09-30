@@ -19,15 +19,6 @@ the sidecar as `1.0`) is the dominance carrier; cached tracks keep `1.0` until r
 
 ## 2. The pass order (each a pure function over `list[Viseme]`, doctested)
 
-0. **Close after speech** (an#213) — `close_after_speech` inserts a rest at the line's last
-   `word_timings` end when the shape showing there is not rest (`None` word timings: no-op).
-   Measured defect: ElevenLabs "Bye." was 0.5 s of speech in a 1.84 s clip, and
-   `word_timings_to_visemes` keyed a rest in gaps BETWEEN words but not after the last one,
-   so `C` held for 1.3 s of silence. It runs in the compiler because cached tracks carry the
-   defect (the provider is fixed too, for fresh raw tracks). It is pass 0 so the lead and the
-   decay treat that rest like any other: it lands two frames early, but never sooner than
-   `decay_s` after the last shape. Lines without word timings (`offline`, Rhubarb, which
-   keys its own silence) are unchanged, and none of the corpus lines carry them.
 1. **Symbolic** — merge adjacent duplicates; drop a low-dominance key whose raw span is under
    one frame (JALI §4.2: tongue-only visemes have no influence on the lips; Rhubarb encodes
    the same as `Phone::N → {B, C, F, H}`, a set its optimizer resolves to the neighbours). In
@@ -40,6 +31,19 @@ the sidecar as `1.0`) is the dominance carrier; cached tracks keep `1.0` until r
 3. **Lead, then decay** (two passes) — timing offsets: an anticipation lead of `2/24 s` (JALI: onset ~120 ms before
    the apex; Rhubarb's `maxExtensionDuration = 6_cs`), clamped at 0; the apex *is* the swap; a
    word-final open vowel before a gap decays to `X` ~120 ms after its last key.
+3b. **Close after speech** (an#213) — between lead and decay: `close_after_speech` inserts
+   the TRACK's rest code (the compiler passes the word-timed track's own last code, which need
+   not be `X`) at the line's last `word_timings` end, or just after the last shape when one is
+   keyed at or after that end, because the provider spreads a short word over at least 50 ms.
+   It does nothing when the mouth is already at rest there, and nothing when the line has no
+   word timings. Measured defect: ElevenLabs "Bye." was 0.5 s of speech in a 1.84 s clip, and
+   `word_timings_to_visemes` keyed a rest in gaps BETWEEN words but not after the last one,
+   so `C` held for 1.3 s of silence. It runs in the compiler because cached tracks carry the
+   defect (the provider is fixed too, for fresh raw tracks). It comes AFTER the lead, so a
+   word shorter than the lead (clamped to 0) is not erased by its own rest, and BEFORE the
+   decay, which keeps the rest `decay_s` after the last shape. Lines without word timings
+   (`offline`, and Rhubarb, which keys its own silence) are unchanged, and no corpus line
+   carries word timings.
 4. **Minimum hold — the condenser, last.** It **holds and votes**; it never drops a cue unvoted (a carried
    loser that loses its second window too never shows — outvoted twice, not skipped). Windows of
    at least ``min_hold_s`` open at each cue that clears the previous window; every cue in the

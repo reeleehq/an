@@ -4354,10 +4354,17 @@ def _add_viseme_clips(
                 if line.word_timings
                 else None
             )
+            # A word-timed track ends on ITS rest code (`word_timings_to_visemes`
+            # always does), which need not be Rhubarb's 'X' (an#213 review).
+            rest_kw = {"rest": raw[-1][1]} if speech_end is not None else {}
             condensed = [
                 (c.time, c.code)
                 for c in coarticulate(
-                    raw, fps=fps, end=float(line.duration), speech_end=speech_end
+                    raw,
+                    fps=fps,
+                    end=float(line.duration),
+                    speech_end=speech_end,
+                    **rest_kw,
                 )
             ]
         else:

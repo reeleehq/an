@@ -8,12 +8,6 @@ than a frame or two can show, tongue-only shapes swap the lips for one frame, an
 every shape lands exactly on its sound instead of a beat ahead of it. These
 passes turn the raw track into what an animator would key, in this order:
 
-0. **Close after speech** — :func:`close_after_speech` puts the mouth at rest
-   where the last WORD ends, when the line knows its words (an#213). A
-   provider that aligns from words keys a rest between words but, until
-   an#213, not after the last one, so the last shape held through the
-   trailing silence of the clip; cached tracks keep that defect, so the
-   compiler closes the mouth rather than asking for a re-alignment.
 1. **Symbolic** — :func:`merge_duplicates` drops a cue whose shape is already
    showing; :func:`suppress_weak` drops a low-dominance cue that would show for
    less than one frame (JALI, Edwards et al. 2016 §4.2: "Tongue-only visemes
@@ -23,6 +17,15 @@ passes turn the raw track into what an animator would key, in this order:
    (JALI: "speech onset begins 120 ms before the apex"; the animator's "two
    frames ahead"; Rhubarb's own ``maxExtensionDuration`` of 60 ms), clamped
    at 0.
+2b. **Close after speech** — :func:`close_after_speech` puts the mouth at rest
+   where the last WORD ends, when the line knows its words (an#213). A
+   provider that aligns from words keyed a rest between words but, until
+   an#213, not after the last one, so the last shape held through the
+   trailing silence of the clip; cached tracks keep that defect, so the
+   compiler closes the mouth rather than asking for a re-alignment. After
+   the lead (on the led times, so a word shorter than the lead still opens
+   the mouth before it closes) and before the decay (which gives the last
+   shape its time).
 3. **Decay** — :func:`decay` gives a shape its time to close: a rest cue that
    arrives sooner than ``decay_s`` after the shape before it is pushed out to
    ``decay_s`` (JALI: "another 120 ms to decay to zero"), never past the next
@@ -313,14 +316,16 @@ def condense(
 def close_after_speech(
     keys: Iterable, *, speech_end: float | None, rest: str = "X"
 ) -> list[Cue]:
-    """Rest at ``speech_end`` when the shape showing there is not already rest.
+    """Rest once speech is over: at ``speech_end``, or just after the last
+    shape when a shape is keyed at or after it — never before a shape.
 
     ``speech_end`` is where the line's last word ends (``None``: the line does
-    not know its words, and nothing changes). Cues after it are kept — a
-    provider that keys something there knows more than the word timings do —
-    and the passes after this one give the last shape its time: the lead moves
-    the rest two frames earlier with every other cue, and the decay pushes it
-    back out to ``decay_s`` after the shape before it (an#213).
+    not know its words, and nothing changes). A provider spreads a very short
+    word's shapes over a minimum span, so a shape can start after its word's
+    end; the rest then follows that shape, and :func:`decay` pushes it out to
+    ``decay_s`` after it (an#213 review). Nothing is inserted when the mouth
+    is already at rest there. ``rest`` is the TRACK's rest code (a track keyed
+    in another convention closes with its own).
 
     The evidence, "Bye." timed 0.0–0.5 s in a 1.84 s clip:
 
@@ -329,15 +334,36 @@ def close_after_speech(
     [(0.0, 'X'), (0.0, 'A'), (0.167, 'B'), (0.333, 'C'), (0.5, 'X'), (1.838, 'X')]
     >>> close_after_speech(raw, speech_end=None) == _cues(raw)
     True
+
+    A 25 ms last word whose second shape starts after it ends:
+
+    >>> [(c.time, c.code) for c in close_after_speech(
+    ...     [(0, "X"), (1.0, "E"), (1.025, "B"), (2.0, "X")], speech_end=1.02)][-3:]
+    [(1.025, 'B'), (1.025000001, 'X'), (2.0, 'X')]
     """
     cues = _cues(keys)
     if speech_end is None:
         return cues
-    before = [c for c in cues if c.time <= speech_end]
+    shapes = [c for c in cues if c.code != rest and c.time < _last_rest_time(cues, rest)]
+    closing = max(
+        float(speech_end), (shapes[-1].time + _AFTER_SHAPE_S) if shapes else -math.inf
+    )
+    before = [c for c in cues if c.time <= closing]
     if not before or before[-1].code == rest:
         return cues
-    closing = Cue(float(speech_end), rest, before[-1].intensity)
-    return sorted([*cues, closing], key=lambda c: c.time)
+    return sorted(
+        [*cues, Cue(closing, rest, before[-1].intensity)], key=lambda c: c.time
+    )
+
+
+#: Where a closing rest goes when a shape starts at or after the speech end:
+#: just after it, so the shape keeps its onset and the decay gives it its time.
+_AFTER_SHAPE_S: float = 1e-9
+
+
+def _last_rest_time(cues: Sequence[Cue], rest: str) -> float:
+    """The terminal rest's time (the track's end), or infinity without one."""
+    return cues[-1].time if cues and cues[-1].code == rest else math.inf
 
 
 def coarticulate(
@@ -360,10 +386,11 @@ def coarticulate(
     >>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838)][-2:]
     [(0.28, 'C'), (1.755, 'X')]
     >>> [(round(c.time, 3), c.code) for c in coarticulate(bye, fps=24, end=1.838, speech_end=0.5)][-2:]
-    [(0.28, 'C'), (0.42, 'X')]
+    [(0.28, 'C'), (0.5, 'X')]
 
-    (The rest leads by two frames like every other cue, and the hold places it
-    on its window.)
+    (The shapes lead by two frames; the closing rest is placed after the lead,
+    at the word's end, and the decay keeps it at least ``decay_s`` after the
+    last shape.)
 
     >>> raw = [(0.0, "X"), (0.30, "B"), (0.34, "A"), (0.38, "D"), (0.80, "X")]
     >>> [(round(c.time, 3), c.code) for c in coarticulate(raw, fps=24, end=1.0)]
@@ -392,9 +419,9 @@ def coarticulate(
         raise ValueError(f"lead_s and decay_s must be >= 0, got {lead_s} and {decay_s}")
     cues_in = _cues(keys)
     one_frame = 1.0 / fps
-    cues = close_after_speech(cues_in, speech_end=speech_end, rest=rest)
-    cues = suppress_weak(cues, max_weak_s=one_frame, end=end)
+    cues = suppress_weak(cues_in, max_weak_s=one_frame, end=end)
     cues = lead(cues, lead_s=lead_s)
+    cues = close_after_speech(cues, speech_end=speech_end, rest=rest)
     cues = decay(cues, decay_s=decay_s, rest=rest, end=end)
     out = condense(cues, min_hold_s=min_hold_s, end=end)
     if (
