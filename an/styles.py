@@ -41,8 +41,8 @@ paper grain over the frame (:class:`Grain`). Every one is a COMPILE-TIME
 expansion into ordinary document content — underlay copies of a part's own
 visual, a gradient sprite, a seeded noise tile — never a runtime filter, and
 never anything random at render time. `an.adapters.cutout.surface` does the
-expanding. Unlike colour roles, the outline and the shadow DO reach SVG art:
-they copy a part's texture rather than rewrite it. Every width and offset is in
+expanding. The outline and the shadow reach ANY SVG art, role-tagged or not:
+they copy a part's texture rather than recolour it. Every width and offset is in
 the rig's own pixels, so a treatment scales with the character like paper would.
 """
 

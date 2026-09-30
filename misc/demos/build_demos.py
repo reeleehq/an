@@ -903,8 +903,8 @@ def _build_surface_treatments(work: Path) -> Path:
     speaking: the outline and the paper-gap shadow are copies of each part
     drawn behind it IN the part's container, so they follow the hop, the nod
     and the arm with no channel of their own; `bo` also has a glow (a
-    per-entity override); the grain is one seeded tile over the frame. Unlike
-    a pack's colour roles, these DO reach SVG art. Widths are rig pixels, so
+    per-entity override); the grain is one seeded tile over the frame. These
+    reach any SVG art, role-tagged or not. Widths are rig pixels, so
     they are drawn at the characters' framing scale.
     """
     import subprocess
