@@ -127,7 +127,12 @@ from an.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
 from an.adapters.cutout.text import build_text_subtree, svg_data_uri, text_document
 from an.characters.colour_roles import recolour_svg, role_recolouring
 from an.text import font_base_dir, text_entity_problem
-from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette
+from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette, surface_for
+from an.adapters.cutout.surface import (
+    apply_surface,
+    faded_treated_targets,
+    grain_node,
+)
 
 
 # Default placeholder character: a recognizable stick-figure layout in pixel
@@ -239,13 +244,21 @@ def _warn_about_art_a_pack_cannot_reach(
     not a paragraph per shot (the e2e style test counted ~5 wrapped lines per
     shot). A cast that changes between shots gets one line per distinct set.
     """
-    if pack is None or not skipped:
+    if pack is None or not skipped or not (pack.roles or pack.entities):
+        # A pack with no colour roles (surface treatments only, say) has
+        # nothing it could have failed to recolour.
         return
+    also = (
+        " Its surface treatments (outline, shadow, glow) are copies, not "
+        "recolours, and those do reach them (an#163)."
+        if pack.surface is not None or pack.entity_surfaces
+        else ""
+    )
     warnings.warn(
         f"style pack {pack.name!r} could not reach {sorted(skipped)}: that SVG "
         "art carries no colour role for what the pack sets (hand-drawn or "
         "DiceBear art is untagged), so it renders as drawn; "
-        "`an character new --offline` tags every part.",
+        "`an character new --offline` tags every part." + also,
         CutoutCompileWarning,
         stacklevel=3,
     )
@@ -329,6 +342,12 @@ DFLT_LEG_COLOUR: str = "#2c3e50"
 #: the eye WHITE beside it is a literal and cannot be reached, which is the
 #: split `REACHABLE_ROLES` / `UNREACHABLE_ROLES` records.
 DFLT_PUPIL_COLOUR: str = "#1a1a1a"
+
+
+def _warn_surface(notes: list[str]) -> None:
+    """Say what a surface treatment could not do (an#163) — never silently."""
+    for note in notes:
+        warnings.warn(f"surface treatment: {note}", CutoutCompileWarning, stacklevel=3)
 
 
 def _palette_for(entity_id: str) -> tuple[str, str, str]:
@@ -971,6 +990,12 @@ def compile_shot(
         width=width,
         height=height,
     )
+    if style_pack is not None and style_pack.grain is not None:
+        # an#163: the paper grain, FIRST on the overlay so any text draws over
+        # it, and on the overlay at all so the camera cannot move or scale it.
+        overlay_children.insert(
+            0, grain_node(style_pack.grain, width=width, height=height, textures=textures)
+        )
     # The vocabulary sees the overlay too: its nodes are indexed by the
     # runtime under their own paths (`title/word_0`), exactly like the scene's,
     # so an authored tween on one is checked like any other target.
@@ -1031,6 +1056,19 @@ def compile_shot(
     # those passes (usage-aware escalation, an#87), and this is the one place
     # that decides warn-vs-raise for every fallback.
     _raise_or_warn_on_asset_fallbacks(shot.id, resolutions, strict=strict_assets)
+    if style_pack is not None:
+        faded = faded_treated_targets(scene_root, animations)
+        if faded:
+            warnings.warn(
+                f"an alpha channel fades {faded}, which carry surface treatments "
+                "(an#163): their outline/shadow copies are drawn separately, so a "
+                "fade shows the outline colour through the part rather than the "
+                "background. Fade with the treatment switched off for that entity "
+                "(`entity_surfaces: {<id>: {outline: false, shadow: false}}`), or "
+                "accept it for a short fade.",
+                CutoutCompileWarning,
+                stacklevel=2,
+            )
 
     timeline = TimelineJSON(duration=shot.duration, tracks=tracks)
 
@@ -1144,6 +1182,10 @@ def _build_scene_root(
             )
             sub.transform.x = x
             _apply_stage_placement(sub, entity)
+            # an#163: outline / paper-gap shadow / glow, when the pack asks.
+            _warn_surface(
+                apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
+            )
             children.append(sub)
         elif entity.kind == "prop":
             text_doc = text_document(entity, props_store)
@@ -1169,6 +1211,9 @@ def _build_scene_root(
                 reached=reached,
             )
             _apply_stage_placement(sub, entity)
+            _warn_surface(
+                apply_surface(sub, surface_for(style_pack, entity.id), textures=textures)
+            )
             children.append(sub)
         # `voice` entities are legitimately not drawable: they
         # configure the render rather than appearing in it.

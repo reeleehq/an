@@ -179,6 +179,41 @@ DEFAULT colour only — a path that names its own `color` is art, left alone wit
 and a per-entity `stroke` in the pack beats both. Every role in `REACHABLE_ROLES` has a marker-colour
 test compiling one fixed scene, so adding a role means adding the entity that reaches it to that scene.
 
+**Surface treatments (an#163 gap 5) are the pack's second job, and they are NOT colour roles.**
+`surface` / `entity_surfaces` / `grain` expand in `an/adapters/cutout/surface.py` into document
+content, never a runtime filter (`runtime.js` refuses per-frame randomness, and its determinism
+probe counts filters):
+
+- **Outline and shadow are `VisualJSON.underlays`**: copies of the part's OWN visual that the
+  runtime adds to the part's container BEFORE the visual. That placement is the design. A child
+  node would draw over the visual (children come after it), and a sibling would need every
+  channel cloned. In the container, a copy follows every tween, `play` and the camera with zero
+  channels, and `applySwap` re-textures the copies (`fitUnderlay`). Guard:
+  `test_every_treatment_follows_its_part_with_no_channel_of_its_own`.
+- **Exact where it can be.** A procedural rect is redrawn as a rounded rect of radius `width`
+  (the disk dilation, exactly); an ellipse gets both radii grown. An SVG part cannot be dilated
+  without rewriting its bytes, which is refused for the same reasons colour roles are. Instead it
+  gets a ring of 8 tinted copies, in exact IEEE directions (no libm in the contract), and its
+  shadow is ONE copy scaled about the art centre, because translucent copies compound (there is
+  no group alpha without a filter). A copy's `tint` is its colour (`_anBaseTint`), so
+  `applyTintDeep` multiplies an entity tint into it instead of replacing it.
+- **Blend modes are native.** PixiJS 7.4.2 has ADD and MULTIPLY in its blend-equation table, so
+  `VisualJSON.blend` is a single property read. Anything outside that table (OVERLAY, SOFT_LIGHT,
+  …) needs a filter and is out of scope.
+- **The grain's bytes are the seed's**: SplitMix64, a 4-bit palette PNG, deflate written as STORED
+  blocks, because zlib and zlib-ng compress differently and the texture is in the contract. It is
+  opaque, so no premultiply step is involved. It sits at integer frame positions at scale 1 on
+  the OVERLAY, so the camera cannot scale it and captions draw over it.
+- **Known limit: a fade darkens a treated part.** The copies are separate draws, and a group
+  alpha needs render-to-texture (a filter). Hollowing the procedural outline was rejected: its
+  inner edge would coincide with the part's edge and MSAA conflation would leave a light seam on
+  EVERY frame, to fix a fade. The compiler warns instead (`faded_treated_targets`).
+- An override switches a treatment off with `false` (`null` works in memory but an
+  `exclude_none` dump drops it and the entity inherits the pack's treatment). `StylePack` refuses
+  an unknown key within one slip of a real field (`grian`, `entity_surface`).
+- `underlays`/`blend` are omit-when-unset; `surface_for` returns `None` for "nothing to draw",
+  and every such scene compiles byte-identically (parametrised test).
+
 ## 5. Order of work
 
 

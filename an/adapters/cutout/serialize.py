@@ -106,6 +106,27 @@ class PathJSON(_JSONModel):
     dash_offset: float = 0.0
 
 
+class UnderlayJSON(_JSONModel):
+    """A copy of a node's own visual, drawn BEHIND it in the same container
+    (an#163 gap 5: the outline and the paper-gap shadow).
+
+    Being in the node's container is the whole design: the copy takes every
+    transform the node takes — tweens, `play`, the camera — with no channel of
+    its own, and a swap on the node re-textures its copies (`runtime.js`
+    `applySwap`). One copy is drawn per entry of ``offsets`` (in the node's own
+    frame), each grown by ``grow`` pixels: a rect/ellipse is redrawn with its
+    geometry grown, an SVG sprite is scaled about its art's centre so its box
+    grows by ``grow`` on every side. ``color`` is the fill of a redrawn shape
+    and the `tint` (a multiply) of a sprite copy. Compiled by
+    `an.adapters.cutout.surface`; never authored.
+    """
+
+    color: str
+    alpha: float = 1.0
+    offsets: list[tuple[float, float]] = Field(default_factory=lambda: [(0.0, 0.0)])
+    grow: float = 0.0
+
+
 class VisualJSON(_JSONModel):
     """Drawable content attached to a node.
 
@@ -149,19 +170,29 @@ class VisualJSON(_JSONModel):
     color: str = "#888888"
     #: The stroke for ``kind="path"`` (an#160); ``None`` on every other visual.
     path: PathJSON | None = None
+    #: Copies drawn behind this visual, back to front (an#163) — the outline
+    #: and the paper-gap shadow. Only ``rect``, ``ellipse`` and ``svg_sprite``
+    #: take them; the runtime refuses any other kind.
+    underlays: list[UnderlayJSON] | None = None
+    #: The engine's native blend mode for this visual (an#163): ``"add"`` for a
+    #: glow, ``"multiply"`` for the paper grain. PixiJS 7 does both in the
+    #: blend equation — no filter, no render texture. ``None`` = normal.
+    blend: Literal["add", "multiply"] | None = None
 
     @model_serializer(mode="wrap")
     def _omit_unset_path(self, handler):
-        """Serialize ``path: null`` out of existence.
+        """Serialize ``path: null`` (and ``underlays``/``blend``) out of existence.
 
-        Written in the same commit as the field (the an#112 rule): `to_dict`
+        Written in the same commit as each field (the an#112 rule): `to_dict`
         prunes no `None`s and the bench's scene contract hashes the whole
-        document, so a defaulted `path` on every visual would move every
+        document, so a defaulted field on every visual would move every
         corpus hash for a feature no corpus scene uses.
         """
         data = handler(self)
-        if isinstance(data, dict) and data.get("path") is None:
-            data.pop("path", None)
+        if isinstance(data, dict):
+            for key in ("path", "underlays", "blend"):
+                if data.get(key) is None:
+                    data.pop(key, None)
         return data
 
 

@@ -895,6 +895,69 @@ def _build_style_pack(work: Path) -> Path:
     return out
 
 
+def _build_surface_treatments(work: Path) -> Path:
+    """The same scene twice, side by side: plain, then under a pack with
+    surface treatments (an#163 gap 5).
+
+    Two synthesized (SVG) characters, one hopping and one nodding and
+    speaking: the outline and the paper-gap shadow are copies of each part
+    drawn behind it IN the part's container, so they follow the hop, the nod
+    and the arm with no channel of their own; `bo` also has a glow (a
+    per-entity override); the grain is one seeded tile over the frame. These
+    reach any SVG art, role-tagged or not. Widths are rig pixels, so
+    they are drawn at the characters' framing scale.
+    """
+    import subprocess
+
+    from an.styles import StylePack
+
+    pack = StylePack(
+        name="paper",
+        surface={
+            "outline": {"width": 5, "color": "#231316"},
+            "shadow": {"dx": 5, "dy": 5, "alpha": 0.35},
+        },
+        entity_surfaces={"bo": {"glow": {"radius": 70, "intensity": 0.45}}},
+        grain={"amount": 0.08, "seed": 1},
+    )
+    body = (
+        "\n```yaml actions\n"
+        "- {kind: play, target: maya, animation: hop, args: {height: 30}, start: 0.4}\n"
+        "- {kind: tween, target: maya/arm_r, property: rotation, to: 1.3, duration: 0.4, start: 1.2}\n"
+        "- {kind: play, target: bo, animation: nod, start: 0.8}\n"
+        "```\n"
+        "\n```dialogue\nbo: Same scene. Paper on the right.\n```\n"
+    )
+    panes = []
+    for variant in ("plain", "treated"):
+        pane = work / variant
+        meta = _meta("Surface treatments", 3.0)
+        if variant == "treated":
+            meta = meta.replace("```\n", f"style_pack: {pack.name}\n```\n", 1)
+        md = (
+            meta + "\n" + _shot("s1", 3.0) + "\n```yaml entities\n"
+            "- kind: environment\n  id: set\n  store: environments\n  ref: park\n"
+            + _character_rows(("maya", "bo")) + "\n```\n" + body
+        )
+        _project(pane, scene_md=md, characters=("maya", "bo"))
+        if variant == "treated":
+            (pane / "assets" / "styles").mkdir(parents=True, exist_ok=True)
+            (pane / "assets" / "styles" / f"{pack.name}.json").write_text(
+                pack.model_dump_json(indent=2), encoding="utf-8"
+            )
+        panes.append(_render(pane))
+    out = work / "surface-treatments.mp4"
+    subprocess.run(
+        [
+            "ffmpeg", "-v", "error", "-y", "-i", str(panes[0]), "-i", str(panes[1]),
+            "-filter_complex", "hstack", "-c:v", "libx264", "-pix_fmt", "yuv420p",
+            "-an", str(out),
+        ],
+        check=True,
+    )
+    return out
+
+
 def _build_tint(work: Path) -> Path:
     """One character, tinted from white through to a colour over the shot.
 
@@ -1263,9 +1326,9 @@ def _build_south_park_style(work: Path) -> Path:
     then measured against the spec's targets by the style lint.
 
     Everything the spec calls `live` is applied from the file — fps, `step_hz`,
-    the StylePack, the environment preset, the camera, the easing, the tween
-    lengths — and nothing from its `guidance` (paper-gap shadow, pitch-shifted
-    voice, location cards), because `an` does not have those yet. Its moves
+    the StylePack (with its outline, paper-gap shadow and grain since an#163),
+    the environment preset, the camera, the easing, the tween lengths — and
+    nothing from its `guidance` (pitch-shifted voice, location cards). Its moves
     are hand-written tweens; it predates `an.motion`. The lint's
     numbers are printed and written beside the clip as
     `south-park-style.style_lint.json`.
@@ -2037,6 +2100,30 @@ DEMOS: tuple[Demo, ...] = (
         build=_build_style_pack,
     ),
     Demo(
+        slug="surface-treatments",
+        title="Outline, paper-gap shadow, glow and grain, compiled",
+        shows=(
+            "The same scene twice: plain on the left, under a pack with surface "
+            "treatments on the right. Every top-level piece of both (SVG) characters gets a "
+            "near-black outline and a translucent paper-gap shadow that follow "
+            "the hop, the nod and the raised arm exactly; `bo` has an additive "
+            "glow; a static paper grain lies over the whole frame. No runtime "
+            "filter and nothing random at render time: each is a compile-time "
+            "copy, sprite or texture in the scene document."
+        ),
+        how=(
+            "An `an.styles.StylePack` named by `style_pack:` in `yaml meta`, with "
+            "`surface: {outline: {width, color}, shadow: {dx, dy, alpha}}` for "
+            "every character and prop, `entity_surfaces: {bo: {glow: {...}}}` as "
+            "a key-by-key per-entity override, and `grain: {amount, seed}` for "
+            "the frame. Compiled by `an.adapters.cutout.surface`: `underlays` on "
+            "each part's visual (drawn behind it in its own container), a "
+            "`blend: add` gradient sprite, and a seeded PNG tile with "
+            "`blend: multiply` on the camera-immune overlay."
+        ),
+        build=_build_surface_treatments,
+    ),
+    Demo(
         slug="tint",
         title="A tint tween: one colour multiply over the whole rig",
         shows=(
@@ -2268,11 +2355,12 @@ DEMOS: tuple[Demo, ...] = (
         shows=(
             "Four lines of script made 'in the style of South Park' by applying a "
             "style spec: 24 fps with tweens on twos (`step_hz: 12`), a StylePack "
-            "for the set's colours, a locked camera, short linear hops, 4 s shots. "
+            "for the set's colours plus an outline, a paper-gap shadow and paper "
+            "grain, a locked camera, short linear hops, 4 s shots. "
             "The render is then measured by the style lint against the spec's "
             "targets (identical-frame share, cuts per minute, mean shot length), "
             "and the numbers are written beside the clip. What the spec lists as "
-            "guidance (paper-gap shadow, pitch-raised voices, location cards) is "
+            "guidance (pitch-raised voices, location cards) is "
             "NOT applied: `an` does not have it yet."
         ),
         how=(

@@ -19,7 +19,7 @@ from an.environments import EnvironmentDescriptor
 from an.ir.camera import CAMERA_MOVES
 from an.ir.schema import Meta, SoundCue, Transition
 from an.motion import PRESETS
-from an.styles import StylePack
+from an.styles import StylePack, SurfaceTreatment
 from an.verify.style import StyleLintVerifier
 
 SPEC_DIR = Path(__file__).resolve().parents[1] / ".claude" / "skills" / "an-style" / "styles"
@@ -29,7 +29,7 @@ SPECS = sorted(SPEC_DIR.glob("*.yaml"))
 LIVE_KEYS = {
     "meta", "style_pack", "environment", "camera", "easing",
     "tween_duration_s", "shots", "characters", "motion_presets",
-    "transitions", "sound", "voice",
+    "transitions", "sound", "voice", "glow_template",
 }
 TOP_KEYS = {"style", "title", "cost_class", "cost_note", "live", "targets", "guidance"}
 COST_CLASSES = {"low", "low_to_medium", "medium", "high", "very_high"}
@@ -70,7 +70,26 @@ def test_meta_is_a_valid_meta(spec):
 def test_style_pack_only_names_reachable_roles(spec):
     pack = spec["live"].get("style_pack")
     if pack is not None:
-        StylePack(**pack)  # refuses an unreachable or unknown role
+        StylePack(**pack)  # refuses an unreachable or unknown role, or a bad treatment
+
+
+def test_surface_treatments_are_live_where_they_ship():
+    """an#163: the outline, the paper-gap shadow and the grain are compiled
+    now, so South Park carries them under `live` (and no longer under
+    `guidance`), and Kurzgesagt's glow is a per-entity template."""
+    sp = _load(SPEC_DIR / "south_park.yaml")
+    pack = StylePack(**sp["live"]["style_pack"])
+    assert pack.surface.outline and pack.surface.shadow and pack.grain
+    assert not {"outline", "paper_gap_shadow", "paper_grain"} & set(sp["guidance"])
+    kz = _load(SPEC_DIR / "kurzgesagt.yaml")
+    assert "glow" not in kz["guidance"]
+
+
+def test_a_glow_template_is_a_valid_per_entity_treatment(spec):
+    template = spec["live"].get("glow_template")
+    if template is not None:
+        assert SurfaceTreatment(**template).glow
+        StylePack(name="x", entity_surfaces={"sun": template})
 
 
 def test_environment_is_a_preset_or_a_valid_descriptor(spec):

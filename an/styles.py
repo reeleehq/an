@@ -33,13 +33,32 @@ if it exempts the module that states it. It comes back when something reads it.
 Colours are **hex strings**, deliberately not DTCG colour objects:
 `bench/palette.py` mirrors `runtime.js` verbatim, and a second colour
 representation doubles the surface on which the two can silently diverge.
+
+**Surface treatments** (an#163 gap 5) are the pack's second job: an outline, a
+paper-gap drop shadow and a glow per drawable entity (:class:`SurfaceTreatment`,
+``surface`` with a per-entity ``entity_surfaces`` override), and one static
+paper grain over the frame (:class:`Grain`). Every one is a COMPILE-TIME
+expansion into ordinary document content — underlay copies of a part's own
+visual, a gradient sprite, a seeded noise tile — never a runtime filter, and
+never anything random at render time. `an.adapters.cutout.surface` does the
+expanding. The outline and the shadow reach ANY SVG art, role-tagged or not:
+they copy a part's texture rather than recolour it. Every width and offset is in
+the rig's own pixels, so a treatment scales with the character like paper would.
 """
 
 from __future__ import annotations
 
+import re
 from typing import Any, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from an.ir.assets import AssetSource
 from an.ir.migrate import DocumentKind, register_kind
@@ -51,6 +70,12 @@ __all__ = [
     "UNREACHABLE_ROLES",
     "StylePack",
     "resolve_palette",
+    "Outline",
+    "PaperShadow",
+    "Glow",
+    "Grain",
+    "SurfaceTreatment",
+    "surface_for",
 ]
 
 STYLE_SCHEMA_VERSION = "0.1.0"
@@ -100,6 +125,174 @@ UNREACHABLE_ROLES: dict[str, str] = {
 }
 
 
+# -----------------------------------------------------------------------------
+# Surface treatments (an#163 gap 5)
+# -----------------------------------------------------------------------------
+
+#: Outline defaults, in RIG pixels (a treatment scales with its character). The
+#: colour is a near-black rather than black because that is what the measured
+#: styles use (South Park's is `#231316`); on SVG art it is a multiply, see
+#: :class:`Outline`.
+DFLT_OUTLINE_WIDTH: float = 3.0
+DFLT_OUTLINE_COLOUR: str = "#1a1a1a"
+
+#: Paper-gap shadow defaults: down and to the right, like an overhead light a
+#: little in front of the table. Rig pixels.
+DFLT_SHADOW_DX: float = 4.0
+DFLT_SHADOW_DY: float = 4.0
+DFLT_SHADOW_COLOUR: str = "#000000"
+DFLT_SHADOW_ALPHA: float = 0.35
+
+#: Glow defaults: a warm white halo `radius` rig pixels past the entity's drawn
+#: box, `intensity` = the gradient's opacity at its core (it is ADDED to what is
+#: behind it, so 1.0 can clip to white).
+DFLT_GLOW_COLOUR: str = "#fff4c2"
+DFLT_GLOW_RADIUS: float = 60.0
+DFLT_GLOW_INTENSITY: float = 0.5
+
+#: Paper grain defaults. `amount` is how far the darkest grain texel multiplies
+#: toward black (0.06 = the frame is kept at 94-100 %); `tile` is the noise
+#: tile's side in FRAME pixels (the grain lives on the camera-immune overlay).
+DFLT_GRAIN_AMOUNT: float = 0.06
+DFLT_GRAIN_SEED: int = 0
+DFLT_GRAIN_TILE: int = 256
+
+_HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+
+def _hex_colour(value: str) -> str:
+    if not isinstance(value, str) or not _HEX.match(value):
+        raise ValueError(f"expected a '#rrggbb' colour, got {value!r}")
+    return value
+
+
+class _Treatment(BaseModel):
+    """A precise instruction to draw something, so unknown keys are refused —
+    the `Plane` reasoning (an#110): a misspelt `widht` that silently did
+    nothing is the failure this package refuses everywhere else."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    @field_validator("color", check_fields=False)
+    @classmethod
+    def _colour_is_hex(cls, v: str) -> str:
+        return _hex_colour(v)
+
+
+class Outline(_Treatment):
+    """A darker, dilated copy drawn behind each part.
+
+    On a procedural part (rect, ellipse) it is the part's own shape grown by
+    ``width`` — exact for a rect (rounded corners of radius ``width``, which is
+    what dilating by a disk gives) and, for an ellipse, the ellipse with both
+    radii grown (exact on the axes and for circles). On an SVG part it is a
+    ring of copies of the part's texture offset by ``width`` in
+    ``an.adapters.cutout.surface.OUTLINE_RING`` directions, drawn in ``color``
+    as a `tint`: tint MULTIPLIES, so the outline is exactly ``color`` where the
+    art is white and darker elsewhere — exact everywhere for black, and within a
+    few levels of it for the default near-black.
+
+    ``nested`` extends it to parts nested inside another part (face features
+    on the head). Off by default: the pieces of a cut-out are the paper; the
+    face is drawn on them. A procedural eye or mouth never gets one (they are
+    not copyable shapes); an SVG rig's eyes and mouth do, under ``nested``.
+
+    **Fading a treated part darkens it.** The copies are opaque and drawn
+    separately, so at ``alpha`` 0.5 the part shows its outline colour through
+    itself rather than the background. A group fade needs the subtree drawn to
+    a texture first (a filter), which this package refuses; the compiler warns
+    when an ``alpha`` channel reaches a treated part.
+    """
+
+    width: float = Field(DFLT_OUTLINE_WIDTH, gt=0)
+    color: str = DFLT_OUTLINE_COLOUR
+    nested: bool = False
+
+
+class PaperShadow(_Treatment):
+    """The "no-platen" paper-gap shadow: an offset, darkened copy of each part.
+
+    The copy sits in the part's own container, so it follows every tween,
+    `play` and swap of the part with no channel of its own. The offset is
+    therefore in the PART's frame: a part that rotates takes its shadow round
+    with it (a light fixed to the paper, not the room) — invisible at the
+    small offsets this is for, and a limit to know for a large one.
+
+    With an outline, the shadow is grown by the outline width so it shows past
+    the outline rather than hiding under it: exactly the outlined silhouette on
+    a procedural part; on an SVG part one copy scaled about the art's centre, so
+    it grows the art's BOX by the width (one copy, because translucent copies
+    would compound where they overlap).
+    """
+
+    dx: float = DFLT_SHADOW_DX
+    dy: float = DFLT_SHADOW_DY
+    color: str = DFLT_SHADOW_COLOUR
+    alpha: float = Field(DFLT_SHADOW_ALPHA, gt=0, le=1)
+    nested: bool = False
+
+
+class Glow(_Treatment):
+    """An additive radial-gradient sprite behind an entity.
+
+    Its box is the entity's drawn box grown by ``radius``, and the gradient is
+    an ELLIPSE over that box: it holds ``intensity`` out to the entity's box
+    along its shorter axis and fades to nothing at the edge — so on a tall
+    entity the halo is fainter at the top and bottom than at the sides.
+    Drawn with the engine's native ADD blend (PixiJS 7 does it in the blend
+    equation, no filter), as the entity's first child, so it moves with the
+    entity and lights the background around it, not the entity itself.
+    """
+
+    color: str = DFLT_GLOW_COLOUR
+    radius: float = Field(DFLT_GLOW_RADIUS, gt=0)
+    intensity: float = Field(DFLT_GLOW_INTENSITY, gt=0, le=1)
+
+
+class Grain(_Treatment):
+    """One static paper-grain texture over the whole frame.
+
+    Seeded noise generated at COMPILE time (``an.adapters.cutout.surface``),
+    tiled on the camera-immune overlay under any text, and MULTIPLIED onto the
+    frame — so it only ever darkens, by at most ``amount``. The same seed is the
+    same grain on every frame and every machine; nothing is random at render
+    time.
+    """
+
+    amount: float = Field(DFLT_GRAIN_AMOUNT, gt=0, le=1)
+    seed: int = DFLT_GRAIN_SEED
+    tile: int = Field(DFLT_GRAIN_TILE, ge=16, le=1024)
+
+
+class SurfaceTreatment(_Treatment):
+    """Which treatments an entity gets. Each is off when absent.
+
+    In ``StylePack.entity_surfaces`` an entry OVERRIDES the pack's ``surface``
+    key by key, for the keys it sets: ``{"glow": {...}}`` adds a glow and keeps
+    the pack's outline; ``{"outline": false}`` removes the outline. Which keys
+    were set survives a dump (only they are serialized), so a pack written with
+    ``model_dump()`` and read back means the same thing. ``null`` switches one
+    off too, but a dump with ``exclude_none=True`` drops it — and the override
+    then silently inherits the pack's treatment — so ``false`` is the spelling
+    to store.
+
+    >>> SurfaceTreatment(glow={}).model_dump()
+    {'glow': {'color': '#fff4c2', 'radius': 60.0, 'intensity': 0.5}}
+    """
+
+    outline: Outline | Literal[False] | None = None
+    shadow: PaperShadow | Literal[False] | None = None
+    glow: Glow | Literal[False] | None = None
+
+    @model_serializer(mode="wrap")
+    def _only_what_was_set(self, handler):
+        data = handler(self)
+        return {k: v for k, v in data.items() if k in self.model_fields_set}
+
+    def is_empty(self) -> bool:
+        return not (self.outline or self.shadow or self.glow)
+
+
 class StylePack(BaseModel):
     """Art direction for a project. Saved in the `styles` store.
 
@@ -138,6 +331,14 @@ class StylePack(BaseModel):
     entities: dict[str, dict[str, str]] = Field(default_factory=dict)
     source: AssetSource | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
+    #: Surface treatments for every drawable entity (characters and props);
+    #: ``None`` = none. See :class:`SurfaceTreatment` and :func:`surface_for`.
+    surface: SurfaceTreatment | None = None
+    #: ``{entity id: SurfaceTreatment}`` — per-entity, key-by-key override of
+    #: ``surface``.
+    entity_surfaces: dict[str, SurfaceTreatment] = Field(default_factory=dict)
+    #: One static paper grain over the frame; ``None`` = none.
+    grain: Grain | None = None
 
     @model_validator(mode="after")
     def _every_role_is_reachable(self) -> "StylePack":
@@ -162,6 +363,25 @@ class StylePack(BaseModel):
                         f"{where}.{role} is not a role this renderer knows. "
                         f"Reachable roles are {sorted(REACHABLE_ROLES)}."
                     )
+        return self
+
+    @model_validator(mode="after")
+    def _no_near_miss_keys(self) -> "StylePack":
+        """Refuse an unknown key that is one slip from a real one.
+
+        The pack is ``extra="allow"`` (forward compatibility), which would let
+        ``grian: {...}`` or ``entity_surface: {...}`` validate and draw nothing
+        — the silent no-op the treatment models refuse with ``extra="forbid"``.
+        """
+        import difflib
+
+        for key in self.model_extra or {}:
+            close = difflib.get_close_matches(key, type(self).model_fields, n=1, cutoff=0.8)
+            if close:
+                raise ValueError(
+                    f"{key!r} is not a StylePack field; did you mean {close[0]!r}? "
+                    "An unknown key is kept but read by nothing."
+                )
         return self
 
     def colour_for(self, role: str, *, entity: str | None = None) -> Optional[str]:
@@ -203,3 +423,33 @@ def resolve_palette(
         pack.colour_for("clothing", entity=entity) or clothing,
         pack.colour_for("hair", entity=entity) or hair,
     )
+
+
+def surface_for(pack: "StylePack | None", entity: str) -> SurfaceTreatment | None:
+    """The treatments ``entity`` gets under ``pack``, or ``None`` for none.
+
+    ``None`` is the answer for no pack, a pack without treatments, and an
+    entity whose override switched everything off — which is what keeps every
+    such scene's compiled document byte-identical to before an#163.
+
+    >>> pack = StylePack(name="sp", surface={"outline": {}},
+    ...                  entity_surfaces={"sun": {"glow": {}}, "bob": {"outline": False}})
+    >>> sorted(surface_for(pack, "sun").model_dump())
+    ['glow', 'outline']
+    >>> surface_for(pack, "bob") is None
+    True
+    >>> surface_for(pack, "maya").outline.width
+    3.0
+    >>> surface_for(None, "maya") is None
+    True
+    """
+    if pack is None:
+        return None
+    merged: dict[str, Any] = {}
+    if pack.surface is not None:
+        merged = {k: getattr(pack.surface, k) for k in pack.surface.model_fields_set}
+    override = pack.entity_surfaces.get(entity)
+    if override is not None:
+        merged.update({k: getattr(override, k) for k in override.model_fields_set})
+    result = SurfaceTreatment(**{k: v for k, v in merged.items() if v})
+    return None if result.is_empty() else result
