@@ -185,12 +185,12 @@ def test_add_views_is_idempotent_and_brings_an_old_character_level(tmp_path):
 def test_add_views_refuses_art_it_did_not_draw(tmp_path):
     c = new_character(tmp_path, name="c", use_dicebear=False, views=False).parent
     head = c / "parts" / "head.svg"
-    head.write_text(head.read_text("utf-8").replace("<circle", '<circle data-edited="1"', 1), "utf-8")
+    head.write_text(head.read_text("utf-8").replace("<circle", '<circle data-edited="1"', 1), encoding="utf-8")
     with pytest.raises(ValueError, match="not the factory's drawing"):
         add_views(c)
     d = json.loads((c / "character.json").read_text("utf-8"))
     d["metadata"]["art_provenance"] = "dicebear"
-    (c / "character.json").write_text(json.dumps(d), "utf-8")
+    (c / "character.json").write_text(json.dumps(d), encoding="utf-8")
     with pytest.raises(ValueError, match="cannot be synthesized"):
         add_views(c)
 
@@ -200,7 +200,7 @@ def test_validate_names_a_pose_on_a_slot_the_rig_does_not_have(tmp_path):
     d = json.loads((c / "character.json").read_text("utf-8"))
     d["swap_poses"]["view"]["back"]["tail"] = {"alpha": 0.0}
     d["swap_poses"]["nope"] = {"x": {}}
-    (c / "character.json").write_text(json.dumps(d), "utf-8")
+    (c / "character.json").write_text(json.dumps(d), encoding="utf-8")
     errors = [f.description for f in validate_character(c).findings if f.severity == "error"]
     assert any("'tail'" in e for e in errors), errors
     assert any("'nope'" in e for e in errors), errors
@@ -219,7 +219,7 @@ def test_a_shot_that_sets_no_view_compiles_as_without_the_poses(project, tmp_pat
     new_character(chars, name="ned", seed="ned", use_dicebear=False, hat="cap", sash=True)
     d = json.loads((chars / "ned" / "character.json").read_text("utf-8"))
     d["swap_poses"] = {}
-    (chars / "ned" / "character.json").write_text(json.dumps(d), "utf-8")
+    (chars / "ned" / "character.json").write_text(json.dumps(d), encoding="utf-8")
     without = to_dict(_compile(root, shot))
     with_poses.pop("assets"), without.pop("assets")  # temp-dir texture paths
     assert with_poses == without
@@ -291,7 +291,7 @@ def test_a_baked_face_rig_is_still_posed(project, tmp_path):
     new_character(chars, name="ned", seed="ned", use_dicebear=False, hat="cap", sash=True)
     d = json.loads((chars / "ned" / "character.json").read_text("utf-8"))
     d["face_overlay"] = False
-    (chars / "ned" / "character.json").write_text(json.dumps(d), "utf-8")
+    (chars / "ned" / "character.json").write_text(json.dumps(d), encoding="utf-8")
     doc = _compile(root, _shot([SetAction(target="ned", property="view", value="side", at=0.0)]))
     pose = _pose_at(doc, 0.5)
     assert pose[("ned/head", VIEW_CHANNEL)] == "side"
