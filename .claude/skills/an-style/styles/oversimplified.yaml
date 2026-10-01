@@ -41,17 +41,32 @@ live:
   sound:
     bed: {loop: true, gain_db: -8, duck_db: -12, fade_in: 1.0, fade_out: 1.5}   # a music bed ducked under the narrator; levels are an estimate
   voice:
-    # Voice acting (an#209 keys). Each role is a PARTIAL voice document: merge it into the
-    # voice document of the character who plays the role, beside that voice's own `voice_id`
-    # (looked up by name, never pasted). eleven_v3 reads stability only as 0.0 / 0.5 / 1.0.
+    # Voice acting (an#209 keys, an#265 tempo and takes). Each role is a PARTIAL voice document:
+    # merge it into the voice document of the character who plays the role, beside that voice's
+    # own `voice_id` (looked up by name, never pasted), through
+    # `an.audio.takes.style_voice_role(spec, role)`, which turns the target NAMES under `takes`
+    # into the values in `prosody_targets` (a voice document holds numbers, never names).
+    # eleven_v3 reads stability only as 0.0 / 0.5 / 1.0.
     # Cues go on the LINES as `{cue}` (`speaker {excited}: text`), per guidance.voice_acting; a
     # line's `[emotion]` is a face preset AND is sent as a tag too, so pick one that agrees with the cue.
+    # `effects.tempo` re-times the synthesized line (pitch kept; eleven_v3 ignores `speed`): a ROLE
+    # default for a voice speaking at v3's usual 4.9-5.4 syll/s - re-measure the cast voice and set
+    # tempo = target median / its measured rate (guidance.voice_acting.tempo).
+    # `takes` re-rolls a line N times and keeps the take that measures closest to its targets
+    # (each take is a billed request; the render prints the cost before the first one).
     roles:
-      narrator: {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.0}}   # Creative: the lively setups; {deadpan} still lands flat at 0.0
-      eager:    {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}}   # {excited} carries the jump; 0.5 keeps the same voice's wounded lines flat
-      regal:    {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}}
-      deadpan:  {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}}   # a character who is deadpan throughout (untested as a whole role; the narrator's punchline numbers apply)
-      serene:   {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 1.0}}   # Robust: the only setting that flattened an expressive cloned voice
+      narrator:  # Creative: the lively setups; {deadpan} still lands flat at 0.0. Punchlines are re-rolled.
+        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.0}, effects: {tempo: 1.1},
+         takes: {n: 1, cues: {deadpan: {n: 3, targets: punchline}}}}
+      eager:     # {excited} carries the jump; 0.5 keeps the same voice's wounded lines flat. The most variable voice: re-roll every line.
+        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5},
+         takes: {n: 3, targets: eager}}
+      regal:     {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}}   # on target in one take
+      deadpan:   # a character who is deadpan throughout (untested as a whole role; the narrator's punchline numbers apply)
+        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 0.5}, takes: {n: 2, targets: deadpan}}
+      serene:    # Robust: the only setting that flattened an expressive cloned voice; slowed, since no v3 tag slows it
+        {provider: elevenlabs, model_id: eleven_v3, voice_settings: {stability: 1.0}, effects: {tempo: 0.7},
+         takes: {n: 2, targets: serene}}
 
 targets:
   identical_frame_share: [0.45, 0.55]    # measured 0.49 (0.59 before the local-change rule, an#255)
@@ -140,7 +155,7 @@ guidance:
       understatement:   {share: 0.16, line: "no tag, a full stop, CAPS on the one word that hurts (I was ON slide one.)", targets: serene}
       outburst:         {share: 0.02, line: "{shouting} and CAPS on the key word; measured +5 to +9 st over the voice's own median", targets: outburst}
       rhetorical_question: {share: 0.04, line: "a question line ({curious} optional; it rises by itself) then a (pause 0.3) and a short {deadpan} answer", targets: punchline}
-      throwaway:        {share: 0.01, line: "{under his breath} or {under her breath} drops the register 2-4 st and the level; v3 will not speed it up", targets: throwaway}
+      throwaway:        {share: 0.01, line: "{under his breath} or {under her breath} drops the register 2-4 st and the level; v3 will not speed it up, so speak it through a second voice document of the same voice with effects.tempo 1.3 (the line's voice_ref: Python or ir/scene.json, scene.md has no per-line voice)", targets: throwaway}
       build:            {share: 0.04, line: "a long list sentence; v3 did not rise at the end with an ellipsis or {dramatically} (measured -1.3 to 0); end on a question if the rise matters", targets: build}
     markup_rules:
       - One dialogue line per delivery. A tag applies to a whole line (it is sent as a prefix), so a setup and its punchline are two lines, never one.
@@ -151,9 +166,21 @@ guidance:
       - Split a character's speech into lines of 8 words or fewer; OverSimplified's figures talk in bursts.
       - Prefer commas and full stops to ellipses in narration; use an ellipsis only where you want a slower, hanging phrase.
       - Do not stack emotive tags on an expressive cloned voice ({indignant}, {sighs, hurt}, {quietly} each threw a wounded line out to 2.5 syllables/s and 10-17 st of range); the plain line was on target.
-      - Check each role with `python -m an.verify.prosody <line files>... --targets <this file> --role <role> --text "<line 1>" --text "<line 2>"` (one --text per file, in order; the median over the lines is compared). A take varies more than a setting does, so re-roll a missing line (another seed) and keep the closest take before re-tagging.
+      - Check each role with `python -m an.verify.prosody <line files>... --targets <this file> --role <role> --text "<line 1>" --text "<line 2>"` (one --text per file, in order; the median over the lines is compared). A take varies more than a setting does, so let `takes` re-roll a missing line (raise its role's `n`, or add the line's cue under `takes.cues`) before re-tagging.
+    tempo:
+      # eleven_v3 ignores `voice_settings.speed` (1.1 measured the same as 1.0) and no tag moved the rate
+      # ({fast-paced}, {quickly}, {rapid-fire} all 4.6-5.3 syll/s), so the rate is set by `effects.tempo`
+      # (stock ffmpeg atempo, pitch kept, applied before lip-sync so the mouth and captions follow it).
+      rule: tempo = the role's target median rate / the cast voice's own plain rate (measure one plain line with an.verify.prosody); the role defaults assume v3's usual 4.9-5.4 syll/s
+      measured: "narrator (ov) 4.94 -> 5.41 syll/s at 1.1; a voice that runs fast (vanessa, 6.55 plain) needed 0.6 for serene (3.78, every target met), where 0.8 left it at 5.07"
+    takes:
+      # A take varies more than any setting (the same punchline's final drop measured -0.8, -2.5 and +1.8 st in three takes),
+      # so key lines are re-rolled: `takes` synthesizes n takes, scores each against its targets on the audio heard
+      # (tempo included) and keeps the closest; the choice is recorded and a re-render reuses it.
+      default: punchlines ({deadpan} under the narrator's takes.cues) 3 takes; eager (the most variable voice) 3; serene and a deadpan character 2; setups and regal 1
+      cost: n requests per line on the first render (take 0 is the single take, so turning takes on for a synthesized line pays n-1); the render prints the requests and billed characters before the first one
+      register: an eager role's register_st target needs the voice's neutral median pitch as `takes.reference_hz` on the voice document; without it that metric is unmeasured and weighs every take the same
     limits:
-      - eleven_v3 ignores `voice_settings.speed` (1.1 measured the same as 1.0) and no tag moved the rate ({fast-paced}, {quickly}, {rapid-fire} all 4.6-5.3 syll/s); the narrator lands at about 5.0-5.3 against 5.2-6.3, and a throwaway cannot reach 6.5. A tempo voice effect would close it (an#265); `effects` has only pitch_semitones today
-      - a `seed` does not make eleven_v3 repeatable (identical requests returned different audio); a take is fixed by the audio cache once synthesized, so re-roll by changing the voice's seed, and keep the take
-      - there is no per-line seed or take, so re-rolling one line re-rolls every line of that voice whose audio is not cached
-      - stability moved the measured pitch spread less than the difference between two seeds; tags and capitals are the levers
+      - eleven_v3 ignores `voice_settings.speed`; `effects.tempo` is the rate lever (above), and it is per voice, not per line, so a line at another rate (a throwaway) needs a second voice document
+      - a `seed` does not make eleven_v3 repeatable (identical requests returned different audio); a take is fixed by the audio cache and the takes record once kept, never by its seed
+      - stability moved the measured pitch spread less than the difference between two seeds; tags and capitals are the levers, and takes pick among their results

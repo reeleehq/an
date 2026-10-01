@@ -106,9 +106,17 @@ __all__ = [
     "join_speech",
     "decode_audio",
     "check_prosody",
+    "target_distance",
     "validate_targets",
+    "ESTIMATOR_VERSION",
     "prosody_lint",
 ]
+
+#: Raised whenever an estimator or one of its defaults below changes what a clip
+#: measures. Anything that persists a choice made from these numbers (the best
+#: take of a line, :mod:`an.audio.takes`) keys on it, so a changed estimator
+#: re-chooses instead of trusting numbers it would no longer produce.
+ESTIMATOR_VERSION: str = "1"
 
 # --- defaults (every estimator knob; a target measured with them assumes them)
 DFLT_SR: int = 16000
@@ -785,6 +793,41 @@ def check_prosody(
             )
         )
     return findings
+
+
+def target_distance(
+    stats: ProsodyStats,
+    targets: Mapping[str, Sequence[float]],
+    *,
+    unmeasurable: float = 1.0,
+) -> tuple[float, float]:
+    """How far ``stats`` sits from ``targets``: ``(outside, off_centre)``, lower is closer.
+
+    ``outside`` sums, over the targets, the distance outside ``[low, high]`` in
+    units of the range's width (0 for a value inside); a metric this clip cannot
+    measure counts ``unmeasurable`` widths, so a broken take never wins by
+    having no number. ``off_centre`` sums each value's distance from its range's
+    midpoint, in the same units — the tie-break between takes that are all on
+    target. A zero-width range counts as one unit wide.
+
+    >>> s = ProsodyStats(1.0, 1.0, 1.0, 3, 0, *[3.0] * 13)
+    >>> target_distance(s, {"f0_sd_st": [2, 4]})
+    (0.0, 0.0)
+    >>> target_distance(s, {"f0_sd_st": [4, 6], "f0_range_st": [1, 5]})
+    (0.5, 1.0)
+    """
+    validate_targets(targets)
+    outside = off_centre = 0.0
+    for name, (lo, hi) in targets.items():
+        value = getattr(stats, name)
+        if value is None or (isinstance(value, float) and math.isnan(value)):
+            outside += unmeasurable
+            off_centre += unmeasurable
+            continue
+        width = (hi - lo) or 1.0
+        outside += max(lo - value, 0.0, value - hi) / width
+        off_centre += abs(value - (lo + hi) / 2.0) / width
+    return outside, off_centre
 
 
 def prosody_lint(

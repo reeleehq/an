@@ -19,14 +19,27 @@ the entire pipeline runs without API keys or external binaries.
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, MutableMapping
-from dataclasses import asdict
+import sys
+import warnings
+from collections.abc import Callable, Mapping, MutableMapping
+from dataclasses import asdict, dataclass
 from typing import Any
 
 from an.audio.effects import EFFECT_SAMPLE_RATE, apply_voice_effects, voice_effects
 from an.audio.lipsync import LipSyncProvider, Viseme, VisemeTrack
 from an.audio.offline_lipsync import OfflineLipSync
 from an.audio.offline_tts import OfflineTTS
+from an.audio.takes import (
+    TAKES_RECORD_VERSION,
+    TAKES_STORE,
+    TakeScorer,
+    TakesSpec,
+    audio_digest,
+    choose_take,
+    make_take_scorer,
+    takes_key_part,
+    voice_takes,
+)
 from an.audio.tts import AudioClip, TTSProvider
 from an.audio.voices import (
     DEFAULT_VOICE,
@@ -42,6 +55,21 @@ from an.util import _stable_hash
 
 class AudioPipelineError(RuntimeError):
     """The scene declares audio the pipeline cannot produce. Carries detail."""
+
+
+class TakeLostWarning(UserWarning):
+    """A line's recorded best take is gone from the audio store and was chosen again."""
+
+
+#: Resolve the takes from the voice document (the default of ``takes=``).
+_FROM_VOICE: Any = object()
+#: ``(TakesSpec) -> TakeScorer`` — the seam that turns a takes spec into its scorer.
+TakeScorerFactory = Callable[[TakesSpec], TakeScorer]
+
+
+def _announce_to_stderr(message: str) -> None:
+    """The default ``announce``: one line on stderr, where a CLI user sees it."""
+    print(f"an: {message}", file=sys.stderr, flush=True)
 
 
 def default_tts() -> TTSProvider:
@@ -62,6 +90,8 @@ def produce_audio_for_dialogue(
     lipsync: LipSyncProvider | None = None,
     effects: Mapping[str, float] | None = None,
     voice_id: str | None = None,
+    takes: TakesSpec | None = _FROM_VOICE,
+    take_scorer: TakeScorerFactory = make_take_scorer,
 ) -> tuple[AudioClip, VisemeTrack]:
     """Synthesize audio + visemes for one dialogue line.
 
@@ -79,41 +109,36 @@ def produce_audio_for_dialogue(
     ``voices``-store key; :func:`produce_audio_for_scene` passes the one
     :func:`an.audio.voices.line_voice_id` resolves, so a character's bound
     voice reaches here (an#194). The provider is handed the voice document's
-    own ``voice_id`` when it names one.
+    own voice id when it names one.
 
     What the provider's optional ``synthesis_options`` hook derives from the
     voice document and the line (ElevenLabs: ``model_id``, ``voice_settings``,
     ``seed``, and the ``[emotion]``/``direction`` audio tags — an#209) is passed
     to ``synthesize`` and keyed; the text handed to alignment is always the
     bare ``dialogue.text``, never the tagged one.
+
+    ``takes`` (default: what the voice declares for this line — see
+    :mod:`an.audio.takes`; ``None`` forces one take) synthesizes several takes,
+    scores each with ``take_scorer(spec)`` on the audio the viewer hears, keeps
+    the best under the line's key and records the choice in ``mall["takes"]``.
+    A line whose kept take is cached is never re-rolled.
     """
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
     voice_id = voice_id or dialogue.voice_ref or DEFAULT_VOICE
-    if effects is None:
-        effects = voice_effects(mall, voice_id)
-    named = provider_voice(mall, voice_id, tts_name=tts.name)
-    options = synthesis_options(tts, dialogue, mall, voice_id)
-
-    raw_key = audio_key(
-        dialogue.text, voice_id, tts.name, provider_voice=named, options=options
+    req = _line_request(
+        dialogue, mall, tts, voice_id, effects=effects, takes=takes, take_scorer=take_scorer
     )
-    cache_key = audio_key(
-        dialogue.text,
-        voice_id,
-        tts.name,
-        effects,
-        provider_voice=named,
-        options=options,
-    )
+    if req.spec is None:
+        audio_clip = _load_or_synthesize(
+            tts, dialogue.text, req.handed_voice, mall, req.raw_key, options=req.options
+        )
+        if req.cache_key != req.raw_key:
+            audio_clip = _load_or_apply_effects(audio_clip, req.effects, mall, req.cache_key)
+    else:
+        audio_clip = _load_or_choose_take(tts, dialogue.text, voice_id, mall, req)
 
-    audio_clip = _load_or_synthesize(
-        tts, dialogue.text, named or voice_id, mall, raw_key, options=options
-    )
-    if cache_key != raw_key:
-        audio_clip = _load_or_apply_effects(audio_clip, effects, mall, cache_key)
-
-    viseme_cache_key = viseme_key(cache_key, lipsync.name, dialogue.text)
+    viseme_cache_key = viseme_key(req.cache_key, lipsync.name, dialogue.text)
     track = _load_or_align(lipsync, audio_clip, dialogue.text, mall, viseme_cache_key)
     return audio_clip, track
 
@@ -124,6 +149,8 @@ def produce_audio_for_scene(
     *,
     tts: TTSProvider | None = None,
     lipsync: LipSyncProvider | None = None,
+    take_scorer: TakeScorerFactory = make_take_scorer,
+    announce: Callable[[str], None] | None = _announce_to_stderr,
 ) -> SceneIR:
     """Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -140,10 +167,19 @@ def produce_audio_for_scene(
     mux, the visemes, captions, ducking — follows. A ``start`` on a line that
     was never synthesized is an authored start from before ``at`` existed,
     and is kept as the line's ``at``.
+
+    Every line's request is resolved BEFORE anything is synthesized, so a
+    malformed voice (an effect, a ``takes``) fails before a credit is spent;
+    and when any line will synthesize best-of-N takes, ``announce`` (default:
+    a line on stderr; ``None`` for silence) is told what the run will bill —
+    takes and provider characters — before the first request.
     """
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
     voice_default = DEFAULT_VOICE
+    audio_store = mall.get("audio") if mall is not None else None
+    viseme_store = mall.get("visemes") if mall is not None else None
+    pending: list[tuple[Dialogue, str, _LineRequest]] = []
     for shot in scene.timeline:
         if shot.narration:
             # `Shot.narration` is fully modelled in the IR — text, voice_ref,
@@ -170,20 +206,11 @@ def produce_audio_for_scene(
             ):
                 line.at = line.start
             voice_id = line_voice_id(line, shot, mall, default=voice_default)
-            effects = voice_effects(mall, voice_id)
-            expected_audio_ref = audio_key(
-                line.text,
-                voice_id,
-                tts.name,
-                effects,
-                provider_voice=provider_voice(mall, voice_id, tts_name=tts.name),
-                options=synthesis_options(tts, line, mall, voice_id),
-            )
+            req = _line_request(line, mall, tts, voice_id, take_scorer=take_scorer)
+            expected_audio_ref = req.cache_key
             expected_viseme_ref = viseme_key(
                 expected_audio_ref, lipsync.name, line.text
             )
-            audio_store = mall.get("audio") if mall is not None else None
-            viseme_store = mall.get("visemes") if mall is not None else None
             already_done = (
                 line.audio_ref == expected_audio_ref
                 and line.viseme_ref == expected_viseme_ref
@@ -198,21 +225,33 @@ def produce_audio_for_scene(
                 and (viseme_store is None or expected_viseme_ref in viseme_store)
             )
             if not already_done:
-                # Never synthesized, or the providers changed: synthesize (the
-                # content-keyed stores make a mere re-stamp free).
-                audio, track = produce_audio_for_dialogue(
-                    line,
-                    mall,
-                    tts=tts,
-                    lipsync=lipsync,
-                    effects=effects,
-                    voice_id=voice_id,
-                )
-                line.duration = audio.duration
-                line.viseme_track = _to_ir_viseme_track(track)
-                line.word_timings = _to_ir_word_timings(track)
-                line.audio_ref = expected_audio_ref
-                line.viseme_ref = expected_viseme_ref
+                pending.append((line, voice_id, req))
+
+    if announce is not None:
+        message = takes_cost_message(
+            [(line.text, req) for line, _, req in pending], tts, audio_store
+        )
+        if message:
+            announce(message)
+
+    for line, voice_id, req in pending:
+        # Never synthesized, or the providers changed: synthesize (the
+        # content-keyed stores make a mere re-stamp free).
+        audio, track = produce_audio_for_dialogue(
+            line,
+            mall,
+            tts=tts,
+            lipsync=lipsync,
+            effects=req.effects,
+            voice_id=voice_id,
+            takes=req.spec,
+            take_scorer=take_scorer,
+        )
+        line.duration = audio.duration
+        line.viseme_track = _to_ir_viseme_track(track)
+        line.word_timings = _to_ir_word_timings(track)
+        line.audio_ref = req.cache_key
+        line.viseme_ref = viseme_key(req.cache_key, lipsync.name, line.text)
     return retime_dialogue(scene)
 
 
@@ -267,15 +306,21 @@ def audio_key(
     *,
     provider_voice: str | None = None,
     options: Mapping[str, Any] | None = None,
+    takes: Mapping[str, Any] | None = None,
+    take: int | None = None,
 ) -> str:
     """Content key of a line's audio: text, voice, provider, and — only when the
-    voice declares them — its effects, the provider voice it names (an#194) and
+    voice declares them — its effects, the provider voice it names (an#194),
     the provider's synthesis options (model, settings, seed, audio tags —
-    an#209). With none of them, the payload is exactly the pre-effects one, so
-    every key a project already has is unchanged.
+    an#209) and its best-of-N ``takes`` (the number and the scorer that chose;
+    :func:`an.audio.takes.takes_key_part`). With none of them, the payload is
+    exactly the pre-effects one, so every key a project already has is
+    unchanged. ``take`` (1, 2, … — never 0) keys one candidate take's RAW
+    audio; take 0 is the single-take request and keeps its key.
 
     >>> audio_key("hi", "default", "offline") == audio_key(
-    ...     "hi", "default", "offline", {}, provider_voice=None, options={})
+    ...     "hi", "default", "offline", {}, provider_voice=None, options={},
+    ...     takes=None, take=0)
     True
     """
     payload: dict[str, Any] = {"text": text, "voice": voice_id, "tts": tts_name}
@@ -285,6 +330,10 @@ def audio_key(
         payload["provider_voice"] = provider_voice
     if options:
         payload["options"] = dict(options)
+    if takes:
+        payload["takes"] = dict(takes)
+    if take:
+        payload["take"] = int(take)
     return _stable_hash(payload)
 
 
@@ -323,9 +372,240 @@ def viseme_key(audio_key_: str, lipsync_name: str, transcript: str) -> str:
     )
 
 
+def takes_cost_message(
+    lines: list[tuple[str, "_LineRequest"]],
+    tts: TTSProvider,
+    audio_store: Mapping | None,
+) -> str:
+    """What synthesizing ``lines`` will bill, when any of them takes best-of-N; else ``""``.
+
+    Counts only the requests not already in ``audio_store`` (a cached take is
+    free), and the provider's billed characters per request (its optional
+    ``billed_characters(text, **options)`` hook — ElevenLabs counts the audio
+    tags too — else the text's length).
+    """
+    if not any(req.spec is not None for _, req in lines):
+        return ""
+    requests = characters = cached = takes_lines = billed_lines = 0
+    seen: set[str] = set()  # two lines saying the same thing share their takes
+    for text, req in lines:
+        if req.cache_key in seen or (
+            audio_store is not None and req.cache_key in audio_store
+        ):
+            continue
+        seen.add(req.cache_key)
+        before = requests
+        for _take, options, key in req.take_requests():
+            if key in seen or (audio_store is not None and key in audio_store):
+                cached += audio_store is not None and key in audio_store
+                continue
+            seen.add(key)
+            requests += 1
+            characters += _billed_characters(req.tts, text, options)
+        if requests > before:
+            billed_lines += 1
+            takes_lines += req.spec is not None
+    if not requests:
+        return ""
+    return (
+        f"best-of-N takes: {requests} {tts.name} request(s) for {billed_lines} line(s) "
+        f"({takes_lines} with several takes; {cached} take(s) already cached), "
+        f"{characters:,} billed characters"
+    )
+
+
 # -----------------------------------------------------------------------------
 # Internals
 # -----------------------------------------------------------------------------
+
+
+@dataclass
+class _LineRequest:
+    """Everything a line's audio is a function of, resolved once — the SSOT the
+    stamp, the cost estimate and the synthesis all read."""
+
+    tts: TTSProvider
+    text: str
+    voice_id: str
+    named: str | None
+    options: dict[str, Any]
+    effects: Mapping[str, float]
+    raw_key: str
+    cache_key: str
+    spec: TakesSpec | None = None
+    scorer: TakeScorer | None = None
+
+    @property
+    def handed_voice(self) -> str:
+        """The voice id the provider is handed."""
+        return self.named or self.voice_id
+
+    def take_requests(self):
+        """``(take, options, raw_key)`` per candidate take (only take 0 without ``spec``)."""
+        n = self.spec.n if self.spec is not None else 1
+        for take in range(n):
+            options = _take_options(self.tts, self.options, take)
+            key = (
+                self.raw_key
+                if take == 0
+                else audio_key(
+                    self.text,
+                    self.voice_id,
+                    self.tts.name,
+                    provider_voice=self.named,
+                    options=options,
+                    take=take,
+                )
+            )
+            yield take, options, key
+
+
+def _line_request(
+    line: Any,
+    mall: Mapping[str, MutableMapping] | None,
+    tts: TTSProvider,
+    voice_id: str,
+    *,
+    effects: Mapping[str, float] | None = None,
+    takes: TakesSpec | None = _FROM_VOICE,
+    take_scorer: TakeScorerFactory = make_take_scorer,
+) -> _LineRequest:
+    """Resolve ``line``'s audio request in ``voice_id``: keys, options, effects, takes."""
+    if effects is None:
+        effects = voice_effects(mall, voice_id)
+    named = provider_voice(mall, voice_id, tts_name=tts.name)
+    options = synthesis_options(tts, line, mall, voice_id)
+    if takes is _FROM_VOICE:
+        takes = voice_takes(
+            mall, voice_id, direction=getattr(line, "direction", None), tts_name=tts.name
+        )
+    scorer = take_scorer(takes) if takes is not None else None
+    raw_key = audio_key(line.text, voice_id, tts.name, provider_voice=named, options=options)
+    cache_key = audio_key(
+        line.text,
+        voice_id,
+        tts.name,
+        effects,
+        provider_voice=named,
+        options=options,
+        takes=takes_key_part(scorer, takes.n) if takes is not None else None,
+    )
+    return _LineRequest(
+        tts=tts,
+        text=line.text,
+        voice_id=voice_id,
+        named=named,
+        options=options,
+        effects=effects,
+        raw_key=raw_key,
+        cache_key=cache_key,
+        spec=takes,
+        scorer=scorer,
+    )
+
+
+def _take_options(tts: TTSProvider, options: Mapping[str, Any], take: int) -> dict[str, Any]:
+    """The provider's request for candidate ``take`` (its optional ``take_options`` hook)."""
+    hook = getattr(tts, "take_options", None)
+    if take == 0 or hook is None:
+        return dict(options)
+    return dict(hook(options, take))
+
+
+def _billed_characters(tts: TTSProvider, text: str, options: Mapping[str, Any]) -> int:
+    """Characters one request bills (the provider's hook, else the text's length)."""
+    hook = getattr(tts, "billed_characters", None)
+    return int(hook(text, **options)) if hook is not None else len(text)
+
+
+def _clip_bytes(clip: AudioClip) -> bytes:
+    """The clip's audio bytes, read from its path when it has no bytes in memory."""
+    data = clip.bytes_
+    if data is None and clip.path is not None:
+        data = clip.path.read_bytes()
+    if data is None:
+        raise AudioPipelineError("the TTS clip carries no audio bytes to score or keep")
+    return data
+
+
+def _load_or_choose_take(
+    tts: TTSProvider,
+    text: str,
+    voice_id: str,
+    mall: Mapping[str, MutableMapping] | None,
+    req: _LineRequest,
+) -> AudioClip:
+    """The line's kept take: from the store when chosen before, else chosen now.
+
+    Choosing synthesizes the takes not cached (each under its own raw key),
+    applies the voice's effects to each in memory, scores what the viewer
+    would hear, stores the winner under ``req.cache_key`` and records the
+    choice in ``mall["takes"]``. With every take cached the scorer is
+    deterministic, so the same take is chosen again.
+    """
+    audio_store = mall.get("audio") if mall is not None else None
+    if audio_store is not None and req.cache_key in audio_store:
+        return _clip_from_bytes(audio_store[req.cache_key], voice_id, text)
+
+    candidates = []
+    for take, options, key in req.take_requests():
+        raw = _load_or_synthesize(tts, text, req.handed_voice, mall, key, options=options)
+        heard = _load_or_apply_effects(raw, req.effects, None, key) if req.effects else raw
+        data = _clip_bytes(heard)
+        candidates.append((take, key, raw, data, req.scorer.score(data, text)))
+    best = choose_take([c[4] for c in candidates])
+    kept = candidates[best][3]
+
+    record: dict[str, Any] = {
+        "record_version": TAKES_RECORD_VERSION,
+        "audio_key": req.cache_key,
+        "text": text,
+        "voice": voice_id,
+        "tts": tts.name,
+        "scorer": takes_key_part(req.scorer, req.spec.n),
+        "chosen": best,
+        "digest": audio_digest(kept),
+        "takes": [
+            {
+                "take": take,
+                "audio_key": key,
+                "digest": audio_digest(_clip_bytes(raw)),
+                "score": list(score.value),
+                **dict(score.detail),
+            }
+            for take, key, raw, _, score in candidates
+        ],
+    }
+    takes_store = mall.get(TAKES_STORE) if mall is not None else None
+    if takes_store is not None and req.cache_key in takes_store:
+        previous = json.loads(bytes(takes_store[req.cache_key]).decode("utf-8"))
+        if previous.get("digest") != record["digest"]:
+            warnings.warn(
+                f"the recorded best take of {text!r} (take {previous.get('chosen')}, "
+                f"sha256 {str(previous.get('digest'))[:12]}) is no longer in the audio "
+                f"store and could not be restored from its cached takes; kept take "
+                f"{best} of {req.spec.n} instead",
+                TakeLostWarning,
+                stacklevel=3,
+            )
+            record["supersedes"] = previous.get("digest")
+    if audio_store is not None:
+        audio_store[req.cache_key] = kept
+    if takes_store is not None:
+        takes_store[req.cache_key] = json.dumps(record, indent=1, sort_keys=True).encode(
+            "utf-8"
+        )
+    clip = _clip_from_bytes(kept, voice_id, text)
+    if req.effects:
+        clip.sample_rate = EFFECT_SAMPLE_RATE
+    return clip
+
+
+def _clip_from_bytes(data: bytes, voice_id: str, text: str) -> AudioClip:
+    """A clip read back from the audio store (its duration read from the bytes)."""
+    return AudioClip(
+        bytes_=data, duration=_wav_duration(data), voice_id=voice_id, transcript=text
+    )
 
 
 def _load_or_apply_effects(

@@ -1,34 +1,52 @@
 """Voice effects: a deterministic transform applied to a synthesized line (an#163).
 
-A voice document in the ``voices`` store may declare ``effects``. The one effect
-that exists is ``pitch_semitones`` — South Park raises its voices to sound like
-fourth graders, and a raised voice is a property of the *character*, not of the
+A voice document in the ``voices`` store may declare ``effects``. Two exist:
+
+- ``pitch_semitones`` (an#163) — South Park raises its voices to sound like
+  fourth graders; duration-preserving.
+- ``tempo`` (an#265) — a pitch-preserving speed ratio (``1.1`` is 10% faster).
+  ``eleven_v3`` ignores ``voice_settings.speed`` and no audio tag moves its rate,
+  so a narrator that must run at 5.8 syllables/s, or an expressive voice that
+  must be slowed to a serene pace, is re-timed here. Unlike the pitch effect it
+  CHANGES the line's duration.
+
+A raised voice or a fast narrator is a property of the *character*, not of the
 TTS provider, so it lives beside the voice the line already resolves through
 rather than in the IR.
 
 >>> normalize_effects({"pitch_semitones": 4})
 {'pitch_semitones': 4.0}
->>> normalize_effects({"pitch_semitones": 0}) == normalize_effects(None) == {}
+>>> normalize_effects({"pitch_semitones": 0}) == normalize_effects({"tempo": 1}) == normalize_effects(None) == {}
 True
+>>> normalize_effects({"tempo": 1.1, "pitch_semitones": -2})
+{'pitch_semitones': -2.0, 'tempo': 1.1}
 >>> round(_pitch_filter(12), 3)
 0.5
+>>> filter_chain({"tempo": 1.25})
+'aresample=44100,atempo=1.250000000'
 >>> normalize_effects({"reverb": 1})
 Traceback (most recent call last):
     ...
-an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones']
+an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones', 'tempo']
 
 Design, in the order the pipeline uses it:
 
 - **The transform runs after synthesis and before alignment.** Lip-sync reads the
-  audio the viewer hears. The chain keeps the duration (see below), so word
-  timings computed on raw and on shifted audio agree to a frame, but the shifted
-  bytes are what is aligned regardless.
+  audio the viewer hears. The pitch chain keeps the duration, so word timings
+  computed on raw and on shifted audio agree to a frame; a ``tempo`` does not,
+  which is why the shifted bytes are what is aligned, the line's ``duration`` is
+  read from them, and the viseme key derives from the effect-keyed audio key —
+  visemes, word timings and captions all follow the audio the viewer hears.
 - **The cache keys on the effect.** ``effects_key`` is empty for no effect, and
   ``an.audio.pipeline`` adds it to the audio key only when it is non-empty, so a
   project that declares none keeps every key it ever had.
 - **Stock ffmpeg only.** The chain is ``aresample → asetrate → aresample →
   atempo``: the sample rate is relabelled by the pitch ratio (pitch and speed both
-  move) and ``atempo`` removes the speed change. ``rubberband`` is a better
+  move) and ``atempo`` removes the speed change; a ``tempo`` multiplies into that
+  same ``atempo`` factor (``aresample → atempo`` alone when there is no pitch).
+  A factor outside ``atempo``'s clean ``[0.5, 2]`` is split into stages, each
+  inside it; the pitch-only chain is one stage, character for character what it
+  was before ``tempo`` existed. ``rubberband`` is a better
   shifter but is a build option, and its output would differ between machines —
   which a content-hash cache cannot tolerate. The output is bit-exact WAV (no
   encoder tag, no metadata), so two runs produce identical bytes.
@@ -45,9 +63,13 @@ from typing import Any
 
 #: Effects a voice document may declare, with the range each accepts.
 PITCH_SEMITONES_LIMIT = 12.0  # atempo's stock range is [0.5, 2]: one octave each way
+#: ``tempo`` bounds: half to double speed. Outside it speech stops being speech.
+TEMPO_LIMITS: tuple[float, float] = (0.5, 2.0)
+#: One ``atempo`` stage's clean range; a factor beyond it is chained in stages.
+ATEMPO_STAGE_LIMITS: tuple[float, float] = (0.5, 2.0)
 #: The sample rate the chain runs at (and the shifted WAV is written at).
 EFFECT_SAMPLE_RATE = 44100
-KNOWN_EFFECTS = ("pitch_semitones",)
+KNOWN_EFFECTS = ("pitch_semitones", "tempo")
 
 
 class VoiceEffectError(ValueError):
@@ -86,6 +108,18 @@ def normalize_effects(raw: Mapping[str, Any] | None) -> dict[str, float]:
             )
         if semitones != 0:
             out["pitch_semitones"] = float(semitones)
+    tempo = raw.get("tempo")
+    if tempo is not None:
+        if isinstance(tempo, bool) or not isinstance(tempo, (int, float)):
+            raise VoiceEffectError(f"tempo must be a number, got {tempo!r}")
+        lo, hi = TEMPO_LIMITS
+        if not lo <= tempo <= hi:
+            raise VoiceEffectError(
+                f"tempo {tempo} is outside [{lo:g}, {hi:g}] (a speed ratio: "
+                "1.1 is 10% faster, 0.8 is 20% slower)"
+            )
+        if tempo != 1:
+            out["tempo"] = float(tempo)
     return out
 
 
@@ -107,25 +141,53 @@ def _pitch_filter(semitones: float) -> float:
     return 1.0 / (2.0 ** (semitones / 12.0))
 
 
+def atempo_stages(
+    factor: float, *, limits: tuple[float, float] = ATEMPO_STAGE_LIMITS
+) -> list[float]:
+    """``factor`` as a product of ``atempo`` stages, each inside ``limits``.
+
+    One stage when ``factor`` already fits (the pitch-only chain, always).
+
+    >>> atempo_stages(1.5)
+    [1.5]
+    >>> atempo_stages(3.0)
+    [2.0, 1.5]
+    >>> atempo_stages(0.3)
+    [0.5, 0.6]
+    """
+    lo, hi = limits
+    stages: list[float] = []
+    while factor > hi:
+        stages.append(hi)
+        factor /= hi
+    while factor < lo:
+        stages.append(lo)
+        factor /= lo
+    return [*stages, factor]
+
+
 def filter_chain(effects: Mapping[str, float]) -> str:
     """The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none)."""
-    semitones = effects.get("pitch_semitones")
-    if not semitones:
+    semitones = effects.get("pitch_semitones") or 0.0
+    tempo = effects.get("tempo") or 1.0
+    if not semitones and tempo == 1.0:
         return ""
-    ratio = 2.0 ** (semitones / 12.0)
     rate = EFFECT_SAMPLE_RATE
-    return (
-        f"aresample={rate},asetrate={rate * ratio:.6f},"
-        f"aresample={rate},atempo={1.0 / ratio:.9f}"
-    )
+    if semitones:
+        ratio = 2.0 ** (semitones / 12.0)
+        head = f"aresample={rate},asetrate={rate * ratio:.6f},aresample={rate}"
+        factor = tempo / ratio
+    else:
+        head, factor = f"aresample={rate}", tempo
+    return ",".join([head, *(f"atempo={f:.9f}" for f in atempo_stages(factor))])
 
 
 def apply_voice_effects(audio: bytes, effects: Mapping[str, float]) -> bytes:
     """``audio`` (any container ffmpeg sniffs) with ``effects`` applied, as WAV bytes.
 
     Returns the input unchanged for no effects. Raises ``VoiceEffectError`` when
-    ffmpeg is missing or fails — never returns unshifted audio for a voice that
-    asked for a shift.
+    ffmpeg is missing or fails — never returns unprocessed audio for a voice that
+    asked for an effect.
     """
     chain = filter_chain(effects)
     if not chain:

@@ -2,7 +2,8 @@
 
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
-artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
+artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
+content-keyed shot cache),
 final output and its caption sidecar, the agent's decision log, and the asset
 library's lockfile of pinned check-outs — is keyed inside a store. Stores are
 dol-backed so the same call
@@ -16,7 +17,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...         'audio', 'captions', 'characters', 'decisions', 'environments',
 ...         'library_lock', 'output', 'previews', 'props', 'scenes', 'shot_cache',
 ...         'shots',
-...         'sounds', 'styles', 'visemes', 'voices',
+...         'sounds', 'styles', 'takes', 'visemes', 'voices',
 ...     ]
 True
 """
@@ -42,6 +43,7 @@ from an.stores.artifacts import (
     OutputStore,
     PreviewArtifactStore,
     ShotArtifactStore,
+    TakesArtifactStore,
     VisemeArtifactStore,
 )
 
@@ -55,6 +57,7 @@ __all__ = [
     "SoundsStore",
     "AudioArtifactStore",
     "VisemeArtifactStore",
+    "TakesArtifactStore",
     "ShotArtifactStore",
     "PreviewArtifactStore",
     "OutputStore",
@@ -85,6 +88,7 @@ def build_project_mall(
             "ir",
             "artifacts/audio",
             "artifacts/visemes",
+            "artifacts/takes",
             "artifacts/shots",
             "artifacts/previews",
             "output",
@@ -102,6 +106,9 @@ def build_project_mall(
         "scenes": ScenesStore(pdir),
         "audio": AudioArtifactStore(pdir / "artifacts" / "audio"),
         "visemes": VisemeArtifactStore(pdir / "artifacts" / "visemes"),
+        # Which take of a best-of-N line was kept, and why (an.audio.takes):
+        # the record a re-render trusts instead of re-rolling.
+        "takes": TakesArtifactStore(pdir / "artifacts" / "takes"),
         # The per-shot mp4 ARCHIVE, keyed by the author's shot id: written on
         # every render, read by nothing (pillar 11). The cache is below.
         "shots": ShotArtifactStore(pdir / "artifacts" / "shots"),

@@ -55,6 +55,9 @@ VOICE_SETTINGS_RANGES: dict[str, tuple[float, float] | None] = {
     "speed": (0.7, 1.2),
 }
 
+#: Seeds the API accepts are below this (an unsigned 32-bit integer).
+_SEED_MODULUS: int = 2**32
+
 #: Emotions that are the absence of one: never sent as an audio tag.
 _UNTAGGED_EMOTIONS: frozenset[str] = frozenset({"neutral"})
 
@@ -222,6 +225,32 @@ class ElevenLabsTTS:
                 stacklevel=2,
             )
         return opts
+
+    def take_options(self, options: Mapping[str, Any], take: int) -> dict[str, Any]:
+        """The request for candidate ``take`` of a best-of-N line (:mod:`an.audio.takes`).
+
+        A declared ``seed`` is offset by the take, so a model that does honour
+        it (every model but ``eleven_v3``, measured) still returns different
+        takes; without a seed the request is unchanged and the model's own
+        sampling varies the take.
+
+        >>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
+        {'seed': 13}
+        """
+        out = dict(options)
+        if out.get("seed") is not None:
+            out["seed"] = (int(out["seed"]) + int(take)) % _SEED_MODULUS
+        return out
+
+    def billed_characters(
+        self, text: str, *, audio_tags: Sequence[str] | None = None, **_options: Any
+    ) -> int:
+        """Characters one request bills: the text as sent, audio tags included.
+
+        >>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
+        13
+        """
+        return len(tagged_text(text, audio_tags))
 
     def synthesize(
         self,
