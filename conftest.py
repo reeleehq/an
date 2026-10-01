@@ -22,6 +22,26 @@ def pytest_configure(config):  # noqa: D103 — a pytest hook
     from an.genres import load
 
     load()
+    _redirect_account_home_for_the_session()
+
+
+def _redirect_account_home_for_the_session() -> None:
+    """Point the machine registry into a temp folder for the WHOLE session.
+
+    The per-test fixture below gives each test a fresh registry, but a
+    module- or session-scoped fixture runs before it: one that draws a
+    character (the factory records what it draws, an#269) or publishes would
+    otherwise write the developer's real ``~/.local/share/an/registry``. This
+    session-wide redirect is what those fixtures see; each test still gets
+    its own fresh one.
+    """
+    import tempfile
+    from pathlib import Path
+
+    from an.library import registry
+
+    home = Path(tempfile.mkdtemp(prefix="an-session-account-home-"))
+    registry._account_home = lambda: home
 
 
 import pytest
