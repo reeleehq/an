@@ -152,7 +152,7 @@ def test_the_cli_measures_files_against_a_spec_role(tmp_path, capsys):
     wav = tmp_path / "line.wav"
     _write_wav(wav, np.concatenate([tone(150, 0.4), silence(0.4), tone(150, 0.4)]))
     spec = tmp_path / "spec.yaml"
-    spec.write_text("prosody_targets:\n  narrator:\n    pauses_per_min: [30, 80]\n")
+    spec.write_text("prosody_targets:\n  narrator:\n    pauses_per_min: [30, 80]\n", encoding="utf-8")
     assert main([str(wav), "--targets", str(spec), "--role", "narrator", "--text", "one two"]) == 0
     out = capsys.readouterr().out
     assert "pauses_per_min" in out and "MISS" not in out.split("pauses_per_min")[1].splitlines()[0]
