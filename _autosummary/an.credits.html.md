@@ -176,7 +176,14 @@ each line’s voice as the pipeline resolves it
 `mall["voices"]` (its `provider`, `voice_id` and `model_id`). A
 voice document may declare its own `source` (the provider’s terms, the
 licence the user holds); otherwise the speech is listed UNVERIFIED — the
-provider’s terms decide what is owed, and nobody recorded them. A voice
+provider’s terms decide what is owed, and nobody recorded them. The licence
+that counts for synthesized speech is a provider-terms code
+([`an.ir.assets.PROVIDER_TERMS`](an.ir.assets.html.md#an.ir.assets.PROVIDER_TERMS): `elevenlabs-paid-plan` is `free`;
+`elevenlabs-free-plan` is non-commercial only and owes a credit, so it is
+not publishable and is listed with that restriction), or any licence `an`
+recognises;
+it is read as the voice’s provider’s, so another provider’s terms count for
+nothing (an#307). A voice
 whose document names no provider (the offline default) is not listed:
 which provider spoke it is not recorded anywhere.
 
@@ -191,6 +198,9 @@ which provider spoke it is not recorded anywhere.
 ...                            "model_id": "eleven_v3"}}}
 >>> [(e.asset, e.license_class, e.source.extra["model"]) for e in speech_credits(mall, scene)]
 [('speech/bob', 'unknown', 'eleven_v3')]
+>>> mall["voices"]["bob"]["source"] = {"provider": "elevenlabs", "license": "elevenlabs-paid-plan"}
+>>> [e.license_class for e in speech_credits(mall, scene)]
+['free']
 ```
 
 ### an.credits.warn_if_private_study(report, , output=None)

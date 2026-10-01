@@ -4,6 +4,12 @@ an.project
 .. automodule:: an.project
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      PROJECT_GITIGNORE
+   
    .. rubric:: Functions
 
    .. autosummary::

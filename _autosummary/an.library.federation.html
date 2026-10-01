@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.cli" href="an.library.cli.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -735,6 +735,18 @@ was built over different stores.</p>
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="an.library.federation.Library.labels">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">labels</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.labels" title="Link to this definition">#</a></dt>
+<dd><p>statements made
+about a version after it was published (an#307).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&lt;asset_id&gt;&#64;&lt;vNNN&gt;/&lt;id&gt;</span> <span class="pre">-&gt;</span> <span class="pre">label</span></code> (write-once)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="an.library.federation.Library.records">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">records</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><span class="pre">MutableMapping</span></a></span><a class="headerlink" href="#an.library.federation.Library.records" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">asset_id</span> <span class="pre">-&gt;</span> <span class="pre">record</span></code> (mutable curation).</p>
@@ -867,6 +879,7 @@ it resolved in.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.federation.Library"><code class="docutils literal notranslate"><span class="pre">Library</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.federation.Library.blob_rights"><code class="docutils literal notranslate"><span class="pre">Library.blob_rights</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.federation.Library.blobs"><code class="docutils literal notranslate"><span class="pre">Library.blobs</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.federation.Library.labels"><code class="docutils literal notranslate"><span class="pre">Library.labels</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.federation.Library.records"><code class="docutils literal notranslate"><span class="pre">Library.records</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.federation.Library.versions"><code class="docutils literal notranslate"><span class="pre">Library.versions</span></code></a></li>
 </ul>

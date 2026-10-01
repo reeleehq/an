@@ -13,6 +13,11 @@ Layout (from spec §11):
 > ├── output/
 > └── .an/{decisions.jsonl,verifier_runs/,memory.md}
 
+### Module Attributes
+
+| [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE)   | What a project's `.gitignore` keeps out of version control (`an init` adds each line a `.gitignore` lacks, never removing one).   |
+|----------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+
 ### Functions
 
 | [`init`](#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                 |
@@ -25,6 +30,13 @@ Layout (from spec §11):
 | [`Project`](#an.project.Project)(root, mall, scene)   | A loaded an project: directory + mall + current scene.   |
 |-------------------------------------------------------------------------------|----------------------------------------------------------|
 
+### an.project.PROJECT_GITIGNORE *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/render_reports/',)*
+
+What a project’s `.gitignore` keeps out of version control (`an init`
+adds each line a `.gitignore` lacks, never removing one). A render report
+records what a render on THIS machine found — warnings, exception text — so it
+is per-machine output, not project source (an#254).
+
 ### *class* an.project.Project(root, mall, scene)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -36,7 +48,8 @@ A loaded an project: directory + mall + current scene.
 Create a fresh an project at `project_dir`.
 
 Idempotent unless the directory already contains a non-empty `scene.md`;
-pass `force=True` to overwrite. Returns the absolute project root.
+pass `force=True` to overwrite. Returns the absolute project root. The
+project’s `.gitignore` gains [`PROJECT_GITIGNORE`](#an.project.PROJECT_GITIGNORE) (lines it lacks).
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)

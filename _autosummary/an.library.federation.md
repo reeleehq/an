@@ -74,6 +74,14 @@ One library: its name (the namespace of its ids), its mall, and its root if on d
 
 `sha256 -> bytes` (content-addressed).
 
+#### *property* labels *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+statements made
+about a version after it was published (an#307).
+
+* **Type:**
+  `<asset_id>@<vNNN>/<id> -> label` (write-once)
+
 #### *property* records *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
 
 `asset_id -> record` (mutable curation).

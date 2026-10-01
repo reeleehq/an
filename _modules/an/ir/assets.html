@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -769,6 +769,9 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"LicenseClass"</span><span class="p">,</span>
     <span class="s2">"PRIVATE_STUDY"</span><span class="p">,</span>
     <span class="s2">"PUBLIC_DOMAIN"</span><span class="p">,</span>
+    <span class="s2">"PROVIDER_TERMS"</span><span class="p">,</span>
+    <span class="s2">"PROVIDER_TERMS_RESTRICTIONS"</span><span class="p">,</span>
+    <span class="s2">"provider_terms_restriction"</span><span class="p">,</span>
     <span class="s2">"license_class"</span><span class="p">,</span>
     <span class="s2">"normalise_license"</span><span class="p">,</span>
     <span class="s2">"requires_attribution"</span><span class="p">,</span>
@@ -793,6 +796,56 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: - ``private`` — NOT shippable: all rights reserved, private study only;</span>
 <span class="c1">#: - ``unknown`` — not classified, which is not the same as free.</span>
 <span class="n">LicenseClass</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"attribution"</span><span class="p">,</span> <span class="s2">"free"</span><span class="p">,</span> <span class="s2">"private"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">]</span>
+
+<span class="c1">#: Licences of what a provider SYNTHESIZES for you, under the provider's own</span>
+<span class="c1">#: terms (an#307): the ``source.license`` a voice document declares for the</span>
+<span class="c1">#: speech that provider made, by provider. A code counts only on a source</span>
+<span class="c1">#: whose ``provider`` is that provider — another provider's terms say nothing</span>
+<span class="c1">#: about it — and is matched as whole leading words (``elevenlabs-paid-plan``,</span>
+<span class="c1">#: ``elevenlabs-paid-plan-creator``). Which one applies is the user's account,</span>
+<span class="c1">#: which ``an`` cannot see: declaring it is the user's statement.</span>
+<span class="c1">#:</span>
+<span class="c1">#: - ElevenLabs: on a paid plan the output may be used commercially with no</span>
+<span class="c1">#:   credit (``free``). On the free plan it must credit ElevenLabs AND is for</span>
+<span class="c1">#:   non-commercial use only: no class here says "publishable, but not</span>
+<span class="c1">#:   commercially", and ``attribution`` would read as shippable, so it is</span>
+<span class="c1">#:   ``unknown`` — not publishable — with its restriction named</span>
+<span class="c1">#:   (:data:`PROVIDER_TERMS_RESTRICTIONS`) wherever it is listed (review-308 S1).</span>
+<span class="c1">#:   Check the current terms before shipping.</span>
+<span class="n">PROVIDER_TERMS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">LicenseClass</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"elevenlabs"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"elevenlabs-paid-plan"</span><span class="p">:</span> <span class="s2">"free"</span><span class="p">,</span>
+        <span class="s2">"elevenlabs-free-plan"</span><span class="p">:</span> <span class="s2">"unknown"</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+<span class="c1">#: What a provider-terms code restricts beyond its class, by code: the words a</span>
+<span class="c1">#: credits report prints beside it.</span>
+<span class="n">PROVIDER_TERMS_RESTRICTIONS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"elevenlabs-free-plan"</span><span class="p">:</span> <span class="s2">"ElevenLabs free plan: non-commercial use only, and "</span>
+    <span class="s2">"the video must credit ElevenLabs (elevenlabs.io); not publishable as is"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="provider_terms_restriction">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.assets.html#an.ir.assets.provider_terms_restriction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">provider_terms_restriction</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The restriction a provider-terms licence carries beyond its class, if any.</span>
+
+<span class="sd">    &gt;&gt;&gt; provider_terms_restriction(AssetSource(provider="elevenlabs", license="elevenlabs-free-plan"))[:21]</span>
+<span class="sd">    'ElevenLabs free plan:'</span>
+<span class="sd">    &gt;&gt;&gt; provider_terms_restriction(AssetSource(provider="openai", license="elevenlabs-free-plan")) is None</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="n">code</span> <span class="o">=</span> <span class="n">normalise_license</span><span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">license</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="n">PROVIDER_TERMS</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">source</span><span class="o">.</span><span class="n">provider</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="p">{})</span>
+    <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">term</span> <span class="ow">or</span> <span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">term</span> <span class="o">+</span> <span class="s2">"-"</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">term</span> <span class="ow">in</span> <span class="n">PROVIDER_TERMS_RESTRICTIONS</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">PROVIDER_TERMS_RESTRICTIONS</span><span class="p">[</span><span class="n">term</span><span class="p">]</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
 
 <span class="c1">#: Normalised phrases that mean "all rights reserved" ANYWHERE in the code —</span>
 <span class="c1">#: "(c) Studio. All rights reserved" is the usual way it is written.</span>
@@ -913,6 +966,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    'attribution'</span>
 <span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="p", license="bespoke"))</span>
 <span class="sd">    'unknown'</span>
+
+<span class="sd">    A provider's terms count for what that provider made (:data:`PROVIDER_TERMS`):</span>
+
+<span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="elevenlabs", license="elevenlabs-paid-plan"))</span>
+<span class="sd">    'free'</span>
+<span class="sd">    &gt;&gt;&gt; license_class(AssetSource(provider="openai", license="elevenlabs-paid-plan"))</span>
+<span class="sd">    'unknown'</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">source</span><span class="o">.</span><span class="n">license</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">"unknown"</span>
@@ -922,6 +982,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">code</span> <span class="o">=</span> <span class="n">normalise_license</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">_PRIVATE_EXACT</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span> <span class="ow">in</span> <span class="n">code</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">_PRIVATE_PHRASES</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">"private"</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="n">PROVIDER_TERMS</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">source</span><span class="o">.</span><span class="n">provider</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="p">{})</span>
+    <span class="k">for</span> <span class="n">term</span><span class="p">,</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">terms</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="o">==</span> <span class="n">term</span> <span class="ow">or</span> <span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">term</span> <span class="o">+</span> <span class="s2">"-"</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">cls</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">code</span> <span class="o">==</span> <span class="n">w</span> <span class="ow">or</span> <span class="n">code</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">w</span> <span class="o">+</span> <span class="s2">"-"</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">_FREE_WORDS</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">"free"</span>
     <span class="k">return</span> <span class="s2">"unknown"</span></div>

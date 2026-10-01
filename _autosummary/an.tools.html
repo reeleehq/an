@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.timing.timeline" href="an.timing.timeline.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -853,6 +853,10 @@ no_browser: don’t auto-open the default browser</p>
 its audio, the runtime, the render settings, this machine’s browser and
 ffmpeg) are unchanged since a previous render is reused from the shot cache
 rather than rendered again, and the summary line says which were which.</p>
+<p>Then what the render learned, grouped, each with its fix: a synthesized line
+that runs past its shot or into a dissolve, a stand-in or a substitution,
+a library pin out of date (artifacts/render_reports/&lt;output_name&gt;.json
+holds them all).</p>
 <p>project_dir: path to an an project (must contain scene.md / ir/scene.json)
 output_name: filename stem under output/ (default: “main”)
 tts: TTS provider — “offline” (silent) or “elevenlabs” (needs ELEVEN_API_KEY)

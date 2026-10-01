@@ -16,17 +16,18 @@ with no `--package`; an#251). A refusal (an unknown asset, a private asset
 leaving its library, …) prints one sentence and exits non-zero.
 
 Subcommands: `publish`, `find`, `vocabulary`, `show`, `checkout`,
-`promote`.
+`promote`, `retire`.
 
 ### Functions
 
-| [`checkout`](#an.library.cli.checkout)(project_dir, ref[, key, overwrite, ...])   | Check a library version out into a project, and pin it in assets.lock.json.    |
-|------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [`find`](#an.library.cli.find)([kind, style, affords, rights, family, ...])   | Find assets: AND across facets, OR within one facet's comma-separated values.  |
-| [`promote`](#an.library.cli.promote)(ref[, package, root, core_root, ...])       | Copy a version into the core an library, so other genres can reuse it.         |
-| [`publish`](#an.library.cli.publish)(folder, asset_id[, package, root, ...])     | Publish an asset folder as the next version of `asset_id`.                     |
-| [`show`](#an.library.cli.show)(ref[, package, root, extra, json_out])         | Show one asset: its record, the resolved version, and its other versions.      |
-| [`vocabulary`](#an.library.cli.vocabulary)([package, root, extra])                  | Every facet value with its count, and every capability with its remedy (JSON). |
+| [`checkout`](#an.library.cli.checkout)(project_dir, ref[, key, overwrite, ...])   | Check a library version out into a project, and pin it in assets.lock.json.      |
+|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`find`](#an.library.cli.find)([kind, style, affords, rights, family, ...])   | Find assets: AND across facets, OR within one facet's comma-separated values.    |
+| [`promote`](#an.library.cli.promote)(ref[, package, root, core_root, ...])       | Copy a version into the core an library, so other genres can reuse it.           |
+| [`publish`](#an.library.cli.publish)(folder, asset_id[, package, root, ...])     | Publish an asset folder as the next version of `asset_id`.                       |
+| [`retire`](#an.library.cli.retire)(ref[, by, reason, status, package, root])    | Retire an asset id: hidden from find, never deleted; its versions stay readable. |
+| [`show`](#an.library.cli.show)(ref[, package, root, extra, json_out])         | Show one asset: its record, the resolved version, and its other versions.        |
+| [`vocabulary`](#an.library.cli.vocabulary)([package, root, extra])                  | Every facet value with its count, and every capability with its remedy (JSON).   |
 
 ### an.library.cli.checkout(project_dir, ref, key='', overwrite=False, package='', root='', extra='')
 
@@ -53,7 +54,7 @@ affords: capabilities the asset must ALL have, e.g. limbs.legs,swap.view:side
 rights: any, publishable, or licence classes (free, attribution, private, unknown)
 family: families, comma-separated
 origin: origins, comma-separated
-status: draft, approved, deprecated
+status: draft, approved, deprecated, retired (a retired asset is listed only when asked for)
 tags: tags, comma-separated (any of them)
 near: also list assets that only miss capabilities, with the remedy for each
 package: the library to search first (then the core an library)
@@ -90,7 +91,7 @@ title: a human title for the record
 family: the identity shared across styles and variants (e.g. alice)
 style: styles the asset suits, comma-separated
 origin: drawn, procedural, dicebear, carved, traced, stock, commissioned, generated
-status: draft, approved or deprecated
+status: draft, approved, deprecated or retired (publishing into a retired id needs it, to revive it)
 tags: free tags, comma-separated
 note: what changed in this version
 derived_from: library references this derives from, comma-separated
@@ -100,11 +101,25 @@ author: who made it
 source_url: where it was fetched from
 relicense_by: who relicenses the asset (with –relicense-reason and –license): the only way to relax inherited rights
 relicense_reason: why — recorded on the version and shown in its rights
-relabel_by: who labels bytes nobody labelled (with –relabel-reason and –license): answers the asset’s earlier unlabelled files and sourceless versions, never a stricter statement
-relabel_reason: why — recorded on the version and shown in its rights
+relabel_by: who labels bytes nobody labelled (with –relabel-reason and –license): answers the asset’s earlier unlabelled files and sourceless versions, never a stricter statement nor another asset’s files; on unchanged content it is recorded on the head, no new version
+relabel_reason: why — recorded (on the version, or on the head it labels) and shown in its rights
 expect_head: refuse unless the asset’s head is this version, or ‘new’ for an id that must not exist yet
 replace_curation: –style/–tags replace the record’s lists instead of adding to them
 extra: further libraries where –derived-from resolves, by package name, comma-separated
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.library.cli.retire(ref, by='', reason='', status='retired', package='', root='')
+
+Retire an asset id: hidden from find, never deleted; its versions stay readable.
+
+ref: [<library>:]<asset_id> — a <library>: prefix names the library (no –package needed)
+by: who retires it (recorded)
+reason: why (recorded)
+status: the status to set instead (draft, approved or deprecated revives or re-curates it)
+package: the library it is in (default: the reference’s <library>: prefix, else an)
+root: that library’s root
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

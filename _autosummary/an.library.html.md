@@ -24,7 +24,8 @@ What lives where:
 - [`an.library.root`](an.library.root.html.md#module-an.library.root) — the root of each package’s data (vendored XDG logic);
 - [`an.library.ids`](an.library.ids.html.md#module-an.library.ids) — asset ids, version labels, library references;
 - [`an.library.stores`](an.library.stores.html.md#module-an.library.stores) — the mall: `records`, write-once `versions`,
-  content-addressed `blobs`, all injected `MutableMapping` s;
+  content-addressed `blobs`, append-only `labels`, all injected
+  `MutableMapping` s;
 - [`an.library.federation`](an.library.federation.html.md#module-an.library.federation) — [`Library`](#an.library.Library) and the search path;
 - [`an.library.affordances`](an.library.affordances.html.md#module-an.library.affordances) — capabilities and per-kind analysers (the seed
   of ADR 0002’s registry); [`an.library.character`](an.library.character.html.md#module-an.library.character) — the character analyser;
@@ -58,6 +59,7 @@ What lives where:
 | [`publish`](#an.library.publish)(library, asset_id, doc[, files, ...])      | Publish `doc` and its `files` as the next version of `asset_id` in `library`.                                                                 |
 | [`publish_dir`](#an.library.publish_dir)(library, folder, asset_id, \*\*kwargs) | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).                                                           |
 | [`reindex`](#an.library.reindex)(library, \*[, search])                     | Rebuild `library`'s floor index from its versions.                                                                                            |
+| [`retire`](#an.library.retire)(library, asset_id, \*, by, reason)          | Retire an asset id: recorded, hidden from `find` by default, never deleted.                                                                   |
 | [`register_analyser`](#an.library.register_analyser)(kind, \*[, version, ...])        | Register an analyser.                                                                                                                         |
 | [`register_asset_kind`](#an.library.register_asset_kind)(name, \*[, store, ...])        | Register (or re-register) an asset kind.                                                                                                      |
 | [`register_capability`](#an.library.register_capability)(name, \*[, description, ...])  | Register a capability (or a [`Capability`](#an.library.Capability)).                                                     |
@@ -67,8 +69,10 @@ What lives where:
 | [`roll_up`](#an.library.roll_up)(sources, \*[, inherited])                  | Roll labelled sources (and parents' rights) up to one [`Rights`](#an.library.Rights).                                |
 | [`scan_index`](#an.library.scan_index)(library)                                | Every asset's head version in `library`, read from the stores.                                                                                |
 | [`search_path`](#an.library.search_path)([package, extra, roots])               | The ordered libraries `package` reads: its own, then the core `an`, then `extra`.                                                             |
+| [`set_status`](#an.library.set_status)(library, asset_id, status, \*, by, ...) | Set an asset's curation status, recording who and why; return the record.                                                                     |
 | [`show`](#an.library.show)(libraries, ref)                               | The record, the resolved version, its recomputed rights and the list of versions.                                                             |
 | [`verify_checkout`](#an.library.verify_checkout)(libraries, project_dir, \*[, ...]) | `{<store>/<key>: differences}` for every pinned entry; empty lists are intact copies.                                                         |
+| [`version_labels`](#an.library.version_labels)(library, version)                   | The labels recorded on a stored version since it was published, oldest first.                                                                 |
 | [`vocabulary`](#an.library.vocabulary)(libraries, \*[, index])                 | Every facet with its values and counts, and the registered capabilities.                                                                      |
 
 ### Classes
@@ -197,6 +201,14 @@ One library: its name (the namespace of its ids), its mall, and its root if on d
 
 `sha256 -> bytes` (content-addressed).
 
+#### *property* labels *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
+
+statements made
+about a version after it was published (an#307).
+
+* **Type:**
+  `<asset_id>@<vNNN>/<id> -> label` (write-once)
+
 #### *property* records *: [MutableMapping](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)*
 
 `asset_id -> record` (mutable curation).
@@ -251,11 +263,19 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 Every write rewrites the whole (small) file, sorted, so the lockfile diffs
 cleanly under version control.
 
-### *class* an.library.PublishResult(ref, manifest_sha256, created, rights, affordances)
+### *class* an.library.PublishResult(ref, manifest_sha256, created, rights, affordances, advice=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a publish did: the version it names, and whether it made one.
+
+#### advice *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ()*
+
+what would answer each kind of gap, one
+sentence each (`unknown_advice()`).
+
+* **Type:**
+  For an `unknown` result
 
 ### *exception* an.library.RegistryError
 
@@ -430,6 +450,10 @@ rights: `any` (default — study renders are legitimate), `publishable`
 : (`free` + `attribution`), or licence classes. Rights are recomputed
   from each version’s sources and lineage, not read from its cache
 
+status: curation statuses; an asset whose status is hidden
+: (`HIDDEN_STATUSES`: `retired`) is offered only when its status
+  is asked for by name
+
 near: also return assets that pass every other facet but miss some
 : capabilities, or are curated for another style than asked, each with
   what is missing and the remedy that would add it (a style mismatch is
@@ -595,11 +619,16 @@ relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
 relabel: `{"by": who, "reason": why}` beside an explicit `source=`
 : (required) — a first statement about bytes NOBODY labelled (an#263):
   the gaps of this asset’s own version chain (files an earlier version
-  recorded `unlabelled`, an earlier version with no source at all) are
-  answered with `source`. It relaxes no statement anyone made: a private
-  (or any) licence, a per-part source, a version this one derives from,
-  and every other asset’s statement about the same bytes still bind.
-  Recorded on the version, in its manifest and in its reasons
+  recorded `unlabelled`, files no person’s source spoke for, an earlier
+  version with no source at all) are answered with `source`, and so is
+  another asset’s silence about a file the chain held once and this
+  version no longer holds (an#307). It relaxes no statement anyone made:
+  a private (or any) licence, a per-part source, a version this one
+  derives from, and every other asset’s statement about bytes this
+  version holds still bind. On content that changed, recorded on the new
+  version, in its manifest and in its reasons; on UNCHANGED content,
+  recorded on the head in the append-only `labels` store
+  ([`version_labels()`](#an.library.version_labels)) and no version is minted (an#307)
 
 derived_from: library references this version derives from (an earlier version,
 : the original of a recolour); each must resolve, and its rights are inherited.
@@ -734,6 +763,26 @@ it resolved in.
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Library`](an.library.federation.html.md#an.library.federation.Library), [`LibraryRef`](an.library.ids.html.md#an.library.ids.LibraryRef), [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
+### an.library.retire(library, asset_id, , by, reason)
+
+Retire an asset id: recorded, hidden from `find` by default, never deleted.
+
+Its versions stay readable — a project pinned to one still checks it out
+and validates — and its rights statements still bind the floor (retiring
+is curation, not a relabel). `find(status="retired")` lists it; a publish
+into it is refused unless it passes `status=` to revive it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.dead", {"name": "dead"})
+>>> _ = retire(lib, "prop.dead", by="me", reason="superseded")
+>>> len(find(lib)), [h.asset_id for h in find(lib, status="retired")]
+(0, ['prop.dead'])
+```
+
 ### an.library.roll_up(sources, , inherited=())
 
 Roll labelled sources (and parents’ rights) up to one [`Rights`](#an.library.Rights).
@@ -776,6 +825,23 @@ roots: an explicit root per package name (tests, a non-default layout);
 
 A name appears once, at its first position.
 
+### an.library.set_status(library, asset_id, status, , by, reason)
+
+Set an asset’s curation status, recording who and why; return the record.
+
+The record’s `status_history` is appended to, never rewritten, and no
+version is touched: a project pinned to one keeps reading it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.lamp", {"name": "lamp"})
+>>> set_status(lib, "prop.lamp", "approved", by="me", reason="looks right")["status"]
+'approved'
+```
+
 ### an.library.show(libraries, ref)
 
 The record, the resolved version, its recomputed rights and the list of versions.
@@ -807,13 +873,30 @@ pinned version cannot be found, or is found with another manifest (a
 same-named asset in another library), reads `["cannot verify: …"]` —
 never as an edit.
 
+### an.library.version_labels(library, version)
+
+The labels recorded on a stored version since it was published, oldest first.
+
+A relabel of a version’s UNCHANGED content is recorded on that version, in
+the library’s append-only `labels` store, instead of minting a new
+version (an#307). A label counts only for the very version it was made on:
+its `manifest` must be this version’s (a same-named library’s other
+`x@v001` never inherits it). An unreadable label is skipped with a
+`LibraryIndexWarning`; skipping one can only leave the version
+stricter.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
+
 ### an.library.vocabulary(libraries, \*, index=<function scan_index>)
 
 Every facet with its values and counts, and the registered capabilities.
 
 What an agent reads to turn words into a typed query (spectrum (b)): “a
 Reiniger character who can walk in profile” → `style=reiniger`,
-`affords=["limbs.legs", "swap.view:side"]`.
+`affords=["limbs.legs", "swap.view:side"]`. The counts are over what
+`find` offers by default — the same recomputed rights, and no asset of a
+hidden status (`retired`), whose numbers are under `hidden`.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
@@ -822,7 +905,7 @@ Reiniger character who can walk in profile” → `style=reiniger`,
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> v = vocabulary(lib)
 >>> sorted(v)
-['capabilities', 'facets', 'kinds', 'rights', 'statuses']
+['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']
 >>> "limbs.legs" in v["capabilities"]
 True
 ```
@@ -831,7 +914,7 @@ True
 
 | [`affordances`](an.library.affordances.html.md#module-an.library.affordances)   | Affordances for the library: the capability registry, re-exported from [`an.capabilities`](an.capabilities.html.md#module-an.capabilities).              |
 |----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`api`](an.library.api.html.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.                                                                                                     |
+| [`api`](an.library.api.html.md#module-an.library.api)                   | The library's verbs: `publish`, `find`, `vocabulary`, `show`, `promote`, `retire`.                                                                                           |
 | [`character`](an.library.character.html.md#module-an.library.character)       | The character analyser: legs, arms, views and mouth chart, derived from the rig.                                                                                             |
 | [`cli`](an.library.cli.html.md#module-an.library.cli)                   | `an library …` — the asset library from the shell, over the same functions as Python.                                                                                        |
 | [`federation`](an.library.federation.html.md#module-an.library.federation)     | Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).                                                                               |

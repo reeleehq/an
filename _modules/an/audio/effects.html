@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -712,7 +712,7 @@ window.runMermaid = runMermaid;</script>
   <h1>Source code for an.audio.effects</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""Voice effects: a deterministic transform applied to a synthesized line (an#163).</span>
 
-<span class="sd">A voice document in the ``voices`` store may declare ``effects``. Two exist:</span>
+<span class="sd">A voice document in the ``voices`` store may declare ``effects``. Three exist:</span>
 
 <span class="sd">- ``pitch_semitones`` (an#163) — South Park raises its voices to sound like</span>
 <span class="sd">  fourth graders; duration-preserving.</span>
@@ -721,6 +721,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  so a narrator that must run at 5.8 syllables/s, or an expressive voice that</span>
 <span class="sd">  must be slowed to a serene pace, is re-timed here. Unlike the pitch effect it</span>
 <span class="sd">  CHANGES the line's duration.</span>
+<span class="sd">- ``trim_silence`` (an#254) — cut the silence before the first word and after</span>
+<span class="sd">  the last, keeping a little of each (``true``, or ``{threshold_db, keep_lead_s,</span>
+<span class="sd">  keep_tail_s}``). A real voice pads a line: ``eleven_v3`` returned 1.6 s for</span>
+<span class="sd">  "Hi!" — 0.4 s of breath before the word and 0.65 s of room tone after it — so</span>
+<span class="sd">  the line started late and the next one ran past its shot. It CHANGES the</span>
+<span class="sd">  line's duration too, and it is OPT-IN: a voice that values its breaths (a</span>
+<span class="sd">  style that keeps a performance's natural artifacts) declares nothing, or a</span>
+<span class="sd">  lower threshold, and keeps them.</span>
 
 <span class="sd">A raised voice or a fast narrator is a property of the *character*, not of the</span>
 <span class="sd">TTS provider, so it lives beside the voice the line already resolves through</span>
@@ -736,10 +744,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">0.5</span>
 <span class="sd">&gt;&gt;&gt; filter_chain({"tempo": 1.25})</span>
 <span class="sd">'aresample=44100,atempo=1.250000000'</span>
+<span class="sd">&gt;&gt;&gt; normalize_effects({"trim_silence": True})["trim_silence"]</span>
+<span class="sd">{'keep_lead_s': 0.1, 'keep_tail_s': 0.2, 'threshold_db': -20.0, 'version': 1}</span>
+<span class="sd">&gt;&gt;&gt; normalize_effects({"trim_silence": False}) == {}</span>
+<span class="sd">True</span>
 <span class="sd">&gt;&gt;&gt; normalize_effects({"reverb": 1})</span>
 <span class="sd">Traceback (most recent call last):</span>
 <span class="sd">    ...</span>
-<span class="sd">an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones', 'tempo']</span>
+<span class="sd">an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones', 'tempo', 'trim_silence']</span>
 
 <span class="sd">Design, in the order the pipeline uses it:</span>
 
@@ -762,14 +774,31 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  shifter but is a build option, and its output would differ between machines —</span>
 <span class="sd">  which a content-hash cache cannot tolerate. The output is bit-exact WAV (no</span>
 <span class="sd">  encoder tag, no metadata), so two runs produce identical bytes.</span>
+<span class="sd">- **The trim runs last, in Python**, on the WAV the chain wrote (or on the</span>
+<span class="sd">  synthesized audio, decoded by ffmpeg only when it is not 16-bit PCM WAV —</span>
+<span class="sd">  ElevenLabs sends MP3): the level of each :data:`TRIM_WINDOW_S` window is</span>
+<span class="sd">  compared with the line's loudest, so a quiet voice and a loud one are cut</span>
+<span class="sd">  alike, and the kept padding is in the seconds the viewer hears. Its</span>
+<span class="sd">  parameters, resolved (defaults included) with :data:`TRIM_VERSION`, are what</span>
+<span class="sd">  the key holds, so a changed default re-trims instead of replaying. What it</span>
+<span class="sd">  cut is RECORDED in the WAV it writes — a standard ``LIST``/``INFO`` comment</span>
+<span class="sd">  after the samples, which every reader skips — and :func:`trim_record` reads</span>
+<span class="sd">  it back: the record travels with the bytes it describes and is collected</span>
+<span class="sd">  with them. A line with nothing above the threshold (the offline voice's</span>
+<span class="sd">  silence) is left whole.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">wave</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -781,7 +810,31 @@ window.runMermaid = runMermaid;</script>
 <span class="n">ATEMPO_STAGE_LIMITS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
 <span class="c1">#: The sample rate the chain runs at (and the shifted WAV is written at).</span>
 <span class="n">EFFECT_SAMPLE_RATE</span> <span class="o">=</span> <span class="mi">44100</span>
-<span class="n">KNOWN_EFFECTS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">,</span> <span class="s2">"tempo"</span><span class="p">)</span>
+<span class="c1">#: The effect that cuts a line's leading and trailing silence (an#254).</span>
+<span class="n">TRIM_SILENCE</span> <span class="o">=</span> <span class="s2">"trim_silence"</span>
+<span class="n">KNOWN_EFFECTS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">,</span> <span class="s2">"tempo"</span><span class="p">,</span> <span class="n">TRIM_SILENCE</span><span class="p">)</span>
+
+<span class="c1">#: ``trim_silence``'s defaults. A window is "speech" when its RMS level is within</span>
+<span class="c1">#: ``threshold_db`` of the line's loudest window. Measured on two eleven_v3 lines</span>
+<span class="c1">#: (an#254): the breath before "Hi!" peaks 25 dB under the word and its room</span>
+<span class="c1">#: tone 35-40 dB under, while each word's own edges stay within 20 dB — so -20</span>
+<span class="c1">#: cuts the breath and the tail and keeps the word. Lower it (-45) to keep breaths.</span>
+<span class="n">DFLT_TRIM_THRESHOLD_DB</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="o">-</span><span class="mf">20.0</span>
+<span class="c1">#: Kept before the first window above the threshold: more than the lip-sync</span>
+<span class="c1">#: anticipation lead (2/24 s), so the mouth can open before the sound.</span>
+<span class="n">DFLT_TRIM_KEEP_LEAD_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="c1">#: Kept after the last window above it: a word's release and decay.</span>
+<span class="n">DFLT_TRIM_KEEP_TAIL_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="c1">#: ``threshold_db`` bounds (relative to the line's loudest window).</span>
+<span class="n">TRIM_THRESHOLD_LIMITS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">80.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="c1">#: ``keep_lead_s`` / ``keep_tail_s`` bounds, seconds.</span>
+<span class="n">TRIM_KEEP_LIMITS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="c1">#: The level-measuring window, seconds.</span>
+<span class="n">TRIM_WINDOW_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.02</span>
+<span class="c1">#: Bumped when the trim's algorithm changes; part of every trimmed line's key.</span>
+<span class="n">TRIM_VERSION</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1">#: The prefix of the ``LIST``/``INFO`` comment a trimmed WAV carries.</span>
+<span class="n">TRIM_RECORD_TAG</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an:trim_silence "</span>
 
 
 <div class="viewcode-block" id="VoiceEffectError">
@@ -793,7 +846,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="normalize_effects">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.normalize_effects">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">normalize_effects</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_effects</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""The canonical effects dict for a voice's ``effects`` value.</span>
 
 <span class="sd">    Omit-when-unset: ``None``, ``{}`` and a zero-valued effect all normalise to</span>
@@ -811,7 +864,7 @@ window.runMermaid = runMermaid;</script>
         <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"unknown voice effect(s) </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">KNOWN_EFFECTS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
-    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">semitones</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">semitones</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">semitones</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">semitones</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
@@ -837,13 +890,61 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">tempo</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="s2">"tempo"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tempo</span><span class="p">)</span>
+    <span class="n">trim</span> <span class="o">=</span> <span class="n">_normalize_trim</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TRIM_SILENCE</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">trim</span><span class="p">:</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">TRIM_SILENCE</span><span class="p">]</span> <span class="o">=</span> <span class="n">trim</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_trim</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``trim_silence``'s canonical form: ``{}`` when off, else every parameter</span>
+<span class="sd">    resolved (defaults included) plus :data:`TRIM_VERSION` — what the key holds."""</span>
+    <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"trim_silence must be true, false or a mapping of threshold_db, "</span>
+            <span class="sa">f</span><span class="s2">"keep_lead_s, keep_tail_s; got </span><span class="si">{</span><span class="n">raw</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">known</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"threshold_db"</span><span class="p">,</span> <span class="s2">"keep_lead_s"</span><span class="p">,</span> <span class="s2">"keep_tail_s"</span><span class="p">}</span>
+    <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="o">-</span> <span class="n">known</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"unknown trim_silence parameter(s) </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">known</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"threshold_db"</span><span class="p">:</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"threshold_db"</span><span class="p">,</span> <span class="n">DFLT_TRIM_THRESHOLD_DB</span><span class="p">),</span>
+        <span class="s2">"keep_lead_s"</span><span class="p">:</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"keep_lead_s"</span><span class="p">,</span> <span class="n">DFLT_TRIM_KEEP_LEAD_S</span><span class="p">),</span>
+        <span class="s2">"keep_tail_s"</span><span class="p">:</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"keep_tail_s"</span><span class="p">,</span> <span class="n">DFLT_TRIM_KEEP_TAIL_S</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"trim_silence </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> must be a number, got </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">TRIM_THRESHOLD_LIMITS</span> <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"threshold_db"</span> <span class="k">else</span> <span class="n">TRIM_KEEP_LIMITS</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lo</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"trim_silence </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> is outside [</span><span class="si">{</span><span class="n">lo</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">hi</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">]"</span>
+                <span class="o">+</span> <span class="p">(</span>
+                    <span class="s2">" (dB under the line's loudest window: -20 cuts breaths, "</span>
+                    <span class="s2">"-45 keeps them)"</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"threshold_db"</span>
+                    <span class="k">else</span> <span class="s2">" seconds"</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">())},</span>
+        <span class="s2">"version"</span><span class="p">:</span> <span class="n">TRIM_VERSION</span><span class="p">,</span>
+    <span class="p">}</span>
+
+
 <div class="viewcode-block" id="voice_effects">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.voice_effects">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">voice_effects</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">voice_effects</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""The normalised effects declared by ``mall["voices"][voice_id]``, or ``{}``.</span>
 
 <span class="sd">    A voice that is not in the store (the offline default, a raw provider voice</span>
@@ -892,7 +993,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="filter_chain">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.filter_chain">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">filter_chain</span><span class="p">(</span><span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_chain</span><span class="p">(</span><span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none)."""</span>
     <span class="n">semitones</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span>
     <span class="n">tempo</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span>
@@ -911,16 +1012,37 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="apply_voice_effects">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.apply_voice_effects">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">apply_voice_effects</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_voice_effects</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``audio`` (any container ffmpeg sniffs) with ``effects`` applied, as WAV bytes.</span>
 
 <span class="sd">    Returns the input unchanged for no effects. Raises ``VoiceEffectError`` when</span>
 <span class="sd">    ffmpeg is missing or fails — never returns unprocessed audio for a voice that</span>
-<span class="sd">    asked for an effect.</span>
+<span class="sd">    asked for an effect. ``trim_silence`` alone on a 16-bit PCM WAV needs no</span>
+<span class="sd">    ffmpeg (:func:`trim_silence`).</span>
 <span class="sd">    """</span>
     <span class="n">chain</span> <span class="o">=</span> <span class="n">filter_chain</span><span class="p">(</span><span class="n">effects</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">chain</span><span class="p">:</span>
+    <span class="n">trim</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TRIM_SILENCE</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">chain</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">trim</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">audio</span>
+    <span class="k">if</span> <span class="n">chain</span><span class="p">:</span>
+        <span class="n">wav</span> <span class="o">=</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">effects</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">_pcm16_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">):</span>
+        <span class="n">wav</span> <span class="o">=</span> <span class="n">audio</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># MP3 (ElevenLabs) and other containers: decoded, then trimmed</span>
+        <span class="n">wav</span> <span class="o">=</span> <span class="n">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">EFFECT_SAMPLE_RATE</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">effects</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">trim</span><span class="p">:</span>
+        <span class="n">wav</span> <span class="o">=</span> <span class="n">trim_silence</span><span class="p">(</span>
+            <span class="n">wav</span><span class="p">,</span>
+            <span class="n">threshold_db</span><span class="o">=</span><span class="n">trim</span><span class="p">[</span><span class="s2">"threshold_db"</span><span class="p">],</span>
+            <span class="n">keep_lead_s</span><span class="o">=</span><span class="n">trim</span><span class="p">[</span><span class="s2">"keep_lead_s"</span><span class="p">],</span>
+            <span class="n">keep_tail_s</span><span class="o">=</span><span class="n">trim</span><span class="p">[</span><span class="s2">"keep_tail_s"</span><span class="p">],</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">audio</span>
+    <span class="k">return</span> <span class="n">wav</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ffmpeg_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``audio`` through the ffmpeg ``chain``, as bit-exact 16-bit PCM WAV."""</span>
     <span class="k">if</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"ffmpeg"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
             <span class="s2">"this voice declares `effects`, which need the ffmpeg binary on PATH "</span>
@@ -962,7 +1084,168 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"ffmpeg failed applying </span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="n">effects</span><span class="p">)</span><span class="si">}</span><span class="s2">: "</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">proc</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s1">'replace'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
-        <span class="k">return</span> <span class="n">out_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="n">out_path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pcm16_wav</span><span class="p">(</span><span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``audio`` is a WAV the stdlib reads as 16-bit PCM."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">audio</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">w</span><span class="o">.</span><span class="n">getsampwidth</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">w</span><span class="o">.</span><span class="n">getcomptype</span><span class="p">()</span> <span class="o">==</span> <span class="s2">"NONE"</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">wave</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="ne">EOFError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="SilenceTrim">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.SilenceTrim">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SilenceTrim</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What :func:`trim_silence` produced: the trimmed WAV, and what it cut."""</span>
+
+    <span class="n">audio</span><span class="p">:</span> <span class="nb">bytes</span>
+    <span class="c1">#: Seconds cut before the kept audio, and after it.</span>
+    <span class="n">lead_s</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">tail_s</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="c1">#: The length of the audio before the trim, seconds.</span>
+    <span class="n">source_s</span><span class="p">:</span> <span class="nb">float</span>
+
+<div class="viewcode-block" id="SilenceTrim.record">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.SilenceTrim.record">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">record</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The record the trimmed WAV carries (:func:`trim_record`)."""</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"lead_s"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lead_s</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+            <span class="s2">"tail_s"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tail_s</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+            <span class="s2">"source_s"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_s</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+        <span class="p">}</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="trim_silence">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.trim_silence">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">trim_silence</span><span class="p">(</span>
+    <span class="n">wav</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">threshold_db</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_TRIM_THRESHOLD_DB</span><span class="p">,</span>
+    <span class="n">keep_lead_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_TRIM_KEEP_LEAD_S</span><span class="p">,</span>
+    <span class="n">keep_tail_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DFLT_TRIM_KEEP_TAIL_S</span><span class="p">,</span>
+    <span class="n">window_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">TRIM_WINDOW_S</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SilenceTrim</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``wav`` (16-bit PCM) cut to its speech, plus ``keep_lead_s`` before it and</span>
+<span class="sd">    ``keep_tail_s`` after it, and the cut recorded in the WAV it returns.</span>
+
+<span class="sd">    Speech is every ``window_s`` window whose RMS level is within</span>
+<span class="sd">    ``threshold_db`` of the loudest window's; only the edges move, never a pause</span>
+<span class="sd">    between words. A clip with no sound at all is returned whole (with the</span>
+<span class="sd">    record of a zero cut), and a pad is never longer than the silence it keeps.</span>
+
+<span class="sd">    &gt;&gt;&gt; import array, io, math, wave</span>
+<span class="sd">    &gt;&gt;&gt; rate = 8000</span>
+<span class="sd">    &gt;&gt;&gt; tone = [int(9000 * math.sin(i / 3)) for i in range(rate // 2)]</span>
+<span class="sd">    &gt;&gt;&gt; samples = array.array("h", [0] * rate + tone + [0] * rate)   # 1 s, 0.5 s, 1 s</span>
+<span class="sd">    &gt;&gt;&gt; buf = io.BytesIO()</span>
+<span class="sd">    &gt;&gt;&gt; with wave.open(buf, "wb") as w:</span>
+<span class="sd">    ...     w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate)</span>
+<span class="sd">    ...     w.writeframes(samples.tobytes())</span>
+<span class="sd">    &gt;&gt;&gt; cut = trim_silence(buf.getvalue(), keep_lead_s=0.1, keep_tail_s=0.2)</span>
+<span class="sd">    &gt;&gt;&gt; round(cut.lead_s, 2), round(cut.tail_s, 2), round(cut.source_s, 2)</span>
+<span class="sd">    (0.9, 0.8, 2.5)</span>
+<span class="sd">    &gt;&gt;&gt; trim_record(cut.audio) == cut.record()</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; with wave.open(io.BytesIO(cut.audio)) as w:</span>
+<span class="sd">    ...     round(w.getnframes() / w.getframerate(), 2)</span>
+<span class="sd">    0.8</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">wav</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+        <span class="n">channels</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">rate</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">getnchannels</span><span class="p">(),</span> <span class="n">r</span><span class="o">.</span><span class="n">getsampwidth</span><span class="p">(),</span> <span class="n">r</span><span class="o">.</span><span class="n">getframerate</span><span class="p">()</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">readframes</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">getnframes</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">width</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"trim_silence reads 16-bit PCM; this WAV is </span><span class="si">{</span><span class="mi">8</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="si">}</span><span class="s2">-bit"</span>
+        <span class="p">)</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">frombuffer</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"&lt;i2"</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">channels</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+    <span class="n">source_s</span> <span class="o">=</span> <span class="n">n</span> <span class="o">/</span> <span class="n">rate</span> <span class="k">if</span> <span class="n">rate</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">mono</span> <span class="o">=</span> <span class="n">samples</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">win</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">window_s</span> <span class="o">*</span> <span class="n">rate</span><span class="p">)))</span>
+    <span class="n">n_win</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="o">-</span><span class="n">n</span> <span class="o">//</span> <span class="n">win</span><span class="p">)</span>  <span class="c1"># the last, partial window counts too</span>
+    <span class="n">padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_win</span> <span class="o">*</span> <span class="n">win</span><span class="p">)</span>
+    <span class="n">padded</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">mono</span>
+    <span class="n">power</span> <span class="o">=</span> <span class="p">(</span><span class="n">padded</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_win</span><span class="p">,</span> <span class="n">win</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">peak</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">power</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">if</span> <span class="n">n</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">peak</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_trimmed</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">source_s</span><span class="o">=</span><span class="n">source_s</span><span class="p">)</span>
+    <span class="n">loud</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">power</span> <span class="o">&gt;=</span> <span class="n">peak</span> <span class="o">*</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">threshold_db</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">first</span><span class="p">,</span> <span class="n">last_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">loud</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">win</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">loud</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">win</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">first</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">keep_lead_s</span> <span class="o">*</span> <span class="n">rate</span><span class="p">)))</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">last_end</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">keep_tail_s</span> <span class="o">*</span> <span class="n">rate</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">_trimmed</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">source_s</span><span class="o">=</span><span class="n">source_s</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_trimmed</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rate</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">source_s</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The :class:`SilenceTrim` of ``samples[start:end]``, its WAV carrying the record."""</span>
+    <span class="n">buf</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">wave</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">setnchannels</span><span class="p">(</span><span class="n">samples</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">setsampwidth</span><span class="p">(</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">setframerate</span><span class="p">(</span><span class="n">rate</span><span class="p">)</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">writeframes</span><span class="p">(</span><span class="n">samples</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">"&lt;i2"</span><span class="p">)</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
+    <span class="n">lead_s</span><span class="p">,</span> <span class="n">tail_s</span> <span class="o">=</span> <span class="n">start</span> <span class="o">/</span> <span class="n">rate</span><span class="p">,</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span> <span class="o">-</span> <span class="n">end</span><span class="p">)</span> <span class="o">/</span> <span class="n">rate</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="n">SilenceTrim</span><span class="p">(</span><span class="sa">b</span><span class="s2">""</span><span class="p">,</span> <span class="n">lead_s</span><span class="p">,</span> <span class="n">tail_s</span><span class="p">,</span> <span class="n">source_s</span><span class="p">)</span><span class="o">.</span><span class="n">record</span><span class="p">()</span>
+    <span class="n">audio</span> <span class="o">=</span> <span class="n">_with_comment</span><span class="p">(</span><span class="n">buf</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span> <span class="n">TRIM_RECORD_TAG</span> <span class="o">+</span> <span class="n">_canonical</span><span class="p">(</span><span class="n">record</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">SilenceTrim</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">lead_s</span><span class="p">,</span> <span class="n">tail_s</span><span class="p">,</span> <span class="n">source_s</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_canonical</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">record</span><span class="p">),</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">":"</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_with_comment</span><span class="p">(</span><span class="n">wav</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``wav`` with a ``LIST``/``INFO``/``ICMT`` chunk appended AFTER its samples</span>
+<span class="sd">    (readers stop at ``data``; a naive 44-byte reader never sees it), and the</span>
+<span class="sd">    RIFF size patched to include it."""</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">"</span><span class="se">\x00</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">body</span> <span class="o">+=</span> <span class="sa">b</span><span class="s2">"</span><span class="se">\x00</span><span class="s2">"</span>
+    <span class="n">icmt</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">"ICMT"</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">"&lt;I"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">body</span><span class="p">))</span> <span class="o">+</span> <span class="n">body</span>
+    <span class="n">chunk</span> <span class="o">=</span> <span class="sa">b</span><span class="s2">"LIST"</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">"&lt;I"</span><span class="p">,</span> <span class="mi">4</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">icmt</span><span class="p">))</span> <span class="o">+</span> <span class="sa">b</span><span class="s2">"INFO"</span> <span class="o">+</span> <span class="n">icmt</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">wav</span> <span class="o">+</span> <span class="n">chunk</span>
+    <span class="k">return</span> <span class="n">out</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s2">"&lt;I"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">-</span> <span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">out</span><span class="p">[</span><span class="mi">8</span><span class="p">:]</span>
+
+
+<div class="viewcode-block" id="trim_record">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.trim_record">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">trim_record</span><span class="p">(</span><span class="n">wav</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What ``trim_silence`` cut from ``wav`` (``lead_s``, ``tail_s``, ``source_s``),</span>
+<span class="sd">    read from the comment it wrote; ``None`` for audio it did not write."""</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wav</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">12</span> <span class="ow">or</span> <span class="n">wav</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">!=</span> <span class="sa">b</span><span class="s2">"RIFF"</span> <span class="ow">or</span> <span class="n">wav</span><span class="p">[</span><span class="mi">8</span><span class="p">:</span><span class="mi">12</span><span class="p">]</span> <span class="o">!=</span> <span class="sa">b</span><span class="s2">"WAVE"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="mi">12</span>
+    <span class="k">while</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wav</span><span class="p">):</span>
+        <span class="n">cid</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="n">wav</span><span class="p">[</span><span class="n">pos</span> <span class="p">:</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">4</span><span class="p">],</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">"&lt;I"</span><span class="p">,</span> <span class="n">wav</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">:</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">8</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">wav</span><span class="p">[</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">8</span> <span class="p">:</span> <span class="n">pos</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">+</span> <span class="n">size</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">cid</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">"LIST"</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">"INFO"</span><span class="p">:</span>
+            <span class="n">sub</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="k">while</span> <span class="n">sub</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                <span class="n">sid</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">sub</span> <span class="p">:</span> <span class="n">sub</span> <span class="o">+</span> <span class="mi">4</span><span class="p">]</span>
+                <span class="n">ssize</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s2">"&lt;I"</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="n">sub</span> <span class="o">+</span> <span class="mi">4</span> <span class="p">:</span> <span class="n">sub</span> <span class="o">+</span> <span class="mi">8</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">sub</span> <span class="o">+</span> <span class="mi">8</span> <span class="p">:</span> <span class="n">sub</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">+</span> <span class="n">ssize</span><span class="p">]</span>
+                    <span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="sa">b</span><span class="s2">"</span><span class="se">\x00</span><span class="s2">"</span><span class="p">)</span>
+                    <span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="s2">"replace"</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">sid</span> <span class="o">==</span> <span class="sa">b</span><span class="s2">"ICMT"</span> <span class="ow">and</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">TRIM_RECORD_TAG</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">TRIM_RECORD_TAG</span><span class="p">)</span> <span class="p">:])</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">None</span>
+                <span class="n">sub</span> <span class="o">+=</span> <span class="mi">8</span> <span class="o">+</span> <span class="n">ssize</span> <span class="o">+</span> <span class="p">(</span><span class="n">ssize</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">pos</span> <span class="o">+=</span> <span class="mi">8</span> <span class="o">+</span> <span class="n">size</span> <span class="o">+</span> <span class="p">(</span><span class="n">size</span> <span class="o">%</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
 
 </pre></div>
 

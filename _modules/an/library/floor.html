@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -823,41 +823,94 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    read or written: the write is refused rather than made invisible to the floor.</span>
 
 <span class="sd">    A registry that does not exist yet means either this machine's first</span>
-<span class="sd">    library write, or a registry that was deleted — and nothing on disk tells</span>
-<span class="sd">    the two apart: a deleted registry takes its memory of statements with it.</span>
-<span class="sd">    So whenever the registry is created from nothing (an#263, R2b-N2), every</span>
-<span class="sd">    library discoverable now is registered with this one, and a</span>
-<span class="sd">    :class:`an.library.registry.RegistryWarning` says that a library kept at a</span>
-<span class="sd">    custom root binds the rights checks again only once it is written to or</span>
-<span class="sd">    reindexed. Never delete the registry folder wholesale; prune it.</span>
+<span class="sd">    library write, or a registry that was deleted (or libraries that predate</span>
+<span class="sd">    it). The libraries on disk tell the two apart (an#307):</span>
+
+<span class="sd">    - no library discoverable now holds an asset: a **new** registry, created;</span>
+<span class="sd">    - libraries already hold assets: a **lost** one. It is rebuilt from what</span>
+<span class="sd">      is discoverable now — those libraries are registered, and the statements</span>
+<span class="sd">      their own floor indexes hold are remembered again — so their rights bind</span>
+<span class="sd">      exactly as before. What cannot be recovered is a library kept at a</span>
+<span class="sd">      custom root that is not discoverable now: it binds again once it is</span>
+<span class="sd">      written to or reindexed.</span>
+
+<span class="sd">    Either way a :class:`an.library.registry.RegistryWarning` says which</span>
+<span class="sd">    (R2b-N2: a registry deleted wholesale must never pass silently). Never</span>
+<span class="sd">    delete the registry folder wholesale; prune it.</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">library</span><span class="o">.</span><span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">machine_registry_path</span><span class="p">()</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="n">discovered</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span>
+        <span class="n">here</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+        <span class="n">others</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">open_library</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">package</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">_discovered_roots</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="o">!=</span> <span class="n">library</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="o">!=</span> <span class="n">here</span> <span class="ow">and</span> <span class="n">_is_namespace</span><span class="p">(</span><span class="n">package</span><span class="p">)</span>
         <span class="p">]</span>
-        <span class="k">for</span> <span class="n">package</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">discovered</span><span class="p">:</span>
-            <span class="n">register_root</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span>
-        <span class="n">found</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"registered the </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">discovered</span><span class="p">)</span><span class="si">}</span><span class="s2"> other library root(s) discoverable now"</span>
-            <span class="k">if</span> <span class="n">discovered</span>
-            <span class="k">else</span> <span class="s2">"no other library is discoverable now"</span>
-        <span class="p">)</span>
+        <span class="n">holding</span> <span class="o">=</span> <span class="p">[</span><span class="n">lib</span> <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="p">[</span><span class="n">library</span><span class="p">,</span> <span class="o">*</span><span class="n">others</span><span class="p">]</span> <span class="k">if</span> <span class="n">_holds_assets</span><span class="p">(</span><span class="n">lib</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">others</span><span class="p">:</span>
+            <span class="n">register_root</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="n">machine_registry_path</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">holding</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the registry of library roots (</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">) was created from "</span>
+                <span class="s2">"nothing: no library on this machine holds an asset yet, so this "</span>
+                <span class="s2">"is its first library write. (If a registry was deleted instead: "</span>
+                <span class="s2">"no other library is discoverable now, and one kept at a custom "</span>
+                <span class="s2">"root binds the rights checks again once it is written to or "</span>
+                <span class="s2">"reindexed.)"</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">assets</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">_asset_count</span><span class="p">(</span><span class="n">lib</span><span class="p">)</span> <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">holding</span><span class="p">)</span>
+            <span class="n">remembered</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">_remember_index</span><span class="p">(</span><span class="n">lib</span><span class="p">)</span> <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">holding</span><span class="p">)</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the registry of library roots (</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">) did not exist although "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">holding</span><span class="p">)</span><span class="si">}</span><span class="s2"> librar</span><span class="si">{</span><span class="s1">'y'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">holding</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'ies'</span><span class="si">}</span><span class="s2"> here "</span>
+                <span class="sa">f</span><span class="s2">"already hold </span><span class="si">{</span><span class="n">assets</span><span class="si">}</span><span class="s2"> asset(s): it was deleted, or they predate "</span>
+                <span class="sa">f</span><span class="s2">"it. It was rebuilt from what is discoverable now: "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">others</span><span class="p">)</span><span class="si">}</span><span class="s2"> other librar</span><span class="si">{</span><span class="s1">'y'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">others</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'ies'</span><span class="si">}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"registered and </span><span class="si">{</span><span class="n">remembered</span><span class="si">}</span><span class="s2"> statement(s) from their indexes "</span>
+                <span class="s2">"remembered, so their rights bind as before. Only a library kept "</span>
+                <span class="s2">"at a custom root that is not discoverable now is missing until "</span>
+                <span class="s2">"it is written to or reindexed (an.library.api.reindex)."</span>
+            <span class="p">)</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"the registry of library roots (</span><span class="si">{</span><span class="n">machine_registry_path</span><span class="p">()</span><span class="si">}</span><span class="s2">) did not "</span>
-            <span class="sa">f</span><span class="s2">"exist, so it was created from nothing (</span><span class="si">{</span><span class="n">found</span><span class="si">}</span><span class="s2">). On a machine's first "</span>
-            <span class="s2">"library write that is expected. If it was deleted, every statement it "</span>
-            <span class="s2">"remembered is gone: a library kept at a custom root binds the rights "</span>
-            <span class="s2">"checks again only once it is written to or reindexed "</span>
-            <span class="s2">"(an.library.api.reindex). Prune the registry; never delete it."</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2"> Prune the registry; never delete it."</span><span class="p">,</span>
             <span class="n">RegistryWarning</span><span class="p">,</span>
             <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="n">register_root</span><span class="p">(</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">library</span><span class="o">.</span><span class="n">root</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_namespace</span><span class="p">(</span><span class="n">package</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">check_namespace</span><span class="p">(</span><span class="n">package</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">AssetIdError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_asset_count</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">records</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_holds_assets</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">_asset_count</span><span class="p">(</span><span class="n">library</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_remember_index</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Remember every statement ``library``'s own floor index holds; return how many."""</span>
+    <span class="n">said</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">digest</span><span class="p">,</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">digest</span><span class="p">,</span> <span class="n">entries</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">blob_rights</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="p">(</span><span class="n">entries</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">]</span>
+    <span class="n">remember</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">said</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">said</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="library_origin">

@@ -24,6 +24,7 @@ an.library
       publish
       publish_dir
       reindex
+      retire
       register_analyser
       register_asset_kind
       register_capability
@@ -33,8 +34,10 @@ an.library
       roll_up
       scan_index
       search_path
+      set_status
       show
       verify_checkout
+      version_labels
       vocabulary
    
    .. rubric:: Classes

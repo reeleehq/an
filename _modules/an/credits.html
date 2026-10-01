@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -750,7 +750,13 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetSource</span><span class="p">,</span> <span class="n">LicenseClass</span><span class="p">,</span> <span class="n">license_class</span><span class="p">,</span> <span class="n">requires_attribution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.assets</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AssetSource</span><span class="p">,</span>
+    <span class="n">LicenseClass</span><span class="p">,</span>
+    <span class="n">license_class</span><span class="p">,</span>
+    <span class="n">provider_terms_restriction</span><span class="p">,</span>
+    <span class="n">requires_attribution</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores._common</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_os_junk</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -931,6 +937,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"model </span><span class="si">{</span><span class="n">extra</span><span class="p">[</span><span class="n">SPEECH_EXTRA_MODEL</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">extra</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"lines"</span><span class="p">):</span>
             <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">extra</span><span class="p">[</span><span class="s1">'lines'</span><span class="p">]</span><span class="si">}</span><span class="s2"> line(s)"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">extra</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SPEECH_EXTRA_TERMS</span><span class="p">):</span>
+            <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">extra</span><span class="p">[</span><span class="n">SPEECH_EXTRA_TERMS</span><span class="p">]))</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="s2">" ("</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">b</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bits</span> <span class="k">if</span> <span class="n">b</span><span class="p">)</span> <span class="o">+</span> <span class="s2">")"</span>
     <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">covers</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" — covers </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">covers</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
@@ -1502,6 +1510,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">source</span><span class="o">=</span><span class="n">AssetSource</span><span class="p">(</span>
                     <span class="n">provider</span><span class="o">=</span><span class="s2">"unknown"</span><span class="p">,</span>
                     <span class="n">extra</span><span class="o">=</span><span class="p">{</span>
+                        <span class="n">NOBODY_LABELLED</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                         <span class="s2">"reason"</span><span class="p">:</span> <span class="p">(</span>
                             <span class="s2">"changed or added since the library check-out: the "</span>
                             <span class="s2">"label it carried speaks only for the bytes it was "</span>
@@ -1515,11 +1524,32 @@ window.runMermaid = runMermaid;</script>
                             <span class="k">if</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">stale</span>
                             <span class="k">else</span> <span class="s2">"no stamp pins these bytes, and the descriptor's "</span>
                             <span class="s2">"source was written by a generator, not a person"</span>
-                        <span class="p">)</span>
+                        <span class="p">),</span>
                     <span class="p">},</span>
                 <span class="p">),</span>
             <span class="p">)</span>
     <span class="k">return</span> <span class="p">[</span><span class="n">out</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">out</span><span class="p">)]</span>
+
+
+<span class="c1">#: The ``extra`` flag of an entry no person's source speaks for: a part no</span>
+<span class="c1">#: stamp pins under a generated descriptor source, a stale or unconfirmed stamp,</span>
+<span class="c1">#: a file changed since a check-out. Nobody STATED anything about those bytes —</span>
+<span class="c1">#: a gap, which an explicit, recorded label answers (an#307), unlike a source</span>
+<span class="c1">#: someone wrote with a licence nobody recognises.</span>
+<span class="n">NOBODY_LABELLED</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"nobody_labelled"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">nobody_labelled</span><span class="p">(</span><span class="n">source</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a credits entry's source is the walk's own placeholder for bytes nobody labelled.</span>
+
+<span class="sd">    &gt;&gt;&gt; nobody_labelled(AssetSource(provider="unknown", extra={NOBODY_LABELLED: True}))</span>
+<span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; nobody_labelled(AssetSource(provider="unknown"))</span>
+<span class="sd">    False</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">AssetSource</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">source</span><span class="o">.</span><span class="n">extra</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">NOBODY_LABELLED</span><span class="p">)</span>
+    <span class="p">)</span>
 
 
 <span class="c1">#: Providers whose descriptor-level source a GENERATOR writes (the character</span>
@@ -1619,6 +1649,8 @@ window.runMermaid = runMermaid;</script>
 <span class="n">SPEECH_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"speech/"</span>
 <span class="c1">#: The ``extra`` key of a speech entry naming the provider's model.</span>
 <span class="n">SPEECH_EXTRA_MODEL</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"model"</span>
+<span class="c1">#: The ``extra`` key of a speech entry naming what its provider's terms restrict.</span>
+<span class="n">SPEECH_EXTRA_TERMS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"terms"</span>
 <span class="c1">#: Providers whose speech is ``an``'s own (silence, for tests and drafts).</span>
 <span class="n">OWN_SPEECH_PROVIDERS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"offline"</span><span class="p">})</span>
 
@@ -1635,7 +1667,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``mall["voices"]`` (its ``provider``, ``voice_id`` and ``model_id``). A</span>
 <span class="sd">    voice document may declare its own ``source`` (the provider's terms, the</span>
 <span class="sd">    licence the user holds); otherwise the speech is listed UNVERIFIED — the</span>
-<span class="sd">    provider's terms decide what is owed, and nobody recorded them. A voice</span>
+<span class="sd">    provider's terms decide what is owed, and nobody recorded them. The licence</span>
+<span class="sd">    that counts for synthesized speech is a provider-terms code</span>
+<span class="sd">    (:data:`an.ir.assets.PROVIDER_TERMS`: ``elevenlabs-paid-plan`` is ``free``;</span>
+<span class="sd">    ``elevenlabs-free-plan`` is non-commercial only and owes a credit, so it is</span>
+<span class="sd">    not publishable and is listed with that restriction), or any licence ``an``</span>
+<span class="sd">    recognises;</span>
+<span class="sd">    it is read as the voice's provider's, so another provider's terms count for</span>
+<span class="sd">    nothing (an#307). A voice</span>
 <span class="sd">    whose document names no provider (the offline default) is not listed:</span>
 <span class="sd">    which provider spoke it is not recorded anywhere.</span>
 
@@ -1646,6 +1685,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ...                            "model_id": "eleven_v3"}}}</span>
 <span class="sd">    &gt;&gt;&gt; [(e.asset, e.license_class, e.source.extra["model"]) for e in speech_credits(mall, scene)]</span>
 <span class="sd">    [('speech/bob', 'unknown', 'eleven_v3')]</span>
+<span class="sd">    &gt;&gt;&gt; mall["voices"]["bob"]["source"] = {"provider": "elevenlabs", "license": "elevenlabs-paid-plan"}</span>
+<span class="sd">    &gt;&gt;&gt; [e.license_class for e in speech_credits(mall, scene)]</span>
+<span class="sd">    ['free']</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">line_voice_id</span><span class="p">,</span> <span class="n">voice_document</span>
 
@@ -1670,8 +1712,14 @@ window.runMermaid = runMermaid;</script>
         <span class="n">declared</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">declared</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
             <span class="n">base</span> <span class="o">=</span> <span class="n">_source_or_unknown</span><span class="p">(</span><span class="n">declared</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SPEECH_PREFIX</span><span class="si">}{</span><span class="n">voice</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">base</span><span class="o">.</span><span class="n">provider</span> <span class="o">!=</span> <span class="s2">"unknown"</span> <span class="ow">and</span> <span class="n">base</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="n">provider</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="c1"># Terms declared for another provider say nothing about this one's speech.</span>
+                <span class="n">said</span><span class="p">[</span><span class="s2">"declared_provider"</span><span class="p">]</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">provider</span>
             <span class="n">source</span> <span class="o">=</span> <span class="n">base</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span>
                 <span class="n">update</span><span class="o">=</span><span class="p">{</span>
+                    <span class="c1"># The provider that SPOKE it: its own terms are the ones that count</span>
+                    <span class="c1"># (an.ir.assets.PROVIDER_TERMS), whatever the declaration names.</span>
+                    <span class="s2">"provider"</span><span class="p">:</span> <span class="n">provider</span><span class="p">,</span>
                     <span class="s2">"id"</span><span class="p">:</span> <span class="n">base</span><span class="o">.</span><span class="n">id</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voice_id"</span><span class="p">),</span>
                     <span class="s2">"extra"</span><span class="p">:</span> <span class="p">{</span><span class="o">**</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">extra</span> <span class="ow">or</span> <span class="p">{}),</span> <span class="o">**</span><span class="n">said</span><span class="p">},</span>
                 <span class="p">}</span>
@@ -1685,6 +1733,11 @@ window.runMermaid = runMermaid;</script>
                     <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"synthesized speech: the provider's terms decide what "</span>
                     <span class="s2">"is owed; declare them as the voice's `source`"</span><span class="p">,</span>
                 <span class="p">},</span>
+            <span class="p">)</span>
+        <span class="n">restriction</span> <span class="o">=</span> <span class="n">provider_terms_restriction</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">restriction</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">model_copy</span><span class="p">(</span>
+                <span class="n">update</span><span class="o">=</span><span class="p">{</span><span class="s2">"extra"</span><span class="p">:</span> <span class="p">{</span><span class="o">**</span><span class="n">source</span><span class="o">.</span><span class="n">extra</span><span class="p">,</span> <span class="n">SPEECH_EXTRA_TERMS</span><span class="p">:</span> <span class="n">restriction</span><span class="p">}}</span>
             <span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CreditEntry</span><span class="p">(</span><span class="n">asset</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">SPEECH_PREFIX</span><span class="si">}{</span><span class="n">voice</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">out</span></div>

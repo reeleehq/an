@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.conftest" href="an.conftest.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -856,7 +856,14 @@ each line’s voice as the pipeline resolves it
 <code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;]</span></code> (its <code class="docutils literal notranslate"><span class="pre">provider</span></code>, <code class="docutils literal notranslate"><span class="pre">voice_id</span></code> and <code class="docutils literal notranslate"><span class="pre">model_id</span></code>). A
 voice document may declare its own <code class="docutils literal notranslate"><span class="pre">source</span></code> (the provider’s terms, the
 licence the user holds); otherwise the speech is listed UNVERIFIED — the
-provider’s terms decide what is owed, and nobody recorded them. A voice
+provider’s terms decide what is owed, and nobody recorded them. The licence
+that counts for synthesized speech is a provider-terms code
+(<a class="reference internal" href="an.ir.assets.html#an.ir.assets.PROVIDER_TERMS" title="an.ir.assets.PROVIDER_TERMS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.ir.assets.PROVIDER_TERMS</span></code></a>: <code class="docutils literal notranslate"><span class="pre">elevenlabs-paid-plan</span></code> is <code class="docutils literal notranslate"><span class="pre">free</span></code>;
+<code class="docutils literal notranslate"><span class="pre">elevenlabs-free-plan</span></code> is non-commercial only and owes a credit, so it is
+not publishable and is listed with that restriction), or any licence <code class="docutils literal notranslate"><span class="pre">an</span></code>
+recognises;
+it is read as the voice’s provider’s, so another provider’s terms count for
+nothing (an#307). A voice
 whose document names no provider (the offline default) is not listed:
 which provider spoke it is not recorded anywhere.</p>
 <dl class="field-list simple">
@@ -871,6 +878,9 @@ which provider spoke it is not recorded anywhere.</p>
 <span class="gp">... </span>                           <span class="s2">"model_id"</span><span class="p">:</span> <span class="s2">"eleven_v3"</span><span class="p">}}}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">e</span><span class="o">.</span><span class="n">asset</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">extra</span><span class="p">[</span><span class="s2">"model"</span><span class="p">])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">speech_credits</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">scene</span><span class="p">)]</span>
 <span class="go">[('speech/bob', 'unknown', 'eleven_v3')]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mall</span><span class="p">[</span><span class="s2">"voices"</span><span class="p">][</span><span class="s2">"bob"</span><span class="p">][</span><span class="s2">"source"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"provider"</span><span class="p">:</span> <span class="s2">"elevenlabs"</span><span class="p">,</span> <span class="s2">"license"</span><span class="p">:</span> <span class="s2">"elevenlabs-paid-plan"</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">license_class</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">speech_credits</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">scene</span><span class="p">)]</span>
+<span class="go">['free']</span>
 </pre></div>
 </div>
 </dd></dl>

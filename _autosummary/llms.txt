@@ -132,7 +132,7 @@
 - [an.iterate](an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
 - [an.library](an.library.html.md): The asset library: reusable assets that outlive their videos (ADR 0005).
 - [an.library.affordances](an.library.affordances.html.md): Affordances for the library: the capability registry, re-exported from &#96;an.capabilities&#96;.
-- [an.library.api](an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;.
+- [an.library.api](an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;, &#96;retire&#96;.
 - [an.library.character](an.library.character.html.md): The character analyser: legs, arms, views and mouth chart, derived from the rig.
 - [an.library.cli](an.library.cli.html.md): &#96;an library …&#96; — the asset library from the shell, over the same functions as Python.
 - [an.library.federation](an.library.federation.html.md): Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).

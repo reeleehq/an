@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.preview" href="an.preview.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -642,6 +642,15 @@
 ├── output/
 └── .an/{decisions.jsonl,verifier_runs/,memory.md}</p>
 </div></blockquote>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.project.PROJECT_GITIGNORE" title="an.project.PROJECT_GITIGNORE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROJECT_GITIGNORE</span></code></a></p></td>
+<td><p>What a project's <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> keeps out of version control (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">init</span></code> adds each line a <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> lacks, never removing one).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -666,6 +675,15 @@
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.project.PROJECT_GITIGNORE">
+<span class="sig-prename descclassname"><span class="pre">an.project.</span></span><span class="sig-name descname"><span class="pre">PROJECT_GITIGNORE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('artifacts/render_reports/',)</span></span><a class="headerlink" href="#an.project.PROJECT_GITIGNORE" title="Link to this definition">#</a></dt>
+<dd><p>What a project’s <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> keeps out of version control (<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">init</span></code>
+adds each line a <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> lacks, never removing one). A render report
+records what a render on THIS machine found — warnings, exception text — so it
+is per-machine output, not project source (an#254).</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.project.Project">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.project.</span></span><span class="sig-name descname"><span class="pre">Project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/project.html#Project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.project.Project" title="Link to this definition">#</a></dt>
@@ -680,7 +698,8 @@
 <span class="sig-prename descclassname"><span class="pre">an.project.</span></span><span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/project.html#init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.project.init" title="Link to this definition">#</a></dt>
 <dd><p>Create a fresh an project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p>
 <p>Idempotent unless the directory already contains a non-empty <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>;
-pass <code class="docutils literal notranslate"><span class="pre">force=True</span></code> to overwrite. Returns the absolute project root.</p>
+pass <code class="docutils literal notranslate"><span class="pre">force=True</span></code> to overwrite. Returns the absolute project root. The
+project’s <code class="docutils literal notranslate"><span class="pre">.gitignore</span></code> gains <a class="reference internal" href="#an.project.PROJECT_GITIGNORE" title="an.project.PROJECT_GITIGNORE"><code class="xref py py-data docutils literal notranslate"><span class="pre">PROJECT_GITIGNORE</span></code></a> (lines it lacks).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
@@ -769,6 +788,7 @@ as findings instead.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.PROJECT_GITIGNORE"><code class="docutils literal notranslate"><span class="pre">PROJECT_GITIGNORE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.Project"><code class="docutils literal notranslate"><span class="pre">Project</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.init"><code class="docutils literal notranslate"><span class="pre">init()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.project.load"><code class="docutils literal notranslate"><span class="pre">load()</span></code></a></li>

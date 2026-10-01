@@ -33,7 +33,7 @@ the entire pipeline runs without API keys or external binaries.
 |----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`default_lipsync`](#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                                                                                                                                                    |
 | [`default_tts`](#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                             |
-| [`dialogue_overruns`](#an.audio.pipeline.dialogue_overruns)(scene, \*[, tolerance_s])       | One message per synthesized line that ends past its shot's end.                                                                                                                                                                     |
+| [`dialogue_overruns`](#an.audio.pipeline.dialogue_overruns)(scene, \*[, tolerance_s, mall]) | One message per synthesized line that ends past its shot's end.                                                                                                                                                                     |
 | [`produce_audio_for_dialogue`](#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                   |
 | [`produce_audio_for_scene`](#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                 |
 | [`retake_lines`](#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                              |
@@ -138,14 +138,17 @@ The default TTS provider: `OfflineTTS`.
 * **Return type:**
   [`TTSProvider`](an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
-### an.audio.pipeline.dialogue_overruns(scene, , tolerance_s=0.016666666666666666)
+### an.audio.pipeline.dialogue_overruns(scene, , tolerance_s=0.016666666666666666, mall=None)
 
 One message per synthesized line that ends past its shot’s end.
 
 `an validate` warns before synthesis from an estimate; this is the exact
-check AFTER it — a voice’s `tempo` (or a real voice’s own pace) can make a
-line longer than estimated, and the render cuts the shot’s audio at the
-shot’s end, so the tail would otherwise be lost silently.
+check AFTER it — a voice’s `tempo` (or a real voice’s own pace, or the
+silence it pads a line with) can make a line longer than estimated, and the
+render cuts the shot’s audio at the shot’s end, so the tail would otherwise
+be lost silently. It is `an validate`’s own check
+([`an.ir.validate.shot_dialogue_overruns()`](an.ir.validate.html.md#an.ir.validate.shot_dialogue_overruns)), over the synthesized lines;
+`mall` lets its fix name the voice’s `trim_silence`.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
@@ -155,7 +158,7 @@ shot’s end, so the tail would otherwise be lost silently.
 >>> shot = Shot(id="s", duration=1.0, dialogue=[
 ...     Dialogue(speaker="a", text="hi", start=0.2, duration=1.3, audio_ref="k")])
 >>> dialogue_overruns(SceneIR(timeline=[shot]))[0][:46]
-"shot 's': line 0 (a) ends at 1.50s, past the s"
+"shot 's': line 0 (a) ends at 1.30s as synthesi"
 ```
 
 ### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, \*, tts=None, lipsync=None, effects=None, voice_id=None, takes=<object object>, take_scorer=<function make_take_scorer>)
@@ -194,7 +197,7 @@ gone raises [`TakeLostError`](an.audio.takes.html.md#an.audio.takes.TakeLostErro
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
-### an.audio.pipeline.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>)
+### an.audio.pipeline.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>, overruns=True)
 
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -219,7 +222,9 @@ recorded take whose audio is gone fails before a credit is spent; and
 and the provider’s characters) and which recorded takes were chosen by an
 older scorer version than the current one (they are kept). After synthesis,
 a line that ends past its shot’s end ([`dialogue_overruns()`](#an.audio.pipeline.dialogue_overruns)) is
-announced too — or, with `announce=None`, a `DialogueOverrunWarning`.
+announced too — or, with `announce=None`, a `DialogueOverrunWarning` —
+unless `overruns=False`: `an render` passes that, because it reports
+every post-synthesis finding together in its summary (an#254).
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)

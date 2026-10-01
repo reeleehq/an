@@ -16,6 +16,8 @@ an.library.stores
    
       build_library_mall
       canonical_json
+      label_key
+      split_label_key
       version_key
       split_version_key
    

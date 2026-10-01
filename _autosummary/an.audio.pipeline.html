@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.offline_tts" href="an.audio.offline_tts.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -678,7 +678,7 @@ the entire pipeline runs without API keys or external binaries.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.default_tts" title="an.audio.pipeline.default_tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">default_tts</span></code></a>()</p></td>
 <td><p>The default TTS provider: <code class="docutils literal notranslate"><span class="pre">OfflineTTS</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.dialogue_overruns" title="an.audio.pipeline.dialogue_overruns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dialogue_overruns</span></code></a>(scene, *[, tolerance_s])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.pipeline.dialogue_overruns" title="an.audio.pipeline.dialogue_overruns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dialogue_overruns</span></code></a>(scene, *[, tolerance_s, mall])</p></td>
 <td><p>One message per synthesized line that ends past its shot's end.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.pipeline.produce_audio_for_dialogue" title="an.audio.pipeline.produce_audio_for_dialogue"><code class="xref py py-obj docutils literal notranslate"><span class="pre">produce_audio_for_dialogue</span></code></a>(dialogue[, mall, ...])</p></td>
@@ -841,12 +841,15 @@ among a line’s takes — the record in <code class="docutils literal notransla
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.pipeline.dialogue_overruns">
-<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">dialogue_overruns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.016666666666666666</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#dialogue_overruns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.dialogue_overruns" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">dialogue_overruns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance_s</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.016666666666666666</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#dialogue_overruns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.dialogue_overruns" title="Link to this definition">#</a></dt>
 <dd><p>One message per synthesized line that ends past its shot’s end.</p>
 <p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> warns before synthesis from an estimate; this is the exact
-check AFTER it — a voice’s <code class="docutils literal notranslate"><span class="pre">tempo</span></code> (or a real voice’s own pace) can make a
-line longer than estimated, and the render cuts the shot’s audio at the
-shot’s end, so the tail would otherwise be lost silently.</p>
+check AFTER it — a voice’s <code class="docutils literal notranslate"><span class="pre">tempo</span></code> (or a real voice’s own pace, or the
+silence it pads a line with) can make a line longer than estimated, and the
+render cuts the shot’s audio at the shot’s end, so the tail would otherwise
+be lost silently. It is <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>’s own check
+(<a class="reference internal" href="an.ir.validate.html#an.ir.validate.shot_dialogue_overruns" title="an.ir.validate.shot_dialogue_overruns"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.validate.shot_dialogue_overruns()</span></code></a>), over the synthesized lines;
+<code class="docutils literal notranslate"><span class="pre">mall</span></code> lets its fix name the voice’s <code class="docutils literal notranslate"><span class="pre">trim_silence</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
@@ -856,7 +859,7 @@ shot’s end, so the tail would otherwise be lost silently.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">shot</span> <span class="o">=</span> <span class="n">Shot</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">"s"</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dialogue</span><span class="o">=</span><span class="p">[</span>
 <span class="gp">... </span>    <span class="n">Dialogue</span><span class="p">(</span><span class="n">speaker</span><span class="o">=</span><span class="s2">"a"</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">"hi"</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.3</span><span class="p">,</span> <span class="n">audio_ref</span><span class="o">=</span><span class="s2">"k"</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">dialogue_overruns</span><span class="p">(</span><span class="n">SceneIR</span><span class="p">(</span><span class="n">timeline</span><span class="o">=</span><span class="p">[</span><span class="n">shot</span><span class="p">]))[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">46</span><span class="p">]</span>
-<span class="go">"shot 's': line 0 (a) ends at 1.50s, past the s"</span>
+<span class="go">"shot 's': line 0 (a) ends at 1.30s as synthesi"</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -898,7 +901,7 @@ gone raises <a class="reference internal" href="an.audio.takes.html#an.audio.tak
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.pipeline.produce_audio_for_scene">
-<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">take_scorer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">make_take_scorer&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">announce</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">_announce_to_stderr&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.produce_audio_for_scene" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.pipeline.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">take_scorer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">make_take_scorer&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">announce</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">_announce_to_stderr&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overruns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.pipeline.produce_audio_for_scene" title="Link to this definition">#</a></dt>
 <dd><p>Walk every dialogue line, synthesize, and stamp viseme tracks back.</p>
 <p>Mutates the <code class="docutils literal notranslate"><span class="pre">scene</span></code> in place AND returns it (for chaining).
 Stamps <code class="docutils literal notranslate"><span class="pre">Dialogue.duration</span></code>, <code class="docutils literal notranslate"><span class="pre">Dialogue.viseme_track</span></code>, and
@@ -919,7 +922,9 @@ recorded take whose audio is gone fails before a credit is spent; and
 and the provider’s characters) and which recorded takes were chosen by an
 older scorer version than the current one (they are kept). After synthesis,
 a line that ends past its shot’s end (<a class="reference internal" href="#an.audio.pipeline.dialogue_overruns" title="an.audio.pipeline.dialogue_overruns"><code class="xref py py-func docutils literal notranslate"><span class="pre">dialogue_overruns()</span></code></a>) is
-announced too — or, with <code class="docutils literal notranslate"><span class="pre">announce=None</span></code>, a <code class="docutils literal notranslate"><span class="pre">DialogueOverrunWarning</span></code>.</p>
+announced too — or, with <code class="docutils literal notranslate"><span class="pre">announce=None</span></code>, a <code class="docutils literal notranslate"><span class="pre">DialogueOverrunWarning</span></code> —
+unless <code class="docutils literal notranslate"><span class="pre">overruns=False</span></code>: <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> passes that, because it reports
+every post-synthesis finding together in its summary (an#254).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-class docutils literal notranslate"><span class="pre">SceneIR</span></code></a></span></p>

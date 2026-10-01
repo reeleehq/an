@@ -138,13 +138,20 @@ An in-memory library (no root) has nothing to register. Raises
 read or written: the write is refused rather than made invisible to the floor.
 
 A registry that does not exist yet means either this machine’s first
-library write, or a registry that was deleted — and nothing on disk tells
-the two apart: a deleted registry takes its memory of statements with it.
-So whenever the registry is created from nothing (an#263, R2b-N2), every
-library discoverable now is registered with this one, and a
-`an.library.registry.RegistryWarning` says that a library kept at a
-custom root binds the rights checks again only once it is written to or
-reindexed. Never delete the registry folder wholesale; prune it.
+library write, or a registry that was deleted (or libraries that predate
+it). The libraries on disk tell the two apart (an#307):
+
+- no library discoverable now holds an asset: a **new** registry, created;
+- libraries already hold assets: a **lost** one. It is rebuilt from what
+  is discoverable now — those libraries are registered, and the statements
+  their own floor indexes hold are remembered again — so their rights bind
+  exactly as before. What cannot be recovered is a library kept at a
+  custom root that is not discoverable now: it binds again once it is
+  written to or reindexed.
+
+Either way a `an.library.registry.RegistryWarning` says which
+(R2b-N2: a registry deleted wholesale must never pass silently). Never
+delete the registry folder wholesale; prune it.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)

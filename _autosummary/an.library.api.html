@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.affordances" href="an.library.affordances.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -633,7 +633,7 @@
                   
   <section id="module-an.library.api">
 <span id="an-library-api"></span><h1>an.library.api<a class="headerlink" href="#module-an.library.api" title="Link to this heading">#</a></h1>
-<p>The library’s verbs: <code class="docutils literal notranslate"><span class="pre">publish</span></code>, <code class="docutils literal notranslate"><span class="pre">find</span></code>, <code class="docutils literal notranslate"><span class="pre">vocabulary</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">promote</span></code>.</p>
+<p>The library’s verbs: <code class="docutils literal notranslate"><span class="pre">publish</span></code>, <code class="docutils literal notranslate"><span class="pre">find</span></code>, <code class="docutils literal notranslate"><span class="pre">vocabulary</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">promote</span></code>, <code class="docutils literal notranslate"><span class="pre">retire</span></code>.</p>
 <p>Plain functions over <a class="reference internal" href="an.library.federation.html#an.library.federation.Library" title="an.library.federation.Library"><code class="xref py py-class docutils literal notranslate"><span class="pre">Library</span></code></a> objects (pillar 8:
 the functions are the API; the <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">library</span> <span class="pre">…</span></code> CLI and, later, MCP are thin
 projections of them). Writes take the one owning library; reads take a library
@@ -642,8 +642,12 @@ in <a class="reference internal" href="an.library.html#an.library.checkout" titl
 <p>The documents they write (ADR 0005 decision 4, design §4):</p>
 <ul class="simple">
 <li><p>a <strong>record</strong> per asset — identity and curation, mutable: <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">kind</span></code>,
-<code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">family</span></code>, <code class="docutils literal notranslate"><span class="pre">head</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">facets</span></code> (<code class="docutils literal notranslate"><span class="pre">style</span></code>, <code class="docutils literal notranslate"><span class="pre">origin</span></code>),
-<code class="docutils literal notranslate"><span class="pre">tags</span></code>;</p></li>
+<code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">family</span></code>, <code class="docutils literal notranslate"><span class="pre">head</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code> (<code class="docutils literal notranslate"><span class="pre">retired</span></code> hides it from
+<code class="docutils literal notranslate"><span class="pre">find</span></code>: <a class="reference internal" href="#an.library.api.retire" title="an.library.api.retire"><code class="xref py py-func docutils literal notranslate"><span class="pre">retire()</span></code></a>), its append-only <code class="docutils literal notranslate"><span class="pre">status_history</span></code>, <code class="docutils literal notranslate"><span class="pre">facets</span></code>
+(<code class="docutils literal notranslate"><span class="pre">style</span></code>, <code class="docutils literal notranslate"><span class="pre">origin</span></code>), <code class="docutils literal notranslate"><span class="pre">tags</span></code>;</p></li>
+<li><p>a <strong>label</strong> per relabel of a version’s unchanged content (an#307) —
+append-only, keyed by the hash of what it says: the source, who and why,
+and the rights it gave the version; a version’s rights read its labels;</p></li>
 <li><p>a <strong>version</strong> per publish — immutable: the descriptor <code class="docutils literal notranslate"><span class="pre">doc</span></code> verbatim, its
 <code class="docutils literal notranslate"><span class="pre">files</span></code> as <code class="docutils literal notranslate"><span class="pre">dol.content.ContentRef</span></code> s, the asset-level <code class="docutils literal notranslate"><span class="pre">source</span></code>,
 <code class="docutils literal notranslate"><span class="pre">derived_from</span></code>, the derived <code class="docutils literal notranslate"><span class="pre">affordances</span></code> with the <code class="docutils literal notranslate"><span class="pre">analysers</span></code> that made
@@ -687,11 +691,23 @@ the asset derives from. <code class="docutils literal notranslate"><span class="
 <tr class="row-even"><td><p><a class="reference internal" href="#an.library.api.reindex" title="an.library.api.reindex"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reindex</span></code></a>(library, *[, search])</p></td>
 <td><p>Rebuild <code class="docutils literal notranslate"><span class="pre">library</span></code>'s floor index from its versions.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.api.scan_index" title="an.library.api.scan_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scan_index</span></code></a>(library)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.api.retire" title="an.library.api.retire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">retire</span></code></a>(library, asset_id, *, by, reason)</p></td>
+<td><p>Retire an asset id: recorded, hidden from <code class="docutils literal notranslate"><span class="pre">find</span></code> by default, never deleted.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.api.scan_index" title="an.library.api.scan_index"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scan_index</span></code></a>(library)</p></td>
 <td><p>Every asset's head version in <code class="docutils literal notranslate"><span class="pre">library</span></code>, read from the stores.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.api.set_status" title="an.library.api.set_status"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_status</span></code></a>(library, asset_id, status, *, by, ...)</p></td>
+<td><p>Set an asset's curation status, recording who and why; return the record.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.library.api.show" title="an.library.api.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>(libraries, ref)</p></td>
 <td><p>The record, the resolved version, its recomputed rights and the list of versions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.api.unknown_advice" title="an.library.api.unknown_advice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unknown_advice</span></code></a>(libraries, version, *[, ...])</p></td>
+<td><p>What would answer each <code class="docutils literal notranslate"><span class="pre">unknown</span></code> contributor of a version — one sentence per kind.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.api.version_labels" title="an.library.api.version_labels"><code class="xref py py-obj docutils literal notranslate"><span class="pre">version_labels</span></code></a>(library, version)</p></td>
+<td><p>The labels recorded on a stored version since it was published, oldest first.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.library.api.version_sources" title="an.library.api.version_sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">version_sources</span></code></a>(libraries, version, *[, ...])</p></td>
 <td><p>Every labelled source a version's rights depend on — its own, its lineage, its bytes.</p></td>
@@ -872,11 +888,23 @@ prints these as a sentence and exits non-zero.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.library.api.PublishResult">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">PublishResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manifest_sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affordances</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#PublishResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.api.PublishResult" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">PublishResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manifest_sha256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affordances</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">advice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#PublishResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.api.PublishResult" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>What a publish did: the version it names, and whether it made one.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.library.api.PublishResult.advice">
+<span class="sig-name descname"><span class="pre">advice</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#an.library.api.PublishResult.advice" title="Link to this definition">#</a></dt>
+<dd><p>what would answer each kind of gap, one
+sentence each (<a class="reference internal" href="#an.library.api.unknown_advice" title="an.library.api.unknown_advice"><code class="xref py py-func docutils literal notranslate"><span class="pre">unknown_advice()</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>For an <code class="docutils literal notranslate"><span class="pre">unknown</span></code> result</p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -914,6 +942,9 @@ unregistered name raises, naming the close ones</p>
 </dd>
 <dt>rights: <code class="docutils literal notranslate"><span class="pre">any</span></code> (default — study renders are legitimate), <code class="docutils literal notranslate"><span class="pre">publishable</span></code></dt><dd><p>(<code class="docutils literal notranslate"><span class="pre">free</span></code> + <code class="docutils literal notranslate"><span class="pre">attribution</span></code>), or licence classes. Rights are recomputed
 from each version’s sources and lineage, not read from its cache</p>
+</dd>
+<dt>status: curation statuses; an asset whose status is hidden</dt><dd><p>(<code class="xref py py-data docutils literal notranslate"><span class="pre">HIDDEN_STATUSES</span></code>: <code class="docutils literal notranslate"><span class="pre">retired</span></code>) is offered only when its status
+is asked for by name</p>
 </dd>
 <dt>near: also return assets that pass every other facet but miss some</dt><dd><p>capabilities, or are curated for another style than asked, each with
 what is missing and the remedy that would add it (a style mismatch is
@@ -989,11 +1020,16 @@ manifest and reasons), and covers these bytes for later versions</p>
 </dd>
 <dt>relabel: <code class="docutils literal notranslate"><span class="pre">{&quot;by&quot;:</span> <span class="pre">who,</span> <span class="pre">&quot;reason&quot;:</span> <span class="pre">why}</span></code> beside an explicit <code class="docutils literal notranslate"><span class="pre">source=</span></code></dt><dd><p>(required) — a first statement about bytes NOBODY labelled (an#263):
 the gaps of this asset’s own version chain (files an earlier version
-recorded <code class="docutils literal notranslate"><span class="pre">unlabelled</span></code>, an earlier version with no source at all) are
-answered with <code class="docutils literal notranslate"><span class="pre">source</span></code>. It relaxes no statement anyone made: a private
-(or any) licence, a per-part source, a version this one derives from,
-and every other asset’s statement about the same bytes still bind.
-Recorded on the version, in its manifest and in its reasons</p>
+recorded <code class="docutils literal notranslate"><span class="pre">unlabelled</span></code>, files no person’s source spoke for, an earlier
+version with no source at all) are answered with <code class="docutils literal notranslate"><span class="pre">source</span></code>, and so is
+another asset’s silence about a file the chain held once and this
+version no longer holds (an#307). It relaxes no statement anyone made:
+a private (or any) licence, a per-part source, a version this one
+derives from, and every other asset’s statement about bytes this
+version holds still bind. On content that changed, recorded on the new
+version, in its manifest and in its reasons; on UNCHANGED content,
+recorded on the head in the append-only <code class="docutils literal notranslate"><span class="pre">labels</span></code> store
+(<a class="reference internal" href="#an.library.api.version_labels" title="an.library.api.version_labels"><code class="xref py py-func docutils literal notranslate"><span class="pre">version_labels()</span></code></a>) and no version is minted (an#307)</p>
 </dd>
 <dt>derived_from: library references this version derives from (an earlier version,</dt><dd><p>the original of a recolour); each must resolve, and its rights are inherited.
 A descriptor checked out of a library derives from its origin by default</p>
@@ -1066,6 +1102,28 @@ R4-N4).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.library.api.retire">
+<span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">retire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#retire"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.api.retire" title="Link to this definition">#</a></dt>
+<dd><p>Retire an asset id: recorded, hidden from <code class="docutils literal notranslate"><span class="pre">find</span></code> by default, never deleted.</p>
+<p>Its versions stay readable — a project pinned to one still checks it out
+and validates — and its rights statements still bind the floor (retiring
+is curation, not a relabel). <code class="docutils literal notranslate"><span class="pre">find(status=&quot;retired&quot;)</span></code> lists it; a publish
+into it is refused unless it passes <code class="docutils literal notranslate"><span class="pre">status=</span></code> to revive it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">publish</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.dead"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"dead"</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">retire</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.dead"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">"me"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">"superseded"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">find</span><span class="p">(</span><span class="n">lib</span><span class="p">)),</span> <span class="p">[</span><span class="n">h</span><span class="o">.</span><span class="n">asset_id</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">find</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="s2">"retired"</span><span class="p">)]</span>
+<span class="go">(0, ['prop.dead'])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.library.api.scan_index">
 <span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">scan_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#scan_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.api.scan_index" title="Link to this definition">#</a></dt>
 <dd><p>Every asset’s head version in <code class="docutils literal notranslate"><span class="pre">library</span></code>, read from the stores.</p>
@@ -1078,6 +1136,25 @@ search.</p>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Iterator</span></code></a>[<a class="reference internal" href="#an.library.api.IndexEntry" title="an.library.api.IndexEntry"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndexEntry</span></code></a>]</span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.api.set_status">
+<span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">set_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#set_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.api.set_status" title="Link to this definition">#</a></dt>
+<dd><p>Set an asset’s curation status, recording who and why; return the record.</p>
+<p>The record’s <code class="docutils literal notranslate"><span class="pre">status_history</span></code> is appended to, never rewritten, and no
+version is touched: a project pinned to one keeps reading it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">publish</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.lamp"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"lamp"</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">set_status</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.lamp"</span><span class="p">,</span> <span class="s2">"approved"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s2">"me"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="s2">"looks right"</span><span class="p">)[</span><span class="s2">"status"</span><span class="p">]</span>
+<span class="go">'approved'</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1096,6 +1173,48 @@ search.</p>
 <span class="go">('an:prop.lamp@v001', 'A lamp', ['v001'])</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.api.unknown_advice">
+<span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">unknown_advice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">libraries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">floor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;object</span> <span class="pre">object&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#unknown_advice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.api.unknown_advice" title="Link to this definition">#</a></dt>
+<dd><p>What would answer each <code class="docutils literal notranslate"><span class="pre">unknown</span></code> contributor of a version — one sentence per kind.</p>
+<p>The advice a refusal prints, so it names what works for THESE gaps
+(an#307): a gap of the asset’s own chain takes a relabel; a gap of a
+version it derives from is labelled there; another asset’s silence about
+bytes this version still holds is answered by labelling THAT asset (a
+relabel here cannot speak for another asset), or by dropping the file; and
+anything stated (a licence nobody recognises, an unverified stamp, a
+parent not on the path) relaxes only by a relicence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">publish</span><span class="p">(</span><span class="n">lib</span><span class="p">,</span> <span class="s2">"prop.vase"</span><span class="p">,</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"vase"</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span> <span class="s2">"--relabel-by"</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">advice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">('unknown', True)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.api.version_labels">
+<span class="sig-prename descclassname"><span class="pre">an.library.api.</span></span><span class="sig-name descname"><span class="pre">version_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">library</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/api.html#version_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.api.version_labels" title="Link to this definition">#</a></dt>
+<dd><p>The labels recorded on a stored version since it was published, oldest first.</p>
+<p>A relabel of a version’s UNCHANGED content is recorded on that version, in
+the library’s append-only <code class="docutils literal notranslate"><span class="pre">labels</span></code> store, instead of minting a new
+version (an#307). A label counts only for the very version it was made on:
+its <code class="docutils literal notranslate"><span class="pre">manifest</span></code> must be this version’s (a same-named library’s other
+<code class="docutils literal notranslate"><span class="pre">x&#64;v001</span></code> never inherits it). An unreadable label is skipped with a
+<a class="reference internal" href="#an.library.api.LibraryIndexWarning" title="an.library.api.LibraryIndexWarning"><code class="xref py py-class docutils literal notranslate"><span class="pre">LibraryIndexWarning</span></code></a>; skipping one can only leave the version
+stricter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -1149,7 +1268,9 @@ the rights recorded at publish, or <code class="docutils literal notranslate"><s
 <dd><p>Every facet with its values and counts, and the registered capabilities.</p>
 <p>What an agent reads to turn words into a typed query (spectrum (b)): “a
 Reiniger character who can walk in profile” → <code class="docutils literal notranslate"><span class="pre">style=reiniger</span></code>,
-<code class="docutils literal notranslate"><span class="pre">affords=[&quot;limbs.legs&quot;,</span> <span class="pre">&quot;swap.view:side&quot;]</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">affords=[&quot;limbs.legs&quot;,</span> <span class="pre">&quot;swap.view:side&quot;]</span></code>. The counts are over what
+<code class="docutils literal notranslate"><span class="pre">find</span></code> offers by default — the same recomputed rights, and no asset of a
+hidden status (<code class="docutils literal notranslate"><span class="pre">retired</span></code>), whose numbers are under <code class="docutils literal notranslate"><span class="pre">hidden</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
@@ -1158,7 +1279,7 @@ Reiniger character who can walk in profile” → <code class="docutils literal 
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">lib</span> <span class="o">=</span> <span class="n">open_library</span><span class="p">(</span><span class="s2">"an"</span><span class="p">,</span> <span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">v</span> <span class="o">=</span> <span class="n">vocabulary</span><span class="p">(</span><span class="n">lib</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">sorted</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-<span class="go">['capabilities', 'facets', 'kinds', 'rights', 'statuses']</span>
+<span class="go">['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="s2">"limbs.legs"</span> <span class="ow">in</span> <span class="n">v</span><span class="p">[</span><span class="s2">"capabilities"</span><span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
@@ -1234,15 +1355,22 @@ Reiniger character who can walk in profile” → <code class="docutils literal 
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.LibraryError"><code class="docutils literal notranslate"><span class="pre">LibraryError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.LibraryIndexWarning"><code class="docutils literal notranslate"><span class="pre">LibraryIndexWarning</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.PlaceholderRigWarning"><code class="docutils literal notranslate"><span class="pre">PlaceholderRigWarning</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.PublishResult"><code class="docutils literal notranslate"><span class="pre">PublishResult</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.PublishResult"><code class="docutils literal notranslate"><span class="pre">PublishResult</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.PublishResult.advice"><code class="docutils literal notranslate"><span class="pre">PublishResult.advice</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.effective_rights"><code class="docutils literal notranslate"><span class="pre">effective_rights()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.find"><code class="docutils literal notranslate"><span class="pre">find()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.promote"><code class="docutils literal notranslate"><span class="pre">promote()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.publish"><code class="docutils literal notranslate"><span class="pre">publish()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.publish_dir"><code class="docutils literal notranslate"><span class="pre">publish_dir()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.reindex"><code class="docutils literal notranslate"><span class="pre">reindex()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.retire"><code class="docutils literal notranslate"><span class="pre">retire()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.scan_index"><code class="docutils literal notranslate"><span class="pre">scan_index()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.set_status"><code class="docutils literal notranslate"><span class="pre">set_status()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.show"><code class="docutils literal notranslate"><span class="pre">show()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.unknown_advice"><code class="docutils literal notranslate"><span class="pre">unknown_advice()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.version_labels"><code class="docutils literal notranslate"><span class="pre">version_labels()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.version_sources"><code class="docutils literal notranslate"><span class="pre">version_sources()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.api.vocabulary"><code class="docutils literal notranslate"><span class="pre">vocabulary()</span></code></a></li>
 </ul>

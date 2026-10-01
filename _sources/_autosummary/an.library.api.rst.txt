@@ -20,8 +20,12 @@ an.library.api
       publish
       publish_dir
       reindex
+      retire
       scan_index
+      set_status
       show
+      unknown_advice
+      version_labels
       version_sources
       vocabulary
    

@@ -2,7 +2,7 @@
 
 Voice effects: a deterministic transform applied to a synthesized line (an#163).
 
-A voice document in the `voices` store may declare `effects`. Two exist:
+A voice document in the `voices` store may declare `effects`. Three exist:
 
 - `pitch_semitones` (an#163) — South Park raises its voices to sound like
   fourth graders; duration-preserving.
@@ -11,6 +11,14 @@ A voice document in the `voices` store may declare `effects`. Two exist:
   so a narrator that must run at 5.8 syllables/s, or an expressive voice that
   must be slowed to a serene pace, is re-timed here. Unlike the pitch effect it
   CHANGES the line’s duration.
+- `trim_silence` (an#254) — cut the silence before the first word and after
+  the last, keeping a little of each (`true`, or `{threshold_db, keep_lead_s,
+  keep_tail_s}`). A real voice pads a line: `eleven_v3` returned 1.6 s for
+  “Hi!” — 0.4 s of breath before the word and 0.65 s of room tone after it — so
+  the line started late and the next one ran past its shot. It CHANGES the
+  line’s duration too, and it is OPT-IN: a voice that values its breaths (a
+  style that keeps a performance’s natural artifacts) declares nothing, or a
+  lower threshold, and keeps them.
 
 A raised voice or a fast narrator is a property of the *character*, not of the
 TTS provider, so it lives beside the voice the line already resolves through
@@ -27,10 +35,14 @@ True
 0.5
 >>> filter_chain({"tempo": 1.25})
 'aresample=44100,atempo=1.250000000'
+>>> normalize_effects({"trim_silence": True})["trim_silence"]
+{'keep_lead_s': 0.1, 'keep_tail_s': 0.2, 'threshold_db': -20.0, 'version': 1}
+>>> normalize_effects({"trim_silence": False}) == {}
+True
 >>> normalize_effects({"reverb": 1})
 Traceback (most recent call last):
     ...
-an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones', 'tempo']
+an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones', 'tempo', 'trim_silence']
 ```
 
 Design, in the order the pipeline uses it:
@@ -54,23 +66,51 @@ Design, in the order the pipeline uses it:
   shifter but is a build option, and its output would differ between machines —
   which a content-hash cache cannot tolerate. The output is bit-exact WAV (no
   encoder tag, no metadata), so two runs produce identical bytes.
+- **The trim runs last, in Python**, on the WAV the chain wrote (or on the
+  synthesized audio, decoded by ffmpeg only when it is not 16-bit PCM WAV —
+  ElevenLabs sends MP3): the level of each [`TRIM_WINDOW_S`](#an.audio.effects.TRIM_WINDOW_S) window is
+  compared with the line’s loudest, so a quiet voice and a loud one are cut
+  alike, and the kept padding is in the seconds the viewer hears. Its
+  parameters, resolved (defaults included) with [`TRIM_VERSION`](#an.audio.effects.TRIM_VERSION), are what
+  the key holds, so a changed default re-trims instead of replaying. What it
+  cut is RECORDED in the WAV it writes — a standard `LIST`/`INFO` comment
+  after the samples, which every reader skips — and [`trim_record()`](#an.audio.effects.trim_record) reads
+  it back: the record travels with the bytes it describes and is collected
+  with them. A line with nothing above the threshold (the offline voice’s
+  silence) is left whole.
 
 ### Module Attributes
 
-| [`PITCH_SEMITONES_LIMIT`](#an.audio.effects.PITCH_SEMITONES_LIMIT)   | Effects a voice document may declare, with the range each accepts.         |
-|--------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| [`TEMPO_LIMITS`](#an.audio.effects.TEMPO_LIMITS)            | half to double speed.                                                      |
-| [`ATEMPO_STAGE_LIMITS`](#an.audio.effects.ATEMPO_STAGE_LIMITS)     | One `atempo` stage's clean range; a factor beyond it is chained in stages. |
-| [`EFFECT_SAMPLE_RATE`](#an.audio.effects.EFFECT_SAMPLE_RATE)      | The sample rate the chain runs at (and the shifted WAV is written at).     |
+| [`PITCH_SEMITONES_LIMIT`](#an.audio.effects.PITCH_SEMITONES_LIMIT)   | Effects a voice document may declare, with the range each accepts.                         |
+|--------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
+| [`TEMPO_LIMITS`](#an.audio.effects.TEMPO_LIMITS)            | half to double speed.                                                                      |
+| [`ATEMPO_STAGE_LIMITS`](#an.audio.effects.ATEMPO_STAGE_LIMITS)     | One `atempo` stage's clean range; a factor beyond it is chained in stages.                 |
+| [`EFFECT_SAMPLE_RATE`](#an.audio.effects.EFFECT_SAMPLE_RATE)      | The sample rate the chain runs at (and the shifted WAV is written at).                     |
+| [`TRIM_SILENCE`](#an.audio.effects.TRIM_SILENCE)            | The effect that cuts a line's leading and trailing silence (an#254).                       |
+| [`DFLT_TRIM_THRESHOLD_DB`](#an.audio.effects.DFLT_TRIM_THRESHOLD_DB)  | `trim_silence`'s defaults.                                                                 |
+| [`DFLT_TRIM_KEEP_LEAD_S`](#an.audio.effects.DFLT_TRIM_KEEP_LEAD_S)   | more than the lip-sync anticipation lead (2/24 s), so the mouth can open before the sound. |
+| [`DFLT_TRIM_KEEP_TAIL_S`](#an.audio.effects.DFLT_TRIM_KEEP_TAIL_S)   | a word's release and decay.                                                                |
+| [`TRIM_THRESHOLD_LIMITS`](#an.audio.effects.TRIM_THRESHOLD_LIMITS)   | `threshold_db` bounds (relative to the line's loudest window).                             |
+| [`TRIM_KEEP_LIMITS`](#an.audio.effects.TRIM_KEEP_LIMITS)        | `keep_lead_s` / `keep_tail_s` bounds, seconds.                                             |
+| [`TRIM_WINDOW_S`](#an.audio.effects.TRIM_WINDOW_S)           | The level-measuring window, seconds.                                                       |
+| [`TRIM_VERSION`](#an.audio.effects.TRIM_VERSION)            | Bumped when the trim's algorithm changes; part of every trimmed line's key.                |
+| [`TRIM_RECORD_TAG`](#an.audio.effects.TRIM_RECORD_TAG)         | The prefix of the `LIST`/`INFO` comment a trimmed WAV carries.                             |
 
 ### Functions
 
-| [`apply_voice_effects`](#an.audio.effects.apply_voice_effects)(audio, effects)   | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.   |
-|----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [`atempo_stages`](#an.audio.effects.atempo_stages)(factor, \*[, limits])   | `factor` as a product of `atempo` stages, each inside `limits`.               |
-| [`filter_chain`](#an.audio.effects.filter_chain)(effects)                 | The ffmpeg `-af` chain for normalised `effects` (`""` for none).              |
-| [`normalize_effects`](#an.audio.effects.normalize_effects)(raw)                | The canonical effects dict for a voice's `effects` value.                     |
-| [`voice_effects`](#an.audio.effects.voice_effects)(mall, voice_id)         | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.       |
+| [`apply_voice_effects`](#an.audio.effects.apply_voice_effects)(audio, effects)        | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.                                                                |
+|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| [`atempo_stages`](#an.audio.effects.atempo_stages)(factor, \*[, limits])        | `factor` as a product of `atempo` stages, each inside `limits`.                                                                            |
+| [`filter_chain`](#an.audio.effects.filter_chain)(effects)                      | The ffmpeg `-af` chain for normalised `effects` (`""` for none).                                                                           |
+| [`normalize_effects`](#an.audio.effects.normalize_effects)(raw)                     | The canonical effects dict for a voice's `effects` value.                                                                                  |
+| [`trim_record`](#an.audio.effects.trim_record)(wav)                           | What `trim_silence` cut from `wav` (`lead_s`, `tail_s`, `source_s`), read from the comment it wrote; `None` for audio it did not write.    |
+| [`trim_silence`](#an.audio.effects.trim_silence)(wav, \*[, threshold_db, ...]) | `wav` (16-bit PCM) cut to its speech, plus `keep_lead_s` before it and `keep_tail_s` after it, and the cut recorded in the WAV it returns. |
+| [`voice_effects`](#an.audio.effects.voice_effects)(mall, voice_id)              | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.                                                                    |
+
+### Classes
+
+| [`SilenceTrim`](#an.audio.effects.SilenceTrim)(audio, lead_s, tail_s, source_s)   | What [`trim_silence()`](#an.audio.effects.trim_silence) produced: the trimmed WAV, and what it cut.   |
+|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
 
 ### Exceptions
 
@@ -81,6 +121,29 @@ Design, in the order the pipeline uses it:
 
 One `atempo` stage’s clean range; a factor beyond it is chained in stages.
 
+### an.audio.effects.DFLT_TRIM_KEEP_LEAD_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.1*
+
+more than the lip-sync
+anticipation lead (2/24 s), so the mouth can open before the sound.
+
+* **Type:**
+  Kept before the first window above the threshold
+
+### an.audio.effects.DFLT_TRIM_KEEP_TAIL_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.2*
+
+a word’s release and decay.
+
+* **Type:**
+  Kept after the last window above it
+
+### an.audio.effects.DFLT_TRIM_THRESHOLD_DB *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= -20.0*
+
+`trim_silence`’s defaults. A window is “speech” when its RMS level is within
+`threshold_db` of the line’s loudest window. Measured on two eleven_v3 lines
+(an#254): the breath before “Hi!” peaks 25 dB under the word and its room
+tone 35-40 dB under, while each word’s own edges stay within 20 dB — so -20
+cuts the breath and the tail and keeps the word. Lower it (-45) to keep breaths.
+
 ### an.audio.effects.EFFECT_SAMPLE_RATE *= 44100*
 
 The sample rate the chain runs at (and the shifted WAV is written at).
@@ -89,12 +152,57 @@ The sample rate the chain runs at (and the shifted WAV is written at).
 
 Effects a voice document may declare, with the range each accepts.
 
+### *class* an.audio.effects.SilenceTrim(audio, lead_s, tail_s, source_s)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What [`trim_silence()`](#an.audio.effects.trim_silence) produced: the trimmed WAV, and what it cut.
+
+#### lead_s *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+Seconds cut before the kept audio, and after it.
+
+#### record()
+
+The record the trimmed WAV carries ([`trim_record()`](#an.audio.effects.trim_record)).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+#### source_s *: [float](https://docs.python.org/3/builtins/functions.html#float)*
+
+The length of the audio before the trim, seconds.
+
 ### an.audio.effects.TEMPO_LIMITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 2.0)*
 
 half to double speed. Outside it speech stops being speech.
 
 * **Type:**
   `tempo` bounds
+
+### an.audio.effects.TRIM_KEEP_LIMITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.0, 2.0)*
+
+`keep_lead_s` / `keep_tail_s` bounds, seconds.
+
+### an.audio.effects.TRIM_RECORD_TAG *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an:trim_silence '*
+
+The prefix of the `LIST`/`INFO` comment a trimmed WAV carries.
+
+### an.audio.effects.TRIM_SILENCE *= 'trim_silence'*
+
+The effect that cuts a line’s leading and trailing silence (an#254).
+
+### an.audio.effects.TRIM_THRESHOLD_LIMITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (-80.0, -3.0)*
+
+`threshold_db` bounds (relative to the line’s loudest window).
+
+### an.audio.effects.TRIM_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
+
+Bumped when the trim’s algorithm changes; part of every trimmed line’s key.
+
+### an.audio.effects.TRIM_WINDOW_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.02*
+
+The level-measuring window, seconds.
 
 ### *exception* an.audio.effects.VoiceEffectError
 
@@ -108,7 +216,8 @@ A voice declares an effect that is unknown, malformed or out of range.
 
 Returns the input unchanged for no effects. Raises `VoiceEffectError` when
 ffmpeg is missing or fails — never returns unprocessed audio for a voice that
-asked for an effect.
+asked for an effect. `trim_silence` alone on a 16-bit PCM WAV needs no
+ffmpeg ([`trim_silence()`](#an.audio.effects.trim_silence)).
 
 * **Return type:**
   [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
@@ -147,7 +256,47 @@ Omit-when-unset: `None`, `{}` and a zero-valued effect all normalise to
 Unknown keys raise — an effect that silently does nothing is worse than none.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.audio.effects.trim_record(wav)
+
+What `trim_silence` cut from `wav` (`lead_s`, `tail_s`, `source_s`),
+read from the comment it wrote; `None` for audio it did not write.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.effects.trim_silence(wav, , threshold_db=-20.0, keep_lead_s=0.1, keep_tail_s=0.2, window_s=0.02)
+
+`wav` (16-bit PCM) cut to its speech, plus `keep_lead_s` before it and
+`keep_tail_s` after it, and the cut recorded in the WAV it returns.
+
+Speech is every `window_s` window whose RMS level is within
+`threshold_db` of the loudest window’s; only the edges move, never a pause
+between words. A clip with no sound at all is returned whole (with the
+record of a zero cut), and a pad is never longer than the silence it keeps.
+
+* **Return type:**
+  [`SilenceTrim`](#an.audio.effects.SilenceTrim)
+
+```pycon
+>>> import array, io, math, wave
+>>> rate = 8000
+>>> tone = [int(9000 * math.sin(i / 3)) for i in range(rate // 2)]
+>>> samples = array.array("h", [0] * rate + tone + [0] * rate)   # 1 s, 0.5 s, 1 s
+>>> buf = io.BytesIO()
+>>> with wave.open(buf, "wb") as w:
+...     w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate)
+...     w.writeframes(samples.tobytes())
+>>> cut = trim_silence(buf.getvalue(), keep_lead_s=0.1, keep_tail_s=0.2)
+>>> round(cut.lead_s, 2), round(cut.tail_s, 2), round(cut.source_s, 2)
+(0.9, 0.8, 2.5)
+>>> trim_record(cut.audio) == cut.record()
+True
+>>> with wave.open(io.BytesIO(cut.audio)) as w:
+...     round(w.getnframes() / w.getframerate(), 2)
+0.8
+```
 
 ### an.audio.effects.voice_effects(mall, voice_id)
 
@@ -157,4 +306,4 @@ A voice that is not in the store (the offline default, a raw provider voice
 id) has no effects; so does a store that does not exist.
 
 * **Return type:**
-  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]

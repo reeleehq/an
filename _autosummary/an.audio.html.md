@@ -396,7 +396,7 @@ gone raises [`TakeLostError`](an.audio.takes.html.md#an.audio.takes.TakeLostErro
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
-### an.audio.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>)
+### an.audio.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>, overruns=True)
 
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -421,7 +421,9 @@ recorded take whose audio is gone fails before a credit is spent; and
 and the provider’s characters) and which recorded takes were chosen by an
 older scorer version than the current one (they are kept). After synthesis,
 a line that ends past its shot’s end (`dialogue_overruns()`) is
-announced too — or, with `announce=None`, a `DialogueOverrunWarning`.
+announced too — or, with `announce=None`, a `DialogueOverrunWarning` —
+unless `overruns=False`: `an render` passes that, because it reports
+every post-synthesis finding together in its summary (an#254).
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.html.md#an.ir.schema.SceneIR)

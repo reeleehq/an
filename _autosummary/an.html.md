@@ -421,7 +421,8 @@ loaded is validated by the registered model on the way through.
 Create a fresh an project at `project_dir`.
 
 Idempotent unless the directory already contains a non-empty `scene.md`;
-pass `force=True` to overwrite. Returns the absolute project root.
+pass `force=True` to overwrite. Returns the absolute project root. The
+project’s `.gitignore` gains `PROJECT_GITIGNORE` (lines it lacks).
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
@@ -635,7 +636,7 @@ True
 False
 ```
 
-### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None)
+### an.validate_semantic(scene, , available_voices=None, available_characters=None, available_props=None, available_environments=None, available_sounds=None, available_library_lock=None, only=None, fps=None)
 
 Cross-field semantic checks. Pass live stores in for cross-store checks.
 
@@ -664,6 +665,11 @@ stages — `scene`, then `shot` once per shot, then `finish` — each by
 its `order`. An action or entity kind no loaded genre registered is one
 error naming the genre that provides it; checks that would trip over it
 skip that shot rather than crash.
+
+`only` runs just the registered checks of those names (what `an render`
+does after synthesis, `post_synthesis_findings()`); `fps` is the one
+the film is assembled at when it is not the scene’s (`an render --fps`),
+which decides how long a dissolve’s overlap is.
 
 * **Return type:**
   [`ValidationReport`](an.ir.validate.html.md#an.ir.validate.ValidationReport)

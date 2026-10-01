@@ -134,7 +134,7 @@
 - [an.iterate](_autosummary/an.iterate.html.md): Iterative edit loop — free-text instruction → IR patch via Claude → re-render.
 - [an.library](_autosummary/an.library.html.md): The asset library: reusable assets that outlive their videos (ADR 0005).
 - [an.library.affordances](_autosummary/an.library.affordances.html.md): Affordances for the library: the capability registry, re-exported from &#96;an.capabilities&#96;.
-- [an.library.api](_autosummary/an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;.
+- [an.library.api](_autosummary/an.library.api.html.md): The library’s verbs: &#96;publish&#96;, &#96;find&#96;, &#96;vocabulary&#96;, &#96;show&#96;, &#96;promote&#96;, &#96;retire&#96;.
 - [an.library.character](_autosummary/an.library.character.html.md): The character analyser: legs, arms, views and mouth chart, derived from the rig.
 - [an.library.cli](_autosummary/an.library.cli.html.md): &#96;an library …&#96; — the asset library from the shell, over the same functions as Python.
 - [an.library.federation](_autosummary/an.library.federation.html.md): Libraries federated by a search path: one read view, writes to the owner (plan §1 decision 7).
@@ -232,7 +232,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 22:46 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 23:47 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

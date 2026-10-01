@@ -12,6 +12,15 @@ an.audio.effects
       TEMPO_LIMITS
       ATEMPO_STAGE_LIMITS
       EFFECT_SAMPLE_RATE
+      TRIM_SILENCE
+      DFLT_TRIM_THRESHOLD_DB
+      DFLT_TRIM_KEEP_LEAD_S
+      DFLT_TRIM_KEEP_TAIL_S
+      TRIM_THRESHOLD_LIMITS
+      TRIM_KEEP_LIMITS
+      TRIM_WINDOW_S
+      TRIM_VERSION
+      TRIM_RECORD_TAG
    
    .. rubric:: Functions
 
@@ -21,7 +30,15 @@ an.audio.effects
       atempo_stages
       filter_chain
       normalize_effects
+      trim_record
+      trim_silence
       voice_effects
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      SilenceTrim
    
    .. rubric:: Exceptions
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -724,10 +724,12 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span>
@@ -866,6 +868,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span><span class="p">,</span>
     <span class="n">incremental</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">IncrementalEngine</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">force_render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">echo_warnings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Render every shot in ``project_dir``'s scene and concatenate to one mp4.</span>
 
@@ -919,6 +922,10 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``assets.lock.json`` renders with a ``LibraryPinWarning`` per pin, and is</span>
 <span class="sd">    refused under ``strict_assets`` (:func:`an.library.checkout.check_pins_before_render`).</span>
 
+<span class="sd">    **What the render learned is reported** (an#254): see :func:`render` — every</span>
+<span class="sd">    finding is in ``render_reports/&lt;output_name&gt;.json``, read back as</span>
+<span class="sd">    ``Finding`` s by :func:`render_findings`, and summarised by ``an render``.</span>
+
 <span class="sd">    Returns the absolute path of the final output file (under ``output/``).</span>
 <span class="sd">    """</span>
     <span class="n">project</span><span class="p">:</span> <span class="n">Project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project_dir</span><span class="p">)</span>
@@ -928,9 +935,14 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># --strict-assets. Imported only for a scene that pins anything.</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.checkout</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_pins_before_render</span>
 
-        <span class="n">check_pins_before_render</span><span class="p">(</span>
-            <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library_lock"</span><span class="p">),</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict_assets</span>
-        <span class="p">)</span>
+        <span class="n">caught</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="n">_recording_warnings</span><span class="p">(</span><span class="n">caught</span><span class="p">):</span>
+            <span class="n">check_pins_before_render</span><span class="p">(</span>
+                <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library_lock"</span><span class="p">),</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict_assets</span>
+            <span class="p">)</span>
+        <span class="c1"># The render's report holds them too (`_pin_findings`): `an render`</span>
+        <span class="c1"># lists them in its summary instead of as they happen.</span>
+        <span class="n">_echo</span><span class="p">(</span><span class="n">caught</span><span class="p">,</span> <span class="n">all_of_them</span><span class="o">=</span><span class="n">echo_warnings</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">render</span><span class="p">(</span>
         <span class="n">project</span><span class="p">,</span>
         <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span>
@@ -947,6 +959,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">,</span>
         <span class="n">incremental</span><span class="o">=</span><span class="n">incremental</span><span class="p">,</span>
         <span class="n">force_render</span><span class="o">=</span><span class="n">force_render</span><span class="p">,</span>
+        <span class="n">echo_warnings</span><span class="o">=</span><span class="n">echo_warnings</span><span class="p">,</span>
     <span class="p">)</span></div>
 
 
@@ -971,6 +984,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"en"</span><span class="p">,</span>
     <span class="n">incremental</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="n">IncrementalEngine</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">force_render</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">echo_warnings</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Lower-level: render a loaded ``Project`` to mp4.</span>
 
@@ -1027,10 +1041,101 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    descriptor, the default backdrop for an unknown environment ref. Use it for</span>
 <span class="sd">    anything that measures pixels: a stand-in renders happily and is a</span>
 <span class="sd">    different picture (an#33).</span>
+
+<span class="sd">    **What the render learns, it reports** (an#254). Render is when a line's</span>
+<span class="sd">    real length becomes known, so after synthesis the checks ``an validate``</span>
+<span class="sd">    could only estimate run again on the timing the film will mux — the SAME</span>
+<span class="sd">    functions (:func:`an.ir.validate.post_synthesis_findings`): a line past its</span>
+<span class="sd">    shot's end, a speaker overlapping themself, a line heard during a dissolve.</span>
+<span class="sd">    With them go the clock-owning renderers' findings (an#279), the scene's</span>
+<span class="sd">    library pins that disagree with ``assets.lock.json``, and every warning</span>
+<span class="sd">    raised while the film was made — a stand-in or a recorded substitution, a</span>
+<span class="sd">    take whose audio is not the one recorded, a caption without word timings —</span>
+<span class="sd">    each addressed to its shot when its message names one. All of it is written</span>
+<span class="sd">    to ``render_reports/&lt;output_name&gt;.json`` (``kind`` says which check),</span>
+<span class="sd">    readable as ``Finding`` s with :func:`render_findings`;</span>
+<span class="sd">    :func:`format_render_findings` is ``an render``'s grouped summary of it.</span>
+<span class="sd">    The warnings are still warned, after the render (``echo_warnings=False``:</span>
+<span class="sd">    only reported — what ``an render`` passes, since it prints the summary; a</span>
+<span class="sd">    render that fails echoes them anyway). What ``strict_assets`` refuses is</span>
+<span class="sd">    refused where it is found, before a frame is drawn; nothing here is fatal.</span>
 <span class="sd">    """</span>
     <span class="n">scene</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">RenderError</span><span class="p">(</span><span class="s2">"scene has no shots to render"</span><span class="p">)</span>
+    <span class="n">caught</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ok</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">_recording_warnings</span><span class="p">(</span><span class="n">caught</span><span class="p">):</span>
+            <span class="n">output_path</span><span class="p">,</span> <span class="n">report_scene</span><span class="p">,</span> <span class="n">findings</span><span class="p">,</span> <span class="n">fps_used</span> <span class="o">=</span> <span class="n">_render_film</span><span class="p">(</span>
+                <span class="n">project</span><span class="p">,</span>
+                <span class="n">output_name</span><span class="o">=</span><span class="n">output_name</span><span class="p">,</span>
+                <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+                <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+                <span class="n">auto_audio</span><span class="o">=</span><span class="n">auto_audio</span><span class="p">,</span>
+                <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">,</span>
+                <span class="n">lipsync</span><span class="o">=</span><span class="n">lipsync</span><span class="p">,</span>
+                <span class="n">parallel</span><span class="o">=</span><span class="n">parallel</span><span class="p">,</span>
+                <span class="n">strict_assets</span><span class="o">=</span><span class="n">strict_assets</span><span class="p">,</span>
+                <span class="n">supersample</span><span class="o">=</span><span class="n">supersample</span><span class="p">,</span>
+                <span class="n">pix_fmt</span><span class="o">=</span><span class="n">pix_fmt</span><span class="p">,</span>
+                <span class="n">capture</span><span class="o">=</span><span class="n">capture</span><span class="p">,</span>
+                <span class="n">step_hz</span><span class="o">=</span><span class="n">step_hz</span><span class="p">,</span>
+                <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">,</span>
+                <span class="n">incremental</span><span class="o">=</span><span class="n">incremental</span><span class="p">,</span>
+                <span class="n">force_render</span><span class="o">=</span><span class="n">force_render</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">ok</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">_echo</span><span class="p">(</span><span class="n">caught</span><span class="p">,</span> <span class="n">all_of_them</span><span class="o">=</span><span class="n">echo_warnings</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">ok</span><span class="p">)</span>
+    <span class="n">findings</span> <span class="o">=</span> <span class="p">[</span><span class="o">*</span><span class="n">findings</span><span class="p">,</span> <span class="o">*</span><span class="n">_warning_findings</span><span class="p">(</span><span class="n">caught</span><span class="p">,</span> <span class="n">report_scene</span><span class="p">)]</span>
+    <span class="n">findings</span> <span class="o">+=</span> <span class="n">_post_synthesis</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">report_scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps_used</span><span class="p">)</span>
+    <span class="n">_write_render_report</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">findings</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+    <span class="c1"># Last, so it is the last word about the file (an#211): a render that used</span>
+    <span class="c1"># all-rights-reserved, private-study material must not read as shippable.</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">CreditsWarning</span><span class="p">,</span> <span class="n">credits_for_scene</span><span class="p">,</span> <span class="n">warn_if_private_study</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">credits_for_scene</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">report_scene</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — never fail a finished render</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2"> was rendered, but its credits could not be checked "</span>
+            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); run `an credits` before sharing it."</span><span class="p">,</span>
+            <span class="n">CreditsWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">warn_if_private_study</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output_path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output_path</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_render_film</span><span class="p">(</span>
+    <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="p">,</span>
+    <span class="n">auto_audio</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">,</span>
+    <span class="n">lipsync</span><span class="p">,</span>
+    <span class="n">parallel</span><span class="p">,</span>
+    <span class="n">strict_assets</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">supersample</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">pix_fmt</span><span class="p">,</span>
+    <span class="n">capture</span><span class="p">,</span>
+    <span class="n">step_hz</span><span class="p">,</span>
+    <span class="n">language</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">incremental</span><span class="p">,</span>
+    <span class="n">force_render</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">""":func:`render`'s work: ``(output_path, settled scene, findings, fps)``,</span>
+<span class="sd">    the findings being the ones that arrive as ``Finding`` s (measurements and</span>
+<span class="sd">    library pins) under their kinds."""</span>
+    <span class="n">scene</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span>
+    <span class="n">findings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]</span> <span class="o">=</span> <span class="n">_pin_findings</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">auto_audio</span> <span class="ow">and</span> <span class="n">_has_any_audio_content</span><span class="p">(</span><span class="n">scene</span><span class="p">):</span>
         <span class="c1"># Lazy import to keep render.py importable without audio extras.</span>
@@ -1049,6 +1154,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
             <span class="n">tts</span><span class="o">=</span><span class="n">tts_provider</span><span class="p">,</span>
             <span class="n">lipsync</span><span class="o">=</span><span class="n">lipsync_provider</span><span class="p">,</span>
+            <span class="c1"># Reported with every other post-synthesis finding, below (an#254).</span>
+            <span class="n">overruns</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="c1"># Persist the now-stamped scene back to disk so subsequent loads see it.</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">[</span><span class="s2">"scenes"</span><span class="p">][</span><span class="s2">"main"</span><span class="p">]</span> <span class="o">=</span> <span class="n">scene</span>
@@ -1185,7 +1292,6 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_write_caption_sidecar</span><span class="p">(</span>
         <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">captions</span><span class="p">,</span> <span class="n">pages</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">effective_fps</span>
     <span class="p">)</span>
-    <span class="n">_write_render_report</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">shot_findings</span><span class="p">)</span>
     <span class="n">record_root</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="s2">"record_root"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">record_root</span><span class="p">):</span>
         <span class="c1"># What this render used, for `an cache gc` (an#274): the knobs AS</span>
@@ -1203,41 +1309,323 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>  <span class="c1"># fmt: skip</span>
     <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_finish_run</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
-    <span class="c1"># Last, so it is the last word about the file (an#211): a render that used</span>
-    <span class="c1"># all-rights-reserved, private-study material must not read as shippable.</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.credits</span><span class="w"> </span><span class="kn">import</span> <span class="n">CreditsWarning</span><span class="p">,</span> <span class="n">credits_for_scene</span><span class="p">,</span> <span class="n">warn_if_private_study</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">report</span> <span class="o">=</span> <span class="n">credits_for_scene</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — never fail a finished render</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2"> was rendered, but its credits could not be checked "</span>
-            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); run `an credits` before sharing it."</span><span class="p">,</span>
-            <span class="n">CreditsWarning</span><span class="p">,</span>
-            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-        <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">warn_if_private_study</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">output_path</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">output_path</span></div>
+    <span class="n">findings</span> <span class="o">+=</span> <span class="p">[(</span><span class="s2">"measurement"</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">shot_findings</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">output_path</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">findings</span><span class="p">,</span> <span class="n">effective_fps</span>
 
 
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_write_render_report</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">findings</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_render_report</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">findings</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""``render_reports/&lt;output_name&gt;.json``: what this render found, for</span>
-<span class="sd">    ``orchestrate`` and MCP to read (an#279). Always written — an empty report</span>
-<span class="sd">    replaces a stale one — when the mall has the store."""</span>
+<span class="sd">    ``orchestrate``, MCP and ``an render``'s summary to read (an#279, an#254).</span>
+<span class="sd">    ``findings`` are ``(kind, Finding)`` pairs; each record is the ``Finding``'s</span>
+<span class="sd">    fields plus its ``kind``, every text field made portable</span>
+<span class="sd">    (:func:`portable_text`: no machine's absolute paths in a file a project</span>
+<span class="sd">    may share). Always written — an empty report replaces a stale one — when</span>
+<span class="sd">    the mall has the store."""</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.measurements</span><span class="w"> </span><span class="kn">import</span> <span class="n">findings_record</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span>
 
     <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"render_reports"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span>
+    <span class="n">records</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="o">**</span><span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">portable_text</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">v</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">asdict</span><span class="p">(</span><span class="n">f</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">},</span>
+            <span class="s2">"kind"</span><span class="p">:</span> <span class="n">kind</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">findings</span>
+    <span class="p">]</span>
     <span class="n">store</span><span class="p">[</span><span class="n">output_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span>
-        <span class="p">{</span><span class="s2">"findings"</span><span class="p">:</span> <span class="n">findings_record</span><span class="p">(</span><span class="n">findings</span><span class="p">)},</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">{</span><span class="s2">"findings"</span><span class="p">:</span> <span class="n">records</span><span class="p">},</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="portable_text">
+<a class="viewcode-back" href="../../_autosummary/an.render.html#an.render.portable_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">portable_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">home</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``text`` with this machine's absolute paths taken out: a path under the</span>
+<span class="sd">    project ``root`` becomes project-relative, the root itself ``.``, and the</span>
+<span class="sd">    home directory ``~`` — so a render report (which a project may commit or</span>
+<span class="sd">    share, and an agent may pass on) names no user, host folder or temp dir.</span>
+
+<span class="sd">    &gt;&gt;&gt; portable_text("missing at /u/me/p/assets/a.png; see /u/me/x.log",</span>
+<span class="sd">    ...               root="/u/me/p", home="/u/me")</span>
+<span class="sd">    'missing at assets/a.png; see ~/x.log'</span>
+<span class="sd">    &gt;&gt;&gt; portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me")</span>
+<span class="sd">    'rendered in .'</span>
+<span class="sd">    """</span>
+    <span class="n">homes</span> <span class="o">=</span> <span class="p">[</span><span class="n">home</span><span class="p">]</span> <span class="k">if</span> <span class="n">home</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">())]</span>
+    <span class="n">roots</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">root</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">home</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">root</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()))</span>
+            <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="c1"># macOS spells its temp and var folders both ways (/private/var = /var).</span>
+        <span class="n">roots</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="n">r</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="s2">"/private"</span><span class="p">)</span> <span class="p">:]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"/private/"</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">r</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/</span><span class="se">\\</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">roots</span> <span class="k">if</span> <span class="n">r</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">sep</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">):</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">r</span> <span class="o">+</span> <span class="n">sep</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="s2">"."</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">h</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/</span><span class="se">\\</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">homes</span> <span class="k">if</span> <span class="n">h</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">h</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="s2">"~"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span></div>
+
+
+
+<span class="c1">#: How ``an render``'s summary heads each ``kind`` of finding, in this order; a</span>
+<span class="c1">#: kind not listed (another warning category) is headed by its own name, after.</span>
+<span class="n">FINDING_GROUPS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"dialogue_fits"</span><span class="p">:</span> <span class="s2">"dialogue that does not fit its shot"</span><span class="p">,</span>
+    <span class="s2">"dialogue_in_dissolve"</span><span class="p">:</span> <span class="s2">"dialogue heard during a dissolve"</span><span class="p">,</span>
+    <span class="s2">"measurement"</span><span class="p">:</span> <span class="s2">"shots whose renderer measured their length"</span><span class="p">,</span>
+    <span class="s2">"library_pins"</span><span class="p">:</span> <span class="s2">"library pins that disagree with assets.lock.json"</span><span class="p">,</span>
+    <span class="s2">"CutoutCompileWarning"</span><span class="p">:</span> <span class="s2">"stand-ins, substitutions and compile notes"</span><span class="p">,</span>
+    <span class="s2">"CutoutAssetWarning"</span><span class="p">:</span> <span class="s2">"art that could not be staged"</span><span class="p">,</span>
+    <span class="s2">"TakeDigestWarning"</span><span class="p">:</span> <span class="s2">"takes whose audio is not the recorded one"</span><span class="p">,</span>
+    <span class="s2">"CaptionTimingWarning"</span><span class="p">:</span> <span class="s2">"captions without word timings"</span><span class="p">,</span>
+    <span class="s2">"ShotCacheWarning"</span><span class="p">:</span> <span class="s2">"the shot cache"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="c1">#: At most this many findings of one kind are listed in the summary.</span>
+<span class="n">SUMMARY_MAX_PER_GROUP</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span>
+
+
+<div class="viewcode-block" id="render_findings">
+<a class="viewcode-back" href="../../_autosummary/an.render.html#an.render.render_findings">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">render_findings</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"main"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``Finding`` s the last render of ``output_name`` reported (an#254),</span>
+<span class="sd">    from ``render_reports/&lt;output_name&gt;.json``; ``[]`` before any render.</span>
+
+<span class="sd">    ``project`` is a project directory, a loaded ``Project`` or its mall.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Finding</span>
+
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"severity"</span><span class="p">,</span> <span class="s2">"ir_path"</span><span class="p">,</span> <span class="s2">"description"</span><span class="p">,</span> <span class="s2">"suggested_fix"</span><span class="p">,</span> <span class="s2">"location"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">Finding</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">})</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">_report_records</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_report_records</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">Project</span><span class="p">):</span>
+        <span class="n">mall</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">mall</span> <span class="o">=</span> <span class="n">project</span>
+    <span class="k">elif</span> <span class="n">Path</span><span class="p">(</span><span class="n">project</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_project_mall</span>
+
+        <span class="n">mall</span> <span class="o">=</span> <span class="n">build_project_mall</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>  <span class="c1"># no project there: nothing rendered (and nothing created)</span>
+    <span class="n">store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"render_reports"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">output_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="n">output_name</span><span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"findings"</span><span class="p">,</span> <span class="p">[]))</span>
+
+
+<div class="viewcode-block" id="format_render_findings">
+<a class="viewcode-back" href="../../_autosummary/an.render.html#an.render.format_render_findings">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">format_render_findings</span><span class="p">(</span>
+    <span class="n">project</span><span class="p">,</span> <span class="n">output_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"main"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_per_group</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">SUMMARY_MAX_PER_GROUP</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``an render``'s summary of what the render found: one heading per kind</span>
+<span class="sd">    (:data:`FINDING_GROUPS`) with its count, then each finding's IR path and</span>
+<span class="sd">    message — the message carries its fix — at most ``max_per_group`` per kind.</span>
+<span class="sd">    ``info`` findings are counted in the report, not listed. ``[]`` when the</span>
+<span class="sd">    render found nothing to warn about.</span>
+
+<span class="sd">    &gt;&gt;&gt; recs = {"findings": [{"severity": "warning", "ir_path": "timeline/0/dialogue/1",</span>
+<span class="sd">    ...     "description": "line 1 (bob) ends at 3.64s as synthesized, past the shot's "</span>
+<span class="sd">    ...     "3.6s end. Lengthen the shot", "suggested_fix": None, "location": None,</span>
+<span class="sd">    ...     "kind": "dialogue_fits"}]}</span>
+<span class="sd">    &gt;&gt;&gt; import json</span>
+<span class="sd">    &gt;&gt;&gt; print("\\n".join(format_render_findings(</span>
+<span class="sd">    ...     {"render_reports": {"main": json.dumps(recs)}})))</span>
+<span class="sd">    findings: 1 warning (all in artifacts/render_reports/main.json)</span>
+<span class="sd">      dialogue that does not fit its shot (1):</span>
+<span class="sd">        timeline/0/dialogue/1: line 1 (bob) ends at 3.64s as synthesized, past the shot's 3.6s end. Lengthen the shot</span>
+<span class="sd">    """</span>
+    <span class="n">records</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">_report_records</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">output_name</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"severity"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"info"</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">records</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">FINDING_GROUPS</span><span class="p">)</span>
+    <span class="n">kinds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">{</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">records</span><span class="p">},</span>
+        <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">order</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">order</span><span class="p">),</span> <span class="n">k</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"severity"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"error"</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">records</span><span class="p">)</span>
+    <span class="n">warns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">records</span><span class="p">)</span> <span class="o">-</span> <span class="n">errors</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">word</span><span class="si">}{</span><span class="s1">'s'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">word</span> <span class="ow">in</span> <span class="p">((</span><span class="n">errors</span><span class="p">,</span> <span class="s2">"error"</span><span class="p">),</span> <span class="p">(</span><span class="n">warns</span><span class="p">,</span> <span class="s2">"warning"</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">n</span>
+    <span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"findings: </span><span class="si">{</span><span class="n">counts</span><span class="si">}</span><span class="s2"> (all in artifacts/render_reports/</span><span class="si">{</span><span class="n">output_name</span><span class="si">}</span><span class="s2">.json)"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">kinds</span><span class="p">:</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">records</span> <span class="k">if</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span> <span class="o">==</span> <span class="n">kind</span><span class="p">]</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">FINDING_GROUPS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span><span class="w"> </span><span class="n">kind</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'other'</span><span class="p">)</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span><span class="si">}</span><span class="s2">):"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">group</span><span class="p">[:</span><span class="n">max_per_group</span><span class="p">]:</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" (</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'location'</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"location"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">""</span>
+            <span class="n">fix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" Fix: </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'suggested_fix'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"suggested_fix"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">""</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'description'</span><span class="p">]</span><span class="si">}{</span><span class="n">fix</span><span class="si">}</span><span class="s2">"</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">      "</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'ir_path'</span><span class="p">]</span><span class="si">}{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_per_group</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    ... and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">group</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">max_per_group</span><span class="si">}</span><span class="s2"> more"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lines</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pin_findings</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The scene's ``library:`` pins that disagree with ``assets.lock.json`` —</span>
+<span class="sd">    :func:`an.library.checkout.check_pins`, the function ``render_project``</span>
+<span class="sd">    warns (and, strict, refuses) with — for the report."""</span>
+    <span class="n">lock</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"library_lock"</span><span class="p">)</span>
+    <span class="n">scene</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span>
+    <span class="k">if</span> <span class="n">lock</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">library</span> <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.checkout</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_pins</span>
+
+    <span class="k">return</span> <span class="p">[(</span><span class="s2">"library_pins"</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">check_pins</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">lock</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">lock</span><span class="p">})]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_post_synthesis</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``an validate``'s post-synthesis checks on the timing just muxed</span>
+<span class="sd">    (:func:`an.ir.validate.post_synthesis_findings`), as ``Finding`` s. A check</span>
+<span class="sd">    that cannot run is a finding itself — never a failed render."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.validate</span><span class="w"> </span><span class="kn">import</span> <span class="n">post_synthesis_findings</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Finding</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mall</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">post_synthesis_findings</span><span class="p">(</span>
+            <span class="n">scene</span><span class="p">,</span>
+            <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span>
+            <span class="n">available_voices</span><span class="o">=</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"voices"</span><span class="p">),</span>
+            <span class="n">available_characters</span><span class="o">=</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">),</span>
+            <span class="n">available_props</span><span class="o">=</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"props"</span><span class="p">),</span>
+            <span class="n">available_environments</span><span class="o">=</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"environments"</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — the film is made; say what is unknown</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">(</span>
+                <span class="s2">"post_synthesis"</span><span class="p">,</span>
+                <span class="n">Finding</span><span class="p">(</span>
+                    <span class="s2">"warning"</span><span class="p">,</span>
+                    <span class="s2">"timeline"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"the post-synthesis checks could not run (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); run `an validate` on this project"</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">Finding</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">severity</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">ir_path</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">description</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">f</span><span class="o">.</span><span class="n">location</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">found</span>
+    <span class="p">]</span>
+
+
+<span class="nd">@contextmanager</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_recording_warnings</span><span class="p">(</span><span class="n">into</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Record every warning raised inside (worker threads included: the warning</span>
+<span class="sd">    machinery is process-wide) into ``into`` — kept even when the body raises.</span>
+<span class="sd">    The filters in force are kept, so an ``error`` filter still raises where</span>
+<span class="sd">    the warning is raised, and an ``ignore`` still ignores."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">(</span><span class="n">record</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">log</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">into</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">log</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_an_warning</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether ``w`` is ``an``'s own — its category is defined in ``an``, or it</span>
+<span class="sd">    was raised from ``an``'s code (another library's is only echoed)."""</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="s2">"__module__"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"an"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">is_relative_to</span><span class="p">(</span><span class="n">_AN_ROOT</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="n">_AN_ROOT</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_already_findings</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A warning that restates a finding the report holds as one already."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.measurements</span><span class="w"> </span><span class="kn">import</span> <span class="n">ShotFindingWarning</span>
+
+    <span class="k">return</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">ShotFindingWarning</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"LibraryPinWarning"</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unique</span><span class="p">(</span><span class="n">caught</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">caught</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">message</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_echo</span><span class="p">(</span><span class="n">caught</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">all_of_them</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Warn again what was recorded, at its own file and line. ``all_of_them=False``</span>
+<span class="sd">    echoes only what the report does not carry (another library's warning)."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+    <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">_unique</span><span class="p">(</span><span class="n">caught</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">all_of_them</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">_is_an_warning</span><span class="p">(</span><span class="n">w</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn_explicit</span><span class="p">(</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">category</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">w</span><span class="o">.</span><span class="n">lineno</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">w</span><span class="o">.</span><span class="n">source</span>
+            <span class="p">)</span>
+
+
+<span class="n">_SHOT_NAMED</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"""\bshot ['"]([^'"]+)['"]"""</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_warning_findings</span><span class="p">(</span><span class="n">caught</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">scene</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">object</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(kind, Finding)`` per distinct warning ``an`` raised while making the</span>
+<span class="sd">    film, its kind the warning's category, addressed to the shot its message</span>
+<span class="sd">    names (``shot 's2' …``), else to the timeline. The message's first</span>
+<span class="sd">    paragraph is kept: the rest is the explanation ``an`` prints when warning."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.verify._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Finding</span>
+
+    <span class="n">index</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]):</span>
+        <span class="n">index</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">_unique</span><span class="p">(</span><span class="n">caught</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_is_an_warning</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_already_findings</span><span class="p">(</span><span class="n">w</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">message</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">named</span> <span class="o">=</span> <span class="n">_SHOT_NAMED</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">index</span><span class="p">[</span><span class="n">named</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">if</span> <span class="n">named</span> <span class="ow">and</span> <span class="n">named</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">in</span> <span class="n">index</span>
+            <span class="k">else</span> <span class="s2">"timeline"</span>
+        <span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">w</span><span class="o">.</span><span class="n">category</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">Finding</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">text</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">out</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_style_pack</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="n">Project</span><span class="p">):</span>

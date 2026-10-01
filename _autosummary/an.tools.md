@@ -184,6 +184,11 @@ its audio, the runtime, the render settings, this machine’s browser and
 ffmpeg) are unchanged since a previous render is reused from the shot cache
 rather than rendered again, and the summary line says which were which.
 
+Then what the render learned, grouped, each with its fix: a synthesized line
+that runs past its shot or into a dissolve, a stand-in or a substitution,
+a library pin out of date (artifacts/render_reports/<output_name>.json
+holds them all).
+
 project_dir: path to an an project (must contain scene.md / ir/scene.json)
 output_name: filename stem under output/ (default: “main”)
 tts: TTS provider — “offline” (silent) or “elevenlabs” (needs ELEVEN_API_KEY)

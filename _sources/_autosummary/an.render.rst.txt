@@ -11,6 +11,8 @@ an.render
       RENDER_RUNS_DIR
       RUN_LIVE_MARKER
       RUN_DONE_MARKER
+      FINDING_GROUPS
+      SUMMARY_MAX_PER_GROUP
       UNKNOWN_LIVENESS_MAX_S
    
    .. rubric:: Functions
@@ -18,8 +20,11 @@ an.render
    .. autosummary::
    
       cache_entries
+      format_render_findings
       live_runs
+      portable_text
       render
+      render_findings
       render_project
    
    .. rubric:: Exceptions

@@ -12,6 +12,7 @@ an.library.cli
       find
       promote
       publish
+      retire
       show
       vocabulary
    

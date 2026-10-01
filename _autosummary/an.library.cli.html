@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.character" href="an.library.character.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -646,7 +646,7 @@ a namespaced reference names (<code class="docutils literal notranslate"><span c
 with no <code class="docutils literal notranslate"><span class="pre">--package</span></code>; an#251). A refusal (an unknown asset, a private asset
 leaving its library, …) prints one sentence and exits non-zero.</p>
 <p>Subcommands: <code class="docutils literal notranslate"><span class="pre">publish</span></code>, <code class="docutils literal notranslate"><span class="pre">find</span></code>, <code class="docutils literal notranslate"><span class="pre">vocabulary</span></code>, <code class="docutils literal notranslate"><span class="pre">show</span></code>, <code class="docutils literal notranslate"><span class="pre">checkout</span></code>,
-<code class="docutils literal notranslate"><span class="pre">promote</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">promote</span></code>, <code class="docutils literal notranslate"><span class="pre">retire</span></code>.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -662,10 +662,13 @@ leaving its library, …) prints one sentence and exits non-zero.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.library.cli.publish" title="an.library.cli.publish"><code class="xref py py-obj docutils literal notranslate"><span class="pre">publish</span></code></a>(folder, asset_id[, package, root, ...])</p></td>
 <td><p>Publish an asset folder as the next version of <code class="docutils literal notranslate"><span class="pre">asset_id</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.cli.show" title="an.library.cli.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>(ref[, package, root, extra, json_out])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.cli.retire" title="an.library.cli.retire"><code class="xref py py-obj docutils literal notranslate"><span class="pre">retire</span></code></a>(ref[, by, reason, status, package, root])</p></td>
+<td><p>Retire an asset id: hidden from find, never deleted; its versions stay readable.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.cli.show" title="an.library.cli.show"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show</span></code></a>(ref[, package, root, extra, json_out])</p></td>
 <td><p>Show one asset: its record, the resolved version, and its other versions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.library.cli.vocabulary" title="an.library.cli.vocabulary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vocabulary</span></code></a>([package, root, extra])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.cli.vocabulary" title="an.library.cli.vocabulary"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vocabulary</span></code></a>([package, root, extra])</p></td>
 <td><p>Every facet value with its count, and every capability with its remedy (JSON).</p></td>
 </tr>
 </tbody>
@@ -699,7 +702,7 @@ affords: capabilities the asset must ALL have, e.g. limbs.legs,swap.view:side
 rights: any, publishable, or licence classes (free, attribution, private, unknown)
 family: families, comma-separated
 origin: origins, comma-separated
-status: draft, approved, deprecated
+status: draft, approved, deprecated, retired (a retired asset is listed only when asked for)
 tags: tags, comma-separated (any of them)
 near: also list assets that only miss capabilities, with the remedy for each
 package: the library to search first (then the core an library)
@@ -742,7 +745,7 @@ title: a human title for the record
 family: the identity shared across styles and variants (e.g. alice)
 style: styles the asset suits, comma-separated
 origin: drawn, procedural, dicebear, carved, traced, stock, commissioned, generated
-status: draft, approved or deprecated
+status: draft, approved, deprecated or retired (publishing into a retired id needs it, to revive it)
 tags: free tags, comma-separated
 note: what changed in this version
 derived_from: library references this derives from, comma-separated
@@ -752,11 +755,28 @@ author: who made it
 source_url: where it was fetched from
 relicense_by: who relicenses the asset (with –relicense-reason and –license): the only way to relax inherited rights
 relicense_reason: why — recorded on the version and shown in its rights
-relabel_by: who labels bytes nobody labelled (with –relabel-reason and –license): answers the asset’s earlier unlabelled files and sourceless versions, never a stricter statement
-relabel_reason: why — recorded on the version and shown in its rights
+relabel_by: who labels bytes nobody labelled (with –relabel-reason and –license): answers the asset’s earlier unlabelled files and sourceless versions, never a stricter statement nor another asset’s files; on unchanged content it is recorded on the head, no new version
+relabel_reason: why — recorded (on the version, or on the head it labels) and shown in its rights
 expect_head: refuse unless the asset’s head is this version, or ‘new’ for an id that must not exist yet
 replace_curation: –style/–tags replace the record’s lists instead of adding to them
 extra: further libraries where –derived-from resolves, by package name, comma-separated</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.cli.retire">
+<span class="sig-prename descclassname"><span class="pre">an.library.cli.</span></span><span class="sig-name descname"><span class="pre">retire</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ref</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'retired'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">package</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/cli.html#retire"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.cli.retire" title="Link to this definition">#</a></dt>
+<dd><p>Retire an asset id: hidden from find, never deleted; its versions stay readable.</p>
+<p>ref: [&lt;library&gt;:]&lt;asset_id&gt; — a &lt;library&gt;: prefix names the library (no –package needed)
+by: who retires it (recorded)
+reason: why (recorded)
+status: the status to set instead (draft, approved or deprecated revives or re-curates it)
+package: the library it is in (default: the reference’s &lt;library&gt;: prefix, else an)
+root: that library’s root</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
@@ -847,6 +867,7 @@ extra: further libraries, by package name, comma-separated</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.cli.find"><code class="docutils literal notranslate"><span class="pre">find()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.cli.promote"><code class="docutils literal notranslate"><span class="pre">promote()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.cli.publish"><code class="docutils literal notranslate"><span class="pre">publish()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.cli.retire"><code class="docutils literal notranslate"><span class="pre">retire()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.cli.show"><code class="docutils literal notranslate"><span class="pre">show()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.cli.vocabulary"><code class="docutils literal notranslate"><span class="pre">vocabulary()</span></code></a></li>
 </ul>

@@ -1,6 +1,6 @@
 # an.library.api
 
-The library’s verbs: `publish`, `find`, `vocabulary`, `show`, `promote`.
+The library’s verbs: `publish`, `find`, `vocabulary`, `show`, `promote`, `retire`.
 
 Plain functions over [`Library`](an.library.federation.html.md#an.library.federation.Library) objects (pillar 8:
 the functions are the API; the `an library …` CLI and, later, MCP are thin
@@ -11,8 +11,12 @@ in [`an.library.checkout`](an.library.html.md#an.library.checkout).
 The documents they write (ADR 0005 decision 4, design §4):
 
 - a **record** per asset — identity and curation, mutable: `id`, `kind`,
-  `title`, `family`, `head`, `status`, `facets` (`style`, `origin`),
-  `tags`;
+  `title`, `family`, `head`, `status` (`retired` hides it from
+  `find`: [`retire()`](#an.library.api.retire)), its append-only `status_history`, `facets`
+  (`style`, `origin`), `tags`;
+- a **label** per relabel of a version’s unchanged content (an#307) —
+  append-only, keyed by the hash of what it says: the source, who and why,
+  and the rights it gave the version; a version’s rights read its labels;
 - a **version** per publish — immutable: the descriptor `doc` verbatim, its
   `files` as `dol.content.ContentRef` s, the asset-level `source`,
   `derived_from`, the derived `affordances` with the `analysers` that made
@@ -41,8 +45,12 @@ the asset derives from. `promote` and `find(rights=…)` recompute it.
 | [`publish`](#an.library.api.publish)(library, asset_id, doc[, files, ...])      | Publish `doc` and its `files` as the next version of `asset_id` in `library`.         |
 | [`publish_dir`](#an.library.api.publish_dir)(library, folder, asset_id, \*\*kwargs) | Publish an asset folder as it sits in a project store (`assets/characters/alice/`).   |
 | [`reindex`](#an.library.api.reindex)(library, \*[, search])                     | Rebuild `library`'s floor index from its versions.                                    |
+| [`retire`](#an.library.api.retire)(library, asset_id, \*, by, reason)          | Retire an asset id: recorded, hidden from `find` by default, never deleted.           |
 | [`scan_index`](#an.library.api.scan_index)(library)                                | Every asset's head version in `library`, read from the stores.                        |
+| [`set_status`](#an.library.api.set_status)(library, asset_id, status, \*, by, ...) | Set an asset's curation status, recording who and why; return the record.             |
 | [`show`](#an.library.api.show)(libraries, ref)                               | The record, the resolved version, its recomputed rights and the list of versions.     |
+| [`unknown_advice`](#an.library.api.unknown_advice)(libraries, version, \*[, ...])      | What would answer each `unknown` contributor of a version — one sentence per kind.    |
+| [`version_labels`](#an.library.api.version_labels)(library, version)                   | The labels recorded on a stored version since it was published, oldest first.         |
 | [`version_sources`](#an.library.api.version_sources)(libraries, version, \*[, ...])     | Every labelled source a version's rights depend on — its own, its lineage, its bytes. |
 | [`vocabulary`](#an.library.api.vocabulary)(libraries, \*[, index])                 | Every facet with its values and counts, and the registered capabilities.              |
 
@@ -154,11 +162,19 @@ Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWa
 
 A character published with no rig: the compiler would draw only its placeholder.
 
-### *class* an.library.api.PublishResult(ref, manifest_sha256, created, rights, affordances)
+### *class* an.library.api.PublishResult(ref, manifest_sha256, created, rights, affordances, advice=())
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 What a publish did: the version it names, and whether it made one.
+
+#### advice *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ()*
+
+what would answer each kind of gap, one
+sentence each ([`unknown_advice()`](#an.library.api.unknown_advice)).
+
+* **Type:**
+  For an `unknown` result
 
 ### an.library.api.effective_rights(libraries, version, \*, floor=<object object>, owner=None)
 
@@ -192,6 +208,10 @@ affords: capabilities the asset must ALL have — `limbs.legs`, or
 rights: `any` (default — study renders are legitimate), `publishable`
 : (`free` + `attribution`), or licence classes. Rights are recomputed
   from each version’s sources and lineage, not read from its cache
+
+status: curation statuses; an asset whose status is hidden
+: (`HIDDEN_STATUSES`: `retired`) is offered only when its status
+  is asked for by name
 
 near: also return assets that pass every other facet but miss some
 : capabilities, or are curated for another style than asked, each with
@@ -266,11 +286,16 @@ relicense: `{"by": who, "reason": why}` — the ONLY way to relax rights.
 relabel: `{"by": who, "reason": why}` beside an explicit `source=`
 : (required) — a first statement about bytes NOBODY labelled (an#263):
   the gaps of this asset’s own version chain (files an earlier version
-  recorded `unlabelled`, an earlier version with no source at all) are
-  answered with `source`. It relaxes no statement anyone made: a private
-  (or any) licence, a per-part source, a version this one derives from,
-  and every other asset’s statement about the same bytes still bind.
-  Recorded on the version, in its manifest and in its reasons
+  recorded `unlabelled`, files no person’s source spoke for, an earlier
+  version with no source at all) are answered with `source`, and so is
+  another asset’s silence about a file the chain held once and this
+  version no longer holds (an#307). It relaxes no statement anyone made:
+  a private (or any) licence, a per-part source, a version this one
+  derives from, and every other asset’s statement about bytes this
+  version holds still bind. On content that changed, recorded on the new
+  version, in its manifest and in its reasons; on UNCHANGED content,
+  recorded on the head in the append-only `labels` store
+  ([`version_labels()`](#an.library.api.version_labels)) and no version is minted (an#307)
 
 derived_from: library references this version derives from (an earlier version,
 : the original of a recolour); each must resolve, and its rights are inherited.
@@ -334,6 +359,26 @@ R4-N4).
 * **Return type:**
   [`int`](https://docs.python.org/3/builtins/functions.html#int)
 
+### an.library.api.retire(library, asset_id, , by, reason)
+
+Retire an asset id: recorded, hidden from `find` by default, never deleted.
+
+Its versions stay readable — a project pinned to one still checks it out
+and validates — and its rights statements still bind the floor (retiring
+is curation, not a relabel). `find(status="retired")` lists it; a publish
+into it is refused unless it passes `status=` to revive it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.dead", {"name": "dead"})
+>>> _ = retire(lib, "prop.dead", by="me", reason="superseded")
+>>> len(find(lib)), [h.asset_id for h in find(lib, status="retired")]
+(0, ['prop.dead'])
+```
+
 ### an.library.api.scan_index(library)
 
 Every asset’s head version in `library`, read from the stores.
@@ -345,6 +390,23 @@ search.
 
 * **Return type:**
   [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`IndexEntry`](#an.library.api.IndexEntry)]
+
+### an.library.api.set_status(library, asset_id, status, , by, reason)
+
+Set an asset’s curation status, recording who and why; return the record.
+
+The record’s `status_history` is appended to, never rewritten, and no
+version is touched: a project pinned to one keeps reading it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> _ = publish(lib, "prop.lamp", {"name": "lamp"})
+>>> set_status(lib, "prop.lamp", "approved", by="me", reason="looks right")["status"]
+'approved'
+```
 
 ### an.library.api.show(libraries, ref)
 
@@ -360,6 +422,43 @@ The record, the resolved version, its recomputed rights and the list of versions
 >>> s["ref"], s["record"]["title"], s["versions"]
 ('an:prop.lamp@v001', 'A lamp', ['v001'])
 ```
+
+### an.library.api.unknown_advice(libraries, version, \*, owner=None, floor=<object object>)
+
+What would answer each `unknown` contributor of a version — one sentence per kind.
+
+The advice a refusal prints, so it names what works for THESE gaps
+(an#307): a gap of the asset’s own chain takes a relabel; a gap of a
+version it derives from is labelled there; another asset’s silence about
+bytes this version still holds is answered by labelling THAT asset (a
+relabel here cannot speak for another asset), or by dropping the file; and
+anything stated (a licence nobody recognises, an unverified stamp, a
+parent not on the path) relaxes only by a relicence.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> lib = open_library("an", records={}, versions={}, blobs={})
+>>> r = publish(lib, "prop.vase", {"name": "vase"})
+>>> r.rights.license_class, "--relabel-by" in r.advice[0]
+('unknown', True)
+```
+
+### an.library.api.version_labels(library, version)
+
+The labels recorded on a stored version since it was published, oldest first.
+
+A relabel of a version’s UNCHANGED content is recorded on that version, in
+the library’s append-only `labels` store, instead of minting a new
+version (an#307). A label counts only for the very version it was made on:
+its `manifest` must be this version’s (a same-named library’s other
+`x@v001` never inherits it). An unreadable label is skipped with a
+[`LibraryIndexWarning`](#an.library.api.LibraryIndexWarning); skipping one can only leave the version
+stricter.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]]
 
 ### an.library.api.version_sources(libraries, version, \*, floor=<object object>, owner=None)
 
@@ -409,7 +508,9 @@ Every facet with its values and counts, and the registered capabilities.
 
 What an agent reads to turn words into a typed query (spectrum (b)): “a
 Reiniger character who can walk in profile” → `style=reiniger`,
-`affords=["limbs.legs", "swap.view:side"]`.
+`affords=["limbs.legs", "swap.view:side"]`. The counts are over what
+`find` offers by default — the same recomputed rights, and no asset of a
+hidden status (`retired`), whose numbers are under `hidden`.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
@@ -418,7 +519,7 @@ Reiniger character who can walk in profile” → `style=reiniger`,
 >>> lib = open_library("an", records={}, versions={}, blobs={})
 >>> v = vocabulary(lib)
 >>> sorted(v)
-['capabilities', 'facets', 'kinds', 'rights', 'statuses']
+['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']
 >>> "limbs.legs" in v["capabilities"]
 True
 ```

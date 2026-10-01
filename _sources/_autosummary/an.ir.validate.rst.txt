@@ -12,6 +12,7 @@ an.ir.validate
       RETIRED_KEYS
       RETIRED_CAMERA_KEYS
       DIALOGUE_OVERRUN_TOLERANCE_S
+      POST_SYNTHESIS_CHECKS
    
    .. rubric:: Functions
 
@@ -23,8 +24,10 @@ an.ir.validate
       check_play_actions
       check_turns
       check_view_continuity
+      post_synthesis_findings
       registered_kind_problems
       require_registered_kinds
+      shot_dialogue_overruns
       validate_schema
       validate_semantic
    

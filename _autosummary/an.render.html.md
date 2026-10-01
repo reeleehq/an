@@ -15,20 +15,30 @@ adapters and the same flow handles them.
 |-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`RUN_LIVE_MARKER`](#an.render.RUN_LIVE_MARKER)        | the pid of the process rendering it (written at start).                                                                                                                                                                    |
 | [`RUN_DONE_MARKER`](#an.render.RUN_DONE_MARKER)        | written when the run delivered its film.                                                                                                                                                                                   |
+| [`FINDING_GROUPS`](#an.render.FINDING_GROUPS)         | How `an render`'s summary heads each `kind` of finding, in this order; a kind not listed (another warning category) is headed by its own name, after.                                                                      |
+| [`SUMMARY_MAX_PER_GROUP`](#an.render.SUMMARY_MAX_PER_GROUP)  | At most this many findings of one kind are listed in the summary.                                                                                                                                                          |
 | [`UNKNOWN_LIVENESS_MAX_S`](#an.render.UNKNOWN_LIVENESS_MAX_S) | Where a run's process cannot be asked whether it lives (Windows), a run unfinished after this long is taken for one that crashed: otherwise it would shield every cache entry written since, from `an cache gc`, for ever. |
 
 ### Functions
 
-| [`cache_entries`](#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.   |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`live_runs`](#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                          |
-| [`render`](#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                        |
-| [`render_project`](#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                |
+| [`cache_entries`](#an.render.cache_entries)(project, engine, \*[, fps, ...])   | The shot-cache entry ids a render of `project`'s CURRENT scene under these knobs would read — computed by the render's own setup and the engine's own key code, rendering and synthesising nothing.                                                                                         |
+|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`format_render_findings`](#an.render.format_render_findings)(project[, ...])           | `an render`'s summary of what the render found: one heading per kind ([`FINDING_GROUPS`](#an.render.FINDING_GROUPS)) with its count, then each finding's IR path and message — the message carries its fix — at most `max_per_group` per kind.                            |
+| [`live_runs`](#an.render.live_runs)(project_root)                          | Every cached render of this project still in progress, with the time it started (its live marker's mtime): what `an cache gc` must not race.                                                                                                                                                |
+| [`portable_text`](#an.render.portable_text)(text, \*[, root, home])            | `text` with this machine's absolute paths taken out: a path under the project `root` becomes project-relative, the root itself `.`, and the home directory `~` — so a render report (which a project may commit or share, and an agent may pass on) names no user, host folder or temp dir. |
+| [`render`](#an.render.render)(project, \*[, output_name, fps, ...])     | Lower-level: render a loaded `Project` to mp4.                                                                                                                                                                                                                                              |
+| [`render_findings`](#an.render.render_findings)(project[, output_name])          | The `Finding` s the last render of `output_name` reported (an#254), from `render_reports/<output_name>.json`; `[]` before any render.                                                                                                                                                       |
+| [`render_project`](#an.render.render_project)(project_dir, \*[, ...])           | Render every shot in `project_dir`'s scene and concatenate to one mp4.                                                                                                                                                                                                                      |
 
 ### Exceptions
 
 | [`RenderError`](#an.render.RenderError)   | Raised on render-pipeline failures with actionable detail.   |
 |----------------------------------------------------------------|--------------------------------------------------------------|
+
+### an.render.FINDING_GROUPS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'CaptionTimingWarning': 'captions without word timings', 'CutoutAssetWarning': 'art that could not be staged', 'CutoutCompileWarning': 'stand-ins, substitutions and compile notes', 'ShotCacheWarning': 'the shot cache', 'TakeDigestWarning': 'takes whose audio is not the recorded one', 'dialogue_fits': 'dialogue that does not fit its shot', 'dialogue_in_dissolve': 'dialogue heard during a dissolve', 'library_pins': 'library pins that disagree with assets.lock.json', 'measurement': 'shots whose renderer measured their length'}*
+
+How `an render`’s summary heads each `kind` of finding, in this order; a
+kind not listed (another warning category) is headed by its own name, after.
 
 ### an.render.RENDER_RUNS_DIR *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'runs'*
 
@@ -57,6 +67,10 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised on render-pipeline failures with actionable detail.
 
+### an.render.SUMMARY_MAX_PER_GROUP *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 5*
+
+At most this many findings of one kind are listed in the summary.
+
 ### an.render.UNKNOWN_LIVENESS_MAX_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 86400.0*
 
 Where a run’s process cannot be asked whether it lives (Windows), a run
@@ -81,6 +95,30 @@ without a synthesis, and a collector must not guess.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
+### an.render.format_render_findings(project, output_name='main', , max_per_group=5)
+
+`an render`’s summary of what the render found: one heading per kind
+([`FINDING_GROUPS`](#an.render.FINDING_GROUPS)) with its count, then each finding’s IR path and
+message — the message carries its fix — at most `max_per_group` per kind.
+`info` findings are counted in the report, not listed. `[]` when the
+render found nothing to warn about.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> recs = {"findings": [{"severity": "warning", "ir_path": "timeline/0/dialogue/1",
+...     "description": "line 1 (bob) ends at 3.64s as synthesized, past the shot's "
+...     "3.6s end. Lengthen the shot", "suggested_fix": None, "location": None,
+...     "kind": "dialogue_fits"}]}
+>>> import json
+>>> print("\n".join(format_render_findings(
+...     {"render_reports": {"main": json.dumps(recs)}})))
+findings: 1 warning (all in artifacts/render_reports/main.json)
+  dialogue that does not fit its shot (1):
+    timeline/0/dialogue/1: line 1 (bob) ends at 3.64s as synthesized, past the shot's 3.6s end. Lengthen the shot
+```
+
 ### an.render.live_runs(project_root)
 
 Every cached render of this project still in progress, with the time it
@@ -89,7 +127,25 @@ started (its live marker’s mtime): what `an cache gc` must not race.
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path), [`float`](https://docs.python.org/3/builtins/functions.html#float)]]
 
-### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False)
+### an.render.portable_text(text, , root=None, home=None)
+
+`text` with this machine’s absolute paths taken out: a path under the
+project `root` becomes project-relative, the root itself `.`, and the
+home directory `~` — so a render report (which a project may commit or
+share, and an agent may pass on) names no user, host folder or temp dir.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> portable_text("missing at /u/me/p/assets/a.png; see /u/me/x.log",
+...               root="/u/me/p", home="/u/me")
+'missing at assets/a.png; see ~/x.log'
+>>> portable_text("rendered in /u/me/p", root="/u/me/p", home="/u/me")
+'rendered in .'
+```
+
+### an.render.render(project, , output_name='main', fps=None, resolution=None, auto_audio=True, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=False, force_render=False, echo_warnings=True)
 
 Lower-level: render a loaded `Project` to mp4.
 
@@ -145,10 +201,38 @@ descriptor, the default backdrop for an unknown environment ref. Use it for
 anything that measures pixels: a stand-in renders happily and is a
 different picture (an#33).
 
+**What the render learns, it reports** (an#254). Render is when a line’s
+real length becomes known, so after synthesis the checks `an validate`
+could only estimate run again on the timing the film will mux — the SAME
+functions ([`an.ir.validate.post_synthesis_findings()`](an.ir.validate.html.md#an.ir.validate.post_synthesis_findings)): a line past its
+shot’s end, a speaker overlapping themself, a line heard during a dissolve.
+With them go the clock-owning renderers’ findings (an#279), the scene’s
+library pins that disagree with `assets.lock.json`, and every warning
+raised while the film was made — a stand-in or a recorded substitution, a
+take whose audio is not the one recorded, a caption without word timings —
+each addressed to its shot when its message names one. All of it is written
+to `render_reports/<output_name>.json` (`kind` says which check),
+readable as `Finding` s with [`render_findings()`](#an.render.render_findings);
+[`format_render_findings()`](#an.render.format_render_findings) is `an render`’s grouped summary of it.
+The warnings are still warned, after the render (`echo_warnings=False`:
+only reported — what `an render` passes, since it prints the summary; a
+render that fails echoes them anyway). What `strict_assets` refuses is
+refused where it is found, before a frame is drawn; nothing here is fatal.
+
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False)
+### an.render.render_findings(project, output_name='main')
+
+The `Finding` s the last render of `output_name` reported (an#254),
+from `render_reports/<output_name>.json`; `[]` before any render.
+
+`project` is a project directory, a loaded `Project` or its mall.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
+
+### an.render.render_project(project_dir, , output_name='main', fps=None, resolution=None, tts='offline', lipsync='offline', parallel=None, strict_assets=False, supersample=1, pix_fmt=None, capture=None, step_hz=None, language='en', incremental=True, force_render=False, echo_warnings=True)
 
 Render every shot in `project_dir`’s scene and concatenate to one mp4.
 
@@ -201,6 +285,10 @@ provider *instance* carries its own.
 A scene whose `library:` pins disagree with the project’s
 `assets.lock.json` renders with a `LibraryPinWarning` per pin, and is
 refused under `strict_assets` (`an.library.checkout.check_pins_before_render()`).
+
+**What the render learned is reported** (an#254): see [`render()`](#an.render.render) — every
+finding is in `render_reports/<output_name>.json`, read back as
+`Finding` s by [`render_findings()`](#an.render.render_findings), and summarised by `an render`.
 
 Returns the absolute path of the final output file (under `output/`).
 

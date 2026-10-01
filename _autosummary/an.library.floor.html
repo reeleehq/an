@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.federation" href="an.library.federation.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -805,13 +805,20 @@ version’s statement is the asset’s statement.</p>
 <a class="reference internal" href="an.library.registry.html#an.library.registry.RegistryError" title="an.library.registry.RegistryError"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.library.registry.RegistryError</span></code></a> when the registry cannot be
 read or written: the write is refused rather than made invisible to the floor.</p>
 <p>A registry that does not exist yet means either this machine’s first
-library write, or a registry that was deleted — and nothing on disk tells
-the two apart: a deleted registry takes its memory of statements with it.
-So whenever the registry is created from nothing (an#263, R2b-N2), every
-library discoverable now is registered with this one, and a
-<code class="xref py py-class docutils literal notranslate"><span class="pre">an.library.registry.RegistryWarning</span></code> says that a library kept at a
-custom root binds the rights checks again only once it is written to or
-reindexed. Never delete the registry folder wholesale; prune it.</p>
+library write, or a registry that was deleted (or libraries that predate
+it). The libraries on disk tell the two apart (an#307):</p>
+<ul class="simple">
+<li><p>no library discoverable now holds an asset: a <strong>new</strong> registry, created;</p></li>
+<li><p>libraries already hold assets: a <strong>lost</strong> one. It is rebuilt from what
+is discoverable now — those libraries are registered, and the statements
+their own floor indexes hold are remembered again — so their rights bind
+exactly as before. What cannot be recovered is a library kept at a
+custom root that is not discoverable now: it binds again once it is
+written to or reindexed.</p></li>
+</ul>
+<p>Either way a <code class="xref py py-class docutils literal notranslate"><span class="pre">an.library.registry.RegistryWarning</span></code> says which
+(R2b-N2: a registry deleted wholesale must never pass silently). Never
+delete the registry folder wholesale; prune it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>

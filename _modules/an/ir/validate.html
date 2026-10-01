@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -727,7 +727,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Mapping</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
 
@@ -748,7 +748,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">swap_art_missing</span><span class="p">,</span>
     <span class="n">swap_slots</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoiceEffectError</span><span class="p">,</span> <span class="n">voice_effects</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRIM_SILENCE</span><span class="p">,</span> <span class="n">VoiceEffectError</span><span class="p">,</span> <span class="n">voice_effects</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">speaker_voice_ref</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.characters.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">DFLT_VIEW</span><span class="p">,</span> <span class="n">VIEW_CHANNEL</span><span class="p">,</span> <span class="n">CharacterDescriptor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.binding</span><span class="w"> </span><span class="kn">import</span> <span class="n">expression_problems</span>
@@ -2415,6 +2415,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">available_environments</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">available_sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">available_library_lock</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">only</span><span class="p">:</span> <span class="s2">"Collection[str] | None"</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidationReport</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Cross-field semantic checks. Pass live stores in for cross-store checks.</span>
 
@@ -2443,36 +2445,44 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    its ``order``. An action or entity kind no loaded genre registered is one</span>
 <span class="sd">    error naming the genre that provides it; checks that would trip over it</span>
 <span class="sd">    skip that shot rather than crash.</span>
+
+<span class="sd">    ``only`` runs just the registered checks of those names (what ``an render``</span>
+<span class="sd">    does after synthesis, :func:`post_synthesis_findings`); ``fps`` is the one</span>
+<span class="sd">    the film is assembled at when it is not the scene's (``an render --fps``),</span>
+<span class="sd">    which decides how long a dissolve's overlap is.</span>
 <span class="sd">    """</span>
-    <span class="n">report</span> <span class="o">=</span> <span class="n">ValidationReport</span><span class="p">()</span>
-    <span class="n">stores</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">name</span><span class="p">:</span> <span class="n">store</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="p">(</span>
-            <span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="n">available_characters</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">"props"</span><span class="p">,</span> <span class="n">available_props</span><span class="p">),</span>
-            <span class="p">(</span><span class="s2">"environments"</span><span class="p">,</span> <span class="n">available_environments</span><span class="p">),</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-    <span class="p">}</span>
     <span class="n">ctx</span> <span class="o">=</span> <span class="n">ValidationContext</span><span class="p">(</span>
         <span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
-        <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">,</span>
-        <span class="n">stores</span><span class="o">=</span><span class="n">stores</span><span class="p">,</span>
+        <span class="n">report</span><span class="o">=</span><span class="n">ValidationReport</span><span class="p">(),</span>
+        <span class="n">stores</span><span class="o">=</span><span class="p">{</span>
+            <span class="n">name</span><span class="p">:</span> <span class="n">store</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="n">available_characters</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"props"</span><span class="p">,</span> <span class="n">available_props</span><span class="p">),</span>
+                <span class="p">(</span><span class="s2">"environments"</span><span class="p">,</span> <span class="n">available_environments</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">},</span>
         <span class="n">voices</span><span class="o">=</span><span class="n">available_voices</span><span class="p">,</span>
         <span class="n">characters</span><span class="o">=</span><span class="n">available_characters</span><span class="p">,</span>
         <span class="n">sounds</span><span class="o">=</span><span class="n">available_sounds</span><span class="p">,</span>
         <span class="n">library_lock</span><span class="o">=</span><span class="n">available_library_lock</span><span class="p">,</span>
+        <span class="n">memo</span><span class="o">=</span><span class="p">{</span><span class="n">_RENDER_FPS</span><span class="p">:</span> <span class="n">fps</span><span class="p">}</span> <span class="k">if</span> <span class="n">fps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{},</span>
     <span class="p">)</span>
-    <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">registered_checks</span><span class="p">(</span><span class="s2">"scene"</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">selected</span><span class="p">(</span><span class="n">stage</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">registered_checks</span><span class="p">(</span><span class="n">stage</span><span class="p">)</span> <span class="k">if</span> <span class="n">only</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">only</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">selected</span><span class="p">(</span><span class="s2">"scene"</span><span class="p">):</span>
         <span class="n">_run_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">shot</span><span class="p">,</span> <span class="n">i</span>
-        <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">registered_checks</span><span class="p">(</span><span class="s2">"shot"</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">selected</span><span class="p">(</span><span class="s2">"shot"</span><span class="p">):</span>
             <span class="n">_run_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
     <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">registered_checks</span><span class="p">(</span><span class="s2">"finish"</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">selected</span><span class="p">(</span><span class="s2">"finish"</span><span class="p">):</span>
         <span class="n">_run_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">report</span></div>
+    <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span></div>
 
 
 
@@ -2902,37 +2912,57 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_dialogue_fits</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">_check_dialogue_fits</span><span class="p">(</span>
-        <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">_voice_tempo</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
-    <span class="p">)</span>
+    <span class="n">effects_of</span> <span class="o">=</span> <span class="n">_voice_effects_of</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">voices</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">characters</span><span class="p">)</span>
+    <span class="n">_check_dialogue_fits</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">effects_of</span><span class="o">=</span><span class="n">effects_of</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_voice_tempo</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""``line -&gt; tempo`` of the voice each line of ``shot`` is spoken with (an#265).</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_voice_effects_of</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">voices</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">characters</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``line -&gt; effects`` of the voice each line of ``shot`` is spoken with.</span>
 
-<span class="sd">    A voice's ``effects.tempo`` re-times every render, offline included, so the</span>
-<span class="sd">    pre-synthesis estimate is divided by it. ``1.0`` when no voices are known or</span>
-<span class="sd">    the voice's effects are malformed (that is its own error)."""</span>
-    <span class="n">voices</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">voices</span>
+<span class="sd">    A voice's ``effects`` re-time every render, offline included (``tempo``,</span>
+<span class="sd">    an#265; ``trim_silence``, an#254). ``{}`` when no voices are known or the</span>
+<span class="sd">    voice's effects are malformed (that is its own error)."""</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">voices</span><span class="p">:</span>
-        <span class="k">return</span> <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="p">{}</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">tempo_of</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">effects_of</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="n">ref</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">or</span> <span class="n">speaker_voice_ref</span><span class="p">(</span>
-            <span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="p">{</span><span class="s2">"characters"</span><span class="p">:</span> <span class="n">ctx</span><span class="o">.</span><span class="n">characters</span><span class="p">}</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="p">{</span><span class="s2">"characters"</span><span class="p">:</span> <span class="n">characters</span><span class="p">}</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ref</span> <span class="o">=</span> <span class="s2">"default"</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">voice_effects</span><span class="p">({</span><span class="s2">"voices"</span><span class="p">:</span> <span class="n">voices</span><span class="p">},</span> <span class="n">ref</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">voice_effects</span><span class="p">({</span><span class="s2">"voices"</span><span class="p">:</span> <span class="n">voices</span><span class="p">},</span> <span class="n">ref</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">VoiceEffectError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mf">1.0</span>
+            <span class="k">return</span> <span class="p">{}</span>
 
-    <span class="k">return</span> <span class="n">tempo_of</span>
+    <span class="k">return</span> <span class="n">effects_of</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tempo_of</span><span class="p">(</span><span class="n">effects_of</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``line -&gt; tempo`` from ``line -&gt; effects`` (``1.0`` when undeclared)."""</span>
+    <span class="k">if</span> <span class="n">effects_of</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">effects_of</span><span class="p">(</span><span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_assembly</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">_check_assembly</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">sounds</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">sounds</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_dialogue_in_dissolve</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_check_dialogue_in_dissolves</span><span class="p">(</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_RENDER_FPS</span><span class="p">),</span>
+        <span class="n">effects_of_shot</span><span class="o">=</span><span class="k">lambda</span> <span class="n">shot</span><span class="p">:</span> <span class="n">_voice_effects_of</span><span class="p">(</span>
+            <span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">voices</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">characters</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="c1">#: A memo key: the fps a render uses, when it is not the scene's (``--fps``).</span>
+<span class="n">_RENDER_FPS</span> <span class="o">=</span> <span class="s2">"render fps"</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_add_findings</span><span class="p">(</span><span class="n">report</span><span class="p">:</span> <span class="n">ValidationReport</span><span class="p">,</span> <span class="n">findings</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -3083,6 +3113,13 @@ window.runMermaid = runMermaid;</script>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"dialogue_fits"</span><span class="p">,</span> <span class="n">_core_dialogue_fits</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">130</span><span class="p">),</span>
         <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"assembly"</span><span class="p">,</span> <span class="n">_core_assembly</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">"finish"</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
         <span class="n">SemanticCheck</span><span class="p">(</span>
+            <span class="s2">"dialogue_in_dissolve"</span><span class="p">,</span>
+            <span class="n">_core_dialogue_in_dissolve</span><span class="p">,</span>
+            <span class="n">stage</span><span class="o">=</span><span class="s2">"finish"</span><span class="p">,</span>
+            <span class="n">order</span><span class="o">=</span><span class="mi">21</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">"no line is heard during a dissolve (over the other shot's picture)"</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span>
             <span class="s2">"library_pins"</span><span class="p">,</span>
             <span class="n">_core_library_pins</span><span class="p">,</span>
             <span class="n">stage</span><span class="o">=</span><span class="s2">"finish"</span><span class="p">,</span>
@@ -3132,9 +3169,49 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_dialogue_fits</span><span class="p">(</span>
-    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="kc">None</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">effects_of</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Warn when a shot's dialogue runs past the shot's end.</span>
+<span class="w">    </span><span class="sd">"""Warn when a shot's dialogue runs past the shot's end</span>
+<span class="sd">    (:func:`shot_dialogue_overruns`).</span>
+
+<span class="sd">    Also warns when a speaker's line starts before that speaker's previous</span>
+<span class="sd">    line ends: one mouth cannot say two lines (an ``at`` can do that; a</span>
+<span class="sd">    ``pause`` cannot). Two speakers talking over each other is legal.</span>
+<span class="sd">    """</span>
+    <span class="n">speaking_until</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">_dialogue_layout</span><span class="p">(</span>
+        <span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">_tempo_of</span><span class="p">(</span><span class="n">effects_of</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="n">previous</span> <span class="o">=</span> <span class="n">speaking_until</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">previous</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"line </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">}</span><span class="s2">) starts at </span><span class="si">{</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, before the "</span>
+                <span class="sa">f</span><span class="s2">"same speaker's line </span><span class="si">{</span><span class="n">previous</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> ends at </span><span class="si">{</span><span class="n">previous</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span>
+                <span class="o">+</span> <span class="p">(</span><span class="s2">" (at the offline voice's rate)"</span> <span class="k">if</span> <span class="n">estimated</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+                <span class="o">+</span> <span class="s2">": one mouth cannot say both. Start it later (its `at`) or "</span>
+                <span class="s2">"give it a `pause` instead"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">speaking_until</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">shot_dialogue_overruns</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">effects_of</span><span class="o">=</span><span class="n">effects_of</span><span class="p">):</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="shot_dialogue_overruns">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.shot_dialogue_overruns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">shot_dialogue_overruns</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">effects_of</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">synthesized_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">tolerance_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(k, message)`` for each line of ``shot`` that ends past the shot's end.</span>
+
+<span class="sd">    The ONE overrun check: ``an validate`` runs it, the audio pipeline runs it</span>
+<span class="sd">    after synthesis (:func:`an.audio.pipeline.dialogue_overruns`), and ``an</span>
+<span class="sd">    render`` reports it from the rendered timing (:func:`post_synthesis_findings`).</span>
 
 <span class="sd">    The audio is cut at the shot end (each shot's mix is trimmed to its</span>
 <span class="sd">    duration), and the lines play back to back, so a shot shortened below its</span>
@@ -3151,27 +3228,20 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    :meth:`an.ir.schema.Dialogue.planned_start` — back to back from the shot</span>
 <span class="sd">    start, shifted by each line's ``pause`` or pinned by its ``at`` (an#187) —</span>
 <span class="sd">    so a pause edited after synthesis is judged where it will play, not where</span>
-<span class="sd">    the stale stamp says.</span>
+<span class="sd">    the stale stamp says. ``effects_of`` (``line -&gt; `` its voice's normalised</span>
+<span class="sd">    effects) supplies the tempo, and — for a synthesized line whose voice does</span>
+<span class="sd">    not trim — the fix of trimming the silence a real voice pads a line with.</span>
 
-<span class="sd">    Also warns when a speaker's line starts before that speaker's previous</span>
-<span class="sd">    line ends: one mouth cannot say two lines (an ``at`` can do that; a</span>
-<span class="sd">    ``pause`` cannot). Two speakers talking over each other is legal.</span>
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Dialogue, Shot</span>
+<span class="sd">    &gt;&gt;&gt; shot = Shot(id="s", duration=1.0, dialogue=[</span>
+<span class="sd">    ...     Dialogue(speaker="a", text="hi", start=0.2, duration=1.3, audio_ref="k")])</span>
+<span class="sd">    &gt;&gt;&gt; [(k, m[:44]) for k, m in shot_dialogue_overruns(shot)]</span>
+<span class="sd">    [(0, 'line 0 (a) ends at 1.30s as synthesized, pas')]</span>
 <span class="sd">    """</span>
-    <span class="n">speaking_until</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">tempo_of</span><span class="p">):</span>
-        <span class="n">previous</span> <span class="o">=</span> <span class="n">speaking_until</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">previous</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">:</span>
-            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                <span class="s2">"warning"</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">"line </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">}</span><span class="s2">) starts at </span><span class="si">{</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, before the "</span>
-                <span class="sa">f</span><span class="s2">"same speaker's line </span><span class="si">{</span><span class="n">previous</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> ends at </span><span class="si">{</span><span class="n">previous</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span>
-                <span class="o">+</span> <span class="p">(</span><span class="s2">" (at the offline voice's rate)"</span> <span class="k">if</span> <span class="n">estimated</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
-                <span class="o">+</span> <span class="s2">": one mouth cannot say both. Start it later (its `at`) or "</span>
-                <span class="s2">"give it a `pause` instead"</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="n">speaking_until</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">+</span> <span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">:</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tempo_of</span> <span class="o">=</span> <span class="n">_tempo_of</span><span class="p">(</span><span class="n">effects_of</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">_start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">tempo_of</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">+</span> <span class="n">tolerance_s</span> <span class="ow">or</span> <span class="p">(</span><span class="n">synthesized_only</span> <span class="ow">and</span> <span class="n">estimated</span><span class="p">):</span>
             <span class="k">continue</span>
         <span class="n">tempo</span> <span class="o">=</span> <span class="n">tempo_of</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">tempo_of</span> <span class="ow">and</span> <span class="n">estimated</span><span class="p">)</span> <span class="k">else</span> <span class="mf">1.0</span>
         <span class="n">how</span> <span class="o">=</span> <span class="p">(</span>
@@ -3181,23 +3251,137 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">estimated</span>
             <span class="k">else</span> <span class="s2">"as synthesized"</span>
         <span class="p">)</span>
-        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-            <span class="s2">"warning"</span><span class="p">,</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-            <span class="sa">f</span><span class="s2">"line </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">}</span><span class="s2">) ends at </span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s </span><span class="si">{</span><span class="n">how</span><span class="si">}</span><span class="s2">, past the shot's "</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s end, so its last </span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s are "</span>
-            <span class="s2">"cut off: the shot's audio stops where the shot does. Lengthen the "</span>
-            <span class="sa">f</span><span class="s2">"shot to at least </span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, shorten the line, or move it to the "</span>
-            <span class="s2">"next shot"</span><span class="p">,</span>
+        <span class="n">trims</span> <span class="o">=</span> <span class="n">TRIM_SILENCE</span> <span class="ow">in</span> <span class="p">(</span><span class="n">effects_of</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="n">effects_of</span> <span class="k">else</span> <span class="p">{})</span>
+        <span class="n">fix</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Lengthen the shot to at least </span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, shorten the line, or move "</span>
+            <span class="s2">"it to the next shot"</span>
+            <span class="o">+</span> <span class="p">(</span>
+                <span class="s2">""</span>
+                <span class="k">if</span> <span class="n">estimated</span> <span class="ow">or</span> <span class="n">trims</span>
+                <span class="k">else</span> <span class="s2">", or trim the silence a voice pads a line with (`effects: "</span>
+                <span class="s2">"{trim_silence: true}` on its voice document)"</span>
+            <span class="p">)</span>
         <span class="p">)</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">k</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"line </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">}</span><span class="s2">) ends at </span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s </span><span class="si">{</span><span class="n">how</span><span class="si">}</span><span class="s2">, past the shot's "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s end, so its last </span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s are "</span>
+                <span class="sa">f</span><span class="s2">"cut off: the shot's audio stops where the shot does. </span><span class="si">{</span><span class="n">fix</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="c1">#: The registered checks whose answer depends on what synthesis produced — a</span>
+<span class="c1">#: line's real length, hence where it starts and ends — and that ``an render``</span>
+<span class="c1">#: therefore runs again AFTER the audio pipeline, on the timing it will mux</span>
+<span class="c1">#: (:func:`post_synthesis_findings` runs exactly these, by name, through the</span>
+<span class="c1">#: registry). A check added later that reads ``Dialogue.duration`` or ``start``</span>
+<span class="c1">#: belongs here; ``tests/test_render_findings.py`` lists the ones that do.</span>
+<span class="n">POST_SYNTHESIS_CHECKS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"dialogue_fits"</span><span class="p">,</span>
+    <span class="s2">"dialogue_in_dissolve"</span><span class="p">,</span>
+    <span class="s2">"cutout.hidden_mouth_while_speaking"</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="post_synthesis_findings">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.post_synthesis_findings">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">post_synthesis_findings</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">checks</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">POST_SYNTHESIS_CHECKS</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ValidationFinding</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(check, finding)`` for each finding the synthesized timing gives.</span>
+
+<span class="sd">    The SAME registered checks ``an validate`` runs, selected by name</span>
+<span class="sd">    (:data:`POST_SYNTHESIS_CHECKS`): dialogue past its shot's end, a speaker</span>
+<span class="sd">    overlapping themself, a line heard during a dissolve, a line spoken while</span>
+<span class="sd">    the speaker's view hides its mouth. ``an render`` calls this once the audio</span>
+<span class="sd">    pipeline has stamped every line's real ``duration``, so what ``an validate``</span>
+<span class="sd">    could only estimate is reported exactly, at the moment it becomes known</span>
+<span class="sd">    (an#254). ``fps`` is the render's (it decides the dissolve overlaps);</span>
+<span class="sd">    default the scene's. ``stores`` are :func:`validate_semantic`'s</span>
+<span class="sd">    ``available_*`` keywords. A check no loaded genre registered is skipped.</span>
+<span class="sd">    """</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ValidationFinding</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">checks</span><span class="p">:</span>
+        <span class="n">report</span> <span class="o">=</span> <span class="n">validate_semantic</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">only</span><span class="o">=</span><span class="p">(</span><span class="n">name</span><span class="p">,),</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">,</span> <span class="o">**</span><span class="n">stores</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">report</span><span class="o">.</span><span class="n">findings</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_dialogue_in_dissolves</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">effects_of_shot</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A dissolve plays both shots' audio in the overlap: a line there is heard</span>
+<span class="sd">    over the other shot's picture. Legal, and worth a word — with where the line</span>
+<span class="sd">    plays and where the overlap is, laid out like :func:`shot_dialogue_overruns`</span>
+<span class="sd">    (real durations once synthesized, the offline estimate over the voice's</span>
+<span class="sd">    ``tempo`` before). Silent when the transitions themselves are refused."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">film_timeline</span><span class="p">,</span> <span class="n">transition_problems</span>
+
+    <span class="n">fps</span> <span class="o">=</span> <span class="n">fps</span> <span class="k">if</span> <span class="n">fps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fps</span> <span class="ow">or</span> <span class="n">fps</span> <span class="o">&lt;=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">transition_problems</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">fps</span><span class="p">):</span>
+        <span class="k">return</span>
+    <span class="n">timeline</span> <span class="o">=</span> <span class="n">film_timeline</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="n">overlap_out</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">fps</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">overlap_in</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">fps</span>
+        <span class="n">effects_of</span> <span class="o">=</span> <span class="n">effects_of_shot</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span> <span class="k">if</span> <span class="n">effects_of_shot</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">_tempo_of</span><span class="p">(</span><span class="n">effects_of</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">layout</span><span class="p">:</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">overlap_in</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">overlap_in</span><span class="p">:</span>
+                <span class="n">where</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"the dissolve from shot </span><span class="si">{</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"(0-</span><span class="si">{</span><span class="n">overlap_in</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s)"</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">overlap_out</span> <span class="ow">and</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">-</span> <span class="n">overlap_out</span><span class="p">:</span>
+                <span class="n">where</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"the dissolve into shot </span><span class="si">{</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">[</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">overlap_out</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s)"</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">where</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">trims</span> <span class="o">=</span> <span class="n">TRIM_SILENCE</span> <span class="ow">in</span> <span class="p">(</span><span class="n">effects_of</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="n">effects_of</span> <span class="k">else</span> <span class="p">{})</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"this line plays during a dissolve: line </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">}</span><span class="s2">) "</span>
+                <span class="sa">f</span><span class="s2">"plays </span><span class="si">{</span><span class="n">start</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s"</span>
+                <span class="o">+</span> <span class="p">(</span><span class="s2">" (at the offline voice's rate)"</span> <span class="k">if</span> <span class="n">estimated</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">", inside </span><span class="si">{</span><span class="s1">' and '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where</span><span class="p">)</span><span class="si">}</span><span class="s2">, so it is heard over the "</span>
+                <span class="s2">"neighbouring shot's picture too; move it clear of the overlap or "</span>
+                <span class="s2">"shorten the dissolve"</span>
+                <span class="o">+</span> <span class="p">(</span>
+                    <span class="s2">""</span>
+                    <span class="k">if</span> <span class="n">estimated</span> <span class="ow">or</span> <span class="n">trims</span>
+                    <span class="k">else</span> <span class="s2">", or trim the silence its voice pads it with (`effects: "</span>
+                    <span class="s2">"{trim_silence: true}`)"</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_assembly</span><span class="p">(</span>
-    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Transitions and the sound layer (`an.assemble`): what assembling the film</span>
 <span class="sd">    would refuse is an error here, from the SAME list the assembler raises on."""</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">film_timeline</span><span class="p">,</span> <span class="n">transition_problems</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">transition_problems</span>
 
     <span class="n">fps</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span>
     <span class="k">if</span> <span class="n">fps</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -3205,28 +3389,6 @@ window.runMermaid = runMermaid;</script>
     <span class="n">problems</span> <span class="o">=</span> <span class="n">transition_problems</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">fps</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/transition"</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">problems</span><span class="p">:</span>
-        <span class="n">timeline</span> <span class="o">=</span> <span class="n">film_timeline</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
-            <span class="c1"># A dissolve plays both shots' audio in the overlap: a line there</span>
-            <span class="c1"># is heard over the other shot's picture. Legal, and worth a word.</span>
-            <span class="n">overlap_out</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">fps</span>
-                <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
-                <span class="k">else</span> <span class="mf">0.0</span>
-            <span class="p">)</span>
-            <span class="n">overlap_in</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">dissolve_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="n">fps</span>
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">_line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">_estimated</span> <span class="ow">in</span> <span class="n">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">):</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">overlap_in</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">overlap_in</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
-                    <span class="n">overlap_out</span> <span class="ow">and</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">-</span> <span class="n">overlap_out</span>
-                <span class="p">):</span>
-                    <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                        <span class="s2">"warning"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="s2">"this line plays during a dissolve, so it is heard over "</span>
-                        <span class="s2">"the neighbouring shot's picture too; move it clear of "</span>
-                        <span class="s2">"the overlap or shorten the dissolve"</span><span class="p">,</span>
-                    <span class="p">)</span>
 
     <span class="n">cues</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"meta/sounds"</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">sounds</span><span class="p">)]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">problems</span><span class="p">:</span>

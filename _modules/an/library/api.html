@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../../../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -710,7 +710,7 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for an.library.api</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""The library's verbs: ``publish``, ``find``, ``vocabulary``, ``show``, ``promote``.</span>
+<span></span><span class="sd">"""The library's verbs: ``publish``, ``find``, ``vocabulary``, ``show``, ``promote``, ``retire``.</span>
 
 <span class="sd">Plain functions over :class:`~an.library.federation.Library` objects (pillar 8:</span>
 <span class="sd">the functions are the API; the ``an library …`` CLI and, later, MCP are thin</span>
@@ -721,8 +721,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">The documents they write (ADR 0005 decision 4, design §4):</span>
 
 <span class="sd">- a **record** per asset — identity and curation, mutable: ``id``, ``kind``,</span>
-<span class="sd">  ``title``, ``family``, ``head``, ``status``, ``facets`` (``style``, ``origin``),</span>
-<span class="sd">  ``tags``;</span>
+<span class="sd">  ``title``, ``family``, ``head``, ``status`` (``retired`` hides it from</span>
+<span class="sd">  ``find``: :func:`retire`), its append-only ``status_history``, ``facets``</span>
+<span class="sd">  (``style``, ``origin``), ``tags``;</span>
+<span class="sd">- a **label** per relabel of a version's unchanged content (an#307) —</span>
+<span class="sd">  append-only, keyed by the hash of what it says: the source, who and why,</span>
+<span class="sd">  and the rights it gave the version; a version's rights read its labels;</span>
 <span class="sd">- a **version** per publish — immutable: the descriptor ``doc`` verbatim, its</span>
 <span class="sd">  ``files`` as ``dol.content.ContentRef`` s, the asset-level ``source``,</span>
 <span class="sd">  ``derived_from``, the derived ``affordances`` with the ``analysers`` that made</span>
@@ -752,7 +756,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">replace</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NamedTuple</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">dol.content</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContentRef</span><span class="p">,</span> <span class="n">content_hash</span>
 
@@ -762,6 +766,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">is_factory_stamp</span><span class="p">,</span>
     <span class="n">is_clutter</span><span class="p">,</span>
     <span class="n">is_generated_source</span><span class="p">,</span>
+    <span class="n">nobody_labelled</span><span class="p">,</span>
     <span class="n">referenced_paths</span><span class="p">,</span>
     <span class="n">same_source</span><span class="p">,</span>
 <span class="p">)</span>
@@ -816,7 +821,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">sources_in</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.library.root</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORE_PACKAGE</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.stores</span><span class="w"> </span><span class="kn">import</span> <span class="n">VersionExistsError</span><span class="p">,</span> <span class="n">canonical_json</span><span class="p">,</span> <span class="n">version_key</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.library.stores</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">LABEL_KEY_SEP</span><span class="p">,</span>
+    <span class="n">VersionExistsError</span><span class="p">,</span>
+    <span class="n">canonical_json</span><span class="p">,</span>
+    <span class="n">label_key</span><span class="p">,</span>
+    <span class="n">version_key</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CheckoutError"</span><span class="p">,</span>
@@ -835,8 +846,12 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"publish"</span><span class="p">,</span>
     <span class="s2">"publish_dir"</span><span class="p">,</span>
     <span class="s2">"reindex"</span><span class="p">,</span>
+    <span class="s2">"retire"</span><span class="p">,</span>
     <span class="s2">"scan_index"</span><span class="p">,</span>
+    <span class="s2">"set_status"</span><span class="p">,</span>
     <span class="s2">"show"</span><span class="p">,</span>
+    <span class="s2">"unknown_advice"</span><span class="p">,</span>
+    <span class="s2">"version_labels"</span><span class="p">,</span>
     <span class="s2">"version_sources"</span><span class="p">,</span>
     <span class="s2">"vocabulary"</span><span class="p">,</span>
 <span class="p">]</span>
@@ -857,9 +872,23 @@ window.runMermaid = runMermaid;</script>
         <span class="n">current_version</span><span class="o">=</span><span class="n">LIBRARY_SCHEMA_VERSION</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">)</span>
+<span class="n">LABEL_KIND</span><span class="p">:</span> <span class="n">DocumentKind</span> <span class="o">=</span> <span class="n">register_kind</span><span class="p">(</span>
+    <span class="n">DocumentKind</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"LibraryLabel"</span><span class="p">,</span>
+        <span class="n">version_field</span><span class="o">=</span><span class="s2">"schema_version"</span><span class="p">,</span>
+        <span class="n">current_version</span><span class="o">=</span><span class="n">LIBRARY_SCHEMA_VERSION</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">)</span>
 <span class="c1">#: Curation status vocabulary (design §5); a status is curation, so it lives on the record.</span>
-<span class="n">STATUSES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"draft"</span><span class="p">,</span> <span class="s2">"approved"</span><span class="p">,</span> <span class="s2">"deprecated"</span><span class="p">)</span>
+<span class="c1">#: ``retired``: a dead id (an#307) — hidden from ``find``, never deleted.</span>
+<span class="n">STATUSES</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"draft"</span><span class="p">,</span> <span class="s2">"approved"</span><span class="p">,</span> <span class="s2">"deprecated"</span><span class="p">,</span> <span class="s2">"retired"</span><span class="p">)</span>
 <span class="n">DFLT_STATUS</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"draft"</span>
+<span class="c1">#: Statuses ``find`` and ``vocabulary`` leave out unless asked for by name:</span>
+<span class="c1">#: their versions stay readable (projects pin them), they are just not offered.</span>
+<span class="n">HIDDEN_STATUSES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"retired"</span><span class="p">})</span>
+<span class="c1">#: The record field logging every status change: ``[{status, by, reason, at}]``,</span>
+<span class="c1">#: appended to, never rewritten.</span>
+<span class="n">STATUS_HISTORY_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"status_history"</span>
 <span class="c1">#: The ``rights=`` filter values besides a licence class.</span>
 <span class="n">RIGHTS_ANY</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"any"</span>
 <span class="n">RIGHTS_PUBLISHABLE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"publishable"</span>
@@ -889,10 +918,15 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: The version field recording an explicit LABEL of bytes nobody labelled:</span>
 <span class="c1">#: ``{"by": who, "reason": why}``, beside an explicit ``source`` (an#263). It</span>
 <span class="c1">#: answers the GAPS of the asset's own version chain — a file an earlier version</span>
-<span class="c1">#: recorded as ``unlabelled``, an earlier version that recorded no source at</span>
-<span class="c1">#: all — with that source. It is a first statement, not a relaxation: it answers</span>
-<span class="c1">#: nothing anyone stated (a private or any other licence, a per-part source, a</span>
-<span class="c1">#: version it derives from, another asset's statement about the same bytes).</span>
+<span class="c1">#: recorded as ``unlabelled``, a file no person's source spoke for (a</span>
+<span class="c1">#: placeholder of the credits walk: :func:`an.credits.nobody_labelled`), an</span>
+<span class="c1">#: earlier version that recorded no source at all, another asset's SILENCE</span>
+<span class="c1">#: about a file the chain once held and the labelling version no longer holds</span>
+<span class="c1">#: (an#307) — with that source. It is a first statement, not a relaxation: it</span>
+<span class="c1">#: answers nothing anyone stated (a private or any other licence, a per-part</span>
+<span class="c1">#: source, a version it derives from, another asset's statement about bytes</span>
+<span class="c1">#: the labelling version holds). Also the field of a label recorded on an</span>
+<span class="c1">#: existing version (:func:`version_labels`).</span>
 <span class="n">RELABEL_FIELD</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"relabel"</span>
 <span class="c1">#: The version field pinning its lineage: ``{parent_ref: manifest_sha256}`` for</span>
 <span class="c1">#: ``previous`` and every ``derived_from`` parent, as resolved at publish</span>
@@ -1286,6 +1320,156 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_MACHINE</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">_Answer</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A recorded label answering the gaps of a version chain (an#263, an#307)."""</span>
+
+    <span class="n">note</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># "labelled by &lt;who&gt;: &lt;why&gt;"</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span>  <span class="c1"># the source it labels them with</span>
+    <span class="n">held</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>  <span class="c1"># the digests the labelling version holds</span>
+
+
+<span class="c1">#: What answers an ``unknown`` contributor, as :class:`Contributor` records it.</span>
+<span class="n">REMEDY_RELABEL</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"relabel"</span>
+<span class="c1">#: ``parent:&lt;ref&gt;`` — a gap of a version this one derives from.</span>
+<span class="n">REMEDY_PARENT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"parent:"</span>
+<span class="c1">#: ``other:&lt;ref&gt;`` — another asset's silence about bytes this version holds.</span>
+<span class="n">REMEDY_OTHER</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"other:"</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Contributor</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A contributor's label in :func:`version_sources`, knowing what would answer it.</span>
+
+<span class="sd">    A plain ``str`` everywhere a label is read (reasons, credits); ``remedy``</span>
+<span class="sd">    (one of the ``REMEDY_*`` forms, or empty) is what :func:`unknown_advice`</span>
+<span class="sd">    turns into the sentence a refusal prints — so the advice names what works</span>
+<span class="sd">    for THIS gap, not a relabel that cannot answer it (an#307).</span>
+
+<span class="sd">    &gt;&gt;&gt; c = Contributor("asset: no source", REMEDY_RELABEL)</span>
+<span class="sd">    &gt;&gt;&gt; (c, c.remedy, c.upper())</span>
+<span class="sd">    ('asset: no source', 'relabel', 'ASSET: NO SOURCE')</span>
+<span class="sd">    """</span>
+
+    <span class="n">remedy</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">remedy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"Contributor"</span><span class="p">:</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">remedy</span> <span class="o">=</span> <span class="n">remedy</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+
+<div class="viewcode-block" id="version_labels">
+<a class="viewcode-back" href="../../../_autosummary/an.library.api.html#an.library.version_labels">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">version_labels</span><span class="p">(</span>
+    <span class="n">library</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The labels recorded on a stored version since it was published, oldest first.</span>
+
+<span class="sd">    A relabel of a version's UNCHANGED content is recorded on that version, in</span>
+<span class="sd">    the library's append-only ``labels`` store, instead of minting a new</span>
+<span class="sd">    version (an#307). A label counts only for the very version it was made on:</span>
+<span class="sd">    its ``manifest`` must be this version's (a same-named library's other</span>
+<span class="sd">    ``x@v001`` never inherits it). An unreadable label is skipped with a</span>
+<span class="sd">    :class:`LibraryIndexWarning`; skipping one can only leave the version</span>
+<span class="sd">    stricter.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">library</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">asset</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">manifest</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"asset"</span><span class="p">),</span>
+        <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">),</span>
+        <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"manifest_sha256"</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">asset</span> <span class="ow">and</span> <span class="n">label</span> <span class="ow">and</span> <span class="n">manifest</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">version_key</span><span class="p">(</span><span class="n">asset</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="o">+</span> <span class="n">LABEL_KEY_SEP</span>
+    <span class="k">except</span> <span class="n">AssetIdError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="n">store</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">labels</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">store</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">doc</span> <span class="o">=</span> <span class="n">migrate</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]),</span> <span class="n">kind</span><span class="o">=</span><span class="n">LABEL_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">relabel</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+            <span class="n">_source_model</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># noqa: BLE001 — reported, and skipping is stricter</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> could not be read (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">); "</span>
+                <span class="s2">"that label is not counted"</span><span class="p">,</span>
+                <span class="n">LibraryIndexWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="n">LABEL_KEY_SEP</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">_label_id</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> does not say what its id was made from (it "</span>
+                <span class="s2">"was edited); that label is not counted"</span><span class="p">,</span>
+                <span class="n">LibraryIndexWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"manifest"</span><span class="p">)</span> <span class="o">==</span> <span class="n">manifest</span>
+            <span class="ow">and</span> <span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">relabel</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"by"</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">relabel</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reason"</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="o">**</span><span class="n">doc</span><span class="p">,</span> <span class="s2">"_key"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)})</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"labelled"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">),</span> <span class="n">d</span><span class="p">[</span><span class="s2">"_key"</span><span class="p">]))</span></div>
+
+
+
+<span class="c1">#: The fields of a label its id is the hash of: what it says, and the version it says it of.</span>
+<span class="n">_LABEL_ID_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"manifest"</span><span class="p">,</span> <span class="s2">"source"</span><span class="p">,</span> <span class="n">RELABEL_FIELD</span><span class="p">,</span> <span class="s2">"rights"</span><span class="p">)</span>
+<span class="c1">#: Hex digits of that hash in the label's key.</span>
+<span class="n">_LABEL_ID_LEN</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_label_id</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The id of a label: the hash of what it says (an edited label no longer matches it)."""</span>
+    <span class="n">said</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">_LABEL_ID_FIELDS</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">canonical_json</span><span class="p">(</span><span class="n">said</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[</span>
+        <span class="p">:</span><span class="n">_LABEL_ID_LEN</span>
+    <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">labelled_view</span><span class="p">(</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">labels</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``version`` as its latest label presents it: what a check-out writes, what a publish carries.</span>
+
+<span class="sd">    The latest label's source and relabel replace the version's own, and the</span>
+<span class="sd">    gaps the version recorded (``unlabelled``) are answered — exactly the</span>
+<span class="sd">    version a relabel publish of the unchanged content would have minted.</span>
+<span class="sd">    Rights are never read from it: :func:`version_sources` reads the version</span>
+<span class="sd">    and its labels.</span>
+<span class="sd">    """</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">labels</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">version</span>
+    <span class="n">latest</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">view</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="o">**</span><span class="n">version</span><span class="p">,</span>
+        <span class="s2">"source"</span><span class="p">:</span> <span class="n">latest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">),</span>
+        <span class="n">RELABEL_FIELD</span><span class="p">:</span> <span class="n">latest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">view</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">view</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">stored_rights</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Rights</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The rights cached for a version: its latest label's, else the version's own.</span>
+
+<span class="sd">    A cache, never the answer: every reader takes the stricter of it and the</span>
+<span class="sd">    recomputed :func:`effective_rights`.</span>
+<span class="sd">    """</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">version_labels</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="p">(</span><span class="n">labels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rights"</span><span class="p">)</span> <span class="k">if</span> <span class="n">labels</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rights"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Rights</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">block</span> <span class="ow">or</span> <span class="p">{})</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_stricter_statement</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">b</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Whether statement ``a`` is more restrictive than ``b``."""</span>
     <span class="n">order</span> <span class="o">=</span> <span class="n">LICENSE_CLASS_ORDER</span><span class="o">.</span><span class="n">index</span>
@@ -1376,18 +1560,60 @@ window.runMermaid = runMermaid;</script>
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">trusted</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># (library origin, manifest)</span>
-    <span class="n">visits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># (prefix, version walked, the labels answering its chain — nearest first)</span>
+    <span class="n">visits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Answer</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span>
         <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
         <span class="n">holder</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">answer_from_later</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">answers</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">_Answer</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">via</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">raw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Add one version's contributions and its lineage's; return whether it is verified."""</span>
+<span class="w">        </span><span class="sd">"""Add one version's contributions and its lineage's; return whether it is verified.</span>
+
+<span class="sd">        answers: the recorded labels of this chain made after this version,</span>
+<span class="sd">            nearest first: the nearest answers its gaps; any whose labelling</span>
+<span class="sd">            version no longer holds a file answers another asset's silence</span>
+<span class="sd">            about it (an#307)</span>
+<span class="sd">        via: the ``derived_from`` parent this branch of the walk entered by</span>
+<span class="sd">            (``None`` on the version's own chain), for the remedy a gap names</span>
+<span class="sd">        raw: the version as published, without the labels recorded on it since</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">version_labels</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+                <span class="c1"># Each label is a statement made about this very version after</span>
+                <span class="c1"># it was published (an#307): what a relabel publish of its</span>
+                <span class="c1"># unchanged content would have said as a new version — its</span>
+                <span class="c1"># source contributes, and the earliest label answers the gaps</span>
+                <span class="c1"># of this version and its own chain.</span>
+                <span class="n">kind</span> <span class="o">=</span> <span class="n">ASSET_KINDS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc_kind"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+                <span class="n">hashes</span> <span class="o">=</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+                <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                        <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources_in</span><span class="p">(</span>
+                            <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span>
+                            <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span> <span class="k">if</span> <span class="n">kind</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                            <span class="n">source</span><span class="o">=</span><span class="n">_source_model</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)),</span>
+                            <span class="n">files</span><span class="o">=</span><span class="n">hashes</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">answer</span> <span class="o">=</span> <span class="n">_Answer</span><span class="p">(</span>
+                    <span class="n">_relabel_note</span><span class="p">(</span><span class="n">first</span><span class="p">[</span><span class="n">RELABEL_FIELD</span><span class="p">]),</span>
+                    <span class="n">_source_model</span><span class="p">(</span><span class="n">first</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)),</span>
+                    <span class="nb">frozenset</span><span class="p">(</span><span class="n">hashes</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">walk</span><span class="p">(</span>
+                    <span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="p">(</span><span class="n">answer</span><span class="p">,</span> <span class="o">*</span><span class="n">answers</span><span class="p">),</span> <span class="n">via</span><span class="o">=</span><span class="n">via</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span>
+                <span class="p">)</span>
         <span class="n">relicense</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">relicense</span><span class="p">:</span>  <span class="c1"># a relicence replaces everything, its bytes' floor included</span>
-            <span class="n">visits</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">prefix</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
+            <span class="n">visits</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">prefix</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">answers</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">relicense</span><span class="p">:</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                 <span class="p">(</span>
@@ -1397,18 +1623,28 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
             <span class="k">return</span> <span class="n">_verify</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">gap</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">unanswered</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">gap</span><span class="p">(</span>
+            <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">why</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">placeholder</span><span class="p">:</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">AssetSource</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
             <span class="c1"># Nobody ever said anything here: answered by a later version's</span>
             <span class="c1"># explicit, recorded label of this chain, else unknown.</span>
-            <span class="k">if</span> <span class="n">answer_from_later</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}{</span><span class="n">unanswered</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">note</span><span class="p">,</span> <span class="n">answer</span> <span class="o">=</span> <span class="n">answer_from_later</span>
-            <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="n">answer</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">answers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">via</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">hint</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"label </span><span class="si">{</span><span class="n">via</span><span class="si">}</span><span class="s2"> first"</span>
+                    <span class="n">remedy</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">REMEDY_PARENT</span><span class="si">}{</span><span class="n">via</span><span class="si">}</span><span class="s2">"</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">hint</span><span class="p">,</span> <span class="n">remedy</span> <span class="o">=</span> <span class="n">LABEL_HINT</span><span class="p">,</span> <span class="n">REMEDY_RELABEL</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">hint</span><span class="si">}</span><span class="s2">)"</span> <span class="k">if</span> <span class="n">why</span> <span class="k">else</span> <span class="n">label</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">Contributor</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">remedy</span><span class="p">),</span> <span class="n">placeholder</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">answers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">note</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="n">answers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
 
         <span class="n">kind</span> <span class="o">=</span> <span class="n">ASSET_KINDS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc_kind"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-            <span class="n">gap</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="n">gap</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">src</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">label</span> <span class="o">==</span> <span class="n">ASSET_SOURCE_LABEL</span>
+            <span class="c1"># A file no person's source speaks for (an#307): a gap too.</span>
+            <span class="k">else</span> <span class="n">gap</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="n">src</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nobody_labelled</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
             <span class="k">else</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">src</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">sources_in</span><span class="p">(</span>
                 <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span>
@@ -1420,23 +1656,27 @@ window.runMermaid = runMermaid;</script>
         <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
             <span class="n">gap</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="s2">" (changed since the carried source was declared; not labelled: "</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">LABEL_HINT</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+                <span class="s2">"changed since the carried source was declared; not labelled"</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="p">)</span>
         <span class="n">relabel</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span>
         <span class="n">own_answer</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">_relabel_note</span><span class="p">(</span><span class="n">relabel</span><span class="p">),</span> <span class="n">_source_model</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)))</span>
+            <span class="n">_Answer</span><span class="p">(</span>
+                <span class="n">_relabel_note</span><span class="p">(</span><span class="n">relabel</span><span class="p">),</span>
+                <span class="n">_source_model</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)),</span>
+                <span class="nb">frozenset</span><span class="p">(</span><span class="n">_file_hashes</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+            <span class="p">)</span>
             <span class="k">if</span> <span class="n">relabel</span> <span class="ow">and</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
             <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
         <span class="n">pins</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">LINEAGE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">chain</span> <span class="o">=</span> <span class="p">(</span><span class="n">own_answer</span><span class="p">,</span> <span class="o">*</span><span class="n">answers</span><span class="p">)</span> <span class="k">if</span> <span class="n">own_answer</span> <span class="k">else</span> <span class="n">answers</span>
         <span class="n">lineage</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"previous version </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">own_answer</span> <span class="ow">or</span> <span class="n">answer_from_later</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">ref</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"previous version </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="p">[</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PREVIOUS_FIELD</span><span class="p">)]</span>
             <span class="k">if</span> <span class="n">ref</span>
-        <span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">ref</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"derived_from"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]]</span>
+        <span class="p">]</span> <span class="o">+</span> <span class="p">[(</span><span class="n">ref</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="p">(),</span> <span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"derived_from"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]]</span>
         <span class="n">links_ok</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">parent</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">answer</span><span class="p">,</span> <span class="n">is_previous</span> <span class="ow">in</span> <span class="n">lineage</span><span class="p">:</span>
             <span class="n">pin</span> <span class="o">=</span> <span class="n">pins</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
@@ -1471,7 +1711,11 @@ window.runMermaid = runMermaid;</script>
                 <span class="k">continue</span>
             <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">))</span>
             <span class="n">parent_ok</span> <span class="o">=</span> <span class="n">walk</span><span class="p">(</span>
-                <span class="n">parent_version</span><span class="p">,</span> <span class="n">parent_holder</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2"> &gt; "</span><span class="p">,</span> <span class="n">answer</span>
+                <span class="n">parent_version</span><span class="p">,</span>
+                <span class="n">parent_holder</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2"> &gt; "</span><span class="p">,</span>
+                <span class="n">answer</span><span class="p">,</span>
+                <span class="n">via</span><span class="o">=</span><span class="n">via</span> <span class="k">if</span> <span class="n">is_previous</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">),</span>
             <span class="p">)</span>
             <span class="n">links_ok</span> <span class="o">=</span> <span class="n">links_ok</span> <span class="ow">and</span> <span class="n">link_ok</span> <span class="ow">and</span> <span class="n">parent_ok</span>
         <span class="k">return</span> <span class="n">_verify</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="n">links_ok</span><span class="p">)</span>
@@ -1481,7 +1725,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">trusted</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">library_origin</span><span class="p">(</span><span class="n">holder</span><span class="p">),</span> <span class="n">version</span><span class="p">[</span><span class="s2">"manifest_sha256"</span><span class="p">]))</span>
         <span class="k">return</span> <span class="n">ok</span>
 
-    <span class="n">root_ok</span> <span class="o">=</span> <span class="n">walk</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">root_ok</span> <span class="o">=</span> <span class="n">walk</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="p">())</span>
     <span class="k">if</span> <span class="n">floor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">out</span>
     <span class="c1"># The root's own statements, when its walk is verified, are this walk.</span>
@@ -1490,10 +1734,14 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="n">root_ok</span> <span class="ow">and</span> <span class="n">owner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"manifest_sha256"</span><span class="p">)</span>
         <span class="k">else</span> <span class="nb">set</span><span class="p">()</span>
     <span class="p">)</span>
-    <span class="k">for</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">walked</span> <span class="ow">in</span> <span class="n">visits</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">walked</span><span class="p">,</span> <span class="n">answers</span> <span class="ow">in</span> <span class="n">visits</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">walked</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
             <span class="n">digest</span> <span class="o">=</span> <span class="n">ContentRef</span><span class="o">.</span><span class="n">from_json</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="o">.</span><span class="n">item_id</span>
             <span class="n">bound</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">answered</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># A later label of this chain made by a version that no longer</span>
+            <span class="c1"># holds these bytes (an#307).</span>
+            <span class="n">answer</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">a</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">answers</span> <span class="k">if</span> <span class="n">digest</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">held</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">origin</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="n">floor</span><span class="o">.</span><span class="n">each</span><span class="p">(</span><span class="n">digest</span><span class="p">):</span>
                 <span class="bp">cls</span> <span class="o">=</span> <span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">)</span>
                 <span class="n">made_by</span> <span class="o">=</span> <span class="p">(</span><span class="n">origin</span><span class="p">,</span> <span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"manifest"</span><span class="p">))</span>
@@ -1503,6 +1751,17 @@ window.runMermaid = runMermaid;</script>
                     <span class="c1"># A verified version this walk read in full: its silence</span>
                     <span class="c1"># is already here, and may be a gap a later label answers.</span>
                     <span class="c1"># (Its `private` or `attribution` is always read.)</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="bp">cls</span> <span class="o">==</span> <span class="s2">"unknown"</span> <span class="ow">and</span> <span class="n">answer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Another asset's SILENCE about bytes an earlier version</span>
+                    <span class="c1"># of this chain held, and the version whose label answers</span>
+                    <span class="c1"># this chain's gaps no longer holds (an#307): binding the</span>
+                    <span class="c1"># chain to it would make two assets that once shared an</span>
+                    <span class="c1"># unlabelled file block each other's labels forever. The</span>
+                    <span class="c1"># label says nothing about those bytes — they stay</span>
+                    <span class="c1"># `unknown` wherever they are held — and `private` or</span>
+                    <span class="c1"># `attribution` statements are never answered.</span>
+                    <span class="n">answered</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">statement</span>
                     <span class="k">continue</span>
                 <span class="n">held</span> <span class="o">=</span> <span class="n">bound</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">held</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_stricter_statement</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="n">held</span><span class="p">):</span>
@@ -1517,12 +1776,28 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">}</span>
             <span class="k">for</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">bound</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
                 <span class="n">ref</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">asset_key</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'version'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">path</span><span class="si">}</span><span class="s2">: same bytes as </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'label'</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+                <span class="p">)</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">path</span><span class="si">}</span><span class="s2">: same bytes as </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'label'</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+                        <span class="n">Contributor</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">REMEDY_OTHER</span><span class="si">}{</span><span class="n">ref</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"unknown"</span>
+                        <span class="k">else</span> <span class="n">label</span><span class="p">,</span>
                         <span class="n">_recorded_source</span><span class="p">(</span>
                             <span class="n">Rights</span><span class="p">(</span><span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class"</span><span class="p">,</span> <span class="s2">"unknown"</span><span class="p">),</span> <span class="p">[]),</span> <span class="n">ref</span>
                         <span class="p">),</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">for</span> <span class="n">asset_key</span><span class="p">,</span> <span class="n">statement</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">answered</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="n">asset_key</span> <span class="ow">in</span> <span class="n">bound</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">ref</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">asset_key</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">statement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'version'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}{</span><span class="n">path</span><span class="si">}</span><span class="s2">: same bytes as </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">, unlabelled there "</span>
+                        <span class="sa">f</span><span class="s2">"(not held since; </span><span class="si">{</span><span class="n">answer</span><span class="o">.</span><span class="n">note</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+                        <span class="n">answer</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span></div>
@@ -1536,12 +1811,14 @@ window.runMermaid = runMermaid;</script>
     <span class="n">digest</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">own_label</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">owner</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""What ``version`` says about the bytes ``digest`` it holds at ``path`` (for the floor).</span>
 
 <span class="sd">    own_label: the class of the version's own label, computed once by the</span>
 <span class="sd">        caller for all its files (it is the same for every file the version</span>
 <span class="sd">        does not itemise); default: computed here</span>
+<span class="sd">    owner: the library holding ``version``, whose labels on it count (an#307)</span>
 <span class="sd">    """</span>
     <span class="n">relicense</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span>
     <span class="n">itemised</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">relicense</span> <span class="k">else</span> <span class="n">itemising_source</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">)</span>
@@ -1561,7 +1838,7 @@ window.runMermaid = runMermaid;</script>
         <span class="bp">cls</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">own_label</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">own_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="n">_own_label_class</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">_own_label_class</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="n">label</span> <span class="o">=</span> <span class="s2">"the asset's own label"</span>
     <span class="k">return</span> <span class="p">{</span>
@@ -1573,9 +1850,14 @@ window.runMermaid = runMermaid;</script>
     <span class="p">}</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_own_label_class</span><span class="p">(</span><span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The class of what a version says about every file it does not itemise."""</span>
-    <span class="k">return</span> <span class="n">roll_up</span><span class="p">(</span><span class="n">version_sources</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">license_class</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_own_label_class</span><span class="p">(</span>
+    <span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">owner</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The class of what a version says about every file it does not itemise</span>
+<span class="sd">    (with the labels recorded on it since, when ``owner`` holds it)."""</span>
+    <span class="k">return</span> <span class="n">roll_up</span><span class="p">(</span>
+        <span class="n">version_sources</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">license_class</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_version_statements</span><span class="p">(</span>
@@ -1591,7 +1873,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">own_label</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">memo</span><span class="p">:</span>
-            <span class="n">memo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_own_label_class</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
+            <span class="n">memo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_own_label_class</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">memo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">raw</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">((</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
@@ -1599,7 +1881,9 @@ window.runMermaid = runMermaid;</script>
         <span class="k">yield</span> <span class="p">(</span>
             <span class="n">digest</span><span class="p">,</span>
             <span class="n">asset_key</span><span class="p">,</span>
-            <span class="n">blob_statement</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">own_label</span><span class="o">=</span><span class="n">own_label</span><span class="p">),</span>
+            <span class="n">blob_statement</span><span class="p">(</span>
+                <span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">own_label</span><span class="o">=</span><span class="n">own_label</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span>
+            <span class="p">),</span>
         <span class="p">)</span>
 
 
@@ -1705,9 +1989,16 @@ window.runMermaid = runMermaid;</script>
         <span class="k">return</span> <span class="n">Rights</span><span class="p">(</span>
             <span class="n">rights</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">rights</span><span class="o">.</span><span class="n">reasons</span><span class="p">,</span> <span class="n">_relicense_note</span><span class="p">(</span><span class="n">relicense</span><span class="p">)]</span>
         <span class="p">)</span>
-    <span class="n">relabel</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">relabel</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Rights</span><span class="p">(</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">rights</span><span class="o">.</span><span class="n">reasons</span><span class="p">,</span> <span class="n">_relabel_note</span><span class="p">(</span><span class="n">relabel</span><span class="p">)])</span>
+    <span class="n">notes</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">_relabel_note</span><span class="p">(</span><span class="n">relabel</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">relabel</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">),</span>
+            <span class="o">*</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">version_labels</span><span class="p">(</span><span class="n">owner</span><span class="p">,</span> <span class="n">version</span><span class="p">)),</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">relabel</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">notes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Rights</span><span class="p">(</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">rights</span><span class="o">.</span><span class="n">reasons</span><span class="p">,</span> <span class="o">*</span><span class="n">notes</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">rights</span></div>
 
 
@@ -1716,6 +2007,143 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""The more restrictive of two rights; on a tie, ``b`` (the recomputed one)."""</span>
     <span class="n">order</span> <span class="o">=</span> <span class="n">LICENSE_CLASS_ORDER</span><span class="o">.</span><span class="n">index</span>
     <span class="k">return</span> <span class="n">a</span> <span class="k">if</span> <span class="n">order</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">license_class</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">order</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">license_class</span><span class="p">)</span> <span class="k">else</span> <span class="n">b</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_label_version</span><span class="p">(</span>
+    <span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span>
+    <span class="n">readers</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">source</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">relabel</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">floor</span><span class="p">:</span> <span class="n">BlobFloor</span><span class="p">,</span>
+    <span class="n">note</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Record a relabel of ``version``'s unchanged content on it; return whether one was written.</span>
+
+<span class="sd">    The label holds the source, who and why, and the rights it gives the</span>
+<span class="sd">    version — computed as the version a relabel publish would have minted</span>
+<span class="sd">    (``previous`` the version, that source and relabel) would have them. Its</span>
+<span class="sd">    key is a hash of all three, so repeating the same relabel with the same</span>
+<span class="sd">    outcome writes nothing, and repeating it after another asset was labelled</span>
+<span class="sd">    records the new outcome beside the old (append-only). The version's floor</span>
+<span class="sd">    statements are then rebuilt, so what it says about its bytes reflects it.</span>
+<span class="sd">    """</span>
+    <span class="n">ref</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">LibraryRef</span><span class="p">(</span><span class="n">version</span><span class="p">[</span><span class="s2">"asset"</span><span class="p">],</span> <span class="n">version</span><span class="p">[</span><span class="s2">"version"</span><span class="p">],</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+    <span class="n">as_new</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"doc_kind"</span><span class="p">:</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc_kind"</span><span class="p">),</span>
+        <span class="s2">"doc"</span><span class="p">:</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">),</span>
+        <span class="s2">"files"</span><span class="p">:</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span>
+        <span class="s2">"source"</span><span class="p">:</span> <span class="n">source</span><span class="p">,</span>
+        <span class="s2">"derived_from"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="n">PREVIOUS_FIELD</span><span class="p">:</span> <span class="n">ref</span><span class="p">,</span>
+        <span class="n">LINEAGE_FIELD</span><span class="p">:</span> <span class="p">{</span><span class="n">ref</span><span class="p">:</span> <span class="n">version</span><span class="p">[</span><span class="s2">"manifest_sha256"</span><span class="p">]},</span>
+        <span class="n">RELABEL_FIELD</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">relabel</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">rights</span> <span class="o">=</span> <span class="n">effective_rights</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">as_new</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span><span class="p">)</span>
+    <span class="n">said</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"manifest"</span><span class="p">:</span> <span class="n">version</span><span class="p">[</span><span class="s2">"manifest_sha256"</span><span class="p">],</span>
+        <span class="s2">"source"</span><span class="p">:</span> <span class="n">source</span><span class="p">,</span>
+        <span class="n">RELABEL_FIELD</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">relabel</span><span class="p">),</span>
+        <span class="s2">"rights"</span><span class="p">:</span> <span class="n">rights</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">(</span><span class="n">relabel</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="o">==</span> <span class="n">source</span>
+        <span class="ow">and</span> <span class="n">stored_rights</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="o">==</span> <span class="n">said</span><span class="p">[</span><span class="s2">"rights"</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># the version itself already says exactly this</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">label_key</span><span class="p">(</span><span class="n">version</span><span class="p">[</span><span class="s2">"asset"</span><span class="p">],</span> <span class="n">version</span><span class="p">[</span><span class="s2">"version"</span><span class="p">],</span> <span class="n">_label_id</span><span class="p">(</span><span class="n">said</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">labels</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">library</span><span class="o">.</span><span class="n">labels</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"kind"</span><span class="p">:</span> <span class="n">LABEL_KIND</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s2">"schema_version"</span><span class="p">:</span> <span class="n">LIBRARY_SCHEMA_VERSION</span><span class="p">,</span>
+            <span class="s2">"asset"</span><span class="p">:</span> <span class="n">version</span><span class="p">[</span><span class="s2">"asset"</span><span class="p">],</span>
+            <span class="s2">"version"</span><span class="p">:</span> <span class="n">version</span><span class="p">[</span><span class="s2">"version"</span><span class="p">],</span>
+            <span class="o">**</span><span class="n">said</span><span class="p">,</span>
+            <span class="s2">"labelled"</span><span class="p">:</span> <span class="n">_now_precise</span><span class="p">(),</span>
+            <span class="s2">"note"</span><span class="p">:</span> <span class="n">note</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">except</span> <span class="n">VersionExistsError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># another publisher recorded the same label meanwhile</span>
+    <span class="n">_index_version</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_now_precise</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s2">"microseconds"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="unknown_advice">
+<a class="viewcode-back" href="../../../_autosummary/an.library.api.html#an.library.unknown_advice">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unknown_advice</span><span class="p">(</span>
+    <span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">owner</span><span class="p">:</span> <span class="n">Library</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">floor</span><span class="p">:</span> <span class="n">BlobFloor</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_MACHINE</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""What would answer each ``unknown`` contributor of a version — one sentence per kind.</span>
+
+<span class="sd">    The advice a refusal prints, so it names what works for THESE gaps</span>
+<span class="sd">    (an#307): a gap of the asset's own chain takes a relabel; a gap of a</span>
+<span class="sd">    version it derives from is labelled there; another asset's silence about</span>
+<span class="sd">    bytes this version still holds is answered by labelling THAT asset (a</span>
+<span class="sd">    relabel here cannot speak for another asset), or by dropping the file; and</span>
+<span class="sd">    anything stated (a licence nobody recognises, an unverified stamp, a</span>
+<span class="sd">    parent not on the path) relaxes only by a relicence.</span>
+
+<span class="sd">    &gt;&gt;&gt; lib = open_library("an", records={}, versions={}, blobs={})</span>
+<span class="sd">    &gt;&gt;&gt; r = publish(lib, "prop.vase", {"name": "vase"})</span>
+<span class="sd">    &gt;&gt;&gt; r.rights.license_class, "--relabel-by" in r.advice[0]</span>
+<span class="sd">    ('unknown', True)</span>
+<span class="sd">    """</span>
+    <span class="n">relabel</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">others</span><span class="p">,</span> <span class="n">stated</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[],</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">version_sources</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">owner</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">src</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">license_class</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"unknown"</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">remedy</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="s2">"remedy"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">remedy</span> <span class="o">==</span> <span class="n">REMEDY_RELABEL</span><span class="p">:</span>
+            <span class="n">relabel</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">remedy</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">REMEDY_PARENT</span><span class="p">):</span>
+            <span class="n">parents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">remedy</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">REMEDY_PARENT</span><span class="p">)</span> <span class="p">:])</span>
+        <span class="k">elif</span> <span class="n">remedy</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">REMEDY_OTHER</span><span class="p">):</span>
+            <span class="n">others</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">remedy</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">REMEDY_OTHER</span><span class="p">)</span> <span class="p">:])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stated</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">relabel</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="s2">"To label what this asset's own versions never labelled, publish it "</span>
+            <span class="s2">"again with --license … --provider … --relabel-by &lt;who&gt; "</span>
+            <span class="s2">"--relabel-reason &lt;why&gt; (unchanged content makes no new version: the "</span>
+            <span class="s2">"label is recorded on this one)."</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">parents</span><span class="p">):</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"It derives from </span><span class="si">{</span><span class="n">parent</span><span class="si">}</span><span class="s2">, which nobody labelled: relabel </span><span class="si">{</span><span class="n">parent</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="s2">"itself, then publish this again."</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">others</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">others</span><span class="p">))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Files it holds are held unlabelled by </span><span class="si">{</span><span class="n">names</span><span class="si">}</span><span class="s2"> too, and a relabel "</span>
+            <span class="s2">"here cannot speak for another asset's files: relabel that asset, "</span>
+            <span class="s2">"then repeat this relabel — or drop those files from this asset and "</span>
+            <span class="s2">"publish it with the relabel (a file it no longer holds binds it no "</span>
+            <span class="s2">"more)."</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">stated</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="s2">"The rest is a recorded statement (a licence nobody recognises, a "</span>
+            <span class="s2">"stamp that pins other bytes, a parent not on the search path): fix "</span>
+            <span class="s2">"the source it names, or relax it explicitly with --license … "</span>
+            <span class="s2">"--provider … --relicense-by &lt;who&gt; --relicense-reason &lt;why&gt;."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
 
 
 <span class="c1"># --------------------------------------------------------------------------- publish</span>
@@ -1732,11 +2160,33 @@ window.runMermaid = runMermaid;</script>
     <span class="n">created</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="n">rights</span><span class="p">:</span> <span class="n">Rights</span>
     <span class="n">affordances</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
+    <span class="c1">#: For an ``unknown`` result: what would answer each kind of gap, one</span>
+    <span class="c1">#: sentence each (:func:`unknown_advice`).</span>
+    <span class="n">advice</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">what</span> <span class="o">=</span> <span class="s2">"published"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">created</span> <span class="k">else</span> <span class="s2">"unchanged (the head already is this)"</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ref</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span><span class="si">}</span><span class="s2">] manifest </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">manifest_sha256</span><span class="p">[:</span><span class="mi">12</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_same_content</span><span class="p">(</span>
+    <span class="n">head</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">pending</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">hashes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">head_ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a publish holds exactly the head's content: descriptor, file</span>
+<span class="sd">    bytes and ``derived_from`` — or exactly ``[head]``: a check-out of the</span>
+<span class="sd">    head, published back unedited, derives from the head, and its content is</span>
+<span class="sd">    the head's."""</span>
+    <span class="k">if</span> <span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pending</span><span class="p">[</span><span class="s2">"doc"</span><span class="p">]</span> <span class="ow">or</span> <span class="n">_file_hashes</span><span class="p">(</span>
+        <span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="p">)</span> <span class="o">!=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hashes</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">parents</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pending</span><span class="p">[</span><span class="s2">"derived_from"</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">parents</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"derived_from"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]),</span> <span class="p">[</span><span class="n">head_ref</span><span class="p">])</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_same_as_head</span><span class="p">(</span>
@@ -1748,22 +2198,23 @@ window.runMermaid = runMermaid;</script>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Whether a publish would repeat the head: the same content and statements.</span>
 
-<span class="sd">    Same descriptor, file bytes, asset-level source and relicence, and the same</span>
-<span class="sd">    ``derived_from`` — or exactly ``[head]``: a check-out of the head, published</span>
-<span class="sd">    back unedited, derives from the head, and its content is the head's.</span>
+<span class="sd">    The same content (:func:`_same_content`), asset-level source, relicence and</span>
+<span class="sd">    unlabelled files. A relabel the publish does not repeat is no difference:</span>
+<span class="sd">    it was a statement about earlier gaps, which the head already makes.</span>
+<span class="sd">    ``head`` is the head as its labels present it (:func:`labelled_view`).</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="p">(</span>
-        <span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pending</span><span class="p">[</span><span class="s2">"doc"</span><span class="p">]</span>
-        <span class="ow">or</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span> <span class="o">!=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hashes</span><span class="p">)</span>
-        <span class="ow">or</span> <span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pending</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span>
-        <span class="ow">or</span> <span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="ow">or</span> <span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="ow">or</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
-        <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
-    <span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-    <span class="n">parents</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pending</span><span class="p">[</span><span class="s2">"derived_from"</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">parents</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"derived_from"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]),</span> <span class="p">[</span><span class="n">head_ref</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">_same_content</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="n">pending</span><span class="p">,</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">head_ref</span><span class="o">=</span><span class="n">head_ref</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span> <span class="o">==</span> <span class="n">pending</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span>
+        <span class="ow">and</span> <span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="o">==</span> <span class="p">(</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELABEL_FIELD</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="ow">and</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">head</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="o">==</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">pending</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_apply_curation</span><span class="p">(</span>
@@ -1782,6 +2233,15 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">family</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">record</span><span class="p">[</span><span class="s2">"family"</span><span class="p">]</span> <span class="o">=</span> <span class="n">family</span>
     <span class="k">if</span> <span class="n">status</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">status</span><span class="p">:</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">STATUS_HISTORY_FIELD</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"status"</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+                    <span class="s2">"by"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"set by a publish"</span><span class="p">,</span>
+                    <span class="s2">"at"</span><span class="p">:</span> <span class="n">_now</span><span class="p">(),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
         <span class="n">record</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">=</span> <span class="n">status</span>
     <span class="k">if</span> <span class="n">origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">record</span><span class="p">[</span><span class="s2">"facets"</span><span class="p">][</span><span class="s2">"origin"</span><span class="p">]</span> <span class="o">=</span> <span class="n">origin</span>
@@ -1848,11 +2308,16 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    relabel: ``{"by": who, "reason": why}`` beside an explicit ``source=``</span>
 <span class="sd">        (required) — a first statement about bytes NOBODY labelled (an#263):</span>
 <span class="sd">        the gaps of this asset's own version chain (files an earlier version</span>
-<span class="sd">        recorded ``unlabelled``, an earlier version with no source at all) are</span>
-<span class="sd">        answered with ``source``. It relaxes no statement anyone made: a private</span>
-<span class="sd">        (or any) licence, a per-part source, a version this one derives from,</span>
-<span class="sd">        and every other asset's statement about the same bytes still bind.</span>
-<span class="sd">        Recorded on the version, in its manifest and in its reasons</span>
+<span class="sd">        recorded ``unlabelled``, files no person's source spoke for, an earlier</span>
+<span class="sd">        version with no source at all) are answered with ``source``, and so is</span>
+<span class="sd">        another asset's silence about a file the chain held once and this</span>
+<span class="sd">        version no longer holds (an#307). It relaxes no statement anyone made:</span>
+<span class="sd">        a private (or any) licence, a per-part source, a version this one</span>
+<span class="sd">        derives from, and every other asset's statement about bytes this</span>
+<span class="sd">        version holds still bind. On content that changed, recorded on the new</span>
+<span class="sd">        version, in its manifest and in its reasons; on UNCHANGED content,</span>
+<span class="sd">        recorded on the head in the append-only ``labels`` store</span>
+<span class="sd">        (:func:`version_labels`) and no version is minted (an#307)</span>
 <span class="sd">    derived_from: library references this version derives from (an earlier version,</span>
 <span class="sd">        the original of a recolour); each must resolve, and its rights are inherited.</span>
 <span class="sd">        A descriptor checked out of a library derives from its origin by default</span>
@@ -1935,6 +2400,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">lineage</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">)]</span> <span class="o">=</span> <span class="n">parent_version</span><span class="p">[</span><span class="s2">"manifest_sha256"</span><span class="p">]</span>
 
     <span class="n">existing</span> <span class="o">=</span> <span class="n">_read_record</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">)</span> <span class="k">if</span> <span class="n">asset_id</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">records</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">existing</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">HIDDEN_STATUSES</span> <span class="ow">and</span> <span class="n">status</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">asset_id</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">existing</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]</span><span class="si">}</span><span class="s2">: pick another id, or "</span>
+            <span class="s2">"revive it by publishing with status=… (--status draft)"</span>
+        <span class="p">)</span>
     <span class="n">head</span> <span class="o">=</span> <span class="p">(</span><span class="n">existing</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"head"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">expect_head</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">_ANY_HEAD</span> <span class="ow">and</span> <span class="n">head</span> <span class="o">!=</span> <span class="n">expect_head</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
@@ -1945,6 +2415,13 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"or pass the head you mean to follow (expect_head=…, --expect-head)."</span>
         <span class="p">)</span>
     <span class="n">head_version</span> <span class="o">=</span> <span class="n">read_version</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">,</span> <span class="n">head</span><span class="p">)</span> <span class="k">if</span> <span class="n">head</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="c1"># The head as the labels recorded on it since present it (an#307): a</span>
+    <span class="c1"># relabel of unchanged content is recorded there, not as a new version.</span>
+    <span class="n">head_view</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">labelled_view</span><span class="p">(</span><span class="n">head_version</span><span class="p">,</span> <span class="n">version_labels</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">head_version</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">head_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
 
     <span class="n">check_path_set</span><span class="p">(</span><span class="n">files</span> <span class="ow">or</span> <span class="p">{})</span>
     <span class="c1"># Before anything is written: a library the machine registry does not know</span>
@@ -1960,18 +2437,18 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="p">(</span>
         <span class="n">source_doc</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="ow">and</span> <span class="n">carry_source</span>
-        <span class="ow">and</span> <span class="n">head_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">head_view</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="ow">and</span> <span class="n">descriptor_source</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span><span class="p">)</span>
-        <span class="o">==</span> <span class="n">descriptor_source</span><span class="p">(</span><span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span><span class="p">)</span>
+        <span class="o">==</span> <span class="n">descriptor_source</span><span class="p">(</span><span class="n">head_view</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">store</span><span class="o">=</span><span class="n">kind</span><span class="o">.</span><span class="n">credits_store</span><span class="p">)</span>
     <span class="p">):</span>
         <span class="c1"># A source declared on an earlier publish carries forward — but only</span>
         <span class="c1"># where the descriptor says nothing new itself (nothing, or exactly</span>
         <span class="c1"># what the head's said, such as the factory's own stamp): a descriptor</span>
         <span class="c1"># that now declares another source is never masked by it.</span>
-        <span class="n">source_doc</span> <span class="o">=</span> <span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
+        <span class="n">source_doc</span> <span class="o">=</span> <span class="n">head_view</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">)</span>
     <span class="n">hashes</span> <span class="o">=</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">file_refs</span><span class="p">)</span>
     <span class="n">unlabelled</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="n">source_doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">head_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">source_doc</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">source</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">head_view</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># The carried source was a statement about the bytes it was declared</span>
         <span class="c1"># on. A file changed or added since is bytes nobody has labelled: it</span>
         <span class="c1"># stays `unknown` (in the floor, in the rights, in the credits of a</span>
@@ -1979,8 +2456,8 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># descriptor itself labels those very bytes, a per-part source pinned</span>
         <span class="c1"># to their digest (the factory re-stamping the mouths it redrew:</span>
         <span class="c1"># an#281), which then speaks for them as it would on any publish.</span>
-        <span class="n">before</span> <span class="o">=</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
-        <span class="n">still</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">head_version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="n">before</span> <span class="o">=</span> <span class="n">_file_hashes</span><span class="p">(</span><span class="n">head_view</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">still</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">head_view</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">UNLABELLED_FIELD</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[])</span>
         <span class="n">unlabelled</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
             <span class="n">path</span>
             <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">digest</span> <span class="ow">in</span> <span class="n">hashes</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
@@ -2031,11 +2508,30 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">created</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">label</span> <span class="o">=</span> <span class="n">head</span>
-    <span class="k">if</span> <span class="n">head_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_same_as_head</span><span class="p">(</span>
-        <span class="n">head_version</span><span class="p">,</span>
-        <span class="n">pending</span><span class="p">,</span>
-        <span class="n">hashes</span><span class="p">,</span>
-        <span class="n">head_ref</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">LibraryRef</span><span class="p">(</span><span class="n">asset_id</span><span class="p">,</span> <span class="n">head</span><span class="p">,</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">)),</span>
+    <span class="n">head_ref</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">LibraryRef</span><span class="p">(</span><span class="n">asset_id</span><span class="p">,</span> <span class="n">head</span><span class="p">,</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">))</span> <span class="k">if</span> <span class="n">head</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">relabel</span>
+        <span class="ow">and</span> <span class="n">head_version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">_same_content</span><span class="p">(</span><span class="n">head_version</span><span class="p">,</span> <span class="n">pending</span><span class="p">,</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">head_ref</span><span class="o">=</span><span class="n">head_ref</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="c1"># Relabelling unchanged content records the label on the head, in</span>
+        <span class="c1"># the append-only labels store, and mints no version (an#307).</span>
+        <span class="n">created</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">manifest</span> <span class="o">=</span> <span class="n">head_version</span><span class="p">[</span><span class="s2">"manifest_sha256"</span><span class="p">]</span>
+        <span class="n">_label_version</span><span class="p">(</span>
+            <span class="n">library</span><span class="p">,</span>
+            <span class="n">readers</span><span class="p">,</span>
+            <span class="n">head_version</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="n">source_doc</span><span class="p">,</span>
+            <span class="n">relabel</span><span class="o">=</span><span class="n">relabel</span><span class="p">,</span>
+            <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">,</span>
+            <span class="n">note</span><span class="o">=</span><span class="n">note</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">rights</span> <span class="o">=</span> <span class="n">effective_rights</span><span class="p">(</span>
+            <span class="n">readers</span><span class="p">,</span> <span class="n">head_version</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">BlobFloor</span><span class="p">(</span><span class="n">readers</span><span class="p">),</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">head_view</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_same_as_head</span><span class="p">(</span>
+        <span class="n">head_view</span><span class="p">,</span> <span class="n">pending</span><span class="p">,</span> <span class="n">hashes</span><span class="p">,</span> <span class="n">head_ref</span><span class="o">=</span><span class="n">head_ref</span>
     <span class="p">):</span>
         <span class="n">created</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">manifest</span> <span class="o">=</span> <span class="n">head_version</span><span class="p">[</span><span class="s2">"manifest_sha256"</span><span class="p">]</span>
@@ -2081,6 +2577,17 @@ window.runMermaid = runMermaid;</script>
         <span class="n">created</span><span class="p">,</span>
         <span class="n">rights</span><span class="p">,</span>
         <span class="n">affordances</span><span class="p">,</span>
+        <span class="n">advice</span><span class="o">=</span><span class="p">(</span>
+            <span class="nb">tuple</span><span class="p">(</span>
+                <span class="n">unknown_advice</span><span class="p">(</span>
+                    <span class="n">readers</span><span class="p">,</span>
+                    <span class="n">read_version</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">,</span> <span class="n">label</span><span class="p">),</span>
+                    <span class="n">owner</span><span class="o">=</span><span class="n">library</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">rights</span><span class="o">.</span><span class="n">license_class</span> <span class="o">==</span> <span class="s2">"unknown"</span>
+            <span class="k">else</span> <span class="p">()</span>
+        <span class="p">),</span>
     <span class="p">)</span></div>
 
 
@@ -2129,6 +2636,67 @@ window.runMermaid = runMermaid;</script>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">asset_id</span><span class="si">}</span><span class="s2">: could not record head </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> against concurrent "</span>
         <span class="s2">"publishers — retry"</span>
     <span class="p">)</span>
+
+
+<div class="viewcode-block" id="set_status">
+<a class="viewcode-back" href="../../../_autosummary/an.library.api.html#an.library.set_status">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">set_status</span><span class="p">(</span>
+    <span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span>
+    <span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">by</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Set an asset's curation status, recording who and why; return the record.</span>
+
+<span class="sd">    The record's ``status_history`` is appended to, never rewritten, and no</span>
+<span class="sd">    version is touched: a project pinned to one keeps reading it.</span>
+
+<span class="sd">    &gt;&gt;&gt; lib = open_library("an", records={}, versions={}, blobs={})</span>
+<span class="sd">    &gt;&gt;&gt; _ = publish(lib, "prop.lamp", {"name": "lamp"})</span>
+<span class="sd">    &gt;&gt;&gt; set_status(lib, "prop.lamp", "approved", by="me", reason="looks right")["status"]</span>
+<span class="sd">    'approved'</span>
+<span class="sd">    """</span>
+    <span class="n">check_asset_id</span><span class="p">(</span><span class="n">asset_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">STATUSES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"status </span><span class="si">{</span><span class="n">status</span><span class="si">!r}</span><span class="s2"> is not one of </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">STATUSES</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">by</span><span class="p">,</span> <span class="n">reason</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">by</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="nb">str</span><span class="p">(</span><span class="n">reason</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">by</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">reason</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span>
+            <span class="s2">"a status change records who and why: by=…, reason=… (--by, --reason)"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">asset_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">records</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AssetNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">asset_id</span><span class="si">}</span><span class="s2"> is not in the library"</span><span class="p">)</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="n">_read_record</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">)</span>
+    <span class="n">record</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">STATUS_HISTORY_FIELD</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">"status"</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span> <span class="s2">"by"</span><span class="p">:</span> <span class="n">by</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">:</span> <span class="n">reason</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">:</span> <span class="n">_now</span><span class="p">()}</span>
+    <span class="p">)</span>
+    <span class="n">record</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">=</span> <span class="n">status</span>
+    <span class="n">record</span><span class="p">[</span><span class="s2">"updated"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_now</span><span class="p">()</span>
+    <span class="n">library</span><span class="o">.</span><span class="n">records</span><span class="p">[</span><span class="n">asset_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span>
+    <span class="k">return</span> <span class="n">record</span></div>
+
+
+
+<div class="viewcode-block" id="retire">
+<a class="viewcode-back" href="../../../_autosummary/an.library.api.html#an.library.retire">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retire</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">by</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">reason</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Retire an asset id: recorded, hidden from ``find`` by default, never deleted.</span>
+
+<span class="sd">    Its versions stay readable — a project pinned to one still checks it out</span>
+<span class="sd">    and validates — and its rights statements still bind the floor (retiring</span>
+<span class="sd">    is curation, not a relabel). ``find(status="retired")`` lists it; a publish</span>
+<span class="sd">    into it is refused unless it passes ``status=`` to revive it.</span>
+
+<span class="sd">    &gt;&gt;&gt; lib = open_library("an", records={}, versions={}, blobs={})</span>
+<span class="sd">    &gt;&gt;&gt; _ = publish(lib, "prop.dead", {"name": "dead"})</span>
+<span class="sd">    &gt;&gt;&gt; _ = retire(lib, "prop.dead", by="me", reason="superseded")</span>
+<span class="sd">    &gt;&gt;&gt; len(find(lib)), [h.asset_id for h in find(lib, status="retired")]</span>
+<span class="sd">    (0, ['prop.dead'])</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">set_status</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">,</span> <span class="s2">"retired"</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="n">by</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">reason</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_write_version</span><span class="p">(</span><span class="n">library</span><span class="p">:</span> <span class="n">Library</span><span class="p">,</span> <span class="n">asset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -2297,7 +2865,7 @@ window.runMermaid = runMermaid;</script>
             <span class="n">head</span><span class="p">,</span>
             <span class="n">kind</span><span class="p">,</span>
             <span class="n">record</span><span class="p">,</span>
-            <span class="n">Rights</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rights"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
+            <span class="n">stored_rights</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">),</span>
             <span class="n">affordances</span><span class="p">,</span>
             <span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"art"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_art_facet</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"files"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}),</span>
             <span class="n">version</span><span class="p">,</span>
@@ -2437,14 +3005,25 @@ window.runMermaid = runMermaid;</script>
 <span class="n">STYLE_GAP_PREFIX</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"style:"</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_recolourable</span><span class="p">(</span><span class="n">entry</span><span class="p">:</span> <span class="n">IndexEntry</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a scene's StylePack can recolour this asset: a character whose</span>
+<span class="sd">    descriptor tags its colours by role (every ``an character new --offline``</span>
+<span class="sd">    character). Hand-drawn art keeps its colours, so no style reaches it."""</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">document</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"doc"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="n">entry</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span> <span class="ow">and</span> <span class="nb">bool</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"colour_roles"</span><span class="p">))</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_restyle_remedy</span><span class="p">(</span><span class="n">wanted</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">has</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">want</span> <span class="o">=</span> <span class="s2">" or "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span>
     <span class="n">now</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">has</span><span class="p">))</span> <span class="ow">or</span> <span class="s2">"no style"</span>
     <span class="k">return</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"restyle it to </span><span class="si">{</span><span class="n">want</span><span class="si">}</span><span class="s2"> (it is curated as </span><span class="si">{</span><span class="n">now</span><span class="si">}</span><span class="s2">): apply the </span><span class="si">{</span><span class="n">want</span><span class="si">}</span><span class="s2"> style's "</span>
-        <span class="s2">"policy over its art — a tint, a palette, the style's speech and view "</span>
-        <span class="s2">"rules (the an-style skill) — and publish the result as a sibling id in "</span>
-        <span class="s2">"the same --family, with --style "</span> <span class="o">+</span> <span class="n">want</span>
+        <span class="sa">f</span><span class="s2">"no command restyles a published asset (it is curated as </span><span class="si">{</span><span class="n">now</span><span class="si">}</span><span class="s2">). Its "</span>
+        <span class="sa">f</span><span class="s2">"colours are role-tagged, so the </span><span class="si">{</span><span class="n">want</span><span class="si">}</span><span class="s2"> style's StylePack recolours it at "</span>
+        <span class="s2">"render: save the pack and set `style_pack:` in the scene's meta (the "</span>
+        <span class="s2">"an-style skill, step 3). That changes colours only, never the build, "</span>
+        <span class="sa">f</span><span class="s2">"head or shapes; if </span><span class="si">{</span><span class="n">want</span><span class="si">}</span><span class="s2"> needs another build, make a character for it "</span>
+        <span class="s2">"(`an character new &lt;name&gt; --offline --build …`) and publish it with "</span>
+        <span class="sa">f</span><span class="s2">"--style </span><span class="si">{</span><span class="n">want</span><span class="si">}</span><span class="s2"> in the same --family"</span>
     <span class="p">)</span>
 
 
@@ -2474,6 +3053,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    rights: ``any`` (default — study renders are legitimate), ``publishable``</span>
 <span class="sd">        (``free`` + ``attribution``), or licence classes. Rights are recomputed</span>
 <span class="sd">        from each version's sources and lineage, not read from its cache</span>
+<span class="sd">    status: curation statuses; an asset whose status is hidden</span>
+<span class="sd">        (:data:`HIDDEN_STATUSES`: ``retired``) is offered only when its status</span>
+<span class="sd">        is asked for by name</span>
 <span class="sd">    near: also return assets that pass every other facet but miss some</span>
 <span class="sd">        capabilities, or are curated for another style than asked, each with</span>
 <span class="sd">        what is missing and the remedy that would add it (a style mismatch is</span>
@@ -2505,54 +3087,51 @@ window.runMermaid = runMermaid;</script>
     <span class="n">near_hits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Hit</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">matched</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">IndexEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">floor</span> <span class="o">=</span> <span class="n">BlobFloor</span><span class="p">(</span><span class="n">libs</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">order</span><span class="p">,</span> <span class="n">library</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">libs</span><span class="p">):</span>
-        <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span><span class="n">library</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">lib</span> <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">libs</span> <span class="k">if</span> <span class="n">lib</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">library</span><span class="p">)]</span>
-        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">index</span><span class="p">(</span><span class="n">library</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">document</span><span class="p">:</span>
-                <span class="n">recomputed</span> <span class="o">=</span> <span class="n">effective_rights</span><span class="p">(</span>
-                    <span class="n">readers</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">document</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span>
-                <span class="p">)</span>
-                <span class="n">entry</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">rights</span><span class="o">=</span><span class="n">_stricter</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">rights</span><span class="p">,</span> <span class="n">recomputed</span><span class="p">))</span>
-            <span class="n">values</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">facet_values</span><span class="p">()</span>
-            <span class="n">failed</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="n">f</span>
-                <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">want</span> <span class="ow">in</span> <span class="n">asked</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">want</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">want</span><span class="p">))</span>
-            <span class="p">}</span>
-            <span class="c1"># Only the style differs: with near=True, a restyle away (an#271).</span>
-            <span class="n">restyle</span> <span class="o">=</span> <span class="n">near</span> <span class="ow">and</span> <span class="n">failed</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"style"</span><span class="p">}</span>
-            <span class="k">if</span> <span class="n">failed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">restyle</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="k">if</span> <span class="n">license_classes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
-                <span class="n">values</span><span class="p">[</span><span class="s2">"license_class"</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">license_classes</span>
-            <span class="p">):</span>
-                <span class="k">continue</span>
-            <span class="n">gaps</span> <span class="o">=</span> <span class="n">missing</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">affordances</span><span class="p">,</span> <span class="n">wanted</span><span class="p">)</span>
-            <span class="n">remedies</span> <span class="o">=</span> <span class="p">{</span><span class="n">g</span><span class="p">:</span> <span class="n">remedy_for</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">gaps</span><span class="p">}</span>
-            <span class="k">if</span> <span class="n">restyle</span><span class="p">:</span>
-                <span class="n">term</span> <span class="o">=</span> <span class="n">STYLE_GAP_PREFIX</span> <span class="o">+</span> <span class="s2">"|"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">asked</span><span class="p">[</span><span class="s2">"style"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[])</span>
-                <span class="n">gaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">term</span><span class="p">,</span> <span class="o">*</span><span class="n">gaps</span><span class="p">]</span>
-                <span class="n">remedies</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="n">_restyle_remedy</span><span class="p">(</span><span class="n">asked</span><span class="p">[</span><span class="s2">"style"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[],</span> <span class="n">values</span><span class="p">[</span><span class="s2">"style"</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">gaps</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">near</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">asks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">asked</span><span class="p">[</span><span class="s2">"style"</span><span class="p">]</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
-            <span class="n">score</span> <span class="o">=</span> <span class="p">(</span><span class="n">asks</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">gaps</span><span class="p">))</span> <span class="o">/</span> <span class="n">asks</span> <span class="k">if</span> <span class="n">asks</span> <span class="k">else</span> <span class="mf">1.0</span>
-            <span class="n">hit</span> <span class="o">=</span> <span class="n">Hit</span><span class="p">(</span>
-                <span class="n">entry</span><span class="o">.</span><span class="n">library</span><span class="p">,</span>
-                <span class="n">entry</span><span class="o">.</span><span class="n">asset_id</span><span class="p">,</span>
-                <span class="n">entry</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
-                <span class="n">score</span><span class="p">,</span>
-                <span class="n">title</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"title"</span><span class="p">),</span>
-                <span class="n">license_class</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span>
-                <span class="n">missing</span><span class="o">=</span><span class="n">gaps</span><span class="p">,</span>
-                <span class="n">remedies</span><span class="o">=</span><span class="n">remedies</span><span class="p">,</span>
-                <span class="n">federated</span><span class="o">=</span><span class="n">federated</span><span class="p">,</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="n">gaps</span><span class="p">:</span>
-                <span class="n">near_hits</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">order</span><span class="p">,</span> <span class="n">hit</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">hits</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">order</span><span class="p">,</span> <span class="n">hit</span><span class="p">))</span>
-                <span class="n">matched</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">hidden</span> <span class="o">=</span> <span class="n">HIDDEN_STATUSES</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">asked</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">())</span>
+    <span class="k">for</span> <span class="n">order</span><span class="p">,</span> <span class="n">library</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">_rated_entries</span><span class="p">(</span><span class="n">libs</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">floor</span><span class="p">):</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">facet_values</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">values</span><span class="p">[</span><span class="s2">"status"</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">hidden</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">failed</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">f</span>
+            <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">want</span> <span class="ow">in</span> <span class="n">asked</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">want</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">want</span><span class="p">))</span>
+        <span class="p">}</span>
+        <span class="c1"># Only the style differs: with near=True, a restyle away (an#271) —</span>
+        <span class="c1"># offered only where a style pack reaches the art (an#307).</span>
+        <span class="n">restyle</span> <span class="o">=</span> <span class="n">near</span> <span class="ow">and</span> <span class="n">failed</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"style"</span><span class="p">}</span> <span class="ow">and</span> <span class="n">_recolourable</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">failed</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">restyle</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">license_classes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
+            <span class="n">values</span><span class="p">[</span><span class="s2">"license_class"</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">license_classes</span>
+        <span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">gaps</span> <span class="o">=</span> <span class="n">missing</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">affordances</span><span class="p">,</span> <span class="n">wanted</span><span class="p">)</span>
+        <span class="n">remedies</span> <span class="o">=</span> <span class="p">{</span><span class="n">g</span><span class="p">:</span> <span class="n">remedy_for</span><span class="p">(</span><span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">gaps</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">restyle</span><span class="p">:</span>
+            <span class="n">term</span> <span class="o">=</span> <span class="n">STYLE_GAP_PREFIX</span> <span class="o">+</span> <span class="s2">"|"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">asked</span><span class="p">[</span><span class="s2">"style"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[])</span>
+            <span class="n">gaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">term</span><span class="p">,</span> <span class="o">*</span><span class="n">gaps</span><span class="p">]</span>
+            <span class="n">remedies</span><span class="p">[</span><span class="n">term</span><span class="p">]</span> <span class="o">=</span> <span class="n">_restyle_remedy</span><span class="p">(</span><span class="n">asked</span><span class="p">[</span><span class="s2">"style"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[],</span> <span class="n">values</span><span class="p">[</span><span class="s2">"style"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">gaps</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">near</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">asks</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wanted</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">asked</span><span class="p">[</span><span class="s2">"style"</span><span class="p">]</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="p">(</span><span class="n">asks</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">gaps</span><span class="p">))</span> <span class="o">/</span> <span class="n">asks</span> <span class="k">if</span> <span class="n">asks</span> <span class="k">else</span> <span class="mf">1.0</span>
+        <span class="n">hit</span> <span class="o">=</span> <span class="n">Hit</span><span class="p">(</span>
+            <span class="n">entry</span><span class="o">.</span><span class="n">library</span><span class="p">,</span>
+            <span class="n">entry</span><span class="o">.</span><span class="n">asset_id</span><span class="p">,</span>
+            <span class="n">entry</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+            <span class="n">score</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"title"</span><span class="p">),</span>
+            <span class="n">license_class</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">rights</span><span class="o">.</span><span class="n">license_class</span><span class="p">,</span>
+            <span class="n">missing</span><span class="o">=</span><span class="n">gaps</span><span class="p">,</span>
+            <span class="n">remedies</span><span class="o">=</span><span class="n">remedies</span><span class="p">,</span>
+            <span class="n">federated</span><span class="o">=</span><span class="n">federated</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">gaps</span><span class="p">:</span>
+            <span class="n">near_hits</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">order</span><span class="p">,</span> <span class="n">hit</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hits</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">order</span><span class="p">,</span> <span class="n">hit</span><span class="p">))</span>
+            <span class="n">matched</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">ordered</span><span class="p">(</span><span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Hit</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Hit</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">[</span>
@@ -2566,6 +3145,27 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_rated_entries</span><span class="p">(</span>
+    <span class="n">libs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Library</span><span class="p">],</span> <span class="n">index</span><span class="p">:</span> <span class="n">Index</span><span class="p">,</span> <span class="n">floor</span><span class="p">:</span> <span class="n">BlobFloor</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Library</span><span class="p">,</span> <span class="n">IndexEntry</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(order, library, entry)`` for every indexed asset, its rights recomputed.</span>
+
+<span class="sd">    The one place ``find`` and ``vocabulary`` read rights from, so the two</span>
+<span class="sd">    never disagree (an#307): the stricter of the cached rights and the ones</span>
+<span class="sd">    recomputed from the version's sources, lineage and bytes — the bytes'</span>
+<span class="sd">    floor moves when another asset is published, the cache does not.</span>
+<span class="sd">    """</span>
+    <span class="k">for</span> <span class="n">order</span><span class="p">,</span> <span class="n">library</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">libs</span><span class="p">):</span>
+        <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span><span class="n">library</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">lib</span> <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">libs</span> <span class="k">if</span> <span class="n">lib</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">library</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">index</span><span class="p">(</span><span class="n">library</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">document</span><span class="p">:</span>
+                <span class="n">recomputed</span> <span class="o">=</span> <span class="n">effective_rights</span><span class="p">(</span>
+                    <span class="n">readers</span><span class="p">,</span> <span class="n">entry</span><span class="o">.</span><span class="n">document</span><span class="p">,</span> <span class="n">floor</span><span class="o">=</span><span class="n">floor</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span>
+                <span class="p">)</span>
+                <span class="n">entry</span> <span class="o">=</span> <span class="n">replace</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">rights</span><span class="o">=</span><span class="n">_stricter</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">rights</span><span class="p">,</span> <span class="n">recomputed</span><span class="p">))</span>
+            <span class="k">yield</span> <span class="n">order</span><span class="p">,</span> <span class="n">library</span><span class="p">,</span> <span class="n">entry</span>
+
+
 <div class="viewcode-block" id="vocabulary">
 <a class="viewcode-back" href="../../../_autosummary/an.library.api.html#an.library.vocabulary">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">vocabulary</span><span class="p">(</span><span class="n">libraries</span><span class="p">:</span> <span class="n">Libraries</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="n">Index</span> <span class="o">=</span> <span class="n">scan_index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -2573,16 +3173,26 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    What an agent reads to turn words into a typed query (spectrum (b)): "a</span>
 <span class="sd">    Reiniger character who can walk in profile" → ``style=reiniger``,</span>
-<span class="sd">    ``affords=["limbs.legs", "swap.view:side"]``.</span>
+<span class="sd">    ``affords=["limbs.legs", "swap.view:side"]``. The counts are over what</span>
+<span class="sd">    ``find`` offers by default — the same recomputed rights, and no asset of a</span>
+<span class="sd">    hidden status (``retired``), whose numbers are under ``hidden``.</span>
 
 <span class="sd">    &gt;&gt;&gt; lib = open_library("an", records={}, versions={}, blobs={})</span>
 <span class="sd">    &gt;&gt;&gt; v = vocabulary(lib)</span>
 <span class="sd">    &gt;&gt;&gt; sorted(v)</span>
-<span class="sd">    ['capabilities', 'facets', 'kinds', 'rights', 'statuses']</span>
+<span class="sd">    ['capabilities', 'facets', 'hidden', 'kinds', 'rights', 'statuses']</span>
 <span class="sd">    &gt;&gt;&gt; "limbs.legs" in v["capabilities"]</span>
 <span class="sd">    True</span>
 <span class="sd">    """</span>
-    <span class="n">entries</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">as_libraries</span><span class="p">(</span><span class="n">libraries</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">index</span><span class="p">(</span><span class="n">lib</span><span class="p">)]</span>
+    <span class="n">libs</span> <span class="o">=</span> <span class="n">as_libraries</span><span class="p">(</span><span class="n">libraries</span><span class="p">)</span>
+    <span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">IndexEntry</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">hidden</span><span class="p">:</span> <span class="n">Counter</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">_rated_entries</span><span class="p">(</span><span class="n">libs</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">BlobFloor</span><span class="p">(</span><span class="n">libs</span><span class="p">)):</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">DFLT_STATUS</span>
+        <span class="k">if</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">HIDDEN_STATUSES</span><span class="p">:</span>
+            <span class="n">hidden</span><span class="p">[</span><span class="n">status</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">entries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
     <span class="n">counts</span> <span class="o">=</span> <span class="n">_counts</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
     <span class="n">caps_count</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"affords"</span><span class="p">,</span> <span class="p">{})</span>
     <span class="k">return</span> <span class="p">{</span>
@@ -2599,6 +3209,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">},</span>
         <span class="s2">"kinds"</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ASSET_KINDS</span><span class="p">),</span>
         <span class="s2">"statuses"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">STATUSES</span><span class="p">),</span>
+        <span class="s2">"hidden"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">hidden</span><span class="o">.</span><span class="n">items</span><span class="p">())),</span>
         <span class="s2">"rights"</span><span class="p">:</span> <span class="p">[</span><span class="n">RIGHTS_ANY</span><span class="p">,</span> <span class="n">RIGHTS_PUBLISHABLE</span><span class="p">,</span> <span class="o">*</span><span class="n">LICENSE_CLASS_ORDER</span><span class="p">],</span>
     <span class="p">}</span></div>
 
@@ -2617,7 +3228,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="n">library</span><span class="p">,</span> <span class="n">pinned</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">resolve</span><span class="p">(</span><span class="n">libraries</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
     <span class="n">version</span> <span class="o">=</span> <span class="n">read_version</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="p">,</span> <span class="n">pinned</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
-    <span class="n">stored</span> <span class="o">=</span> <span class="n">Rights</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rights"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">stored</span> <span class="o">=</span> <span class="n">stored_rights</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">"ref"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">pinned</span><span class="p">),</span>
         <span class="s2">"library"</span><span class="p">:</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
@@ -2721,7 +3332,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">library</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">LibraryError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pinned</span><span class="si">}</span><span class="s2"> is already in the </span><span class="si">{</span><span class="n">target</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> library"</span><span class="p">)</span>
     <span class="n">readers</span> <span class="o">=</span> <span class="p">[</span><span class="n">library</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="n">lib</span> <span class="k">for</span> <span class="n">lib</span> <span class="ow">in</span> <span class="n">as_libraries</span><span class="p">(</span><span class="n">libraries</span><span class="p">)</span> <span class="k">if</span> <span class="n">lib</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">library</span><span class="p">)]</span>
-    <span class="n">stored</span> <span class="o">=</span> <span class="n">Rights</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"rights"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+    <span class="n">stored</span> <span class="o">=</span> <span class="n">stored_rights</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
     <span class="n">rights</span> <span class="o">=</span> <span class="n">_stricter</span><span class="p">(</span><span class="n">stored</span><span class="p">,</span> <span class="n">effective_rights</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">library</span><span class="p">))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">rights</span><span class="o">.</span><span class="n">publishable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">allow_restricted</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">RightsRefusal</span><span class="p">(</span>
@@ -2741,12 +3352,15 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
     <span class="n">record</span> <span class="o">=</span> <span class="n">_read_record</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">pinned</span><span class="o">.</span><span class="n">asset_id</span><span class="p">)</span>
     <span class="n">facets</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"facets"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="c1"># The source as the version's labels present it: what a relabel version</span>
+    <span class="c1"># would have carried (an#307).</span>
+    <span class="n">labelled</span> <span class="o">=</span> <span class="n">labelled_view</span><span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">version_labels</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">publish</span><span class="p">(</span>
         <span class="n">target</span><span class="p">,</span>
         <span class="n">target_id</span><span class="p">,</span>
         <span class="n">version</span><span class="p">[</span><span class="s2">"doc"</span><span class="p">],</span>
         <span class="n">verified_files</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">version</span><span class="p">),</span>
-        <span class="n">source</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">),</span>
+        <span class="n">source</span><span class="o">=</span><span class="n">labelled</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source"</span><span class="p">),</span>
         <span class="n">relicense</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RELICENSE_FIELD</span><span class="p">),</span>
         <span class="c1"># No relabel: it was a statement about the SOURCE asset's chain, which</span>
         <span class="c1"># the copy inherits through derived_from; it says nothing about the</span>

@@ -4,11 +4,17 @@ The library mall: `records`, `versions` and `blobs`, each an injected `MutableMa
 
 ADR 0005 decision 11 and design §10. Three entities, three stores:
 
-| store    | key                 | on disk (default backend)                 |
-|----------|---------------------|-------------------------------------------|
-| records  | `<asset_id>`        | `library/records/<asset_id>.json`         |
-| versions | `<asset_id>@<vNNN>` | `library/versions/<asset_id>/<vNNN>.json` |
-| blobs    | `<sha256>`          | `library/blobs/<aa>/<sha256>`             |
+| store    | key                         | on disk (default backend)                       |
+|----------|-----------------------------|-------------------------------------------------|
+| records  | `<asset_id>`                | `library/records/<asset_id>.json`               |
+| versions | `<asset_id>@<vNNN>`         | `library/versions/<asset_id>/<vNNN>.json`       |
+| blobs    | `<sha256>`                  | `library/blobs/<aa>/<sha256>`                   |
+| labels   | `<asset_id>@<vNNN>/<hex16>` | `library/labels/<asset_id>/<vNNN>/<hex16>.json` |
+
+`labels` is write-once too: the append-only statements made about an existing
+version after it was published (a relabel of its unchanged content, an#307),
+each its own document, never rewritten or deleted.
+
 - **\`\`dol\`\` stores**, unlike the project mall’s hand-written folder classes: a
   byte store ([`LocalFiles`](#an.library.stores.LocalFiles)) seen through `dol.wrap_kvs()` with a JSON
   codec and a key transform. Each store is replaced by injection
@@ -35,7 +41,7 @@ ADR 0005 decision 11 and design §10. Three entities, three stores:
 >>> with tempfile.TemporaryDirectory() as d:
 ...     lib = build_library_mall(d)
 ...     sorted(lib)
-['blob_rights', 'blobs', 'records', 'versions']
+['blob_rights', 'blobs', 'labels', 'records', 'versions']
 >>> mem = build_library_mall(records={}, versions={}, blobs={})  # all in memory
 >>> ref = mem["blobs"].add(b"<svg/>")
 >>> mem["blobs"][ref.item_id]
@@ -49,11 +55,13 @@ b'<svg/>'
 
 ### Functions
 
-| [`build_library_mall`](#an.library.stores.build_library_mall)([root, package])   | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).   |
-|----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| [`canonical_json`](#an.library.stores.canonical_json)(obj, \*[, indent])     | JSON with sorted keys and no locale or platform dependence.                         |
-| [`version_key`](#an.library.stores.version_key)(asset_id, version)        | The `versions` key of one version.                                                  |
-| [`split_version_key`](#an.library.stores.split_version_key)(key)                | `(asset_id, version)` of a `versions` key, validated.                               |
+| [`build_library_mall`](#an.library.stores.build_library_mall)([root, package])    | The library mall of `package`: `records`, `versions` (write-once), `blobs` (CAS).   |
+|-----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| [`canonical_json`](#an.library.stores.canonical_json)(obj, \*[, indent])      | JSON with sorted keys and no locale or platform dependence.                         |
+| [`label_key`](#an.library.stores.label_key)(asset_id, version, label_id) | The `labels` key of one statement about a version.                                  |
+| [`split_label_key`](#an.library.stores.split_label_key)(key)                   | `(asset_id, version, label_id)` of a `labels` key, validated.                       |
+| [`version_key`](#an.library.stores.version_key)(asset_id, version)         | The `versions` key of one version.                                                  |
+| [`split_version_key`](#an.library.stores.split_version_key)(key)                 | `(asset_id, version)` of a `versions` key, validated.                               |
 
 ### Classes
 
@@ -189,6 +197,30 @@ indent it is the on-disk form (same content, readable).
 ```pycon
 >>> canonical_json({"b": 1, "a": [1, 2]})
 '{"a":[1,2],"b":1}'
+```
+
+### an.library.stores.label_key(asset_id, version, label_id)
+
+The `labels` key of one statement about a version.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> label_key("character.alice", "v002", "0123456789abcdef")
+'character.alice@v002/0123456789abcdef'
+```
+
+### an.library.stores.split_label_key(key)
+
+`(asset_id, version, label_id)` of a `labels` key, validated.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> split_label_key("character.alice@v002/0123456789abcdef")
+('character.alice', 'v002', '0123456789abcdef')
 ```
 
 ### an.library.stores.split_version_key(key)

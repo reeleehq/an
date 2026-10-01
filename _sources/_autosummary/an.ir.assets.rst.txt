@@ -11,12 +11,15 @@ an.ir.assets
       PRIVATE_STUDY
       PUBLIC_DOMAIN
       LicenseClass
+      PROVIDER_TERMS
+      PROVIDER_TERMS_RESTRICTIONS
       ATTRIBUTION_REQUIRING_LICENSES
    
    .. rubric:: Functions
 
    .. autosummary::
    
+      provider_terms_restriction
       license_class
       normalise_license
       requires_attribution

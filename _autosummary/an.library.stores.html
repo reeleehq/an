@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e25c1b49"></script>
+    <script src="../_static/documentation_options.js?v=8dad0f9d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.library.root" href="an.library.root.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.152" />
+  <meta name="docsearch:version" content="0.1.154" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -655,9 +655,16 @@
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;sha256&gt;</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">library/blobs/&lt;aa&gt;/&lt;sha256&gt;</span></code></p></td>
 </tr>
+<tr class="row-odd"><td><p>labels</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;asset_id&gt;&#64;&lt;vNNN&gt;/&lt;hex16&gt;</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">library/labels/&lt;asset_id&gt;/&lt;vNNN&gt;/&lt;hex16&gt;.json</span></code></p></td>
+</tr>
 </tbody>
 </table>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">labels</span></code> is write-once too: the append-only statements made about an existing
+version after it was published (a relabel of its unchanged content, an#307),
+each its own document, never rewritten or deleted.</p>
 <ul>
 <li><p><strong>``dol`` stores</strong>, unlike the project mall’s hand-written folder classes: a
 byte store (<a class="reference internal" href="#an.library.stores.LocalFiles" title="an.library.stores.LocalFiles"><code class="xref py py-class docutils literal notranslate"><span class="pre">LocalFiles</span></code></a>) seen through <code class="xref py py-func docutils literal notranslate"><span class="pre">dol.wrap_kvs()</span></code> with a JSON
@@ -687,7 +694,7 @@ version pins cannot be deleted from under it.</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">d</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="n">lib</span> <span class="o">=</span> <span class="n">build_library_mall</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">lib</span><span class="p">)</span>
-<span class="go">['blob_rights', 'blobs', 'records', 'versions']</span>
+<span class="go">['blob_rights', 'blobs', 'labels', 'records', 'versions']</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span> <span class="o">=</span> <span class="n">build_library_mall</span><span class="p">(</span><span class="n">records</span><span class="o">=</span><span class="p">{},</span> <span class="n">versions</span><span class="o">=</span><span class="p">{},</span> <span class="n">blobs</span><span class="o">=</span><span class="p">{})</span>  <span class="c1"># all in memory</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ref</span> <span class="o">=</span> <span class="n">mem</span><span class="p">[</span><span class="s2">"blobs"</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">b</span><span class="s2">"&lt;svg/&gt;"</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span><span class="p">[</span><span class="s2">"blobs"</span><span class="p">][</span><span class="n">ref</span><span class="o">.</span><span class="n">item_id</span><span class="p">]</span>
@@ -711,6 +718,12 @@ version pins cannot be deleted from under it.</p></li>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.library.stores.canonical_json" title="an.library.stores.canonical_json"><code class="xref py py-obj docutils literal notranslate"><span class="pre">canonical_json</span></code></a>(obj, *[, indent])</p></td>
 <td><p>JSON with sorted keys and no locale or platform dependence.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.library.stores.label_key" title="an.library.stores.label_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">label_key</span></code></a>(asset_id, version, label_id)</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">labels</span></code> key of one statement about a version.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.library.stores.split_label_key" title="an.library.stores.split_label_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_label_key</span></code></a>(key)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(asset_id,</span> <span class="pre">version,</span> <span class="pre">label_id)</span></code> of a <code class="docutils literal notranslate"><span class="pre">labels</span></code> key, validated.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.library.stores.version_key" title="an.library.stores.version_key"><code class="xref py py-obj docutils literal notranslate"><span class="pre">version_key</span></code></a>(asset_id, version)</p></td>
 <td><p>The <code class="docutils literal notranslate"><span class="pre">versions</span></code> key of one version.</p></td>
@@ -886,6 +899,36 @@ indent it is the on-disk form (same content, readable).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.library.stores.label_key">
+<span class="sig-prename descclassname"><span class="pre">an.library.stores.</span></span><span class="sig-name descname"><span class="pre">label_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asset_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/stores.html#label_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.stores.label_key" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">labels</span></code> key of one statement about a version.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">label_key</span><span class="p">(</span><span class="s2">"character.alice"</span><span class="p">,</span> <span class="s2">"v002"</span><span class="p">,</span> <span class="s2">"0123456789abcdef"</span><span class="p">)</span>
+<span class="go">'character.alice@v002/0123456789abcdef'</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.library.stores.split_label_key">
+<span class="sig-prename descclassname"><span class="pre">an.library.stores.</span></span><span class="sig-name descname"><span class="pre">split_label_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/stores.html#split_label_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.stores.split_label_key" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">(asset_id,</span> <span class="pre">version,</span> <span class="pre">label_id)</span></code> of a <code class="docutils literal notranslate"><span class="pre">labels</span></code> key, validated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">split_label_key</span><span class="p">(</span><span class="s2">"character.alice@v002/0123456789abcdef"</span><span class="p">)</span>
+<span class="go">('character.alice', 'v002', '0123456789abcdef')</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.library.stores.split_version_key">
 <span class="sig-prename descclassname"><span class="pre">an.library.stores.</span></span><span class="sig-name descname"><span class="pre">split_version_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/library/stores.html#split_version_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.library.stores.split_version_key" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">(asset_id,</span> <span class="pre">version)</span></code> of a <code class="docutils literal notranslate"><span class="pre">versions</span></code> key, validated.</p>
@@ -974,6 +1017,8 @@ indent it is the on-disk form (same content, readable).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.stores.WriteOnce"><code class="docutils literal notranslate"><span class="pre">WriteOnce</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.stores.build_library_mall"><code class="docutils literal notranslate"><span class="pre">build_library_mall()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.stores.canonical_json"><code class="docutils literal notranslate"><span class="pre">canonical_json()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.stores.label_key"><code class="docutils literal notranslate"><span class="pre">label_key()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.stores.split_label_key"><code class="docutils literal notranslate"><span class="pre">split_label_key()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.stores.split_version_key"><code class="docutils literal notranslate"><span class="pre">split_version_key()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.library.stores.version_key"><code class="docutils literal notranslate"><span class="pre">version_key()</span></code></a></li>
 </ul>

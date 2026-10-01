@@ -51,14 +51,17 @@ what keeps `an` from shipping unattributed work in the meantime.
 |---------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [`PUBLIC_DOMAIN`](#an.ir.assets.PUBLIC_DOMAIN)                  | The recognised code for the public domain — no rights to clear, nothing owed (an#211).                                                                                                     |
 | [`LicenseClass`](#an.ir.assets.LicenseClass)                   | What a licence means for shipping the video it ends up in.                                                                                                                                 |
+| [`PROVIDER_TERMS`](#an.ir.assets.PROVIDER_TERMS)                 | Licences of what a provider SYNTHESIZES for you, under the provider's own terms (an#307): the `source.license` a voice document declares for the speech that provider made, by provider.   |
+| [`PROVIDER_TERMS_RESTRICTIONS`](#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS)    | the words a credits report prints beside it.                                                                                                                                               |
 | [`ATTRIBUTION_REQUIRING_LICENSES`](#an.ir.assets.ATTRIBUTION_REQUIRING_LICENSES) | Licence codes that oblige the *user of the output* to credit someone.                                                                                                                      |
 
 ### Functions
 
-| [`license_class`](#an.ir.assets.license_class)(source)        | What this asset's licence means for shipping the video (an#211).   |
-|-------------------------------------------------------------------------------|--------------------------------------------------------------------|
-| [`normalise_license`](#an.ir.assets.normalise_license)(code)      | A licence code folded to lowercase words joined by `-`.            |
-| [`requires_attribution`](#an.ir.assets.requires_attribution)(source) | Whether shipping this asset obliges the user to credit someone.    |
+| [`provider_terms_restriction`](#an.ir.assets.provider_terms_restriction)(source)   | The restriction a provider-terms licence carries beyond its class, if any.   |
+|---------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`license_class`](#an.ir.assets.license_class)(source)                | What this asset's licence means for shipping the video (an#211).             |
+| [`normalise_license`](#an.ir.assets.normalise_license)(code)              | A licence code folded to lowercase words joined by `-`.                      |
+| [`requires_attribution`](#an.ir.assets.requires_attribution)(source)         | Whether shipping this asset obliges the user to credit someone.              |
 
 ### Classes
 
@@ -113,6 +116,32 @@ privately but must not publish (an#211). Any code that normalises to one
 starting with `all-rights-reserved` or `private-study` is this class,
 so `"All rights reserved - private study only"` is recognised too.
 
+### an.ir.assets.PROVIDER_TERMS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['attribution', 'free', 'private', 'unknown']]]* *= {'elevenlabs': {'elevenlabs-free-plan': 'unknown', 'elevenlabs-paid-plan': 'free'}}*
+
+Licences of what a provider SYNTHESIZES for you, under the provider’s own
+terms (an#307): the `source.license` a voice document declares for the
+speech that provider made, by provider. A code counts only on a source
+whose `provider` is that provider — another provider’s terms say nothing
+about it — and is matched as whole leading words (`elevenlabs-paid-plan`,
+`elevenlabs-paid-plan-creator`). Which one applies is the user’s account,
+which `an` cannot see: declaring it is the user’s statement.
+
+- ElevenLabs: on a paid plan the output may be used commercially with no
+  credit (`free`). On the free plan it must credit ElevenLabs AND is for
+  non-commercial use only: no class here says “publishable, but not
+  commercially”, and `attribution` would read as shippable, so it is
+  `unknown` — not publishable — with its restriction named
+  ([`PROVIDER_TERMS_RESTRICTIONS`](#an.ir.assets.PROVIDER_TERMS_RESTRICTIONS)) wherever it is listed (review-308 S1).
+  Check the current terms before shipping.
+
+### an.ir.assets.PROVIDER_TERMS_RESTRICTIONS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'elevenlabs-free-plan': 'ElevenLabs free plan: non-commercial use only, and the video must credit ElevenLabs (elevenlabs.io); not publishable as is'}*
+
+the words a
+credits report prints beside it.
+
+* **Type:**
+  What a provider-terms code restricts beyond its class, by code
+
 ### an.ir.assets.PUBLIC_DOMAIN *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'public-domain'*
 
 The recognised code for the public domain — no rights to clear, nothing
@@ -137,6 +166,15 @@ What this asset’s licence means for shipping the video (an#211).
 'unknown'
 ```
 
+A provider’s terms count for what that provider made ([`PROVIDER_TERMS`](#an.ir.assets.PROVIDER_TERMS)):
+
+```pycon
+>>> license_class(AssetSource(provider="elevenlabs", license="elevenlabs-paid-plan"))
+'free'
+>>> license_class(AssetSource(provider="openai", license="elevenlabs-paid-plan"))
+'unknown'
+```
+
 ### an.ir.assets.normalise_license(code)
 
 A licence code folded to lowercase words joined by `-`.
@@ -152,6 +190,20 @@ classifier reads through punctuation and spacing:
 'all-rights-reserved-private-study-only-never-publish'
 >>> normalise_license(" CC-BY-4.0 ")
 'cc-by-4-0'
+```
+
+### an.ir.assets.provider_terms_restriction(source)
+
+The restriction a provider-terms licence carries beyond its class, if any.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> provider_terms_restriction(AssetSource(provider="elevenlabs", license="elevenlabs-free-plan"))[:21]
+'ElevenLabs free plan:'
+>>> provider_terms_restriction(AssetSource(provider="openai", license="elevenlabs-free-plan")) is None
+True
 ```
 
 ### an.ir.assets.requires_attribution(source)
