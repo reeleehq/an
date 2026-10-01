@@ -456,7 +456,11 @@ def retire(
     package = package or parsed.namespace or CORE_PACKAGE
     library = open_library(package, root or None)
     record = _set_status(library, parsed.asset_id, status, by=by, reason=reason)
-    hidden = " (hidden from find; find --status retired lists it)" if status == "retired" else ""
+    hidden = (
+        " (hidden from find; find --status retired lists it)"
+        if status == "retired"
+        else ""
+    )
     return (
         f"{library.name}:{parsed.asset_id} is {record['status']}{hidden}; "
         f"its versions ({record.get('head') or 'none'} latest) stay readable"

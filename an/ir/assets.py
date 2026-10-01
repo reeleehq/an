@@ -131,6 +131,7 @@ def provider_terms_restriction(source: AssetSource) -> str | None:
             return PROVIDER_TERMS_RESTRICTIONS[term]
     return None
 
+
 #: Normalised phrases that mean "all rights reserved" ANYWHERE in the code —
 #: "(c) Studio. All rights reserved" is the usual way it is written.
 _PRIVATE_PHRASES: tuple[str, ...] = ("all-rights-reserved", "private-study")

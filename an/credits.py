@@ -800,7 +800,7 @@ def _part_credits(
                             if path in stale
                             else "no stamp pins these bytes, and the descriptor's "
                             "source was written by a generator, not a person"
-                        )
+                        ),
                     },
                 ),
             )

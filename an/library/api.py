@@ -1490,7 +1490,12 @@ def _apply_curation(
     if status is not None:
         if record.get("status") != status:
             record.setdefault(STATUS_HISTORY_FIELD, []).append(
-                {"status": status, "by": None, "reason": "set by a publish", "at": _now()}
+                {
+                    "status": status,
+                    "by": None,
+                    "reason": "set by a publish",
+                    "at": _now(),
+                }
             )
         record["status"] = status
     if origin is not None:
