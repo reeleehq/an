@@ -12,3 +12,4 @@ Format: Context → Decision → Alternatives considered → Consequences → Fi
 | 0003 | [The structured ↔ semantic specification spectrum, and one semantic layer for all genres](0003-structured-semantic-spectrum.md) | Accepted, 2026-10-01 |
 | 0004 | [Incremental re-processing through a content-addressed build graph](0004-incremental-reprocessing.md) | Accepted, 2026-10-01 |
 | 0005 | [A persistent asset library: flat ids, immutable versions, content-addressed files, derived capability facets](0005-asset-library.md) | Accepted, 2026-10-01 |
+| 0006 | [The shared structured-animation contract is authored in `an` and published as a data package](0006-contract-ssot.md) | Accepted, 2026-10-01 (maintainer's choice) |

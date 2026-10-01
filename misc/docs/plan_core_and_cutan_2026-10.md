@@ -29,6 +29,7 @@ The maintainer chose the package name and delegated the remaining decisions to t
 | 8 | `config2py` | **Vendor** the data-folder resolution (root argument → `<PKG>_HOME` → platform data folder) as a small module in `an.library`; take the dependency only if more than that is needed. |
 | 9 | Raw source clips downloaded for study | Delete them after an#226 has migrated the carved parts and the measurements into the library and verified re-renders. Carved parts stay, marked private study / NOT PUBLISHABLE. New public-domain study material comes from public-domain prints (e.g. the Internet Archive), not from YouTube rips (see the private legal report). |
 | 10 | The 22 older bench ledger rows that record an absolute home path | Redact that one field in place to `~/…`, with a CHANGELOG note (git history keeps the old value). |
+| 11 | ADR 0006 — where the shared contract lives | **Accepted (maintainer's choice, option C of an#257).** The contract (timing files now; the vocabulary export from P7) is authored in `an`'s registries and published by CI as a data-only package that JavaScript consumers (`previz`, `shaping`, the `burns` TypeScript port) install instead of copying; a drift test ties the files to the registries. Refines core study §7 decision 7 (still authored in `an`). Move to a neutral data package (option B) only if a JavaScript package ever needs to author entries. Implementation: an#261. |
 
 ## 2. Phases
 
