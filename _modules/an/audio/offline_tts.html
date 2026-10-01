@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -756,7 +756,8 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Seconds the offline voice takes to say ``text`` — a leading pad plus a</span>
 <span class="sd">    per-character rate over the non-space characters, clamped.</span>
 
-<span class="sd">    It is exactly what an offline render gives a line, so ``an validate`` uses</span>
+<span class="sd">    It is exactly what an offline render gives a line (before a voice's</span>
+<span class="sd">    ``tempo``, which ``an validate`` divides it by), so ``an validate`` uses</span>
 <span class="sd">    it to warn about a shot too short for its dialogue BEFORE anything is</span>
 <span class="sd">    synthesized. A real voice is usually a little slower, so for one this is an</span>
 <span class="sd">    under-estimate: a line it says overruns will overrun.</span>
@@ -779,6 +780,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"offline"</span>
+    <span class="c1">#: The same request gives the same audio, so best-of-N takes never apply</span>
+    <span class="c1">#: (:func:`an.audio.takes.voice_takes`) and nothing is billed.</span>
+    <span class="n">repeatable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>

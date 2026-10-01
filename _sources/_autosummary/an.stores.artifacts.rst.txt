@@ -13,5 +13,6 @@ an.stores.artifacts
       OutputStore
       PreviewArtifactStore
       ShotArtifactStore
+      TakesArtifactStore
       VisemeArtifactStore
    

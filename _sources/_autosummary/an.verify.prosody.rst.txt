@@ -8,6 +8,7 @@ an.verify.prosody
 
    .. autosummary::
    
+      ESTIMATOR_VERSION
       METRICS
    
    .. rubric:: Functions
@@ -23,6 +24,7 @@ an.verify.prosody
       join_speech
       decode_audio
       check_prosody
+      target_distance
       validate_targets
       prosody_lint
    

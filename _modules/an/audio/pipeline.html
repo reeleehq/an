@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -731,14 +731,32 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">MutableMapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">asdict</span><span class="p">,</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.effects</span><span class="w"> </span><span class="kn">import</span> <span class="n">EFFECT_SAMPLE_RATE</span><span class="p">,</span> <span class="n">apply_voice_effects</span><span class="p">,</span> <span class="n">voice_effects</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">LipSyncProvider</span><span class="p">,</span> <span class="n">Viseme</span><span class="p">,</span> <span class="n">VisemeTrack</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_lipsync</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineLipSync</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">OfflineTTS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.takes</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">REROLL_HINT</span><span class="p">,</span>
+    <span class="n">TAKES_RECORD_VERSION</span><span class="p">,</span>
+    <span class="n">TAKES_STORE</span><span class="p">,</span>
+    <span class="n">TakeLostError</span><span class="p">,</span>
+    <span class="n">TakeScorer</span><span class="p">,</span>
+    <span class="n">TakesSpec</span><span class="p">,</span>
+    <span class="n">audio_digest</span><span class="p">,</span>
+    <span class="n">choose_take</span><span class="p">,</span>
+    <span class="n">make_take_scorer</span><span class="p">,</span>
+    <span class="n">read_takes_record</span><span class="p">,</span>
+    <span class="n">scorer_identity</span><span class="p">,</span>
+    <span class="n">takes_choice_part</span><span class="p">,</span>
+    <span class="n">voice_takes</span><span class="p">,</span>
+    <span class="n">write_takes_record</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioClip</span><span class="p">,</span> <span class="n">TTSProvider</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">DEFAULT_VOICE</span><span class="p">,</span>
@@ -757,6 +775,24 @@ window.runMermaid = runMermaid;</script>
 <span class="k">class</span><span class="w"> </span><span class="nc">AudioPipelineError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""The scene declares audio the pipeline cannot produce. Carries detail."""</span></div>
 
+
+
+<div class="viewcode-block" id="TakeDigestWarning">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.TakeDigestWarning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TakeDigestWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The audio restored for a line's recorded take is not the audio the record names."""</span></div>
+
+
+
+<span class="c1">#: Resolve the takes from the voice document (the default of ``takes=``).</span>
+<span class="n">_FROM_VOICE</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+<span class="c1">#: ``(TakesSpec) -&gt; TakeScorer`` — the seam that turns a takes spec into its scorer.</span>
+<span class="n">TakeScorerFactory</span> <span class="o">=</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">TakesSpec</span><span class="p">],</span> <span class="n">TakeScorer</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_announce_to_stderr</span><span class="p">(</span><span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The default ``announce``: one line on stderr, where a CLI user sees it."""</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"an: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="default_tts">
@@ -785,6 +821,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">lipsync</span><span class="p">:</span> <span class="n">LipSyncProvider</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">takes</span><span class="p">:</span> <span class="n">TakesSpec</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_FROM_VOICE</span><span class="p">,</span>
+    <span class="n">take_scorer</span><span class="p">:</span> <span class="n">TakeScorerFactory</span> <span class="o">=</span> <span class="n">make_take_scorer</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">AudioClip</span><span class="p">,</span> <span class="n">VisemeTrack</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Synthesize audio + visemes for one dialogue line.</span>
 
@@ -802,44 +840,57 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``voices``-store key; :func:`produce_audio_for_scene` passes the one</span>
 <span class="sd">    :func:`an.audio.voices.line_voice_id` resolves, so a character's bound</span>
 <span class="sd">    voice reaches here (an#194). The provider is handed the voice document's</span>
-<span class="sd">    own ``voice_id`` when it names one.</span>
+<span class="sd">    own voice id when it names one.</span>
 
 <span class="sd">    What the provider's optional ``synthesis_options`` hook derives from the</span>
 <span class="sd">    voice document and the line (ElevenLabs: ``model_id``, ``voice_settings``,</span>
 <span class="sd">    ``seed``, and the ``[emotion]``/``direction`` audio tags — an#209) is passed</span>
 <span class="sd">    to ``synthesize`` and keyed; the text handed to alignment is always the</span>
 <span class="sd">    bare ``dialogue.text``, never the tagged one.</span>
+
+<span class="sd">    ``takes`` (default: what the voice declares for this line — see</span>
+<span class="sd">    :mod:`an.audio.takes`; ``None`` forces one take) synthesizes several takes,</span>
+<span class="sd">    scores each with ``take_scorer(spec)`` on the audio the viewer hears, keeps</span>
+<span class="sd">    the best and records the choice in ``mall["takes"]``. A recorded choice is</span>
+<span class="sd">    restored from the record and never re-rolled; a recorded take whose audio is</span>
+<span class="sd">    gone raises :class:`~an.audio.takes.TakeLostError` before any request.</span>
 <span class="sd">    """</span>
     <span class="n">tts</span> <span class="o">=</span> <span class="n">tts</span> <span class="ow">or</span> <span class="n">default_tts</span><span class="p">()</span>
     <span class="n">lipsync</span> <span class="o">=</span> <span class="n">lipsync</span> <span class="ow">or</span> <span class="n">default_lipsync</span><span class="p">()</span>
     <span class="n">voice_id</span> <span class="o">=</span> <span class="n">voice_id</span> <span class="ow">or</span> <span class="n">dialogue</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">or</span> <span class="n">DEFAULT_VOICE</span>
-    <span class="k">if</span> <span class="n">effects</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">effects</span> <span class="o">=</span> <span class="n">voice_effects</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
-    <span class="n">named</span> <span class="o">=</span> <span class="n">provider_voice</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts_name</span><span class="o">=</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-    <span class="n">options</span> <span class="o">=</span> <span class="n">synthesis_options</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">dialogue</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
-
-    <span class="n">raw_key</span> <span class="o">=</span> <span class="n">audio_key</span><span class="p">(</span>
-        <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">provider_voice</span><span class="o">=</span><span class="n">named</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span>
-    <span class="p">)</span>
-    <span class="n">cache_key</span> <span class="o">=</span> <span class="n">audio_key</span><span class="p">(</span>
-        <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+    <span class="n">req</span> <span class="o">=</span> <span class="n">_line_request</span><span class="p">(</span>
+        <span class="n">dialogue</span><span class="p">,</span>
+        <span class="n">mall</span><span class="p">,</span>
+        <span class="n">tts</span><span class="p">,</span>
         <span class="n">voice_id</span><span class="p">,</span>
-        <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="n">effects</span><span class="p">,</span>
-        <span class="n">provider_voice</span><span class="o">=</span><span class="n">named</span><span class="p">,</span>
-        <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+        <span class="n">effects</span><span class="o">=</span><span class="n">effects</span><span class="p">,</span>
+        <span class="n">takes</span><span class="o">=</span><span class="n">takes</span><span class="p">,</span>
+        <span class="n">take_scorer</span><span class="o">=</span><span class="n">take_scorer</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_produce_line</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">lipsync</span><span class="p">)</span></div>
 
-    <span class="n">audio_clip</span> <span class="o">=</span> <span class="n">_load_or_synthesize</span><span class="p">(</span>
-        <span class="n">tts</span><span class="p">,</span> <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">named</span> <span class="ow">or</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">raw_key</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span>
-    <span class="p">)</span>
-    <span class="k">if</span> <span class="n">cache_key</span> <span class="o">!=</span> <span class="n">raw_key</span><span class="p">:</span>
-        <span class="n">audio_clip</span> <span class="o">=</span> <span class="n">_load_or_apply_effects</span><span class="p">(</span><span class="n">audio_clip</span><span class="p">,</span> <span class="n">effects</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">cache_key</span><span class="p">)</span>
 
-    <span class="n">viseme_cache_key</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
-    <span class="n">track</span> <span class="o">=</span> <span class="n">_load_or_align</span><span class="p">(</span><span class="n">lipsync</span><span class="p">,</span> <span class="n">audio_clip</span><span class="p">,</span> <span class="n">dialogue</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">viseme_cache_key</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">audio_clip</span><span class="p">,</span> <span class="n">track</span></div>
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_produce_line</span><span class="p">(</span>
+    <span class="n">req</span><span class="p">:</span> <span class="s2">"_LineRequest"</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">lipsync</span><span class="p">:</span> <span class="n">LipSyncProvider</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">AudioClip</span><span class="p">,</span> <span class="n">VisemeTrack</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The audio and visemes of a resolved request; sets ``req.cache_key`` when</span>
+<span class="sd">    a best-of-N choice is made here. The visemes are keyed on the audio KEPT."""</span>
+    <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">audio_clip</span> <span class="o">=</span> <span class="n">_load_or_synthesize</span><span class="p">(</span>
+            <span class="n">req</span><span class="o">.</span><span class="n">tts</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">handed_voice</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">raw_key</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">req</span><span class="o">.</span><span class="n">options</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="o">!=</span> <span class="n">req</span><span class="o">.</span><span class="n">raw_key</span><span class="p">:</span>
+            <span class="n">audio_clip</span> <span class="o">=</span> <span class="n">_load_or_apply_effects</span><span class="p">(</span>
+                <span class="n">audio_clip</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">effects</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">audio_clip</span> <span class="o">=</span> <span class="n">_load_or_choose_take</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">req</span><span class="p">)</span>
+    <span class="n">viseme_cache_key</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">track</span> <span class="o">=</span> <span class="n">_load_or_align</span><span class="p">(</span><span class="n">lipsync</span><span class="p">,</span> <span class="n">audio_clip</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">viseme_cache_key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">audio_clip</span><span class="p">,</span> <span class="n">track</span>
 
 
 <div class="viewcode-block" id="produce_audio_for_scene">
@@ -850,6 +901,8 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">lipsync</span><span class="p">:</span> <span class="n">LipSyncProvider</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">take_scorer</span><span class="p">:</span> <span class="n">TakeScorerFactory</span> <span class="o">=</span> <span class="n">make_take_scorer</span><span class="p">,</span>
+    <span class="n">announce</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_announce_to_stderr</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Walk every dialogue line, synthesize, and stamp viseme tracks back.</span>
 
@@ -866,10 +919,23 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    mux, the visemes, captions, ducking — follows. A ``start`` on a line that</span>
 <span class="sd">    was never synthesized is an authored start from before ``at`` existed,</span>
 <span class="sd">    and is kept as the line's ``at``.</span>
+
+<span class="sd">    Every line's request is resolved BEFORE anything is synthesized, so a</span>
+<span class="sd">    malformed voice (an effect, a ``takes``), a corrupt takes record or a</span>
+<span class="sd">    recorded take whose audio is gone fails before a credit is spent; and</span>
+<span class="sd">    ``announce`` (default: a line on stderr; ``None`` for silence) is told, before the first request, what best-of-N takes will bill (requests</span>
+<span class="sd">    and the provider's characters) and which recorded takes were chosen by an</span>
+<span class="sd">    older scorer version than the current one (they are kept). After synthesis,</span>
+<span class="sd">    a line that ends past its shot's end (:func:`dialogue_overruns`) is</span>
+<span class="sd">    announced too — or, with ``announce=None``, a ``DialogueOverrunWarning``.</span>
 <span class="sd">    """</span>
     <span class="n">tts</span> <span class="o">=</span> <span class="n">tts</span> <span class="ow">or</span> <span class="n">default_tts</span><span class="p">()</span>
     <span class="n">lipsync</span> <span class="o">=</span> <span class="n">lipsync</span> <span class="ow">or</span> <span class="n">default_lipsync</span><span class="p">()</span>
     <span class="n">voice_default</span> <span class="o">=</span> <span class="n">DEFAULT_VOICE</span>
+    <span class="n">audio_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">viseme_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"visemes"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">pending</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Dialogue</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_LineRequest</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">resolved</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">_LineRequest</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">narration</span><span class="p">:</span>
             <span class="c1"># `Shot.narration` is fully modelled in the IR — text, voice_ref,</span>
@@ -896,22 +962,16 @@ window.runMermaid = runMermaid;</script>
             <span class="p">):</span>
                 <span class="n">line</span><span class="o">.</span><span class="n">at</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">start</span>
             <span class="n">voice_id</span> <span class="o">=</span> <span class="n">line_voice_id</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">voice_default</span><span class="p">)</span>
-            <span class="n">effects</span> <span class="o">=</span> <span class="n">voice_effects</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
-            <span class="n">expected_audio_ref</span> <span class="o">=</span> <span class="n">audio_key</span><span class="p">(</span>
-                <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
-                <span class="n">voice_id</span><span class="p">,</span>
-                <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="n">effects</span><span class="p">,</span>
-                <span class="n">provider_voice</span><span class="o">=</span><span class="n">provider_voice</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts_name</span><span class="o">=</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
-                <span class="n">options</span><span class="o">=</span><span class="n">synthesis_options</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">),</span>
-            <span class="p">)</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">_line_request</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">tts</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">take_scorer</span><span class="o">=</span><span class="n">take_scorer</span><span class="p">)</span>
+            <span class="n">resolved</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+            <span class="n">expected_audio_ref</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>  <span class="c1"># None: a best-of-N choice to make</span>
             <span class="n">expected_viseme_ref</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span>
-                <span class="n">expected_audio_ref</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span>
+                <span class="n">expected_audio_ref</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span>
             <span class="p">)</span>
-            <span class="n">audio_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-            <span class="n">viseme_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"visemes"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="n">already_done</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="o">==</span> <span class="n">expected_audio_ref</span>
+                <span class="n">expected_audio_ref</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="n">req</span><span class="o">.</span><span class="n">needs_work</span>
+                <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="o">==</span> <span class="n">expected_audio_ref</span>
                 <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">viseme_ref</span> <span class="o">==</span> <span class="n">expected_viseme_ref</span>
                 <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">viseme_track</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -924,22 +984,82 @@ window.runMermaid = runMermaid;</script>
                 <span class="ow">and</span> <span class="p">(</span><span class="n">viseme_store</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">expected_viseme_ref</span> <span class="ow">in</span> <span class="n">viseme_store</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">already_done</span><span class="p">:</span>
-                <span class="c1"># Never synthesized, or the providers changed: synthesize (the</span>
-                <span class="c1"># content-keyed stores make a mere re-stamp free).</span>
-                <span class="n">audio</span><span class="p">,</span> <span class="n">track</span> <span class="o">=</span> <span class="n">produce_audio_for_dialogue</span><span class="p">(</span>
-                    <span class="n">line</span><span class="p">,</span>
-                    <span class="n">mall</span><span class="p">,</span>
-                    <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">,</span>
-                    <span class="n">lipsync</span><span class="o">=</span><span class="n">lipsync</span><span class="p">,</span>
-                    <span class="n">effects</span><span class="o">=</span><span class="n">effects</span><span class="p">,</span>
-                    <span class="n">voice_id</span><span class="o">=</span><span class="n">voice_id</span><span class="p">,</span>
+                <span class="n">pending</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">line</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">req</span><span class="p">))</span>
+
+    <span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">takes_cost_message</span><span class="p">(</span>
+            <span class="p">[(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">req</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">],</span> <span class="n">tts</span><span class="p">,</span> <span class="n">audio_store</span>
+        <span class="p">),</span>
+        <span class="n">_older_scorer_message</span><span class="p">(</span><span class="n">resolved</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">announce</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">messages</span><span class="p">):</span>
+            <span class="n">announce</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">line</span><span class="p">,</span> <span class="n">_voice_id</span><span class="p">,</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="c1"># Never synthesized, or the providers changed: synthesize (the</span>
+        <span class="c1"># content-keyed stores make a mere re-stamp free).</span>
+        <span class="n">audio</span><span class="p">,</span> <span class="n">track</span> <span class="o">=</span> <span class="n">_produce_line</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">lipsync</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">audio</span><span class="o">.</span><span class="n">duration</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">viseme_track</span> <span class="o">=</span> <span class="n">_to_ir_viseme_track</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">word_timings</span> <span class="o">=</span> <span class="n">_to_ir_word_timings</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">viseme_ref</span> <span class="o">=</span> <span class="n">viseme_key</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">lipsync</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="n">retime_dialogue</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">dialogue_overruns</span><span class="p">(</span><span class="n">scene</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">announce</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">announce</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">DialogueOverrunWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scene</span></div>
+
+
+
+<div class="viewcode-block" id="DialogueOverrunWarning">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.DialogueOverrunWarning">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DialogueOverrunWarning</span><span class="p">(</span><span class="ne">UserWarning</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A synthesized line runs past its shot's end, so its tail is cut."""</span></div>
+
+
+
+<span class="c1">#: Slack before a line counts as running past its shot: a frame at 60 fps</span>
+<span class="c1">#: (the same as ``an validate``'s).</span>
+<span class="n">OVERRUN_TOLERANCE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">60</span>
+
+
+<div class="viewcode-block" id="dialogue_overruns">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.dialogue_overruns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dialogue_overruns</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance_s</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">OVERRUN_TOLERANCE_S</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""One message per synthesized line that ends past its shot's end.</span>
+
+<span class="sd">    ``an validate`` warns before synthesis from an estimate; this is the exact</span>
+<span class="sd">    check AFTER it — a voice's ``tempo`` (or a real voice's own pace) can make a</span>
+<span class="sd">    line longer than estimated, and the render cuts the shot's audio at the</span>
+<span class="sd">    shot's end, so the tail would otherwise be lost silently.</span>
+
+<span class="sd">    &gt;&gt;&gt; from an.ir.schema import Dialogue, SceneIR, Shot</span>
+<span class="sd">    &gt;&gt;&gt; shot = Shot(id="s", duration=1.0, dialogue=[</span>
+<span class="sd">    ...     Dialogue(speaker="a", text="hi", start=0.2, duration=1.3, audio_ref="k")])</span>
+<span class="sd">    &gt;&gt;&gt; dialogue_overruns(SceneIR(timeline=[shot]))[0][:46]</span>
+<span class="sd">    "shot 's': line 0 (a) ends at 1.50s, past the s"</span>
+<span class="sd">    """</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">end</span> <span class="o">&gt;</span> <span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span> <span class="o">+</span> <span class="n">tolerance_s</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: line </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">}</span><span class="s2">) ends at </span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, "</span>
+                    <span class="sa">f</span><span class="s2">"past the shot's </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">s end, so its last "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">end</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">float</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s are cut off. Lengthen the shot "</span>
+                    <span class="sa">f</span><span class="s2">"to at least </span><span class="si">{</span><span class="n">end</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s, shorten the line, or lower the voice's "</span>
+                    <span class="s2">"`tempo` slowdown"</span>
                 <span class="p">)</span>
-                <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">audio</span><span class="o">.</span><span class="n">duration</span>
-                <span class="n">line</span><span class="o">.</span><span class="n">viseme_track</span> <span class="o">=</span> <span class="n">_to_ir_viseme_track</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
-                <span class="n">line</span><span class="o">.</span><span class="n">word_timings</span> <span class="o">=</span> <span class="n">_to_ir_word_timings</span><span class="p">(</span><span class="n">track</span><span class="p">)</span>
-                <span class="n">line</span><span class="o">.</span><span class="n">audio_ref</span> <span class="o">=</span> <span class="n">expected_audio_ref</span>
-                <span class="n">line</span><span class="o">.</span><span class="n">viseme_ref</span> <span class="o">=</span> <span class="n">expected_viseme_ref</span>
-    <span class="k">return</span> <span class="n">retime_dialogue</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">out</span></div>
 
 
 
@@ -999,15 +1119,23 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">provider_voice</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">takes</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">take</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">roll</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Content key of a line's audio: text, voice, provider, and — only when the</span>
-<span class="sd">    voice declares them — its effects, the provider voice it names (an#194) and</span>
+<span class="sd">    voice declares them — its effects, the provider voice it names (an#194),</span>
 <span class="sd">    the provider's synthesis options (model, settings, seed, audio tags —</span>
 <span class="sd">    an#209). With none of them, the payload is exactly the pre-effects one, so</span>
-<span class="sd">    every key a project already has is unchanged.</span>
+<span class="sd">    every key a project already has is unchanged. ``take`` (1, 2, … — never 0)</span>
+<span class="sd">    and ``roll`` (1, 2, … after ``an voices reroll``) key one candidate take of</span>
+<span class="sd">    a best-of-N line; take 0 of roll 0 is the single-take request and keeps its</span>
+<span class="sd">    key. ``takes`` (:func:`an.audio.takes.takes_choice_part`) keys the CHOICE</span>
+<span class="sd">    among a line's takes — the record in ``mall["takes"]``, not an audio blob.</span>
 
 <span class="sd">    &gt;&gt;&gt; audio_key("hi", "default", "offline") == audio_key(</span>
-<span class="sd">    ...     "hi", "default", "offline", {}, provider_voice=None, options={})</span>
+<span class="sd">    ...     "hi", "default", "offline", {}, provider_voice=None, options={},</span>
+<span class="sd">    ...     takes=None, take=0, roll=0)</span>
 <span class="sd">    True</span>
 <span class="sd">    """</span>
     <span class="n">payload</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"text"</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span> <span class="s2">"voice"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">,</span> <span class="s2">"tts"</span><span class="p">:</span> <span class="n">tts_name</span><span class="p">}</span>
@@ -1017,6 +1145,12 @@ window.runMermaid = runMermaid;</script>
         <span class="n">payload</span><span class="p">[</span><span class="s2">"provider_voice"</span><span class="p">]</span> <span class="o">=</span> <span class="n">provider_voice</span>
     <span class="k">if</span> <span class="n">options</span><span class="p">:</span>
         <span class="n">payload</span><span class="p">[</span><span class="s2">"options"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">takes</span><span class="p">:</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">"takes"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">takes</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">take</span><span class="p">:</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">"take"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">take</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">roll</span><span class="p">:</span>
+        <span class="n">payload</span><span class="p">[</span><span class="s2">"roll"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">roll</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">_stable_hash</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span></div>
 
 
@@ -1062,9 +1196,556 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="takes_cost_message">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.takes_cost_message">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">takes_cost_message</span><span class="p">(</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="s2">"_LineRequest"</span><span class="p">]],</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span>
+    <span class="n">audio_store</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What synthesizing ``lines`` will bill, when any of them takes best-of-N; else ``""``.</span>
+
+<span class="sd">    Counts only the requests not already in ``audio_store`` (a cached take is</span>
+<span class="sd">    free; a recorded take is restored, never billed), and the provider's billed</span>
+<span class="sd">    characters per request (its ``billed_characters(text, **options)`` hook —</span>
+<span class="sd">    ElevenLabs counts the audio tags too). A provider without the hook bills no</span>
+<span class="sd">    characters, and the message says so.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">billed</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"billed_characters"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="n">requests</span> <span class="o">=</span> <span class="n">characters</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="n">takes_lines</span> <span class="o">=</span> <span class="n">billed_lines</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">seen</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># two lines saying the same thing share their takes</span>
+    <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># a recorded take: restored from the store</span>
+        <span class="n">ident</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span> <span class="ow">or</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span>
+        <span class="k">if</span> <span class="n">ident</span> <span class="ow">in</span> <span class="n">seen</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">audio_store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ident</span> <span class="ow">in</span> <span class="n">audio_store</span>
+        <span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ident</span><span class="p">)</span>
+        <span class="n">before</span> <span class="o">=</span> <span class="n">requests</span>
+        <span class="k">for</span> <span class="n">_take</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">req</span><span class="o">.</span><span class="n">take_requests</span><span class="p">():</span>
+            <span class="n">in_store</span> <span class="o">=</span> <span class="n">audio_store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">audio_store</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span> <span class="ow">or</span> <span class="n">in_store</span><span class="p">:</span>
+                <span class="n">cached</span> <span class="o">+=</span> <span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">in_store</span>
+                <span class="k">continue</span>
+            <span class="n">seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="n">requests</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">characters</span> <span class="o">+=</span> <span class="n">_billed_characters</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">tts</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">options</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">requests</span> <span class="o">&gt;</span> <span class="n">before</span><span class="p">:</span>
+            <span class="n">billed_lines</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">takes_lines</span> <span class="o">+=</span> <span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">requests</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">bill</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">characters</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> billed characters"</span> <span class="k">if</span> <span class="n">billed</span> <span class="k">else</span> <span class="s2">"not billed per character"</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"best-of-N takes: </span><span class="si">{</span><span class="n">requests</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> request(s) for </span><span class="si">{</span><span class="n">billed_lines</span><span class="si">}</span><span class="s2"> line(s) "</span>
+        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">takes_lines</span><span class="si">}</span><span class="s2"> with several takes; </span><span class="si">{</span><span class="n">cached</span><span class="si">}</span><span class="s2"> take(s) already cached), </span><span class="si">{</span><span class="n">bill</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_older_scorer_message</span><span class="p">(</span><span class="n">reqs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"_LineRequest"</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Which lines keep a take chosen by an older scorer version (kept, reported)."""</span>
+    <span class="n">older</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reqs</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">older_scorer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">older</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="n">older</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">texts</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="p">[:</span><span class="mi">40</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">older</span><span class="p">[:</span><span class="mi">5</span><span class="p">])</span> <span class="o">+</span> <span class="p">(</span>
+        <span class="s2">" …"</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">older</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">older</span><span class="p">)</span><span class="si">}</span><span class="s2"> line(s) keep the take chosen by an older scorer "</span>
+        <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">first</span><span class="o">.</span><span class="n">scorer</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">first</span><span class="o">.</span><span class="n">older_scorer</span><span class="si">}</span><span class="s2">; now </span><span class="si">{</span><span class="n">first</span><span class="o">.</span><span class="n">scorer</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">): "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">texts</span><span class="si">}</span><span class="s2">. The recorded takes are kept; re-choose one from its cached takes "</span>
+        <span class="s2">"with `an voices rescore &lt;project&gt; &lt;words of the line&gt;`"</span>
+    <span class="p">)</span>
+
+
 <span class="c1"># -----------------------------------------------------------------------------</span>
 <span class="c1"># Internals</span>
 <span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">_LineRequest</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Everything a line's audio is a function of, resolved once — the SSOT the</span>
+<span class="sd">    stamp, the cost estimate and the synthesis all read.</span>
+
+<span class="sd">    ``cache_key`` is the key of the audio the line KEEPS: for a best-of-N line,</span>
+<span class="sd">    the chosen take's own heard key (from the record), or ``None`` while a</span>
+<span class="sd">    choice is still to be made."""</span>
+
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">named</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+    <span class="n">raw_key</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">cache_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">spec</span><span class="p">:</span> <span class="n">TakesSpec</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">scorer</span><span class="p">:</span> <span class="n">TakeScorer</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">choice_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">record</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">roll</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">restore</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># the kept audio is gone, the chosen raw take is cached</span>
+    <span class="n">hand_edit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># the record's `chosen` was edited by hand</span>
+    <span class="n">older_scorer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># the version that chose, when not the current one</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">handed_voice</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The voice id the provider is handed."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">named</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">voice_id</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">needs_work</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""A recorded take that must be restored, or a hand edit to honour."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">restore</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">hand_edit</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">take_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">take</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">heard</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The key of candidate ``take`` of this roll: its raw audio, or (``heard``)</span>
+<span class="sd">        the audio with the voice's effects applied. Take 0 of roll 0 is the</span>
+<span class="sd">        single-take request: its keys are the plain line's."""</span>
+        <span class="k">return</span> <span class="n">audio_key</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">voice_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">effects</span> <span class="k">if</span> <span class="n">heard</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">provider_voice</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">named</span><span class="p">,</span>
+            <span class="n">options</span><span class="o">=</span><span class="n">_take_options</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> <span class="n">take</span><span class="p">),</span>
+            <span class="n">take</span><span class="o">=</span><span class="n">take</span><span class="p">,</span>
+            <span class="n">roll</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">roll</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">take_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""``(take, options, raw_key)`` per candidate take (only take 0 without ``spec``)."""</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">n</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">take</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="p">(</span>
+                <span class="n">take</span><span class="p">,</span>
+                <span class="n">_take_options</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">,</span> <span class="n">take</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">take_key</span><span class="p">(</span><span class="n">take</span><span class="p">,</span> <span class="n">heard</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+            <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_line_request</span><span class="p">(</span>
+    <span class="n">line</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span>
+    <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">takes</span><span class="p">:</span> <span class="n">TakesSpec</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">_FROM_VOICE</span><span class="p">,</span>
+    <span class="n">take_scorer</span><span class="p">:</span> <span class="n">TakeScorerFactory</span> <span class="o">=</span> <span class="n">make_take_scorer</span><span class="p">,</span>
+    <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_LineRequest</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Resolve ``line``'s audio request in ``voice_id``: keys, options, effects, and —</span>
+<span class="sd">    for a best-of-N line — its recorded choice.</span>
+
+<span class="sd">    ``strict`` (the render) raises :class:`~an.audio.takes.TakeLostError` for a</span>
+<span class="sd">    recorded take whose audio is gone, and refuses a choice the scorer could not</span>
+<span class="sd">    make (no ffmpeg) — both before any request.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">effects</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">effects</span> <span class="o">=</span> <span class="n">voice_effects</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
+    <span class="n">named</span> <span class="o">=</span> <span class="n">provider_voice</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts_name</span><span class="o">=</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="n">synthesis_options</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">takes</span> <span class="ow">is</span> <span class="n">_FROM_VOICE</span><span class="p">:</span>
+        <span class="n">takes</span> <span class="o">=</span> <span class="n">voice_takes</span><span class="p">(</span>
+            <span class="n">mall</span><span class="p">,</span>
+            <span class="n">voice_id</span><span class="p">,</span>
+            <span class="n">direction</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="s2">"direction"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="n">tts_name</span><span class="o">=</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">repeatable</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"repeatable"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)),</span>
+        <span class="p">)</span>
+    <span class="n">raw_key</span> <span class="o">=</span> <span class="n">audio_key</span><span class="p">(</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">provider_voice</span><span class="o">=</span><span class="n">named</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span>
+    <span class="p">)</span>
+    <span class="n">req</span> <span class="o">=</span> <span class="n">_LineRequest</span><span class="p">(</span>
+        <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">,</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+        <span class="n">voice_id</span><span class="o">=</span><span class="n">voice_id</span><span class="p">,</span>
+        <span class="n">named</span><span class="o">=</span><span class="n">named</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+        <span class="n">effects</span><span class="o">=</span><span class="n">effects</span><span class="p">,</span>
+        <span class="n">raw_key</span><span class="o">=</span><span class="n">raw_key</span><span class="p">,</span>
+        <span class="n">cache_key</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">audio_key</span><span class="p">(</span>
+                <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                <span class="n">voice_id</span><span class="p">,</span>
+                <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">effects</span><span class="p">,</span>
+                <span class="n">provider_voice</span><span class="o">=</span><span class="n">named</span><span class="p">,</span>
+                <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">takes</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">),</span>
+        <span class="n">spec</span><span class="o">=</span><span class="n">takes</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">takes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">req</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">scorer</span> <span class="o">=</span> <span class="n">take_scorer</span><span class="p">(</span><span class="n">takes</span><span class="p">)</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span> <span class="o">=</span> <span class="n">audio_key</span><span class="p">(</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+        <span class="n">voice_id</span><span class="p">,</span>
+        <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">effects</span><span class="p">,</span>
+        <span class="n">provider_voice</span><span class="o">=</span><span class="n">named</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="n">options</span><span class="p">,</span>
+        <span class="n">takes</span><span class="o">=</span><span class="n">takes_choice_part</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">scorer</span><span class="p">,</span> <span class="n">takes</span><span class="o">.</span><span class="n">n</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="n">read_takes_record</span><span class="p">(</span>
+        <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TAKES_STORE</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span>
+    <span class="p">)</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">record</span> <span class="o">=</span> <span class="n">record</span>
+    <span class="n">chosen</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"chosen"</span><span class="p">)</span> <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">chosen</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># never chosen, or a rescore / reroll pending</span>
+        <span class="n">req</span><span class="o">.</span><span class="n">roll</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"roll"</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="n">_missing_takes</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">strict</span>
+            <span class="ow">and</span> <span class="n">record</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pending"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"rescore"</span>
+            <span class="ow">and</span> <span class="n">missing</span>
+        <span class="p">):</span>
+            <span class="c1"># A rescore chooses among takes ALREADY synthesized: re-synthesizing</span>
+            <span class="c1"># one under its old key would put new bytes under a key whose</span>
+            <span class="c1"># visemes are cached (the stale mouth of review H1).</span>
+            <span class="k">raise</span> <span class="n">TakeLostError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"a rescore of </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> needs every take of roll </span><span class="si">{</span><span class="n">req</span><span class="o">.</span><span class="n">roll</span><span class="si">}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"cached, and take(s) </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2"> are gone; nothing was billed. "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">REROLL_ONLY_HINT</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">check</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">scorer</span><span class="p">,</span> <span class="s2">"check_available"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">strict</span> <span class="ow">and</span> <span class="n">check</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">check</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">req</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">roll</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"roll"</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"takes"</span><span class="p">][</span><span class="n">chosen</span><span class="p">]</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">take_key</span><span class="p">(</span><span class="n">chosen</span><span class="p">,</span> <span class="n">heard</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">hand_edit</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"digest"</span><span class="p">)</span> <span class="o">!=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"heard_digest"</span><span class="p">)</span>
+    <span class="n">recorded</span> <span class="o">=</span> <span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"scorer"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">recorded</span> <span class="o">!=</span> <span class="n">req</span><span class="o">.</span><span class="n">scorer</span><span class="o">.</span><span class="n">version</span><span class="p">:</span>
+        <span class="n">req</span><span class="o">.</span><span class="n">older_scorer</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">recorded</span><span class="p">)</span>
+    <span class="n">audio_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">audio_store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">audio_store</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">take_key</span><span class="p">(</span><span class="n">chosen</span><span class="p">,</span> <span class="n">heard</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="ow">in</span> <span class="n">audio_store</span><span class="p">:</span>
+            <span class="n">req</span><span class="o">.</span><span class="n">restore</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">strict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">TakeLostError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the recorded take </span><span class="si">{</span><span class="n">chosen</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> (voice </span><span class="si">{</span><span class="n">voice_id</span><span class="si">!r}</span><span class="s2">, "</span>
+                <span class="sa">f</span><span class="s2">"sha256 </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'heard_digest'</span><span class="p">))[:</span><span class="mi">12</span><span class="p">]</span><span class="si">}</span><span class="s2">) is gone from the audio "</span>
+                <span class="sa">f</span><span class="s2">"store, raw and processed; nothing was billed. Restore the audio, or "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">REROLL_ONLY_HINT</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">req</span>
+
+
+<span class="c1">#: The remedy when a recorded take is gone: only a new roll (new keys) replaces it.</span>
+<span class="n">REROLL_ONLY_HINT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"Re-roll it with `an voices reroll &lt;project&gt; &lt;words of the line&gt;` (new takes "</span>
+    <span class="s2">"under new keys, billed; the render prints the cost first)"</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_missing_takes</span><span class="p">(</span>
+    <span class="n">req</span><span class="p">:</span> <span class="n">_LineRequest</span><span class="p">,</span> <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The takes of ``req``'s current roll whose raw audio is not in the store."""</span>
+    <span class="n">audio_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">audio_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">take</span> <span class="k">for</span> <span class="n">take</span><span class="p">,</span> <span class="n">_options</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">req</span><span class="o">.</span><span class="n">take_requests</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">audio_store</span>
+    <span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_take_options</span><span class="p">(</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">take</span><span class="p">:</span> <span class="nb">int</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The provider's request for candidate ``take`` (its optional ``take_options`` hook)."""</span>
+    <span class="n">hook</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"take_options"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">take</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">hook</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hook</span><span class="p">(</span><span class="n">options</span><span class="p">,</span> <span class="n">take</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_billed_characters</span><span class="p">(</span><span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Characters one request bills (the provider's hook; ``0`` without one)."""</span>
+    <span class="n">hook</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">tts</span><span class="p">,</span> <span class="s2">"billed_characters"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">hook</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">))</span> <span class="k">if</span> <span class="n">hook</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_clip_bytes</span><span class="p">(</span><span class="n">clip</span><span class="p">:</span> <span class="n">AudioClip</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The clip's audio bytes, read from its path when it has no bytes in memory."""</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">bytes_</span>
+    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">clip</span><span class="o">.</span><span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">clip</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">AudioPipelineError</span><span class="p">(</span><span class="s2">"the TTS clip carries no audio bytes to score or keep"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_or_choose_take</span><span class="p">(</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">req</span><span class="p">:</span> <span class="n">_LineRequest</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioClip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The audio a best-of-N line keeps.</span>
+
+<span class="sd">    With a recorded choice: the chosen take, read back — or restored from its</span>
+<span class="sd">    raw take with the effects re-applied — and checked against the record's</span>
+<span class="sd">    digest; a hand-edited ``chosen`` is honoured and the record updated. With</span>
+<span class="sd">    none (or a rescore / reroll pending): the takes of the current roll are</span>
+<span class="sd">    synthesized where not cached, scored on the audio heard, the best kept</span>
+<span class="sd">    under its own heard key, and the choice recorded.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_restore_recorded_take</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">req</span><span class="p">)</span>
+
+    <span class="n">audio_store</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"audio"</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">candidates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">take</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">raw_key</span> <span class="ow">in</span> <span class="n">req</span><span class="o">.</span><span class="n">take_requests</span><span class="p">():</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">_load_or_synthesize</span><span class="p">(</span>
+            <span class="n">req</span><span class="o">.</span><span class="n">tts</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">handed_voice</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">raw_key</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="n">options</span>
+        <span class="p">)</span>
+        <span class="n">heard_key</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">take_key</span><span class="p">(</span><span class="n">take</span><span class="p">,</span> <span class="n">heard</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">heard</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">_load_or_apply_effects</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">effects</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">heard_key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">effects</span>
+            <span class="k">else</span> <span class="n">raw</span>
+        <span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_clip_bytes</span><span class="p">(</span><span class="n">heard</span><span class="p">)</span>
+        <span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">take</span><span class="p">,</span>
+                <span class="n">raw_key</span><span class="p">,</span>
+                <span class="n">heard_key</span><span class="p">,</span>
+                <span class="n">_clip_bytes</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span>
+                <span class="n">data</span><span class="p">,</span>
+                <span class="n">req</span><span class="o">.</span><span class="n">scorer</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">best</span> <span class="o">=</span> <span class="n">choose_take</span><span class="p">([</span><span class="n">c</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">])</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span> <span class="n">kept</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="n">best</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">candidates</span><span class="p">[</span><span class="n">best</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">audio_store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">audio_store</span><span class="p">:</span>
+        <span class="n">audio_store</span><span class="p">[</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">kept</span>
+
+    <span class="n">previous</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">record</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">record</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"record_version"</span><span class="p">:</span> <span class="n">TAKES_RECORD_VERSION</span><span class="p">,</span>
+        <span class="s2">"choice_key"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span><span class="p">,</span>
+        <span class="s2">"text"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+        <span class="s2">"voice"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">voice_id</span><span class="p">,</span>
+        <span class="s2">"tts"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="s2">"roll"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">roll</span><span class="p">,</span>
+        <span class="s2">"scorer"</span><span class="p">:</span> <span class="n">scorer_identity</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">scorer</span><span class="p">),</span>
+        <span class="s2">"chosen"</span><span class="p">:</span> <span class="n">best</span><span class="p">,</span>
+        <span class="s2">"digest"</span><span class="p">:</span> <span class="n">audio_digest</span><span class="p">(</span><span class="n">kept</span><span class="p">),</span>
+        <span class="s2">"audio_key"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span>
+        <span class="s2">"takes"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"take"</span><span class="p">:</span> <span class="n">take</span><span class="p">,</span>
+                <span class="s2">"audio_key"</span><span class="p">:</span> <span class="n">raw_key</span><span class="p">,</span>
+                <span class="s2">"digest"</span><span class="p">:</span> <span class="n">audio_digest</span><span class="p">(</span><span class="n">raw</span><span class="p">),</span>
+                <span class="s2">"heard_key"</span><span class="p">:</span> <span class="n">heard_key</span><span class="p">,</span>
+                <span class="s2">"heard_digest"</span><span class="p">:</span> <span class="n">audio_digest</span><span class="p">(</span><span class="n">data</span><span class="p">),</span>
+                <span class="s2">"score"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">score</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                <span class="o">**</span><span class="nb">dict</span><span class="p">(</span><span class="n">score</span><span class="o">.</span><span class="n">detail</span><span class="p">),</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">take</span><span class="p">,</span> <span class="n">raw_key</span><span class="p">,</span> <span class="n">heard_key</span><span class="p">,</span> <span class="n">raw</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">candidates</span>
+        <span class="p">],</span>
+        <span class="s2">"history"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">previous</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"history"</span><span class="p">,</span> <span class="p">[])),</span>
+    <span class="p">}</span>
+    <span class="n">write_takes_record</span><span class="p">(</span>
+        <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TAKES_STORE</span><span class="p">)</span> <span class="k">if</span> <span class="n">mall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span><span class="p">,</span> <span class="n">record</span>
+    <span class="p">)</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">record</span> <span class="o">=</span> <span class="n">record</span>
+    <span class="k">return</span> <span class="n">_kept_clip</span><span class="p">(</span><span class="n">kept</span><span class="p">,</span> <span class="n">req</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_restore_recorded_take</span><span class="p">(</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">req</span><span class="p">:</span> <span class="n">_LineRequest</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioClip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The recorded take, from the store; never a request (see ``_line_request``)."""</span>
+    <span class="n">audio_store</span> <span class="o">=</span> <span class="n">mall</span><span class="p">[</span><span class="s2">"audio"</span><span class="p">]</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">record</span>
+    <span class="n">chosen</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"takes"</span><span class="p">][</span><span class="n">chosen</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">restore</span><span class="p">:</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">audio_store</span><span class="p">[</span><span class="n">req</span><span class="o">.</span><span class="n">take_key</span><span class="p">(</span><span class="n">chosen</span><span class="p">,</span> <span class="n">heard</span><span class="o">=</span><span class="kc">False</span><span class="p">)]</span>
+        <span class="n">kept</span> <span class="o">=</span> <span class="n">apply_voice_effects</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">effects</span><span class="p">)</span> <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">effects</span> <span class="k">else</span> <span class="n">raw</span>
+        <span class="n">audio_store</span><span class="p">[</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">kept</span>
+        <span class="n">req</span><span class="o">.</span><span class="n">restore</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">kept</span> <span class="o">=</span> <span class="n">audio_store</span><span class="p">[</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">]</span>
+    <span class="n">expected</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"heard_digest"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">expected</span> <span class="ow">and</span> <span class="n">audio_digest</span><span class="p">(</span><span class="n">kept</span><span class="p">)</span> <span class="o">!=</span> <span class="n">expected</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the audio kept for </span><span class="si">{</span><span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> (take </span><span class="si">{</span><span class="n">chosen</span><span class="si">}</span><span class="s2">) is not the audio its "</span>
+            <span class="sa">f</span><span class="s2">"takes record names (sha256 </span><span class="si">{</span><span class="n">audio_digest</span><span class="p">(</span><span class="n">kept</span><span class="p">)[:</span><span class="mi">12</span><span class="p">]</span><span class="si">}</span><span class="s2">, recorded "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">expected</span><span class="p">)[:</span><span class="mi">12</span><span class="p">]</span><span class="si">}</span><span class="s2">): it was replaced, or the effects chain differs on "</span>
+            <span class="sa">f</span><span class="s2">"this machine. It is used as is; </span><span class="si">{</span><span class="n">REROLL_HINT</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="n">TakeDigestWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">hand_edit</span><span class="p">:</span>
+        <span class="n">_honour_hand_edit</span><span class="p">(</span><span class="n">mall</span><span class="p">,</span> <span class="n">req</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_kept_clip</span><span class="p">(</span><span class="n">kept</span><span class="p">,</span> <span class="n">req</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_honour_hand_edit</span><span class="p">(</span><span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">],</span> <span class="n">req</span><span class="p">:</span> <span class="n">_LineRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A hand-edited ``chosen`` wins (ADR 0003 decision 3): the record is updated</span>
+<span class="sd">    to it, says ``superseded_by: hand``, keeps what it replaced in ``history``,</span>
+<span class="sd">    and the decision log records it."""</span>
+    <span class="n">record</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">req</span><span class="o">.</span><span class="n">record</span><span class="p">)</span>
+    <span class="n">chosen</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">]</span>
+    <span class="n">entry</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"takes"</span><span class="p">][</span><span class="n">chosen</span><span class="p">]</span>
+    <span class="n">replaced</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+        <span class="p">(</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"take"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">record</span><span class="p">[</span><span class="s2">"takes"</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"heard_digest"</span><span class="p">)</span> <span class="o">==</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"digest"</span><span class="p">)</span>
+        <span class="p">),</span>
+        <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">record</span><span class="p">[</span><span class="s2">"history"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="o">*</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"history"</span><span class="p">,</span> <span class="p">[]),</span>
+        <span class="p">{</span>
+            <span class="s2">"chosen"</span><span class="p">:</span> <span class="n">replaced</span><span class="p">,</span>
+            <span class="s2">"digest"</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"digest"</span><span class="p">),</span>
+            <span class="s2">"roll"</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"roll"</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="s2">"scorer"</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"scorer"</span><span class="p">),</span>
+            <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"superseded by a hand edit"</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">]</span>
+    <span class="n">record</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="n">digest</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"heard_digest"</span><span class="p">),</span>
+        <span class="n">audio_key</span><span class="o">=</span><span class="n">req</span><span class="o">.</span><span class="n">cache_key</span><span class="p">,</span>
+        <span class="n">superseded_by</span><span class="o">=</span><span class="s2">"hand"</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">write_takes_record</span><span class="p">(</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TAKES_STORE</span><span class="p">),</span> <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span><span class="p">,</span> <span class="n">record</span><span class="p">)</span>
+    <span class="n">decisions</span> <span class="o">=</span> <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"decisions"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">decisions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">decisions</span><span class="p">,</span> <span class="s2">"append"</span><span class="p">):</span>
+        <span class="n">decisions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">kind</span><span class="o">=</span><span class="s2">"takes_hand_edit"</span><span class="p">,</span>
+            <span class="n">body</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">"text"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                <span class="s2">"voice"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">voice_id</span><span class="p">,</span>
+                <span class="s2">"from_take"</span><span class="p">:</span> <span class="n">replaced</span><span class="p">,</span>
+                <span class="s2">"to_take"</span><span class="p">:</span> <span class="n">chosen</span><span class="p">,</span>
+                <span class="s2">"record"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+    <span class="n">req</span><span class="o">.</span><span class="n">record</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">hand_edit</span> <span class="o">=</span> <span class="n">record</span><span class="p">,</span> <span class="kc">False</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_kept_clip</span><span class="p">(</span><span class="n">kept</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">req</span><span class="p">:</span> <span class="n">_LineRequest</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioClip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The clip of the kept audio (a WAV at the effect rate when effects ran)."""</span>
+    <span class="n">clip</span> <span class="o">=</span> <span class="n">_clip_from_bytes</span><span class="p">(</span><span class="n">kept</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">voice_id</span><span class="p">,</span> <span class="n">req</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">effects</span><span class="p">:</span>
+        <span class="n">clip</span><span class="o">.</span><span class="n">sample_rate</span> <span class="o">=</span> <span class="n">EFFECT_SAMPLE_RATE</span>
+    <span class="k">return</span> <span class="n">clip</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_clip_from_bytes</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AudioClip</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A clip read back from the audio store (its duration read from the bytes)."""</span>
+    <span class="k">return</span> <span class="n">AudioClip</span><span class="p">(</span>
+        <span class="n">bytes_</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">_wav_duration</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">voice_id</span><span class="o">=</span><span class="n">voice_id</span><span class="p">,</span> <span class="n">transcript</span><span class="o">=</span><span class="n">text</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="retake_lines">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.pipeline.html#an.audio.retake_lines">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retake_lines</span><span class="p">(</span>
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span>
+    <span class="n">mall</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">MutableMapping</span><span class="p">],</span>
+    <span class="n">match</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="n">TTSProvider</span><span class="p">,</span>
+    <span class="n">rescore</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">take_scorer</span><span class="p">:</span> <span class="n">TakeScorerFactory</span> <span class="o">=</span> <span class="n">make_take_scorer</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Mark the recorded takes of the lines whose text contains ``match`` to be</span>
+<span class="sd">    chosen again on the next render; one message per matching line.</span>
+
+<span class="sd">    ``rescore=True`` re-chooses among the takes already synthesized (with the</span>
+<span class="sd">    current scorer; nothing billed while they are cached); otherwise a new roll</span>
+<span class="sd">    of takes is synthesized (billed — the render prints the cost first). Either</span>
+<span class="sd">    way the replaced choice is kept in the record's ``history``, and the new</span>
+<span class="sd">    take has its own key, so its visemes and word timings are aligned afresh.</span>
+<span class="sd">    This is the only way a recorded take is replaced (ADR 0003).</span>
+<span class="sd">    """</span>
+    <span class="n">needle</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">needle</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="k">continue</span>
+            <span class="n">voice_id</span> <span class="o">=</span> <span class="n">line_voice_id</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="n">_line_request</span><span class="p">(</span>
+                <span class="n">line</span><span class="p">,</span> <span class="n">mall</span><span class="p">,</span> <span class="n">tts</span><span class="p">,</span> <span class="n">voice_id</span><span class="p">,</span> <span class="n">take_scorer</span><span class="o">=</span><span class="n">take_scorer</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2">: its voice declares no takes under </span><span class="si">{</span><span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">record</span>
+            <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"chosen"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2">: no take recorded yet; the next render chooses one"</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">roll</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"roll"</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">missing</span> <span class="o">=</span> <span class="n">_missing_takes</span><span class="p">(</span><span class="n">req</span><span class="p">,</span> <span class="n">mall</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rescore</span> <span class="ow">and</span> <span class="n">missing</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2">: not rescored — take(s) </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2"> of roll </span><span class="si">{</span><span class="n">roll</span><span class="si">}</span><span class="s2"> are "</span>
+                    <span class="s2">"gone from the audio store, and re-synthesizing them under their old "</span>
+                    <span class="s2">"keys would desynchronize the mouth. "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">REROLL_ONLY_HINT</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">write_takes_record</span><span class="p">(</span>
+                <span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TAKES_STORE</span><span class="p">),</span>
+                <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span><span class="p">,</span>
+                <span class="p">{</span>
+                    <span class="s2">"record_version"</span><span class="p">:</span> <span class="n">TAKES_RECORD_VERSION</span><span class="p">,</span>
+                    <span class="s2">"choice_key"</span><span class="p">:</span> <span class="n">req</span><span class="o">.</span><span class="n">choice_key</span><span class="p">,</span>
+                    <span class="s2">"text"</span><span class="p">:</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+                    <span class="s2">"voice"</span><span class="p">:</span> <span class="n">voice_id</span><span class="p">,</span>
+                    <span class="s2">"tts"</span><span class="p">:</span> <span class="n">tts</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="s2">"roll"</span><span class="p">:</span> <span class="n">roll</span> <span class="k">if</span> <span class="n">rescore</span> <span class="k">else</span> <span class="n">roll</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">"chosen"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="s2">"pending"</span><span class="p">:</span> <span class="s2">"rescore"</span> <span class="k">if</span> <span class="n">rescore</span> <span class="k">else</span> <span class="s2">"reroll"</span><span class="p">,</span>
+                    <span class="s2">"takes"</span><span class="p">:</span> <span class="p">[],</span>
+                    <span class="s2">"history"</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="o">*</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"history"</span><span class="p">,</span> <span class="p">[]),</span>
+                        <span class="p">{</span>
+                            <span class="s2">"chosen"</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="s2">"chosen"</span><span class="p">],</span>
+                            <span class="s2">"digest"</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"digest"</span><span class="p">),</span>
+                            <span class="s2">"roll"</span><span class="p">:</span> <span class="n">roll</span><span class="p">,</span>
+                            <span class="s2">"scorer"</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"scorer"</span><span class="p">),</span>
+                            <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"rescore"</span> <span class="k">if</span> <span class="n">rescore</span> <span class="k">else</span> <span class="s2">"reroll"</span><span class="p">,</span>
+                        <span class="p">},</span>
+                    <span class="p">],</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2">: take </span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">'chosen'</span><span class="p">]</span><span class="si">}</span><span class="s2"> released; the next render "</span>
+                <span class="o">+</span> <span class="p">(</span>
+                    <span class="s2">"re-chooses from the cached takes"</span>
+                    <span class="k">if</span> <span class="n">rescore</span>
+                    <span class="k">else</span> <span class="sa">f</span><span class="s2">"synthesizes </span><span class="si">{</span><span class="n">req</span><span class="o">.</span><span class="n">spec</span><span class="o">.</span><span class="n">n</span><span class="si">}</span><span class="s2"> new takes (roll </span><span class="si">{</span><span class="n">roll</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">)"</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">out</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"no dialogue line contains </span><span class="si">{</span><span class="n">match</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_load_or_apply_effects</span><span class="p">(</span>

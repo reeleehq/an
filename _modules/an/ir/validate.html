@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1854,11 +1854,24 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_voice_effects</span><span class="p">(</span>
     <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">voice_ref</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">voices</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">line</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""An unknown or out-of-range ``effects`` entry on a line's voice is an</span>
-<span class="sd">    error — rendering would raise the same ``VoiceEffectError``."""</span>
+<span class="w">    </span><span class="sd">"""An unknown or out-of-range ``effects`` entry, or a malformed ``takes``</span>
+<span class="sd">    declaration (an#265), on a line's voice is an error — rendering would raise</span>
+<span class="sd">    the same ``VoiceEffectError`` / ``VoiceTakesError`` before any request."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.takes</span><span class="w"> </span><span class="kn">import</span> <span class="n">TAKES_KEY</span><span class="p">,</span> <span class="n">VoiceTakesError</span><span class="p">,</span> <span class="n">takes_spec</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">voice_document</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="n">voice_effects</span><span class="p">({</span><span class="s2">"voices"</span><span class="p">:</span> <span class="n">voices</span><span class="p">},</span> <span class="n">voice_ref</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">VoiceEffectError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+            <span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/voice_ref"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">voice_ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">takes_spec</span><span class="p">(</span>
+            <span class="n">voice_document</span><span class="p">({</span><span class="s2">"voices"</span><span class="p">:</span> <span class="n">voices</span><span class="p">},</span> <span class="n">voice_ref</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TAKES_KEY</span><span class="p">),</span>
+            <span class="n">direction</span><span class="o">=</span><span class="n">line</span><span class="o">.</span><span class="n">direction</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">VoiceTakesError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
             <span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/voice_ref"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"voice </span><span class="si">{</span><span class="n">voice_ref</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
@@ -2874,7 +2887,33 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_dialogue_fits</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">_check_dialogue_fits</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">)</span>
+    <span class="n">_check_dialogue_fits</span><span class="p">(</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">_voice_tempo</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_voice_tempo</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``line -&gt; tempo`` of the voice each line of ``shot`` is spoken with (an#265).</span>
+
+<span class="sd">    A voice's ``effects.tempo`` re-times every render, offline included, so the</span>
+<span class="sd">    pre-synthesis estimate is divided by it. ``1.0`` when no voices are known or</span>
+<span class="sd">    the voice's effects are malformed (that is its own error)."""</span>
+    <span class="n">voices</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">voices</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">voices</span><span class="p">:</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="mf">1.0</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">tempo_of</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">or</span> <span class="n">speaker_voice_ref</span><span class="p">(</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="p">{</span><span class="s2">"characters"</span><span class="p">:</span> <span class="n">ctx</span><span class="o">.</span><span class="n">characters</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ref</span> <span class="o">=</span> <span class="s2">"default"</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">voice_effects</span><span class="p">({</span><span class="s2">"voices"</span><span class="p">:</span> <span class="n">voices</span><span class="p">},</span> <span class="n">ref</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">VoiceEffectError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mf">1.0</span>
+
+    <span class="k">return</span> <span class="n">tempo_of</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_core_assembly</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -3051,14 +3090,16 @@ window.runMermaid = runMermaid;</script>
 <span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">60</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""``(k, line, start, end, estimated)`` for each dialogue line of ``shot``.</span>
 
 <span class="sd">    Where each line WILL play: the audio pipeline's own rule</span>
 <span class="sd">    (:meth:`an.ir.schema.Dialogue.planned_start`) over the real duration when</span>
 <span class="sd">    the line was synthesized, else the offline voice's estimate</span>
-<span class="sd">    (:func:`an.audio.offline_tts.estimate_speech_duration`). Never the stamped</span>
-<span class="sd">    ``start``, which a pause edited since the last synthesis has made stale.</span>
+<span class="sd">    (:func:`an.audio.offline_tts.estimate_speech_duration`) divided by the</span>
+<span class="sd">    line's voice ``tempo`` (``tempo_of(line)``; an#265 — the effect applies</span>
+<span class="sd">    under every provider). Never the stamped ``start``, which a pause edited</span>
+<span class="sd">    since the last synthesis has made stale.</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.offline_tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">estimate_speech_duration</span>
 
@@ -3066,14 +3107,18 @@ window.runMermaid = runMermaid;</script>
     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
         <span class="n">estimated</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="kc">None</span>
         <span class="n">length</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">estimate_speech_duration</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="n">estimated</span> <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+            <span class="n">estimate_speech_duration</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">tempo_of</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="n">tempo_of</span> <span class="k">else</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">estimated</span>
+            <span class="k">else</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
         <span class="p">)</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">planned_start</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">length</span>
         <span class="k">yield</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">cursor</span><span class="p">,</span> <span class="n">estimated</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_check_dialogue_fits</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_dialogue_fits</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Warn when a shot's dialogue runs past the shot's end.</span>
 
 <span class="sd">    The audio is cut at the shot end (each shot's mix is trimmed to its</span>
@@ -3084,8 +3129,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    What is known depends on when this runs. After the audio pipeline, a line</span>
 <span class="sd">    carries its real ``duration`` and the check is exact. Before it, the</span>
 <span class="sd">    duration is the offline voice's estimate</span>
-<span class="sd">    (:func:`an.audio.offline_tts.estimate_speech_duration` — exactly what an</span>
-<span class="sd">    offline render will give, and an under-estimate for a real voice). Either</span>
+<span class="sd">    (:func:`an.audio.offline_tts.estimate_speech_duration` over the voice's</span>
+<span class="sd">    ``tempo`` — exactly what an offline render will give, and an</span>
+<span class="sd">    under-estimate for a real voice). Either</span>
 <span class="sd">    way the lines are laid out by the pipeline's own rule,</span>
 <span class="sd">    :meth:`an.ir.schema.Dialogue.planned_start` — back to back from the shot</span>
 <span class="sd">    start, shifted by each line's ``pause`` or pinned by its ``at`` (an#187) —</span>
@@ -3097,7 +3143,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``pause`` cannot). Two speakers talking over each other is legal.</span>
 <span class="sd">    """</span>
     <span class="n">speaking_until</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">estimated</span> <span class="ow">in</span> <span class="n">_dialogue_layout</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">tempo_of</span><span class="o">=</span><span class="n">tempo_of</span><span class="p">):</span>
         <span class="n">previous</span> <span class="o">=</span> <span class="n">speaking_until</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">previous</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">:</span>
             <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
@@ -3112,8 +3158,11 @@ window.runMermaid = runMermaid;</script>
         <span class="n">speaking_until</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">end</span> <span class="o">&lt;=</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">+</span> <span class="n">DIALOGUE_OVERRUN_TOLERANCE_S</span><span class="p">:</span>
             <span class="k">continue</span>
+        <span class="n">tempo</span> <span class="o">=</span> <span class="n">tempo_of</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">tempo_of</span> <span class="ow">and</span> <span class="n">estimated</span><span class="p">)</span> <span class="k">else</span> <span class="mf">1.0</span>
         <span class="n">how</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="s2">"at the offline voice's rate (a real voice is usually slower)"</span>
+            <span class="s2">"at the offline voice's rate"</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" and its voice's tempo </span><span class="si">{</span><span class="n">tempo</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">tempo</span> <span class="o">!=</span> <span class="mf">1.0</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">" (a real voice is usually slower)"</span>
             <span class="k">if</span> <span class="n">estimated</span>
             <span class="k">else</span> <span class="s2">"as synthesized"</span>
         <span class="p">)</span>

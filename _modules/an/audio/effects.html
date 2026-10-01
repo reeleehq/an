@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -712,35 +712,53 @@ window.runMermaid = runMermaid;</script>
   <h1>Source code for an.audio.effects</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""Voice effects: a deterministic transform applied to a synthesized line (an#163).</span>
 
-<span class="sd">A voice document in the ``voices`` store may declare ``effects``. The one effect</span>
-<span class="sd">that exists is ``pitch_semitones`` — South Park raises its voices to sound like</span>
-<span class="sd">fourth graders, and a raised voice is a property of the *character*, not of the</span>
+<span class="sd">A voice document in the ``voices`` store may declare ``effects``. Two exist:</span>
+
+<span class="sd">- ``pitch_semitones`` (an#163) — South Park raises its voices to sound like</span>
+<span class="sd">  fourth graders; duration-preserving.</span>
+<span class="sd">- ``tempo`` (an#265) — a pitch-preserving speed ratio (``1.1`` is 10% faster).</span>
+<span class="sd">  ``eleven_v3`` ignores ``voice_settings.speed`` and no audio tag moves its rate,</span>
+<span class="sd">  so a narrator that must run at 5.8 syllables/s, or an expressive voice that</span>
+<span class="sd">  must be slowed to a serene pace, is re-timed here. Unlike the pitch effect it</span>
+<span class="sd">  CHANGES the line's duration.</span>
+
+<span class="sd">A raised voice or a fast narrator is a property of the *character*, not of the</span>
 <span class="sd">TTS provider, so it lives beside the voice the line already resolves through</span>
 <span class="sd">rather than in the IR.</span>
 
 <span class="sd">&gt;&gt;&gt; normalize_effects({"pitch_semitones": 4})</span>
 <span class="sd">{'pitch_semitones': 4.0}</span>
-<span class="sd">&gt;&gt;&gt; normalize_effects({"pitch_semitones": 0}) == normalize_effects(None) == {}</span>
+<span class="sd">&gt;&gt;&gt; normalize_effects({"pitch_semitones": 0}) == normalize_effects({"tempo": 1}) == normalize_effects(None) == {}</span>
 <span class="sd">True</span>
+<span class="sd">&gt;&gt;&gt; normalize_effects({"tempo": 1.1, "pitch_semitones": -2})</span>
+<span class="sd">{'pitch_semitones': -2.0, 'tempo': 1.1}</span>
 <span class="sd">&gt;&gt;&gt; round(_pitch_filter(12), 3)</span>
 <span class="sd">0.5</span>
+<span class="sd">&gt;&gt;&gt; filter_chain({"tempo": 1.25})</span>
+<span class="sd">'aresample=44100,atempo=1.250000000'</span>
 <span class="sd">&gt;&gt;&gt; normalize_effects({"reverb": 1})</span>
 <span class="sd">Traceback (most recent call last):</span>
 <span class="sd">    ...</span>
-<span class="sd">an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones']</span>
+<span class="sd">an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones', 'tempo']</span>
 
 <span class="sd">Design, in the order the pipeline uses it:</span>
 
 <span class="sd">- **The transform runs after synthesis and before alignment.** Lip-sync reads the</span>
-<span class="sd">  audio the viewer hears. The chain keeps the duration (see below), so word</span>
-<span class="sd">  timings computed on raw and on shifted audio agree to a frame, but the shifted</span>
-<span class="sd">  bytes are what is aligned regardless.</span>
+<span class="sd">  audio the viewer hears. The pitch chain keeps the duration, so word timings</span>
+<span class="sd">  computed on raw and on shifted audio agree to a frame; a ``tempo`` does not,</span>
+<span class="sd">  which is why the shifted bytes are what is aligned, the line's ``duration`` is</span>
+<span class="sd">  read from them, and the viseme key derives from the effect-keyed audio key —</span>
+<span class="sd">  visemes, word timings and captions all follow the audio the viewer hears.</span>
 <span class="sd">- **The cache keys on the effect.** ``effects_key`` is empty for no effect, and</span>
 <span class="sd">  ``an.audio.pipeline`` adds it to the audio key only when it is non-empty, so a</span>
 <span class="sd">  project that declares none keeps every key it ever had.</span>
 <span class="sd">- **Stock ffmpeg only.** The chain is ``aresample → asetrate → aresample →</span>
 <span class="sd">  atempo``: the sample rate is relabelled by the pitch ratio (pitch and speed both</span>
-<span class="sd">  move) and ``atempo`` removes the speed change. ``rubberband`` is a better</span>
+<span class="sd">  move) and ``atempo`` removes the speed change; a ``tempo`` multiplies into that</span>
+<span class="sd">  same ``atempo`` factor (``aresample → atempo`` alone when there is no pitch).</span>
+<span class="sd">  A factor outside ``atempo``'s clean ``[0.5, 2]`` is split into stages, each</span>
+<span class="sd">  inside it; the pitch-only chain is one stage, character for character what it</span>
+<span class="sd">  was before ``tempo`` existed. ``rubberband`` is a better</span>
 <span class="sd">  shifter but is a build option, and its output would differ between machines —</span>
 <span class="sd">  which a content-hash cache cannot tolerate. The output is bit-exact WAV (no</span>
 <span class="sd">  encoder tag, no metadata), so two runs produce identical bytes.</span>
@@ -757,9 +775,13 @@ window.runMermaid = runMermaid;</script>
 
 <span class="c1">#: Effects a voice document may declare, with the range each accepts.</span>
 <span class="n">PITCH_SEMITONES_LIMIT</span> <span class="o">=</span> <span class="mf">12.0</span>  <span class="c1"># atempo's stock range is [0.5, 2]: one octave each way</span>
+<span class="c1">#: ``tempo`` bounds: half to double speed. Outside it speech stops being speech.</span>
+<span class="n">TEMPO_LIMITS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+<span class="c1">#: One ``atempo`` stage's clean range; a factor beyond it is chained in stages.</span>
+<span class="n">ATEMPO_STAGE_LIMITS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
 <span class="c1">#: The sample rate the chain runs at (and the shifted WAV is written at).</span>
 <span class="n">EFFECT_SAMPLE_RATE</span> <span class="o">=</span> <span class="mi">44100</span>
-<span class="n">KNOWN_EFFECTS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">,)</span>
+<span class="n">KNOWN_EFFECTS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">,</span> <span class="s2">"tempo"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="VoiceEffectError">
@@ -803,6 +825,18 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">semitones</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="s2">"pitch_semitones"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">semitones</span><span class="p">)</span>
+    <span class="n">tempo</span> <span class="o">=</span> <span class="n">raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tempo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tempo</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tempo</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"tempo must be a number, got </span><span class="si">{</span><span class="n">tempo</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">TEMPO_LIMITS</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lo</span> <span class="o">&lt;=</span> <span class="n">tempo</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">VoiceEffectError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"tempo </span><span class="si">{</span><span class="n">tempo</span><span class="si">}</span><span class="s2"> is outside [</span><span class="si">{</span><span class="n">lo</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">hi</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">] (a speed ratio: "</span>
+                <span class="s2">"1.1 is 10</span><span class="si">% f</span><span class="s2">aster, 0.8 is 20</span><span class="si">% s</span><span class="s2">lower)"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">tempo</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"tempo"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">tempo</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
 
@@ -828,19 +862,50 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">semitones</span> <span class="o">/</span> <span class="mf">12.0</span><span class="p">))</span>
 
 
+<div class="viewcode-block" id="atempo_stages">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.atempo_stages">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">atempo_stages</span><span class="p">(</span>
+    <span class="n">factor</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">limits</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">ATEMPO_STAGE_LIMITS</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``factor`` as a product of ``atempo`` stages, each inside ``limits``.</span>
+
+<span class="sd">    One stage when ``factor`` already fits (the pitch-only chain, always).</span>
+
+<span class="sd">    &gt;&gt;&gt; atempo_stages(1.5)</span>
+<span class="sd">    [1.5]</span>
+<span class="sd">    &gt;&gt;&gt; atempo_stages(3.0)</span>
+<span class="sd">    [2.0, 1.5]</span>
+<span class="sd">    &gt;&gt;&gt; atempo_stages(0.3)</span>
+<span class="sd">    [0.5, 0.6]</span>
+<span class="sd">    """</span>
+    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">limits</span>
+    <span class="n">stages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="n">factor</span> <span class="o">&gt;</span> <span class="n">hi</span><span class="p">:</span>
+        <span class="n">stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hi</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">/=</span> <span class="n">hi</span>
+    <span class="k">while</span> <span class="n">factor</span> <span class="o">&lt;</span> <span class="n">lo</span><span class="p">:</span>
+        <span class="n">stages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lo</span><span class="p">)</span>
+        <span class="n">factor</span> <span class="o">/=</span> <span class="n">lo</span>
+    <span class="k">return</span> <span class="p">[</span><span class="o">*</span><span class="n">stages</span><span class="p">,</span> <span class="n">factor</span><span class="p">]</span></div>
+
+
+
 <div class="viewcode-block" id="filter_chain">
 <a class="viewcode-back" href="../../../_autosummary/an.audio.effects.html#an.audio.effects.filter_chain">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">filter_chain</span><span class="p">(</span><span class="n">effects</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The ffmpeg ``-af`` chain for normalised ``effects`` (``""`` for none)."""</span>
-    <span class="n">semitones</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">semitones</span><span class="p">:</span>
+    <span class="n">semitones</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pitch_semitones"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">0.0</span>
+    <span class="n">tempo</span> <span class="o">=</span> <span class="n">effects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tempo"</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">semitones</span> <span class="ow">and</span> <span class="n">tempo</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">""</span>
-    <span class="n">ratio</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">semitones</span> <span class="o">/</span> <span class="mf">12.0</span><span class="p">)</span>
     <span class="n">rate</span> <span class="o">=</span> <span class="n">EFFECT_SAMPLE_RATE</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">,asetrate=</span><span class="si">{</span><span class="n">rate</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ratio</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">,"</span>
-        <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">,atempo=</span><span class="si">{</span><span class="mf">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">ratio</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="s2">"</span>
-    <span class="p">)</span></div>
+    <span class="k">if</span> <span class="n">semitones</span><span class="p">:</span>
+        <span class="n">ratio</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">semitones</span> <span class="o">/</span> <span class="mf">12.0</span><span class="p">)</span>
+        <span class="n">head</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">,asetrate=</span><span class="si">{</span><span class="n">rate</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ratio</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">,aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">tempo</span> <span class="o">/</span> <span class="n">ratio</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">head</span><span class="p">,</span> <span class="n">factor</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"aresample=</span><span class="si">{</span><span class="n">rate</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">tempo</span>
+    <span class="k">return</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">head</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="sa">f</span><span class="s2">"atempo=</span><span class="si">{</span><span class="n">f</span><span class="si">:</span><span class="s2">.9f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">atempo_stages</span><span class="p">(</span><span class="n">factor</span><span class="p">))])</span></div>
 
 
 
@@ -850,8 +915,8 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""``audio`` (any container ffmpeg sniffs) with ``effects`` applied, as WAV bytes.</span>
 
 <span class="sd">    Returns the input unchanged for no effects. Raises ``VoiceEffectError`` when</span>
-<span class="sd">    ffmpeg is missing or fails — never returns unshifted audio for a voice that</span>
-<span class="sd">    asked for a shift.</span>
+<span class="sd">    ffmpeg is missing or fails — never returns unprocessed audio for a voice that</span>
+<span class="sd">    asked for an effect.</span>
 <span class="sd">    """</span>
     <span class="n">chain</span> <span class="o">=</span> <span class="n">filter_chain</span><span class="p">(</span><span class="n">effects</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">chain</span><span class="p">:</span>

@@ -55,6 +55,7 @@ an.audio
    pipeline
    providers
    rhubarb_lipsync
+   takes
    tts
    voices
    whisper_lipsync

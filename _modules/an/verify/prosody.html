@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -818,9 +818,17 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"join_speech"</span><span class="p">,</span>
     <span class="s2">"decode_audio"</span><span class="p">,</span>
     <span class="s2">"check_prosody"</span><span class="p">,</span>
+    <span class="s2">"target_distance"</span><span class="p">,</span>
     <span class="s2">"validate_targets"</span><span class="p">,</span>
+    <span class="s2">"ESTIMATOR_VERSION"</span><span class="p">,</span>
     <span class="s2">"prosody_lint"</span><span class="p">,</span>
 <span class="p">]</span>
+
+<span class="c1">#: Raised whenever an estimator or one of its defaults below changes what a clip</span>
+<span class="c1">#: measures. Anything that persists a choice made from these numbers (the best</span>
+<span class="c1">#: take of a line, :mod:`an.audio.takes`) keys on it, so a changed estimator</span>
+<span class="c1">#: re-chooses instead of trusting numbers it would no longer produce.</span>
+<span class="n">ESTIMATOR_VERSION</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"1"</span>
 
 <span class="c1"># --- defaults (every estimator knob; a target measured with them assumes them)</span>
 <span class="n">DFLT_SR</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16000</span>
@@ -1538,6 +1546,44 @@ window.runMermaid = runMermaid;</script>
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">findings</span></div>
+
+
+
+<div class="viewcode-block" id="target_distance">
+<a class="viewcode-back" href="../../../_autosummary/an.verify.prosody.html#an.verify.prosody.target_distance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">target_distance</span><span class="p">(</span>
+    <span class="n">stats</span><span class="p">:</span> <span class="n">ProsodyStats</span><span class="p">,</span>
+    <span class="n">targets</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">unmeasurable</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""How far ``stats`` sits from ``targets``: ``(outside, off_centre)``, lower is closer.</span>
+
+<span class="sd">    ``outside`` sums, over the targets, the distance outside ``[low, high]`` in</span>
+<span class="sd">    units of the range's width (0 for a value inside); a metric this clip cannot</span>
+<span class="sd">    measure counts ``unmeasurable`` widths, so a broken take never wins by</span>
+<span class="sd">    having no number. ``off_centre`` sums each value's distance from its range's</span>
+<span class="sd">    midpoint, in the same units — the tie-break between takes that are all on</span>
+<span class="sd">    target. A zero-width range counts as one unit wide.</span>
+
+<span class="sd">    &gt;&gt;&gt; s = ProsodyStats(1.0, 1.0, 1.0, 3, 0, *[3.0] * 13)</span>
+<span class="sd">    &gt;&gt;&gt; target_distance(s, {"f0_sd_st": [2, 4]})</span>
+<span class="sd">    (0.0, 0.0)</span>
+<span class="sd">    &gt;&gt;&gt; target_distance(s, {"f0_sd_st": [4, 6], "f0_range_st": [1, 5]})</span>
+<span class="sd">    (0.5, 1.0)</span>
+<span class="sd">    """</span>
+    <span class="n">validate_targets</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+    <span class="n">outside</span> <span class="o">=</span> <span class="n">off_centre</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="ow">in</span> <span class="n">targets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">math</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">value</span><span class="p">)):</span>
+            <span class="n">outside</span> <span class="o">+=</span> <span class="n">unmeasurable</span>
+            <span class="n">off_centre</span> <span class="o">+=</span> <span class="n">unmeasurable</span>
+            <span class="k">continue</span>
+        <span class="n">width</span> <span class="o">=</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span> <span class="ow">or</span> <span class="mf">1.0</span>
+        <span class="n">outside</span> <span class="o">+=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lo</span> <span class="o">-</span> <span class="n">value</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">value</span> <span class="o">-</span> <span class="n">hi</span><span class="p">)</span> <span class="o">/</span> <span class="n">width</span>
+        <span class="n">off_centre</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="p">(</span><span class="n">lo</span> <span class="o">+</span> <span class="n">hi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="n">width</span>
+    <span class="k">return</span> <span class="n">outside</span><span class="p">,</span> <span class="n">off_centre</span></div>
 
 
 

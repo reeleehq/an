@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.verify.media_quality" href="an.verify.media_quality.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -338,6 +338,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
@@ -679,7 +680,10 @@ measures is refused:</p>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.prosody.METRICS" title="an.verify.prosody.METRICS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">METRICS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.prosody.ESTIMATOR_VERSION" title="an.verify.prosody.ESTIMATOR_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ESTIMATOR_VERSION</span></code></a></p></td>
+<td><p>Raised whenever an estimator or one of its defaults below changes what a clip measures.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.prosody.METRICS" title="an.verify.prosody.METRICS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">METRICS</span></code></a></p></td>
 <td><p>The measurable targets, and what each one is.</p></td>
 </tr>
 </tbody>
@@ -715,10 +719,13 @@ measures is refused:</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.prosody.check_prosody" title="an.verify.prosody.check_prosody"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_prosody</span></code></a>(stats, targets, *[, ...])</p></td>
 <td><p>One finding per target <code class="docutils literal notranslate"><span class="pre">stats</span></code> misses (an <code class="docutils literal notranslate"><span class="pre">info</span></code> for one it cannot measure).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.prosody.validate_targets" title="an.verify.prosody.validate_targets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_targets</span></code></a>(targets)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.prosody.target_distance" title="an.verify.prosody.target_distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">target_distance</span></code></a>(stats, targets, *[, ...])</p></td>
+<td><p>How far <code class="docutils literal notranslate"><span class="pre">stats</span></code> sits from <code class="docutils literal notranslate"><span class="pre">targets</span></code>: <code class="docutils literal notranslate"><span class="pre">(outside,</span> <span class="pre">off_centre)</span></code>, lower is closer.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.prosody.validate_targets" title="an.verify.prosody.validate_targets"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_targets</span></code></a>(targets)</p></td>
 <td><p>Raise <a class="reference internal" href="#an.verify.prosody.ProsodyTargetError" title="an.verify.prosody.ProsodyTargetError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProsodyTargetError</span></code></a> unless every target names a metric and is a <code class="docutils literal notranslate"><span class="pre">[low,</span> <span class="pre">high]</span></code> range.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.prosody.prosody_lint" title="an.verify.prosody.prosody_lint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prosody_lint</span></code></a>(audio, targets, *[, text, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.verify.prosody.prosody_lint" title="an.verify.prosody.prosody_lint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prosody_lint</span></code></a>(audio, targets, *[, text, ...])</p></td>
 <td><p>Measure <code class="docutils literal notranslate"><span class="pre">audio</span></code> (a path, several paths, or stats already measured) and report each target it misses.</p></td>
 </tr>
 </tbody>
@@ -745,6 +752,15 @@ measures is refused:</p>
 </tbody>
 </table>
 </div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.verify.prosody.ESTIMATOR_VERSION">
+<span class="sig-prename descclassname"><span class="pre">an.verify.prosody.</span></span><span class="sig-name descname"><span class="pre">ESTIMATOR_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'1'</span></span><a class="headerlink" href="#an.verify.prosody.ESTIMATOR_VERSION" title="Link to this definition">#</a></dt>
+<dd><p>Raised whenever an estimator or one of its defaults below changes what a clip
+measures. Anything that persists a choice made from these numbers (the best
+take of a line, <a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.takes</span></code></a>) keys on it, so a changed estimator
+re-chooses instead of trusting numbers it would no longer produce.</p>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.verify.prosody.METRICS">
 <span class="sig-prename descclassname"><span class="pre">an.verify.prosody.</span></span><span class="sig-name descname"><span class="pre">METRICS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'articulation_rate_sps':</span> <span class="pre">'syllables</span> <span class="pre">per</span> <span class="pre">second</span> <span class="pre">of</span> <span class="pre">speaking</span> <span class="pre">time</span> <span class="pre">(needs</span> <span class="pre">the</span> <span class="pre">text)',</span> <span class="pre">'emphasis_per_s':</span> <span class="pre">'stand-out</span> <span class="pre">level</span> <span class="pre">peaks</span> <span class="pre">per</span> <span class="pre">second</span> <span class="pre">of</span> <span class="pre">speaking</span> <span class="pre">time',</span> <span class="pre">'f0_median_hz':</span> <span class="pre">'median</span> <span class="pre">pitch</span> <span class="pre">(voice-specific;</span> <span class="pre">for</span> <span class="pre">reference)',</span> <span class="pre">'f0_range_st':</span> <span class="pre">'pitch</span> <span class="pre">range,</span> <span class="pre">5th</span> <span class="pre">to</span> <span class="pre">95th</span> <span class="pre">percentile,</span> <span class="pre">semitones',</span> <span class="pre">'f0_sd_st':</span> <span class="pre">'pitch</span> <span class="pre">spread,</span> <span class="pre">semitones</span> <span class="pre">about</span> <span class="pre">the</span> <span class="pre">median',</span> <span class="pre">'final_drop_st':</span> <span class="pre">'median</span> <span class="pre">phrase</span> <span class="pre">ending</span> <span class="pre">relative</span> <span class="pre">to</span> <span class="pre">its</span> <span class="pre">phrase,</span> <span class="pre">semitones</span> <span class="pre">(negative</span> <span class="pre">falls)',</span> <span class="pre">'loudness_range_db':</span> <span class="pre">'speech</span> <span class="pre">level,</span> <span class="pre">90th</span> <span class="pre">minus</span> <span class="pre">10th</span> <span class="pre">percentile,</span> <span class="pre">dB',</span> <span class="pre">'pause_median_s':</span> <span class="pre">'median</span> <span class="pre">pause</span> <span class="pre">length',</span> <span class="pre">'pause_p90_s':</span> <span class="pre">'90th-percentile</span> <span class="pre">pause</span> <span class="pre">length',</span> <span class="pre">'pause_share':</span> <span class="pre">'share</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">span</span> <span class="pre">that</span> <span class="pre">is</span> <span class="pre">pauses',</span> <span class="pre">'pauses_per_min':</span> <span class="pre">'pauses</span> <span class="pre">per</span> <span class="pre">minute</span> <span class="pre">of</span> <span class="pre">span',</span> <span class="pre">'register_st':</span> <span class="pre">'median</span> <span class="pre">pitch</span> <span class="pre">relative</span> <span class="pre">to</span> <span class="pre">reference_hz,</span> <span class="pre">semitones</span> <span class="pre">(needs</span> <span class="pre">a</span> <span class="pre">reference)',</span> <span class="pre">'speech_rate_sps':</span> <span class="pre">&quot;syllables</span> <span class="pre">per</span> <span class="pre">second</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">clip's</span> <span class="pre">span</span> <span class="pre">(needs</span> <span class="pre">the</span> <span class="pre">text)&quot;,</span> <span class="pre">'voiced_share':</span> <span class="pre">'share</span> <span class="pre">of</span> <span class="pre">speaking</span> <span class="pre">time</span> <span class="pre">with</span> <span class="pre">a</span> <span class="pre">pitch'}</span></span><a class="headerlink" href="#an.verify.prosody.METRICS" title="Link to this definition">#</a></dt>
@@ -941,6 +957,30 @@ report each target it misses. Passes unless <code class="docutils literal notran
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.verify.prosody.target_distance">
+<span class="sig-prename descclassname"><span class="pre">an.verify.prosody.</span></span><span class="sig-name descname"><span class="pre">target_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stats</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">unmeasurable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/prosody.html#target_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.prosody.target_distance" title="Link to this definition">#</a></dt>
+<dd><p>How far <code class="docutils literal notranslate"><span class="pre">stats</span></code> sits from <code class="docutils literal notranslate"><span class="pre">targets</span></code>: <code class="docutils literal notranslate"><span class="pre">(outside,</span> <span class="pre">off_centre)</span></code>, lower is closer.</p>
+<p><code class="docutils literal notranslate"><span class="pre">outside</span></code> sums, over the targets, the distance outside <code class="docutils literal notranslate"><span class="pre">[low,</span> <span class="pre">high]</span></code> in
+units of the range’s width (0 for a value inside); a metric this clip cannot
+measure counts <code class="docutils literal notranslate"><span class="pre">unmeasurable</span></code> widths, so a broken take never wins by
+having no number. <code class="docutils literal notranslate"><span class="pre">off_centre</span></code> sums each value’s distance from its range’s
+midpoint, in the same units — the tie-break between takes that are all on
+target. A zero-width range counts as one unit wide.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">ProsodyStats</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="p">[</span><span class="mf">3.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">13</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target_distance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="p">{</span><span class="s2">"f0_sd_st"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]})</span>
+<span class="go">(0.0, 0.0)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">target_distance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="p">{</span><span class="s2">"f0_sd_st"</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="s2">"f0_range_st"</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">]})</span>
+<span class="go">(0.5, 1.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.verify.prosody.validate_targets">
 <span class="sig-prename descclassname"><span class="pre">an.verify.prosody.</span></span><span class="sig-name descname"><span class="pre">validate_targets</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">targets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/prosody.html#validate_targets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.prosody.validate_targets" title="Link to this definition">#</a></dt>
 <dd><p>Raise <a class="reference internal" href="#an.verify.prosody.ProsodyTargetError" title="an.verify.prosody.ProsodyTargetError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProsodyTargetError</span></code></a> unless every target names a metric and is a <code class="docutils literal notranslate"><span class="pre">[low,</span> <span class="pre">high]</span></code> range.</p>
@@ -1007,6 +1047,7 @@ report each target it misses. Passes unless <code class="docutils literal notran
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.prosody.ESTIMATOR_VERSION"><code class="docutils literal notranslate"><span class="pre">ESTIMATOR_VERSION</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.prosody.METRICS"><code class="docutils literal notranslate"><span class="pre">METRICS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.prosody.ProsodyDecodeError"><code class="docutils literal notranslate"><span class="pre">ProsodyDecodeError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.prosody.ProsodyStats"><code class="docutils literal notranslate"><span class="pre">ProsodyStats</span></code></a><ul class="nav section-nav flex-column">
@@ -1024,6 +1065,7 @@ report each target it misses. Passes unless <code class="docutils literal notran
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.prosody.median_stats"><code class="docutils literal notranslate"><span class="pre">median_stats()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.prosody.pitch_track"><code class="docutils literal notranslate"><span class="pre">pitch_track()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.prosody.prosody_lint"><code class="docutils literal notranslate"><span class="pre">prosody_lint()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.prosody.target_distance"><code class="docutils literal notranslate"><span class="pre">target_distance()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.verify.prosody.validate_targets"><code class="docutils literal notranslate"><span class="pre">validate_targets()</span></code></a></li>
 </ul>
   </nav></div>

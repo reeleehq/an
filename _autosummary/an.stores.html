@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.sounds" href="an.sounds.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -338,6 +338,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
@@ -604,7 +605,8 @@
 <p>Project mall: a dict of dol-backed <code class="code docutils literal notranslate"><span class="pre">MutableMapping</span></code> stores.</p>
 <p>The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
-artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
+artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
+content-keyed shot cache),
 final output and its caption sidecar, the agent’s decision log, and the asset
 library’s lockfile of pinned check-outs — is keyed inside a store. Stores are
 dol-backed so the same call
@@ -617,7 +619,7 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <span class="gp">... </span>        <span class="s1">'audio'</span><span class="p">,</span> <span class="s1">'captions'</span><span class="p">,</span> <span class="s1">'characters'</span><span class="p">,</span> <span class="s1">'decisions'</span><span class="p">,</span> <span class="s1">'environments'</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="s1">'library_lock'</span><span class="p">,</span> <span class="s1">'output'</span><span class="p">,</span> <span class="s1">'previews'</span><span class="p">,</span> <span class="s1">'props'</span><span class="p">,</span> <span class="s1">'scenes'</span><span class="p">,</span> <span class="s1">'shot_cache'</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="s1">'shots'</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s1">'sounds'</span><span class="p">,</span> <span class="s1">'styles'</span><span class="p">,</span> <span class="s1">'visemes'</span><span class="p">,</span> <span class="s1">'voices'</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">'sounds'</span><span class="p">,</span> <span class="s1">'styles'</span><span class="p">,</span> <span class="s1">'takes'</span><span class="p">,</span> <span class="s1">'visemes'</span><span class="p">,</span> <span class="s1">'voices'</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
@@ -661,19 +663,22 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.VisemeArtifactStore" title="an.stores.VisemeArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisemeArtifactStore</span></code></a>(root_dir)</p></td>
 <td><p>Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.ShotArtifactStore" title="an.stores.ShotArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShotArtifactStore</span></code></a>(root_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.TakesArtifactStore" title="an.stores.TakesArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TakesArtifactStore</span></code></a>(root_dir)</p></td>
+<td><p>Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.ShotArtifactStore" title="an.stores.ShotArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ShotArtifactStore</span></code></a>(root_dir)</p></td>
 <td><p>Per-shot rendered mp4s.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.PreviewArtifactStore" title="an.stores.PreviewArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PreviewArtifactStore</span></code></a>(root_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.PreviewArtifactStore" title="an.stores.PreviewArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PreviewArtifactStore</span></code></a>(root_dir)</p></td>
 <td><p>Low-res preview renders (mp4 or png sequence wrapper).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.OutputStore" title="an.stores.OutputStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputStore</span></code></a>(root_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.OutputStore" title="an.stores.OutputStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputStore</span></code></a>(root_dir)</p></td>
 <td><p>Final composited renders.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.DecisionLogStore" title="an.stores.DecisionLogStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DecisionLogStore</span></code></a>(log_path)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.DecisionLogStore" title="an.stores.DecisionLogStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DecisionLogStore</span></code></a>(log_path)</p></td>
 <td><p>Append-only JSONL log keyed by ordinal index (as string).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.ProjectLock" title="an.stores.ProjectLock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProjectLock</span></code></a>(project_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.ProjectLock" title="an.stores.ProjectLock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProjectLock</span></code></a>(project_dir)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;</span> <span class="pre">-&gt;</span> <span class="pre">pin</span></code> over a project's <code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code>.</p></td>
 </tr>
 </tbody>
@@ -852,6 +857,16 @@ its header for the duration a fade-out needs, deterministically.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="an.stores.TakesArtifactStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">TakesArtifactStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#TakesArtifactStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.TakesArtifactStore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
+<p>Best-of-N take records (.json bytes), keyed by the line’s audio key: which
+take was kept, its sha256, every take’s score and the scorer (an#265).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="an.stores.VisemeArtifactStore">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">VisemeArtifactStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#VisemeArtifactStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.VisemeArtifactStore" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
@@ -994,6 +1009,7 @@ in-memory <code class="code docutils literal notranslate"><span class="pre">dict
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.StylesStore"><code class="docutils literal notranslate"><span class="pre">StylesStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.TakesArtifactStore"><code class="docutils literal notranslate"><span class="pre">TakesArtifactStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.VisemeArtifactStore"><code class="docutils literal notranslate"><span class="pre">VisemeArtifactStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.VoicesStore"><code class="docutils literal notranslate"><span class="pre">VoicesStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.build_project_mall"><code class="docutils literal notranslate"><span class="pre">build_project_mall()</span></code></a></li>

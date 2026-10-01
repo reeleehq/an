@@ -4,6 +4,14 @@ an.audio.pipeline
 .. automodule:: an.audio.pipeline
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      TakeScorerFactory
+      OVERRUN_TOLERANCE_S
+      REROLL_ONLY_HINT
+   
    .. rubric:: Functions
 
    .. autosummary::
@@ -11,10 +19,13 @@ an.audio.pipeline
       audio_key
       default_lipsync
       default_tts
+      dialogue_overruns
       produce_audio_for_dialogue
       produce_audio_for_scene
+      retake_lines
       retime_dialogue
       synthesis_options
+      takes_cost_message
       viseme_key
    
    .. rubric:: Exceptions
@@ -22,4 +33,6 @@ an.audio.pipeline
    .. autosummary::
    
       AudioPipelineError
+      DialogueOverrunWarning
+      TakeDigestWarning
    

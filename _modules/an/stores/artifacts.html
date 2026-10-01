@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -793,6 +793,16 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../_autosummary/an.stores.artifacts.html#an.stores.VisemeArtifactStore">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">VisemeArtifactStore</span><span class="p">(</span><span class="n">_BlobStore</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity."""</span>
+
+    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"json"</span></div>
+
+
+
+<div class="viewcode-block" id="TakesArtifactStore">
+<a class="viewcode-back" href="../../../_autosummary/an.stores.artifacts.html#an.stores.TakesArtifactStore">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TakesArtifactStore</span><span class="p">(</span><span class="n">_BlobStore</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Best-of-N take records (.json bytes), keyed by the line's audio key: which</span>
+<span class="sd">    take was kept, its sha256, every take's score and the scorer (an#265)."""</span>
 
     <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"json"</span></div>
 

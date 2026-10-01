@@ -36,12 +36,18 @@ Default TTS provider: silent WAV of length proportional to text.
 
 Implements the `TTSProvider` protocol.
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same audio, so best-of-N takes never apply
+([`an.audio.takes.voice_takes()`](an.audio.takes.html.md#an.audio.takes.voice_takes)) and nothing is billed.
+
 ### an.audio.offline_tts.estimate_speech_duration(text, , seconds_per_char=0.06)
 
 Seconds the offline voice takes to say `text` — a leading pad plus a
 per-character rate over the non-space characters, clamped.
 
-It is exactly what an offline render gives a line, so `an validate` uses
+It is exactly what an offline render gives a line (before a voice’s
+`tempo`, which `an validate` divides it by), so `an validate` uses
 it to warn about a shot too short for its dialogue BEFORE anything is
 synthesized. A real voice is usually a little slower, so for one this is an
 under-estimate: a line it says overruns will overrun.

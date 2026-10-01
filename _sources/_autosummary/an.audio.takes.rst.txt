@@ -1,0 +1,55 @@
+an.audio.takes
+==============
+
+.. automodule:: an.audio.takes
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      TAKES_KEY
+      TAKES_STORE
+      DEFAULT_SCORER
+      MAX_TAKES
+      TAKES_RECORD_VERSION
+      PROSODY_SCORER_VERSION
+      SCORING_SAMPLE_RATE
+      REROLL_HINT
+      SCORERS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      audio_digest
+      choose_take
+      decode_for_scoring
+      make_take_scorer
+      normalize_takes
+      read_takes_record
+      require_ffmpeg
+      scorer_identity
+      style_voice_role
+      takes_choice_part
+      takes_spec
+      voice_takes
+      write_takes_record
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ProsodyTakeScorer
+      TakeScore
+      TakeScorer
+      TakesSpec
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      TakeLostError
+      TakesRecordError
+      VoiceTakesError
+   

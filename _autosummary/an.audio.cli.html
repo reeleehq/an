@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio" href="an.audio.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -338,6 +338,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
@@ -611,9 +612,14 @@ provider factories.</p>
 <blockquote>
 <div><p>an voices list –provider elevenlabs
 an voices list –provider elevenlabs –search british
-an voices list –provider mac_say</p>
+an voices list –provider mac_say
+an voices rescore &lt;project&gt; “He did not ask”    # re-choose a line’s take from its cached takes
+an voices reroll &lt;project&gt; “He did not ask”     # synthesize new takes for it (billed)</p>
 </div></blockquote>
-<p>The <code class="docutils literal notranslate"><span class="pre">voice_id</span></code> column is what a <code class="docutils literal notranslate"><span class="pre">voices</span></code>-store document’s <code class="docutils literal notranslate"><span class="pre">voice_id</span></code> takes.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">voice_id</span></code> column is what a <code class="docutils literal notranslate"><span class="pre">voices</span></code>-store document’s <code class="docutils literal notranslate"><span class="pre">voice_id</span></code> takes.
+<code class="docutils literal notranslate"><span class="pre">rescore</span></code> and <code class="docutils literal notranslate"><span class="pre">reroll</span></code> are the only ways a recorded best-of-N take is
+replaced (<a class="reference internal" href="an.audio.pipeline.html#an.audio.pipeline.retake_lines" title="an.audio.pipeline.retake_lines"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.pipeline.retake_lines()</span></code></a>); the next <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> does
+the choosing, and prints what it will bill first.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -622,6 +628,9 @@ an voices list –provider mac_say</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.cli.format_voices" title="an.audio.cli.format_voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">format_voices</span></code></a>(voices)</p></td>
 <td><p>One line per voice: <code class="docutils literal notranslate"><span class="pre">voice_id</span>&#160; <span class="pre">name</span>&#160; <span class="pre">(labels)</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.cli.retake" title="an.audio.cli.retake"><code class="xref py py-obj docutils literal notranslate"><span class="pre">retake</span></code></a>(project, line, *[, rescore, tts, make])</p></td>
+<td><p>Release the recorded takes of the lines of <code class="docutils literal notranslate"><span class="pre">project</span></code> containing <code class="docutils literal notranslate"><span class="pre">line</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -663,6 +672,20 @@ the name, id and labels.</p>
 <span class="go">abc  Ada  (accent=british)</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.cli.retake">
+<span class="sig-prename descclassname"><span class="pre">an.audio.cli.</span></span><span class="sig-name descname"><span class="pre">retake</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rescore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'elevenlabs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">make</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">make_tts&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/cli.html#retake"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.cli.retake" title="Link to this definition">#</a></dt>
+<dd><p>Release the recorded takes of the lines of <code class="docutils literal notranslate"><span class="pre">project</span></code> containing <code class="docutils literal notranslate"><span class="pre">line</span></code>.</p>
+<p>The plain-function core of <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">rescore</span></code> / <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">reroll</span></code>: see
+<a class="reference internal" href="an.audio.pipeline.html#an.audio.pipeline.retake_lines" title="an.audio.pipeline.retake_lines"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.pipeline.retake_lines()</span></code></a>. <code class="docutils literal notranslate"><span class="pre">tts</span></code> must be the provider the
+line is rendered with (its takes are keyed by it).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -716,6 +739,7 @@ the name, id and labels.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.cli.browse_voices"><code class="docutils literal notranslate"><span class="pre">browse_voices()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.cli.format_voices"><code class="docutils literal notranslate"><span class="pre">format_voices()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.cli.retake"><code class="docutils literal notranslate"><span class="pre">retake()</span></code></a></li>
 </ul>
   </nav></div>
 

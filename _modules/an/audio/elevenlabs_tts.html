@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -767,6 +767,9 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"speed"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">),</span>
 <span class="p">}</span>
 
+<span class="c1">#: Seeds the API accepts are below this (an unsigned 32-bit integer).</span>
+<span class="n">_SEED_MODULUS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">32</span>
+
 <span class="c1">#: Emotions that are the absence of one: never sent as an audio tag.</span>
 <span class="n">_UNTAGGED_EMOTIONS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"neutral"</span><span class="p">})</span>
 
@@ -950,6 +953,38 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">opts</span></div>
+
+
+<div class="viewcode-block" id="ElevenLabsTTS.take_options">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.ElevenLabsTTS.take_options">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">take_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">options</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">take</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The request for candidate ``take`` of a best-of-N line (:mod:`an.audio.takes`).</span>
+
+<span class="sd">        A declared ``seed`` is offset by the take, so a model that does honour</span>
+<span class="sd">        it (every model but ``eleven_v3``, measured) still returns different</span>
+<span class="sd">        takes; without a seed the request is unchanged and the model's own</span>
+<span class="sd">        sampling varies the take.</span>
+
+<span class="sd">        &gt;&gt;&gt; ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)</span>
+<span class="sd">        {'seed': 13}</span>
+<span class="sd">        """</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"seed"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"seed"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="s2">"seed"</span><span class="p">])</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">take</span><span class="p">))</span> <span class="o">%</span> <span class="n">_SEED_MODULUS</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="ElevenLabsTTS.billed_characters">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.elevenlabs_tts.html#an.audio.ElevenLabsTTS.billed_characters">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">billed_characters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">_options</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Characters one request bills: the text as sent, audio tags included.</span>
+
+<span class="sd">        &gt;&gt;&gt; ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])</span>
+<span class="sd">        13</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">tagged_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">audio_tags</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="ElevenLabsTTS.synthesize">

@@ -35,6 +35,11 @@ macOS `say`-backed TTSProvider.
 Implements the `TTSProvider` protocol. Audible, deterministic, and
 fully offline — uses Apple’s voice synthesis bundled with the OS.
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same audio, so best-of-N takes never apply
+([`an.audio.takes.voice_takes()`](an.audio.takes.md#an.audio.takes.voice_takes)) and nothing is billed.
+
 ### *exception* an.audio.mac_say_tts.MacSayTTSError
 
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)

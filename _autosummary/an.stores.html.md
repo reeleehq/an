@@ -4,7 +4,8 @@ Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
-artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
+artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
+content-keyed shot cache),
 final output and its caption sidecar, the agent’s decision log, and the asset
 library’s lockfile of pinned check-outs — is keyed inside a store. Stores are
 dol-backed so the same call
@@ -19,7 +20,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...         'audio', 'captions', 'characters', 'decisions', 'environments',
 ...         'library_lock', 'output', 'previews', 'props', 'scenes', 'shot_cache',
 ...         'shots',
-...         'sounds', 'styles', 'visemes', 'voices',
+...         'sounds', 'styles', 'takes', 'visemes', 'voices',
 ...     ]
 True
 ```
@@ -31,21 +32,22 @@ True
 
 ### Classes
 
-| [`CharactersStore`](#an.stores.CharactersStore)(root_dir)      | Per-character directory store.                                         |
-|---------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`EnvironmentsStore`](#an.stores.EnvironmentsStore)(root_dir)    | Per-environment directory store (meta + sidecar art).                  |
-| [`VoicesStore`](#an.stores.VoicesStore)(root_dir)          | JSON-only voice descriptors.                                           |
-| [`StylesStore`](#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                           |
-| [`PropsStore`](#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                              |
-| [`ScenesStore`](#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.    |
-| [`SoundsStore`](#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                             |
-| [`AudioArtifactStore`](#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                       |
-| [`VisemeArtifactStore`](#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity. |
-| [`ShotArtifactStore`](#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                |
-| [`PreviewArtifactStore`](#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                 |
-| [`OutputStore`](#an.stores.OutputStore)(root_dir)          | Final composited renders.                                              |
-| [`DecisionLogStore`](#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).              |
-| [`ProjectLock`](#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.            |
+| [`CharactersStore`](#an.stores.CharactersStore)(root_dir)      | Per-character directory store.                                                                                                                    |
+|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`EnvironmentsStore`](#an.stores.EnvironmentsStore)(root_dir)    | Per-environment directory store (meta + sidecar art).                                                                                             |
+| [`VoicesStore`](#an.stores.VoicesStore)(root_dir)          | JSON-only voice descriptors.                                                                                                                      |
+| [`StylesStore`](#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                                                                                                      |
+| [`PropsStore`](#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                                                                                                         |
+| [`ScenesStore`](#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.                                                                               |
+| [`SoundsStore`](#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                                                                                                        |
+| [`AudioArtifactStore`](#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                  |
+| [`VisemeArtifactStore`](#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                            |
+| [`TakesArtifactStore`](#an.stores.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265). |
+| [`ShotArtifactStore`](#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                                           |
+| [`PreviewArtifactStore`](#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                                            |
+| [`OutputStore`](#an.stores.OutputStore)(root_dir)          | Final composited renders.                                                                                                                         |
+| [`DecisionLogStore`](#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).                                                                                         |
+| [`ProjectLock`](#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.                                                                                       |
 
 ### *class* an.stores.AudioArtifactStore(root_dir)
 
@@ -181,6 +183,13 @@ its header for the duration a fade-out needs, deterministically.
 Bases: `JsonDirStore`
 
 Pure-JSON style descriptors.
+
+### *class* an.stores.TakesArtifactStore(root_dir)
+
+Bases: `_BlobStore`
+
+Best-of-N take records (.json bytes), keyed by the line’s audio key: which
+take was kept, its sha256, every take’s score and the scorer (an#265).
 
 ### *class* an.stores.VisemeArtifactStore(root_dir)
 

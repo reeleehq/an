@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -719,8 +719,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    an voices list --provider elevenlabs</span>
 <span class="sd">    an voices list --provider elevenlabs --search british</span>
 <span class="sd">    an voices list --provider mac_say</span>
+<span class="sd">    an voices rescore &lt;project&gt; "He did not ask"    # re-choose a line's take from its cached takes</span>
+<span class="sd">    an voices reroll &lt;project&gt; "He did not ask"     # synthesize new takes for it (billed)</span>
 
 <span class="sd">The ``voice_id`` column is what a ``voices``-store document's ``voice_id`` takes.</span>
+<span class="sd">``rescore`` and ``reroll`` are the only ways a recorded best-of-N take is</span>
+<span class="sd">replaced (:func:`an.audio.pipeline.retake_lines`); the next ``an render`` does</span>
+<span class="sd">the choosing, and prints what it will bill first.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -732,7 +737,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.providers</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_tts</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TTSProvider</span><span class="p">,</span> <span class="n">VoiceMeta</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"browse_voices"</span><span class="p">,</span> <span class="s2">"format_voices"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"browse_voices"</span><span class="p">,</span> <span class="s2">"format_voices"</span><span class="p">,</span> <span class="s2">"retake"</span><span class="p">]</span>
 
 <span class="c1">#: The provider ``an voices list`` browses when none is named.</span>
 <span class="n">DEFAULT_BROWSE_PROVIDER</span> <span class="o">=</span> <span class="s2">"elevenlabs"</span>
@@ -811,7 +816,58 @@ window.runMermaid = runMermaid;</script>
 
 <span class="n">_list</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="s2">"list"</span>  <span class="c1"># the CLI verb: `an voices list`</span>
 
-<span class="n">_dispatch_funcs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_list</span><span class="p">]</span>
+
+<div class="viewcode-block" id="retake">
+<a class="viewcode-back" href="../../../_autosummary/an.audio.cli.html#an.audio.cli.retake">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retake</span><span class="p">(</span>
+    <span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">rescore</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_BROWSE_PROVIDER</span><span class="p">,</span>
+    <span class="n">make</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">TTSProvider</span><span class="p">]</span> <span class="o">=</span> <span class="n">make_tts</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Release the recorded takes of the lines of ``project`` containing ``line``.</span>
+
+<span class="sd">    The plain-function core of ``an voices rescore`` / ``an voices reroll``: see</span>
+<span class="sd">    :func:`an.audio.pipeline.retake_lines`. ``tts`` must be the provider the</span>
+<span class="sd">    line is rendered with (its takes are keyed by it).</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.audio.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">retake_lines</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+
+    <span class="n">proj</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+    <span class="n">messages</span> <span class="o">=</span> <span class="n">retake_lines</span><span class="p">(</span><span class="n">proj</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">proj</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">tts</span><span class="o">=</span><span class="n">make</span><span class="p">(</span><span class="n">tts</span><span class="p">),</span> <span class="n">rescore</span><span class="o">=</span><span class="n">rescore</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rescore</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_BROWSE_PROVIDER</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Re-choose the take of each line containing LINE from its cached takes, with</span>
+<span class="sd">    the current scorer, at the next render (nothing billed while the takes are cached).</span>
+
+<span class="sd">    project: the project directory</span>
+<span class="sd">    line: words of the dialogue line (case-insensitive substring)</span>
+<span class="sd">    tts: the TTS provider the line is rendered with</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">retake</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">rescore</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reroll</span><span class="p">(</span><span class="n">project</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">tts</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">DEFAULT_BROWSE_PROVIDER</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Synthesize new takes for each line containing LINE at the next render, and</span>
+<span class="sd">    keep the best (billed: the render prints the cost before the first request).</span>
+
+<span class="sd">    project: the project directory</span>
+<span class="sd">    line: words of the dialogue line (case-insensitive substring)</span>
+<span class="sd">    tts: the TTS provider the line is rendered with</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">retake</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">rescore</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tts</span><span class="o">=</span><span class="n">tts</span><span class="p">)</span>
+
+
+<span class="n">_rescore</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="s2">"rescore"</span>  <span class="c1"># `an voices rescore`</span>
+<span class="n">_reroll</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="s2">"reroll"</span>  <span class="c1"># `an voices reroll`</span>
+
+<span class="n">_dispatch_funcs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Callable</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="n">_list</span><span class="p">,</span> <span class="n">_rescore</span><span class="p">,</span> <span class="n">_reroll</span><span class="p">]</span>
 </pre></div>
 
                 </article>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.offline_lipsync" href="an.audio.offline_lipsync.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -338,6 +338,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
@@ -644,6 +645,13 @@ end-to-end without any API setup.</p>
 <p>Implements the <code class="docutils literal notranslate"><span class="pre">TTSProvider</span></code> protocol.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.offline_tts.OfflineTTS.repeatable">
+<span class="sig-name descname"><span class="pre">repeatable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.offline_tts.OfflineTTS.repeatable" title="Link to this definition">#</a></dt>
+<dd><p>The same request gives the same audio, so best-of-N takes never apply
+(<a class="reference internal" href="an.audio.takes.html#an.audio.takes.voice_takes" title="an.audio.takes.voice_takes"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.takes.voice_takes()</span></code></a>) and nothing is billed.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -651,7 +659,8 @@ end-to-end without any API setup.</p>
 <span class="sig-prename descclassname"><span class="pre">an.audio.offline_tts.</span></span><span class="sig-name descname"><span class="pre">estimate_speech_duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds_per_char</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.06</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/offline_tts.html#estimate_speech_duration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.offline_tts.estimate_speech_duration" title="Link to this definition">#</a></dt>
 <dd><p>Seconds the offline voice takes to say <code class="docutils literal notranslate"><span class="pre">text</span></code> — a leading pad plus a
 per-character rate over the non-space characters, clamped.</p>
-<p>It is exactly what an offline render gives a line, so <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> uses
+<p>It is exactly what an offline render gives a line (before a voice’s
+<code class="docutils literal notranslate"><span class="pre">tempo</span></code>, which <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> divides it by), so <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> uses
 it to warn about a shot too short for its dialogue BEFORE anything is
 synthesized. A real voice is usually a little slower, so for one this is an
 under-estimate: a line it says overruns will overrun.</p>
@@ -715,7 +724,10 @@ under-estimate: a line it says overruns will overrun.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.offline_tts.OfflineTTS"><code class="docutils literal notranslate"><span class="pre">OfflineTTS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.offline_tts.OfflineTTS"><code class="docutils literal notranslate"><span class="pre">OfflineTTS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.offline_tts.OfflineTTS.repeatable"><code class="docutils literal notranslate"><span class="pre">OfflineTTS.repeatable</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.offline_tts.estimate_speech_duration"><code class="docutils literal notranslate"><span class="pre">estimate_speech_duration()</span></code></a></li>
 </ul>
   </nav></div>

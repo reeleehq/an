@@ -67,6 +67,18 @@ ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 Implements the `TTSProvider` protocol, plus the optional
 `synthesis_options` hook the audio pipeline reads (an#209).
 
+#### billed_characters(text, , audio_tags=None, \*\*\_options)
+
+Characters one request bills: the text as sent, audio tags included.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+```pycon
+>>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
+13
+```
+
 #### client_factory
 
 `api_key -> client`; tests inject a fake so nothing reaches the API.
@@ -103,6 +115,23 @@ so alignment and captions never read a cue.
 
 * **Return type:**
   [`AudioClip`](an.audio.tts.html.md#an.audio.tts.AudioClip)
+
+#### take_options(options, take)
+
+The request for candidate `take` of a best-of-N line ([`an.audio.takes`](an.audio.takes.html.md#module-an.audio.takes)).
+
+A declared `seed` is offset by the take, so a model that does honour
+it (every model but `eleven_v3`, measured) still returns different
+takes; without a seed the request is unchanged and the model’s own
+sampling varies the take.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
+{'seed': 13}
+```
 
 ### *exception* an.audio.elevenlabs_tts.ElevenLabsVoiceError
 

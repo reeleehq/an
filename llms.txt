@@ -44,6 +44,7 @@
 - [an.audio.pipeline](_autosummary/an.audio.pipeline.html.md): Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.
 - [an.audio.providers](_autosummary/an.audio.providers.html.md): Provider factory: name → concrete TTS/LipSync provider instance.
 - [an.audio.rhubarb_lipsync](_autosummary/an.audio.rhubarb_lipsync.html.md): RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.
+- [an.audio.takes](_autosummary/an.audio.takes.html.md): Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.
 - [an.audio.tts](_autosummary/an.audio.tts.html.md): TTS provider protocol + supporting dataclasses.
 - [an.audio.voices](_autosummary/an.audio.voices.html.md): Which voice speaks a dialogue line: the character → voice binding (an#194).
 - [an.audio.whisper_lipsync](_autosummary/an.audio.whisper_lipsync.html.md): WhisperLipSync — faster-whisper word timestamps → viseme keyframes.
@@ -205,7 +206,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 18:51 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 19:15 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

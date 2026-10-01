@@ -64,6 +64,18 @@ ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 Implements the `TTSProvider` protocol, plus the optional
 `synthesis_options` hook the audio pipeline reads (an#209).
 
+#### billed_characters(text, , audio_tags=None, \*\*\_options)
+
+Characters one request bills: the text as sent, audio tags included.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+```pycon
+>>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
+13
+```
+
 #### client_factory
 
 `api_key -> client`; tests inject a fake so nothing reaches the API.
@@ -101,6 +113,23 @@ so alignment and captions never read a cue.
 * **Return type:**
   [`AudioClip`](an.audio.tts.md#an.audio.tts.AudioClip)
 
+#### take_options(options, take)
+
+The request for candidate `take` of a best-of-N line ([`an.audio.takes`](an.audio.takes.md#module-an.audio.takes)).
+
+A declared `seed` is offset by the take, so a model that does honour
+it (every model but `eleven_v3`, measured) still returns different
+takes; without a seed the request is unchanged and the model’s own
+sampling varies the take.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
+{'seed': 13}
+```
+
 ### *class* an.audio.LipSyncProvider(\*args, \*\*kwargs)
 
 Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
@@ -129,6 +158,11 @@ macOS `say`-backed TTSProvider.
 Implements the `TTSProvider` protocol. Audible, deterministic, and
 fully offline — uses Apple’s voice synthesis bundled with the OS.
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same audio, so best-of-N takes never apply
+([`an.audio.takes.voice_takes()`](an.audio.takes.md#an.audio.takes.voice_takes)) and nothing is billed.
+
 ### *class* an.audio.OfflineLipSync(, char_to_viseme=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -144,6 +178,11 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Default TTS provider: silent WAV of length proportional to text.
 
 Implements the `TTSProvider` protocol.
+
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same audio, so best-of-N takes never apply
+([`an.audio.takes.voice_takes()`](an.audio.takes.md#an.audio.takes.voice_takes)) and nothing is billed.
 
 ### *class* an.audio.RhubarbLipSync(, binary_path=None, language='en', recognizer=None, timeout_s=60.0)
 
@@ -321,7 +360,7 @@ Raises `ValueError` for unknown names with a list of known options.
 * **Return type:**
   [`TTSProvider`](an.audio.tts.md#an.audio.tts.TTSProvider)
 
-### an.audio.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None, effects=None, voice_id=None)
+### an.audio.produce_audio_for_dialogue(dialogue, mall=None, \*, tts=None, lipsync=None, effects=None, voice_id=None, takes=<object object>, take_scorer=<function make_take_scorer>)
 
 Synthesize audio + visemes for one dialogue line.
 
@@ -339,7 +378,7 @@ its own key, so changing an effect never re-pays the TTS.
 `voices`-store key; [`produce_audio_for_scene()`](#an.audio.produce_audio_for_scene) passes the one
 [`an.audio.voices.line_voice_id()`](an.audio.voices.md#an.audio.voices.line_voice_id) resolves, so a character’s bound
 voice reaches here (an#194). The provider is handed the voice document’s
-own `voice_id` when it names one.
+own voice id when it names one.
 
 What the provider’s optional `synthesis_options` hook derives from the
 voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
@@ -347,10 +386,17 @@ voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
 to `synthesize` and keyed; the text handed to alignment is always the
 bare `dialogue.text`, never the tagged one.
 
+`takes` (default: what the voice declares for this line — see
+[`an.audio.takes`](an.audio.takes.md#module-an.audio.takes); `None` forces one take) synthesizes several takes,
+scores each with `take_scorer(spec)` on the audio the viewer hears, keeps
+the best and records the choice in `mall["takes"]`. A recorded choice is
+restored from the record and never re-rolled; a recorded take whose audio is
+gone raises [`TakeLostError`](an.audio.takes.md#an.audio.takes.TakeLostError) before any request.
+
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](an.audio.tts.md#an.audio.tts.AudioClip), [`VisemeTrack`](an.audio.lipsync.md#an.audio.lipsync.VisemeTrack)]
 
-### an.audio.produce_audio_for_scene(scene, mall=None, , tts=None, lipsync=None)
+### an.audio.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>)
 
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -367,6 +413,15 @@ shot without touching the audio, and every consumer of `start` — the
 mux, the visemes, captions, ducking — follows. A `start` on a line that
 was never synthesized is an authored start from before `at` existed,
 and is kept as the line’s `at`.
+
+Every line’s request is resolved BEFORE anything is synthesized, so a
+malformed voice (an effect, a `takes`), a corrupt takes record or a
+recorded take whose audio is gone fails before a credit is spent; and
+`announce` (default: a line on stderr; `None` for silence) is told, before the first request, what best-of-N takes will bill (requests
+and the provider’s characters) and which recorded takes were chosen by an
+older scorer version than the current one (they are kept). After synthesis,
+a line that ends past its shot’s end (`dialogue_overruns()`) is
+announced too — or, with `announce=None`, a `DialogueOverrunWarning`.
 
 * **Return type:**
   [`SceneIR`](an.ir.schema.md#an.ir.schema.SceneIR)
@@ -392,18 +447,19 @@ audio’s actual length.
 
 ### Modules
 
-| [`cli`](an.audio.cli.md#module-an.audio.cli)                               | `an voices ...` — browse a TTS provider's voices from the shell (an#209).        |
-|--------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`effects`](an.audio.effects.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163). |
-| [`elevenlabs_tts`](an.audio.elevenlabs_tts.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                              |
-| [`injectable_lipsync`](an.audio.injectable_lipsync.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                       |
-| [`lipsync`](an.audio.lipsync.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                 |
-| [`mac_say_tts`](an.audio.mac_say_tts.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.           |
-| [`offline_lipsync`](an.audio.offline_lipsync.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                        |
-| [`offline_tts`](an.audio.offline_tts.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                        |
-| [`pipeline`](an.audio.pipeline.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.          |
-| [`providers`](an.audio.providers.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                 |
-| [`rhubarb_lipsync`](an.audio.rhubarb_lipsync.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.  |
-| [`tts`](an.audio.tts.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                  |
-| [`voices`](an.audio.voices.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).      |
-| [`whisper_lipsync`](an.audio.whisper_lipsync.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.              |
+| [`cli`](an.audio.cli.md#module-an.audio.cli)                               | `an voices ...` — browse a TTS provider's voices from the shell (an#209).            |
+|--------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`effects`](an.audio.effects.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163).     |
+| [`elevenlabs_tts`](an.audio.elevenlabs_tts.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                                  |
+| [`injectable_lipsync`](an.audio.injectable_lipsync.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                           |
+| [`lipsync`](an.audio.lipsync.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                     |
+| [`mac_say_tts`](an.audio.mac_say_tts.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.               |
+| [`offline_lipsync`](an.audio.offline_lipsync.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                            |
+| [`offline_tts`](an.audio.offline_tts.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                            |
+| [`pipeline`](an.audio.pipeline.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.              |
+| [`providers`](an.audio.providers.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                     |
+| [`rhubarb_lipsync`](an.audio.rhubarb_lipsync.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.      |
+| [`takes`](an.audio.takes.md#module-an.audio.takes)                           | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice. |
+| [`tts`](an.audio.tts.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                      |
+| [`voices`](an.audio.voices.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).          |
+| [`whisper_lipsync`](an.audio.whisper_lipsync.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.                  |

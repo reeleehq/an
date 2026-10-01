@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.assemble" href="an.assemble.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -338,6 +338,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
@@ -718,6 +719,21 @@ without external services.</p>
 <code class="docutils literal notranslate"><span class="pre">synthesis_options</span></code> hook the audio pipeline reads (an#209).</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.ElevenLabsTTS.billed_characters">
+<span class="sig-name descname"><span class="pre">billed_characters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">audio_tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">_options</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.billed_characters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.ElevenLabsTTS.billed_characters" title="Link to this definition">#</a></dt>
+<dd><p>Characters one request bills: the text as sent, audio tags included.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">"unused"</span><span class="p">)</span><span class="o">.</span><span class="n">billed_characters</span><span class="p">(</span><span class="s2">"Hi!"</span><span class="p">,</span> <span class="n">audio_tags</span><span class="o">=</span><span class="p">[</span><span class="s2">"excited"</span><span class="p">])</span>
+<span class="go">13</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.audio.ElevenLabsTTS.client_factory">
 <span class="sig-name descname"><span class="pre">client_factory</span></span><a class="headerlink" href="#an.audio.ElevenLabsTTS.client_factory" title="Link to this definition">#</a></dt>
@@ -767,6 +783,25 @@ so alignment and captions never read a cue.</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.ElevenLabsTTS.take_options">
+<span class="sig-name descname"><span class="pre">take_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">take</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/elevenlabs_tts.html#ElevenLabsTTS.take_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.ElevenLabsTTS.take_options" title="Link to this definition">#</a></dt>
+<dd><p>The request for candidate <code class="docutils literal notranslate"><span class="pre">take</span></code> of a best-of-N line (<a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.takes</span></code></a>).</p>
+<p>A declared <code class="docutils literal notranslate"><span class="pre">seed</span></code> is offset by the take, so a model that does honour
+it (every model but <code class="docutils literal notranslate"><span class="pre">eleven_v3</span></code>, measured) still returns different
+takes; without a seed the request is unchanged and the model’s own
+sampling varies the take.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">"unused"</span><span class="p">)</span><span class="o">.</span><span class="n">take_options</span><span class="p">({</span><span class="s2">"seed"</span><span class="p">:</span> <span class="mi">11</span><span class="p">},</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">{'seed': 13}</span>
+</pre></div>
+</div>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -801,6 +836,13 @@ provider that cannot supply words would re-align every line forever.</p>
 fully offline — uses Apple’s voice synthesis bundled with the OS.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.MacSayTTS.repeatable">
+<span class="sig-name descname"><span class="pre">repeatable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.MacSayTTS.repeatable" title="Link to this definition">#</a></dt>
+<dd><p>The same request gives the same audio, so best-of-N takes never apply
+(<a class="reference internal" href="an.audio.takes.html#an.audio.takes.voice_takes" title="an.audio.takes.voice_takes"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.takes.voice_takes()</span></code></a>) and nothing is billed.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -821,6 +863,13 @@ fully offline — uses Apple’s voice synthesis bundled with the OS.</p>
 <p>Implements the <code class="docutils literal notranslate"><span class="pre">TTSProvider</span></code> protocol.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.audio.OfflineTTS.repeatable">
+<span class="sig-name descname"><span class="pre">repeatable</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></span><a class="headerlink" href="#an.audio.OfflineTTS.repeatable" title="Link to this definition">#</a></dt>
+<dd><p>The same request gives the same audio, so best-of-N takes never apply
+(<a class="reference internal" href="an.audio.takes.html#an.audio.takes.voice_takes" title="an.audio.takes.voice_takes"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.takes.voice_takes()</span></code></a>) and nothing is billed.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1061,7 +1110,7 @@ Rhubarb’s recognizer today; a future aligner’s weight allowlist.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.produce_audio_for_dialogue">
-<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_dialogue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dialogue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_dialogue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.produce_audio_for_dialogue" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_dialogue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dialogue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">takes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;object</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">take_scorer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">make_take_scorer&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_dialogue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.produce_audio_for_dialogue" title="Link to this definition">#</a></dt>
 <dd><p>Synthesize audio + visemes for one dialogue line.</p>
 <p>Side effects: when <code class="docutils literal notranslate"><span class="pre">mall</span></code> is provided, persists the WAV to
 <code class="docutils literal notranslate"><span class="pre">mall[&quot;audio&quot;]</span></code> keyed by the content-hash of the dialogue, and persists
@@ -1075,12 +1124,18 @@ its own key, so changing an effect never re-pays the TTS.</p>
 <code class="docutils literal notranslate"><span class="pre">voices</span></code>-store key; <a class="reference internal" href="#an.audio.produce_audio_for_scene" title="an.audio.produce_audio_for_scene"><code class="xref py py-func docutils literal notranslate"><span class="pre">produce_audio_for_scene()</span></code></a> passes the one
 <a class="reference internal" href="an.audio.voices.html#an.audio.voices.line_voice_id" title="an.audio.voices.line_voice_id"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.audio.voices.line_voice_id()</span></code></a> resolves, so a character’s bound
 voice reaches here (an#194). The provider is handed the voice document’s
-own <code class="docutils literal notranslate"><span class="pre">voice_id</span></code> when it names one.</p>
+own voice id when it names one.</p>
 <p>What the provider’s optional <code class="docutils literal notranslate"><span class="pre">synthesis_options</span></code> hook derives from the
 voice document and the line (ElevenLabs: <code class="docutils literal notranslate"><span class="pre">model_id</span></code>, <code class="docutils literal notranslate"><span class="pre">voice_settings</span></code>,
 <code class="docutils literal notranslate"><span class="pre">seed</span></code>, and the <code class="docutils literal notranslate"><span class="pre">[emotion]</span></code>/<code class="docutils literal notranslate"><span class="pre">direction</span></code> audio tags — an#209) is passed
 to <code class="docutils literal notranslate"><span class="pre">synthesize</span></code> and keyed; the text handed to alignment is always the
 bare <code class="docutils literal notranslate"><span class="pre">dialogue.text</span></code>, never the tagged one.</p>
+<p><code class="docutils literal notranslate"><span class="pre">takes</span></code> (default: what the voice declares for this line — see
+<a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.takes</span></code></a>; <code class="docutils literal notranslate"><span class="pre">None</span></code> forces one take) synthesizes several takes,
+scores each with <code class="docutils literal notranslate"><span class="pre">take_scorer(spec)</span></code> on the audio the viewer hears, keeps
+the best and records the choice in <code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code>. A recorded choice is
+restored from the record and never re-rolled; a recorded take whose audio is
+gone raises <a class="reference internal" href="an.audio.takes.html#an.audio.takes.TakeLostError" title="an.audio.takes.TakeLostError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TakeLostError</span></code></a> before any request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference internal" href="an.audio.tts.html#an.audio.tts.AudioClip" title="an.audio.tts.AudioClip"><code class="xref py py-class docutils literal notranslate"><span class="pre">AudioClip</span></code></a>, <a class="reference internal" href="an.audio.lipsync.html#an.audio.lipsync.VisemeTrack" title="an.audio.lipsync.VisemeTrack"><code class="xref py py-class docutils literal notranslate"><span class="pre">VisemeTrack</span></code></a>]</span></p>
@@ -1090,7 +1145,7 @@ bare <code class="docutils literal notranslate"><span class="pre">dialogue.text<
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.audio.produce_audio_for_scene">
-<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.produce_audio_for_scene" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.audio.</span></span><span class="sig-name descname"><span class="pre">produce_audio_for_scene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mall</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lipsync</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">take_scorer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">make_take_scorer&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">announce</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;function</span> <span class="pre">_announce_to_stderr&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/pipeline.html#produce_audio_for_scene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.produce_audio_for_scene" title="Link to this definition">#</a></dt>
 <dd><p>Walk every dialogue line, synthesize, and stamp viseme tracks back.</p>
 <p>Mutates the <code class="docutils literal notranslate"><span class="pre">scene</span></code> in place AND returns it (for chaining).
 Stamps <code class="docutils literal notranslate"><span class="pre">Dialogue.duration</span></code>, <code class="docutils literal notranslate"><span class="pre">Dialogue.viseme_track</span></code>, and
@@ -1104,6 +1159,14 @@ shot without touching the audio, and every consumer of <code class="docutils lit
 mux, the visemes, captions, ducking — follows. A <code class="docutils literal notranslate"><span class="pre">start</span></code> on a line that
 was never synthesized is an authored start from before <code class="docutils literal notranslate"><span class="pre">at</span></code> existed,
 and is kept as the line’s <code class="docutils literal notranslate"><span class="pre">at</span></code>.</p>
+<p>Every line’s request is resolved BEFORE anything is synthesized, so a
+malformed voice (an effect, a <code class="docutils literal notranslate"><span class="pre">takes</span></code>), a corrupt takes record or a
+recorded take whose audio is gone fails before a credit is spent; and
+<code class="docutils literal notranslate"><span class="pre">announce</span></code> (default: a line on stderr; <code class="docutils literal notranslate"><span class="pre">None</span></code> for silence) is told, before the first request, what best-of-N takes will bill (requests
+and the provider’s characters) and which recorded takes were chosen by an
+older scorer version than the current one (they are kept). After synthesis,
+a line that ends past its shot’s end (<code class="xref py py-func docutils literal notranslate"><span class="pre">dialogue_overruns()</span></code>) is
+announced too — or, with <code class="docutils literal notranslate"><span class="pre">announce=None</span></code>, a <code class="docutils literal notranslate"><span class="pre">DialogueOverrunWarning</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-class docutils literal notranslate"><span class="pre">SceneIR</span></code></a></span></p>
@@ -1168,13 +1231,16 @@ audio’s actual length.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.audio.rhubarb_lipsync.html#module-an.audio.rhubarb_lipsync" title="an.audio.rhubarb_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rhubarb_lipsync</span></code></a></p></td>
 <td><p>RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.takes.html#module-an.audio.takes" title="an.audio.takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes</span></code></a></p></td>
+<td><p>Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.tts.html#module-an.audio.tts" title="an.audio.tts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tts</span></code></a></p></td>
 <td><p>TTS provider protocol + supporting dataclasses.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.audio.voices.html#module-an.audio.voices" title="an.audio.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
 <td><p>Which voice speaks a dialogue line: the character → voice binding (an#194).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.audio.whisper_lipsync.html#module-an.audio.whisper_lipsync" title="an.audio.whisper_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">whisper_lipsync</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.audio.whisper_lipsync.html#module-an.audio.whisper_lipsync" title="an.audio.whisper_lipsync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">whisper_lipsync</span></code></a></p></td>
 <td><p>WhisperLipSync — faster-whisper word timestamps → viseme keyframes.</p></td>
 </tr>
 </tbody>
@@ -1231,19 +1297,27 @@ audio’s actual length.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.AudioClip"><code class="docutils literal notranslate"><span class="pre">AudioClip</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.billed_characters"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.billed_characters()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.client_factory"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.client_factory</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.list_voices"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.list_voices()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.synthesis_options"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.synthesis_options()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.synthesize()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.ElevenLabsTTS.take_options"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.take_options()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.LipSyncProvider"><code class="docutils literal notranslate"><span class="pre">LipSyncProvider</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.LipSyncProvider.align"><code class="docutils literal notranslate"><span class="pre">LipSyncProvider.align()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.MacSayTTS"><code class="docutils literal notranslate"><span class="pre">MacSayTTS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.MacSayTTS"><code class="docutils literal notranslate"><span class="pre">MacSayTTS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.MacSayTTS.repeatable"><code class="docutils literal notranslate"><span class="pre">MacSayTTS.repeatable</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.OfflineLipSync"><code class="docutils literal notranslate"><span class="pre">OfflineLipSync</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.OfflineTTS"><code class="docutils literal notranslate"><span class="pre">OfflineTTS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.OfflineTTS"><code class="docutils literal notranslate"><span class="pre">OfflineTTS</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.OfflineTTS.repeatable"><code class="docutils literal notranslate"><span class="pre">OfflineTTS.repeatable</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.RhubarbLipSync"><code class="docutils literal notranslate"><span class="pre">RhubarbLipSync</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.RhubarbLipSync.uses_dialog_file"><code class="docutils literal notranslate"><span class="pre">RhubarbLipSync.uses_dialog_file</span></code></a></li>
 </ul>

@@ -23,6 +23,7 @@ an.stores
       SoundsStore
       AudioArtifactStore
       VisemeArtifactStore
+      TakesArtifactStore
       ShotArtifactStore
       PreviewArtifactStore
       OutputStore

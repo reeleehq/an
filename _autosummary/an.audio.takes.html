@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="alternate" type="text/markdown" href="an.audio.takes.html.md">
+<link rel="describedby" href="../llms.txt" type="text/markdown">
+<link rel="alternate" type="text/markdown" href="an.audio.takes.html.md">
+<link rel="describedby" href="llms.txt">
+    <title>an.audio.takes &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_autosummary/an.audio.takes';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="an.audio.tts" href="an.audio.tts.html" />
+    <link rel="prev" title="an.audio.rhubarb_lipsync" href="an.audio.rhubarb_lipsync.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.145" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="an.html">an</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.adapters.html">an.adapters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.cutout.html">an.adapters.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.manim_adapter.html">an.adapters.manim_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.remotion_adapter.html">an.adapters.remotion_adapter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.adapters.whiteboard.html">an.adapters.whiteboard</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.assemble.html">an.assemble</a></li>
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="an.audio.html">an.audio</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="an.audio.cli.html">an.audio.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.effects.html">an.audio.effects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.elevenlabs_tts.html">an.audio.elevenlabs_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.injectable_lipsync.html">an.audio.injectable_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.lipsync.html">an.audio.lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.mac_say_tts.html">an.audio.mac_say_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_lipsync.html">an.audio.offline_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.offline_tts.html">an.audio.offline_tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.audio.takes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.base.html">an.base</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.bench.html">an.bench</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.imageio.html">an.bench.imageio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.ledger.html">an.bench.ledger</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.masks.html">an.bench.masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.metrics.html">an.bench.metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutants.html">an.bench.mutants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.mutations.html">an.bench.mutations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.palette.html">an.bench.palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.paths.html">an.bench.paths</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.png.html">an.bench.png</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.registry.html">an.bench.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.run.html">an.bench.run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.stage.html">an.bench.stage</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.build.html">an.build</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.build.keys.html">an.build.keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.build.shot_cache.html">an.build.shot_cache</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.capabilities.html">an.capabilities</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.capabilities.subjects.html">an.capabilities.subjects</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.captions.html">an.captions</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.characters.html">an.characters</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.brows.html">an.characters.brows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.cli.html">an.characters.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.colour_roles.html">an.characters.colour_roles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.dicebear.html">an.characters.dicebear</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.drawn.html">an.characters.drawn</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.factory.html">an.characters.factory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.idle.html">an.characters.idle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.licenses.html">an.characters.licenses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.methods.html">an.characters.methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.validate.html">an.characters.validate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.vocabulary.html">an.characters.vocabulary</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.conftest.html">an.conftest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.credits.html">an.credits</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.data.html">an.data</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.data.cutout_runtime.html">an.data.cutout_runtime</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.binding.html">an.expression.binding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.objects.html">an.impacts.objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.performance.html">an.impacts.performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.stroke.html">an.impacts.stroke</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.impacts.truth.html">an.impacts.truth</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.ir.html">an.ir</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.assets.html">an.ir.assets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.camera.html">an.ir.camera</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.compose.html">an.ir.compose</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.schema.html">an.ir.schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.ir.validate.html">an.ir.validate</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.iterate.html">an.iterate</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.library.html">an.library</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.library.affordances.html">an.library.affordances</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.api.html">an.library.api</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.character.html">an.library.character</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.cli.html">an.library.cli</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.federation.html">an.library.federation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.floor.html">an.library.floor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.ids.html">an.library.ids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.kinds.html">an.library.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.lock.html">an.library.lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.registry.html">an.library.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.rights.html">an.library.rights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.root.html">an.library.root</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.library.stores.html">an.library.stores</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.mcp.html">an.mcp</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.server.html">an.mcp.server</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.supersample.html">an.media.supersample</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.preview.html">an.preview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.project.html">an.project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.props.html">an.props</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.raster.html">an.raster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.render.html">an.render</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.semantic.html">an.semantic</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.describe.html">an.semantic.describe</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.digest.html">an.semantic.digest</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.docs.html">an.semantic.docs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.export.html">an.semantic.export</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.matcher.html">an.semantic.matcher</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.prompt.html">an.semantic.prompt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.registry.html">an.semantic.registry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.seeds.html">an.semantic.seeds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.semantic.views.html">an.semantic.views</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.sounds.html">an.sounds</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.stores.html">an.stores</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.artifacts.html">an.stores.artifacts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.characters.html">an.stores.characters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.decisions.html">an.stores.decisions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.environments.html">an.stores.environments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.library_lock.html">an.stores.library_lock</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.styles.html">an.styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.text.html">an.text</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.timing.html">an.timing</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.address.html">an.timing.address</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.channel.html">an.timing.channel</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.clip.html">an.timing.clip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.contract.html">an.timing.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.easing.html">an.timing.easing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.flat.html">an.timing.flat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.kinds.html">an.timing.kinds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.spaces.html">an.timing.spaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.timing.timeline.html">an.timing.timeline</a></li>
+</ul>
+</details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.tools.html">an.tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="an.util.html">an.util</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.verify.html">an.verify</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.human.html">an.verify.human</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.layout.html">an.verify.layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media.html">an.verify.media</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.media_quality.html">an.verify.media_quality</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.prosody.html">an.verify.prosody</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.style.html">an.verify.style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.verify.vision.html">an.verify.vision</a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API reference</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.html" class="nav-link">an</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="an.audio.html" class="nav-link">an.audio</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.audio.takes</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-an.audio.takes">
+<span id="an-audio-takes"></span><h1>an.audio.takes<a class="headerlink" href="#module-an.audio.takes" title="Link to this heading">#</a></h1>
+<p>Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.</p>
+<p>An expressive TTS model does not repeat itself: <code class="docutils literal notranslate"><span class="pre">eleven_v3</span></code> returned three
+different files for three byte-identical requests (same text, voice, settings
+and seed), and the spread between two takes of one line was larger than the
+effect of any voice setting. So the way to land a delivery on its measured
+targets is to synthesize a few takes and keep the one that measures closest.</p>
+<p>A voice document opts in with <code class="docutils literal notranslate"><span class="pre">takes</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="s2">"voice_id"</span><span class="p">:</span> <span class="s2">"..."</span><span class="p">,</span> <span class="s2">"model_id"</span><span class="p">:</span> <span class="s2">"eleven_v3"</span><span class="p">,</span>
+ <span class="s2">"takes"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"n"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>                                  <span class="c1"># takes per line (1 = off)</span>
+           <span class="s2">"targets"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"articulation_rate_sps"</span><span class="p">:</span> <span class="p">[</span><span class="mf">5.2</span><span class="p">,</span> <span class="mf">6.3</span><span class="p">],</span> <span class="o">...</span><span class="p">},</span>
+           <span class="s2">"cues"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"deadpan"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"n"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">:</span> <span class="p">{</span><span class="o">...</span><span class="p">}}}}}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">n</span></code> — takes per line; <code class="docutils literal notranslate"><span class="pre">1</span></code> (the default) is today’s single take, byte for
+byte. A bare integer (<code class="docutils literal notranslate"><span class="pre">takes:</span> <span class="pre">3</span></code>) is <code class="docutils literal notranslate"><span class="pre">{&quot;n&quot;:</span> <span class="pre">3}</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">targets</span></code> — <code class="docutils literal notranslate"><span class="pre">[low,</span> <span class="pre">high]</span></code> prosody targets (<a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.METRICS" title="an.verify.prosody.METRICS"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.verify.prosody.METRICS</span></code></a>)
+the default scorer measures each take against. A style’s targets are named by
+role in its spec; <a class="reference internal" href="#an.audio.takes.style_voice_role" title="an.audio.takes.style_voice_role"><code class="xref py py-func docutils literal notranslate"><span class="pre">style_voice_role()</span></code></a> resolves those names into values
+when the style is applied, so the voice document holds numbers, never names.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reference_hz</span></code> — the voice’s neutral median pitch, for a <code class="docutils literal notranslate"><span class="pre">register_st</span></code> target.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cues</span></code> — per-line opt-in: a line whose <code class="docutils literal notranslate"><span class="pre">{direction}</span></code> carries one of these
+cues uses that entry’s <code class="docutils literal notranslate"><span class="pre">n</span></code> / <code class="docutils literal notranslate"><span class="pre">targets</span></code> / <code class="docutils literal notranslate"><span class="pre">reference_hz</span></code> over the
+voice’s (the first matching cue, in the line’s order, wins). So a narrator
+can re-roll only its <code class="docutils literal notranslate"><span class="pre">{deadpan}</span></code> punchlines, scored as punchlines.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scorer</span></code> — the scorer’s name (default <code class="docutils literal notranslate"><span class="pre">prosody</span></code>); the scorer itself is a
+seam (<a class="reference internal" href="#an.audio.takes.TakeScorer" title="an.audio.takes.TakeScorer"><code class="xref py py-class docutils literal notranslate"><span class="pre">TakeScorer</span></code></a>, the pipeline’s <code class="docutils literal notranslate"><span class="pre">take_scorer=</span></code>).</p></li>
+</ul>
+<p>How the pipeline uses it (<a class="reference internal" href="an.audio.pipeline.html#module-an.audio.pipeline" title="an.audio.pipeline"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.audio.pipeline</span></code></a>):</p>
+<ol class="arabic">
+<li><p><strong>Every take has its own content key.</strong> Take <code class="docutils literal notranslate"><span class="pre">0</span></code> of roll <code class="docutils literal notranslate"><span class="pre">0</span></code> is the
+request a single take makes, under the same key — turning takes on for a
+line already synthesized reuses that take and pays for <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">-</span> <span class="pre">1</span></code> more. Take
+<code class="docutils literal notranslate"><span class="pre">i</span></code> adds <code class="docutils literal notranslate"><span class="pre">take:</span> <span class="pre">i</span></code> (and a re-roll adds <code class="docutils literal notranslate"><span class="pre">roll:</span> <span class="pre">r</span></code>) to its key, and a
+provider may vary its request per take (ElevenLabs offsets a declared
+<code class="docutils literal notranslate"><span class="pre">seed</span></code> by <code class="docutils literal notranslate"><span class="pre">i</span></code>). The audio a line KEEPS is the chosen take’s own heard
+key (its effects applied), so a different take is a different
+<code class="docutils literal notranslate"><span class="pre">audio_ref</span></code>, and its visemes, word timings and captions follow it.</p></li>
+<li><p>Each take is scored on the audio the viewer hears (the voice’s effects
+applied, so a <code class="docutils literal notranslate"><span class="pre">tempo</span></code> counts toward the rate); the lowest score wins, ties
+to the lower take index.</p></li>
+<li><p><strong>The record is the resolution</strong> (ADR 0003 decision 3). The choice is
+written to <code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code> under the line’s <em>choice key</em> — the line’s
+request, <code class="docutils literal notranslate"><span class="pre">n</span></code>, the scorer’s name and its configuration (its targets), but
+NOT its version — with the chosen take, the sha256 of what it sounds like,
+every take’s keys, digests and scores, and the scorer that chose. Every
+render reads it first:</p>
+<ul class="simple">
+<li><p>the chosen take is restored from the record (its heard audio, else its
+raw audio with the effects re-applied) and never re-billed;</p></li>
+<li><p>a hand edit of <code class="docutils literal notranslate"><span class="pre">chosen</span></code> wins: that take is restored, the record says
+<code class="docutils literal notranslate"><span class="pre">superseded_by:</span> <span class="pre">hand</span></code> and the decision is logged;</p></li>
+<li><p>a chosen take whose audio is gone is a <a class="reference internal" href="#an.audio.takes.TakeLostError" title="an.audio.takes.TakeLostError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TakeLostError</span></code></a> raised
+before any request — <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">reroll</span></code> is the explicit way to re-roll;</p></li>
+<li><p>a record made by an older scorer version is KEPT, and the render reports
+it — <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">voices</span> <span class="pre">rescore</span></code> re-chooses explicitly, from the cached takes.</p></li>
+</ul>
+<p>Changing <code class="docutils literal notranslate"><span class="pre">n</span></code>, the targets, the scorer or the voice’s effects is a new
+choice key, chosen from the takes already cached where it can.</p>
+</li>
+</ol>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="n">takes_spec</span><span class="p">({</span><span class="s2">"n"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"f0_sd_st"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">]}})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">scorer</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">targets</span><span class="p">)</span>
+<span class="go">(3, 'prosody', {'f0_sd_st': [2.0, 4.0]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">takes_spec</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">takes_spec</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"n"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"cues"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"deadpan"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"n"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"final_drop_st"</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mf">3.6</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.7</span><span class="p">]}}}}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">takes_spec</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="p">[</span><span class="s2">"deadpan"</span><span class="p">])</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="n">takes_spec</span><span class="p">(</span><span class="n">doc</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="p">[</span><span class="s2">"excited"</span><span class="p">])</span>
+<span class="go">(4, None)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">takes_spec</span><span class="p">({</span><span class="s2">"n"</span><span class="p">:</span> <span class="mi">3</span><span class="p">})</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">    </span><span class="o">...</span>
+<span class="gr">an.audio.takes.VoiceTakesError</span>: <span class="n">takes: n=3 with the prosody scorer needs `targets` ([low, high] per metric) to choose by</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">choose_take</span><span class="p">([</span><span class="n">TakeScore</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span> <span class="n">TakeScore</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)),</span> <span class="n">TakeScore</span><span class="p">((</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">))])</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+<p class="rubric">Module Attributes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.TAKES_KEY" title="an.audio.takes.TAKES_KEY"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TAKES_KEY</span></code></a></p></td>
+<td><p>The key, in a voice document, declaring best-of-N takes.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.TAKES_STORE" title="an.audio.takes.TAKES_STORE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TAKES_STORE</span></code></a></p></td>
+<td><p>The name of the store the choices are recorded in.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.DEFAULT_SCORER" title="an.audio.takes.DEFAULT_SCORER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_SCORER</span></code></a></p></td>
+<td><p>The scorer a <code class="docutils literal notranslate"><span class="pre">takes</span></code> declaration uses when it names none.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.MAX_TAKES" title="an.audio.takes.MAX_TAKES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MAX_TAKES</span></code></a></p></td>
+<td><p>each one is a billed request.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.TAKES_RECORD_VERSION" title="an.audio.takes.TAKES_RECORD_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TAKES_RECORD_VERSION</span></code></a></p></td>
+<td><p>The shape of a record in <code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code>; raised when a field changes meaning.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.PROSODY_SCORER_VERSION" title="an.audio.takes.PROSODY_SCORER_VERSION"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROSODY_SCORER_VERSION</span></code></a></p></td>
+<td><p>The prosody scorer's own version (its distance and tie-break); the estimator's version (<a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.ESTIMATOR_VERSION" title="an.verify.prosody.ESTIMATOR_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.verify.prosody.ESTIMATOR_VERSION</span></code></a>) is joined to it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.SCORING_SAMPLE_RATE" title="an.audio.takes.SCORING_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCORING_SAMPLE_RATE</span></code></a></p></td>
+<td><p>The sample rate takes are decoded at for scoring — the one the targets were measured at.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.REROLL_HINT" title="an.audio.takes.REROLL_HINT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REROLL_HINT</span></code></a></p></td>
+<td><p>What to run when a recorded take must be replaced (named in every error).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.SCORERS" title="an.audio.takes.SCORERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SCORERS</span></code></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TakesSpec</span> <span class="pre">-&gt;</span> <span class="pre">TakeScorer</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.audio_digest" title="an.audio.takes.audio_digest"><code class="xref py py-obj docutils literal notranslate"><span class="pre">audio_digest</span></code></a>(audio)</p></td>
+<td><p>The sha256 a takes record names a take's audio by.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.choose_take" title="an.audio.takes.choose_take"><code class="xref py py-obj docutils literal notranslate"><span class="pre">choose_take</span></code></a>(scores)</p></td>
+<td><p>The index of the best take: the lowest score, ties to the lower index.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.decode_for_scoring" title="an.audio.takes.decode_for_scoring"><code class="xref py py-obj docutils literal notranslate"><span class="pre">decode_for_scoring</span></code></a>(audio, *[, sr])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">audio</span></code> as mono float samples at <code class="docutils literal notranslate"><span class="pre">sr</span></code> Hz, decoded by ffmpeg — the decoder the targets were measured with, and the only one, so the same bytes score the same on every machine.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.make_take_scorer" title="an.audio.takes.make_take_scorer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_take_scorer</span></code></a>(spec)</p></td>
+<td><p>The scorer <code class="docutils literal notranslate"><span class="pre">spec</span></code> names, from <a class="reference internal" href="#an.audio.takes.SCORERS" title="an.audio.takes.SCORERS"><code class="xref py py-data docutils literal notranslate"><span class="pre">SCORERS</span></code></a> (the pipeline's default <code class="docutils literal notranslate"><span class="pre">take_scorer</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.normalize_takes" title="an.audio.takes.normalize_takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_takes</span></code></a>(raw)</p></td>
+<td><p>The canonical <code class="docutils literal notranslate"><span class="pre">takes</span></code> declaration of a voice document (<code class="docutils literal notranslate"><span class="pre">{}</span></code> for none).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.read_takes_record" title="an.audio.takes.read_takes_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_takes_record</span></code></a>(store, key)</p></td>
+<td><p>The takes record under <code class="docutils literal notranslate"><span class="pre">key</span></code> in <code class="docutils literal notranslate"><span class="pre">store</span></code> (<code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.require_ffmpeg" title="an.audio.takes.require_ffmpeg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">require_ffmpeg</span></code></a>()</p></td>
+<td><p>Raise <a class="reference internal" href="#an.audio.takes.VoiceTakesError" title="an.audio.takes.VoiceTakesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a> with the install hint when ffmpeg is not on PATH.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.scorer_identity" title="an.audio.takes.scorer_identity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scorer_identity</span></code></a>(scorer)</p></td>
+<td><p>The scorer as a record names it: name, version and configuration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.style_voice_role" title="an.audio.takes.style_voice_role"><code class="xref py py-obj docutils literal notranslate"><span class="pre">style_voice_role</span></code></a>(spec, role)</p></td>
+<td><p>The partial voice document a style casts <code class="docutils literal notranslate"><span class="pre">role</span></code> as, with target NAMES resolved.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.takes_choice_part" title="an.audio.takes.takes_choice_part"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes_choice_part</span></code></a>(scorer, n)</p></td>
+<td><p>What identifies a CHOICE among <code class="docutils literal notranslate"><span class="pre">n</span></code> takes: the scorer's name and its configuration, never its version — a new scorer version keeps the takes it chose, and says so (<a class="reference internal" href="#an.audio.takes.REROLL_HINT" title="an.audio.takes.REROLL_HINT"><code class="xref py py-data docutils literal notranslate"><span class="pre">REROLL_HINT</span></code></a>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.takes_spec" title="an.audio.takes.takes_spec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">takes_spec</span></code></a>(raw, *[, direction])</p></td>
+<td><p>The takes a line with <code class="docutils literal notranslate"><span class="pre">direction</span></code> gets from a voice's <code class="docutils literal notranslate"><span class="pre">takes</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for one take.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.voice_takes" title="an.audio.takes.voice_takes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_takes</span></code></a>(mall, voice_id, *[, direction, ...])</p></td>
+<td><p>The takes <code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;][voice_id]</span></code> declares for a line with <code class="docutils literal notranslate"><span class="pre">direction</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.write_takes_record" title="an.audio.takes.write_takes_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_takes_record</span></code></a>(store, key, record)</p></td>
+<td><p>Write <code class="docutils literal notranslate"><span class="pre">record</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code> (stable, indented JSON); no store, no record.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Classes</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.ProsodyTakeScorer" title="an.audio.takes.ProsodyTakeScorer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProsodyTakeScorer</span></code></a>(targets, *[, reference_hz, sr])</p></td>
+<td><p>Scores a take by how far its prosody sits from <code class="docutils literal notranslate"><span class="pre">[low,</span> <span class="pre">high]</span></code> targets.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.TakeScore" title="an.audio.takes.TakeScore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TakeScore</span></code></a>(value[, detail])</p></td>
+<td><p>A take's score — compared as a tuple, lower is better — and what it measured.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.TakeScorer" title="an.audio.takes.TakeScorer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TakeScorer</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Scores one take of a line.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.TakesSpec" title="an.audio.takes.TakesSpec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TakesSpec</span></code></a>(n[, scorer, targets, reference_hz])</p></td>
+<td><p>The takes ONE line gets: how many, and what chooses between them.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.TakeLostError" title="an.audio.takes.TakeLostError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TakeLostError</span></code></a></p></td>
+<td><p>A line's recorded take is gone from the audio store and cannot be restored.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.takes.TakesRecordError" title="an.audio.takes.TakesRecordError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TakesRecordError</span></code></a></p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code> record cannot be read as a takes record.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.takes.VoiceTakesError" title="an.audio.takes.VoiceTakesError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a></p></td>
+<td><p>A voice's <code class="docutils literal notranslate"><span class="pre">takes</span></code> declaration is malformed, or cannot be scored.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.DEFAULT_SCORER">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_SCORER</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'prosody'</span></span><a class="headerlink" href="#an.audio.takes.DEFAULT_SCORER" title="Link to this definition">#</a></dt>
+<dd><p>The scorer a <code class="docutils literal notranslate"><span class="pre">takes</span></code> declaration uses when it names none.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.MAX_TAKES">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">MAX_TAKES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></span><a class="headerlink" href="#an.audio.takes.MAX_TAKES" title="Link to this definition">#</a></dt>
+<dd><p>each one is a billed request.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>More takes than this per line is refused</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.PROSODY_SCORER_VERSION">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">PROSODY_SCORER_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'1'</span></span><a class="headerlink" href="#an.audio.takes.PROSODY_SCORER_VERSION" title="Link to this definition">#</a></dt>
+<dd><p>The prosody scorer’s own version (its distance and tie-break); the
+estimator’s version (<a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.ESTIMATOR_VERSION" title="an.verify.prosody.ESTIMATOR_VERSION"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.verify.prosody.ESTIMATOR_VERSION</span></code></a>) is joined to it.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.audio.takes.ProsodyTakeScorer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">ProsodyTakeScorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#ProsodyTakeScorer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.ProsodyTakeScorer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Scores a take by how far its prosody sits from <code class="docutils literal notranslate"><span class="pre">[low,</span> <span class="pre">high]</span></code> targets.</p>
+<p>The score is <a class="reference internal" href="an.verify.prosody.html#an.verify.prosody.target_distance" title="an.verify.prosody.target_distance"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.verify.prosody.target_distance()</span></code></a>: the summed distance
+outside the ranges, then the summed distance from their midpoints (the
+tie-break between takes all on target), in units of each range’s width.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.takes.ProsodyTakeScorer.check_available">
+<span class="sig-name descname"><span class="pre">check_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#ProsodyTakeScorer.check_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.ProsodyTakeScorer.check_available" title="Link to this definition">#</a></dt>
+<dd><p>Raise before any request when this scorer could not score (no ffmpeg).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.REROLL_HINT">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">REROLL_HINT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'re-roll</span> <span class="pre">it</span> <span class="pre">explicitly</span> <span class="pre">with</span> <span class="pre">`an</span> <span class="pre">voices</span> <span class="pre">reroll</span> <span class="pre">&lt;project&gt;</span> <span class="pre">&lt;words</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">line&gt;`</span> <span class="pre">(new</span> <span class="pre">takes,</span> <span class="pre">billed)</span> <span class="pre">or,</span> <span class="pre">while</span> <span class="pre">every</span> <span class="pre">take</span> <span class="pre">of</span> <span class="pre">its</span> <span class="pre">roll</span> <span class="pre">is</span> <span class="pre">still</span> <span class="pre">cached,</span> <span class="pre">re-choose</span> <span class="pre">among</span> <span class="pre">them</span> <span class="pre">with</span> <span class="pre">`an</span> <span class="pre">voices</span> <span class="pre">rescore</span> <span class="pre">&lt;project&gt;</span> <span class="pre">&lt;words</span> <span class="pre">of</span> <span class="pre">the</span> <span class="pre">line&gt;`'</span></span><a class="headerlink" href="#an.audio.takes.REROLL_HINT" title="Link to this definition">#</a></dt>
+<dd><p>What to run when a recorded take must be replaced (named in every error).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.SCORERS">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">SCORERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#an.audio.takes.TakesSpec" title="an.audio.takes.TakesSpec"><span class="pre">TakesSpec</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#an.audio.takes.TakeScorer" title="an.audio.takes.TakeScorer"><span class="pre">TakeScorer</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'prosody':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;}</span></span><a class="headerlink" href="#an.audio.takes.SCORERS" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">TakesSpec</span> <span class="pre">-&gt;</span> <span class="pre">TakeScorer</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Scorer factories by name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.SCORING_SAMPLE_RATE">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">SCORING_SAMPLE_RATE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16000</span></span><a class="headerlink" href="#an.audio.takes.SCORING_SAMPLE_RATE" title="Link to this definition">#</a></dt>
+<dd><p>The sample rate takes are decoded at for scoring — the one the targets were measured at.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.TAKES_KEY">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">TAKES_KEY</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'takes'</span></span><a class="headerlink" href="#an.audio.takes.TAKES_KEY" title="Link to this definition">#</a></dt>
+<dd><p>The key, in a voice document, declaring best-of-N takes.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.TAKES_RECORD_VERSION">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">TAKES_RECORD_VERSION</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></span><a class="headerlink" href="#an.audio.takes.TAKES_RECORD_VERSION" title="Link to this definition">#</a></dt>
+<dd><p>The shape of a record in <code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code>; raised when a field changes meaning.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.takes.TAKES_STORE">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">TAKES_STORE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'takes'</span></span><a class="headerlink" href="#an.audio.takes.TAKES_STORE" title="Link to this definition">#</a></dt>
+<dd><p>The name of the store the choices are recorded in.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.takes.TakeLostError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">TakeLostError</span></span><a class="reference internal" href="../_modules/an/audio/takes.html#TakeLostError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.TakeLostError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#RuntimeError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></a></p>
+<p>A line’s recorded take is gone from the audio store and cannot be restored.</p>
+<p>Raised before any request: re-rolling an approved take is never implicit.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.audio.takes.TakeScore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">TakeScore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#TakeScore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.TakeScore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>A take’s score — compared as a tuple, lower is better — and what it measured.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.audio.takes.TakeScorer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">TakeScorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#TakeScorer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.TakeScorer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Protocol" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
+<p>Scores one take of a line. Deterministic: the same bytes score the same.</p>
+<p><code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">version</span></code> and <code class="docutils literal notranslate"><span class="pre">config</span></code> enter the line’s audio key, so a scorer
+that would choose differently must differ in one of them.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.audio.takes.TakeScorer.score">
+<span class="sig-name descname"><span class="pre">score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#TakeScorer.score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.TakeScorer.score" title="Link to this definition">#</a></dt>
+<dd><p>Score <code class="docutils literal notranslate"><span class="pre">audio</span></code> (any container ffmpeg reads; WAV without it) speaking <code class="docutils literal notranslate"><span class="pre">text</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.audio.takes.TakeScore" title="an.audio.takes.TakeScore"><code class="xref py py-class docutils literal notranslate"><span class="pre">TakeScore</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.takes.TakesRecordError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">TakesRecordError</span></span><a class="reference internal" href="../_modules/an/audio/takes.html#TakesRecordError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.TakesRecordError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#an.audio.takes.VoiceTakesError" title="an.audio.takes.VoiceTakesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a></p>
+<p>A <code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code> record cannot be read as a takes record.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.audio.takes.TakesSpec">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">TakesSpec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scorer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'prosody'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_hz</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#TakesSpec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.TakesSpec" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The takes ONE line gets: how many, and what chooses between them.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.audio.takes.VoiceTakesError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">VoiceTakesError</span></span><a class="reference internal" href="../_modules/an/audio/takes.html#VoiceTakesError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.VoiceTakesError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>A voice’s <code class="docutils literal notranslate"><span class="pre">takes</span></code> declaration is malformed, or cannot be scored.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.audio_digest">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">audio_digest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#audio_digest"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.audio_digest" title="Link to this definition">#</a></dt>
+<dd><p>The sha256 a takes record names a take’s audio by.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.choose_take">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">choose_take</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scores</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#choose_take"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.choose_take" title="Link to this definition">#</a></dt>
+<dd><p>The index of the best take: the lowest score, ties to the lower index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.decode_for_scoring">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">decode_for_scoring</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">sr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#decode_for_scoring"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.decode_for_scoring" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">audio</span></code> as mono float samples at <code class="docutils literal notranslate"><span class="pre">sr</span></code> Hz, decoded by ffmpeg — the decoder
+the targets were measured with, and the only one, so the same bytes score the
+same on every machine. Raises <a class="reference internal" href="#an.audio.takes.VoiceTakesError" title="an.audio.takes.VoiceTakesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a> without ffmpeg.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.make_take_scorer">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">make_take_scorer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#make_take_scorer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.make_take_scorer" title="Link to this definition">#</a></dt>
+<dd><p>The scorer <code class="docutils literal notranslate"><span class="pre">spec</span></code> names, from <a class="reference internal" href="#an.audio.takes.SCORERS" title="an.audio.takes.SCORERS"><code class="xref py py-data docutils literal notranslate"><span class="pre">SCORERS</span></code></a> (the pipeline’s default <code class="docutils literal notranslate"><span class="pre">take_scorer</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.audio.takes.TakeScorer" title="an.audio.takes.TakeScorer"><code class="xref py py-class docutils literal notranslate"><span class="pre">TakeScorer</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.normalize_takes">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">normalize_takes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#normalize_takes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.normalize_takes" title="Link to this definition">#</a></dt>
+<dd><p>The canonical <code class="docutils literal notranslate"><span class="pre">takes</span></code> declaration of a voice document (<code class="docutils literal notranslate"><span class="pre">{}</span></code> for none).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_takes</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">{'n': 3}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_takes</span><span class="p">({</span><span class="s2">"cues"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"deadpan"</span><span class="p">:</span> <span class="mi">4</span><span class="p">}})</span>
+<span class="go">{'cues': {'deadpan': {'n': 4}}}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.read_takes_record">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">read_takes_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#read_takes_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.read_takes_record" title="Link to this definition">#</a></dt>
+<dd><p>The takes record under <code class="docutils literal notranslate"><span class="pre">key</span></code> in <code class="docutils literal notranslate"><span class="pre">store</span></code> (<code class="docutils literal notranslate"><span class="pre">mall[&quot;takes&quot;]</span></code>), or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p>Raises <a class="reference internal" href="#an.audio.takes.TakesRecordError" title="an.audio.takes.TakesRecordError"><code class="xref py py-class docutils literal notranslate"><span class="pre">TakesRecordError</span></code></a> — naming the record and the remedy — for one
+that is not JSON, not a mapping, or whose <code class="docutils literal notranslate"><span class="pre">chosen</span></code> names no take.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">read_takes_record</span><span class="p">({},</span> <span class="s2">"k"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">read_takes_record</span><span class="p">({</span><span class="s2">"k"</span><span class="p">:</span> <span class="sa">b</span><span class="s1">'{"chosen": 0, "takes": [{"take": 0}]}'</span><span class="p">},</span> <span class="s2">"k"</span><span class="p">)[</span><span class="s2">"chosen"</span><span class="p">]</span>
+<span class="go">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">read_takes_record</span><span class="p">({</span><span class="s2">"k"</span><span class="p">:</span> <span class="sa">b</span><span class="s2">"[1, 2]"</span><span class="p">},</span> <span class="s2">"k"</span><span class="p">)</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="w">    </span><span class="o">...</span>
+<span class="gr">an.audio.takes.TakesRecordError</span>: <span class="n">the takes record 'k' is not a takes record (a JSON object with `chosen` and `takes`): ...</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.require_ffmpeg">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">require_ffmpeg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#require_ffmpeg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.require_ffmpeg" title="Link to this definition">#</a></dt>
+<dd><p>Raise <a class="reference internal" href="#an.audio.takes.VoiceTakesError" title="an.audio.takes.VoiceTakesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a> with the install hint when ffmpeg is not on PATH.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.scorer_identity">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">scorer_identity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scorer</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#scorer_identity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.scorer_identity" title="Link to this definition">#</a></dt>
+<dd><p>The scorer as a record names it: name, version and configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.style_voice_role">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">style_voice_role</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">role</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#style_voice_role"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.style_voice_role" title="Link to this definition">#</a></dt>
+<dd><p>The partial voice document a style casts <code class="docutils literal notranslate"><span class="pre">role</span></code> as, with target NAMES resolved.</p>
+<p>A style spec (the <code class="docutils literal notranslate"><span class="pre">an-style</span></code> skill’s <code class="docutils literal notranslate"><span class="pre">styles/&lt;name&gt;.yaml</span></code>) declares
+<code class="docutils literal notranslate"><span class="pre">live.voice.roles.&lt;role&gt;</span></code> and may name a delivery’s targets by its key in
+<code class="docutils literal notranslate"><span class="pre">prosody_targets</span></code> (<code class="docutils literal notranslate"><span class="pre">takes:</span> <span class="pre">{n:</span> <span class="pre">3,</span> <span class="pre">targets:</span> <span class="pre">narrator}</span></code>). This returns a
+copy whose <code class="docutils literal notranslate"><span class="pre">takes</span></code> (and each cue’s) hold the target VALUES, ready to merge
+beside a <code class="docutils literal notranslate"><span class="pre">voice_id</span></code>: <code class="docutils literal notranslate"><span class="pre">{**style_voice_role(spec,</span> <span class="pre">&quot;narrator&quot;),</span> <span class="pre">&quot;voice_id&quot;:</span> <span class="pre">...}</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">spec</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"live"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"voice"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"roles"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"narrator"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"model_id"</span><span class="p">:</span> <span class="s2">"eleven_v3"</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="s2">"takes"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"n"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">:</span> <span class="s2">"narrator"</span><span class="p">,</span> <span class="s2">"cues"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"deadpan"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"targets"</span><span class="p">:</span> <span class="s2">"punchline"</span><span class="p">}}}}}}},</span>
+<span class="gp">... </span>    <span class="s2">"prosody_targets"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"narrator"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"f0_sd_st"</span><span class="p">:</span> <span class="p">[</span><span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.2</span><span class="p">]},</span> <span class="s2">"punchline"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"f0_sd_st"</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.2</span><span class="p">,</span> <span class="mf">3.4</span><span class="p">]}}}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">role</span> <span class="o">=</span> <span class="n">style_voice_role</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="s2">"narrator"</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">role</span><span class="p">[</span><span class="s2">"takes"</span><span class="p">][</span><span class="s2">"targets"</span><span class="p">],</span> <span class="n">role</span><span class="p">[</span><span class="s2">"takes"</span><span class="p">][</span><span class="s2">"cues"</span><span class="p">][</span><span class="s2">"deadpan"</span><span class="p">][</span><span class="s2">"targets"</span><span class="p">]</span>
+<span class="go">({'f0_sd_st': [3.9, 5.2]}, {'f0_sd_st': [2.2, 3.4]})</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.takes_choice_part">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">takes_choice_part</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scorer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#takes_choice_part"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.takes_choice_part" title="Link to this definition">#</a></dt>
+<dd><p>What identifies a CHOICE among <code class="docutils literal notranslate"><span class="pre">n</span></code> takes: the scorer’s name and its
+configuration, never its version — a new scorer version keeps the takes it
+chose, and says so (<a class="reference internal" href="#an.audio.takes.REROLL_HINT" title="an.audio.takes.REROLL_HINT"><code class="xref py py-data docutils literal notranslate"><span class="pre">REROLL_HINT</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.takes_spec">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">takes_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#takes_spec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.takes_spec" title="Link to this definition">#</a></dt>
+<dd><p>The takes a line with <code class="docutils literal notranslate"><span class="pre">direction</span></code> gets from a voice’s <code class="docutils literal notranslate"><span class="pre">takes</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for one take.</p>
+<p>Raises <a class="reference internal" href="#an.audio.takes.VoiceTakesError" title="an.audio.takes.VoiceTakesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a> for a malformed declaration, and for more
+than one take with nothing to choose by.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.audio.takes.TakesSpec" title="an.audio.takes.TakesSpec"><code class="xref py py-class docutils literal notranslate"><span class="pre">TakesSpec</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.voice_takes">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">voice_takes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mall</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tts_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repeatable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#voice_takes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.voice_takes" title="Link to this definition">#</a></dt>
+<dd><p>The takes <code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;][voice_id]</span></code> declares for a line with <code class="docutils literal notranslate"><span class="pre">direction</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> (one take) for a voice not in the store, one declaring nothing, one
+written for another provider than <code class="docutils literal notranslate"><span class="pre">tts_name</span></code>, and any voice spoken by a
+<code class="docutils literal notranslate"><span class="pre">repeatable</span></code> provider (<code class="docutils literal notranslate"><span class="pre">offline</span></code>, <code class="docutils literal notranslate"><span class="pre">mac_say</span></code>: the same request gives the
+same audio, so a second take is the first one again). A malformed
+declaration raises <a class="reference internal" href="#an.audio.takes.VoiceTakesError" title="an.audio.takes.VoiceTakesError"><code class="xref py py-class docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a> in every case.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.audio.takes.TakesSpec" title="an.audio.takes.TakesSpec"><code class="xref py py-class docutils literal notranslate"><span class="pre">TakesSpec</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.takes.write_takes_record">
+<span class="sig-prename descclassname"><span class="pre">an.audio.takes.</span></span><span class="sig-name descname"><span class="pre">write_takes_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">record</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/takes.html#write_takes_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.takes.write_takes_record" title="Link to this definition">#</a></dt>
+<dd><p>Write <code class="docutils literal notranslate"><span class="pre">record</span></code> under <code class="docutils literal notranslate"><span class="pre">key</span></code> (stable, indented JSON); no store, no record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="an.audio.rhubarb_lipsync.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">an.audio.rhubarb_lipsync</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="an.audio.tts.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">an.audio.tts</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.DEFAULT_SCORER"><code class="docutils literal notranslate"><span class="pre">DEFAULT_SCORER</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.MAX_TAKES"><code class="docutils literal notranslate"><span class="pre">MAX_TAKES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.PROSODY_SCORER_VERSION"><code class="docutils literal notranslate"><span class="pre">PROSODY_SCORER_VERSION</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.ProsodyTakeScorer.check_available"><code class="docutils literal notranslate"><span class="pre">ProsodyTakeScorer.check_available()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.REROLL_HINT"><code class="docutils literal notranslate"><span class="pre">REROLL_HINT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.SCORERS"><code class="docutils literal notranslate"><span class="pre">SCORERS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.SCORING_SAMPLE_RATE"><code class="docutils literal notranslate"><span class="pre">SCORING_SAMPLE_RATE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TAKES_KEY"><code class="docutils literal notranslate"><span class="pre">TAKES_KEY</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TAKES_RECORD_VERSION"><code class="docutils literal notranslate"><span class="pre">TAKES_RECORD_VERSION</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TAKES_STORE"><code class="docutils literal notranslate"><span class="pre">TAKES_STORE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TakeLostError"><code class="docutils literal notranslate"><span class="pre">TakeLostError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TakeScore"><code class="docutils literal notranslate"><span class="pre">TakeScore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TakeScorer"><code class="docutils literal notranslate"><span class="pre">TakeScorer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TakeScorer.score"><code class="docutils literal notranslate"><span class="pre">TakeScorer.score()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TakesRecordError"><code class="docutils literal notranslate"><span class="pre">TakesRecordError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.TakesSpec"><code class="docutils literal notranslate"><span class="pre">TakesSpec</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.VoiceTakesError"><code class="docutils literal notranslate"><span class="pre">VoiceTakesError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.audio_digest"><code class="docutils literal notranslate"><span class="pre">audio_digest()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.choose_take"><code class="docutils literal notranslate"><span class="pre">choose_take()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.decode_for_scoring"><code class="docutils literal notranslate"><span class="pre">decode_for_scoring()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.make_take_scorer"><code class="docutils literal notranslate"><span class="pre">make_take_scorer()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.normalize_takes"><code class="docutils literal notranslate"><span class="pre">normalize_takes()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.read_takes_record"><code class="docutils literal notranslate"><span class="pre">read_takes_record()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.require_ffmpeg"><code class="docutils literal notranslate"><span class="pre">require_ffmpeg()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.scorer_identity"><code class="docutils literal notranslate"><span class="pre">scorer_identity()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.style_voice_role"><code class="docutils literal notranslate"><span class="pre">style_voice_role()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.takes_choice_part"><code class="docutils literal notranslate"><span class="pre">takes_choice_part()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.takes_spec"><code class="docutils literal notranslate"><span class="pre">takes_spec()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.voice_takes"><code class="docutils literal notranslate"><span class="pre">voice_takes()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.takes.write_takes_record"><code class="docutils literal notranslate"><span class="pre">write_takes_record()</span></code></a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/_autosummary/an.audio.takes.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

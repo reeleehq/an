@@ -1,4 +1,4 @@
-> built 2026-10-01 18:51 UTC from 80715d2 (main) · an 0.1.144. Details: build_info.json
+> built 2026-10-01 19:15 UTC from 92db6be (main) · an 0.1.145. Details: build_info.json
 
 # index.html.md
 
@@ -4544,14 +4544,20 @@ provider factories.
 > an voices list –provider elevenlabs
 > an voices list –provider elevenlabs –search british
 > an voices list –provider mac_say
+> an voices rescore <project> “He did not ask”    # re-choose a line’s take from its cached takes
+> an voices reroll <project> “He did not ask”     # synthesize new takes for it (billed)
 
 The `voice_id` column is what a `voices`-store document’s `voice_id` takes.
+`rescore` and `reroll` are the only ways a recorded best-of-N take is
+replaced ([`an.audio.pipeline.retake_lines()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retake_lines)); the next `an render` does
+the choosing, and prints what it will bill first.
 
 ### Functions
 
-| [`browse_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.browse_voices)([provider, search, make])   | The voices `provider` exposes, optionally filtered by `search`.   |
-|--------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| [`format_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.format_voices)(voices)                     | One line per voice: `voice_id  name  (labels)`.                   |
+| [`browse_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.browse_voices)([provider, search, make])         | The voices `provider` exposes, optionally filtered by `search`.         |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`format_voices`](_autosummary/an.audio.cli.html.md#an.audio.cli.format_voices)(voices)                           | One line per voice: `voice_id  name  (labels)`.                         |
+| [`retake`](_autosummary/an.audio.cli.html.md#an.audio.cli.retake)(project, line, \*[, rescore, tts, make]) | Release the recorded takes of the lines of `project` containing `line`. |
 
 ### an.audio.cli.browse_voices(provider='elevenlabs', \*, search=None, make=<function make_tts>)
 
@@ -4587,6 +4593,17 @@ One line per voice: `voice_id  name  (labels)`.
 abc  Ada  (accent=british)
 ```
 
+### an.audio.cli.retake(project, line, \*, rescore=False, tts='elevenlabs', make=<function make_tts>)
+
+Release the recorded takes of the lines of `project` containing `line`.
+
+The plain-function core of `an voices rescore` / `an voices reroll`: see
+[`an.audio.pipeline.retake_lines()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retake_lines). `tts` must be the provider the
+line is rendered with (its takes are keyed by it).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
 
 # _autosummary/an.audio.effects.html.md
 
@@ -4594,51 +4611,72 @@ abc  Ada  (accent=british)
 
 Voice effects: a deterministic transform applied to a synthesized line (an#163).
 
-A voice document in the `voices` store may declare `effects`. The one effect
-that exists is `pitch_semitones` — South Park raises its voices to sound like
-fourth graders, and a raised voice is a property of the *character*, not of the
+A voice document in the `voices` store may declare `effects`. Two exist:
+
+- `pitch_semitones` (an#163) — South Park raises its voices to sound like
+  fourth graders; duration-preserving.
+- `tempo` (an#265) — a pitch-preserving speed ratio (`1.1` is 10% faster).
+  `eleven_v3` ignores `voice_settings.speed` and no audio tag moves its rate,
+  so a narrator that must run at 5.8 syllables/s, or an expressive voice that
+  must be slowed to a serene pace, is re-timed here. Unlike the pitch effect it
+  CHANGES the line’s duration.
+
+A raised voice or a fast narrator is a property of the *character*, not of the
 TTS provider, so it lives beside the voice the line already resolves through
 rather than in the IR.
 
 ```pycon
 >>> normalize_effects({"pitch_semitones": 4})
 {'pitch_semitones': 4.0}
->>> normalize_effects({"pitch_semitones": 0}) == normalize_effects(None) == {}
+>>> normalize_effects({"pitch_semitones": 0}) == normalize_effects({"tempo": 1}) == normalize_effects(None) == {}
 True
+>>> normalize_effects({"tempo": 1.1, "pitch_semitones": -2})
+{'pitch_semitones': -2.0, 'tempo': 1.1}
 >>> round(_pitch_filter(12), 3)
 0.5
+>>> filter_chain({"tempo": 1.25})
+'aresample=44100,atempo=1.250000000'
 >>> normalize_effects({"reverb": 1})
 Traceback (most recent call last):
     ...
-an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones']
+an.audio.effects.VoiceEffectError: unknown voice effect(s) ['reverb']; known: ['pitch_semitones', 'tempo']
 ```
 
 Design, in the order the pipeline uses it:
 
 - **The transform runs after synthesis and before alignment.** Lip-sync reads the
-  audio the viewer hears. The chain keeps the duration (see below), so word
-  timings computed on raw and on shifted audio agree to a frame, but the shifted
-  bytes are what is aligned regardless.
+  audio the viewer hears. The pitch chain keeps the duration, so word timings
+  computed on raw and on shifted audio agree to a frame; a `tempo` does not,
+  which is why the shifted bytes are what is aligned, the line’s `duration` is
+  read from them, and the viseme key derives from the effect-keyed audio key —
+  visemes, word timings and captions all follow the audio the viewer hears.
 - **The cache keys on the effect.** `effects_key` is empty for no effect, and
   `an.audio.pipeline` adds it to the audio key only when it is non-empty, so a
   project that declares none keeps every key it ever had.
 - **Stock ffmpeg only.** The chain is `aresample → asetrate → aresample →
   atempo`: the sample rate is relabelled by the pitch ratio (pitch and speed both
-  move) and `atempo` removes the speed change. `rubberband` is a better
+  move) and `atempo` removes the speed change; a `tempo` multiplies into that
+  same `atempo` factor (`aresample → atempo` alone when there is no pitch).
+  A factor outside `atempo`’s clean `[0.5, 2]` is split into stages, each
+  inside it; the pitch-only chain is one stage, character for character what it
+  was before `tempo` existed. `rubberband` is a better
   shifter but is a build option, and its output would differ between machines —
   which a content-hash cache cannot tolerate. The output is bit-exact WAV (no
   encoder tag, no metadata), so two runs produce identical bytes.
 
 ### Module Attributes
 
-| [`PITCH_SEMITONES_LIMIT`](_autosummary/an.audio.effects.html.md#an.audio.effects.PITCH_SEMITONES_LIMIT)   | Effects a voice document may declare, with the range each accepts.     |
-|--------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`EFFECT_SAMPLE_RATE`](_autosummary/an.audio.effects.html.md#an.audio.effects.EFFECT_SAMPLE_RATE)      | The sample rate the chain runs at (and the shifted WAV is written at). |
+| [`PITCH_SEMITONES_LIMIT`](_autosummary/an.audio.effects.html.md#an.audio.effects.PITCH_SEMITONES_LIMIT)   | Effects a voice document may declare, with the range each accepts.         |
+|--------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [`TEMPO_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.TEMPO_LIMITS)            | half to double speed.                                                      |
+| [`ATEMPO_STAGE_LIMITS`](_autosummary/an.audio.effects.html.md#an.audio.effects.ATEMPO_STAGE_LIMITS)     | One `atempo` stage's clean range; a factor beyond it is chained in stages. |
+| [`EFFECT_SAMPLE_RATE`](_autosummary/an.audio.effects.html.md#an.audio.effects.EFFECT_SAMPLE_RATE)      | The sample rate the chain runs at (and the shifted WAV is written at).     |
 
 ### Functions
 
 | [`apply_voice_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.apply_voice_effects)(audio, effects)   | `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.   |
 |----------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`atempo_stages`](_autosummary/an.audio.effects.html.md#an.audio.effects.atempo_stages)(factor, \*[, limits])   | `factor` as a product of `atempo` stages, each inside `limits`.               |
 | [`filter_chain`](_autosummary/an.audio.effects.html.md#an.audio.effects.filter_chain)(effects)                 | The ffmpeg `-af` chain for normalised `effects` (`""` for none).              |
 | [`normalize_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.normalize_effects)(raw)                | The canonical effects dict for a voice's `effects` value.                     |
 | [`voice_effects`](_autosummary/an.audio.effects.html.md#an.audio.effects.voice_effects)(mall, voice_id)         | The normalised effects declared by `mall["voices"][voice_id]`, or `{}`.       |
@@ -4648,6 +4686,10 @@ Design, in the order the pipeline uses it:
 | [`VoiceEffectError`](_autosummary/an.audio.effects.html.md#an.audio.effects.VoiceEffectError)   | A voice declares an effect that is unknown, malformed or out of range.   |
 |---------------------------------------------------------------------|--------------------------------------------------------------------------|
 
+### an.audio.effects.ATEMPO_STAGE_LIMITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 2.0)*
+
+One `atempo` stage’s clean range; a factor beyond it is chained in stages.
+
 ### an.audio.effects.EFFECT_SAMPLE_RATE *= 44100*
 
 The sample rate the chain runs at (and the shifted WAV is written at).
@@ -4655,6 +4697,13 @@ The sample rate the chain runs at (and the shifted WAV is written at).
 ### an.audio.effects.PITCH_SEMITONES_LIMIT *= 12.0*
 
 Effects a voice document may declare, with the range each accepts.
+
+### an.audio.effects.TEMPO_LIMITS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), [float](https://docs.python.org/3/builtins/functions.html#float)]* *= (0.5, 2.0)*
+
+half to double speed. Outside it speech stops being speech.
+
+* **Type:**
+  `tempo` bounds
 
 ### *exception* an.audio.effects.VoiceEffectError
 
@@ -4667,11 +4716,29 @@ A voice declares an effect that is unknown, malformed or out of range.
 `audio` (any container ffmpeg sniffs) with `effects` applied, as WAV bytes.
 
 Returns the input unchanged for no effects. Raises `VoiceEffectError` when
-ffmpeg is missing or fails — never returns unshifted audio for a voice that
-asked for a shift.
+ffmpeg is missing or fails — never returns unprocessed audio for a voice that
+asked for an effect.
 
 * **Return type:**
   [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)
+
+### an.audio.effects.atempo_stages(factor, , limits=(0.5, 2.0))
+
+`factor` as a product of `atempo` stages, each inside `limits`.
+
+One stage when `factor` already fits (the pitch-only chain, always).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> atempo_stages(1.5)
+[1.5]
+>>> atempo_stages(3.0)
+[2.0, 1.5]
+>>> atempo_stages(0.3)
+[0.5, 0.6]
+```
 
 ### an.audio.effects.filter_chain(effects)
 
@@ -4773,6 +4840,18 @@ ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 Implements the `TTSProvider` protocol, plus the optional
 `synthesis_options` hook the audio pipeline reads (an#209).
 
+#### billed_characters(text, , audio_tags=None, \*\*\_options)
+
+Characters one request bills: the text as sent, audio tags included.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+```pycon
+>>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
+13
+```
+
 #### client_factory
 
 `api_key -> client`; tests inject a fake so nothing reaches the API.
@@ -4809,6 +4888,23 @@ so alignment and captions never read a cue.
 
 * **Return type:**
   [`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip)
+
+#### take_options(options, take)
+
+The request for candidate `take` of a best-of-N line ([`an.audio.takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)).
+
+A declared `seed` is offset by the take, so a model that does honour
+it (every model but `eleven_v3`, measured) still returns different
+takes; without a seed the request is unchanged and the model’s own
+sampling varies the take.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
+{'seed': 13}
+```
 
 ### *exception* an.audio.elevenlabs_tts.ElevenLabsVoiceError
 
@@ -4928,6 +5024,18 @@ ElevenLabs-backed TTSProvider. Constructor takes an optional api_key
 Implements the `TTSProvider` protocol, plus the optional
 `synthesis_options` hook the audio pipeline reads (an#209).
 
+#### billed_characters(text, , audio_tags=None, \*\*\_options)
+
+Characters one request bills: the text as sent, audio tags included.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+```pycon
+>>> ElevenLabsTTS(api_key="unused").billed_characters("Hi!", audio_tags=["excited"])
+13
+```
+
 #### client_factory
 
 `api_key -> client`; tests inject a fake so nothing reaches the API.
@@ -4965,6 +5073,23 @@ so alignment and captions never read a cue.
 * **Return type:**
   [`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip)
 
+#### take_options(options, take)
+
+The request for candidate `take` of a best-of-N line ([`an.audio.takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)).
+
+A declared `seed` is offset by the take, so a model that does honour
+it (every model but `eleven_v3`, measured) still returns different
+takes; without a seed the request is unchanged and the model’s own
+sampling varies the take.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> ElevenLabsTTS(api_key="unused").take_options({"seed": 11}, 2)
+{'seed': 13}
+```
+
 ### *class* an.audio.LipSyncProvider(\*args, \*\*kwargs)
 
 Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
@@ -4993,6 +5118,11 @@ macOS `say`-backed TTSProvider.
 Implements the `TTSProvider` protocol. Audible, deterministic, and
 fully offline — uses Apple’s voice synthesis bundled with the OS.
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same audio, so best-of-N takes never apply
+([`an.audio.takes.voice_takes()`](_autosummary/an.audio.takes.html.md#an.audio.takes.voice_takes)) and nothing is billed.
+
 ### *class* an.audio.OfflineLipSync(, char_to_viseme=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -5008,6 +5138,11 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Default TTS provider: silent WAV of length proportional to text.
 
 Implements the `TTSProvider` protocol.
+
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same audio, so best-of-N takes never apply
+([`an.audio.takes.voice_takes()`](_autosummary/an.audio.takes.html.md#an.audio.takes.voice_takes)) and nothing is billed.
 
 ### *class* an.audio.RhubarbLipSync(, binary_path=None, language='en', recognizer=None, timeout_s=60.0)
 
@@ -5185,7 +5320,7 @@ Raises `ValueError` for unknown names with a list of known options.
 * **Return type:**
   [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
-### an.audio.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None, effects=None, voice_id=None)
+### an.audio.produce_audio_for_dialogue(dialogue, mall=None, \*, tts=None, lipsync=None, effects=None, voice_id=None, takes=<object object>, take_scorer=<function make_take_scorer>)
 
 Synthesize audio + visemes for one dialogue line.
 
@@ -5203,7 +5338,7 @@ its own key, so changing an effect never re-pays the TTS.
 `voices`-store key; [`produce_audio_for_scene()`](_autosummary/an.audio.html.md#an.audio.produce_audio_for_scene) passes the one
 [`an.audio.voices.line_voice_id()`](_autosummary/an.audio.voices.html.md#an.audio.voices.line_voice_id) resolves, so a character’s bound
 voice reaches here (an#194). The provider is handed the voice document’s
-own `voice_id` when it names one.
+own voice id when it names one.
 
 What the provider’s optional `synthesis_options` hook derives from the
 voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
@@ -5211,10 +5346,17 @@ voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
 to `synthesize` and keyed; the text handed to alignment is always the
 bare `dialogue.text`, never the tagged one.
 
+`takes` (default: what the voice declares for this line — see
+[`an.audio.takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes); `None` forces one take) synthesizes several takes,
+scores each with `take_scorer(spec)` on the audio the viewer hears, keeps
+the best and records the choice in `mall["takes"]`. A recorded choice is
+restored from the record and never re-rolled; a recorded take whose audio is
+gone raises [`TakeLostError`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeLostError) before any request.
+
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
-### an.audio.produce_audio_for_scene(scene, mall=None, , tts=None, lipsync=None)
+### an.audio.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>)
 
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -5231,6 +5373,15 @@ shot without touching the audio, and every consumer of `start` — the
 mux, the visemes, captions, ducking — follows. A `start` on a line that
 was never synthesized is an authored start from before `at` existed,
 and is kept as the line’s `at`.
+
+Every line’s request is resolved BEFORE anything is synthesized, so a
+malformed voice (an effect, a `takes`), a corrupt takes record or a
+recorded take whose audio is gone fails before a credit is spent; and
+`announce` (default: a line on stderr; `None` for silence) is told, before the first request, what best-of-N takes will bill (requests
+and the provider’s characters) and which recorded takes were chosen by an
+older scorer version than the current one (they are kept). After synthesis,
+a line that ends past its shot’s end (`dialogue_overruns()`) is
+announced too — or, with `announce=None`, a `DialogueOverrunWarning`.
 
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
@@ -5256,21 +5407,22 @@ audio’s actual length.
 
 ### Modules
 
-| [`cli`](_autosummary/an.audio.cli.html.md#module-an.audio.cli)                               | `an voices ...` — browse a TTS provider's voices from the shell (an#209).        |
-|--------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163). |
-| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                              |
-| [`injectable_lipsync`](_autosummary/an.audio.injectable_lipsync.html.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                       |
-| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                 |
-| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.           |
-| [`offline_lipsync`](_autosummary/an.audio.offline_lipsync.html.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                        |
-| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                        |
-| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.          |
-| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                 |
-| [`rhubarb_lipsync`](_autosummary/an.audio.rhubarb_lipsync.html.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.  |
-| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                  |
-| [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).      |
-| [`whisper_lipsync`](_autosummary/an.audio.whisper_lipsync.html.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.              |
+| [`cli`](_autosummary/an.audio.cli.html.md#module-an.audio.cli)                               | `an voices ...` — browse a TTS provider's voices from the shell (an#209).            |
+|--------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`effects`](_autosummary/an.audio.effects.html.md#module-an.audio.effects)                       | Voice effects: a deterministic transform applied to a synthesized line (an#163).     |
+| [`elevenlabs_tts`](_autosummary/an.audio.elevenlabs_tts.html.md#module-an.audio.elevenlabs_tts)         | ElevenLabsTTS — real speech via the ElevenLabs API.                                  |
+| [`injectable_lipsync`](_autosummary/an.audio.injectable_lipsync.html.md#module-an.audio.injectable_lipsync) | Lip-sync provider that consumes pre-computed word timings.                           |
+| [`lipsync`](_autosummary/an.audio.lipsync.html.md#module-an.audio.lipsync)                       | Lip-sync provider protocol + viseme dataclasses.                                     |
+| [`mac_say_tts`](_autosummary/an.audio.mac_say_tts.html.md#module-an.audio.mac_say_tts)               | MacSayTTS — audible offline speech via macOS's built-in `say` command.               |
+| [`offline_lipsync`](_autosummary/an.audio.offline_lipsync.html.md#module-an.audio.offline_lipsync)       | OfflineLipSync — deterministic transcript → viseme track.                            |
+| [`offline_tts`](_autosummary/an.audio.offline_tts.html.md#module-an.audio.offline_tts)               | OfflineTTS — produces silent audio of plausible duration.                            |
+| [`pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)                     | Audio pipeline orchestration: dialogue → audio → visemes → IR mutation.              |
+| [`providers`](_autosummary/an.audio.providers.html.md#module-an.audio.providers)                   | Provider factory: name → concrete TTS/LipSync provider instance.                     |
+| [`rhubarb_lipsync`](_autosummary/an.audio.rhubarb_lipsync.html.md#module-an.audio.rhubarb_lipsync)       | RhubarbLipSync — calls the rhubarb-lip-sync binary for phoneme-aligned visemes.      |
+| [`takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)                           | Best-of-N takes: re-roll a line, score every take, keep the best, record the choice. |
+| [`tts`](_autosummary/an.audio.tts.html.md#module-an.audio.tts)                               | TTS provider protocol + supporting dataclasses.                                      |
+| [`voices`](_autosummary/an.audio.voices.html.md#module-an.audio.voices)                         | Which voice speaks a dialogue line: the character → voice binding (an#194).          |
+| [`whisper_lipsync`](_autosummary/an.audio.whisper_lipsync.html.md#module-an.audio.whisper_lipsync)       | WhisperLipSync — faster-whisper word timestamps → viseme keyframes.                  |
 
 
 # _autosummary/an.audio.injectable_lipsync.html.md
@@ -5507,6 +5659,11 @@ macOS `say`-backed TTSProvider.
 Implements the `TTSProvider` protocol. Audible, deterministic, and
 fully offline — uses Apple’s voice synthesis bundled with the OS.
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same audio, so best-of-N takes never apply
+([`an.audio.takes.voice_takes()`](_autosummary/an.audio.takes.html.md#an.audio.takes.voice_takes)) and nothing is billed.
+
 ### *exception* an.audio.mac_say_tts.MacSayTTSError
 
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
@@ -5594,12 +5751,18 @@ Default TTS provider: silent WAV of length proportional to text.
 
 Implements the `TTSProvider` protocol.
 
+#### repeatable *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+The same request gives the same audio, so best-of-N takes never apply
+([`an.audio.takes.voice_takes()`](_autosummary/an.audio.takes.html.md#an.audio.takes.voice_takes)) and nothing is billed.
+
 ### an.audio.offline_tts.estimate_speech_duration(text, , seconds_per_char=0.06)
 
 Seconds the offline voice takes to say `text` — a leading pad plus a
 per-character rate over the non-space characters, clamped.
 
-It is exactly what an offline render gives a line, so `an validate` uses
+It is exactly what an offline render gives a line (before a voice’s
+`tempo`, which `an validate` divides it by), so `an validate` uses
 it to warn about a shot too short for its dialogue BEFORE anything is
 synthesized. A real voice is usually a little slower, so for one this is an
 under-estimate: a line it says overruns will overrun.
@@ -5636,22 +5799,34 @@ the entire pipeline runs without API keys or external binaries.
 'offline'
 ```
 
+### Module Attributes
+
+| [`TakeScorerFactory`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeScorerFactory)   | `(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.   |
+|----------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`OVERRUN_TOLERANCE_S`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.OVERRUN_TOLERANCE_S) | a frame at 60 fps (the same as `an validate`'s).                                  |
+| [`REROLL_ONLY_HINT`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.REROLL_ONLY_HINT)    | only a new roll (new keys) replaces it.                                           |
+
 ### Functions
 
-| [`audio_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194) and the provider's synthesis options (model, settings, seed, audio tags — an#209).   |
-|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                                                                                                                                                       |
-| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                                |
-| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                      |
-| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                    |
-| [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                        |
-| [`synthesis_options`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                    |
-| [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                                  |
+| [`audio_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.audio_key)(text, voice_id, tts_name[, ...])        | Content key of a line's audio: text, voice, provider, and — only when the voice declares them — its effects, the provider voice it names (an#194), the provider's synthesis options (model, settings, seed, audio tags — an#209).   |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`default_lipsync`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_lipsync)()                                 | The default lip-sync provider: `OfflineLipSync`.                                                                                                                                                                                    |
+| [`default_tts`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.default_tts)()                                     | The default TTS provider: `OfflineTTS`.                                                                                                                                                                                             |
+| [`dialogue_overruns`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.dialogue_overruns)(scene, \*[, tolerance_s])       | One message per synthesized line that ends past its shot's end.                                                                                                                                                                     |
+| [`produce_audio_for_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_dialogue)(dialogue[, mall, ...]) | Synthesize audio + visemes for one dialogue line.                                                                                                                                                                                   |
+| [`produce_audio_for_scene`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene)(scene[, mall, tts, ...])  | Walk every dialogue line, synthesize, and stamp viseme tracks back.                                                                                                                                                                 |
+| [`retake_lines`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retake_lines)(scene, mall, match, \*, tts[, ...])  | Mark the recorded takes of the lines whose text contains `match` to be chosen again on the next render; one message per matching line.                                                                                              |
+| [`retime_dialogue`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.retime_dialogue)(scene, \*[, timed_shots_only])    | Stamp every synthesized line's `start` from its `pause` / `at`.                                                                                                                                                                     |
+| [`synthesis_options`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.synthesis_options)(tts, line, mall, voice_id)      | The provider-specific `synthesize` kwargs for `line` in `voice_id`.                                                                                                                                                                 |
+| [`takes_cost_message`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.takes_cost_message)(lines, tts, audio_store)       | What synthesizing `lines` will bill, when any of them takes best-of-N; else `""`.                                                                                                                                                   |
+| [`viseme_key`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.viseme_key)(audio_key_, lipsync_name, transcript)  | Content key of a line's viseme track (a function of the audio HEARD).                                                                                                                                                               |
 
 ### Exceptions
 
-| [`AudioPipelineError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioPipelineError)   | The scene declares audio the pipeline cannot produce.   |
-|-----------------------------------------------------------------------|---------------------------------------------------------|
+| [`AudioPipelineError`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.AudioPipelineError)     | The scene declares audio the pipeline cannot produce.                            |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`DialogueOverrunWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.DialogueOverrunWarning) | A synthesized line runs past its shot's end, so its tail is cut.                 |
+| [`TakeDigestWarning`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.TakeDigestWarning)      | The audio restored for a line's recorded take is not the audio the record names. |
 
 ### *exception* an.audio.pipeline.AudioPipelineError
 
@@ -5659,20 +5834,58 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 The scene declares audio the pipeline cannot produce. Carries detail.
 
-### an.audio.pipeline.audio_key(text, voice_id, tts_name, effects=None, , provider_voice=None, options=None)
+### *exception* an.audio.pipeline.DialogueOverrunWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A synthesized line runs past its shot’s end, so its tail is cut.
+
+### an.audio.pipeline.OVERRUN_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
+
+a frame at 60 fps
+(the same as `an validate`’s).
+
+* **Type:**
+  Slack before a line counts as running past its shot
+
+### an.audio.pipeline.REROLL_ONLY_HINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'Re-roll it with \`an voices reroll <project> <words of the line>\` (new takes under new keys, billed; the render prints the cost first)'*
+
+only a new roll (new keys) replaces it.
+
+* **Type:**
+  The remedy when a recorded take is gone
+
+### *exception* an.audio.pipeline.TakeDigestWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+The audio restored for a line’s recorded take is not the audio the record names.
+
+### an.audio.pipeline.TakeScorerFactory
+
+`(TakesSpec) -> TakeScorer` — the seam that turns a takes spec into its scorer.
+
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`TakesSpec`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakesSpec)], [`TakeScorer`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeScorer)]
+
+### an.audio.pipeline.audio_key(text, voice_id, tts_name, effects=None, , provider_voice=None, options=None, takes=None, take=None, roll=None)
 
 Content key of a line’s audio: text, voice, provider, and — only when the
-voice declares them — its effects, the provider voice it names (an#194) and
+voice declares them — its effects, the provider voice it names (an#194),
 the provider’s synthesis options (model, settings, seed, audio tags —
 an#209). With none of them, the payload is exactly the pre-effects one, so
-every key a project already has is unchanged.
+every key a project already has is unchanged. `take` (1, 2, … — never 0)
+and `roll` (1, 2, … after `an voices reroll`) key one candidate take of
+a best-of-N line; take 0 of roll 0 is the single-take request and keeps its
+key. `takes` ([`an.audio.takes.takes_choice_part()`](_autosummary/an.audio.takes.html.md#an.audio.takes.takes_choice_part)) keys the CHOICE
+among a line’s takes — the record in `mall["takes"]`, not an audio blob.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ```pycon
 >>> audio_key("hi", "default", "offline") == audio_key(
-...     "hi", "default", "offline", {}, provider_voice=None, options={})
+...     "hi", "default", "offline", {}, provider_voice=None, options={},
+...     takes=None, take=0, roll=0)
 True
 ```
 
@@ -5690,7 +5903,27 @@ The default TTS provider: `OfflineTTS`.
 * **Return type:**
   [`TTSProvider`](_autosummary/an.audio.tts.html.md#an.audio.tts.TTSProvider)
 
-### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, , tts=None, lipsync=None, effects=None, voice_id=None)
+### an.audio.pipeline.dialogue_overruns(scene, , tolerance_s=0.016666666666666666)
+
+One message per synthesized line that ends past its shot’s end.
+
+`an validate` warns before synthesis from an estimate; this is the exact
+check AFTER it — a voice’s `tempo` (or a real voice’s own pace) can make a
+line longer than estimated, and the render cuts the shot’s audio at the
+shot’s end, so the tail would otherwise be lost silently.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
+
+```pycon
+>>> from an.ir.schema import Dialogue, SceneIR, Shot
+>>> shot = Shot(id="s", duration=1.0, dialogue=[
+...     Dialogue(speaker="a", text="hi", start=0.2, duration=1.3, audio_ref="k")])
+>>> dialogue_overruns(SceneIR(timeline=[shot]))[0][:46]
+"shot 's': line 0 (a) ends at 1.50s, past the s"
+```
+
+### an.audio.pipeline.produce_audio_for_dialogue(dialogue, mall=None, \*, tts=None, lipsync=None, effects=None, voice_id=None, takes=<object object>, take_scorer=<function make_take_scorer>)
 
 Synthesize audio + visemes for one dialogue line.
 
@@ -5708,7 +5941,7 @@ its own key, so changing an effect never re-pays the TTS.
 `voices`-store key; [`produce_audio_for_scene()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.produce_audio_for_scene) passes the one
 [`an.audio.voices.line_voice_id()`](_autosummary/an.audio.voices.html.md#an.audio.voices.line_voice_id) resolves, so a character’s bound
 voice reaches here (an#194). The provider is handed the voice document’s
-own `voice_id` when it names one.
+own voice id when it names one.
 
 What the provider’s optional `synthesis_options` hook derives from the
 voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
@@ -5716,10 +5949,17 @@ voice document and the line (ElevenLabs: `model_id`, `voice_settings`,
 to `synthesize` and keyed; the text handed to alignment is always the
 bare `dialogue.text`, never the tagged one.
 
+`takes` (default: what the voice declares for this line — see
+[`an.audio.takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes); `None` forces one take) synthesizes several takes,
+scores each with `take_scorer(spec)` on the audio the viewer hears, keeps
+the best and records the choice in `mall["takes"]`. A recorded choice is
+restored from the record and never re-rolled; a recorded take whose audio is
+gone raises [`TakeLostError`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeLostError) before any request.
+
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`AudioClip`](_autosummary/an.audio.tts.html.md#an.audio.tts.AudioClip), [`VisemeTrack`](_autosummary/an.audio.lipsync.html.md#an.audio.lipsync.VisemeTrack)]
 
-### an.audio.pipeline.produce_audio_for_scene(scene, mall=None, , tts=None, lipsync=None)
+### an.audio.pipeline.produce_audio_for_scene(scene, mall=None, \*, tts=None, lipsync=None, take_scorer=<function make_take_scorer>, announce=<function \_announce_to_stderr>)
 
 Walk every dialogue line, synthesize, and stamp viseme tracks back.
 
@@ -5737,8 +5977,32 @@ mux, the visemes, captions, ducking — follows. A `start` on a line that
 was never synthesized is an authored start from before `at` existed,
 and is kept as the line’s `at`.
 
+Every line’s request is resolved BEFORE anything is synthesized, so a
+malformed voice (an effect, a `takes`), a corrupt takes record or a
+recorded take whose audio is gone fails before a credit is spent; and
+`announce` (default: a line on stderr; `None` for silence) is told, before the first request, what best-of-N takes will bill (requests
+and the provider’s characters) and which recorded takes were chosen by an
+older scorer version than the current one (they are kept). After synthesis,
+a line that ends past its shot’s end ([`dialogue_overruns()`](_autosummary/an.audio.pipeline.html.md#an.audio.pipeline.dialogue_overruns)) is
+announced too — or, with `announce=None`, a `DialogueOverrunWarning`.
+
 * **Return type:**
   [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
+
+### an.audio.pipeline.retake_lines(scene, mall, match, \*, tts, rescore=False, take_scorer=<function make_take_scorer>)
+
+Mark the recorded takes of the lines whose text contains `match` to be
+chosen again on the next render; one message per matching line.
+
+`rescore=True` re-chooses among the takes already synthesized (with the
+current scorer; nothing billed while they are cached); otherwise a new roll
+of takes is synthesized (billed — the render prints the cost first). Either
+way the replaced choice is kept in the record’s `history`, and the new
+take has its own key, so its visemes and word timings are aligned afresh.
+This is the only way a recorded take is replaced (ADR 0003).
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
 
 ### an.audio.pipeline.retime_dialogue(scene, , timed_shots_only=False)
 
@@ -5780,6 +6044,19 @@ keeps their cache keys where they were.
 
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.audio.pipeline.takes_cost_message(lines, tts, audio_store)
+
+What synthesizing `lines` will bill, when any of them takes best-of-N; else `""`.
+
+Counts only the requests not already in `audio_store` (a cached take is
+free; a recorded take is restored, never billed), and the provider’s billed
+characters per request (its `billed_characters(text, **options)` hook —
+ElevenLabs counts the audio tags too). A provider without the hook bills no
+characters, and the message says so.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.audio.pipeline.viseme_key(audio_key_, lipsync_name, transcript)
 
@@ -5937,6 +6214,380 @@ rather than read as “non-English” (an#96 review).
 >>> recognizer_for("en"), recognizer_for("en-GB"), recognizer_for("en_US"), recognizer_for("fr")
 ('pocketSphinx', 'pocketSphinx', 'pocketSphinx', 'phonetic')
 ```
+
+
+# _autosummary/an.audio.takes.html.md
+
+# an.audio.takes
+
+Best-of-N takes: re-roll a line, score every take, keep the best, record the choice.
+
+An expressive TTS model does not repeat itself: `eleven_v3` returned three
+different files for three byte-identical requests (same text, voice, settings
+and seed), and the spread between two takes of one line was larger than the
+effect of any voice setting. So the way to land a delivery on its measured
+targets is to synthesize a few takes and keep the one that measures closest.
+
+A voice document opts in with `takes`:
+
+```default
+{"voice_id": "...", "model_id": "eleven_v3",
+ "takes": {"n": 3,                                  # takes per line (1 = off)
+           "targets": {"articulation_rate_sps": [5.2, 6.3], ...},
+           "cues": {"deadpan": {"n": 4, "targets": {...}}}}}
+```
+
+- `n` — takes per line; `1` (the default) is today’s single take, byte for
+  byte. A bare integer (`takes: 3`) is `{"n": 3}`.
+- `targets` — `[low, high]` prosody targets ([`an.verify.prosody.METRICS`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.METRICS))
+  the default scorer measures each take against. A style’s targets are named by
+  role in its spec; [`style_voice_role()`](_autosummary/an.audio.takes.html.md#an.audio.takes.style_voice_role) resolves those names into values
+  when the style is applied, so the voice document holds numbers, never names.
+- `reference_hz` — the voice’s neutral median pitch, for a `register_st` target.
+- `cues` — per-line opt-in: a line whose `{direction}` carries one of these
+  cues uses that entry’s `n` / `targets` / `reference_hz` over the
+  voice’s (the first matching cue, in the line’s order, wins). So a narrator
+  can re-roll only its `{deadpan}` punchlines, scored as punchlines.
+- `scorer` — the scorer’s name (default `prosody`); the scorer itself is a
+  seam ([`TakeScorer`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeScorer), the pipeline’s `take_scorer=`).
+
+How the pipeline uses it ([`an.audio.pipeline`](_autosummary/an.audio.pipeline.html.md#module-an.audio.pipeline)):
+
+1. **Every take has its own content key.** Take `0` of roll `0` is the
+   request a single take makes, under the same key — turning takes on for a
+   line already synthesized reuses that take and pays for `n - 1` more. Take
+   `i` adds `take: i` (and a re-roll adds `roll: r`) to its key, and a
+   provider may vary its request per take (ElevenLabs offsets a declared
+   `seed` by `i`). The audio a line KEEPS is the chosen take’s own heard
+   key (its effects applied), so a different take is a different
+   `audio_ref`, and its visemes, word timings and captions follow it.
+2. Each take is scored on the audio the viewer hears (the voice’s effects
+   applied, so a `tempo` counts toward the rate); the lowest score wins, ties
+   to the lower take index.
+3. **The record is the resolution** (ADR 0003 decision 3). The choice is
+   written to `mall["takes"]` under the line’s *choice key* — the line’s
+   request, `n`, the scorer’s name and its configuration (its targets), but
+   NOT its version — with the chosen take, the sha256 of what it sounds like,
+   every take’s keys, digests and scores, and the scorer that chose. Every
+   render reads it first:
+   - the chosen take is restored from the record (its heard audio, else its
+     raw audio with the effects re-applied) and never re-billed;
+   - a hand edit of `chosen` wins: that take is restored, the record says
+     `superseded_by: hand` and the decision is logged;
+   - a chosen take whose audio is gone is a [`TakeLostError`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeLostError) raised
+     before any request — `an voices reroll` is the explicit way to re-roll;
+   - a record made by an older scorer version is KEPT, and the render reports
+     it — `an voices rescore` re-chooses explicitly, from the cached takes.
+
+   Changing `n`, the targets, the scorer or the voice’s effects is a new
+   choice key, chosen from the takes already cached where it can.
+
+```pycon
+>>> spec = takes_spec({"n": 3, "targets": {"f0_sd_st": [2, 4]}})
+>>> spec.n, spec.scorer, dict(spec.targets)
+(3, 'prosody', {'f0_sd_st': [2.0, 4.0]})
+>>> takes_spec(None) is None and takes_spec(1) is None
+True
+>>> doc = {"n": 1, "cues": {"deadpan": {"n": 4, "targets": {"final_drop_st": [-3.6, -1.7]}}}}
+>>> takes_spec(doc, direction=["deadpan"]).n, takes_spec(doc, direction=["excited"])
+(4, None)
+>>> takes_spec({"n": 3})
+Traceback (most recent call last):
+    ...
+an.audio.takes.VoiceTakesError: takes: n=3 with the prosody scorer needs `targets` ([low, high] per metric) to choose by
+>>> choose_take([TakeScore((0.5, 1.0)), TakeScore((0.0, 2.0)), TakeScore((0.0, 2.0))])
+1
+```
+
+### Module Attributes
+
+| [`TAKES_KEY`](_autosummary/an.audio.takes.html.md#an.audio.takes.TAKES_KEY)              | The key, in a voice document, declaring best-of-N takes.                                                                                                                                                                           |
+|-------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`TAKES_STORE`](_autosummary/an.audio.takes.html.md#an.audio.takes.TAKES_STORE)            | The name of the store the choices are recorded in.                                                                                                                                                                                 |
+| [`DEFAULT_SCORER`](_autosummary/an.audio.takes.html.md#an.audio.takes.DEFAULT_SCORER)         | The scorer a `takes` declaration uses when it names none.                                                                                                                                                                          |
+| [`MAX_TAKES`](_autosummary/an.audio.takes.html.md#an.audio.takes.MAX_TAKES)              | each one is a billed request.                                                                                                                                                                                                      |
+| [`TAKES_RECORD_VERSION`](_autosummary/an.audio.takes.html.md#an.audio.takes.TAKES_RECORD_VERSION)   | The shape of a record in `mall["takes"]`; raised when a field changes meaning.                                                                                                                                                     |
+| [`PROSODY_SCORER_VERSION`](_autosummary/an.audio.takes.html.md#an.audio.takes.PROSODY_SCORER_VERSION) | The prosody scorer's own version (its distance and tie-break); the estimator's version ([`an.verify.prosody.ESTIMATOR_VERSION`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ESTIMATOR_VERSION)) is joined to it. |
+| [`SCORING_SAMPLE_RATE`](_autosummary/an.audio.takes.html.md#an.audio.takes.SCORING_SAMPLE_RATE)    | The sample rate takes are decoded at for scoring — the one the targets were measured at.                                                                                                                                           |
+| [`REROLL_HINT`](_autosummary/an.audio.takes.html.md#an.audio.takes.REROLL_HINT)            | What to run when a recorded take must be replaced (named in every error).                                                                                                                                                          |
+| [`SCORERS`](_autosummary/an.audio.takes.html.md#an.audio.takes.SCORERS)                | `TakesSpec -> TakeScorer`.                                                                                                                                                                                                         |
+
+### Functions
+
+| [`audio_digest`](_autosummary/an.audio.takes.html.md#an.audio.takes.audio_digest)(audio)                               | The sha256 a takes record names a take's audio by.                                                                                                                                                                                |
+|----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`choose_take`](_autosummary/an.audio.takes.html.md#an.audio.takes.choose_take)(scores)                               | The index of the best take: the lowest score, ties to the lower index.                                                                                                                                                            |
+| [`decode_for_scoring`](_autosummary/an.audio.takes.html.md#an.audio.takes.decode_for_scoring)(audio, \*[, sr])               | `audio` as mono float samples at `sr` Hz, decoded by ffmpeg — the decoder the targets were measured with, and the only one, so the same bytes score the same on every machine.                                                    |
+| [`make_take_scorer`](_autosummary/an.audio.takes.html.md#an.audio.takes.make_take_scorer)(spec)                            | The scorer `spec` names, from [`SCORERS`](_autosummary/an.audio.takes.html.md#an.audio.takes.SCORERS) (the pipeline's default `take_scorer`).                                                                                                    |
+| [`normalize_takes`](_autosummary/an.audio.takes.html.md#an.audio.takes.normalize_takes)(raw)                              | The canonical `takes` declaration of a voice document (`{}` for none).                                                                                                                                                            |
+| [`read_takes_record`](_autosummary/an.audio.takes.html.md#an.audio.takes.read_takes_record)(store, key)                     | The takes record under `key` in `store` (`mall["takes"]`), or `None`.                                                                                                                                                             |
+| [`require_ffmpeg`](_autosummary/an.audio.takes.html.md#an.audio.takes.require_ffmpeg)()                                  | Raise [`VoiceTakesError`](_autosummary/an.audio.takes.html.md#an.audio.takes.VoiceTakesError) with the install hint when ffmpeg is not on PATH.                                                                                                          |
+| [`scorer_identity`](_autosummary/an.audio.takes.html.md#an.audio.takes.scorer_identity)(scorer)                           | The scorer as a record names it: name, version and configuration.                                                                                                                                                                 |
+| [`style_voice_role`](_autosummary/an.audio.takes.html.md#an.audio.takes.style_voice_role)(spec, role)                      | The partial voice document a style casts `role` as, with target NAMES resolved.                                                                                                                                                   |
+| [`takes_choice_part`](_autosummary/an.audio.takes.html.md#an.audio.takes.takes_choice_part)(scorer, n)                      | What identifies a CHOICE among `n` takes: the scorer's name and its configuration, never its version — a new scorer version keeps the takes it chose, and says so ([`REROLL_HINT`](_autosummary/an.audio.takes.html.md#an.audio.takes.REROLL_HINT)). |
+| [`takes_spec`](_autosummary/an.audio.takes.html.md#an.audio.takes.takes_spec)(raw, \*[, direction])                  | The takes a line with `direction` gets from a voice's `takes`, or `None` for one take.                                                                                                                                            |
+| [`voice_takes`](_autosummary/an.audio.takes.html.md#an.audio.takes.voice_takes)(mall, voice_id, \*[, direction, ...]) | The takes `mall["voices"][voice_id]` declares for a line with `direction`.                                                                                                                                                        |
+| [`write_takes_record`](_autosummary/an.audio.takes.html.md#an.audio.takes.write_takes_record)(store, key, record)            | Write `record` under `key` (stable, indented JSON); no store, no record.                                                                                                                                                          |
+
+### Classes
+
+| [`ProsodyTakeScorer`](_autosummary/an.audio.takes.html.md#an.audio.takes.ProsodyTakeScorer)(targets, \*[, reference_hz, sr])   | Scores a take by how far its prosody sits from `[low, high]` targets.         |
+|-------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`TakeScore`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeScore)(value[, detail])                           | A take's score — compared as a tuple, lower is better — and what it measured. |
+| [`TakeScorer`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeScorer)(\*args, \*\*kwargs)                       | Scores one take of a line.                                                    |
+| [`TakesSpec`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakesSpec)(n[, scorer, targets, reference_hz])        | The takes ONE line gets: how many, and what chooses between them.             |
+
+### Exceptions
+
+| [`TakeLostError`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeLostError)    | A line's recorded take is gone from the audio store and cannot be restored.   |
+|-------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| [`TakesRecordError`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakesRecordError) | A `mall["takes"]` record cannot be read as a takes record.                    |
+| [`VoiceTakesError`](_autosummary/an.audio.takes.html.md#an.audio.takes.VoiceTakesError)  | A voice's `takes` declaration is malformed, or cannot be scored.              |
+
+### an.audio.takes.DEFAULT_SCORER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'prosody'*
+
+The scorer a `takes` declaration uses when it names none.
+
+### an.audio.takes.MAX_TAKES *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 10*
+
+each one is a billed request.
+
+* **Type:**
+  More takes than this per line is refused
+
+### an.audio.takes.PROSODY_SCORER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+The prosody scorer’s own version (its distance and tie-break); the
+estimator’s version ([`an.verify.prosody.ESTIMATOR_VERSION`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ESTIMATOR_VERSION)) is joined to it.
+
+### *class* an.audio.takes.ProsodyTakeScorer(targets, , reference_hz=None, sr=16000)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+Scores a take by how far its prosody sits from `[low, high]` targets.
+
+The score is [`an.verify.prosody.target_distance()`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.target_distance): the summed distance
+outside the ranges, then the summed distance from their midpoints (the
+tie-break between takes all on target), in units of each range’s width.
+
+#### check_available()
+
+Raise before any request when this scorer could not score (no ffmpeg).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.takes.REROLL_HINT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 're-roll it explicitly with \`an voices reroll <project> <words of the line>\` (new takes, billed) or, while every take of its roll is still cached, re-choose among them with \`an voices rescore <project> <words of the line>\`'*
+
+What to run when a recorded take must be replaced (named in every error).
+
+### an.audio.takes.SCORERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[TakesSpec](_autosummary/an.audio.takes.html.md#an.audio.takes.TakesSpec)], [TakeScorer](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeScorer)]]* *= {'prosody': <function <lambda>>}*
+
+`TakesSpec -> TakeScorer`.
+
+* **Type:**
+  Scorer factories by name
+
+### an.audio.takes.SCORING_SAMPLE_RATE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16000*
+
+The sample rate takes are decoded at for scoring — the one the targets were measured at.
+
+### an.audio.takes.TAKES_KEY *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'takes'*
+
+The key, in a voice document, declaring best-of-N takes.
+
+### an.audio.takes.TAKES_RECORD_VERSION *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
+
+The shape of a record in `mall["takes"]`; raised when a field changes meaning.
+
+### an.audio.takes.TAKES_STORE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'takes'*
+
+The name of the store the choices are recorded in.
+
+### *exception* an.audio.takes.TakeLostError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+A line’s recorded take is gone from the audio store and cannot be restored.
+
+Raised before any request: re-rolling an approved take is never implicit.
+
+### *class* an.audio.takes.TakeScore(value, detail=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A take’s score — compared as a tuple, lower is better — and what it measured.
+
+### *class* an.audio.takes.TakeScorer(\*args, \*\*kwargs)
+
+Bases: [`Protocol`](https://docs.python.org/3/library/typing.html#typing.Protocol)
+
+Scores one take of a line. Deterministic: the same bytes score the same.
+
+`name`, `version` and `config` enter the line’s audio key, so a scorer
+that would choose differently must differ in one of them.
+
+#### score(audio, text)
+
+Score `audio` (any container ffmpeg reads; WAV without it) speaking `text`.
+
+* **Return type:**
+  [`TakeScore`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeScore)
+
+### *exception* an.audio.takes.TakesRecordError
+
+Bases: [`VoiceTakesError`](_autosummary/an.audio.takes.html.md#an.audio.takes.VoiceTakesError)
+
+A `mall["takes"]` record cannot be read as a takes record.
+
+### *class* an.audio.takes.TakesSpec(n, scorer='prosody', targets=<factory>, reference_hz=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+The takes ONE line gets: how many, and what chooses between them.
+
+### *exception* an.audio.takes.VoiceTakesError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A voice’s `takes` declaration is malformed, or cannot be scored.
+
+### an.audio.takes.audio_digest(audio)
+
+The sha256 a takes record names a take’s audio by.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.audio.takes.choose_take(scores)
+
+The index of the best take: the lowest score, ties to the lower index.
+
+* **Return type:**
+  [`int`](https://docs.python.org/3/builtins/functions.html#int)
+
+### an.audio.takes.decode_for_scoring(audio, , sr=16000)
+
+`audio` as mono float samples at `sr` Hz, decoded by ffmpeg — the decoder
+the targets were measured with, and the only one, so the same bytes score the
+same on every machine. Raises [`VoiceTakesError`](_autosummary/an.audio.takes.html.md#an.audio.takes.VoiceTakesError) without ffmpeg.
+
+### an.audio.takes.make_take_scorer(spec)
+
+The scorer `spec` names, from [`SCORERS`](_autosummary/an.audio.takes.html.md#an.audio.takes.SCORERS) (the pipeline’s default `take_scorer`).
+
+* **Return type:**
+  [`TakeScorer`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakeScorer)
+
+### an.audio.takes.normalize_takes(raw)
+
+The canonical `takes` declaration of a voice document (`{}` for none).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> normalize_takes(3)
+{'n': 3}
+>>> normalize_takes({"cues": {"deadpan": 4}})
+{'cues': {'deadpan': {'n': 4}}}
+```
+
+### an.audio.takes.read_takes_record(store, key)
+
+The takes record under `key` in `store` (`mall["takes"]`), or `None`.
+
+Raises [`TakesRecordError`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakesRecordError) — naming the record and the remedy — for one
+that is not JSON, not a mapping, or whose `chosen` names no take.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)] | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+```pycon
+>>> read_takes_record({}, "k") is None
+True
+>>> read_takes_record({"k": b'{"chosen": 0, "takes": [{"take": 0}]}'}, "k")["chosen"]
+0
+>>> read_takes_record({"k": b"[1, 2]"}, "k")
+Traceback (most recent call last):
+    ...
+an.audio.takes.TakesRecordError: the takes record 'k' is not a takes record (a JSON object with `chosen` and `takes`): ...
+```
+
+### an.audio.takes.require_ffmpeg()
+
+Raise [`VoiceTakesError`](_autosummary/an.audio.takes.html.md#an.audio.takes.VoiceTakesError) with the install hint when ffmpeg is not on PATH.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.takes.scorer_identity(scorer)
+
+The scorer as a record names it: name, version and configuration.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.audio.takes.style_voice_role(spec, role)
+
+The partial voice document a style casts `role` as, with target NAMES resolved.
+
+A style spec (the `an-style` skill’s `styles/<name>.yaml`) declares
+`live.voice.roles.<role>` and may name a delivery’s targets by its key in
+`prosody_targets` (`takes: {n: 3, targets: narrator}`). This returns a
+copy whose `takes` (and each cue’s) hold the target VALUES, ready to merge
+beside a `voice_id`: `{**style_voice_role(spec, "narrator"), "voice_id": ...}`.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+```pycon
+>>> spec = {"live": {"voice": {"roles": {"narrator": {"model_id": "eleven_v3",
+...     "takes": {"n": 2, "targets": "narrator", "cues": {"deadpan": {"targets": "punchline"}}}}}}},
+...     "prosody_targets": {"narrator": {"f0_sd_st": [3.9, 5.2]}, "punchline": {"f0_sd_st": [2.2, 3.4]}}}
+>>> role = style_voice_role(spec, "narrator")
+>>> role["takes"]["targets"], role["takes"]["cues"]["deadpan"]["targets"]
+({'f0_sd_st': [3.9, 5.2]}, {'f0_sd_st': [2.2, 3.4]})
+```
+
+### an.audio.takes.takes_choice_part(scorer, n)
+
+What identifies a CHOICE among `n` takes: the scorer’s name and its
+configuration, never its version — a new scorer version keeps the takes it
+chose, and says so ([`REROLL_HINT`](_autosummary/an.audio.takes.html.md#an.audio.takes.REROLL_HINT)).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.audio.takes.takes_spec(raw, , direction=None)
+
+The takes a line with `direction` gets from a voice’s `takes`, or `None` for one take.
+
+Raises [`VoiceTakesError`](_autosummary/an.audio.takes.html.md#an.audio.takes.VoiceTakesError) for a malformed declaration, and for more
+than one take with nothing to choose by.
+
+* **Return type:**
+  [`TakesSpec`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakesSpec) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.takes.voice_takes(mall, voice_id, , direction=None, tts_name=None, repeatable=False)
+
+The takes `mall["voices"][voice_id]` declares for a line with `direction`.
+
+`None` (one take) for a voice not in the store, one declaring nothing, one
+written for another provider than `tts_name`, and any voice spoken by a
+`repeatable` provider (`offline`, `mac_say`: the same request gives the
+same audio, so a second take is the first one again). A malformed
+declaration raises [`VoiceTakesError`](_autosummary/an.audio.takes.html.md#an.audio.takes.VoiceTakesError) in every case.
+
+* **Return type:**
+  [`TakesSpec`](_autosummary/an.audio.takes.html.md#an.audio.takes.TakesSpec) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.audio.takes.write_takes_record(store, key, record)
+
+Write `record` under `key` (stable, indented JSON); no store, no record.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.audio.tts.html.md
@@ -7192,7 +7843,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'mouth', 'rect', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'eye', 'mouth', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -14850,7 +15501,7 @@ each chain ends in a method that requires nothing.
 * **Type:**
   The genre’s aspects
 
-### an.characters.methods.CUTOUT_METHODS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Method](_autosummary/an.semantic.html.md#an.semantic.Method), ...]* *= (Method(id='loco.legged_cycle', kind='method', version='1', name='legs', title='legged walk cycle', description='a legged walk cycle: in profile the legs swing about the hip in opposition, facing the camera the stepping leg lifts; the arms swing against the legs', usage='', params={'type': 'object', 'properties': {'stride': {'type': 'number', 'default': 0.35}, 'lift': {'type': 'number', 'default': 10.0}, 'arm_swing': {'type': 'number', 'default': 0.3}, 'bob': {'type': 'number', 'default': 6.0}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'legs'}},), requires=(Requirement(capability='limbs.legs', key=None, at_least=None, any_of=()),), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='locomotion', remedies={'limbs.legs': 'split the legs into two slots named leg_l/leg_r, each with its art, pivoted at the hip (an-art-package skill; \`an character new\` builds them)'}), Method(id='loco.hem_sway', kind='method', version='1', name='hem', title='hem sway', description="a robe figure's walk: the leg slots are the two halves of the hem, which tilt in turn about the hip while the body sways and bobs", usage='', params={'type': 'object', 'properties': {'hem_tilt': {'type': 'number', 'default': 0.24}, 'rock': {'type': 'number', 'default': 0.06}, 'bob': {'type': 'number', 'default': 6.0}, 'stride': {'type': 'number', 'default': 0.35}, 'arm_swing': {'type': 'number', 'default': 0.3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'hem'}},), requires=(Requirement(capability='limbs.legs', key=None, at_least=None, any_of=()),), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='locomotion', remedies={'limbs.legs': "carve the robe's hem into two halves on slots leg_l/leg_r, pivoted at the hip, and declare \`gait: hem\` in character.json"}), Method(id='loco.rock', kind='method', version='1', name='rock', title='rock and bob', description='no leg moves: the body rocks side to side and bobs once per step while it travels (a blob, a sack, anything drawable)', usage='', params={'type': 'object', 'properties': {'rock': {'type': 'number', 'default': 0.06}, 'bob': {'type': 'number', 'default': 6.0}, 'arm_swing': {'type': 'number', 'default': 0.3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'rock'}},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='locomotion', remedies={}), Method(id='speech.mouth_chart', kind='method', version='1', name='mouth_chart', title='mouth chart lip-sync', description="lip-sync on the character's mouth chart: the line's visemes swap the mouth drawings (the nine Rhubarb shapes, or the character's own set)", usage='', params={}, examples=(), requires=(Requirement(capability='face.mouth', key=None, at_least=None, any_of=()),), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='speech', remedies={'face.mouth': "give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\`) and face_overlay: true"}), Method(id='speech.pose_only', kind='method', version='1', name='pulse', title='speech pulse', description='no lip-sync: the head (or the body) pulses on each syllable, so a baked face or a mime still reads as speaking', usage='', params={'type': 'object', 'properties': {'strength': {'type': 'number', 'default': 0.06}, 'part': {'type': 'string', 'default': 'head'}, 'attack': {'type': 'number', 'default': 0.06}, 'release': {'type': 'number', 'default': 0.1}}}, examples=('a character with face_overlay: false speaks',), requires=(), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='speech', remedies={}), Method(id='expr.full_face', kind='method', version='1', name='full_face', title='full-face expression', description="the expression acts with the whole face: the brows rise, knit and tilt, the lids open and close, the pupils move and the mouth takes the preset's form", usage='', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'surprised'},), requires=(Requirement(capability='face.brows', key=None, at_least=None, any_of=()),), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='expression', remedies={'face.brows': "keep the brows clear: \`an character new\` seats a hat above them at most head scales — at this one it could not, so use a larger --head-scale, another --hat or --hat none; for drawn art, redraw what covers the brows and remove the descriptor's \`occluded\` entry, or give the face brow slots (left_brow/right_brow) with art"}), Method(id='expr.without_brows', kind='method', version='1', name='without_brows', title='expression without brows', description='the brows cannot be seen acting (covered, or not drawn): the lids, the gaze and the mouth form carry the expression', usage='', params={}, examples=('a character whose hat covers its brows takes [surprised]',), requires=(), levels=frozenset({'b-name', 'a'}), aspects=(), aspect='expression', remedies={}))*
+### an.characters.methods.CUTOUT_METHODS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Method](_autosummary/an.semantic.html.md#an.semantic.Method), ...]* *= (Method(id='loco.legged_cycle', kind='method', version='1', name='legs', title='legged walk cycle', description='a legged walk cycle: in profile the legs swing about the hip in opposition, facing the camera the stepping leg lifts; the arms swing against the legs', usage='', params={'type': 'object', 'properties': {'stride': {'type': 'number', 'default': 0.35}, 'lift': {'type': 'number', 'default': 10.0}, 'arm_swing': {'type': 'number', 'default': 0.3}, 'bob': {'type': 'number', 'default': 6.0}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'legs'}},), requires=(Requirement(capability='limbs.legs', key=None, at_least=None, any_of=()),), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='locomotion', remedies={'limbs.legs': 'split the legs into two slots named leg_l/leg_r, each with its art, pivoted at the hip (an-art-package skill; \`an character new\` builds them)'}), Method(id='loco.hem_sway', kind='method', version='1', name='hem', title='hem sway', description="a robe figure's walk: the leg slots are the two halves of the hem, which tilt in turn about the hip while the body sways and bobs", usage='', params={'type': 'object', 'properties': {'hem_tilt': {'type': 'number', 'default': 0.24}, 'rock': {'type': 'number', 'default': 0.06}, 'bob': {'type': 'number', 'default': 6.0}, 'stride': {'type': 'number', 'default': 0.35}, 'arm_swing': {'type': 'number', 'default': 0.3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'hem'}},), requires=(Requirement(capability='limbs.legs', key=None, at_least=None, any_of=()),), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='locomotion', remedies={'limbs.legs': "carve the robe's hem into two halves on slots leg_l/leg_r, pivoted at the hip, and declare \`gait: hem\` in character.json"}), Method(id='loco.rock', kind='method', version='1', name='rock', title='rock and bob', description='no leg moves: the body rocks side to side and bobs once per step while it travels (a blob, a sack, anything drawable)', usage='', params={'type': 'object', 'properties': {'rock': {'type': 'number', 'default': 0.06}, 'bob': {'type': 'number', 'default': 6.0}, 'arm_swing': {'type': 'number', 'default': 0.3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk', 'args': {'gait': 'rock'}},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='locomotion', remedies={}), Method(id='speech.mouth_chart', kind='method', version='1', name='mouth_chart', title='mouth chart lip-sync', description="lip-sync on the character's mouth chart: the line's visemes swap the mouth drawings (the nine Rhubarb shapes, or the character's own set)", usage='', params={}, examples=(), requires=(Requirement(capability='face.mouth', key=None, at_least=None, any_of=()),), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='speech', remedies={'face.mouth': "give the character an overlay mouth: a \`mouth\` slot with the viseme set's drawings (\`an character mouths <dir>\`) and face_overlay: true"}), Method(id='speech.pose_only', kind='method', version='1', name='pulse', title='speech pulse', description='no lip-sync: the head (or the body) pulses on each syllable, so a baked face or a mime still reads as speaking', usage='', params={'type': 'object', 'properties': {'strength': {'type': 'number', 'default': 0.06}, 'part': {'type': 'string', 'default': 'head'}, 'attack': {'type': 'number', 'default': 0.06}, 'release': {'type': 'number', 'default': 0.1}}}, examples=('a character with face_overlay: false speaks',), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='speech', remedies={}), Method(id='expr.full_face', kind='method', version='1', name='full_face', title='full-face expression', description="the expression acts with the whole face: the brows rise, knit and tilt, the lids open and close, the pupils move and the mouth takes the preset's form", usage='', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'surprised'},), requires=(Requirement(capability='face.brows', key=None, at_least=None, any_of=()),), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='expression', remedies={'face.brows': "keep the brows clear: \`an character new\` seats a hat above them at most head scales — at this one it could not, so use a larger --head-scale, another --hat or --hat none; for drawn art, redraw what covers the brows and remove the descriptor's \`occluded\` entry, or give the face brow slots (left_brow/right_brow) with art"}), Method(id='expr.without_brows', kind='method', version='1', name='without_brows', title='expression without brows', description='the brows cannot be seen acting (covered, or not drawn): the lids, the gaze and the mouth form carry the expression', usage='', params={}, examples=('a character whose hat covers its brows takes [surprised]',), requires=(), levels=frozenset({'a', 'b-name'}), aspects=(), aspect='expression', remedies={}))*
 
 The genre’s methods, as vocabulary entries (kind `method`).
 
@@ -16804,7 +17455,7 @@ registers nothing.
 | [`EXPRESSION_PRESET_VERSIONS`](_autosummary/an.characters.vocabulary.html.md#an.characters.vocabulary.EXPRESSION_PRESET_VERSIONS) | Each expression preset's vocabulary version (ADR 0003).                                                                                                                       |
 | [`CUTOUT_VOCABULARY`](_autosummary/an.characters.vocabulary.html.md#an.characters.vocabulary.CUTOUT_VOCABULARY)          | Everything this genre contributes to the vocabulary except its methods ([`an.characters.methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)). |
 
-### an.characters.vocabulary.CUTOUT_VOCABULARY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.shot.actions.swap_set', kind='field', version='1', name='shot.actions.swap_set', title='', description='a set action that swaps a drawing (replacement animation)', usage="A set/tween property may also be the name of a swap set the target character's descriptor declares in asset_sets (e.g. 'viseme', 'eyelid', 'hands'), used with a 'set' action whose 'value' is one of that set's declared KEYS (replacement animation). The compiler refuses any other name with the declared sets listed. Never invent a set or a key.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.actions.play', kind='field', version='1', name='shot.actions.play', title='', description='play a named animation of the target character, or a motion preset', usage="A 'play' action ({kind: play, target: <entity>, animation: <name>, [duration], [speed], [loop], [args]}) plays one of the target character's descriptor animations ('idle_breath', 'blink', or any it declares) or, for a name the descriptor does not declare, a motion preset (listed below) with 'args' as its parameters (e.g. {'height': 30}); a name in neither fails validation — never invent one. 'point' targets the arm node. A 'walk' picks its gait from the character's structure (its locomotion method, below) unless 'gait' is given.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=('locomotion',)), Entry(id='field.shot.actions.expression', kind='field', version='1', name='shot.actions.expression', title='', description='hold a facial expression on a character', usage="An 'expression' action ({kind: expression, target: <entity>, preset: <name>, [axes: {axis: value}], [intensity], [duration], [blend]}) holds a facial expression on a character: brows, eyelids, and the mouth's set for any dialogue under it. 'preset' is an expression preset (listed below) — an unknown preset fails validation. Axes are offsets within their ranges: brow_height_l [-1, 1], brow_height_r [-1, 1], brow_angle_l [-1, 1], brow_angle_r [-1, 1], lid_open_l [-1, 0.5], lid_open_r [-1, 0.5], gaze_x [-1, 1], gaze_y [-1, 1]. 'duration' omitted = to the shot end. A character whose descriptor says face_overlay: false cannot take one.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue.emotion', kind='field', version='1', name='shot.dialogue.emotion', title='', description='the mood a line is said in', usage="A dialogue line's 'emotion' is an expression preset name ([happy] on a scene.md line): it sets the face for the line and the voice's mood. When a line's wording changes, update its emotion if the mood changed too.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=('speech',)), Entry(id='motion.pop_in', kind='motion_preset', version='1', name='pop_in', title='pop in', description='Grow from nothing to full size, overshooting and settling (an entrance).', usage='', params={'type': 'object', 'properties': {'duration': {'type': 'number', 'default': 0.45}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'pop_in'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.hop', kind='motion_preset', version='1', name='hop', title='hop', description='Jump up by \`height\` scene pixels and land back where it started.', usage='', params={'type': 'object', 'properties': {'height': {'type': 'number', 'default': 40.0}, 'duration': {'type': 'number', 'default': 0.5}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'hop'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.shake', kind='motion_preset', version='1', name='shake', title='shake', description='Tremble side to side \`cycles\` times and come back to rest (on \`x\`).', usage='', params={'type': 'object', 'properties': {'amplitude': {'type': 'number', 'default': 8.0}, 'duration': {'type': 'number', 'default': 0.4}, 'cycles': {'type': 'integer', 'default': 3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'shake'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.nod', kind='motion_preset', version='1', name='nod', title='nod', description='Dip the head \`count\` times (a rotation of \`<target>/<part>\`).', usage='', params={'type': 'object', 'properties': {'part': {'type': 'string', 'default': 'head'}, 'angle': {'type': 'number', 'default': 0.18}, 'duration': {'type': 'number', 'default': 0.5}, 'count': {'type': 'integer', 'default': 2}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'nod'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.point', kind='motion_preset', version='1', name='point', title='point', description='Swing an arm out to point, hold it, and lower it again.', usage='', params={'type': 'object', 'properties': {'angle': {'type': 'number', 'default': -1.3}, 'raise_duration': {'type': 'number', 'default': 0.25}, 'hold': {'type': 'number', 'default': 0.6}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'point'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.slide_in', kind='motion_preset', version='1', name='slide_in', title='slide in', description='Whip in from \`distance\` pixels off to one side, overshoot, and settle.', usage='', params={'type': 'object', 'properties': {'from_side': {'type': 'string', 'default': 'left'}, 'distance': {'type': 'number', 'default': 600.0}, 'duration': {'type': 'number', 'default': 0.35}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'slide_in'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.slide_out', kind='motion_preset', version='1', name='slide_out', title='slide out', description='Exit \`distance\` pixels off to one side, accelerating (an exit).', usage='', params={'type': 'object', 'properties': {'to_side': {'type': 'string', 'default': 'right'}, 'distance': {'type': 'number', 'default': 600.0}, 'duration': {'type': 'number', 'default': 0.35}, 'easing': {'type': 'string', 'default': 'ease_in'}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'slide_out'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.squash_stretch', kind='motion_preset', version='1', name='squash_stretch', title='squash stretch', description='Squash (wide and short), stretch (narrow and tall), then settle.', usage='', params={'type': 'object', 'properties': {'amount': {'type': 'number', 'default': 0.2}, 'duration': {'type': 'number', 'default': 0.36}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'squash_stretch'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.waddle', kind='motion_preset', version='1', name='waddle', title='waddle', description='A walk cycle for a rig with no legs to animate: rock and bob per step.', usage='', params={'type': 'object', 'properties': {'steps': {'type': 'integer', 'default': 4}, 'step_duration': {'type': 'number', 'default': 0.3}, 'angle': {'type': 'number', 'default': 0.1}, 'lift': {'type': 'number', 'default': 6.0}, 'travel': {'type': 'number', 'default': 0.0}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'waddle'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.turn', kind='motion_preset', version='1', name='turn', title='turn', description='Turn a character to the view \`to\` — the classic cut-out turn.', usage='', params={'type': 'object', 'properties': {'to': {'type': 'string', 'default': 'back'}, 'direction': {'type': 'string', 'default': 'right'}, 'from_direction': {'type': 'string', 'default': None}, 'duration': {'type': 'number', 'default': 0.3}, 'view_set': {'type': 'string', 'default': 'view'}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'turn'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='motion.walk', kind='motion_preset', version='1', name='walk', title='walk', description='Walk: the body travels on \`x\` and bobs once per step while the legs alternate and the arms swing against them.', usage='', params={'type': 'object', 'properties': {'to_x': {'type': 'number', 'default': None}, 'distance': {'type': 'number', 'default': None}, 'direction': {'type': 'string', 'default': None}, 'steps': {'type': 'integer', 'default': None}, 'step_s': {'type': 'number', 'default': 0.4}, 'step_length': {'type': 'number', 'default': 80.0}, 'stride': {'type': 'number', 'default': 0.35}, 'lift': {'type': 'number', 'default': 10.0}, 'bob': {'type': 'number', 'default': 6.0}, 'arm_swing': {'type': 'number', 'default': 0.3}, 'rock': {'type': 'number', 'default': 0.06}, 'hem_tilt': {'type': 'number', 'default': 0.24}, 'view': {'type': 'string', 'default': None}, 'gait': {'type': 'string', 'default': None}, 'legs': {'type': 'array', 'default': None}, 'arms': {'type': 'array', 'default': None}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=('locomotion',)), Entry(id='motion.speech_pulse', kind='motion_preset', version='1', name='speech_pulse', title='speech pulse', description='Pulse a part on each syllable: speech carried without a mouth.', usage='', params={'type': 'object', 'properties': {'beats': {'type': 'array', 'default': [0.0]}, 'strength': {'type': 'number', 'default': 0.06}, 'part': {'type': 'string', 'default': 'head'}, 'attack': {'type': 'number', 'default': 0.06}, 'release': {'type': 'number', 'default': 0.1}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'speech_pulse'},), requires=(), levels=frozenset({'b-name', 'a'}), aspects=('speech',)), Entry(id='expression.neutral', kind='expression_preset', version='1', name='neutral', title='', description='the rest face: every axis at its neutral value', usage='', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'neutral'}, '[neutral] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.happy', kind='expression_preset', version='1', name='happy', title='', description="expression-sheet preset: brow_angle_l +0.1, brow_angle_r +0.1, brow_height_l +0.2, brow_height_r +0.2, lid_open_l -0.2, lid_open_r -0.2; mouth form 'happy'", usage='FACS cross-reference 6+12', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'happy'}, '[happy] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.sad', kind='expression_preset', version='1', name='sad', title='', description="expression-sheet preset: brow_angle_l +0.6, brow_angle_r +0.6, brow_height_l +0.3, brow_height_r +0.3, lid_open_l -0.3, lid_open_r -0.3; mouth form 'sad'", usage='FACS cross-reference 1+4+15', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'sad'}, '[sad] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.angry', kind='expression_preset', version='1', name='angry', title='', description="expression-sheet preset: brow_angle_l -0.8, brow_angle_r -0.8, brow_height_l -0.6, brow_height_r -0.6, lid_open_l +0.1, lid_open_r +0.1; mouth form 'angry'", usage='FACS cross-reference 4+5+7+23', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'angry'}, '[angry] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.surprised', kind='expression_preset', version='1', name='surprised', title='', description="expression-sheet preset: brow_angle_l +0, brow_angle_r +0, brow_height_l +1, brow_height_r +1, lid_open_l +0.4, lid_open_r +0.4; mouth form 'surprised'", usage='FACS cross-reference 1+2+5+26', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'surprised'}, '[surprised] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.afraid', kind='expression_preset', version='1', name='afraid', title='', description="expression-sheet preset: brow_angle_l +0.5, brow_angle_r +0.5, brow_height_l +0.7, brow_height_r +0.7, lid_open_l +0.5, lid_open_r +0.5; mouth form 'afraid'", usage='FACS cross-reference 1+2+4+5+7+20+26', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'afraid'}, '[afraid] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.disgusted', kind='expression_preset', version='1', name='disgusted', title='', description="expression-sheet preset: brow_angle_l -0.3, brow_angle_r -0.3, brow_height_l -0.3, brow_height_r -0.3, lid_open_l -0.4, lid_open_r -0.4; mouth form 'disgusted'", usage='FACS cross-reference 9+15+17', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'disgusted'}, '[disgusted] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.thinking', kind='expression_preset', version='1', name='thinking', title='', description='expression-sheet preset: brow_angle_l +0.3, brow_angle_r -0.1, brow_height_l +0.5, brow_height_r -0.2, lid_open_l -0.1, lid_open_r -0.1', usage='FACS cross-reference cartoon convention', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'thinking'}, '[thinking] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.skeptical', kind='expression_preset', version='1', name='skeptical', title='', description='expression-sheet preset: brow_angle_l +0, brow_angle_r -0.2, brow_height_l +0.6, brow_height_r -0.3, lid_open_l +0, lid_open_r -0.2', usage='FACS cross-reference cartoon convention', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'skeptical'}, '[skeptical] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='expression.amused', kind='expression_preset', version='1', name='amused', title='', description="expression-sheet preset: brow_angle_l +0.05, brow_angle_r +0.05, brow_height_l +0.1, brow_height_r +0.1, lid_open_l -0.1, lid_open_r -0.1; mouth form 'happy'", usage='FACS cross-reference happy at ~0.6', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'amused'}, '[amused] on a scene.md dialogue line'), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()))*
+### an.characters.vocabulary.CUTOUT_VOCABULARY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.shot.actions.swap_set', kind='field', version='1', name='shot.actions.swap_set', title='', description='a set action that swaps a drawing (replacement animation)', usage="A set/tween property may also be the name of a swap set the target character's descriptor declares in asset_sets (e.g. 'viseme', 'eyelid', 'hands'), used with a 'set' action whose 'value' is one of that set's declared KEYS (replacement animation). The compiler refuses any other name with the declared sets listed. Never invent a set or a key.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.actions.play', kind='field', version='1', name='shot.actions.play', title='', description='play a named animation of the target character, or a motion preset', usage="A 'play' action ({kind: play, target: <entity>, animation: <name>, [duration], [speed], [loop], [args]}) plays one of the target character's descriptor animations ('idle_breath', 'blink', or any it declares) or, for a name the descriptor does not declare, a motion preset (listed below) with 'args' as its parameters (e.g. {'height': 30}); a name in neither fails validation — never invent one. 'point' targets the arm node. A 'walk' picks its gait from the character's structure (its locomotion method, below) unless 'gait' is given.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=('locomotion',)), Entry(id='field.shot.actions.expression', kind='field', version='1', name='shot.actions.expression', title='', description='hold a facial expression on a character', usage="An 'expression' action ({kind: expression, target: <entity>, preset: <name>, [axes: {axis: value}], [intensity], [duration], [blend]}) holds a facial expression on a character: brows, eyelids, and the mouth's set for any dialogue under it. 'preset' is an expression preset (listed below) — an unknown preset fails validation. Axes are offsets within their ranges: brow_height_l [-1, 1], brow_height_r [-1, 1], brow_angle_l [-1, 1], brow_angle_r [-1, 1], lid_open_l [-1, 0.5], lid_open_r [-1, 0.5], gaze_x [-1, 1], gaze_y [-1, 1]. 'duration' omitted = to the shot end. A character whose descriptor says face_overlay: false cannot take one.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue.emotion', kind='field', version='1', name='shot.dialogue.emotion', title='', description='the mood a line is said in', usage="A dialogue line's 'emotion' is an expression preset name ([happy] on a scene.md line): it sets the face for the line and the voice's mood. When a line's wording changes, update its emotion if the mood changed too.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=('speech',)), Entry(id='motion.pop_in', kind='motion_preset', version='1', name='pop_in', title='pop in', description='Grow from nothing to full size, overshooting and settling (an entrance).', usage='', params={'type': 'object', 'properties': {'duration': {'type': 'number', 'default': 0.45}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'pop_in'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.hop', kind='motion_preset', version='1', name='hop', title='hop', description='Jump up by \`height\` scene pixels and land back where it started.', usage='', params={'type': 'object', 'properties': {'height': {'type': 'number', 'default': 40.0}, 'duration': {'type': 'number', 'default': 0.5}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'hop'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.shake', kind='motion_preset', version='1', name='shake', title='shake', description='Tremble side to side \`cycles\` times and come back to rest (on \`x\`).', usage='', params={'type': 'object', 'properties': {'amplitude': {'type': 'number', 'default': 8.0}, 'duration': {'type': 'number', 'default': 0.4}, 'cycles': {'type': 'integer', 'default': 3}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'shake'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.nod', kind='motion_preset', version='1', name='nod', title='nod', description='Dip the head \`count\` times (a rotation of \`<target>/<part>\`).', usage='', params={'type': 'object', 'properties': {'part': {'type': 'string', 'default': 'head'}, 'angle': {'type': 'number', 'default': 0.18}, 'duration': {'type': 'number', 'default': 0.5}, 'count': {'type': 'integer', 'default': 2}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'nod'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.point', kind='motion_preset', version='1', name='point', title='point', description='Swing an arm out to point, hold it, and lower it again.', usage='', params={'type': 'object', 'properties': {'angle': {'type': 'number', 'default': -1.3}, 'raise_duration': {'type': 'number', 'default': 0.25}, 'hold': {'type': 'number', 'default': 0.6}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'point'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.slide_in', kind='motion_preset', version='1', name='slide_in', title='slide in', description='Whip in from \`distance\` pixels off to one side, overshoot, and settle.', usage='', params={'type': 'object', 'properties': {'from_side': {'type': 'string', 'default': 'left'}, 'distance': {'type': 'number', 'default': 600.0}, 'duration': {'type': 'number', 'default': 0.35}, 'easing': {'default': [0.34, 1.56, 0.64, 1.0]}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'slide_in'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.slide_out', kind='motion_preset', version='1', name='slide_out', title='slide out', description='Exit \`distance\` pixels off to one side, accelerating (an exit).', usage='', params={'type': 'object', 'properties': {'to_side': {'type': 'string', 'default': 'right'}, 'distance': {'type': 'number', 'default': 600.0}, 'duration': {'type': 'number', 'default': 0.35}, 'easing': {'type': 'string', 'default': 'ease_in'}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'slide_out'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.squash_stretch', kind='motion_preset', version='1', name='squash_stretch', title='squash stretch', description='Squash (wide and short), stretch (narrow and tall), then settle.', usage='', params={'type': 'object', 'properties': {'amount': {'type': 'number', 'default': 0.2}, 'duration': {'type': 'number', 'default': 0.36}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'squash_stretch'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.waddle', kind='motion_preset', version='1', name='waddle', title='waddle', description='A walk cycle for a rig with no legs to animate: rock and bob per step.', usage='', params={'type': 'object', 'properties': {'steps': {'type': 'integer', 'default': 4}, 'step_duration': {'type': 'number', 'default': 0.3}, 'angle': {'type': 'number', 'default': 0.1}, 'lift': {'type': 'number', 'default': 6.0}, 'travel': {'type': 'number', 'default': 0.0}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'waddle'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.turn', kind='motion_preset', version='1', name='turn', title='turn', description='Turn a character to the view \`to\` — the classic cut-out turn.', usage='', params={'type': 'object', 'properties': {'to': {'type': 'string', 'default': 'back'}, 'direction': {'type': 'string', 'default': 'right'}, 'from_direction': {'type': 'string', 'default': None}, 'duration': {'type': 'number', 'default': 0.3}, 'view_set': {'type': 'string', 'default': 'view'}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'turn'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='motion.walk', kind='motion_preset', version='1', name='walk', title='walk', description='Walk: the body travels on \`x\` and bobs once per step while the legs alternate and the arms swing against them.', usage='', params={'type': 'object', 'properties': {'to_x': {'type': 'number', 'default': None}, 'distance': {'type': 'number', 'default': None}, 'direction': {'type': 'string', 'default': None}, 'steps': {'type': 'integer', 'default': None}, 'step_s': {'type': 'number', 'default': 0.4}, 'step_length': {'type': 'number', 'default': 80.0}, 'stride': {'type': 'number', 'default': 0.35}, 'lift': {'type': 'number', 'default': 10.0}, 'bob': {'type': 'number', 'default': 6.0}, 'arm_swing': {'type': 'number', 'default': 0.3}, 'rock': {'type': 'number', 'default': 0.06}, 'hem_tilt': {'type': 'number', 'default': 0.24}, 'view': {'type': 'string', 'default': None}, 'gait': {'type': 'string', 'default': None}, 'legs': {'type': 'array', 'default': None}, 'arms': {'type': 'array', 'default': None}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'walk'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=('locomotion',)), Entry(id='motion.speech_pulse', kind='motion_preset', version='1', name='speech_pulse', title='speech pulse', description='Pulse a part on each syllable: speech carried without a mouth.', usage='', params={'type': 'object', 'properties': {'beats': {'type': 'array', 'default': [0.0]}, 'strength': {'type': 'number', 'default': 0.06}, 'part': {'type': 'string', 'default': 'head'}, 'attack': {'type': 'number', 'default': 0.06}, 'release': {'type': 'number', 'default': 0.1}}}, examples=({'kind': 'play', 'target': 'ned', 'animation': 'speech_pulse'},), requires=(), levels=frozenset({'a', 'b-name'}), aspects=('speech',)), Entry(id='expression.neutral', kind='expression_preset', version='1', name='neutral', title='', description='the rest face: every axis at its neutral value', usage='', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'neutral'}, '[neutral] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.happy', kind='expression_preset', version='1', name='happy', title='', description="expression-sheet preset: brow_angle_l +0.1, brow_angle_r +0.1, brow_height_l +0.2, brow_height_r +0.2, lid_open_l -0.2, lid_open_r -0.2; mouth form 'happy'", usage='FACS cross-reference 6+12', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'happy'}, '[happy] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.sad', kind='expression_preset', version='1', name='sad', title='', description="expression-sheet preset: brow_angle_l +0.6, brow_angle_r +0.6, brow_height_l +0.3, brow_height_r +0.3, lid_open_l -0.3, lid_open_r -0.3; mouth form 'sad'", usage='FACS cross-reference 1+4+15', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'sad'}, '[sad] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.angry', kind='expression_preset', version='1', name='angry', title='', description="expression-sheet preset: brow_angle_l -0.8, brow_angle_r -0.8, brow_height_l -0.6, brow_height_r -0.6, lid_open_l +0.1, lid_open_r +0.1; mouth form 'angry'", usage='FACS cross-reference 4+5+7+23', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'angry'}, '[angry] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.surprised', kind='expression_preset', version='1', name='surprised', title='', description="expression-sheet preset: brow_angle_l +0, brow_angle_r +0, brow_height_l +1, brow_height_r +1, lid_open_l +0.4, lid_open_r +0.4; mouth form 'surprised'", usage='FACS cross-reference 1+2+5+26', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'surprised'}, '[surprised] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.afraid', kind='expression_preset', version='1', name='afraid', title='', description="expression-sheet preset: brow_angle_l +0.5, brow_angle_r +0.5, brow_height_l +0.7, brow_height_r +0.7, lid_open_l +0.5, lid_open_r +0.5; mouth form 'afraid'", usage='FACS cross-reference 1+2+4+5+7+20+26', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'afraid'}, '[afraid] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.disgusted', kind='expression_preset', version='1', name='disgusted', title='', description="expression-sheet preset: brow_angle_l -0.3, brow_angle_r -0.3, brow_height_l -0.3, brow_height_r -0.3, lid_open_l -0.4, lid_open_r -0.4; mouth form 'disgusted'", usage='FACS cross-reference 9+15+17', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'disgusted'}, '[disgusted] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.thinking', kind='expression_preset', version='1', name='thinking', title='', description='expression-sheet preset: brow_angle_l +0.3, brow_angle_r -0.1, brow_height_l +0.5, brow_height_r -0.2, lid_open_l -0.1, lid_open_r -0.1', usage='FACS cross-reference cartoon convention', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'thinking'}, '[thinking] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.skeptical', kind='expression_preset', version='1', name='skeptical', title='', description='expression-sheet preset: brow_angle_l +0, brow_angle_r -0.2, brow_height_l +0.6, brow_height_r -0.3, lid_open_l +0, lid_open_r -0.2', usage='FACS cross-reference cartoon convention', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'skeptical'}, '[skeptical] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='expression.amused', kind='expression_preset', version='1', name='amused', title='', description="expression-sheet preset: brow_angle_l +0.05, brow_angle_r +0.05, brow_height_l +0.1, brow_height_r +0.1, lid_open_l -0.1, lid_open_r -0.1; mouth form 'happy'", usage='FACS cross-reference happy at ~0.6', params={}, examples=({'kind': 'expression', 'target': 'ned', 'preset': 'amused'}, '[amused] on a scene.md dialogue line'), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()))*
 
 Everything this genre contributes to the vocabulary except its methods
 ([`an.characters.methods`](_autosummary/an.characters.methods.html.md#module-an.characters.methods)).
@@ -31765,7 +32416,7 @@ One sentence per camera move, in production terms.
 
 Version of each named camera move (ADR 0003). Bump one when its keys change.
 
-### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, pivot_x, pivot_y, rotation, rotation_rad, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, 0.0 for the rest. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'b-name', 'a'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
+### an.semantic.seeds.CORE_FIELDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Entry](_autosummary/an.semantic.html.md#an.semantic.Entry), ...]* *= (Entry(id='field.meta', kind='field', version='1', name='meta', title='', description="the film's header", usage='meta: {title, author, duration, fps, resolution, default_renderer, notes, default_easing, step_hz, style_pack, sounds, captions}', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot', kind='field', version='1', name='shot', title='', description='one shot of the timeline', usage='timeline: a list of shots, each with id (string, unique), renderer ("cutout" | "manim" | "motion_graphics" | "whiteboard"), duration (seconds, float), camera, entities, actions, dialogue, narration, transition, sounds', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.camera', kind='field', version='1', name='shot.camera', title='', description="the shot's camera", usage='camera: {move: <a camera move>, ...} or explicit {keys: [...]}', params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.entities', kind='field', version='1', name='shot.entities', title='', description='who and what is on stage', usage='entities: list of {kind, id, store, ref, ...}; kind MUST be a registered entity kind. A prop needs a PropDescriptor in the props store; it has no placeholder rig, so an unknown ref raises rather than drawing a person.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions', kind='field', version='1', name='shot.actions', title='', description="the shot's animation", usage='actions: list of action dicts whose kind is a registered action kind (the composites sequence, parallel, delay and loop hold children).', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.property', kind='field', version='1', name='shot.actions.property', title='', description='what a set or tween animates', usage="A tween/set action's property is EITHER a transform: alpha, dash_offset, pivot_x, pivot_y, rotation, rotation_rad, scale_x, scale_y, skew_x, skew_y, trim_end, trim_start, x, y — OR 'tint', a per-node colour MULTIPLY whose value is a '#rrggbb' string (the compiler expands it into three numeric channels, so a tween between two colours interpolates per channel; like 'alpha' it cascades to the target's parts). 'alpha' is the fade primitive and cascades to a character's parts. Any other property (opacity, visible, color, width, ...) is refused at compile. A tween with no 'from' starts at the property's rest value: 1.0 for scale_x / scale_y / alpha, '#ffffff' for tint, 0.0 for the rest. A tween with no 'easing' takes the scene's meta.default_easing when set.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.actions.easing', kind='field', version='1', name='shot.actions.easing', title='', description='how a tween moves through time', usage="A tween's easing is a registered easing name, a cubic-Bézier 4-list [cx1, cy1, cx2, cy2], or a parametrised curve such as 'cubic-bezier(…)' or 'steps(n)'.", params={}, examples=(), requires=(), levels=frozenset({'a', 'b-name'}), aspects=()), Entry(id='field.shot.dialogue', kind='field', version='1', name='shot.dialogue', title='', description='who says what, and when', usage="dialogue: list of {speaker, text, emotion, voice_ref, pause, at, direction, ...}. Lines play back to back from the shot start. 'pause' (seconds) is silence before a line, after the previous one ends — a beat, a look, a hesitation belongs here, NOT in a new shot. 'at' (seconds) starts a line at that shot time instead; a line takes one or the other, never both (to switch, delete the one you are replacing in the same patch list). 'start' and 'duration' are stamped by the audio pipeline from these on every render — never patch them.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.dialogue.direction', kind='field', version='1', name='shot.dialogue.direction', title='', description='how a line is delivered', usage="direction (optional) is a list of delivery cues — ['excited'], ['sighs', 'annoyed'] — that an expressive TTS voice performs; it is never spoken as text and never shown in captions.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.narration', kind='field', version='1', name='shot.narration', title='', description="a narrator's lines (not implemented)", usage='narration: list (same shape as dialogue, no speaker pin). NOT IMPLEMENTED — the audio pipeline walks dialogue only, and a shot with narration RAISES. To add a narrator, emit a dialogue line whose speaker is not an entity in the shot; it gets audio and no lip-sync.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.transition', kind='field', version='1', name='shot.transition', title='', description='how a shot is entered', usage='transition (optional): how the shot is ENTERED — {kind: "cut" | "fade" | "dissolve", duration: seconds, color: \\'#rrggbb\\'}. Omitted = a hard cut. \\'fade\\' dips through color (half out of the previous shot, half into this one; on the first shot, a fade up). \\'dissolve\\' overlaps the two shots by duration, so the film gets that much shorter; never on the first shot. A shot must be long enough to hold its own transition and the next shot\\'s.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.shot.sounds', kind='field', version='1', name='shot.sounds', title='', description="sound effects on the shot's clock", usage='sounds (optional): SFX cues in SHOT-local time — [{sound: <key in the sounds store>, at, [duration], [gain_db], [loop], [fade_in], [fade_out], [duck_db]}]. Never invent a sound key.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.sounds', kind='field', version='1', name='meta.sounds', title='', description="sounds on the film's clock (a music bed)", usage='meta.sounds (optional): the same cue shape in FILM time — a music bed is {sound: <key>, loop: true, duck_db: -12, fade_in, fade_out}; duck_db ducks it under every dialogue line.', params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()), Entry(id='field.meta.captions', kind='field', version='1', name='meta.captions', title='', description='captions derived from the dialogue', usage="meta.captions (optional): captions built at render time from the dialogue's word timings — {} for the defaults, or {highlight: '#rrggbb', color, size, anchor, max_chars, max_lines, burn, sidecar, strict}. Never add caption text entities by hand: they are derived from the dialogue.", params={}, examples=(), requires=(), levels=frozenset({'a'}), aspects=()))*
 
 the core).
 
@@ -32050,13 +32701,14 @@ enforced by the caller (orchestrator), not the store.
 
 ### Classes
 
-| [`AudioArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                    |
-|---------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| [`CaptionsStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.CaptionsStore)(root_dir)        | SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they caption — `captions["main"]` is `output/main.srt` (an#175). |
-| [`OutputStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.OutputStore)(root_dir)          | Final composited renders.                                                                                                           |
-| [`PreviewArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                              |
-| [`ShotArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                             |
-| [`VisemeArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                              |
+| [`AudioArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                  |
+|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CaptionsStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.CaptionsStore)(root_dir)        | SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they caption — `captions["main"]` is `output/main.srt` (an#175).               |
+| [`OutputStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.OutputStore)(root_dir)          | Final composited renders.                                                                                                                         |
+| [`PreviewArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                                            |
+| [`ShotArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                                           |
+| [`TakesArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265). |
+| [`VisemeArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                            |
 
 ### *class* an.stores.artifacts.AudioArtifactStore(root_dir)
 
@@ -32088,6 +32740,13 @@ Low-res preview renders (mp4 or png sequence wrapper).
 Bases: `_BlobStore`
 
 Per-shot rendered mp4s.
+
+### *class* an.stores.artifacts.TakesArtifactStore(root_dir)
+
+Bases: `_BlobStore`
+
+Best-of-N take records (.json bytes), keyed by the line’s audio key: which
+take was kept, its sha256, every take’s score and the scorer (an#265).
 
 ### *class* an.stores.artifacts.VisemeArtifactStore(root_dir)
 
@@ -32198,7 +32857,8 @@ Project mall: a dict of dol-backed `MutableMapping` stores.
 
 The mall is the unit of persistence in an. Every long-lived state — assets
 (characters, props, environments, voices, styles, sounds), the scene file pair, intermediate
-artifacts (audio, viseme tracks, per-shot mp4s, the content-keyed shot cache),
+artifacts (audio, viseme tracks, best-of-N take records, per-shot mp4s, the
+content-keyed shot cache),
 final output and its caption sidecar, the agent’s decision log, and the asset
 library’s lockfile of pinned check-outs — is keyed inside a store. Stores are
 dol-backed so the same call
@@ -32213,7 +32873,7 @@ sites work against filesystem, SQLite, S3, etc.
 ...         'audio', 'captions', 'characters', 'decisions', 'environments',
 ...         'library_lock', 'output', 'previews', 'props', 'scenes', 'shot_cache',
 ...         'shots',
-...         'sounds', 'styles', 'visemes', 'voices',
+...         'sounds', 'styles', 'takes', 'visemes', 'voices',
 ...     ]
 True
 ```
@@ -32225,21 +32885,22 @@ True
 
 ### Classes
 
-| [`CharactersStore`](_autosummary/an.stores.html.md#an.stores.CharactersStore)(root_dir)      | Per-character directory store.                                         |
-|---------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| [`EnvironmentsStore`](_autosummary/an.stores.html.md#an.stores.EnvironmentsStore)(root_dir)    | Per-environment directory store (meta + sidecar art).                  |
-| [`VoicesStore`](_autosummary/an.stores.html.md#an.stores.VoicesStore)(root_dir)          | JSON-only voice descriptors.                                           |
-| [`StylesStore`](_autosummary/an.stores.html.md#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                           |
-| [`PropsStore`](_autosummary/an.stores.html.md#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                              |
-| [`ScenesStore`](_autosummary/an.stores.html.md#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.    |
-| [`SoundsStore`](_autosummary/an.stores.html.md#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                             |
-| [`AudioArtifactStore`](_autosummary/an.stores.html.md#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                       |
-| [`VisemeArtifactStore`](_autosummary/an.stores.html.md#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity. |
-| [`ShotArtifactStore`](_autosummary/an.stores.html.md#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                |
-| [`PreviewArtifactStore`](_autosummary/an.stores.html.md#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                 |
-| [`OutputStore`](_autosummary/an.stores.html.md#an.stores.OutputStore)(root_dir)          | Final composited renders.                                              |
-| [`DecisionLogStore`](_autosummary/an.stores.html.md#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).              |
-| [`ProjectLock`](_autosummary/an.stores.html.md#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.            |
+| [`CharactersStore`](_autosummary/an.stores.html.md#an.stores.CharactersStore)(root_dir)      | Per-character directory store.                                                                                                                    |
+|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`EnvironmentsStore`](_autosummary/an.stores.html.md#an.stores.EnvironmentsStore)(root_dir)    | Per-environment directory store (meta + sidecar art).                                                                                             |
+| [`VoicesStore`](_autosummary/an.stores.html.md#an.stores.VoicesStore)(root_dir)          | JSON-only voice descriptors.                                                                                                                      |
+| [`StylesStore`](_autosummary/an.stores.html.md#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                                                                                                      |
+| [`PropsStore`](_autosummary/an.stores.html.md#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                                                                                                         |
+| [`ScenesStore`](_autosummary/an.stores.html.md#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.                                                                               |
+| [`SoundsStore`](_autosummary/an.stores.html.md#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                                                                                                        |
+| [`AudioArtifactStore`](_autosummary/an.stores.html.md#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                  |
+| [`VisemeArtifactStore`](_autosummary/an.stores.html.md#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                            |
+| [`TakesArtifactStore`](_autosummary/an.stores.html.md#an.stores.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265). |
+| [`ShotArtifactStore`](_autosummary/an.stores.html.md#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                                           |
+| [`PreviewArtifactStore`](_autosummary/an.stores.html.md#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                                            |
+| [`OutputStore`](_autosummary/an.stores.html.md#an.stores.OutputStore)(root_dir)          | Final composited renders.                                                                                                                         |
+| [`DecisionLogStore`](_autosummary/an.stores.html.md#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).                                                                                         |
+| [`ProjectLock`](_autosummary/an.stores.html.md#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.                                                                                       |
 
 ### *class* an.stores.AudioArtifactStore(root_dir)
 
@@ -32375,6 +33036,13 @@ its header for the duration a fade-out needs, deterministically.
 Bases: `JsonDirStore`
 
 Pure-JSON style descriptors.
+
+### *class* an.stores.TakesArtifactStore(root_dir)
+
+Bases: `_BlobStore`
+
+Best-of-N take records (.json bytes), keyed by the line’s audio key: which
+take was kept, its sha256, every take’s score and the scorer (an#265).
 
 ### *class* an.stores.VisemeArtifactStore(root_dir)
 
@@ -36500,8 +37168,9 @@ an.verify.prosody.ProsodyTargetError: unknown prosody target 'swagger'; measurab
 
 ### Module Attributes
 
-| [`METRICS`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.METRICS)   | The measurable targets, and what each one is.   |
-|------------------------------------------------------------|-------------------------------------------------|
+| [`ESTIMATOR_VERSION`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ESTIMATOR_VERSION)   | Raised whenever an estimator or one of its defaults below changes what a clip measures.   |
+|----------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [`METRICS`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.METRICS)             | The measurable targets, and what each one is.                                             |
 
 ### Functions
 
@@ -36515,6 +37184,7 @@ an.verify.prosody.ProsodyTargetError: unknown prosody target 'swagger'; measurab
 | [`join_speech`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.join_speech)(clips, sr, \*[, gap_s, ...])        | Clips with their leading and trailing silence trimmed, joined with `gap_s` of silence — so a set of lines measures as one performance without the authored gaps between lines counting as the voice's pauses. |
 | [`decode_audio`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.decode_audio)(path, \*[, sr, ffmpeg])            | Any audio file ffmpeg reads, as mono float32 samples at `sr` Hz.                                                                                                                                              |
 | [`check_prosody`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.check_prosody)(stats, targets, \*[, ...])        | One finding per target `stats` misses (an `info` for one it cannot measure).                                                                                                                                  |
+| [`target_distance`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.target_distance)(stats, targets, \*[, ...])      | How far `stats` sits from `targets`: `(outside, off_centre)`, lower is closer.                                                                                                                                |
 | [`validate_targets`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.validate_targets)(targets)                       | Raise [`ProsodyTargetError`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ProsodyTargetError) unless every target names a metric and is a `[low, high]` range.                                                                    |
 | [`prosody_lint`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.prosody_lint)(audio, targets, \*[, text, ...])   | Measure `audio` (a path, several paths, or stats already measured) and report each target it misses.                                                                                                          |
 
@@ -36528,6 +37198,13 @@ an.verify.prosody.ProsodyTargetError: unknown prosody target 'swagger'; measurab
 | [`ProsodyTargetError`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ProsodyTargetError)   | A prosody target names no metric, or is not a `[low, high]` range.   |
 |-----------------------------------------------------------------------|----------------------------------------------------------------------|
 | [`ProsodyDecodeError`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ProsodyDecodeError)   | An audio file could not be decoded (ffmpeg missing or failing).      |
+
+### an.verify.prosody.ESTIMATOR_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+Raised whenever an estimator or one of its defaults below changes what a clip
+measures. Anything that persists a choice made from these numbers (the best
+take of a line, [`an.audio.takes`](_autosummary/an.audio.takes.html.md#module-an.audio.takes)) keys on it, so a changed estimator
+re-chooses instead of trusting numbers it would no longer produce.
 
 ### an.verify.prosody.METRICS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'articulation_rate_sps': 'syllables per second of speaking time (needs the text)', 'emphasis_per_s': 'stand-out level peaks per second of speaking time', 'f0_median_hz': 'median pitch (voice-specific; for reference)', 'f0_range_st': 'pitch range, 5th to 95th percentile, semitones', 'f0_sd_st': 'pitch spread, semitones about the median', 'final_drop_st': 'median phrase ending relative to its phrase, semitones (negative falls)', 'loudness_range_db': 'speech level, 90th minus 10th percentile, dB', 'pause_median_s': 'median pause length', 'pause_p90_s': '90th-percentile pause length', 'pause_share': 'share of the span that is pauses', 'pauses_per_min': 'pauses per minute of span', 'register_st': 'median pitch relative to reference_hz, semitones (needs a reference)', 'speech_rate_sps': "syllables per second of the clip's span (needs the text)", 'voiced_share': 'share of speaking time with a pitch'}*
 
@@ -36680,6 +37357,28 @@ report each target it misses. Passes unless `miss_severity` is `error`.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ProsodyStats`](_autosummary/an.verify.prosody.html.md#an.verify.prosody.ProsodyStats), [`VerificationReport`](_autosummary/an.verify.html.md#an.verify.VerificationReport)]
+
+### an.verify.prosody.target_distance(stats, targets, , unmeasurable=1.0)
+
+How far `stats` sits from `targets`: `(outside, off_centre)`, lower is closer.
+
+`outside` sums, over the targets, the distance outside `[low, high]` in
+units of the range’s width (0 for a value inside); a metric this clip cannot
+measure counts `unmeasurable` widths, so a broken take never wins by
+having no number. `off_centre` sums each value’s distance from its range’s
+midpoint, in the same units — the tie-break between takes that are all on
+target. A zero-width range counts as one unit wide.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> s = ProsodyStats(1.0, 1.0, 1.0, 3, 0, *[3.0] * 13)
+>>> target_distance(s, {"f0_sd_st": [2, 4]})
+(0.0, 0.0)
+>>> target_distance(s, {"f0_sd_st": [4, 6], "f0_range_st": [1, 5]})
+(0.5, 1.0)
+```
 
 ### an.verify.prosody.validate_targets(targets)
 
@@ -37217,18 +37916,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 18:51 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/80715d259496349b69f6425b2af96c7ba8bdaf84"><code>80715d2</code></a> on branch <code>main</code>, for **an 0.1.144** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 19:15 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/92db6be6c7d38b2cd8aafa26409bcb19bc33ed02"><code>92db6be</code></a> on branch <code>main</code>, for **an 0.1.145** (from <code>pyproject.toml</code>).
 
-#### NOTE
-Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
+#### WARNING
+The documentation and the package may be misaligned:
+
+- The documented version (0.1.145) is ahead of the latest release on PyPI (0.1.144): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/80715d259496349b69f6425b2af96c7ba8bdaf84"><code>80715d259496349b69f6425b2af96c7ba8bdaf84</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/92db6be6c7d38b2cd8aafa26409bcb19bc33ed02"><code>92db6be6c7d38b2cd8aafa26409bcb19bc33ed02</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.144</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.145</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -37237,9 +37938,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36909093335">36909093335</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36911901329">36911901329</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>4ef18baed3bc0b105f460fdcec3d65ad37e09669</code> (in the history of the built commit) |
+| Event commit | <code>13ec33a913c50317a6916f5df71a1a89b75e2d2e</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -37264,13 +37965,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.144/">0.1.144</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.144/">0.1.144</a>, older than the documented version (0.1.145).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 80715d259496349b69f6425b2af96c7ba8bdaf84
+git checkout 92db6be6c7d38b2cd8aafa26409bcb19bc33ed02
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

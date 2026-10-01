@@ -9,14 +9,20 @@ provider factories.
 > an voices list –provider elevenlabs
 > an voices list –provider elevenlabs –search british
 > an voices list –provider mac_say
+> an voices rescore <project> “He did not ask”    # re-choose a line’s take from its cached takes
+> an voices reroll <project> “He did not ask”     # synthesize new takes for it (billed)
 
 The `voice_id` column is what a `voices`-store document’s `voice_id` takes.
+`rescore` and `reroll` are the only ways a recorded best-of-N take is
+replaced ([`an.audio.pipeline.retake_lines()`](an.audio.pipeline.html.md#an.audio.pipeline.retake_lines)); the next `an render` does
+the choosing, and prints what it will bill first.
 
 ### Functions
 
-| [`browse_voices`](#an.audio.cli.browse_voices)([provider, search, make])   | The voices `provider` exposes, optionally filtered by `search`.   |
-|--------------------------------------------------------------------------------------------|-------------------------------------------------------------------|
-| [`format_voices`](#an.audio.cli.format_voices)(voices)                     | One line per voice: `voice_id  name  (labels)`.                   |
+| [`browse_voices`](#an.audio.cli.browse_voices)([provider, search, make])         | The voices `provider` exposes, optionally filtered by `search`.         |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`format_voices`](#an.audio.cli.format_voices)(voices)                           | One line per voice: `voice_id  name  (labels)`.                         |
+| [`retake`](#an.audio.cli.retake)(project, line, \*[, rescore, tts, make]) | Release the recorded takes of the lines of `project` containing `line`. |
 
 ### an.audio.cli.browse_voices(provider='elevenlabs', \*, search=None, make=<function make_tts>)
 
@@ -51,3 +57,14 @@ One line per voice: `voice_id  name  (labels)`.
 >>> print(format_voices([VoiceMeta("abc", "Ada", "x", extra={"labels": {"accent": "british"}})]))
 abc  Ada  (accent=british)
 ```
+
+### an.audio.cli.retake(project, line, \*, rescore=False, tts='elevenlabs', make=<function make_tts>)
+
+Release the recorded takes of the lines of `project` containing `line`.
+
+The plain-function core of `an voices rescore` / `an voices reroll`: see
+[`an.audio.pipeline.retake_lines()`](an.audio.pipeline.html.md#an.audio.pipeline.retake_lines). `tts` must be the provider the
+line is rendered with (its takes are keyed by it).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

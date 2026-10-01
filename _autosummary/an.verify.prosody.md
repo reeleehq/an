@@ -82,8 +82,9 @@ an.verify.prosody.ProsodyTargetError: unknown prosody target 'swagger'; measurab
 
 ### Module Attributes
 
-| [`METRICS`](#an.verify.prosody.METRICS)   | The measurable targets, and what each one is.   |
-|------------------------------------------------------------|-------------------------------------------------|
+| [`ESTIMATOR_VERSION`](#an.verify.prosody.ESTIMATOR_VERSION)   | Raised whenever an estimator or one of its defaults below changes what a clip measures.   |
+|----------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| [`METRICS`](#an.verify.prosody.METRICS)             | The measurable targets, and what each one is.                                             |
 
 ### Functions
 
@@ -97,6 +98,7 @@ an.verify.prosody.ProsodyTargetError: unknown prosody target 'swagger'; measurab
 | [`join_speech`](#an.verify.prosody.join_speech)(clips, sr, \*[, gap_s, ...])        | Clips with their leading and trailing silence trimmed, joined with `gap_s` of silence — so a set of lines measures as one performance without the authored gaps between lines counting as the voice's pauses. |
 | [`decode_audio`](#an.verify.prosody.decode_audio)(path, \*[, sr, ffmpeg])            | Any audio file ffmpeg reads, as mono float32 samples at `sr` Hz.                                                                                                                                              |
 | [`check_prosody`](#an.verify.prosody.check_prosody)(stats, targets, \*[, ...])        | One finding per target `stats` misses (an `info` for one it cannot measure).                                                                                                                                  |
+| [`target_distance`](#an.verify.prosody.target_distance)(stats, targets, \*[, ...])      | How far `stats` sits from `targets`: `(outside, off_centre)`, lower is closer.                                                                                                                                |
 | [`validate_targets`](#an.verify.prosody.validate_targets)(targets)                       | Raise [`ProsodyTargetError`](#an.verify.prosody.ProsodyTargetError) unless every target names a metric and is a `[low, high]` range.                                                                    |
 | [`prosody_lint`](#an.verify.prosody.prosody_lint)(audio, targets, \*[, text, ...])   | Measure `audio` (a path, several paths, or stats already measured) and report each target it misses.                                                                                                          |
 
@@ -110,6 +112,13 @@ an.verify.prosody.ProsodyTargetError: unknown prosody target 'swagger'; measurab
 | [`ProsodyTargetError`](#an.verify.prosody.ProsodyTargetError)   | A prosody target names no metric, or is not a `[low, high]` range.   |
 |-----------------------------------------------------------------------|----------------------------------------------------------------------|
 | [`ProsodyDecodeError`](#an.verify.prosody.ProsodyDecodeError)   | An audio file could not be decoded (ffmpeg missing or failing).      |
+
+### an.verify.prosody.ESTIMATOR_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '1'*
+
+Raised whenever an estimator or one of its defaults below changes what a clip
+measures. Anything that persists a choice made from these numbers (the best
+take of a line, [`an.audio.takes`](an.audio.takes.md#module-an.audio.takes)) keys on it, so a changed estimator
+re-chooses instead of trusting numbers it would no longer produce.
 
 ### an.verify.prosody.METRICS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'articulation_rate_sps': 'syllables per second of speaking time (needs the text)', 'emphasis_per_s': 'stand-out level peaks per second of speaking time', 'f0_median_hz': 'median pitch (voice-specific; for reference)', 'f0_range_st': 'pitch range, 5th to 95th percentile, semitones', 'f0_sd_st': 'pitch spread, semitones about the median', 'final_drop_st': 'median phrase ending relative to its phrase, semitones (negative falls)', 'loudness_range_db': 'speech level, 90th minus 10th percentile, dB', 'pause_median_s': 'median pause length', 'pause_p90_s': '90th-percentile pause length', 'pause_share': 'share of the span that is pauses', 'pauses_per_min': 'pauses per minute of span', 'register_st': 'median pitch relative to reference_hz, semitones (needs a reference)', 'speech_rate_sps': "syllables per second of the clip's span (needs the text)", 'voiced_share': 'share of speaking time with a pitch'}*
 
@@ -262,6 +271,28 @@ report each target it misses. Passes unless `miss_severity` is `error`.
 
 * **Return type:**
   [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`ProsodyStats`](#an.verify.prosody.ProsodyStats), [`VerificationReport`](an.verify.md#an.verify.VerificationReport)]
+
+### an.verify.prosody.target_distance(stats, targets, , unmeasurable=1.0)
+
+How far `stats` sits from `targets`: `(outside, off_centre)`, lower is closer.
+
+`outside` sums, over the targets, the distance outside `[low, high]` in
+units of the range’s width (0 for a value inside); a metric this clip cannot
+measure counts `unmeasurable` widths, so a broken take never wins by
+having no number. `off_centre` sums each value’s distance from its range’s
+midpoint, in the same units — the tie-break between takes that are all on
+target. A zero-width range counts as one unit wide.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`float`](https://docs.python.org/3/builtins/functions.html#float), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+```pycon
+>>> s = ProsodyStats(1.0, 1.0, 1.0, 3, 0, *[3.0] * 13)
+>>> target_distance(s, {"f0_sd_st": [2, 4]})
+(0.0, 0.0)
+>>> target_distance(s, {"f0_sd_st": [4, 6], "f0_range_st": [1, 5]})
+(0.5, 1.0)
+```
 
 ### an.verify.prosody.validate_targets(targets)
 

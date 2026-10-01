@@ -9,6 +9,8 @@ an.audio.effects
    .. autosummary::
    
       PITCH_SEMITONES_LIMIT
+      TEMPO_LIMITS
+      ATEMPO_STAGE_LIMITS
       EFFECT_SAMPLE_RATE
    
    .. rubric:: Functions
@@ -16,6 +18,7 @@ an.audio.effects
    .. autosummary::
    
       apply_voice_effects
+      atempo_stages
       filter_chain
       normalize_effects
       voice_effects

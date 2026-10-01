@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=e962dfd9"></script>
+    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.audio.cli" href="an.audio.cli.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.144" />
+  <meta name="docsearch:version" content="0.1.145" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -338,6 +338,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.audio.pipeline.html">an.audio.pipeline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.providers.html">an.audio.providers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.rhubarb_lipsync.html">an.audio.rhubarb_lipsync</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.audio.takes.html">an.audio.takes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.tts.html">an.audio.tts</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.voices.html">an.audio.voices</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.audio.whisper_lipsync.html">an.audio.whisper_lipsync</a></li>
@@ -605,35 +606,53 @@
   <section id="module-an.audio.effects">
 <span id="an-audio-effects"></span><h1>an.audio.effects<a class="headerlink" href="#module-an.audio.effects" title="Link to this heading">#</a></h1>
 <p>Voice effects: a deterministic transform applied to a synthesized line (an#163).</p>
-<p>A voice document in the <code class="docutils literal notranslate"><span class="pre">voices</span></code> store may declare <code class="docutils literal notranslate"><span class="pre">effects</span></code>. The one effect
-that exists is <code class="docutils literal notranslate"><span class="pre">pitch_semitones</span></code> — South Park raises its voices to sound like
-fourth graders, and a raised voice is a property of the <em>character</em>, not of the
+<p>A voice document in the <code class="docutils literal notranslate"><span class="pre">voices</span></code> store may declare <code class="docutils literal notranslate"><span class="pre">effects</span></code>. Two exist:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pitch_semitones</span></code> (an#163) — South Park raises its voices to sound like
+fourth graders; duration-preserving.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tempo</span></code> (an#265) — a pitch-preserving speed ratio (<code class="docutils literal notranslate"><span class="pre">1.1</span></code> is 10% faster).
+<code class="docutils literal notranslate"><span class="pre">eleven_v3</span></code> ignores <code class="docutils literal notranslate"><span class="pre">voice_settings.speed</span></code> and no audio tag moves its rate,
+so a narrator that must run at 5.8 syllables/s, or an expressive voice that
+must be slowed to a serene pace, is re-timed here. Unlike the pitch effect it
+CHANGES the line’s duration.</p></li>
+</ul>
+<p>A raised voice or a fast narrator is a property of the <em>character</em>, not of the
 TTS provider, so it lives beside the voice the line already resolves through
 rather than in the IR.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"pitch_semitones"</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span>
 <span class="go">{'pitch_semitones': 4.0}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"pitch_semitones"</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">normalize_effects</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"pitch_semitones"</span><span class="p">:</span> <span class="mi">0</span><span class="p">})</span> <span class="o">==</span> <span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"tempo"</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span> <span class="o">==</span> <span class="n">normalize_effects</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="p">{}</span>
 <span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"tempo"</span><span class="p">:</span> <span class="mf">1.1</span><span class="p">,</span> <span class="s2">"pitch_semitones"</span><span class="p">:</span> <span class="o">-</span><span class="mi">2</span><span class="p">})</span>
+<span class="go">{'pitch_semitones': -2.0, 'tempo': 1.1}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="n">_pitch_filter</span><span class="p">(</span><span class="mi">12</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
 <span class="go">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_chain</span><span class="p">({</span><span class="s2">"tempo"</span><span class="p">:</span> <span class="mf">1.25</span><span class="p">})</span>
+<span class="go">'aresample=44100,atempo=1.250000000'</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">normalize_effects</span><span class="p">({</span><span class="s2">"reverb"</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="w">    </span><span class="o">...</span>
-<span class="gr">an.audio.effects.VoiceEffectError</span>: <span class="n">unknown voice effect(s) ['reverb']; known: ['pitch_semitones']</span>
+<span class="gr">an.audio.effects.VoiceEffectError</span>: <span class="n">unknown voice effect(s) ['reverb']; known: ['pitch_semitones', 'tempo']</span>
 </pre></div>
 </div>
 <p>Design, in the order the pipeline uses it:</p>
 <ul class="simple">
 <li><p><strong>The transform runs after synthesis and before alignment.</strong> Lip-sync reads the
-audio the viewer hears. The chain keeps the duration (see below), so word
-timings computed on raw and on shifted audio agree to a frame, but the shifted
-bytes are what is aligned regardless.</p></li>
+audio the viewer hears. The pitch chain keeps the duration, so word timings
+computed on raw and on shifted audio agree to a frame; a <code class="docutils literal notranslate"><span class="pre">tempo</span></code> does not,
+which is why the shifted bytes are what is aligned, the line’s <code class="docutils literal notranslate"><span class="pre">duration</span></code> is
+read from them, and the viseme key derives from the effect-keyed audio key —
+visemes, word timings and captions all follow the audio the viewer hears.</p></li>
 <li><p><strong>The cache keys on the effect.</strong> <code class="docutils literal notranslate"><span class="pre">effects_key</span></code> is empty for no effect, and
 <code class="docutils literal notranslate"><span class="pre">an.audio.pipeline</span></code> adds it to the audio key only when it is non-empty, so a
 project that declares none keeps every key it ever had.</p></li>
 <li><p><strong>Stock ffmpeg only.</strong> The chain is <code class="docutils literal notranslate"><span class="pre">aresample</span> <span class="pre">→</span> <span class="pre">asetrate</span> <span class="pre">→</span> <span class="pre">aresample</span> <span class="pre">→</span>
 <span class="pre">atempo</span></code>: the sample rate is relabelled by the pitch ratio (pitch and speed both
-move) and <code class="docutils literal notranslate"><span class="pre">atempo</span></code> removes the speed change. <code class="docutils literal notranslate"><span class="pre">rubberband</span></code> is a better
+move) and <code class="docutils literal notranslate"><span class="pre">atempo</span></code> removes the speed change; a <code class="docutils literal notranslate"><span class="pre">tempo</span></code> multiplies into that
+same <code class="docutils literal notranslate"><span class="pre">atempo</span></code> factor (<code class="docutils literal notranslate"><span class="pre">aresample</span> <span class="pre">→</span> <span class="pre">atempo</span></code> alone when there is no pitch).
+A factor outside <code class="docutils literal notranslate"><span class="pre">atempo</span></code>’s clean <code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">2]</span></code> is split into stages, each
+inside it; the pitch-only chain is one stage, character for character what it
+was before <code class="docutils literal notranslate"><span class="pre">tempo</span></code> existed. <code class="docutils literal notranslate"><span class="pre">rubberband</span></code> is a better
 shifter but is a build option, and its output would differ between machines —
 which a content-hash cache cannot tolerate. The output is bit-exact WAV (no
 encoder tag, no metadata), so two runs produce identical bytes.</p></li>
@@ -643,6 +662,12 @@ encoder tag, no metadata), so two runs produce identical bytes.</p></li>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.PITCH_SEMITONES_LIMIT" title="an.audio.effects.PITCH_SEMITONES_LIMIT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PITCH_SEMITONES_LIMIT</span></code></a></p></td>
 <td><p>Effects a voice document may declare, with the range each accepts.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.TEMPO_LIMITS" title="an.audio.effects.TEMPO_LIMITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TEMPO_LIMITS</span></code></a></p></td>
+<td><p>half to double speed.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.ATEMPO_STAGE_LIMITS" title="an.audio.effects.ATEMPO_STAGE_LIMITS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ATEMPO_STAGE_LIMITS</span></code></a></p></td>
+<td><p>One <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stage's clean range; a factor beyond it is chained in stages.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.EFFECT_SAMPLE_RATE" title="an.audio.effects.EFFECT_SAMPLE_RATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EFFECT_SAMPLE_RATE</span></code></a></p></td>
 <td><p>The sample rate the chain runs at (and the shifted WAV is written at).</p></td>
@@ -656,13 +681,16 @@ encoder tag, no metadata), so two runs produce identical bytes.</p></li>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.apply_voice_effects" title="an.audio.effects.apply_voice_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">apply_voice_effects</span></code></a>(audio, effects)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">audio</span></code> (any container ffmpeg sniffs) with <code class="docutils literal notranslate"><span class="pre">effects</span></code> applied, as WAV bytes.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.filter_chain" title="an.audio.effects.filter_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_chain</span></code></a>(effects)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.atempo_stages" title="an.audio.effects.atempo_stages"><code class="xref py py-obj docutils literal notranslate"><span class="pre">atempo_stages</span></code></a>(factor, *[, limits])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">factor</span></code> as a product of <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages, each inside <code class="docutils literal notranslate"><span class="pre">limits</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.filter_chain" title="an.audio.effects.filter_chain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_chain</span></code></a>(effects)</p></td>
 <td><p>The ffmpeg <code class="docutils literal notranslate"><span class="pre">-af</span></code> chain for normalised <code class="docutils literal notranslate"><span class="pre">effects</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> for none).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.normalize_effects" title="an.audio.effects.normalize_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_effects</span></code></a>(raw)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.normalize_effects" title="an.audio.effects.normalize_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">normalize_effects</span></code></a>(raw)</p></td>
 <td><p>The canonical effects dict for a voice's <code class="docutils literal notranslate"><span class="pre">effects</span></code> value.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.audio.effects.voice_effects" title="an.audio.effects.voice_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_effects</span></code></a>(mall, voice_id)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.audio.effects.voice_effects" title="an.audio.effects.voice_effects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voice_effects</span></code></a>(mall, voice_id)</p></td>
 <td><p>The normalised effects declared by <code class="docutils literal notranslate"><span class="pre">mall[&quot;voices&quot;][voice_id]</span></code>, or <code class="docutils literal notranslate"><span class="pre">{}</span></code>.</p></td>
 </tr>
 </tbody>
@@ -678,6 +706,12 @@ encoder tag, no metadata), so two runs produce identical bytes.</p></li>
 </table>
 </div>
 <dl class="py data">
+<dt class="sig sig-object py" id="an.audio.effects.ATEMPO_STAGE_LIMITS">
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">ATEMPO_STAGE_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.5,</span> <span class="pre">2.0)</span></span><a class="headerlink" href="#an.audio.effects.ATEMPO_STAGE_LIMITS" title="Link to this definition">#</a></dt>
+<dd><p>One <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stage’s clean range; a factor beyond it is chained in stages.</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.audio.effects.EFFECT_SAMPLE_RATE">
 <span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">EFFECT_SAMPLE_RATE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">44100</span></span><a class="headerlink" href="#an.audio.effects.EFFECT_SAMPLE_RATE" title="Link to this definition">#</a></dt>
 <dd><p>The sample rate the chain runs at (and the shifted WAV is written at).</p>
@@ -687,6 +721,17 @@ encoder tag, no metadata), so two runs produce identical bytes.</p></li>
 <dt class="sig sig-object py" id="an.audio.effects.PITCH_SEMITONES_LIMIT">
 <span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">PITCH_SEMITONES_LIMIT</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">12.0</span></span><a class="headerlink" href="#an.audio.effects.PITCH_SEMITONES_LIMIT" title="Link to this definition">#</a></dt>
 <dd><p>Effects a voice document may declare, with the range each accepts.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.audio.effects.TEMPO_LIMITS">
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">TEMPO_LIMITS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(0.5,</span> <span class="pre">2.0)</span></span><a class="headerlink" href="#an.audio.effects.TEMPO_LIMITS" title="Link to this definition">#</a></dt>
+<dd><p>half to double speed. Outside it speech stops being speech.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">tempo</span></code> bounds</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py exception">
@@ -701,13 +746,33 @@ encoder tag, no metadata), so two runs produce identical bytes.</p></li>
 <span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">apply_voice_effects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">effects</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/effects.html#apply_voice_effects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.effects.apply_voice_effects" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">audio</span></code> (any container ffmpeg sniffs) with <code class="docutils literal notranslate"><span class="pre">effects</span></code> applied, as WAV bytes.</p>
 <p>Returns the input unchanged for no effects. Raises <code class="docutils literal notranslate"><span class="pre">VoiceEffectError</span></code> when
-ffmpeg is missing or fails — never returns unshifted audio for a voice that
-asked for a shift.</p>
+ffmpeg is missing or fails — never returns unprocessed audio for a voice that
+asked for an effect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#bytes" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></a></span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.audio.effects.atempo_stages">
+<span class="sig-prename descclassname"><span class="pre">an.audio.effects.</span></span><span class="sig-name descname"><span class="pre">atempo_stages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">factor</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.5,</span> <span class="pre">2.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/audio/effects.html#atempo_stages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.audio.effects.atempo_stages" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">factor</span></code> as a product of <code class="docutils literal notranslate"><span class="pre">atempo</span></code> stages, each inside <code class="docutils literal notranslate"><span class="pre">limits</span></code>.</p>
+<p>One stage when <code class="docutils literal notranslate"><span class="pre">factor</span></code> already fits (the pitch-only chain, always).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">atempo_stages</span><span class="p">(</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="go">[1.5]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atempo_stages</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="go">[2.0, 1.5]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">atempo_stages</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="go">[0.5, 0.6]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -797,10 +862,13 @@ id) has no effects; so does a store that does not exist.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.ATEMPO_STAGE_LIMITS"><code class="docutils literal notranslate"><span class="pre">ATEMPO_STAGE_LIMITS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.EFFECT_SAMPLE_RATE"><code class="docutils literal notranslate"><span class="pre">EFFECT_SAMPLE_RATE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.PITCH_SEMITONES_LIMIT"><code class="docutils literal notranslate"><span class="pre">PITCH_SEMITONES_LIMIT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.TEMPO_LIMITS"><code class="docutils literal notranslate"><span class="pre">TEMPO_LIMITS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.VoiceEffectError"><code class="docutils literal notranslate"><span class="pre">VoiceEffectError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.apply_voice_effects"><code class="docutils literal notranslate"><span class="pre">apply_voice_effects()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.atempo_stages"><code class="docutils literal notranslate"><span class="pre">atempo_stages()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.filter_chain"><code class="docutils literal notranslate"><span class="pre">filter_chain()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.normalize_effects"><code class="docutils literal notranslate"><span class="pre">normalize_effects()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.audio.effects.voice_effects"><code class="docutils literal notranslate"><span class="pre">voice_effects()</span></code></a></li>
