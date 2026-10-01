@@ -26,14 +26,15 @@ reachable here by their old names: the mux, the pixel format and the x264 argv
 (:mod:`an.engines.capture`). Those old names are LIVE aliases
 (:mod:`an._shims`): rebinding ``DETERMINISTIC_X264_ARGS`` or ``DEFAULT_PIX_FMT``
 here rebinds the global the core reads, so the bench's levers keep reaching the
-encode. The whole module moves to ``an.stage`` in the next step of an#247.
+encode. The module itself moved here from ``an/adapters/cutout/render.py`` in
+an#247; that path is a live alias of this one (:func:`an._shims.alias_module`).
 
 Failures are reported with concrete remediation: missing ffmpeg, missing
 Chromium, runtime load timeout, etc. Subprocess errors are wrapped at the
 facade boundary.
 
 >>> CutoutRenderer().name, CutoutRenderer().supported_renderers
-('cutout', ('cutout',))
+('cutout', ('cutout', 'stage'))
 """
 
 from __future__ import annotations

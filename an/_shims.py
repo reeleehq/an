@@ -137,9 +137,8 @@ def alias_module(module_name: str, target: str) -> None:
     -> ``an/stage/render.py``). Every name the old module does not define itself
     is read from, and rebound on, ``target`` -- a lever, a ``monkeypatch``, a
     ``from old import name`` all reach the module the code now runs in. The
-    old module keeps its own ``__file__`` and ``__name__``, so tools that
-    import it by path (pytest's doctest collection) see the file they asked for,
-    and it re-runs no doctest of the target's.
+    old module keeps its own ``__name__`` and ``__spec__``; its ``__file__`` is
+    the target's, so ``inspect.getsource(old)`` is the code that runs.
 
     Call it as the old module's last statement, with ``__name__``.
 
@@ -155,10 +154,16 @@ def alias_module(module_name: str, target: str) -> None:
     >>> del sys.modules["_alias_demo_new"], sys.modules["_alias_demo_old"]
     """
     module = sys.modules[module_name]
-    importlib.import_module(target)  # fail now, not at first access
+    real = importlib.import_module(target)  # fail now, not at first access
     if not isinstance(module, _ForwardingModule):
         module.__class__ = _ForwardingModule
     types.ModuleType.__setattr__(module, _ALIAS_ATTR, target)
+    # The SOURCE of the old name is the new module's: `inspect.getsource(old)`
+    # and anything reading `old.__file__` must see the code that runs, not
+    # the three-line shim. (The import system's own record, `__spec__`, still
+    # names the shim file; `an/conftest.py` keeps doctest collection off it.)
+    if getattr(real, "__file__", None):
+        types.ModuleType.__setattr__(module, "__file__", real.__file__)
 
 
 def aliased_to(module: types.ModuleType) -> str | None:
