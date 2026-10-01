@@ -305,8 +305,10 @@ def test_an_encode_failure_surfaces_as_the_typed_error(tmp_path, monkeypatch):
 
 
 def test_capture_frames_dispatches_on_the_knob(tmp_path):
-    """The dispatch sits inside `_capture_frames`, the one function the bench's
-    supersample lever wraps, so the lever reaches either path."""
+    """`_capture_frames` picks the session the knob names; both run through the
+    core capture loop (`an.engines.capture.capture_frames`, since an#247), the
+    one function the bench's supersample lever wraps, so the lever reaches
+    either path."""
     page = _FakePage()
     render._capture_frames(page, 3, 24, tmp_path, capture="canvas")
     assert len(page.requests) == 1

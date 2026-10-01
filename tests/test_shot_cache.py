@@ -680,6 +680,55 @@ def test_the_render_path_walk_reaches_every_module_the_renderer_imports():
             assert name in mods or name in RENDER_PATH_EXCLUDED, name
 
 
+def test_the_render_path_walk_reaches_what_the_frame_stage_runs():
+    """an#247: the capture loop, the resolves and the mux live in the core and
+    are reached from the old render module only through LIVE aliases, whose
+    targets are strings. Every one of them, the frame stage the renderer's
+    `render` comes from, and the engine's module must be in the code part."""
+    from an._shims import forwarded_names
+    from an.adapters.cutout import render
+    from an.adapters.cutout.cache_key import render_path_modules, render_path_roots
+    from an.engines.frame_stage import FrameStageRenderer
+
+    mods = render_path_modules()
+    renderer = render.CutoutRenderer()
+    required = {
+        FrameStageRenderer.__module__,
+        type(renderer).__module__,
+        type(renderer).render.__module__,
+        type(renderer.engine).__module__,
+        "an.engines.capture",
+        "an.engines.protocol",
+        "an.media.mp4",
+        "an.media.frames",
+        "an.media.supersample",
+        "an.media.shutter",
+        "an._shims",
+    }
+    for name in list(mods):
+        module = __import__(name, fromlist=["_"])
+        required |= {target for target, _ in forwarded_names(module).values()}
+    missing = sorted(required - set(mods))
+    assert not missing, f"render-path modules outside the code key: {missing}"
+    assert set(render_path_roots()) <= set(mods)
+
+
+def test_the_render_path_walk_follows_a_module_that_is_only_a_shim(tmp_path, monkeypatch):
+    """an#247 PR B turns the old render module into a pure re-export shim: no
+    `import` of the new home, only `forward_module_attributes(...)` with a
+    string target. The walk must still reach the target."""
+    from an.adapters.cutout.cache_key import render_path_modules
+
+    (tmp_path / "an_pure_shim_probe.py").write_text(
+        "from an._shims import forward_module_attributes\n"
+        'forward_module_attributes(__name__, "an.media.mp4", ["DEFAULT_PIX_FMT"])\n',
+        encoding="utf-8",
+    )
+    monkeypatch.syspath_prepend(str(tmp_path))
+    mods = render_path_modules("an_pure_shim_probe")
+    assert {"an.media.mp4", "an.media.frames", "an._shims"} <= set(mods)
+
+
 def test_the_code_digest_moves_when_a_source_byte_does(tmp_path):
     from an.adapters.cutout.cache_key import _source_facts
 

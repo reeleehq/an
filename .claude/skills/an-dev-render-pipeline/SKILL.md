@@ -1,6 +1,6 @@
 ---
 name: an-dev-render-pipeline
-description: The frame path in the `an` repo, end to end — Pixi rasterisation, Playwright element capture, the PNG stage, the x264 mux, concat and delivery — and what each stage can lose. Use when changing anything that touches a pixel or an encode flag - supersampling, resolution, antialias, `device_scale_factor`, `autoDensity`, downscale filters, `-pix_fmt` / CRF / preset / colour tags, `_capture_frames`, `_ffmpeg_mux`, `_ffmpeg_concat`, `runtime.js`'s PIXI.Application options, or the per-shot mp4 store. Triggers on "supersample", "why is the render soft", "add an encoder flag", "make it render bigger", "downscale", "4:4:4", "faststart", "the frames look wrong", "speed up the render".
+description: The frame path in the `an` repo, end to end — Pixi rasterisation, Playwright element capture, the PNG stage, the x264 mux, concat and delivery — and what each stage can lose. Use when changing anything that touches a pixel or an encode flag - supersampling, resolution, antialias, `device_scale_factor`, `autoDensity`, downscale filters, `-pix_fmt` / CRF / preset / colour tags, `_capture_frames`, `_ffmpeg_mux`, `an/engines/` (the frame stage, `capture_frames`, `frame_stage_renderer`), `an/media/` (`mp4.py`, `supersample.py`, `shutter.py`, sinks), `_ffmpeg_concat`, `runtime.js`'s PIXI.Application options, or the per-shot mp4 store. Triggers on "supersample", "why is the render soft", "add an encoder flag", "make it render bigger", "downscale", "4:4:4", "faststart", "the frames look wrong", "speed up the render".
 ---
 
 # The frame path, and what each stage can lose
@@ -20,6 +20,15 @@ about measuring them. Any change here that could move a pixel needs the
 ---
 
 ## 1. The path, stage by stage
+
+**Since an#247 the path is split at the engine seam.** The stage engine
+(`StageEngine` in `an/adapters/cutout/render.py`, moving to `an.stage`) does
+steps 1-5 (compile, stage, Chromium, load, determinism probe) and yields a
+session; the CORE frame stage (`an.engines.frame_stage_renderer`) validates the
+knobs first and owns steps 6-8 for every engine: the capture loop
+(`an.engines.capture`, sequential or batched), the resolves (`an.media.supersample`,
+`an.media.shutter`) and the mux (`an.media.mp4`). The names below are the old ones;
+every one still resolves (the mux/argv/pixel-format names as LIVE aliases).
 
 ```
 an.render.render(project, …)
@@ -136,7 +145,8 @@ record that it happened. Measured on `aa_probe` (declared 320x240):
   overwrites the global from `ctx.supersample`, so the lever **overrides the line
   that reads it** instead. That was found by an#54's shape guard reporting
   160x120 frames against a 320x240 declaration.
-- **The resolve is `an.adapters.cutout.supersample.block_mean_resolve` — one
+- **The resolve is `an.media.supersample.block_mean_resolve` (moved there from
+  `an.adapters.cutout.supersample` in an#247, which re-exports it) — one
   implementation, three callers**: the renderer, the bench lever, and
   `misc/bench/wave3_ab.py`. A lever that computes the resolve differently from
   the product it examines is a lever measuring nothing, and nothing in CI would
@@ -302,8 +312,9 @@ is overstated, but the corpus cannot inform the choice.
 
 ## 3. Every encoder flag, and why it is there
 
-`DETERMINISTIC_X264_ARGS` in `an/adapters/cutout/render.py`, plus three literals
-`_ffmpeg_mux` spells inline. **None of these is a default someone liked** — each
+`DETERMINISTIC_X264_ARGS` in `an/media/mp4.py` (moved from
+`an/adapters/cutout/render.py` in an#247, whose old names are LIVE aliases), plus three literals
+`mux_frames` (old name `_ffmpeg_mux`) spells inline. **None of these is a default someone liked** — each
 is a named constant with a recorded reason.
 
 | flag | why | note |
@@ -359,6 +370,13 @@ guard green. Only the file knows which seam won.
 ---
 
 ## 4. Two bench levers are pinned to the exact shape of this code
+
+**Since an#247 the seams live in the core**: the argv and pixel format in
+`an.media.mp4` (rebinding the old `an.adapters.cutout.render` names still lands
+there — they are live aliases, `an/_shims.py`; a plain re-export would have
+disarmed both levers silently), and the frame-stage seam the `supersample` lever
+wraps is `an.engines.capture.capture_frames`, which `frame_stage_renderer` reads
+as a module attribute at call time.
 
 The measurement instrument reaches this pipeline **from the outside**, through
 seams the product code has by accident of style. Break the style, disarm the

@@ -46,15 +46,11 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 OUT_DIR = REPO_ROOT / "misc" / "demos" / "out"
 
-#: GIF recipe for flat cutout art. `dither=none` because dithering a flat fill invents
-#: texture that is not in the render, and a limited palette because these frames genuinely
-#: hold few colours — the whole point of `frame_distinct_colours` being a small number.
-#: 12 rather than the render's 24. A GIF stores whole frames, so halving the
-#: rate halves the file; at this scale nothing in these clips moves fast enough
-#: for the drop to read. The mp4 beside each GIF keeps the full rate.
-GIF_FPS: int = 12
-GIF_WIDTH: int = 480
-GIF_MAX_COLOURS: int = 128
+#: The GIF recipe for flat cutout art -- the palette from the clip's own colours,
+#: no dithering, 12 fps, 480 px -- lives in `an.media.gif` since an#247, the
+#: one copy in the repository (its module docstring carries the reasons).
+#: Re-exported here under the names this script has always used.
+from an.media.gif import GIF_FPS, GIF_MAX_COLOURS, GIF_WIDTH, to_gif  # noqa: E402,F401
 
 #: Refuse to publish a GIF larger than this. GitHub renders bigger ones, but a
 #: reader on a phone pays for every byte and a demo nobody waits for is not a
@@ -133,21 +129,6 @@ def _render(project: Path, **kwargs) -> Path:
     # demos are where a change to the render path is LOOKED at.
     kwargs.setdefault("incremental", False)
     return Path(render(load(project), tts="offline", lipsync="offline", **kwargs))
-
-
-def to_gif(mp4: Path, gif: Path, *, crop: str = "") -> Path:
-    """mp4 -> GIF, with a palette generated from the clip's own colours."""
-    crop_clause = f"crop={crop}," if crop else ""
-    vf = (
-        f"{crop_clause}fps={GIF_FPS},scale={GIF_WIDTH}:-1:flags=neighbor"
-        f",split[a][b];"
-        f"[a]palettegen=max_colors={GIF_MAX_COLOURS}[p];[b][p]paletteuse=dither=none"
-    )
-    subprocess.run(
-        ["ffmpeg", "-v", "error", "-y", "-i", str(mp4), "-vf", vf, str(gif)],
-        check=True,
-    )
-    return gif
 
 
 # -----------------------------------------------------------------------------

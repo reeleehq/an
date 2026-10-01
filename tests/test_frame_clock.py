@@ -151,8 +151,10 @@ class _FakeCanvas:
         self.log = log
 
     def screenshot(self, path=None, omit_background=False):
+        # Since an#247 the core frame stage writes every frame file, so the
+        # screenshot is taken to BYTES; `path` is logged to prove it stays None.
         self.log.append(("shot", path))
-        return b""
+        return f"shot-{len(self.log)}".encode()
 
 
 class _FakePage:
@@ -169,17 +171,26 @@ class _FakePage:
 
 
 def test_no_frame_samples_is_the_old_capture_call_for_call(tmp_path):
+    """One seek and one capture per frame, in order -- and the screenshot's own
+    bytes reach each frame file untouched (nothing decoded at supersample 1).
+
+    Before an#247 the page wrote the file itself (`screenshot(path=...)`); the
+    core frame stage now writes every engine's frames, so this pins the bytes
+    rather than the keyword."""
     page = _FakePage()
     # The screenshot path by name: it is no longer the default (an#192).
     _capture_frames(page, 3, 30, tmp_path, capture="screenshot")
     assert page.log == [
         ("t", 0.0),
-        ("shot", str(tmp_path / (DEFAULT_FRAME_PNG_PATTERN % 0))),
+        ("shot", None),
         ("t", 1 / 30),
-        ("shot", str(tmp_path / (DEFAULT_FRAME_PNG_PATTERN % 1))),
+        ("shot", None),
         ("t", 2 / 30),
-        ("shot", str(tmp_path / (DEFAULT_FRAME_PNG_PATTERN % 2))),
+        ("shot", None),
     ]
+    assert [
+        (tmp_path / (DEFAULT_FRAME_PNG_PATTERN % i)).read_bytes() for i in range(3)
+    ] == [b"shot-2", b"shot-4", b"shot-6"]
 
 
 def test_single_instant_frame_samples_capture_exactly_those_instants(tmp_path):
@@ -188,7 +199,8 @@ def test_single_instant_frame_samples_capture_exactly_those_instants(tmp_path):
         page, 2, 30, tmp_path, frame_samples=((0.01,), (0.05,)), capture="screenshot"
     )
     assert [e for e in page.log if e[0] == "t"] == [("t", 0.01), ("t", 0.05)]
-    assert [e[1] for e in page.log if e[0] == "shot"] == [
-        str(tmp_path / (DEFAULT_FRAME_PNG_PATTERN % 0)),
-        str(tmp_path / (DEFAULT_FRAME_PNG_PATTERN % 1)),
+    assert [e[1] for e in page.log if e[0] == "shot"] == [None, None]
+    assert sorted(p.name for p in tmp_path.glob("*.png")) == [
+        DEFAULT_FRAME_PNG_PATTERN % 0,
+        DEFAULT_FRAME_PNG_PATTERN % 1,
     ]

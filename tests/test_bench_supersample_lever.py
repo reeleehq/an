@@ -77,7 +77,7 @@ def test_the_supersample_lever_stages_a_runtime_that_renders_at_k(tmp_path):
 
 
 def test_the_supersample_lever_rebinds_the_frame_stage_as_well_as_the_runtime():
-    """MUTATION: `render._capture_frames = _capture_then_resolve` -> `= original`.
+    """MUTATION: `capture.capture_frames = _capture_then_resolve` -> `= original`.
 
     **The second seam, and it is not optional.** Patching `runtime.js` alone
     leaves k-times PNGs on disk, and nothing downstream reads a resolution off
@@ -86,20 +86,25 @@ def test_the_supersample_lever_rebinds_the_frame_stage_as_well_as_the_runtime():
     golden gate would withhold family B's number, which is one of the three
     witnesses this lever's criterion cannot do without.
 
+    The seam is the core frame stage's capture loop since an#247
+    (`an.engines.capture.capture_frames`, read at call time by
+    `an.engines.frame_stage`); before it, the stage renderer's own
+    `_capture_frames`.
+
     Asserted here as well as in the browser exam because the exam takes minutes
     and this takes milliseconds: a guard nobody can afford to run is a guard
     nobody runs.
     """
-    from an.adapters.cutout import render
+    from an.engines import capture
 
-    shipped_capture = render._capture_frames
+    shipped_capture = capture.capture_frames
     with LEVERS["supersample"].apply():
-        assert render._capture_frames is not shipped_capture, (
+        assert capture.capture_frames is not shipped_capture, (
             "the lever must wrap the frame stage; patching runtime.js alone "
             "leaves k-times PNGs that nothing downstream will notice"
         )
-        assert render._capture_frames.__name__ == "_capture_then_resolve"
-    assert render._capture_frames is shipped_capture, "the rebinding must be undone"
+        assert capture.capture_frames.__name__ == "_capture_then_resolve"
+    assert capture.capture_frames is shipped_capture, "the rebinding must be undone"
 
 
 def test_the_supersample_fingerprint_refuses_the_aa_levers_runtime():
