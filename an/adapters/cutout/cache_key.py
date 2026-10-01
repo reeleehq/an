@@ -199,23 +199,23 @@ def render_path_modules(
     return dict(sorted(found.items()))
 
 
-#: ``{(path, stat identity): (sha256, imports)}`` for render-path SOURCE files.
-#: Keyed on the ctime and inode as well as mtime and size: ctime cannot be set
-#: by ``os.utime`` or by any copy tool, so an edit is never mistaken for the
-#: file it replaced (the hole an (mtime, size) memo leaves, review S2).
-_SOURCE_MEMO: dict[tuple, tuple[str, frozenset[str]]] = {}
+#: ``{sha256 of a source file: the an.* modules it imports}``. Keyed on the
+#: CONTENT, never on a stat: the bytes are read and hashed every time (a few
+#: small files, well under a millisecond), and only the parse is memoised. A
+#: stat key — even with ctime and inode — is not portable: on Windows
+#: ``st_ctime`` is the creation time, so an edit that restores the mtime would
+#: pass for the file it replaced (review S2, and the Windows lane).
+_IMPORTS_MEMO: dict[tuple[str, str], frozenset[str]] = {}
 
 
 def _source_facts(path: Path, module: str) -> tuple[str, frozenset[str]]:
-    st = path.stat()
-    key = (str(path), st.st_size, st.st_mtime_ns, st.st_ctime_ns, st.st_ino, module)
-    if key not in _SOURCE_MEMO:
-        data = path.read_bytes()
-        _SOURCE_MEMO[key] = (
-            bytes_digest(data),
-            frozenset(_module_imports(ast.parse(data), module)),
+    data = path.read_bytes()
+    digest = bytes_digest(data)
+    if (digest, module) not in _IMPORTS_MEMO:
+        _IMPORTS_MEMO[(digest, module)] = frozenset(
+            _module_imports(ast.parse(data), module)
         )
-    return _SOURCE_MEMO[key]
+    return digest, _IMPORTS_MEMO[(digest, module)]
 
 
 def render_code_digest() -> str:
