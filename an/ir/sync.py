@@ -710,11 +710,54 @@ def ir_to_markdown(scene: SceneIR) -> str:
     True
     >>> "## Shot s1 (cutout)" in md
     True
-    """
-    parts: list[str] = []
-    title = scene.meta.title or "Untitled"
-    parts.append(f"# {title}\n")
 
+    This writes the WHOLE document in the writer's own formatting, and keeps no
+    prose but ``meta.notes``. Updating an existing ``scene.md`` goes through
+    :func:`merge_markdown`, which keeps the author's text wherever the content
+    did not change.
+    """
+    parts: list[str] = [_md_title_line(scene) + "\n"]
+    parts.append(_md_fence(_META_FENCE, _md_meta_body(scene)) + "\n")
+
+    if scene.meta.notes:
+        parts.append(scene.meta.notes.rstrip() + "\n")
+
+    for shot in scene.timeline:
+        parts.append(_md_shot_text(shot))
+
+    return "\n".join(parts).rstrip() + "\n"
+
+
+#: A fenced block's identity in ``scene.md``: ``(language, label)``.
+FenceKey = tuple[str, "str | None"]
+
+_META_FENCE: FenceKey = ("yaml", "meta")
+
+#: The blocks the writer emits per shot, in the order it emits them.
+_SHOT_FENCES: tuple[FenceKey, ...] = (
+    ("yaml", "shot"),
+    ("yaml", "entities"),
+    ("yaml", "actions"),
+    ("dialogue", None),
+)
+
+
+def _md_fence(key: FenceKey, body: str) -> str:
+    lang, label = key
+    opener = f"```{lang} {label}" if label else f"```{lang}"
+    return f"{opener}\n{body}\n```"
+
+
+def _md_title_line(scene: SceneIR) -> str:
+    return f"# {scene.meta.title or 'Untitled'}"
+
+
+def _md_shot_heading(shot: Shot) -> str:
+    return f"## Shot {shot.id} ({shot.renderer})"
+
+
+def _md_meta_body(scene: SceneIR) -> str:
+    """The ```yaml meta`` block's body, as the writer spells it."""
     meta_dict = {
         "title": scene.meta.title,
         "author": scene.meta.author,
@@ -745,52 +788,241 @@ def ir_to_markdown(scene: SceneIR) -> str:
         ]
     if scene.meta.captions is not None:  # an#175, same rule
         meta_dict["captions"] = scene.meta.captions.model_dump(exclude_defaults=True)
-    parts.append("```yaml meta")
-    parts.append(yaml.safe_dump(meta_dict, sort_keys=False).rstrip())
-    parts.append("```\n")
+    return yaml.safe_dump(meta_dict, sort_keys=False).rstrip()
 
-    if scene.meta.notes:
-        parts.append(scene.meta.notes.rstrip() + "\n")
 
-    for shot in scene.timeline:
-        parts.append(f"## Shot {shot.id} ({shot.renderer})\n")
-        shot_yaml: dict[str, Any] = {"duration": shot.duration}
-        if shot.step_hz is not None:
-            shot_yaml["step_hz"] = shot.step_hz
-        if shot.camera is not None:
-            shot_yaml["camera"] = shot.camera.model_dump(exclude_none=True)
-        if shot.options:
-            shot_yaml["options"] = shot.options
-        if shot.transition is not None:
-            shot_yaml["transition"] = shot.transition.model_dump(exclude_defaults=True)
-        if shot.sounds:
-            shot_yaml["sounds"] = [
-                c.model_dump(exclude_defaults=True) for c in shot.sounds
-            ]
-        parts.append("```yaml shot")
-        parts.append(yaml.safe_dump(shot_yaml, sort_keys=False).rstrip())
-        parts.append("```\n")
-        if shot.entities:
-            parts.append("```yaml entities")
-            entities_dump = [
-                e.model_dump(exclude_none=True, exclude_defaults=False)
-                for e in shot.entities
-            ]
-            parts.append(yaml.safe_dump(entities_dump, sort_keys=False).rstrip())
-            parts.append("```\n")
-        if shot.actions:
-            actions_dump = _actions_to_yaml_list(shot.actions)
-            if actions_dump:
-                parts.append("```yaml actions")
-                parts.append(yaml.safe_dump(actions_dump, sort_keys=False).rstrip())
-                parts.append("```\n")
-        if shot.dialogue:
-            parts.append("```dialogue")
-            for line in shot.dialogue:
-                parts.append(_format_dialogue_line(line))
-            parts.append("```\n")
+def _md_shot_blocks(shot: Shot) -> dict[FenceKey, str]:
+    """The fenced blocks the writer emits for ``shot``: ``{fence: body}``, in order."""
+    blocks: dict[FenceKey, str] = {}
+    shot_yaml: dict[str, Any] = {"duration": shot.duration}
+    if shot.step_hz is not None:
+        shot_yaml["step_hz"] = shot.step_hz
+    if shot.camera is not None:
+        shot_yaml["camera"] = shot.camera.model_dump(exclude_none=True)
+    if shot.options:
+        shot_yaml["options"] = shot.options
+    if shot.transition is not None:
+        shot_yaml["transition"] = shot.transition.model_dump(exclude_defaults=True)
+    if shot.sounds:
+        shot_yaml["sounds"] = [c.model_dump(exclude_defaults=True) for c in shot.sounds]
+    blocks[("yaml", "shot")] = yaml.safe_dump(shot_yaml, sort_keys=False).rstrip()
+    if shot.entities:
+        entities_dump = [
+            e.model_dump(exclude_none=True, exclude_defaults=False)
+            for e in shot.entities
+        ]
+        blocks[("yaml", "entities")] = yaml.safe_dump(
+            entities_dump, sort_keys=False
+        ).rstrip()
+    if shot.actions:
+        actions_dump = _actions_to_yaml_list(shot.actions)
+        if actions_dump:
+            blocks[("yaml", "actions")] = yaml.safe_dump(
+                actions_dump, sort_keys=False
+            ).rstrip()
+    if shot.dialogue:
+        blocks[("dialogue", None)] = "\n".join(
+            _format_dialogue_line(line) for line in shot.dialogue
+        )
+    return blocks
 
-    return "\n".join(parts).rstrip() + "\n"
+
+def _md_shot_text(shot: Shot) -> str:
+    """One shot as the writer spells it: heading, then its blocks."""
+    parts = [_md_shot_heading(shot) + "\n"]
+    parts += [_md_fence(key, body) + "\n" for key, body in _md_shot_blocks(shot).items()]
+    return "\n".join(parts)
+
+
+# -----------------------------------------------------------------------------
+# Updating an existing scene.md (an#275)
+# -----------------------------------------------------------------------------
+
+
+class MarkdownMergeWarning(UserWarning):
+    """``scene.md`` was regenerated whole, losing the author's prose and formatting."""
+
+
+def _md_canonical(md_text: str) -> str:
+    """What ``md_text`` SAYS, in the writer's spelling: the round trip through the IR.
+
+    Two documents with the same canonical form compile to the same scene;
+    formatting, comments and prose do not reach it.
+    """
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # the author was told when it was read
+        return ir_to_markdown(markdown_to_ir(md_text))
+
+
+def merge_markdown(existing: str, scene: SceneIR) -> str:
+    r"""``existing`` updated to say what ``scene`` says, rewriting only what changed.
+
+    The writer (:func:`ir_to_markdown`) re-spells everything — an inline
+    mapping becomes block style, ``at: 0.0`` is dropped as a default — and
+    keeps no prose, so a store write after a render used to rewrite a file the
+    author was still editing (an#275). This keeps the author's text instead:
+
+    - if ``existing`` already says what ``scene`` says (same canonical form,
+      :func:`_md_canonical`), it is returned UNCHANGED — the common case, a
+      pipeline write that only added JSON-side state (audio, visemes);
+    - otherwise only the parts whose content differs are rewritten: the title
+      line, the ```yaml meta`` block, a shot's heading, and each of a shot's
+      fenced blocks (``shot``, ``entities``, ``actions``, ``dialogue``) one by
+      one. A new shot is appended in the writer's form, a removed one is
+      dropped with its section. Prose, comments and unknown blocks outside a
+      rewritten block are never touched.
+
+    The result is checked: it must read back as ``scene`` does. If the patch
+    cannot be made to (an unreadable ``existing``, a duplicated shot id), the
+    whole document is regenerated and a :class:`MarkdownMergeWarning` says so.
+
+    >>> from an.ir.schema import SceneIR, Meta, Shot
+    >>> md = ("# Demo\n\nPrologue the IR does not hold.\n\n"
+    ...       "```yaml meta\ntitle: Demo\nduration: 5\n```\n\n"
+    ...       "## Shot s1 (cutout)\n\nShe walks in.\n\n```yaml shot\n{duration: 5}\n```\n")
+    >>> scene = markdown_to_ir(md)
+    >>> merge_markdown(md, scene) == md  # same content: untouched
+    True
+    >>> scene.timeline[0].duration = 4.0
+    >>> out = merge_markdown(md, scene)
+    >>> "Prologue the IR does not hold." in out and "She walks in." in out
+    True
+    >>> markdown_to_ir(out).timeline[0].duration
+    4.0
+    """
+    target = ir_to_markdown(scene)
+    try:
+        want = _md_canonical(target)
+        if _md_canonical(existing) == want:
+            return existing
+        old = markdown_to_ir(existing)
+    except Exception as e:  # the existing file cannot be read: nothing to keep
+        warnings.warn(
+            f"scene.md was regenerated from the IR: the existing file could not be "
+            f"read ({type(e).__name__}: {e}), so its formatting and prose were not kept.",
+            MarkdownMergeWarning,
+            stacklevel=2,
+        )
+        return target
+    reason = "a shot id appears twice"
+    ids = [s.id for s in old.timeline]
+    if len(set(ids)) == len(ids):
+        merged = _patch_markdown(existing, old, scene)
+        try:
+            if _md_canonical(merged) == want:
+                return merged
+            reason = "the patched file did not read back as the scene"
+        except Exception as e:  # noqa: BLE001 - a patch that does not parse
+            reason = f"the patched file did not parse ({type(e).__name__}: {e})"
+    warnings.warn(
+        f"scene.md was regenerated from the IR ({reason}); the author's prose and "
+        "formatting were not kept. Please report the scene.md that caused it.",
+        MarkdownMergeWarning,
+        stacklevel=2,
+    )
+    return target
+
+
+_H1_RE = re.compile(r"^# (?!#).*$", re.MULTILINE)
+
+
+def _fences_in(text: str) -> list[tuple[FenceKey, "re.Match[str]"]]:
+    return [((m.group(1), m.group(2)), m) for m in _FENCE_RE.finditer(text)]
+
+
+def _replace_block(text: str, key: FenceKey, body: str | None) -> str:
+    """``text`` with its first ``key`` block's body set to ``body``; removed when
+    ``body`` is ``None``. The caller has checked the block exists."""
+    m = next(m for k, m in _fences_in(text) if k == key)
+    if body is not None:
+        return text[: m.start(3)] + body + text[m.end(3) :]
+    left, right = text[: m.start()].rstrip("\n"), text[m.end() :].lstrip("\n")
+    return left + ("\n\n" + right if right else "\n")
+
+
+def _insert_block(
+    text: str, key: FenceKey, body: str, *, order: tuple[FenceKey, ...]
+) -> str:
+    """``text`` with a new ``key`` block placed where the writer would put it:
+    after the nearest block that precedes it in ``order``, else before the
+    nearest that follows it, else at the end of ``text``."""
+    fences = _fences_in(text)
+    block = _md_fence(key, body)
+    rank = order.index(key)
+    before = [m for k, m in fences if k in order and order.index(k) < rank]
+    if before:
+        at = before[-1].end()
+        return text[:at] + "\n\n" + block + text[at:]
+    after = [m for k, m in fences if k in order and order.index(k) > rank]
+    if after:
+        at = after[0].start()
+        return text[:at] + block + "\n\n" + text[at:]
+    stripped = text.rstrip("\n")
+    return stripped + ("\n\n" if stripped else "") + block + "\n"
+
+
+def _patch_blocks(
+    text: str,
+    old: dict[FenceKey, str],
+    new: dict[FenceKey, str],
+    *,
+    order: tuple[FenceKey, ...],
+) -> str:
+    """Rewrite, insert or remove each block of ``order`` whose content changed."""
+    for key in order:
+        if old.get(key) == new.get(key):
+            continue
+        present = any(k == key for k, _ in _fences_in(text))
+        if present:
+            text = _replace_block(text, key, new.get(key))
+        elif key in new:
+            text = _insert_block(text, key, new[key], order=order)
+    return text
+
+
+def _patch_markdown(existing: str, old: SceneIR, new: SceneIR) -> str:
+    """The block-level patch :func:`merge_markdown` describes (unchecked)."""
+    headings = list(_SHOT_HEADING_RE.finditer(existing))
+    cut = headings[0].start() if headings else len(existing)
+    head = existing[:cut]
+
+    # The title line and the meta block live before the first shot.
+    if _md_title_line(old) != _md_title_line(new) or not _H1_RE.search(head):
+        line = _md_title_line(new)
+        head = _H1_RE.sub(line, head, count=1) if _H1_RE.search(head) else line + "\n\n" + head
+    head = _patch_blocks(
+        head,
+        {_META_FENCE: _md_meta_body(old)},
+        {_META_FENCE: _md_meta_body(new)},
+        order=(_META_FENCE,),
+    )
+    if _META_FENCE not in {k for k, _ in _fences_in(head)}:
+        title = _H1_RE.search(head)
+        at = title.end() if title else 0
+        head = head[:at] + "\n\n" + _md_fence(_META_FENCE, _md_meta_body(new)) + head[at:]
+
+    sections: dict[str, tuple[str, str]] = {}
+    for i, m in enumerate(headings):
+        end = headings[i + 1].start() if i + 1 < len(headings) else len(existing)
+        sections[m.group(1)] = (m.group(0), existing[m.end() : end])
+    old_shots = {s.id: s for s in old.timeline}
+
+    out = [head]
+    for shot in new.timeline:
+        if shot.id not in sections:
+            if not out[-1].endswith("\n\n"):
+                out[-1] = out[-1].rstrip("\n") + "\n\n"
+            out.append(_md_shot_text(shot))
+            continue
+        heading, body = sections[shot.id]
+        before = old_shots[shot.id]
+        if before.renderer != shot.renderer:  # keep what the match took after it
+            heading = _md_shot_heading(shot) + heading[len(heading.rstrip()) :]
+        body = _patch_blocks(
+            body, _md_shot_blocks(before), _md_shot_blocks(shot), order=_SHOT_FENCES
+        )
+        out.append(heading + body)
+    return "".join(out).rstrip("\n") + "\n"
 
 
 def _actions_to_yaml_list(actions: list) -> list[dict]:
@@ -992,7 +1224,10 @@ def sync(project_dir: str | Path) -> SyncResult:
         if skew > SYNC_MTIME_TOLERANCE_S:
             data = json.loads(_read_text(json_path))
             scene = scene_from_json_doc(data, source=json_path)
-            _write_text(md_path, ir_to_markdown(scene))
+            existing = _read_text(md_path)
+            markdown = merge_markdown(existing, scene)  # an#275: keep the author's text
+            if markdown != existing:
+                _write_text(md_path, markdown)
             # Equalize mtimes so this regen doesn't immediately flip the next
             # sync into "md is newer → regenerate json (losing pipeline state)".
             import os

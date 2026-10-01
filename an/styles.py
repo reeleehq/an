@@ -62,6 +62,7 @@ from pydantic import (
 
 from an.ir.assets import AssetSource
 from an.ir.migrate import DocumentKind, register_kind
+from an.paint import Gradient
 
 __all__ = [
     "STYLE_SCHEMA_VERSION",
@@ -339,6 +340,13 @@ class StylePack(BaseModel):
     entity_surfaces: dict[str, SurfaceTreatment] = Field(default_factory=dict)
     #: One static paper grain over the frame; ``None`` = none.
     grain: Grain | None = None
+    #: **Gradient roles** (an#275): ``{role: Gradient}``. A stage plane that
+    #: names a ``role`` (``PlaneArt.role``) is drawn with the pack's gradient
+    #: for it -- how a style paints every environment's backdrop as backlit
+    #: glass or a dusk sky without editing the environments. Role names are the
+    #: environments' own, so they are free-form; a role no plane names simply
+    #: paints nothing in that scene.
+    gradients: dict[str, Gradient] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _every_role_is_reachable(self) -> "StylePack":
@@ -385,6 +393,16 @@ class StylePack(BaseModel):
                     "An unknown key is kept but read by nothing."
                 )
         return self
+
+    def gradient_for(self, role: str | None) -> Gradient | None:
+        """The pack's gradient for ``role``, or ``None`` (the plane keeps its own paint).
+
+        >>> pack = StylePack(name="reiniger", gradients={"glass": {
+        ...     "type": "radial", "stops": ["#fff4d6", "#e0a050"]}})
+        >>> pack.gradient_for("glass").type, pack.gradient_for("sky"), pack.gradient_for(None)
+        ('radial', None, None)
+        """
+        return None if role is None else self.gradients.get(role)
 
     def colour_for(self, role: str, *, entity: str | None = None) -> Optional[str]:
         """The colour for ``role``, or ``None`` when the pack does not set it.

@@ -56,6 +56,7 @@ from typing import Any, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_serializer, model_validator
 
 from an.ir.assets import AssetSource
+from an.paint import Gradient
 from an.ir.migrate import DocumentKind, omit_unset, register_kind
 
 __all__ = [
@@ -129,22 +130,70 @@ class PlaneArt(BaseModel):
     An `image` is SVG or raster — PNG, JPEG or WebP (an#211): the compiler
     sizes it from its header and PixiJS loads it natively.
 
-    Two kinds ship, and the omission is deliberate rather than partial:
-    `gradient` and `generated` would each need a runtime that can draw them,
-    and this package's standing rule is that schema without a consumer is
-    worse than an absent field — the `repeat`/`TilingSprite` decision in
-    an#110 is the same call made the same way.
+    A `gradient` (an#275) is a linear or radial blend of colour stops
+    (:class:`an.paint.Gradient`, CSS's vocabulary), compiled into an inline SVG
+    texture (:mod:`an.stage.gradients`) -- a backlit-glass plate or a sky
+    without hand-drawing one:
+
+    >>> PlaneArt(kind="gradient", gradient={"type": "radial",
+    ...          "stops": ["#fff3d0", "#3a2a18"]}).gradient.type
+    'radial'
+
+    A `role` names the plane's paint for a StylePack: under a pack whose
+    `gradients` sets that role, the plane is drawn with the pack's gradient (a
+    `fill` plane included); with no pack, or a pack that does not set it, the
+    plane draws exactly as authored.
+
+    >>> PlaneArt(kind="fill", color="#202830", role="glass").role
+    'glass'
+
+    `generated` art is still not a kind: it needs a generator, and this
+    package's standing rule is that schema without a consumer is worse than an
+    absent field — the `repeat`/`TilingSprite` decision in an#110 is the same
+    call made the same way.
     """
 
     model_config = ConfigDict(extra="forbid")
 
-    kind: Literal["fill", "image"] = "fill"
+    kind: Literal["fill", "image", "gradient"] = "fill"
     #: `fill` only: a CSS colour.
     color: str = "#888888"
     #: `image` only: a path under the environment's own folder in the store,
     #: exactly as a character attachment's `path` is — `.svg`, `.png`,
     #: `.jpg`/`.jpeg` or `.webp`.
     src: Optional[str] = None
+    #: `gradient` only: the gradient (an#275). Omitted from the stored document
+    #: when unset.
+    gradient: Optional[Gradient] = None
+    #: `fill` or `gradient`: the gradient role a StylePack may set for this
+    #: plane (an#275). Omitted from the stored document when unset.
+    role: Optional[str] = None
+
+    @model_serializer(mode="wrap")
+    def _omit_unset_paint(self, handler):
+        """`gradient`/`role` are written only when set, so every stored plane
+        written before an#275 dumps as it did."""
+        data = handler(self)
+        if isinstance(data, dict):
+            for key in ("gradient", "role"):
+                if data.get(key) is None:
+                    data.pop(key, None)
+        return data
+
+    @model_validator(mode="after")
+    def _paint_fits_the_kind(self) -> "PlaneArt":
+        if self.kind == "gradient" and self.gradient is None:
+            raise ValueError("a `gradient` plane needs `gradient: {stops: [...]}`")
+        if self.kind != "gradient" and self.gradient is not None:
+            raise ValueError(
+                f"`gradient` does nothing on a `{self.kind}` plane; set `kind: gradient`"
+            )
+        if self.role is not None and self.kind == "image":
+            raise ValueError(
+                "`role` does nothing on an `image` plane: a StylePack's gradient "
+                "roles repaint `fill` and `gradient` planes only"
+            )
+        return self
 
 
 class Plane(BaseModel):
@@ -315,7 +364,7 @@ def plane_rect(
     ...            (200.0, 100.0), camera=(40.0, 0.0))
     (-60.0, -50.0, 140.0, 50.0)
     """
-    if plane.art.kind == "fill":
+    if plane.art.kind in ("fill", "gradient"):
         w, h = plane.size or (PLANE_FILL_SPAN, PLANE_FILL_SPAN)
     else:
         box = plane.size or art_size
@@ -331,8 +380,12 @@ def plane_rect(
     x = plane.offset[0] + (1.0 - fx) * camera[0]
     y = plane.offset[1] + (1.0 - fy) * camera[1]
     # A `fill` is emitted as a centred rect — the compiler does not pass the
-    # anchor to it — so the anchor is the image path's only.
-    ax, ay = plane.anchor if plane.art.kind == "image" else (0.5, 0.5)
+    # anchor to it. An image honours the anchor, and so does a gradient with a
+    # declared size; one without covers the canvas, centred, like a fill.
+    anchored = plane.art.kind == "image" or (
+        plane.art.kind == "gradient" and plane.size is not None
+    )
+    ax, ay = plane.anchor if anchored else (0.5, 0.5)
     return (x - ax * w, y - ay * h, x + (1.0 - ax) * w, y + (1.0 - ay) * h)
 
 

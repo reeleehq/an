@@ -41,7 +41,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
-from an.base import TRANSFORM_PROPERTIES, TRIM_PROPERTIES, swap_set_name_problem
+from an.base import (
+    DEFAULT_RESOLUTION,
+    TRANSFORM_PROPERTIES,
+    TRIM_PROPERTIES,
+    swap_set_name_problem,
+)
 from an.stage.easing import apply_easing
 from an.genres import entity_space_resolver
 from an.genres.registry import CompilePass
@@ -142,6 +147,7 @@ from an.stage.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
 from an.stage.text_layout import build_text_subtree, svg_data_uri, text_document
 from an.characters.colour_roles import recolour_svg, role_recolouring
 from an.stage.text import font_base_dir, text_entity_problem
+from an.paint import Gradient
 from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette, surface_for
 from an.stage.surface import (
     apply_surface,
@@ -1595,6 +1601,7 @@ def _build_environment_entity(entity: AssetRef, build: SceneBuild) -> None:
         resolutions=build.resolutions,
         style_pack=build.style_pack,
         reached=build.reached,
+        canvas=(build.width, build.height),
     )
     build.children.append(node)
     build.in_front.extend(front)
@@ -1710,6 +1717,7 @@ def _build_environment_subtree(
     resolutions: list[AssetResolutionJSON] | None = None,
     style_pack: "StylePack | None" = None,
     reached: set[str] | None = None,
+    canvas: tuple[int, int] = DEFAULT_RESOLUTION,
 ) -> tuple[NodeJSON, list[NodeJSON]]:
     """``(the environment node, the planes that go IN FRONT of the characters)``.
 
@@ -1748,6 +1756,8 @@ def _build_environment_subtree(
             textures=textures if textures is not None else {},
             env_store=env_store,
             resolutions=resolutions,
+            style_pack=style_pack,
+            canvas=canvas,
         )
     preset_key = (entity.ref or "default").lower()
     known_preset = preset_key in _ENV_PRESETS
@@ -1849,6 +1859,8 @@ def _build_plane_subtree(
     textures: dict[str, AssetJSON],
     env_store: Mapping,
     resolutions: list[AssetResolutionJSON] | None = None,
+    style_pack: "StylePack | None" = None,
+    canvas: tuple[int, int] = DEFAULT_RESOLUTION,
 ) -> tuple[NodeJSON, list[NodeJSON]]:
     """A declared multiplane stage: planes in list order, split by depth-in-front.
 
@@ -1864,7 +1876,13 @@ def _build_plane_subtree(
     nodes: list[NodeJSON] = []
     for plane in env.planes:
         node = _plane_node(
-            plane, ref=ref, textures=textures, probe=probe, digest=digest
+            plane,
+            ref=ref,
+            textures=textures,
+            probe=probe,
+            digest=digest,
+            style_pack=style_pack,
+            canvas=canvas,
         )
         if node is None:
             if resolutions is not None:
@@ -1989,6 +2007,8 @@ def _plane_node(
     textures: dict[str, AssetJSON],
     probe=None,
     digest: Callable[[str], str | None] | None = None,
+    style_pack: "StylePack | None" = None,
+    canvas: tuple[int, int] = DEFAULT_RESOLUTION,
 ) -> NodeJSON | None:
     """One plane as a scene node, or ``None`` when its art cannot be drawn.
 
@@ -2005,6 +2025,11 @@ def _plane_node(
     art = plane.art
     ox, oy = plane.offset
     transform = TransformJSON(x=float(ox), y=float(oy))
+    gradient = (style_pack.gradient_for(art.role) if style_pack else None) or art.gradient
+    if gradient is not None and art.kind in ("fill", "gradient"):
+        return _gradient_plane_node(
+            plane, gradient, ref=ref, textures=textures, transform=transform, canvas=canvas
+        )
     if art.kind == "fill":
         w, h = plane.size or (PLANE_FILL_SPAN, PLANE_FILL_SPAN)
         return NodeJSON(
@@ -2041,6 +2066,53 @@ def _plane_node(
                 if extent
                 else {}
             ),
+        ),
+    )
+
+
+def _gradient_plane_node(
+    plane: Plane,
+    gradient: "Gradient",
+    *,
+    ref: str,
+    textures: dict[str, AssetJSON],
+    transform: TransformJSON,
+    canvas: tuple[int, int],
+) -> NodeJSON:
+    """A gradient plane (an#275): an inline SVG texture on an `svg_sprite`.
+
+    Sized like a `fill` -- the declared `size`, else the span that covers the
+    canvas at any camera -- and SHAPED over the declared `size`, else over the
+    canvas, so an unsized gradient runs across what the camera frames and its
+    end colours hold beyond (:mod:`an.stage.gradients`). A declared size honours
+    the plane's `anchor`, as an image does; an unsized one is centred, as a
+    fill is (`plane_rect` states the same geometry for `an validate`).
+    """
+    from an.stage.gradients import gradient_alias, gradient_src, gradient_svg
+
+    box = plane.size or (PLANE_FILL_SPAN, PLANE_FILL_SPAN)
+    frame = plane.size or canvas
+    src = gradient_src(
+        gradient_svg(
+            gradient,
+            box=(float(box[0]), float(box[1])),
+            frame=(float(frame[0]), float(frame[1])),
+        )
+    )
+    alias = _register_texture(textures, gradient_alias(f"{ref}.{plane.name}", src), src)
+    anchored = plane.art.kind == "gradient" and plane.size is not None
+    ax, ay = plane.anchor if anchored else (0.5, 0.5)
+    return NodeJSON(
+        name=plane.name,
+        transform=transform,
+        visual=VisualJSON(
+            kind="svg_sprite",
+            asset_id=alias,
+            fit="stretch",
+            width=float(box[0]),
+            height=float(box[1]),
+            anchor_x=float(ax),
+            anchor_y=float(ay),
         ),
     )
 
