@@ -753,7 +753,7 @@
         "chromium_build": "140.0.7339.16",
         "comparison_note": "measured ISA- and OS-invariant at a pinned Chromium build: zero differing pixels across arm64 macOS, x86-64 Linux and arm64 Linux, across two SwiftShader JIT backends",
         "comparison_scope": "any_machine",
-        "executable_path": "/Users/thorwhalen/Library/Caches/ms-playwright/chromium-1187/chrome-mac/Chromium.app/Contents/MacOS/Chromium",
+        "executable_path": "~/Library/Caches/ms-playwright/chromium-1187/chrome-mac/Chromium.app/Contents/MacOS/Chromium",
         "headless": true,
         "launch_argv": [
           "--no-sandbox",
