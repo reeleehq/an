@@ -1,34 +1,34 @@
 {
   "schema_version": 1,
-  "built_at": "2026-10-01T21:58:47Z",
+  "built_at": "2026-10-01T22:46:37Z",
   "package": {
     "name": "an",
-    "version": "0.1.151",
+    "version": "0.1.152",
     "display_name": "an",
     "source": "pyproject.toml"
   },
   "git": {
     "available": true,
-    "commit": "8c7d84737d5f540e64aa58331b8c6d9ede459995",
-    "short_commit": "8c7d847",
+    "commit": "5a1a0901acc2a0a6ba4183186ef52da0ef4aebf4",
+    "short_commit": "5a1a090",
     "branch": "main",
     "tags": [
-      "0.1.151"
+      "0.1.152"
     ],
     "dirty": false,
     "remote_url": "https://github.com/thorwhalen/an",
-    "commit_url": "https://github.com/thorwhalen/an/commit/8c7d84737d5f540e64aa58331b8c6d9ede459995",
+    "commit_url": "https://github.com/thorwhalen/an/commit/5a1a0901acc2a0a6ba4183186ef52da0ef4aebf4",
     "error": null
   },
   "ci": {
     "provider": "github",
     "repository": "thorwhalen/an",
-    "sha": "448af9e44aa9b5b45f22bfc6f48d6b2272c63296",
+    "sha": "9836b454e9637c13d7467a4d7b6a7d5d3644a009",
     "sha_in_history": true,
     "ref": "refs/heads/main",
     "ref_name": "main",
-    "run_id": "36931138109",
-    "run_url": "https://github.com/thorwhalen/an/actions/runs/36931138109",
+    "run_id": "36936065234",
+    "run_url": "https://github.com/thorwhalen/an/actions/runs/36936065234",
     "server_url": "https://github.com"
   },
   "tools": {
@@ -62,11 +62,11 @@
   },
   "pypi": {
     "checked": true,
-    "latest": "0.1.151",
+    "latest": "0.1.152",
     "relation": "same",
     "error": null
   },
-  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout 8c7d84737d5f540e64aa58331b8c6d9ede459995\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
+  "reproduce": "git clone https://github.com/thorwhalen/an && cd an\ngit checkout 5a1a0901acc2a0a6ba4183186ef52da0ef4aebf4\npip install \"epythet==0.2.12\"\nepythet quickstart . --ignore tests/ scrap/ examples/",
   "warnings": [],
   "alignment": {
     "aligned": true,
