@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=b16b4167"></script>
+    <script src="../_static/documentation_options.js?v=8693cb0d"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.verify.prosody" href="an.verify.prosody.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.141" />
+  <meta name="docsearch:version" content="0.1.142" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -609,24 +609,36 @@ styles with one fixed set of statistics; this module is that measurement,
 ported, so an agent can render, measure the same statistics on its own output,
 and adjust. The style specs that carry the <code class="docutils literal notranslate"><span class="pre">targets</span></code> live with the downstream
 skill (<code class="docutils literal notranslate"><span class="pre">.claude/skills/an-style/styles/*.yaml</span></code>).</p>
-<p><strong>The estimators are the research’s estimators, on purpose.</strong> Every threshold
-below is the one the six styles were measured with, including the ones that are
-crude (a noise floor at the 10th percentile of frame differences, a cut as a
-colour-histogram jump). A better estimator would measure a different quantity
-from the one the targets were calibrated on, and a render would then pass or
-miss for a reason nobody measured. Change an estimator only together with
-re-measuring the targets.</p>
+<p>**The estimators are the research’s estimators, on purpose — with one
+measured exception.** Every threshold below is the one the six styles were
+measured with, including the ones that are crude (a noise floor at the 10th
+percentile of frame differences, a cut as a colour-histogram jump). A better
+estimator measures a different quantity from the one the targets were
+calibrated on, and a render would then pass or miss for a reason nobody
+measured. Change an estimator only together with re-measuring the targets: the
+local-change rule (an#255) did, and the cadence targets of every style spec
+were re-measured on the six study clips with it (the table in
+<code class="docutils literal notranslate"><span class="pre">misc/docs/cutout_styles_research.md</span></code> §3). <code class="docutils literal notranslate"><span class="pre">min_changed_pixels=0</span></code> is the
+research’s original estimator, unchanged.</p>
 <p>What is measured (see <a class="reference internal" href="#an.verify.style.METRICS" title="an.verify.style.METRICS"><code class="xref py py-data docutils literal notranslate"><span class="pre">METRICS</span></code></a> for the vocabulary a spec’s <code class="docutils literal notranslate"><span class="pre">targets</span></code>
 may use):</p>
-<ul class="simple">
+<ul>
 <li><p><strong>Holds and cadence.</strong> A frame “changes” when its mean absolute grey
 difference from the previous frame exceeds <code class="docutils literal notranslate"><span class="pre">max(0.25,</span> <span class="pre">2.5</span> <span class="pre">×</span> <span class="pre">p10)</span></code>, where
 p10 is the clip’s own 10th-percentile difference (compression noise, capped
-at 1.0 — see <code class="xref py py-data docutils literal notranslate"><span class="pre">NOISE_FLOOR_CAP</span></code>). From
+at 1.0 — see <code class="xref py py-data docutils literal notranslate"><span class="pre">NOISE_FLOOR_CAP</span></code>), <strong>or</strong> when at least
+<code class="xref py py-data docutils literal notranslate"><span class="pre">MIN_CHANGED_PIXELS</span></code> of its pixels moved by more than
+<code class="xref py py-data docutils literal notranslate"><span class="pre">PIXEL_CHANGE_DELTA</span></code> grey levels — a change measured on the area of</p>
+<blockquote>
+<div><p>the moving part, not the whole frame (an#255): a frame-wide mean cannot see
+a stick figure’s shrug or a blink in a close-up, whose few changed pixels
+average to nothing. From
 that: the share of frames identical to the previous one, pose changes per
 second, and the histogram of gaps between successive changes (one frame = on
 ones, two = on twos, three or more = threes and holds, gaps above 12 frames
-ignored as holds rather than cadence).</p></li>
+ignored as holds rather than cadence).</p>
+</div></blockquote>
+</li>
 <li><p><strong>Cuts and shot length.</strong> For an <code class="docutils literal notranslate"><span class="pre">an</span></code> render the cuts are KNOWN — every shot
 boundary in the IR is a hard cut, because shots are concatenated — so the
 verifier takes them from the IR. Without an IR (any mp4), a cut is a frame
@@ -683,7 +695,7 @@ less than it says is worse than one that fails to load:</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.style.measure_style" title="an.verify.style.measure_style"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_style</span></code></a>(frames, *, fps[, shot_durations])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.verify.style.measure_style" title="an.verify.style.measure_style"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_style</span></code></a>(frames, *, fps[, ...])</p></td>
 <td><p>Measure the <a class="reference internal" href="#an.verify.style.METRICS" title="an.verify.style.METRICS"><code class="xref py py-data docutils literal notranslate"><span class="pre">METRICS</span></code></a> on <code class="docutils literal notranslate"><span class="pre">frames</span></code>, an <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">h,</span> <span class="pre">w,</span> <span class="pre">3)</span></code> uint8 RGB array.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.verify.style.measure_shots" title="an.verify.style.measure_shots"><code class="xref py py-obj docutils literal notranslate"><span class="pre">measure_shots</span></code></a>(frames, *, fps[, ...])</p></td>
@@ -865,7 +877,7 @@ counted from where its frames start in the film.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.verify.style.measure_shots">
-<span class="sig-prename descclassname"><span class="pre">an.verify.style.</span></span><span class="sig-name descname"><span class="pre">measure_shots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_durations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/style.html#measure_shots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.style.measure_shots" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.verify.style.</span></span><span class="sig-name descname"><span class="pre">measure_shots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_durations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_changed_pixels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/style.html#measure_shots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.style.measure_shots" title="Link to this definition">#</a></dt>
 <dd><p>Per-shot cadence (<a class="reference internal" href="#an.verify.style.SHOT_METRICS" title="an.verify.style.SHOT_METRICS"><code class="xref py py-data docutils literal notranslate"><span class="pre">SHOT_METRICS</span></code></a>) of <code class="docutils literal notranslate"><span class="pre">frames</span></code>, one row per shot.</p>
 <p>The shots are <code class="docutils literal notranslate"><span class="pre">shot_durations</span></code> (seconds, in order) when given, else the
 pixel cut detector’s. The step INTO each shot is the cut, not a pose
@@ -889,10 +901,12 @@ and measures as all-identical.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.verify.style.measure_style">
-<span class="sig-prename descclassname"><span class="pre">an.verify.style.</span></span><span class="sig-name descname"><span class="pre">measure_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_durations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/style.html#measure_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.style.measure_style" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.verify.style.</span></span><span class="sig-name descname"><span class="pre">measure_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_durations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_changed_pixels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/style.html#measure_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.style.measure_style" title="Link to this definition">#</a></dt>
 <dd><p>Measure the <a class="reference internal" href="#an.verify.style.METRICS" title="an.verify.style.METRICS"><code class="xref py py-data docutils literal notranslate"><span class="pre">METRICS</span></code></a> on <code class="docutils literal notranslate"><span class="pre">frames</span></code>, an <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">h,</span> <span class="pre">w,</span> <span class="pre">3)</span></code> uint8 RGB array.</p>
 <p><code class="docutils literal notranslate"><span class="pre">shot_durations</span></code> (seconds, in order) gives the cuts exactly; without it the
-pixel cut detector is used. Ratios are rounded to three decimals.</p>
+pixel cut detector is used. Ratios are rounded to three decimals.
+<code class="docutils literal notranslate"><span class="pre">min_changed_pixels</span></code> is the local-change rule’s size (<code class="docutils literal notranslate"><span class="pre">0</span></code>: the research’s
+frame-wide estimator alone, which the targets were first measured with).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.verify.style.StyleMetrics" title="an.verify.style.StyleMetrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">StyleMetrics</span></code></a></span></p>

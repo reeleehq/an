@@ -9,13 +9,17 @@ ported, so an agent can render, measure the same statistics on its own output,
 and adjust. The style specs that carry the `targets` live with the downstream
 skill (`.claude/skills/an-style/styles/*.yaml`).
 
-**The estimators are the research’s estimators, on purpose.** Every threshold
-below is the one the six styles were measured with, including the ones that are
-crude (a noise floor at the 10th percentile of frame differences, a cut as a
-colour-histogram jump). A better estimator would measure a different quantity
-from the one the targets were calibrated on, and a render would then pass or
-miss for a reason nobody measured. Change an estimator only together with
-re-measuring the targets.
+\*\*The estimators are the research’s estimators, on purpose — with one
+measured exception.\*\* Every threshold below is the one the six styles were
+measured with, including the ones that are crude (a noise floor at the 10th
+percentile of frame differences, a cut as a colour-histogram jump). A better
+estimator measures a different quantity from the one the targets were
+calibrated on, and a render would then pass or miss for a reason nobody
+measured. Change an estimator only together with re-measuring the targets: the
+local-change rule (an#255) did, and the cadence targets of every style spec
+were re-measured on the six study clips with it (the table in
+`misc/docs/cutout_styles_research.md` §3). `min_changed_pixels=0` is the
+research’s original estimator, unchanged.
 
 What is measured (see [`METRICS`](#an.verify.style.METRICS) for the vocabulary a spec’s `targets`
 may use):
@@ -23,11 +27,16 @@ may use):
 - **Holds and cadence.** A frame “changes” when its mean absolute grey
   difference from the previous frame exceeds `max(0.25, 2.5 × p10)`, where
   p10 is the clip’s own 10th-percentile difference (compression noise, capped
-  at 1.0 — see `NOISE_FLOOR_CAP`). From
-  that: the share of frames identical to the previous one, pose changes per
-  second, and the histogram of gaps between successive changes (one frame = on
-  ones, two = on twos, three or more = threes and holds, gaps above 12 frames
-  ignored as holds rather than cadence).
+  at 1.0 — see `NOISE_FLOOR_CAP`), **or** when at least
+  `MIN_CHANGED_PIXELS` of its pixels moved by more than
+  `PIXEL_CHANGE_DELTA` grey levels — a change measured on the area of
+  > the moving part, not the whole frame (an#255): a frame-wide mean cannot see
+  > a stick figure’s shrug or a blink in a close-up, whose few changed pixels
+  > average to nothing. From
+  > that: the share of frames identical to the previous one, pose changes per
+  > second, and the histogram of gaps between successive changes (one frame = on
+  > ones, two = on twos, three or more = threes and holds, gaps above 12 frames
+  > ignored as holds rather than cadence).
 - **Cuts and shot length.** For an `an` render the cuts are KNOWN — every shot
   boundary in the IR is a hard cut, because shots are concatenated — so the
   verifier takes them from the IR. Without an IR (any mp4), a cut is a frame
@@ -84,15 +93,15 @@ ValueError: unknown style target 'camera_shake'; measurable targets are [...]
 
 ### Functions
 
-| [`measure_style`](#an.verify.style.measure_style)(frames, \*, fps[, shot_durations])   | Measure the [`METRICS`](#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.                      |
-|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| [`measure_shots`](#an.verify.style.measure_shots)(frames, \*, fps[, ...])              | Per-shot cadence ([`SHOT_METRICS`](#an.verify.style.SHOT_METRICS)) of `frames`, one row per shot.                           |
-| [`measure_video`](#an.verify.style.measure_video)(mp4, \*[, shot_durations, ...])      | Decode `mp4` at the research's scale and [`measure_style()`](#an.verify.style.measure_style) it.                             |
-| [`film_shots`](#an.verify.style.film_shots)(scene)                                  | `(shot id, seconds on screen)` per shot of an `an` render, in order.                                                                      |
-| [`project_of_render`](#an.verify.style.project_of_render)(mp4)                             | The project directory an `an` render sits in — `<project>/output/x.mp4` beside `<project>/ir/scene.json` — or `None` for any other video. |
-| [`check_targets`](#an.verify.style.check_targets)(metrics, targets, \*[, ...])         | One `Finding` per target the metrics miss; `[]` when all hit.                                                                             |
-| [`load_style_spec`](#an.verify.style.load_style_spec)(spec)                              | A style spec as a dict: a mapping is passed through, a path is read as YAML.                                                              |
-| [`style_lint`](#an.verify.style.style_lint)(mp4, spec_or_targets, \*[, ...])        | Measure `mp4` and compare it to a style spec's `targets`.                                                                                 |
+| [`measure_style`](#an.verify.style.measure_style)(frames, \*, fps[, ...])         | Measure the [`METRICS`](#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.                      |
+|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| [`measure_shots`](#an.verify.style.measure_shots)(frames, \*, fps[, ...])         | Per-shot cadence ([`SHOT_METRICS`](#an.verify.style.SHOT_METRICS)) of `frames`, one row per shot.                           |
+| [`measure_video`](#an.verify.style.measure_video)(mp4, \*[, shot_durations, ...]) | Decode `mp4` at the research's scale and [`measure_style()`](#an.verify.style.measure_style) it.                             |
+| [`film_shots`](#an.verify.style.film_shots)(scene)                             | `(shot id, seconds on screen)` per shot of an `an` render, in order.                                                                      |
+| [`project_of_render`](#an.verify.style.project_of_render)(mp4)                        | The project directory an `an` render sits in — `<project>/output/x.mp4` beside `<project>/ir/scene.json` — or `None` for any other video. |
+| [`check_targets`](#an.verify.style.check_targets)(metrics, targets, \*[, ...])    | One `Finding` per target the metrics miss; `[]` when all hit.                                                                             |
+| [`load_style_spec`](#an.verify.style.load_style_spec)(spec)                         | A style spec as a dict: a mapping is passed through, a path is read as YAML.                                                              |
+| [`style_lint`](#an.verify.style.style_lint)(mp4, spec_or_targets, \*[, ...])   | Measure `mp4` and compare it to a style spec's `targets`.                                                                                 |
 
 ### Classes
 
@@ -208,7 +217,7 @@ A style spec as a dict: a mapping is passed through, a path is read as YAML.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.verify.style.measure_shots(frames, , fps, shot_durations=None, shot_ids=None)
+### an.verify.style.measure_shots(frames, , fps, shot_durations=None, shot_ids=None, min_changed_pixels=8)
 
 Per-shot cadence ([`SHOT_METRICS`](#an.verify.style.SHOT_METRICS)) of `frames`, one row per shot.
 
@@ -230,12 +239,14 @@ and measures as all-identical.
 [('card', 1.0), ('map', 0.0)]
 ```
 
-### an.verify.style.measure_style(frames, , fps, shot_durations=None)
+### an.verify.style.measure_style(frames, , fps, shot_durations=None, min_changed_pixels=8)
 
 Measure the [`METRICS`](#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.
 
 `shot_durations` (seconds, in order) gives the cuts exactly; without it the
 pixel cut detector is used. Ratios are rounded to three decimals.
+`min_changed_pixels` is the local-change rule’s size (`0`: the research’s
+frame-wide estimator alone, which the targets were first measured with).
 
 * **Return type:**
   [`StyleMetrics`](#an.verify.style.StyleMetrics)

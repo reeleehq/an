@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=b16b4167"></script>
+    <script src="../../../_static/documentation_options.js?v=8693cb0d"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.141" />
+  <meta name="docsearch:version" content="0.1.142" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -719,13 +719,17 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">and adjust. The style specs that carry the ``targets`` live with the downstream</span>
 <span class="sd">skill (``.claude/skills/an-style/styles/*.yaml``).</span>
 
-<span class="sd">**The estimators are the research's estimators, on purpose.** Every threshold</span>
-<span class="sd">below is the one the six styles were measured with, including the ones that are</span>
-<span class="sd">crude (a noise floor at the 10th percentile of frame differences, a cut as a</span>
-<span class="sd">colour-histogram jump). A better estimator would measure a different quantity</span>
-<span class="sd">from the one the targets were calibrated on, and a render would then pass or</span>
-<span class="sd">miss for a reason nobody measured. Change an estimator only together with</span>
-<span class="sd">re-measuring the targets.</span>
+<span class="sd">**The estimators are the research's estimators, on purpose — with one</span>
+<span class="sd">measured exception.** Every threshold below is the one the six styles were</span>
+<span class="sd">measured with, including the ones that are crude (a noise floor at the 10th</span>
+<span class="sd">percentile of frame differences, a cut as a colour-histogram jump). A better</span>
+<span class="sd">estimator measures a different quantity from the one the targets were</span>
+<span class="sd">calibrated on, and a render would then pass or miss for a reason nobody</span>
+<span class="sd">measured. Change an estimator only together with re-measuring the targets: the</span>
+<span class="sd">local-change rule (an#255) did, and the cadence targets of every style spec</span>
+<span class="sd">were re-measured on the six study clips with it (the table in</span>
+<span class="sd">``misc/docs/cutout_styles_research.md`` §3). ``min_changed_pixels=0`` is the</span>
+<span class="sd">research's original estimator, unchanged.</span>
 
 <span class="sd">What is measured (see :data:`METRICS` for the vocabulary a spec's ``targets``</span>
 <span class="sd">may use):</span>
@@ -733,7 +737,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">- **Holds and cadence.** A frame "changes" when its mean absolute grey</span>
 <span class="sd">  difference from the previous frame exceeds ``max(0.25, 2.5 × p10)``, where</span>
 <span class="sd">  p10 is the clip's own 10th-percentile difference (compression noise, capped</span>
-<span class="sd">  at 1.0 — see :data:`NOISE_FLOOR_CAP`). From</span>
+<span class="sd">  at 1.0 — see :data:`NOISE_FLOOR_CAP`), **or** when at least</span>
+<span class="sd">  :data:`MIN_CHANGED_PIXELS` of its pixels moved by more than</span>
+<span class="sd">  :data:`PIXEL_CHANGE_DELTA` grey levels — a change measured on the area of</span>
+<span class="sd">  the moving part, not the whole frame (an#255): a frame-wide mean cannot see</span>
+<span class="sd">  a stick figure's shrug or a blink in a close-up, whose few changed pixels</span>
+<span class="sd">  average to nothing. From</span>
 <span class="sd">  that: the share of frames identical to the previous one, pose changes per</span>
 <span class="sd">  second, and the histogram of gaps between successive changes (one frame = on</span>
 <span class="sd">  ones, two = on twos, three or more = threes and holds, gaps above 12 frames</span>
@@ -835,6 +844,15 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: study clips the uncapped floor was at most 0.16 grey levels, so this cap</span>
 <span class="c1">#: moves none of the measured targets.</span>
 <span class="n">NOISE_FLOOR_CAP</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="c1">#: The local change (an#255): a step also counts as a change when at least</span>
+<span class="c1">#: ``MIN_CHANGED_PIXELS`` pixels (at the decode size) differ by more than</span>
+<span class="c1">#: ``PIXEL_CHANGE_DELTA`` grey levels. Chosen on the six study clips: at 32</span>
+<span class="c1">#: levels, film grain and transcoding noise stay below 8 pixels in 99% of the</span>
+<span class="c1">#: steps the frame-wide mean calls holds (Gilliam 4, Norstein 2, Reiniger 0 at</span>
+<span class="c1">#: the 99th percentile), while a stick figure's shrug, a blink in a close-up or</span>
+<span class="c1">#: a small prop moving changes tens of pixels. ``0`` pixels disables the rule.</span>
+<span class="n">PIXEL_CHANGE_DELTA</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">32.0</span>
+<span class="n">MIN_CHANGED_PIXELS</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
 <span class="c1">#: Pixel cut detector (used only when no shot list is given).</span>
 <span class="n">CUT_HISTOGRAM_L1</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.6</span>
 <span class="n">CUT_MEAN_DIFF</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">8.0</span>
@@ -915,7 +933,13 @@ window.runMermaid = runMermaid;</script>
     <span class="p">),</span>
     <span class="s2">"top16_colour_coverage"</span><span class="p">:</span> <span class="p">(</span>
         <span class="s2">"fewer, flatter colours: flat fills, no gradients"</span><span class="p">,</span>
-        <span class="s2">"more colour variety or textured art"</span><span class="p">,</span>
+        <span class="c1"># What the statistic responds to (an#255): it counts pixels in the 16</span>
+        <span class="c1"># commonest 4-bit colours, so only colour spread over LARGE areas</span>
+        <span class="c1"># lowers it. Fine grain stays inside one 4-bit bin (a Reiniger run</span>
+        <span class="c1"># measured flatter with the pack's grain at 0.20 than at 0.06).</span>
+        <span class="s2">"spread the colour over large areas: a gradient or painted backdrop as "</span>
+        <span class="s2">"an `image` plane (an SVG plate with a gradient), or more distinct flat "</span>
+        <span class="s2">"fills across the sets; the pack's `grain` does not lower it"</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">}</span>
 
@@ -1074,17 +1098,32 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_step_changes</span><span class="p">(</span><span class="n">frames</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_step_changes</span><span class="p">(</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_changed_pixels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MIN_CHANGED_PIXELS</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""``(step_diff, changed, threshold)`` over the frame-to-frame steps: the</span>
-<span class="sd">    mean absolute grey difference of each step, whether it counts as a change,</span>
-<span class="sd">    and the clip's change threshold (see the module docstring)."""</span>
+<span class="sd">    mean absolute grey difference of each step, whether it counts as a change</span>
+<span class="sd">    (the frame-wide mean above the clip's threshold, or a local change of at</span>
+<span class="sd">    least ``min_changed_pixels`` pixels — see the module docstring), and the</span>
+<span class="sd">    clip's mean threshold.</span>
+
+<span class="sd">    &gt;&gt;&gt; f = np.zeros((3, 180, 320, 3), np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; f[2, 90:92, 100:105] = 255          # ten pixels move: a thin limb</span>
+<span class="sd">    &gt;&gt;&gt; _step_changes(f)[1].tolist(), _step_changes(f, min_changed_pixels=0)[1].tolist()</span>
+<span class="sd">    ([False, True], [False, False])</span>
+<span class="sd">    """</span>
     <span class="n">grey</span> <span class="o">=</span> <span class="n">frames</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-    <span class="n">step_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">grey</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">grey</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">grey</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">grey</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">step_diff</span> <span class="o">=</span> <span class="n">delta</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
     <span class="n">noise_floor</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
         <span class="n">NOISE_FLOOR_CAP</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">step_diff</span><span class="p">,</span> <span class="n">NOISE_FLOOR_PERCENTILE</span><span class="p">))</span>
     <span class="p">)</span>
     <span class="n">threshold</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">MIN_CHANGE_THRESHOLD</span><span class="p">,</span> <span class="n">NOISE_FLOOR_MULTIPLIER</span> <span class="o">*</span> <span class="n">noise_floor</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">step_diff</span><span class="p">,</span> <span class="n">step_diff</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">threshold</span>
+    <span class="n">changed</span> <span class="o">=</span> <span class="n">step_diff</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+    <span class="k">if</span> <span class="n">min_changed_pixels</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">moved</span> <span class="o">=</span> <span class="p">(</span><span class="n">delta</span> <span class="o">&gt;</span> <span class="n">PIXEL_CHANGE_DELTA</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">delta</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">changed</span> <span class="o">|=</span> <span class="n">moved</span> <span class="o">&gt;=</span> <span class="n">min_changed_pixels</span>
+    <span class="k">return</span> <span class="n">step_diff</span><span class="p">,</span> <span class="n">changed</span><span class="p">,</span> <span class="n">threshold</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_cadence</span><span class="p">(</span><span class="n">changed</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">cut_steps</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -1123,11 +1162,14 @@ window.runMermaid = runMermaid;</script>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">shot_durations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_changed_pixels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MIN_CHANGED_PIXELS</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StyleMetrics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Measure the :data:`METRICS` on ``frames``, an ``(n, h, w, 3)`` uint8 RGB array.</span>
 
 <span class="sd">    ``shot_durations`` (seconds, in order) gives the cuts exactly; without it the</span>
 <span class="sd">    pixel cut detector is used. Ratios are rounded to three decimals.</span>
+<span class="sd">    ``min_changed_pixels`` is the local-change rule's size (``0``: the research's</span>
+<span class="sd">    frame-wide estimator alone, which the targets were first measured with).</span>
 
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; f = np.zeros((6, 4, 4, 3), np.uint8)</span>
@@ -1147,7 +1189,9 @@ window.runMermaid = runMermaid;</script>
     <span class="k">if</span> <span class="n">fps</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"fps must be positive; got </span><span class="si">{</span><span class="n">fps</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-    <span class="n">step_diff</span><span class="p">,</span> <span class="n">changed</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="n">_step_changes</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+    <span class="n">step_diff</span><span class="p">,</span> <span class="n">changed</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="n">_step_changes</span><span class="p">(</span>
+        <span class="n">frames</span><span class="p">,</span> <span class="n">min_changed_pixels</span><span class="o">=</span><span class="n">min_changed_pixels</span>
+    <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">shot_durations</span><span class="p">:</span>
         <span class="n">cuts</span> <span class="o">=</span> <span class="n">_cut_frames_from_shots</span><span class="p">(</span><span class="n">shot_durations</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
@@ -1222,6 +1266,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">shot_durations</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">shot_ids</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_changed_pixels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">MIN_CHANGED_PIXELS</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ShotMetrics</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Per-shot cadence (:data:`SHOT_METRICS`) of ``frames``, one row per shot.</span>
 
@@ -1240,11 +1285,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="n">frames</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">changed</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_step_changes</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span>
+    <span class="n">step_diff</span><span class="p">,</span> <span class="n">changed</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_step_changes</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">min_changed_pixels</span><span class="o">=</span><span class="n">min_changed_pixels</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">shot_durations</span><span class="p">:</span>
         <span class="n">cuts</span> <span class="o">=</span> <span class="n">_cut_frames_from_shots</span><span class="p">(</span><span class="n">shot_durations</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">cuts</span> <span class="o">=</span> <span class="n">_cut_frames_from_pixels</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">_step_changes</span><span class="p">(</span><span class="n">frames</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">cuts</span> <span class="o">=</span> <span class="n">_cut_frames_from_pixels</span><span class="p">(</span><span class="n">frames</span><span class="p">,</span> <span class="n">step_diff</span><span class="p">)</span>
     <span class="n">bounds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">cuts</span><span class="p">,</span> <span class="n">n</span><span class="p">]</span>
     <span class="n">ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">shot_ids</span> <span class="ow">or</span> <span class="p">[])</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>

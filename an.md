@@ -1,4 +1,4 @@
-> built 2026-10-01 17:12 UTC from d26ce4d (main) · an 0.1.141. Details: build_info.json
+> built 2026-10-01 17:33 UTC from 5af0acf (main) · an 0.1.142. Details: build_info.json
 
 # index.html.md
 
@@ -7192,7 +7192,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'eye', 'ellipse', 'rect', 'mouth'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'eye', 'mouth', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -36199,13 +36199,17 @@ ported, so an agent can render, measure the same statistics on its own output,
 and adjust. The style specs that carry the `targets` live with the downstream
 skill (`.claude/skills/an-style/styles/*.yaml`).
 
-**The estimators are the research’s estimators, on purpose.** Every threshold
-below is the one the six styles were measured with, including the ones that are
-crude (a noise floor at the 10th percentile of frame differences, a cut as a
-colour-histogram jump). A better estimator would measure a different quantity
-from the one the targets were calibrated on, and a render would then pass or
-miss for a reason nobody measured. Change an estimator only together with
-re-measuring the targets.
+\*\*The estimators are the research’s estimators, on purpose — with one
+measured exception.\*\* Every threshold below is the one the six styles were
+measured with, including the ones that are crude (a noise floor at the 10th
+percentile of frame differences, a cut as a colour-histogram jump). A better
+estimator measures a different quantity from the one the targets were
+calibrated on, and a render would then pass or miss for a reason nobody
+measured. Change an estimator only together with re-measuring the targets: the
+local-change rule (an#255) did, and the cadence targets of every style spec
+were re-measured on the six study clips with it (the table in
+`misc/docs/cutout_styles_research.md` §3). `min_changed_pixels=0` is the
+research’s original estimator, unchanged.
 
 What is measured (see [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) for the vocabulary a spec’s `targets`
 may use):
@@ -36213,11 +36217,16 @@ may use):
 - **Holds and cadence.** A frame “changes” when its mean absolute grey
   difference from the previous frame exceeds `max(0.25, 2.5 × p10)`, where
   p10 is the clip’s own 10th-percentile difference (compression noise, capped
-  at 1.0 — see `NOISE_FLOOR_CAP`). From
-  that: the share of frames identical to the previous one, pose changes per
-  second, and the histogram of gaps between successive changes (one frame = on
-  ones, two = on twos, three or more = threes and holds, gaps above 12 frames
-  ignored as holds rather than cadence).
+  at 1.0 — see `NOISE_FLOOR_CAP`), **or** when at least
+  `MIN_CHANGED_PIXELS` of its pixels moved by more than
+  `PIXEL_CHANGE_DELTA` grey levels — a change measured on the area of
+  > the moving part, not the whole frame (an#255): a frame-wide mean cannot see
+  > a stick figure’s shrug or a blink in a close-up, whose few changed pixels
+  > average to nothing. From
+  > that: the share of frames identical to the previous one, pose changes per
+  > second, and the histogram of gaps between successive changes (one frame = on
+  > ones, two = on twos, three or more = threes and holds, gaps above 12 frames
+  > ignored as holds rather than cadence).
 - **Cuts and shot length.** For an `an` render the cuts are KNOWN — every shot
   boundary in the IR is a hard cut, because shots are concatenated — so the
   verifier takes them from the IR. Without an IR (any mp4), a cut is a frame
@@ -36274,15 +36283,15 @@ ValueError: unknown style target 'camera_shake'; measurable targets are [...]
 
 ### Functions
 
-| [`measure_style`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style)(frames, \*, fps[, shot_durations])   | Measure the [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.                      |
-|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| [`measure_shots`](_autosummary/an.verify.style.html.md#an.verify.style.measure_shots)(frames, \*, fps[, ...])              | Per-shot cadence ([`SHOT_METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.SHOT_METRICS)) of `frames`, one row per shot.                           |
-| [`measure_video`](_autosummary/an.verify.style.html.md#an.verify.style.measure_video)(mp4, \*[, shot_durations, ...])      | Decode `mp4` at the research's scale and [`measure_style()`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style) it.                             |
-| [`film_shots`](_autosummary/an.verify.style.html.md#an.verify.style.film_shots)(scene)                                  | `(shot id, seconds on screen)` per shot of an `an` render, in order.                                                                      |
-| [`project_of_render`](_autosummary/an.verify.style.html.md#an.verify.style.project_of_render)(mp4)                             | The project directory an `an` render sits in — `<project>/output/x.mp4` beside `<project>/ir/scene.json` — or `None` for any other video. |
-| [`check_targets`](_autosummary/an.verify.style.html.md#an.verify.style.check_targets)(metrics, targets, \*[, ...])         | One `Finding` per target the metrics miss; `[]` when all hit.                                                                             |
-| [`load_style_spec`](_autosummary/an.verify.style.html.md#an.verify.style.load_style_spec)(spec)                              | A style spec as a dict: a mapping is passed through, a path is read as YAML.                                                              |
-| [`style_lint`](_autosummary/an.verify.style.html.md#an.verify.style.style_lint)(mp4, spec_or_targets, \*[, ...])        | Measure `mp4` and compare it to a style spec's `targets`.                                                                                 |
+| [`measure_style`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style)(frames, \*, fps[, ...])         | Measure the [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.                      |
+|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
+| [`measure_shots`](_autosummary/an.verify.style.html.md#an.verify.style.measure_shots)(frames, \*, fps[, ...])         | Per-shot cadence ([`SHOT_METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.SHOT_METRICS)) of `frames`, one row per shot.                           |
+| [`measure_video`](_autosummary/an.verify.style.html.md#an.verify.style.measure_video)(mp4, \*[, shot_durations, ...]) | Decode `mp4` at the research's scale and [`measure_style()`](_autosummary/an.verify.style.html.md#an.verify.style.measure_style) it.                             |
+| [`film_shots`](_autosummary/an.verify.style.html.md#an.verify.style.film_shots)(scene)                             | `(shot id, seconds on screen)` per shot of an `an` render, in order.                                                                      |
+| [`project_of_render`](_autosummary/an.verify.style.html.md#an.verify.style.project_of_render)(mp4)                        | The project directory an `an` render sits in — `<project>/output/x.mp4` beside `<project>/ir/scene.json` — or `None` for any other video. |
+| [`check_targets`](_autosummary/an.verify.style.html.md#an.verify.style.check_targets)(metrics, targets, \*[, ...])    | One `Finding` per target the metrics miss; `[]` when all hit.                                                                             |
+| [`load_style_spec`](_autosummary/an.verify.style.html.md#an.verify.style.load_style_spec)(spec)                         | A style spec as a dict: a mapping is passed through, a path is read as YAML.                                                              |
+| [`style_lint`](_autosummary/an.verify.style.html.md#an.verify.style.style_lint)(mp4, spec_or_targets, \*[, ...])   | Measure `mp4` and compare it to a style spec's `targets`.                                                                                 |
 
 ### Classes
 
@@ -36398,7 +36407,7 @@ A style spec as a dict: a mapping is passed through, a path is read as YAML.
 * **Return type:**
   [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
-### an.verify.style.measure_shots(frames, , fps, shot_durations=None, shot_ids=None)
+### an.verify.style.measure_shots(frames, , fps, shot_durations=None, shot_ids=None, min_changed_pixels=8)
 
 Per-shot cadence ([`SHOT_METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.SHOT_METRICS)) of `frames`, one row per shot.
 
@@ -36420,12 +36429,14 @@ and measures as all-identical.
 [('card', 1.0), ('map', 0.0)]
 ```
 
-### an.verify.style.measure_style(frames, , fps, shot_durations=None)
+### an.verify.style.measure_style(frames, , fps, shot_durations=None, min_changed_pixels=8)
 
 Measure the [`METRICS`](_autosummary/an.verify.style.html.md#an.verify.style.METRICS) on `frames`, an `(n, h, w, 3)` uint8 RGB array.
 
 `shot_durations` (seconds, in order) gives the cuts exactly; without it the
 pixel cut detector is used. Ratios are rounded to three decimals.
+`min_changed_pixels` is the local-change rule’s size (`0`: the research’s
+frame-wide estimator alone, which the targets were first measured with).
 
 * **Return type:**
   [`StyleMetrics`](_autosummary/an.verify.style.html.md#an.verify.style.StyleMetrics)
@@ -36695,7 +36706,7 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 17:12 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/d26ce4db725f2f2d6f6a4bece0484ad9328c22e0"><code>d26ce4d</code></a> on branch <code>main</code>, for **an 0.1.141** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 17:33 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/5af0acfffe6a0b002b4705f6b63b9a0dde27d01b"><code>5af0acf</code></a> on branch <code>main</code>, for **an 0.1.142** (from <code>pyproject.toml</code>).
 
 #### NOTE
 Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
@@ -36704,9 +36715,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/d26ce4db725f2f2d6f6a4bece0484ad9328c22e0"><code>d26ce4db725f2f2d6f6a4bece0484ad9328c22e0</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/5af0acfffe6a0b002b4705f6b63b9a0dde27d01b"><code>5af0acfffe6a0b002b4705f6b63b9a0dde27d01b</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.141</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.142</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -36715,9 +36726,9 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36896781197">36896781197</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36899447325">36899447325</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>094f33e575cad366ccd8db7ab02bc77b7e3a3085</code> (in the history of the built commit) |
+| Event commit | <code>509cd6f59833dba17d2fc969e493e5cda08c9c86</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -36742,13 +36753,13 @@ Nothing suggests a mismatch: the tree was clean at the commit above, and the doc
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.141/">0.1.141</a>, the same as the documented version.
+Latest release: <a href="https://pypi.org/project/an/0.1.142/">0.1.142</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout d26ce4db725f2f2d6f6a4bece0484ad9328c22e0
+git checkout 5af0acfffe6a0b002b4705f6b63b9a0dde27d01b
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
