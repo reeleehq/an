@@ -1,0 +1,48 @@
+an.media
+========
+
+.. automodule:: an.media
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      block_mean_resolve
+      check_factor
+      check_frame_samples
+      frame_path
+      get_sink
+      mean_png_bytes
+      missing_frames
+      register_sink
+      sink_names
+      temporal_mean
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FrameSink
+      GifSink
+      Mp4Sink
+      PngSequenceSink
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MediaError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   frames
+   gif
+   mp4
+   shutter
+   sinks
+   supersample

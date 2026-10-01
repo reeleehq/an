@@ -20,11 +20,11 @@
 - [an.adapters.cutout.fidelity](_autosummary/an.adapters.cutout.fidelity.html.md): How faithfully a compiled scene reproduces the art it was built from.
 - [an.adapters.cutout.gaze](_autosummary/an.adapters.cutout.gaze.html.md): Ambient saccades for a cutout rig’s pupils: a seeded generator (an#99, epic #9 Wave 6).
 - [an.adapters.cutout.path](_autosummary/an.adapters.cutout.path.html.md): Stroked-path geometry — the executable spec of &#96;runtime.js::pathGeometry&#96;.
-- [an.adapters.cutout.render](_autosummary/an.adapters.cutout.render.html.md): Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.
+- [an.adapters.cutout.render](_autosummary/an.adapters.cutout.render.html.md): The 2D stage engine (&#96;runtime.js&#96; in headless Chromium), and the cut-out renderer built on it.
 - [an.adapters.cutout.runtime_files](_autosummary/an.adapters.cutout.runtime_files.html.md): Locate the bundled cutout JS runtime files.
 - [an.adapters.cutout.serialize](_autosummary/an.adapters.cutout.serialize.html.md): JSON contract between the Python compiler and the (future) JS runtime.
-- [an.adapters.cutout.shutter](_autosummary/an.adapters.cutout.shutter.html.md): The temporal half of the frame stage: average several instants into one frame.
-- [an.adapters.cutout.supersample](_autosummary/an.adapters.cutout.supersample.html.md): Render bigger, then resolve back exactly — the supersample knob’s two halves.
+- [an.adapters.cutout.shutter](_autosummary/an.adapters.cutout.shutter.html.md): Moved to &#96;an.media.shutter&#96; (an#247); this path re-exports it.
+- [an.adapters.cutout.supersample](_autosummary/an.adapters.cutout.supersample.html.md): Moved to &#96;an.media.supersample&#96; (an#247); this path re-exports it.
 - [an.adapters.cutout.surface](_autosummary/an.adapters.cutout.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
 - [an.adapters.cutout.text](_autosummary/an.adapters.cutout.text.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
 - [an.adapters.cutout.timeline](_autosummary/an.adapters.cutout.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
@@ -91,6 +91,10 @@
 - [an.data](_autosummary/an.data.html.md): Bundled non-Python resources (cutout JS runtime, etc.).
 - [an.data.cutout_runtime](_autosummary/an.data.cutout_runtime.html.md): Cutout JS runtime — see README.md in this directory.
 - [an.determinism](_autosummary/an.determinism.html.md): The determinism perimeter: what must stay true for a render to be reproducible.
+- [an.engines](_autosummary/an.engines.html.md): Engines: seekable things the core drives frame by frame, and the renderer that drives them.
+- [an.engines.capture](_autosummary/an.engines.capture.html.md): The capture loop: drive a session through every frame, resolve, write – for ANY engine.
+- [an.engines.frame_stage](_autosummary/an.engines.frame_stage.html.md): &#96;frame_stage_renderer(engine)&#96;: any seekable engine becomes a &#96;Renderer&#96;.
+- [an.engines.protocol](_autosummary/an.engines.protocol.html.md): The &#96;Engine&#96; protocol: a seekable thing that turns a time, or a state, into a frame.
 - [an.environments](_autosummary/an.environments.html.md): Environments: a stage made of planes, at declared depths.
 - [an.expression](_autosummary/an.expression.html.md): Facial expression for the cutout face (an#98, epic #9 Wave 6).
 - [an.expression.axes](_autosummary/an.expression.axes.html.md): The facial expression axes: what a cutout face can be asked to do (an#98).
@@ -131,6 +135,13 @@
 - [an.library.root](_autosummary/an.library.root.html.md): Where a package’s library lives on disk: one root per package (ADR 0005 §2, plan §1 decisions 7–8).
 - [an.library.stores](_autosummary/an.library.stores.html.md): The library mall: &#96;records&#96;, &#96;versions&#96; and &#96;blobs&#96;, each an injected &#96;MutableMapping&#96;.
 - [an.live_api](_autosummary/an.live_api.html.md): The one switch that says “yes, this run may spend money”.
+- [an.media](_autosummary/an.media.html.md): Frames to deliverables, engine-independent: the frame stage’s resolves and the sinks.
+- [an.media.frames](_autosummary/an.media.frames.html.md): The frame directory every engine writes and every sink reads.
+- [an.media.gif](_autosummary/an.media.gif.html.md): The GIF sink: ONE palette recipe, for flat 2D art.
+- [an.media.mp4](_autosummary/an.media.mp4.html.md): The MP4 sink: PNG frames -&gt; the delivered H.264 mp4, with the pinned argv.
+- [an.media.shutter](_autosummary/an.media.shutter.html.md): The temporal half of the frame stage: average several instants into one frame.
+- [an.media.sinks](_autosummary/an.media.sinks.html.md): Frame sinks: a frame directory in, one deliverable out – one sink per format.
+- [an.media.supersample](_autosummary/an.media.supersample.html.md): Render bigger, then resolve back exactly — the supersample knob’s two halves.
 - [an.motion](_autosummary/an.motion.html.md): Motion presets: a named vocabulary of cut-out moves, as authoring macros.
 - [an.orchestrate](_autosummary/an.orchestrate.html.md): Orchestrator: validate → audio → render → verify.
 - [an.paths](_autosummary/an.paths.html.md): Stroked paths: routes, invasion arrows, borders, timelines, connectors.
@@ -172,7 +183,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 15:40 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 16:04 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

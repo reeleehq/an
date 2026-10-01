@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=9ffce637"></script>
+    <script src="../../../_static/documentation_options.js?v=3b84622e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.136" />
+  <meta name="docsearch:version" content="0.1.137" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -753,10 +753,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  ``runtime.js`` is never written to.</span>
 <span class="sd">- ``supersample`` reaches the SAME runtime seam — ``resolution: k,</span>
 <span class="sd">  autoDensity: false`` in the Pixi application options — and then a second one</span>
-<span class="sd">  it cannot do without: it rebinds</span>
-<span class="sd">  ``an.adapters.cutout.render._capture_frames`` so the k-times PNGs are</span>
-<span class="sd">  block-mean-resolved back to the declared size **in the frame stage**, before</span>
-<span class="sd">  ffmpeg or the metrics or the golden gate read them. That is not tidiness. A</span>
+<span class="sd">  it cannot do without: it rebinds ``an.engines.capture.capture_frames`` (the</span>
+<span class="sd">  core frame stage's capture loop since an#247; before it, the stage's own</span>
+<span class="sd">  ``_capture_frames``) so the k-times PNGs are block-mean-resolved back to the</span>
+<span class="sd">  declared size **in the frame stage**, before ffmpeg or the metrics or the</span>
+<span class="sd">  golden gate read them. That is not tidiness. A</span>
 <span class="sd">  lever must measure what the product will produce, and everything downstream</span>
 <span class="sd">  reads the declared resolution off the STAGED SCENE, never off the files.</span>
 
@@ -1104,38 +1105,39 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    supersampled buffer would be declaring directions for a picture nobody will</span>
 <span class="sd">    ever see.</span>
 
-<span class="sd">    `render._capture_frames` is called as a module global from</span>
-<span class="sd">    `CutoutRenderer.render`, and per-shot fan-out is a `ThreadPoolExecutor` in</span>
-<span class="sd">    this process, so the rebinding reaches every shot at any `parallel`.</span>
+<span class="sd">    `capture.capture_frames` is called as a module attribute, at call time,</span>
+<span class="sd">    from the core frame stage (`an.engines.frame_stage`), and per-shot fan-out</span>
+<span class="sd">    is a `ThreadPoolExecutor` in this process, so the rebinding reaches every</span>
+<span class="sd">    shot at any `parallel`.</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout</span><span class="w"> </span><span class="kn">import</span> <span class="n">render</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.engines</span><span class="w"> </span><span class="kn">import</span> <span class="n">capture</span>
 
     <span class="k">with</span> <span class="n">_patched_runtime</span><span class="p">(</span>
         <span class="k">lambda</span> <span class="n">source</span><span class="p">:</span> <span class="n">_supersample_patch</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">SUPERSAMPLE_K</span><span class="p">),</span>
         <span class="n">prefix</span><span class="o">=</span><span class="s2">"an-mutation-supersample-"</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="n">original</span> <span class="o">=</span> <span class="n">render</span><span class="o">.</span><span class="n">_capture_frames</span>
+        <span class="n">original</span> <span class="o">=</span> <span class="n">capture</span><span class="o">.</span><span class="n">capture_frames</span>
 
-        <span class="k">def</span><span class="w"> </span><span class="nf">_capture_then_resolve</span><span class="p">(</span>
-            <span class="n">page</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">frames_dir</span><span class="p">,</span> <span class="n">_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-        <span class="p">):</span>
-            <span class="c1"># Forces the PRODUCT's own `supersample` parameter (an#58) rather</span>
-            <span class="c1"># than resolving separately, so this lever runs the exact path a</span>
-            <span class="c1"># user gets from `an render --supersample 2` — same function, same</span>
-            <span class="c1"># place in the pipeline. It has to be forced here because the bench</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_capture_then_resolve</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">requests</span><span class="p">,</span> <span class="n">frames_dir</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+            <span class="c1"># Forces the PRODUCT's own `factor` parameter (an#58) rather than</span>
+            <span class="c1"># resolving separately, so this lever runs the exact path a user</span>
+            <span class="c1"># gets from `an render --supersample 2` — same function, same place</span>
+            <span class="c1"># in the pipeline. It has to be forced here because the bench</span>
             <span class="c1"># cannot pass it through `BENCH_RENDER_KWARGS`: that dict is a</span>
-            <span class="c1"># comparability key, and a factor in it would refuse every metric in</span>
-            <span class="c1"># the row rather than measure one.</span>
-            <span class="c1"># `**kwargs` forwarded (`frame_samples`, and whatever the capture</span>
-            <span class="c1"># stage grows next) so the lever keeps running the product's path</span>
-            <span class="c1"># rather than a frozen copy of its signature.</span>
-            <span class="n">original</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">total_frames</span><span class="p">,</span> <span class="n">fps</span><span class="p">,</span> <span class="n">frames_dir</span><span class="p">,</span> <span class="n">SUPERSAMPLE_K</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="c1"># comparability key, and a factor in it would refuse every metric</span>
+            <span class="c1"># in the row rather than measure one. `**kwargs` forwarded (`size`,</span>
+            <span class="c1"># and whatever the capture stage grows next) so the lever keeps</span>
+            <span class="c1"># running the product's path rather than a frozen copy of its</span>
+            <span class="c1"># signature.</span>
+            <span class="n">original</span><span class="p">(</span>
+                <span class="n">session</span><span class="p">,</span> <span class="n">requests</span><span class="p">,</span> <span class="n">frames_dir</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="s2">"factor"</span><span class="p">:</span> <span class="n">SUPERSAMPLE_K</span><span class="p">}</span>
+            <span class="p">)</span>
 
-        <span class="n">render</span><span class="o">.</span><span class="n">_capture_frames</span> <span class="o">=</span> <span class="n">_capture_then_resolve</span>
+        <span class="n">capture</span><span class="o">.</span><span class="n">capture_frames</span> <span class="o">=</span> <span class="n">_capture_then_resolve</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">yield</span>
         <span class="k">finally</span><span class="p">:</span>
-            <span class="n">render</span><span class="o">.</span><span class="n">_capture_frames</span> <span class="o">=</span> <span class="n">original</span>
+            <span class="n">capture</span><span class="o">.</span><span class="n">capture_frames</span> <span class="o">=</span> <span class="n">original</span>
 
 
 <span class="c1">#: The levers, keyed by the mutation name the registry declares. At least one</span>

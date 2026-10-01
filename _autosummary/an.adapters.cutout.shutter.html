@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=9ffce637"></script>
+    <script src="../_static/documentation_options.js?v=3b84622e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.serialize" href="an.adapters.cutout.serialize.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.136" />
+  <meta name="docsearch:version" content="0.1.137" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -395,6 +395,12 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
@@ -445,6 +451,15 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.supersample.html">an.media.supersample</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
@@ -564,17 +579,9 @@
                   
   <section id="module-an.adapters.cutout.shutter">
 <span id="an-adapters-cutout-shutter"></span><h1>an.adapters.cutout.shutter<a class="headerlink" href="#module-an.adapters.cutout.shutter" title="Link to this heading">#</a></h1>
-<p>The temporal half of the frame stage: average several instants into one frame.</p>
-<p><code class="code docutils literal notranslate"><span class="pre">supersample.py</span></code> resolves a frame SPATIALLY — k x k pixels into one. This module
-resolves it TEMPORALLY — the screenshots taken at each of a frame’s sample
-instants (<code class="docutils literal notranslate"><span class="pre">RenderContext.frame_samples</span></code>, built by
-<a class="reference internal" href="an.frame_clock.html#an.frame_clock.FrameClock" title="an.frame_clock.FrameClock"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.frame_clock.FrameClock</span></code></a>) into the one frame a camera with an open
-shutter would have recorded. Same place, same rules: the resolve runs in the
-frame stage, so everything downstream still sees PNGs at the declared size, and
-the rounding is spelled out rather than inherited.</p>
-<p><strong>One sample is free.</strong> A frame with a single instant keeps the bytes the
-spatial path produces (Chromium’s own, at <code class="docutils literal notranslate"><span class="pre">supersample</span> <span class="pre">==</span> <span class="pre">1</span></code>), so a render
-without an open shutter is byte-identical to one from before this module.</p>
+<p>Moved to <a class="reference internal" href="an.media.shutter.html#module-an.media.shutter" title="an.media.shutter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.shutter</span></code></a> (an#247); this path re-exports it.</p>
+<p>The temporal resolve is engine-independent, so it lives in the core’s media
+package. Every name below is the same object as in its new home.</p>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -601,14 +608,14 @@ without an open shutter is byte-identical to one from before this module.</p>
 </div>
 <dl class="py exception">
 <dt class="sig sig-object py" id="an.adapters.cutout.shutter.ShutterError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.shutter.</span></span><span class="sig-name descname"><span class="pre">ShutterError</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/shutter.html#ShutterError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.shutter.ShutterError" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.shutter.</span></span><span class="sig-name descname"><span class="pre">ShutterError</span></span><a class="reference internal" href="../_modules/an/media/shutter.html#ShutterError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.shutter.ShutterError" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
 <p>Frame samples a render cannot honour.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.shutter.check_frame_samples">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.shutter.</span></span><span class="sig-name descname"><span class="pre">check_frame_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_samples</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/shutter.html#check_frame_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.shutter.check_frame_samples" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.shutter.</span></span><span class="sig-name descname"><span class="pre">check_frame_samples</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_samples</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">total_frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/media/shutter.html#check_frame_samples"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.shutter.check_frame_samples" title="Link to this definition">#</a></dt>
 <dd><p>Validate <code class="docutils literal notranslate"><span class="pre">frame_samples</span></code> against the render it is for; normalise to tuples.</p>
 <p>Checked before a browser launches, for <code class="code docutils literal notranslate"><span class="pre">check_factor</span></code>’s reason: the render
 costs minutes and this costs microseconds.</p>
@@ -624,14 +631,14 @@ costs minutes and this costs microseconds.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">check_frame_samples</span><span class="p">([[</span><span class="mf">0.0</span><span class="p">]],</span> <span class="n">total_frames</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
 <span class="gt">Traceback (most recent call last):</span>
 <span class="w">  </span><span class="c">...</span>
-<span class="gr">an.adapters.cutout.shutter.ShutterError</span>: <span class="n">frame_samples has 1 frame(s) but this render has 2; a frame clock must describe every frame, and only those</span>
+<span class="gr">an.media.shutter.ShutterError</span>: <span class="n">frame_samples has 1 frame(s) but this render has 2; a frame clock must describe every frame, and only those</span>
 </pre></div>
 </div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.shutter.mean_png_bytes">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.shutter.</span></span><span class="sig-name descname"><span class="pre">mean_png_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/shutter.html#mean_png_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.shutter.mean_png_bytes" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.shutter.</span></span><span class="sig-name descname"><span class="pre">mean_png_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shots</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">factor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/media/shutter.html#mean_png_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.shutter.mean_png_bytes" title="Link to this definition">#</a></dt>
 <dd><p>Spatially resolve each screenshot by <code class="docutils literal notranslate"><span class="pre">factor</span></code>, then average them in time.</p>
 <p>One screenshot takes exactly the spatial path — the same bytes a render
 without a shutter writes.</p>
@@ -644,7 +651,7 @@ without a shutter writes.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.adapters.cutout.shutter.temporal_mean">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.shutter.</span></span><span class="sig-name descname"><span class="pre">temporal_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/shutter.html#temporal_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.shutter.temporal_mean" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.shutter.</span></span><span class="sig-name descname"><span class="pre">temporal_mean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/media/shutter.html#temporal_mean"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.shutter.temporal_mean" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">k</span></code> equal-shape uint8 frames -&gt; their exact per-pixel mean, uint8.</p>
 <p>Rounded half-to-even, the rule <code class="code docutils literal notranslate"><span class="pre">block_mean_resolve</span></code> spells out, so the
 temporal and spatial resolves agree about every tie. The mean is of the

@@ -1,39 +1,9 @@
 # an.adapters.cutout.supersample
 
-Render bigger, then resolve back exactly — the supersample knob’s two halves.
+Moved to [`an.media.supersample`](an.media.supersample.html.md#module-an.media.supersample) (an#247); this path re-exports it.
 
-**\`autoDensity: false\` is the whole plumbing finding, and it is load-bearing.**
-`resolution: k` alone reproduces the failure it exists to avoid: with
-`autoDensity: true` PixiJS sets the canvas CSS size to the *logical* size, so
-Chromium composites the k-times backbuffer down before the screenshot — a blind
-browser downscale, no filter choice, no record that it happened. Measured on a
-declared 320x240 scene: neither key -> 320x240 PNGs; `resolution: 2,
-autoDensity: false` -> 640x480; `resolution: 2, autoDensity: true` -> 320x240.
-It is the option whose name most suggests it is the right one.
-
-\*\*The resolve is an exact k x k block mean, and calling it a filter would be
-wrong\*\* — at an integer ratio it *is* the supersample resolve. Measured against
-the alternatives on all six corpus scenes: PIL’s `BOX` agrees with it to four
-decimals, and lanczos triples the edge band on the most idiom-like scene
-(+208.8% on `saturated_outline`), because its negative lobes ring on hard-edged
-flat fills. An ffmpeg-side `-vf scale` is refused for a second, independent
-reason: it would move `x264_argv`, refusing every encode-side metric, and retire
-the cross-arch verdict’s load-bearing “ffmpeg never touches a frame” clause.
-
-\*\*Why PIL here and not `an.bench.png`.\*\* The bench’s codec exists so a committed
-golden is a function of the *pixel data alone* rather than of Chromium’s libpng
-settings — a goal about files that get committed and diffed, which render-path
-frames are not. And it is the wrong tool for this job by an order of magnitude:
-Chromium’s screenshots are Paeth-filtered on ~87% of rows (measured: 209 of 240),
-which takes its scalar unfilter path at **416 ns/px against PIL’s 31 ns/px**.
-Extrapolated to a 3840x2160 supersampled frame that is \*\*3.46 s of decoding per
-frame\*\* versus 256 ms — more than the render itself costs. `pillow` is declared
-by the `cutout` extra, which this module cannot run without anyway.
-
-### Module Attributes
-
-| [`NO_SUPERSAMPLE`](#an.adapters.cutout.supersample.NO_SUPERSAMPLE)   | The factor at which every code path here is a no-op rather than merely cheap.   |
-|-------------------------------------------------------------------|---------------------------------------------------------------------------------|
+The spatial resolve is engine-independent, so it lives in the core’s media
+package. Every name below is the same object as in its new home.
 
 ### Functions
 
@@ -46,12 +16,6 @@ by the `cutout` extra, which this module cannot run without anyway.
 
 | [`SupersampleError`](#an.adapters.cutout.supersample.SupersampleError)   | A supersample factor or frame that cannot be resolved exactly.   |
 |---------------------------------------------------------------------|------------------------------------------------------------------|
-
-### an.adapters.cutout.supersample.NO_SUPERSAMPLE *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 1*
-
-The factor at which every code path here is a no-op rather than merely cheap.
-Aliased from [`an.base.DEFAULT_SUPERSAMPLE`](an.base.html.md#an.base.DEFAULT_SUPERSAMPLE) rather than restated: the
-default and the off-switch are the same fact, and two copies of a fact drift.
 
 ### *exception* an.adapters.cutout.supersample.SupersampleError
 
@@ -100,7 +64,7 @@ Validate a supersample factor, or refuse with the reason.
 >>> check_factor(0)
 Traceback (most recent call last):
   ...
-an.adapters.cutout.supersample.SupersampleError: supersample must be >= 1, got 0
+an.media.supersample.SupersampleError: supersample must be >= 1, got 0
 ```
 
 ### an.adapters.cutout.supersample.resolve_png_bytes(data, , factor)
@@ -112,11 +76,9 @@ keeps Chromium’s own bytes and pays nothing at all — which is what makes
 this knob free when it is off.
 
 **The early return sits above the imports deliberately.** “Off is free”
-should mean free of the *dependency* too: Pillow is declared by the `cutout`
-extra, so the default path must not need it merely to decide it has nothing
-to do. Without this, importing it here would make the knob’s own tests
-unrunnable in the default CI lane, which installs `dev,test` and not
-`cutout` — and CI is where that was found.
+should mean free of the *dependency* too: the default path must not need
+Pillow merely to decide it has nothing to do. (Found in CI, when Pillow came
+only with the `cutout` extra and the default lane did not install it.)
 
 * **Return type:**
   [`bytes`](https://docs.python.org/3/builtins/stdtypes.html#bytes)

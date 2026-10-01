@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=9ffce637"></script>
+    <script src="../_static/documentation_options.js?v=3b84622e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters" href="an.adapters.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.136" />
+  <meta name="docsearch:version" content="0.1.137" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -395,6 +395,12 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
@@ -445,6 +451,15 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.supersample.html">an.media.supersample</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
@@ -584,8 +599,8 @@ application lives in <code class="docutils literal notranslate"><span class="pre
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.CutoutRenderer" title="an.adapters.cutout.CutoutRenderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CutoutRenderer</span></code></a>()</p></td>
-<td><p>Headless cutout renderer: Playwright + ffmpeg.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.CutoutRenderer" title="an.adapters.cutout.CutoutRenderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CutoutRenderer</span></code></a>([engine, name, ...])</p></td>
+<td><p>Headless cutout renderer: the stage engine through the core frame stage.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.CutoutSceneJSON" title="an.adapters.cutout.CutoutSceneJSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a>(**data)</p></td>
 <td><p>Top-level cutout scene JSON — the JS runtime's input contract.</p></td>
@@ -759,9 +774,9 @@ Environments: “store” | “preset” | “default”.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.CutoutRenderer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderer</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Headless cutout renderer: Playwright + ffmpeg.</p>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported_renderers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'an.adapters.cutout.render.CutoutRenderError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="an.engines.frame_stage.html#an.engines.frame_stage.FrameStageRenderer" title="an.engines.frame_stage.FrameStageRenderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameStageRenderer</span></code></a></p>
+<p>Headless cutout renderer: the stage engine through the core frame stage.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">CutoutRenderer</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">name</span>
 <span class="go">'cutout'</span>
@@ -769,15 +784,18 @@ Environments: “store” | “preset” | “default”.</p>
 <span class="go">('cutout',)</span>
 </pre></div>
 </div>
-<dl class="py method">
-<dt class="sig sig-object py" id="an.adapters.cutout.CutoutRenderer.render">
-<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderer.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer.render" title="Link to this definition">#</a></dt>
-<dd><p>Render <code class="docutils literal notranslate"><span class="pre">shot</span></code> to mp4 using <code class="docutils literal notranslate"><span class="pre">ctx</span></code> for paths + parameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.adapters.html#an.adapters.RenderResult" title="an.adapters._base.RenderResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">RenderResult</span></code></a></span></p>
-</dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.CutoutRenderer.error">
+<span class="sig-name descname"><span class="pre">error</span></span><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer.error" title="Link to this definition">#</a></dt>
+<dd><p>alias of <a class="reference internal" href="an.adapters.cutout.render.html#an.adapters.cutout.render.CutoutRenderError" title="an.adapters.cutout.render.CutoutRenderError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutRenderError</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.CutoutRenderer.supported_renderers">
+<span class="sig-name descname"><span class="pre">supported_renderers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('cutout',)</span></span><a class="headerlink" href="#an.adapters.cutout.CutoutRenderer.supported_renderers" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code> values this renderer claims (the ONE place it names them).</p>
 </dd></dl>
 
 </dd></dl>
@@ -1053,7 +1071,7 @@ clothes (an#33).</p>
 <td><p>Stroked-path geometry — the executable spec of <code class="docutils literal notranslate"><span class="pre">runtime.js::pathGeometry</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.render.html#module-an.adapters.cutout.render" title="an.adapters.cutout.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a></p></td>
-<td><p>Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.</p></td>
+<td><p>The 2D stage engine (<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> in headless Chromium), and the cut-out renderer built on it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.runtime_files.html#module-an.adapters.cutout.runtime_files" title="an.adapters.cutout.runtime_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">runtime_files</span></code></a></p></td>
 <td><p>Locate the bundled cutout JS runtime files.</p></td>
@@ -1062,10 +1080,10 @@ clothes (an#33).</p>
 <td><p>JSON contract between the Python compiler and the (future) JS runtime.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.shutter.html#module-an.adapters.cutout.shutter" title="an.adapters.cutout.shutter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">shutter</span></code></a></p></td>
-<td><p>The temporal half of the frame stage: average several instants into one frame.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.media.shutter.html#module-an.media.shutter" title="an.media.shutter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.shutter</span></code></a> (an#247); this path re-exports it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.cutout.supersample.html#module-an.adapters.cutout.supersample" title="an.adapters.cutout.supersample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">supersample</span></code></a></p></td>
-<td><p>Render bigger, then resolve back exactly — the supersample knob's two halves.</p></td>
+<td><p>Moved to <a class="reference internal" href="an.media.supersample.html#module-an.media.supersample" title="an.media.supersample"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.supersample</span></code></a> (an#247); this path re-exports it.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.cutout.surface.html#module-an.adapters.cutout.surface" title="an.adapters.cutout.surface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">surface</span></code></a></p></td>
 <td><p>Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.</p></td>
@@ -1153,7 +1171,8 @@ clothes (an#33).</p>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutRenderError"><code class="docutils literal notranslate"><span class="pre">CutoutRenderError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutRenderer"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutRenderer.render"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer.render()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutRenderer.error"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer.error</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutRenderer.supported_renderers"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer.supported_renderers</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.CutoutSceneJSON"><code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code></a><ul class="nav section-nav flex-column">

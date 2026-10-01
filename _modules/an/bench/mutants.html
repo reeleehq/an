@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=9ffce637"></script>
+    <script src="../../../_static/documentation_options.js?v=3b84622e"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.136" />
+  <meta name="docsearch:version" content="0.1.137" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1337,7 +1337,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># ---------------------------------------------------------------- an#59</span>
     <span class="n">Mutant</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"pix_fmt_knob_cannot_reach_the_encode"</span><span class="p">,</span>
-        <span class="n">file</span><span class="o">=</span><span class="s2">"an/adapters/cutout/render.py"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/media/mp4.py"</span><span class="p">,</span>
         <span class="n">old</span><span class="o">=</span><span class="s2">"    resolved = pix_fmt or DEFAULT_PIX_FMT"</span><span class="p">,</span>
         <span class="n">new</span><span class="o">=</span><span class="s1">'    resolved = pix_fmt or "yuv420p"'</span><span class="p">,</span>
         <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_encode_pins.py"</span><span class="p">,</span>
@@ -1355,7 +1355,7 @@ window.runMermaid = runMermaid;</script>
     <span class="p">),</span>
     <span class="n">Mutant</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"mux_argv_is_checked_by_subset_not_equality"</span><span class="p">,</span>
-        <span class="n">file</span><span class="o">=</span><span class="s2">"an/adapters/cutout/render.py"</span><span class="p">,</span>
+        <span class="n">file</span><span class="o">=</span><span class="s2">"an/media/mp4.py"</span><span class="p">,</span>
         <span class="c1"># Anchored ACROSS the insertion point — `"-pix_fmt",` is in the `old`</span>
         <span class="c1"># text purely so the mutation *splits* it rather than prefixing it. An</span>
         <span class="c1"># earlier spelling put the two new flags in front of `-c:v`, which made</span>
@@ -1434,8 +1434,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">Mutant</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">"supersample_skips_the_frame_stage"</span><span class="p">,</span>
         <span class="n">file</span><span class="o">=</span><span class="s2">"an/bench/mutations.py"</span><span class="p">,</span>
-        <span class="n">old</span><span class="o">=</span><span class="s2">"        render._capture_frames = _capture_then_resolve"</span><span class="p">,</span>
-        <span class="n">new</span><span class="o">=</span><span class="s2">"        render._capture_frames = original"</span><span class="p">,</span>
+        <span class="n">old</span><span class="o">=</span><span class="s2">"        capture.capture_frames = _capture_then_resolve"</span><span class="p">,</span>
+        <span class="n">new</span><span class="o">=</span><span class="s2">"        capture.capture_frames = original"</span><span class="p">,</span>
         <span class="n">caught_by</span><span class="o">=</span><span class="s2">"tests/test_bench_supersample_lever.py"</span><span class="p">,</span>
         <span class="n">why</span><span class="o">=</span><span class="p">(</span>
             <span class="s2">"drops the resolve, leaving k-times PNGs on disk. Before an#54 that "</span>

@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=9ffce637"></script>
+    <script src="../_static/documentation_options.js?v=3b84622e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.path" href="an.adapters.cutout.path.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.136" />
+  <meta name="docsearch:version" content="0.1.137" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -395,6 +395,12 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
@@ -445,6 +451,15 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.supersample.html">an.media.supersample</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
@@ -564,61 +579,63 @@
                   
   <section id="module-an.adapters.cutout.render">
 <span id="an-adapters-cutout-render"></span><h1>an.adapters.cutout.render<a class="headerlink" href="#module-an.adapters.cutout.render" title="Link to this heading">#</a></h1>
-<p>Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.</p>
-<p>The flow per shot:</p>
+<p>The 2D stage engine (<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> in headless Chromium), and the cut-out renderer built on it.</p>
+<p>Since an#247 this module is an ENGINE, not a whole renderer: the frame stage is
+the core’s (<a class="reference internal" href="an.engines.html#an.engines.frame_stage_renderer" title="an.engines.frame_stage_renderer"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.engines.frame_stage_renderer()</span></code></a> – clock, capture loop,
+supersample and shutter resolves, MP4 sink, provenance), and this module only
+does what is specific to the stage:</p>
 <ol class="arabic simple">
-<li><p>Compile the shot to a <code class="code docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code> via <code class="code docutils literal notranslate"><span class="pre">compile_shot</span></code>.</p></li>
-<li><p>Stage a copy of the JS runtime in a per-shot work directory and write the
-JSON beside it.</p></li>
-<li><p>Launch headless Chromium via Playwright; load <code class="code docutils literal notranslate"><span class="pre">index.html</span></code>; inject the
-scene via <code class="docutils literal notranslate"><span class="pre">window.anLoadScene</span></code>.</p></li>
-<li><p>For each frame <code class="docutils literal notranslate"><span class="pre">f</span></code> in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">total_frames)</span></code>: seek <code class="docutils literal notranslate"><span class="pre">f/fps</span></code> and capture the
-canvas to a PNG — by default (<code class="docutils literal notranslate"><span class="pre">capture=&quot;canvas&quot;</span></code>, since an#192) reading its
-own pixels in-page, in batches (<code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.canvas_capture</span></code>); with
-<code class="docutils literal notranslate"><span class="pre">capture=&quot;screenshot&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">window.anSetTime</span></code> plus a Playwright element
-screenshot per instant.</p></li>
-<li><p>Mux the PNG sequence to mp4 with ffmpeg.</p></li>
+<li><p><a class="reference internal" href="#an.adapters.cutout.render.StageEngine" title="an.adapters.cutout.render.StageEngine"><code class="xref py py-class docutils literal notranslate"><span class="pre">StageEngine</span></code></a> compiles the shot to a <code class="docutils literal notranslate"><span class="pre">CutoutSceneJSON</span></code>
+(<code class="docutils literal notranslate"><span class="pre">compile_shot</span></code>), stages a copy of the JS runtime plus the shot’s textures
+in <code class="docutils literal notranslate"><span class="pre">&lt;work_dir&gt;/shot_&lt;id&gt;/runtime/</span></code>, serves it over loopback HTTP (PixiJS
+cannot fetch <code class="docutils literal notranslate"><span class="pre">file://</span></code> in headless Chromium), launches Chromium with the
+pinned rasteriser flags, injects the supersample factor, loads the scene with
+a deadline, and judges the determinism probe.</p></li>
+<li><p>It yields a session the core drives: <code class="xref py py-class docutils literal notranslate"><span class="pre">_CanvasStageSession</span></code> (the
+default, <code class="docutils literal notranslate"><span class="pre">capture=&quot;canvas&quot;</span></code>: batches of in-page canvas reads,
+<code class="docutils literal notranslate"><span class="pre">window.anCaptureFrames</span></code>) or <code class="xref py py-class docutils literal notranslate"><span class="pre">_ScreenshotStageSession</span></code>
+(<code class="docutils literal notranslate"><span class="pre">capture=&quot;screenshot&quot;</span></code>: an element screenshot per instant). Both are
+batched (<code class="docutils literal notranslate"><span class="pre">frames(requests)</span></code>), so a runtime throw is located by frame.</p></li>
+<li><p><a class="reference internal" href="#an.adapters.cutout.render.CutoutRenderer" title="an.adapters.cutout.render.CutoutRenderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutRenderer</span></code></a> is <code class="docutils literal notranslate"><span class="pre">frame_stage_renderer(StageEngine())</span></code> under the
+persisted renderer name <code class="docutils literal notranslate"><span class="pre">cutout</span></code>, raising <code class="docutils literal notranslate"><span class="pre">CutoutRenderError</span></code>.</p></li>
 </ol>
+<p>The engine-independent halves moved to the core in an#247 and are still
+reachable here by their old names: the mux, the pixel format and the x264 argv
+(<a class="reference internal" href="an.media.mp4.html#module-an.media.mp4" title="an.media.mp4"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.mp4</span></code></a>), the frame naming (<a class="reference internal" href="an.media.frames.html#module-an.media.frames" title="an.media.frames"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.frames</span></code></a>), the resolves
+(<a class="reference internal" href="an.media.supersample.html#module-an.media.supersample" title="an.media.supersample"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.supersample</span></code></a>, <a class="reference internal" href="an.media.shutter.html#module-an.media.shutter" title="an.media.shutter"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.media.shutter</span></code></a>) and the capture tunables
+(<a class="reference internal" href="an.engines.capture.html#module-an.engines.capture" title="an.engines.capture"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.engines.capture</span></code></a>). Those old names are LIVE aliases
+(<code class="xref py py-mod docutils literal notranslate"><span class="pre">an._shims</span></code>): rebinding <code class="docutils literal notranslate"><span class="pre">DETERMINISTIC_X264_ARGS</span></code> or <code class="docutils literal notranslate"><span class="pre">DEFAULT_PIX_FMT</span></code>
+here rebinds the global the core reads, so the bench’s levers keep reaching the
+encode. The whole module moves to <code class="docutils literal notranslate"><span class="pre">an.stage</span></code> in the next step of an#247.</p>
 <p>Failures are reported with concrete remediation: missing ffmpeg, missing
 Chromium, runtime load timeout, etc. Subprocess errors are wrapped at the
 facade boundary.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">CutoutRenderer</span><span class="p">()</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">CutoutRenderer</span><span class="p">()</span><span class="o">.</span><span class="n">supported_renderers</span>
+<span class="go">('cutout', ('cutout',))</span>
+</pre></div>
+</div>
 <p class="rubric">Module Attributes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS" title="an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_ASSET_LOAD_TIMEOUT_MS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.STAGE_ENGINE_NAME" title="an.adapters.cutout.render.STAGE_ENGINE_NAME"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_ENGINE_NAME</span></code></a></p></td>
+<td><p>what it is, independent of the renderer names it is registered under (<code class="docutils literal notranslate"><span class="pre">cutout</span></code>, a persisted identifier, and <code class="docutils literal notranslate"><span class="pre">stage</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS" title="an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_ASSET_LOAD_TIMEOUT_MS</span></code></a></p></td>
 <td><p>Deadline for <code class="code docutils literal notranslate"><span class="pre">anLoadScene</span></code>, which awaits <code class="code docutils literal notranslate"><span class="pre">PIXI.Assets.load</span></code> for every declared texture.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS" title="an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DETERMINISTIC_CHROMIUM_ARGS</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS" title="an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DETERMINISTIC_CHROMIUM_ARGS</span></code></a></p></td>
 <td><p>Chromium launch flags that pin the rasteriser (an#31, research §2).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_PIX_FMT" title="an.adapters.cutout.render.DEFAULT_PIX_FMT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_PIX_FMT</span></code></a></p></td>
-<td><p>x264 encode knobs pinned so the delivered mp4 is a function of the frames rather than of the machine (an#34, research §2).</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.SUPPORTED_PIX_FMTS" title="an.adapters.cutout.render.SUPPORTED_PIX_FMTS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_PIX_FMTS</span></code></a></p></td>
-<td><p>a typo would reach ffmpeg as an obscure failure minutes into a render, and a format outside this set has not been measured against the panel.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CAPTURE" title="an.adapters.cutout.render.DEFAULT_CAPTURE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTURE</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CAPTURE" title="an.adapters.cutout.render.DEFAULT_CAPTURE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CAPTURE</span></code></a></p></td>
 <td><p>the runtime's <code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> reads the canvas in-page and hands back PNG data URLs in batches (<code class="code docutils literal notranslate"><span class="pre">an.adapters.cutout.canvas_capture</span></code>), which writes frames whose DECODED pixels equal the screenshot path's — ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.SUPPORTED_CAPTURES" title="an.adapters.cutout.render.SUPPORTED_CAPTURES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_CAPTURES</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.SUPPORTED_CAPTURES" title="an.adapters.cutout.render.SUPPORTED_CAPTURES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SUPPORTED_CAPTURES</span></code></a></p></td>
 <td><p>a typo must fail before a browser launches, not minutes into a render.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH" title="an.adapters.cutout.render.DEFAULT_CANVAS_BATCH"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_BATCH</span></code></a></p></td>
-<td><p>Frames per <code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> round trip.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS" title="an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_ENCODE_WORKERS</span></code></a></p></td>
-<td><p>Threads decoding, resolving and re-encoding canvas frames while the page renders the next batch.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS" title="an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_BATCH_PIXELS</span></code></a></p></td>
-<td><p>The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample counts k² times and an open shutter once per instant): at most this many per <code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> round trip, and twice this many waiting on the encode pool.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT" title="an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_MAX_INFLIGHT</span></code></a></p></td>
-<td><p>frames handed to the encode pool and not yet written.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER" title="an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_LOAD_TIMEOUT_MARKER</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER" title="an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_LOAD_TIMEOUT_MARKER</span></code></a></p></td>
 <td><p>Sentinel the in-page deadline rejects with, so the Python side can tell a timeout apart from a load failure and say something different about each.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE" title="an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_SRC_PREFIX_TO_STORE</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE" title="an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ASSET_SRC_PREFIX_TO_STORE</span></code></a></p></td>
 <td><p>Texture <code class="docutils literal notranslate"><span class="pre">src</span></code> prefix → the mall store that resolves the rest of the path.</p></td>
 </tr>
 </tbody>
@@ -636,8 +653,11 @@ facade boundary.</p>
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.CutoutRenderer" title="an.adapters.cutout.render.CutoutRenderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CutoutRenderer</span></code></a>()</p></td>
-<td><p>Headless cutout renderer: Playwright + ffmpeg.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.render.CutoutRenderer" title="an.adapters.cutout.render.CutoutRenderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CutoutRenderer</span></code></a>([engine, name, ...])</p></td>
+<td><p>Headless cutout renderer: the stage engine through the core frame stage.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.render.StageEngine" title="an.adapters.cutout.render.StageEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StageEngine</span></code></a>([name])</p></td>
+<td><p>The 2D stage runtime as an <a class="reference internal" href="an.engines.protocol.html#an.engines.protocol.Engine" title="an.engines.protocol.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -702,9 +722,9 @@ rather than as an error, which is what this warning exists to prevent.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.CutoutRenderer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderer</span></span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.render.CutoutRenderer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Headless cutout renderer: Playwright + ffmpeg.</p>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">CutoutRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supported_renderers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('cutout'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'an.adapters.cutout.render.CutoutRenderError'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capture_options</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.render.CutoutRenderer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="an.engines.frame_stage.html#an.engines.frame_stage.FrameStageRenderer" title="an.engines.frame_stage.FrameStageRenderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">FrameStageRenderer</span></code></a></p>
+<p>Headless cutout renderer: the stage engine through the core frame stage.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">CutoutRenderer</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">name</span>
 <span class="go">'cutout'</span>
@@ -712,15 +732,18 @@ rather than as an error, which is what this warning exists to prevent.</p>
 <span class="go">('cutout',)</span>
 </pre></div>
 </div>
-<dl class="py method">
-<dt class="sig sig-object py" id="an.adapters.cutout.render.CutoutRenderer.render">
-<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#CutoutRenderer.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.render.CutoutRenderer.render" title="Link to this definition">#</a></dt>
-<dd><p>Render <code class="docutils literal notranslate"><span class="pre">shot</span></code> to mp4 using <code class="docutils literal notranslate"><span class="pre">ctx</span></code> for paths + parameters.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.adapters.html#an.adapters.RenderResult" title="an.adapters._base.RenderResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">RenderResult</span></code></a></span></p>
-</dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.CutoutRenderer.error">
+<span class="sig-name descname"><span class="pre">error</span></span><a class="headerlink" href="#an.adapters.cutout.render.CutoutRenderer.error" title="Link to this definition">#</a></dt>
+<dd><p>alias of <a class="reference internal" href="#an.adapters.cutout.render.CutoutRenderError" title="an.adapters.cutout.render.CutoutRenderError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CutoutRenderError</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.CutoutRenderer.supported_renderers">
+<span class="sig-name descname"><span class="pre">supported_renderers</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('cutout',)</span></span><a class="headerlink" href="#an.adapters.cutout.render.CutoutRenderer.supported_renderers" title="Link to this definition">#</a></dt>
+<dd><p>The <code class="docutils literal notranslate"><span class="pre">Shot.renderer</span></code> values this renderer claims (the ONE place it names them).</p>
 </dd></dl>
 
 </dd></dl>
@@ -737,59 +760,6 @@ timeout, so the deadline is imposed inside the page instead.</p>
 <p>The value is a policy choice, not a measurement: it needs to sit far above a
 legitimate cold load of a few dozen small SVGs and far below “a human gave
 up”. Raise it for a genuinely heavy art package rather than removing it.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_BATCH">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_BATCH</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH" title="Link to this definition">#</a></dt>
-<dd><p>Frames per <code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> round trip. Measured at 1920x1080 on an M1
-Max, <code class="code docutils literal notranslate"><span class="pre">single_character</span></code>: 67 ms/frame one frame per call, 46 at four, 46 at
-eight — the round trip is ~20 ms of fixed cost, amortised by the batch. It is
-also the memory the page holds before Python takes it: eight data URLs of a
-1080p frame are well under a megabyte of text, and at a supersampled 4K
-backbuffer a few megabytes each.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_BATCH_PIXELS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4147200</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS" title="Link to this definition">#</a></dt>
-<dd><p>The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample
-counts k² times and an open shutter once per instant): at most this many per
-<code class="docutils literal notranslate"><span class="pre">anCaptureFrames</span></code> round trip, and twice this many waiting on the encode
-pool. Two 1080p instants: small scenes still batch by the frame count
-above, and at 1080p the batch size stopped mattering for a flat scene
-(96 frames: 4.7 s at 2, 4 or 8 per round trip) while it decides everything
-for an incompressible one (a grain pack, 48 frames: 11.0 s / 0.38 GB at 2
-against 17.8 s / 2.1 GB at 8; the screenshot path 17.8 s / 0.16 GB). Needed
-because a count alone does not bound the bytes: the review of an#192
-measured grain at supersample 2 with an 8-sample shutter overflowing the
-driver’s string limit in ONE reply (the render hung in <code class="docutils literal notranslate"><span class="pre">browser.close()</span></code>),
-and ~16 GB of Python memory at supersample 3. A frame whose instants alone
-exceed it is captured over several round trips.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_ENCODE_WORKERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS" title="Link to this definition">#</a></dt>
-<dd><p>Threads decoding, resolving and re-encoding canvas frames while the page
-renders the next batch. The decode/encode is ~60 ms/frame of Pillow and zlib
-at 1080p — the same order as the page’s own work — so it must overlap it or
-it eats the win. Two, not <code class="code docutils literal notranslate"><span class="pre">cpu_count()</span></code>: <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--parallel</span></code> already runs
-one Chromium per shot, and each of them is another source of CPU pressure.</p>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CANVAS_MAX_INFLIGHT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT" title="Link to this definition">#</a></dt>
-<dd><p>frames handed to the encode pool and not yet written. When
-the pool falls behind, the capture loop blocks on the oldest one before it
-asks the page for more, so memory is bounded by this many frames plus one
-batch however long the shot is.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>BACK-PRESSURE</p>
-</dd>
-</dl>
 </dd></dl>
 
 <dl class="py data">
@@ -813,71 +783,6 @@ would bind it at def time.</p>
 <dd class="field-odd"><p>How frames leave the browser. <code class="docutils literal notranslate"><span class="pre">&quot;canvas&quot;</span></code> (the default since an#192)</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.render.DEFAULT_PIX_FMT">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_PIX_FMT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'yuv420p'</span></span><a class="headerlink" href="#an.adapters.cutout.render.DEFAULT_PIX_FMT" title="Link to this definition">#</a></dt>
-<dd><p>x264 encode knobs pinned so the delivered mp4 is a function of the frames
-rather than of the machine (an#34, research §2).</p>
-<p><code class="code docutils literal notranslate"><span class="pre">-threads</span> <span class="pre">1</span></code> — <code class="code docutils literal notranslate"><span class="pre">-threads</span> <span class="pre">1/4/11</span></code> all give bit-identical decoded pixels, so
-this looks unnecessary on a laptop. It is not: <code class="code docutils literal notranslate"><span class="pre">auto</span></code> raises
-<code class="code docutils literal notranslate"><span class="pre">lookahead_threads</span></code> above 1 at roughly <code class="code docutils literal notranslate"><span class="pre">-threads</span> <span class="pre">&gt;=</span> <span class="pre">12</span></code>, and a forced
-<code class="code docutils literal notranslate"><span class="pre">lookahead-threads=4</span></code> changes 86.2% of the bytes (max delta 80). A big CI
-runner crosses that line and a 4-core dev box never will, which is precisely
-how an unpinned thread count ships without anyone seeing it.</p>
-<p><code class="code docutils literal notranslate"><span class="pre">-crf</span> <span class="pre">23</span> <span class="pre">-preset</span> <span class="pre">medium</span></code> — both are libx264’s compiled-in defaults today, so
-passing them changes nothing now and pins us against a build whose defaults
-differ. Worth pinning because preset swings distinct colour counts **2.3x,
-non-monotonically** (ultrafast 3141, veryfast 7296, medium 6064, slower 5393)
-against a crf18-&gt;23 signal of 1.35x — an unpinned preset dominates the very
-signal a quality ledger tries to measure.</p>
-<p>BT.709 is the one knob here that CHANGES today’s output, and it changes more
-than the research predicted — measured, not assumed (an#34):</p>
-<ul class="simple">
-<li><p><code class="code docutils literal notranslate"><span class="pre">-colorspace</span> <span class="pre">bt709</span></code> does not merely <em>tag</em> the file. It sets the matrix of
-the auto-inserted RGB-&gt;YUV conversion, so the **encoded luma and chroma
-planes themselves change**. Confirmed by construction: forcing
-<code class="code docutils literal notranslate"><span class="pre">scale=out_color_matrix=bt601</span></code> reproduces the untagged output’s decoded
-stream byte-for-byte, i.e. <code class="code docutils literal notranslate"><span class="pre">an</span></code> has been converting with BT.601 all along.
-<strong>On ffmpeg 8/9. It is false on ffmpeg 6.1</strong> — where the same flags reach
-only the VUI and the planes stay BT.601 (an#148, measured; see
-<code class="code docutils literal notranslate"><span class="pre">an.base.BT709_SCALE_FILTER</span></code> for the numbers). That is why the mux now
-states the conversion explicitly with <code class="code docutils literal notranslate"><span class="pre">-vf</span></code> instead of inferring it from
-these flags, which stay for the tag they land.</p></li>
-<li><p><code class="code docutils literal notranslate"><span class="pre">-color_range</span> <span class="pre">tv</span></code> is a <strong>no-op today</strong> (limited range is already the
-default for yuv420p here). Pinned anyway, so a build that defaults
-differently cannot change the output silently.</p></li>
-<li><p>The ffmpeg-level <code class="code docutils literal notranslate"><span class="pre">-color_primaries</span></code> / <code class="code docutils literal notranslate"><span class="pre">-color_trc</span></code> flags **do not reach the
-bitstream**: with them alone, ffprobe reports <code class="code docutils literal notranslate"><span class="pre">color_space=bt709</span></code> and
-<code class="code docutils literal notranslate"><span class="pre">color_primaries=unknown</span></code>, <code class="code docutils literal notranslate"><span class="pre">color_transfer=unknown</span></code>. <code class="code docutils literal notranslate"><span class="pre">-x264-params</span></code> is what
-lands all three in the VUI, and it leaves the decoded stream identical. A
-half-tagged file is worse than an untagged one — the player stops guessing
-the matrix but still guesses the primaries.</p></li>
-</ul>
-<p>Why bother: untagged, the <em>player</em> picks its matrix by a height heuristic
-(BT.601 below ~576 lines). Every shipped <code class="code docutils literal notranslate"><span class="pre">an</span></code> example is 320x240 to 640x360,
-so encode and playback agree by luck; at 1080p the same code would encode
-with BT.601 and be displayed as BT.709, a silent, resolution-dependent colour
-error. Pinning both sides to BT.709 makes them agree at every resolution.
-This is a <strong>one-time deliberate re-baseline</strong> of every mp4 — cheap now,
-because no ledger exists yet to invalidate.
-The delivered encode’s pixel format, and **the one first-order quality lever
-in this file**. Measured on 30 real 1080p <code class="code docutils literal notranslate"><span class="pre">an</span></code> frames, edge-band mean error:
-current flags 11.35, crf18 4:2:0 11.05, crf18 <code class="code docutils literal notranslate"><span class="pre">-tune</span> <span class="pre">animation</span></code> 10.96,
-mathematically lossless 4:2:0 <strong>10.15</strong> — and crf18 <strong>4:4:4 3.79</strong>.
-Losslessness buys 8%; dropping chroma subsampling buys <strong>66%</strong>. Wave 2’s own
-conclusion: “bitrate is second-order, pixel format is first-order”.</p>
-<p>**The default stays 4:2:0 because that is a PRODUCT constraint, not an
-encoder-tuning one.** High 4:4:4 Predictive is refused by many hardware
-decoders, browsers and platforms, so flipping it would hand a design partner
-a file they cannot play. 4:4:4 is reachable per render
-(<code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span> <span class="pre">--pix-fmt</span> <span class="pre">yuv444p</span></code>), which is the right shape for a knob whose
-right answer depends on where the file is going.</p>
-<p>Read as a MODULE GLOBAL at call time, deliberately: that is what lets the
-bench’s lever rebind it from outside, exactly as <code class="code docutils literal notranslate"><span class="pre">high_crf</span></code> rebinds
-<code class="code docutils literal notranslate"><span class="pre">DETERMINISTIC_X264_ARGS</span></code>. Hoisting either into a default argument binds it
-at <code class="code docutils literal notranslate"><span class="pre">def</span></code> time and disarms the lever silently.</p>
 </dd></dl>
 
 <dl class="py data">
@@ -907,6 +812,18 @@ so the renderer string cannot witness this choice.</p>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.STAGE_ENGINE_NAME">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">STAGE_ENGINE_NAME</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'stage'</span></span><a class="headerlink" href="#an.adapters.cutout.render.STAGE_ENGINE_NAME" title="Link to this definition">#</a></dt>
+<dd><p>what it is, independent of the renderer names it is
+registered under (<code class="docutils literal notranslate"><span class="pre">cutout</span></code>, a persisted identifier, and <code class="docutils literal notranslate"><span class="pre">stage</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The engine’s name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.adapters.cutout.render.SUPPORTED_CAPTURES">
 <span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_CAPTURES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('screenshot',</span> <span class="pre">'canvas')</span></span><a class="headerlink" href="#an.adapters.cutout.render.SUPPORTED_CAPTURES" title="Link to this definition">#</a></dt>
 <dd><p>a typo must
@@ -918,17 +835,26 @@ fail before a browser launches, not minutes into a render.</p>
 </dl>
 </dd></dl>
 
-<dl class="py data">
-<dt class="sig sig-object py" id="an.adapters.cutout.render.SUPPORTED_PIX_FMTS">
-<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">SUPPORTED_PIX_FMTS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('yuv420p',</span> <span class="pre">'yuv444p')</span></span><a class="headerlink" href="#an.adapters.cutout.render.SUPPORTED_PIX_FMTS" title="Link to this definition">#</a></dt>
-<dd><p>a typo would reach ffmpeg
-as an obscure failure minutes into a render, and a format outside this set
-has not been measured against the panel.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.StageEngine">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.render.</span></span><span class="sig-name descname"><span class="pre">StageEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'stage'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#StageEngine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.render.StageEngine" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>The 2D stage runtime as an <a class="reference internal" href="an.engines.protocol.html#an.engines.protocol.Engine" title="an.engines.protocol.Engine"><code class="xref py py-class docutils literal notranslate"><span class="pre">Engine</span></code></a>.</p>
+<p>Stateless: every <code class="xref py py-meth docutils literal notranslate"><span class="pre">open()</span></code> launches its own Chromium and HTTP server, so
+one instance serves a parallel render.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The formats the knob accepts. Not an open string</p>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.adapters.cutout.render.StageEngine.check">
+<span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/cutout/render.html#StageEngine.check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.cutout.render.StageEngine.check" title="Link to this definition">#</a></dt>
+<dd><p>Refuse an unknown capture path before anything launches.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
 </dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
@@ -1008,19 +934,19 @@ has not been measured against the panel.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.CutoutAssetWarning"><code class="docutils literal notranslate"><span class="pre">CutoutAssetWarning</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.CutoutRenderError"><code class="docutils literal notranslate"><span class="pre">CutoutRenderError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.CutoutRenderer"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.CutoutRenderer.render"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer.render()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.CutoutRenderer.error"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer.error</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.CutoutRenderer.supported_renderers"><code class="docutils literal notranslate"><span class="pre">CutoutRenderer.supported_renderers</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS"><code class="docutils literal notranslate"><span class="pre">DEFAULT_ASSET_LOAD_TIMEOUT_MS</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_BATCH</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_BATCH_PIXELS</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_ENCODE_WORKERS</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CANVAS_MAX_INFLIGHT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_CAPTURE"><code class="docutils literal notranslate"><span class="pre">DEFAULT_CAPTURE</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DEFAULT_PIX_FMT"><code class="docutils literal notranslate"><span class="pre">DEFAULT_PIX_FMT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS"><code class="docutils literal notranslate"><span class="pre">DETERMINISTIC_CHROMIUM_ARGS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.STAGE_ENGINE_NAME"><code class="docutils literal notranslate"><span class="pre">STAGE_ENGINE_NAME</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.SUPPORTED_CAPTURES"><code class="docutils literal notranslate"><span class="pre">SUPPORTED_CAPTURES</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.SUPPORTED_PIX_FMTS"><code class="docutils literal notranslate"><span class="pre">SUPPORTED_PIX_FMTS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.StageEngine"><code class="docutils literal notranslate"><span class="pre">StageEngine</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.StageEngine.check"><code class="docutils literal notranslate"><span class="pre">StageEngine.check()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.render.effective_step_hz"><code class="docutils literal notranslate"><span class="pre">effective_step_hz()</span></code></a></li>
 </ul>
   </nav></div>

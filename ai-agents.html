@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="_static/documentation_options.js?v=9ffce637"></script>
+    <script src="_static/documentation_options.js?v=3b84622e"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
     <link rel="prev" title="an.verify.vision" href="_autosummary/an.verify.vision.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.136" />
+  <meta name="docsearch:version" content="0.1.137" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -397,7 +397,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-dev-bench">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-bench</span></code><a class="headerlink" href="#an-dev-bench" title="Link to this heading">#</a></h3>
-<p>Use when working on <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span></code>, the metrics ledger, the golden corpus, or anything that measures rendered output in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo. Triggers on “add a metric”, “the ledger”, “an bench”, “golden frames”, “mutation test the harness”, “why is this number moving”, “bench corpus”, or any change to <code class="docutils literal notranslate"><span class="pre">an/bench/</span></code>, <code class="docutils literal notranslate"><span class="pre">misc/bench/</span></code>, or the encode/decode flags in <code class="docutils literal notranslate"><span class="pre">an/adapters/cutout/render.py</span></code>.</p>
+<p>Use when working on <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">bench</span></code>, the metrics ledger, the golden corpus, or anything that measures rendered output in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo. Triggers on “add a metric”, “the ledger”, “an bench”, “golden frames”, “mutation test the harness”, “why is this number moving”, “bench corpus”, or any change to <code class="docutils literal notranslate"><span class="pre">an/bench/</span></code>, <code class="docutils literal notranslate"><span class="pre">misc/bench/</span></code>, or the encode/decode flags in <code class="docutils literal notranslate"><span class="pre">an/media/mp4.py</span></code> (formerly <code class="docutils literal notranslate"><span class="pre">an/adapters/cutout/render.py</span></code>), or the frame stage in <code class="docutils literal notranslate"><span class="pre">an/engines/</span></code>.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-bench"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-bench</span></code></a>.</p>
 </section>
 <section id="an-dev-expression">
@@ -422,7 +422,7 @@ machine-readable copies of this documentation.</p>
 </section>
 <section id="an-dev-render-pipeline">
 <h3><code class="docutils literal notranslate"><span class="pre">an-dev-render-pipeline</span></code><a class="headerlink" href="#an-dev-render-pipeline" title="Link to this heading">#</a></h3>
-<p>The frame path in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo, end to end — Pixi rasterisation, Playwright element capture, the PNG stage, the x264 mux, concat and delivery — and what each stage can lose. Use when changing anything that touches a pixel or an encode flag - supersampling, resolution, antialias, <code class="docutils literal notranslate"><span class="pre">device_scale_factor</span></code>, <code class="docutils literal notranslate"><span class="pre">autoDensity</span></code>, downscale filters, <code class="docutils literal notranslate"><span class="pre">-pix_fmt</span></code> / CRF / preset / colour tags, <code class="docutils literal notranslate"><span class="pre">_capture_frames</span></code>, <code class="docutils literal notranslate"><span class="pre">_ffmpeg_mux</span></code>, <code class="docutils literal notranslate"><span class="pre">_ffmpeg_concat</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code>’s PIXI.Application options, or the per-shot mp4 store. Triggers on “supersample”, “why is the render soft”, “add an encoder flag”, “make it render bigger”, “downscale”, “4:4:4”, “faststart”, “the frames look wrong”, “speed up the render”.</p>
+<p>The frame path in the <code class="docutils literal notranslate"><span class="pre">an</span></code> repo, end to end — Pixi rasterisation, Playwright element capture, the PNG stage, the x264 mux, concat and delivery — and what each stage can lose. Use when changing anything that touches a pixel or an encode flag - supersampling, resolution, antialias, <code class="docutils literal notranslate"><span class="pre">device_scale_factor</span></code>, <code class="docutils literal notranslate"><span class="pre">autoDensity</span></code>, downscale filters, <code class="docutils literal notranslate"><span class="pre">-pix_fmt</span></code> / CRF / preset / colour tags, <code class="docutils literal notranslate"><span class="pre">_capture_frames</span></code>, <code class="docutils literal notranslate"><span class="pre">_ffmpeg_mux</span></code>, <code class="docutils literal notranslate"><span class="pre">an/engines/</span></code> (the frame stage, <code class="docutils literal notranslate"><span class="pre">capture_frames</span></code>, <code class="docutils literal notranslate"><span class="pre">frame_stage_renderer</span></code>), <code class="docutils literal notranslate"><span class="pre">an/media/</span></code> (<code class="docutils literal notranslate"><span class="pre">mp4.py</span></code>, <code class="docutils literal notranslate"><span class="pre">supersample.py</span></code>, <code class="docutils literal notranslate"><span class="pre">shutter.py</span></code>, sinks), <code class="docutils literal notranslate"><span class="pre">_ffmpeg_concat</span></code>, <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code>’s PIXI.Application options, or the per-shot mp4 store. Triggers on “supersample”, “why is the render soft”, “add an encoder flag”, “make it render bigger”, “downscale”, “4:4:4”, “faststart”, “the frames look wrong”, “speed up the render”.</p>
 <p>Source: <a class="reference external" href="https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-render-pipeline"><code class="docutils literal notranslate"><span class="pre">.claude/skills/an-dev-render-pipeline</span></code></a>.</p>
 </section>
 <section id="an-dev-rig-contract">

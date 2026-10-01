@@ -12,7 +12,7 @@ shots meet and what is heard over them. It runs only when a scene asks for it
 
 - *Picture*: transitions are composed in the FRAME STAGE, on the per-shot PNGs,
   in exact integer arithmetic, and the film is muxed ONCE by the same
-  `_ffmpeg_mux` every shot uses. Composing in ffmpeg (`xfade`) would decode
+  `an.media.mp4.mux_frames` every shot uses. Composing in ffmpeg (`xfade`) would decode
   already-encoded shots and re-encode them — a second generation of x264 loss
   on every frame of the film, not just the transition — and would retire the
   render pipeline’s “ffmpeg never touches a frame” clause. A frame no

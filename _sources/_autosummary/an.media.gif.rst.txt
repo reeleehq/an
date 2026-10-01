@@ -1,0 +1,21 @@
+an.media.gif
+============
+
+.. automodule:: an.media.gif
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      GIF_FPS
+      GIF_WIDTH
+      GIF_MAX_COLOURS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      gif_filter
+      to_gif
+   

@@ -1,0 +1,32 @@
+an.media.mp4
+============
+
+.. automodule:: an.media.mp4
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      AUDIO_SAMPLE_RATE
+      DEFAULT_PIX_FMT
+      SUPPORTED_PIX_FMTS
+      DETERMINISTIC_X264_ARGS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_audio
+      check_pix_fmt
+      ensure_ffmpeg
+      mux_frames
+      mux_shot
+      stage_audio_inputs
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MediaError
+   

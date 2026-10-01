@@ -1,0 +1,19 @@
+an.media.frames
+===============
+
+.. automodule:: an.media.frames
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_FRAME_PNG_PATTERN
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      frame_path
+      missing_frames
+   

@@ -59,6 +59,7 @@
    credits
    data
    determinism
+   engines
    environments
    expression
    frame_clock
@@ -69,6 +70,7 @@
    iterate
    library
    live_api
+   media
    motion
    orchestrate
    paths

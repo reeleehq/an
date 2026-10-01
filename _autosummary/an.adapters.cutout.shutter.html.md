@@ -1,18 +1,9 @@
 # an.adapters.cutout.shutter
 
-The temporal half of the frame stage: average several instants into one frame.
+Moved to [`an.media.shutter`](an.media.shutter.html.md#module-an.media.shutter) (an#247); this path re-exports it.
 
-`supersample.py` resolves a frame SPATIALLY — k x k pixels into one. This module
-resolves it TEMPORALLY — the screenshots taken at each of a frame’s sample
-instants (`RenderContext.frame_samples`, built by
-[`an.frame_clock.FrameClock`](an.frame_clock.html.md#an.frame_clock.FrameClock)) into the one frame a camera with an open
-shutter would have recorded. Same place, same rules: the resolve runs in the
-frame stage, so everything downstream still sees PNGs at the declared size, and
-the rounding is spelled out rather than inherited.
-
-**One sample is free.** A frame with a single instant keeps the bytes the
-spatial path produces (Chromium’s own, at `supersample == 1`), so a render
-without an open shutter is byte-identical to one from before this module.
+The temporal resolve is engine-independent, so it lives in the core’s media
+package. Every name below is the same object as in its new home.
 
 ### Functions
 
@@ -50,7 +41,7 @@ True
 >>> check_frame_samples([[0.0]], total_frames=2, duration=1.0)
 Traceback (most recent call last):
   ...
-an.adapters.cutout.shutter.ShutterError: frame_samples has 1 frame(s) but this render has 2; a frame clock must describe every frame, and only those
+an.media.shutter.ShutterError: frame_samples has 1 frame(s) but this render has 2; a frame clock must describe every frame, and only those
 ```
 
 ### an.adapters.cutout.shutter.mean_png_bytes(shots, , factor)

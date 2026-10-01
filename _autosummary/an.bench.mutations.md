@@ -43,10 +43,11 @@ reaches an existing seam from the outside:
   `runtime.js` is never written to.
 - `supersample` reaches the SAME runtime seam — `resolution: k,
   autoDensity: false` in the Pixi application options — and then a second one
-  it cannot do without: it rebinds
-  `an.adapters.cutout.render._capture_frames` so the k-times PNGs are
-  block-mean-resolved back to the declared size **in the frame stage**, before
-  ffmpeg or the metrics or the golden gate read them. That is not tidiness. A
+  it cannot do without: it rebinds `an.engines.capture.capture_frames` (the
+  core frame stage’s capture loop since an#247; before it, the stage’s own
+  `_capture_frames`) so the k-times PNGs are block-mean-resolved back to the
+  declared size **in the frame stage**, before ffmpeg or the metrics or the
+  golden gate read them. That is not tidiness. A
   lever must measure what the product will produce, and everything downstream
   reads the declared resolution off the STAGED SCENE, never off the files.
 

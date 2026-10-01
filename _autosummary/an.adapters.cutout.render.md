@@ -1,40 +1,54 @@
 # an.adapters.cutout.render
 
-Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.
+The 2D stage engine (`runtime.js` in headless Chromium), and the cut-out renderer built on it.
 
-The flow per shot:
+Since an#247 this module is an ENGINE, not a whole renderer: the frame stage is
+the core’s ([`an.engines.frame_stage_renderer()`](an.engines.md#an.engines.frame_stage_renderer) – clock, capture loop,
+supersample and shutter resolves, MP4 sink, provenance), and this module only
+does what is specific to the stage:
 
-1. Compile the shot to a `CutoutSceneJSON` via `compile_shot`.
-2. Stage a copy of the JS runtime in a per-shot work directory and write the
-   JSON beside it.
-3. Launch headless Chromium via Playwright; load `index.html`; inject the
-   scene via `window.anLoadScene`.
-4. For each frame `f` in `[0, total_frames)`: seek `f/fps` and capture the
-   canvas to a PNG — by default (`capture="canvas"`, since an#192) reading its
-   own pixels in-page, in batches (`an.adapters.cutout.canvas_capture`); with
-   `capture="screenshot"`, `window.anSetTime` plus a Playwright element
-   screenshot per instant.
-5. Mux the PNG sequence to mp4 with ffmpeg.
+1. [`StageEngine`](#an.adapters.cutout.render.StageEngine) compiles the shot to a `CutoutSceneJSON`
+   (`compile_shot`), stages a copy of the JS runtime plus the shot’s textures
+   in `<work_dir>/shot_<id>/runtime/`, serves it over loopback HTTP (PixiJS
+   cannot fetch `file://` in headless Chromium), launches Chromium with the
+   pinned rasteriser flags, injects the supersample factor, loads the scene with
+   a deadline, and judges the determinism probe.
+2. It yields a session the core drives: `_CanvasStageSession` (the
+   default, `capture="canvas"`: batches of in-page canvas reads,
+   `window.anCaptureFrames`) or `_ScreenshotStageSession`
+   (`capture="screenshot"`: an element screenshot per instant). Both are
+   batched (`frames(requests)`), so a runtime throw is located by frame.
+3. [`CutoutRenderer`](#an.adapters.cutout.render.CutoutRenderer) is `frame_stage_renderer(StageEngine())` under the
+   persisted renderer name `cutout`, raising `CutoutRenderError`.
+
+The engine-independent halves moved to the core in an#247 and are still
+reachable here by their old names: the mux, the pixel format and the x264 argv
+([`an.media.mp4`](an.media.mp4.md#module-an.media.mp4)), the frame naming ([`an.media.frames`](an.media.frames.md#module-an.media.frames)), the resolves
+([`an.media.supersample`](an.media.supersample.md#module-an.media.supersample), [`an.media.shutter`](an.media.shutter.md#module-an.media.shutter)) and the capture tunables
+([`an.engines.capture`](an.engines.capture.md#module-an.engines.capture)). Those old names are LIVE aliases
+(`an._shims`): rebinding `DETERMINISTIC_X264_ARGS` or `DEFAULT_PIX_FMT`
+here rebinds the global the core reads, so the bench’s levers keep reaching the
+encode. The whole module moves to `an.stage` in the next step of an#247.
 
 Failures are reported with concrete remediation: missing ffmpeg, missing
 Chromium, runtime load timeout, etc. Subprocess errors are wrapped at the
 facade boundary.
 
+```pycon
+>>> CutoutRenderer().name, CutoutRenderer().supported_renderers
+('cutout', ('cutout',))
+```
+
 ### Module Attributes
 
-| [`DEFAULT_ASSET_LOAD_TIMEOUT_MS`](#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS)   | Deadline for `anLoadScene`, which awaits `PIXI.Assets.load` for every declared texture.                                                                                                                                                                                              |
-|----------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`DETERMINISTIC_CHROMIUM_ARGS`](#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS)     | Chromium launch flags that pin the rasteriser (an#31, research §2).                                                                                                                                                                                                                  |
-| [`DEFAULT_PIX_FMT`](#an.adapters.cutout.render.DEFAULT_PIX_FMT)                 | x264 encode knobs pinned so the delivered mp4 is a function of the frames rather than of the machine (an#34, research §2).                                                                                                                                                           |
-| [`SUPPORTED_PIX_FMTS`](#an.adapters.cutout.render.SUPPORTED_PIX_FMTS)              | a typo would reach ffmpeg as an obscure failure minutes into a render, and a format outside this set has not been measured against the panel.                                                                                                                                        |
-| [`DEFAULT_CAPTURE`](#an.adapters.cutout.render.DEFAULT_CAPTURE)                 | the runtime's `anCaptureFrames` reads the canvas in-page and hands back PNG data URLs in batches (`an.adapters.cutout.canvas_capture`), which writes frames whose DECODED pixels equal the screenshot path's — ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p. |
-| [`SUPPORTED_CAPTURES`](#an.adapters.cutout.render.SUPPORTED_CAPTURES)              | a typo must fail before a browser launches, not minutes into a render.                                                                                                                                                                                                               |
-| [`DEFAULT_CANVAS_BATCH`](#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH)            | Frames per `anCaptureFrames` round trip.                                                                                                                                                                                                                                             |
-| [`DEFAULT_CANVAS_ENCODE_WORKERS`](#an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS)   | Threads decoding, resolving and re-encoding canvas frames while the page renders the next batch.                                                                                                                                                                                     |
-| [`DEFAULT_CANVAS_BATCH_PIXELS`](#an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS)     | The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample counts k² times and an open shutter once per instant): at most this many per `anCaptureFrames` round trip, and twice this many waiting on the encode pool.                                               |
-| [`DEFAULT_CANVAS_MAX_INFLIGHT`](#an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT)     | frames handed to the encode pool and not yet written.                                                                                                                                                                                                                                |
-| [`ASSET_LOAD_TIMEOUT_MARKER`](#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER)       | Sentinel the in-page deadline rejects with, so the Python side can tell a timeout apart from a load failure and say something different about each.                                                                                                                                  |
-| [`ASSET_SRC_PREFIX_TO_STORE`](#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE)       | Texture `src` prefix → the mall store that resolves the rest of the path.                                                                                                                                                                                                            |
+| [`STAGE_ENGINE_NAME`](#an.adapters.cutout.render.STAGE_ENGINE_NAME)             | what it is, independent of the renderer names it is registered under (`cutout`, a persisted identifier, and `stage`).                                                                                                                                                                |
+|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DEFAULT_ASSET_LOAD_TIMEOUT_MS`](#an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS) | Deadline for `anLoadScene`, which awaits `PIXI.Assets.load` for every declared texture.                                                                                                                                                                                              |
+| [`DETERMINISTIC_CHROMIUM_ARGS`](#an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS)   | Chromium launch flags that pin the rasteriser (an#31, research §2).                                                                                                                                                                                                                  |
+| [`DEFAULT_CAPTURE`](#an.adapters.cutout.render.DEFAULT_CAPTURE)               | the runtime's `anCaptureFrames` reads the canvas in-page and hands back PNG data URLs in batches (`an.adapters.cutout.canvas_capture`), which writes frames whose DECODED pixels equal the screenshot path's — ~7.8x faster in the frame stage on the golden corpus, ~2.3x at 1080p. |
+| [`SUPPORTED_CAPTURES`](#an.adapters.cutout.render.SUPPORTED_CAPTURES)            | a typo must fail before a browser launches, not minutes into a render.                                                                                                                                                                                                               |
+| [`ASSET_LOAD_TIMEOUT_MARKER`](#an.adapters.cutout.render.ASSET_LOAD_TIMEOUT_MARKER)     | Sentinel the in-page deadline rejects with, so the Python side can tell a timeout apart from a load failure and say something different about each.                                                                                                                                  |
+| [`ASSET_SRC_PREFIX_TO_STORE`](#an.adapters.cutout.render.ASSET_SRC_PREFIX_TO_STORE)     | Texture `src` prefix → the mall store that resolves the rest of the path.                                                                                                                                                                                                            |
 
 ### Functions
 
@@ -43,8 +57,9 @@ facade boundary.
 
 ### Classes
 
-| [`CutoutRenderer`](#an.adapters.cutout.render.CutoutRenderer)()   | Headless cutout renderer: Playwright + ffmpeg.   |
-|---------------------------------------------------------------------|--------------------------------------------------|
+| [`CutoutRenderer`](#an.adapters.cutout.render.CutoutRenderer)([engine, name, ...])   | Headless cutout renderer: the stage engine through the core frame stage.                                       |
+|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|
+| [`StageEngine`](#an.adapters.cutout.render.StageEngine)([name])                   | The 2D stage runtime as an [`Engine`](an.engines.protocol.md#an.engines.protocol.Engine). |
 
 ### Exceptions
 
@@ -95,11 +110,11 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.adapters.cutout.render.CutoutRenderer
+### *class* an.adapters.cutout.render.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', ), error=<class 'an.adapters.cutout.render.CutoutRenderError'>, capture_options=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: [`FrameStageRenderer`](an.engines.frame_stage.md#an.engines.frame_stage.FrameStageRenderer)
 
-Headless cutout renderer: Playwright + ffmpeg.
+Headless cutout renderer: the stage engine through the core frame stage.
 
 ```pycon
 >>> r = CutoutRenderer()
@@ -109,12 +124,13 @@ Headless cutout renderer: Playwright + ffmpeg.
 ('cutout',)
 ```
 
-#### render(shot, ctx)
+#### error
 
-Render `shot` to mp4 using `ctx` for paths + parameters.
+alias of [`CutoutRenderError`](#an.adapters.cutout.render.CutoutRenderError)
 
-* **Return type:**
-  [`RenderResult`](an.adapters.md#an.adapters.RenderResult)
+#### supported_renderers *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout',)*
+
+The `Shot.renderer` values this renderer claims (the ONE place it names them).
 
 ### an.adapters.cutout.render.DEFAULT_ASSET_LOAD_TIMEOUT_MS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 60000*
 
@@ -128,49 +144,6 @@ timeout, so the deadline is imposed inside the page instead.
 The value is a policy choice, not a measurement: it needs to sit far above a
 legitimate cold load of a few dozen small SVGs and far below “a human gave
 up”. Raise it for a genuinely heavy art package rather than removing it.
-
-### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 8*
-
-Frames per `anCaptureFrames` round trip. Measured at 1920x1080 on an M1
-Max, `single_character`: 67 ms/frame one frame per call, 46 at four, 46 at
-eight — the round trip is ~20 ms of fixed cost, amortised by the batch. It is
-also the memory the page holds before Python takes it: eight data URLs of a
-1080p frame are well under a megabyte of text, and at a supersampled 4K
-backbuffer a few megabytes each.
-
-### an.adapters.cutout.render.DEFAULT_CANVAS_BATCH_PIXELS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 4147200*
-
-The same two bounds in CAPTURED PIXELS (backbuffer pixels, so a supersample
-counts k² times and an open shutter once per instant): at most this many per
-`anCaptureFrames` round trip, and twice this many waiting on the encode
-pool. Two 1080p instants: small scenes still batch by the frame count
-above, and at 1080p the batch size stopped mattering for a flat scene
-(96 frames: 4.7 s at 2, 4 or 8 per round trip) while it decides everything
-for an incompressible one (a grain pack, 48 frames: 11.0 s / 0.38 GB at 2
-against 17.8 s / 2.1 GB at 8; the screenshot path 17.8 s / 0.16 GB). Needed
-because a count alone does not bound the bytes: the review of an#192
-measured grain at supersample 2 with an 8-sample shutter overflowing the
-driver’s string limit in ONE reply (the render hung in `browser.close()`),
-and ~16 GB of Python memory at supersample 3. A frame whose instants alone
-exceed it is captured over several round trips.
-
-### an.adapters.cutout.render.DEFAULT_CANVAS_ENCODE_WORKERS *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 2*
-
-Threads decoding, resolving and re-encoding canvas frames while the page
-renders the next batch. The decode/encode is ~60 ms/frame of Pillow and zlib
-at 1080p — the same order as the page’s own work — so it must overlap it or
-it eats the win. Two, not `cpu_count()`: `an render --parallel` already runs
-one Chromium per shot, and each of them is another source of CPU pressure.
-
-### an.adapters.cutout.render.DEFAULT_CANVAS_MAX_INFLIGHT *: [int](https://docs.python.org/3/builtins/functions.html#int)* *= 16*
-
-frames handed to the encode pool and not yet written. When
-the pool falls behind, the capture loop blocks on the oldest one before it
-asks the page for more, so memory is bounded by this many frames plus one
-batch however long the shot is.
-
-* **Type:**
-  BACK-PRESSURE
 
 ### an.adapters.cutout.render.DEFAULT_CAPTURE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'canvas'*
 
@@ -191,74 +164,6 @@ would bind it at def time.
 
 * **Type:**
   How frames leave the browser. `"canvas"` (the default since an#192)
-
-### an.adapters.cutout.render.DEFAULT_PIX_FMT *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'yuv420p'*
-
-x264 encode knobs pinned so the delivered mp4 is a function of the frames
-rather than of the machine (an#34, research §2).
-
-`-threads 1` — `-threads 1/4/11` all give bit-identical decoded pixels, so
-this looks unnecessary on a laptop. It is not: `auto` raises
-`lookahead_threads` above 1 at roughly `-threads >= 12`, and a forced
-`lookahead-threads=4` changes 86.2% of the bytes (max delta 80). A big CI
-runner crosses that line and a 4-core dev box never will, which is precisely
-how an unpinned thread count ships without anyone seeing it.
-
-`-crf 23 -preset medium` — both are libx264’s compiled-in defaults today, so
-passing them changes nothing now and pins us against a build whose defaults
-differ. Worth pinning because preset swings distinct colour counts \*\*2.3x,
-non-monotonically\*\* (ultrafast 3141, veryfast 7296, medium 6064, slower 5393)
-against a crf18->23 signal of 1.35x — an unpinned preset dominates the very
-signal a quality ledger tries to measure.
-
-BT.709 is the one knob here that CHANGES today’s output, and it changes more
-than the research predicted — measured, not assumed (an#34):
-
-- `-colorspace bt709` does not merely *tag* the file. It sets the matrix of
-  the auto-inserted RGB->YUV conversion, so the \*\*encoded luma and chroma
-  planes themselves change\*\*. Confirmed by construction: forcing
-  `scale=out_color_matrix=bt601` reproduces the untagged output’s decoded
-  stream byte-for-byte, i.e. `an` has been converting with BT.601 all along.
-  **On ffmpeg 8/9. It is false on ffmpeg 6.1** — where the same flags reach
-  only the VUI and the planes stay BT.601 (an#148, measured; see
-  `an.base.BT709_SCALE_FILTER` for the numbers). That is why the mux now
-  states the conversion explicitly with `-vf` instead of inferring it from
-  these flags, which stay for the tag they land.
-- `-color_range tv` is a **no-op today** (limited range is already the
-  default for yuv420p here). Pinned anyway, so a build that defaults
-  differently cannot change the output silently.
-- The ffmpeg-level `-color_primaries` / `-color_trc` flags \*\*do not reach the
-  bitstream\*\*: with them alone, ffprobe reports `color_space=bt709` and
-  `color_primaries=unknown`, `color_transfer=unknown`. `-x264-params` is what
-  lands all three in the VUI, and it leaves the decoded stream identical. A
-  half-tagged file is worse than an untagged one — the player stops guessing
-  the matrix but still guesses the primaries.
-
-Why bother: untagged, the *player* picks its matrix by a height heuristic
-(BT.601 below ~576 lines). Every shipped `an` example is 320x240 to 640x360,
-so encode and playback agree by luck; at 1080p the same code would encode
-with BT.601 and be displayed as BT.709, a silent, resolution-dependent colour
-error. Pinning both sides to BT.709 makes them agree at every resolution.
-This is a **one-time deliberate re-baseline** of every mp4 — cheap now,
-because no ledger exists yet to invalidate.
-The delivered encode’s pixel format, and \*\*the one first-order quality lever
-in this file\*\*. Measured on 30 real 1080p `an` frames, edge-band mean error:
-current flags 11.35, crf18 4:2:0 11.05, crf18 `-tune animation` 10.96,
-mathematically lossless 4:2:0 **10.15** — and crf18 **4:4:4 3.79**.
-Losslessness buys 8%; dropping chroma subsampling buys **66%**. Wave 2’s own
-conclusion: “bitrate is second-order, pixel format is first-order”.
-
-\*\*The default stays 4:2:0 because that is a PRODUCT constraint, not an
-encoder-tuning one.\*\* High 4:4:4 Predictive is refused by many hardware
-decoders, browsers and platforms, so flipping it would hand a design partner
-a file they cannot play. 4:4:4 is reachable per render
-(`an render --pix-fmt yuv444p`), which is the right shape for a knob whose
-right answer depends on where the file is going.
-
-Read as a MODULE GLOBAL at call time, deliberately: that is what lets the
-bench’s lever rebind it from outside, exactly as `high_crf` rebinds
-`DETERMINISTIC_X264_ARGS`. Hoisting either into a default argument binds it
-at `def` time and disarms the lever silently.
 
 ### an.adapters.cutout.render.DETERMINISTIC_CHROMIUM_ARGS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('--no-sandbox', '--disable-gpu', '--enable-unsafe-swiftshader', '--force-color-profile=srgb')*
 
@@ -288,6 +193,14 @@ Record the argv **verbatim** in any provenance row: all four rasteriser
 configurations report the byte-identical `UNMASKED_RENDERER_WEBGL` string,
 so the renderer string cannot witness this choice.
 
+### an.adapters.cutout.render.STAGE_ENGINE_NAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage'*
+
+what it is, independent of the renderer names it is
+registered under (`cutout`, a persisted identifier, and `stage`).
+
+* **Type:**
+  The engine’s name
+
 ### an.adapters.cutout.render.SUPPORTED_CAPTURES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('screenshot', 'canvas')*
 
 a typo must
@@ -296,14 +209,21 @@ fail before a browser launches, not minutes into a render.
 * **Type:**
   The capture paths `_check_capture` accepts. Not an open string
 
-### an.adapters.cutout.render.SUPPORTED_PIX_FMTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('yuv420p', 'yuv444p')*
+### *class* an.adapters.cutout.render.StageEngine(name='stage')
 
-a typo would reach ffmpeg
-as an obscure failure minutes into a render, and a format outside this set
-has not been measured against the panel.
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-* **Type:**
-  The formats the knob accepts. Not an open string
+The 2D stage runtime as an [`Engine`](an.engines.protocol.md#an.engines.protocol.Engine).
+
+Stateless: every `open()` launches its own Chromium and HTTP server, so
+one instance serves a parallel render.
+
+#### check(ctx)
+
+Refuse an unknown capture path before anything launches.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### an.adapters.cutout.render.effective_step_hz(shot, ctx)
 

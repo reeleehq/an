@@ -1,0 +1,27 @@
+an.engines.frame\_stage
+=======================
+
+.. automodule:: an.engines.frame_stage
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      SHOT_WORKSPACE_PATTERN
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      frame_stage_renderer
+      require_engine
+      shot_workspace
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FrameStageRenderer
+      StateDrivenAdapter
+   

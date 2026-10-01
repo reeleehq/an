@@ -21,20 +21,20 @@ application lives in `runtime.js` alone (an#86).
 
 ### Classes
 
-| [`CutoutRenderer`](#an.adapters.cutout.CutoutRenderer)()              | Headless cutout renderer: Playwright + ffmpeg.                            |
-|--------------------------------------------------------------------------------|---------------------------------------------------------------------------|
-| [`CutoutSceneJSON`](#an.adapters.cutout.CutoutSceneJSON)(\*\*data)     | Top-level cutout scene JSON — the JS runtime's input contract.            |
-| [`NodeJSON`](#an.adapters.cutout.NodeJSON)(\*\*data)            | One node in the scene tree.                                               |
-| [`VisualJSON`](#an.adapters.cutout.VisualJSON)(\*\*data)          | Drawable content attached to a node.                                      |
-| [`AnimationClipJSON`](#an.adapters.cutout.AnimationClipJSON)(\*\*data)   | A named, reusable animation clip.                                         |
-| [`ChannelJSON`](#an.adapters.cutout.ChannelJSON)(\*\*data)         | One animated property of one target.                                      |
-| [`KeyframeJSON`](#an.adapters.cutout.KeyframeJSON)(\*\*data)        | Single keyframe in an animation channel.                                  |
-| [`TimelineJSON`](#an.adapters.cutout.TimelineJSON)(\*\*data)        | Top-level timeline: total duration + tracks.                              |
-| [`TrackJSON`](#an.adapters.cutout.TrackJSON)(\*\*data)           | A sequence of placed clips with optional target-prefix metadata.          |
-| [`PlacedClipJSON`](#an.adapters.cutout.PlacedClipJSON)(\*\*data)      | An animation placed on a track at a specific time.                        |
-| [`AssetsJSON`](#an.adapters.cutout.AssetsJSON)(\*\*data)          | Map of asset id → AssetJSON, split by kind.                               |
-| [`AssetJSON`](#an.adapters.cutout.AssetJSON)(\*\*data)           | A single asset (texture / audio file).                                    |
-| [`AssetResolutionJSON`](#an.adapters.cutout.AssetResolutionJSON)(\*\*data) | How one scene entity's store reference actually resolved at compile time. |
+| [`CutoutRenderer`](#an.adapters.cutout.CutoutRenderer)([engine, name, ...])   | Headless cutout renderer: the stage engine through the core frame stage.   |
+|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [`CutoutSceneJSON`](#an.adapters.cutout.CutoutSceneJSON)(\*\*data)             | Top-level cutout scene JSON — the JS runtime's input contract.             |
+| [`NodeJSON`](#an.adapters.cutout.NodeJSON)(\*\*data)                    | One node in the scene tree.                                                |
+| [`VisualJSON`](#an.adapters.cutout.VisualJSON)(\*\*data)                  | Drawable content attached to a node.                                       |
+| [`AnimationClipJSON`](#an.adapters.cutout.AnimationClipJSON)(\*\*data)           | A named, reusable animation clip.                                          |
+| [`ChannelJSON`](#an.adapters.cutout.ChannelJSON)(\*\*data)                 | One animated property of one target.                                       |
+| [`KeyframeJSON`](#an.adapters.cutout.KeyframeJSON)(\*\*data)                | Single keyframe in an animation channel.                                   |
+| [`TimelineJSON`](#an.adapters.cutout.TimelineJSON)(\*\*data)                | Top-level timeline: total duration + tracks.                               |
+| [`TrackJSON`](#an.adapters.cutout.TrackJSON)(\*\*data)                   | A sequence of placed clips with optional target-prefix metadata.           |
+| [`PlacedClipJSON`](#an.adapters.cutout.PlacedClipJSON)(\*\*data)              | An animation placed on a track at a specific time.                         |
+| [`AssetsJSON`](#an.adapters.cutout.AssetsJSON)(\*\*data)                  | Map of asset id → AssetJSON, split by kind.                                |
+| [`AssetJSON`](#an.adapters.cutout.AssetJSON)(\*\*data)                   | A single asset (texture / audio file).                                     |
+| [`AssetResolutionJSON`](#an.adapters.cutout.AssetResolutionJSON)(\*\*data)         | How one scene entity's store reference actually resolved at compile time.  |
 
 ### Exceptions
 
@@ -132,11 +132,11 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 Raised when a cutout render fails. Carries actionable detail.
 
-### *class* an.adapters.cutout.CutoutRenderer
+### *class* an.adapters.cutout.CutoutRenderer(engine=<factory>, name='cutout', supported_renderers=('cutout', ), error=<class 'an.adapters.cutout.render.CutoutRenderError'>, capture_options=<factory>)
 
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+Bases: [`FrameStageRenderer`](an.engines.frame_stage.html.md#an.engines.frame_stage.FrameStageRenderer)
 
-Headless cutout renderer: Playwright + ffmpeg.
+Headless cutout renderer: the stage engine through the core frame stage.
 
 ```pycon
 >>> r = CutoutRenderer()
@@ -146,12 +146,13 @@ Headless cutout renderer: Playwright + ffmpeg.
 ('cutout',)
 ```
 
-#### render(shot, ctx)
+#### error
 
-Render `shot` to mp4 using `ctx` for paths + parameters.
+alias of [`CutoutRenderError`](an.adapters.cutout.render.html.md#an.adapters.cutout.render.CutoutRenderError)
 
-* **Return type:**
-  [`RenderResult`](an.adapters.html.md#an.adapters.RenderResult)
+#### supported_renderers *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('cutout',)*
+
+The `Shot.renderer` values this renderer claims (the ONE place it names them).
 
 ### *class* an.adapters.cutout.CutoutSceneJSON(\*\*data)
 
@@ -356,11 +357,11 @@ clothes (an#33).
 | [`fidelity`](an.adapters.cutout.fidelity.html.md#module-an.adapters.cutout.fidelity)             | How faithfully a compiled scene reproduces the art it was built from.                                                                             |
 | [`gaze`](an.adapters.cutout.gaze.html.md#module-an.adapters.cutout.gaze)                     | Ambient saccades for a cutout rig's pupils: a seeded generator (an#99, epic #9 Wave 6).                                                           |
 | [`path`](an.adapters.cutout.path.html.md#module-an.adapters.cutout.path)                     | Stroked-path geometry — the executable spec of `runtime.js::pathGeometry`.                                                                        |
-| [`render`](an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)                 | Headless cutout rendering: Playwright drives the JS runtime, ffmpeg muxes.                                                                        |
+| [`render`](an.adapters.cutout.render.html.md#module-an.adapters.cutout.render)                 | The 2D stage engine (`runtime.js` in headless Chromium), and the cut-out renderer built on it.                                                    |
 | [`runtime_files`](an.adapters.cutout.runtime_files.html.md#module-an.adapters.cutout.runtime_files)   | Locate the bundled cutout JS runtime files.                                                                                                       |
 | [`serialize`](an.adapters.cutout.serialize.html.md#module-an.adapters.cutout.serialize)           | JSON contract between the Python compiler and the (future) JS runtime.                                                                            |
-| [`shutter`](an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)               | The temporal half of the frame stage: average several instants into one frame.                                                                    |
-| [`supersample`](an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)       | Render bigger, then resolve back exactly — the supersample knob's two halves.                                                                     |
+| [`shutter`](an.adapters.cutout.shutter.html.md#module-an.adapters.cutout.shutter)               | Moved to [`an.media.shutter`](an.media.shutter.html.md#module-an.media.shutter) (an#247); this path re-exports it.             |
+| [`supersample`](an.adapters.cutout.supersample.html.md#module-an.adapters.cutout.supersample)       | Moved to [`an.media.supersample`](an.media.supersample.html.md#module-an.media.supersample) (an#247); this path re-exports it.     |
 | [`surface`](an.adapters.cutout.surface.html.md#module-an.adapters.cutout.surface)               | Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.                                                              |
 | [`text`](an.adapters.cutout.text.html.md#module-an.adapters.cutout.text)                     | A text block, compiled: one node per unit, each an SVG sprite (an#155).                                                                           |
 | [`timeline`](an.adapters.cutout.timeline.html.md#module-an.adapters.cutout.timeline)             | Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.                                                                     |

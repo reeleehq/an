@@ -30,7 +30,7 @@ Source: [`.claude/skills/an-dev`](https://github.com/thorwhalen/an/tree/HEAD/.cl
 
 ### `an-dev-bench`
 
-Use when working on `an bench`, the metrics ledger, the golden corpus, or anything that measures rendered output in the `an` repo. Triggers on “add a metric”, “the ledger”, “an bench”, “golden frames”, “mutation test the harness”, “why is this number moving”, “bench corpus”, or any change to `an/bench/`, `misc/bench/`, or the encode/decode flags in `an/adapters/cutout/render.py`.
+Use when working on `an bench`, the metrics ledger, the golden corpus, or anything that measures rendered output in the `an` repo. Triggers on “add a metric”, “the ledger”, “an bench”, “golden frames”, “mutation test the harness”, “why is this number moving”, “bench corpus”, or any change to `an/bench/`, `misc/bench/`, or the encode/decode flags in `an/media/mp4.py` (formerly `an/adapters/cutout/render.py`), or the frame stage in `an/engines/`.
 
 Source: [`.claude/skills/an-dev-bench`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-bench).
 
@@ -60,7 +60,7 @@ Source: [`.claude/skills/an-dev-path`](https://github.com/thorwhalen/an/tree/HEA
 
 ### `an-dev-render-pipeline`
 
-The frame path in the `an` repo, end to end — Pixi rasterisation, Playwright element capture, the PNG stage, the x264 mux, concat and delivery — and what each stage can lose. Use when changing anything that touches a pixel or an encode flag - supersampling, resolution, antialias, `device_scale_factor`, `autoDensity`, downscale filters, `-pix_fmt` / CRF / preset / colour tags, `_capture_frames`, `_ffmpeg_mux`, `_ffmpeg_concat`, `runtime.js`’s PIXI.Application options, or the per-shot mp4 store. Triggers on “supersample”, “why is the render soft”, “add an encoder flag”, “make it render bigger”, “downscale”, “4:4:4”, “faststart”, “the frames look wrong”, “speed up the render”.
+The frame path in the `an` repo, end to end — Pixi rasterisation, Playwright element capture, the PNG stage, the x264 mux, concat and delivery — and what each stage can lose. Use when changing anything that touches a pixel or an encode flag - supersampling, resolution, antialias, `device_scale_factor`, `autoDensity`, downscale filters, `-pix_fmt` / CRF / preset / colour tags, `_capture_frames`, `_ffmpeg_mux`, `an/engines/` (the frame stage, `capture_frames`, `frame_stage_renderer`), `an/media/` (`mp4.py`, `supersample.py`, `shutter.py`, sinks), `_ffmpeg_concat`, `runtime.js`’s PIXI.Application options, or the per-shot mp4 store. Triggers on “supersample”, “why is the render soft”, “add an encoder flag”, “make it render bigger”, “downscale”, “4:4:4”, “faststart”, “the frames look wrong”, “speed up the render”.
 
 Source: [`.claude/skills/an-dev-render-pipeline`](https://github.com/thorwhalen/an/tree/HEAD/.claude/skills/an-dev-render-pipeline).
 

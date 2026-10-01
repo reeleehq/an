@@ -665,41 +665,43 @@ skip that shot rather than crash.
 
 ### Modules
 
-| [`adapters`](an.adapters.html.md#module-an.adapters)         | Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).       |
-|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------|
-| [`assemble`](an.assemble.html.md#module-an.assemble)         | Film assembly: rendered shots → one film, with transitions and a sound layer.          |
-| [`audio`](an.audio.html.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                           |
-| [`base`](an.base.html.md#module-an.base)                 | Core types, constants, and re-exports for an.                                          |
-| [`bench`](an.bench.html.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.     |
-| [`build`](an.build.html.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                  |
-| [`captions`](an.captions.html.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).           |
-| [`characters`](an.characters.html.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                          |
-| [`conftest`](an.conftest.html.md#module-an.conftest)         | Collection rules for the package's own doctests.                                       |
-| [`credits`](an.credits.html.md#module-an.credits)           | What a rendered video owes, and to whom.                                               |
-| [`data`](an.data.html.md#module-an.data)                 | Bundled non-Python resources (cutout JS runtime, etc.).                                |
-| [`determinism`](an.determinism.html.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.        |
-| [`environments`](an.environments.html.md#module-an.environments) | Environments: a stage made of planes, at declared depths.                              |
-| [`expression`](an.expression.html.md#module-an.expression)     | Facial expression for the cutout face (an#98, epic #9 Wave 6).                         |
-| [`frame_clock`](an.frame_clock.html.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                            |
-| [`genres`](an.genres.html.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.             |
-| [`impacts`](an.impacts.html.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.          |
-| [`ir`](an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                     |
-| [`iterate`](an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.         |
-| [`library`](an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).               |
-| [`live_api`](an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                              |
-| [`motion`](an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.              |
-| [`orchestrate`](an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                      |
-| [`paths`](an.paths.html.md#module-an.paths)               | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                |
-| [`preview`](an.preview.html.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit. |
-| [`project`](an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                         |
-| [`props`](an.props.html.md#module-an.props)               | Props: a rig whose art is not a person.                                                |
-| [`raster`](an.raster.html.md#module-an.raster)             | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                |
-| [`render`](an.render.html.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.        |
-| [`sounds`](an.sounds.html.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.       |
-| [`stores`](an.stores.html.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                            |
-| [`styles`](an.styles.html.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had. |
-| [`text`](an.text.html.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.           |
-| [`timing`](an.timing.html.md#module-an.timing)             | The timing kernel: what is on screen at time `t`, as a pure function.                  |
-| [`tools`](an.tools.html.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                    |
-| [`util`](an.util.html.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.            |
-| [`verify`](an.verify.html.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.              |
+| [`adapters`](an.adapters.html.md#module-an.adapters)         | Renderer adapters — facades over backends (cutout, Manim, Remotion, whiteboard).            |
+|--------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| [`assemble`](an.assemble.html.md#module-an.assemble)         | Film assembly: rendered shots → one film, with transitions and a sound layer.               |
+| [`audio`](an.audio.html.md#module-an.audio)               | Audio pipeline — TTS and lip-sync providers + orchestration.                                |
+| [`base`](an.base.html.md#module-an.base)                 | Core types, constants, and re-exports for an.                                               |
+| [`bench`](an.bench.html.md#module-an.bench)               | `an bench` — render a fixed corpus, compute a metrics panel, write one ledger row.          |
+| [`build`](an.build.html.md#module-an.build)               | Incremental re-processing: content-addressed build stages (ADR 0004).                       |
+| [`captions`](an.captions.html.md#module-an.captions)         | Captions from the word timings the audio pipeline already computes (an#175).                |
+| [`characters`](an.characters.html.md#module-an.characters)     | Character art system: Spine-shaped descriptor + SVG sidecars.                               |
+| [`conftest`](an.conftest.html.md#module-an.conftest)         | Collection rules for the package's own doctests.                                            |
+| [`credits`](an.credits.html.md#module-an.credits)           | What a rendered video owes, and to whom.                                                    |
+| [`data`](an.data.html.md#module-an.data)                 | Bundled non-Python resources (cutout JS runtime, etc.).                                     |
+| [`determinism`](an.determinism.html.md#module-an.determinism)   | The determinism perimeter: what must stay true for a render to be reproducible.             |
+| [`engines`](an.engines.html.md#module-an.engines)           | Engines: seekable things the core drives frame by frame, and the renderer that drives them. |
+| [`environments`](an.environments.html.md#module-an.environments) | Environments: a stage made of planes, at declared depths.                                   |
+| [`expression`](an.expression.html.md#module-an.expression)     | Facial expression for the cutout face (an#98, epic #9 Wave 6).                              |
+| [`frame_clock`](an.frame_clock.html.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                                 |
+| [`genres`](an.genres.html.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.                  |
+| [`impacts`](an.impacts.html.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.               |
+| [`ir`](an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                          |
+| [`iterate`](an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.              |
+| [`library`](an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).                    |
+| [`live_api`](an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                                   |
+| [`media`](an.media.html.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.       |
+| [`motion`](an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                   |
+| [`orchestrate`](an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                           |
+| [`paths`](an.paths.html.md#module-an.paths)               | Stroked paths: routes, invasion arrows, borders, timelines, connectors.                     |
+| [`preview`](an.preview.html.md#module-an.preview)           | Live preview server: render a project's current scene in a browser, reloading on edit.      |
+| [`project`](an.project.html.md#module-an.project)           | Project init/load/save — the on-disk anatomy of an an project.                              |
+| [`props`](an.props.html.md#module-an.props)               | Props: a rig whose art is not a person.                                                     |
+| [`raster`](an.raster.html.md#module-an.raster)             | Raster art: what a PNG, JPEG or WebP is, read from its header (an#211).                     |
+| [`render`](an.render.html.md#module-an.render)             | Project-level rendering: per-shot mp4 → final composited mp4 via ffmpeg concat.             |
+| [`sounds`](an.sounds.html.md#module-an.sounds)             | Sound assets: what the sound layer plays, where it came from, and a synthesizer.            |
+| [`stores`](an.stores.html.md#module-an.stores)             | Project mall: a dict of dol-backed `MutableMapping` stores.                                 |
+| [`styles`](an.styles.html.md#module-an.styles)             | StylePack: art direction as a document, and the first reader the styles store has had.      |
+| [`text`](an.text.html.md#module-an.text)                 | Words on screen: title cards, labels, and text you can animate word by word.                |
+| [`timing`](an.timing.html.md#module-an.timing)             | The timing kernel: what is on screen at time `t`, as a pure function.                       |
+| [`tools`](an.tools.html.md#module-an.tools)               | User-facing utility functions, plus the SSOT list for CLI dispatch.                         |
+| [`util`](an.util.html.md#module-an.util)                 | Internal helpers: file I/O, hashing, time arithmetic, light path utilities.                 |
+| [`verify`](an.verify.html.md#module-an.verify)             | Verification protocol — same interface for human, lint, vision-LM, MoVer.                   |

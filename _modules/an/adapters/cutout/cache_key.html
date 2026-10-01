@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=9ffce637"></script>
+    <script src="../../../../_static/documentation_options.js?v=3b84622e"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.136" />
+  <meta name="docsearch:version" content="0.1.137" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -715,7 +715,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">The cut-out render is a pure function of these, and of nothing else:</span>
 
 <span class="sd">- **the compiled document** — :func:`compile_shot` with exactly the arguments</span>
-<span class="sd">  `CutoutRenderer.render` passes; digested as ``scene_contract_sha256``, so the</span>
+<span class="sd">  the stage engine passes (``StageEngine.open``, since an#247); digested as ``scene_contract_sha256``, so the</span>
 <span class="sd">  cache key and the bench's contract hash agree about what "the same document"</span>
 <span class="sd">  means while staying two different things (the key covers more);</span>
 <span class="sd">- **the bytes of every texture it stages** — SVG included. Raster art already</span>
@@ -740,7 +740,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  The Python twin of ``runtime_sha256``: an ``an`` upgrade that changes how a</span>
 <span class="sd">  shot is encoded (an#195 did, with no knob and no runtime change) re-renders</span>
 <span class="sd">  every shot instead of serving an old mp4. Computed by walking the imports</span>
-<span class="sd">  from :data:`RENDER_PATH_ROOT`, so a new helper module cannot fall outside it.</span>
+<span class="sd">  from the REGISTERED renderer's own modules (:func:`render_path_roots`: the</span>
+<span class="sd">  renderer class, the frame stage its ``render`` comes from, its engine), and</span>
+<span class="sd">  through the string targets of :func:`an._shims.forward_module_attributes`,</span>
+<span class="sd">  so a new helper module -- or a module that became a pure re-export shim --</span>
+<span class="sd">  cannot fall outside it.</span>
 
 <span class="sd">The machine — Chromium build, Playwright, the full ffmpeg build and the x264</span>
 <span class="sd">build it encodes with, ISA — is the separate environment part</span>
@@ -762,7 +766,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -777,9 +781,10 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Keys in the compiled document whose string value names an easing.</span>
 <span class="n">EASING_KEYS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"easing"</span><span class="p">})</span>
 
-<span class="c1">#: Where the render path starts: the module whose ``CutoutRenderer.render``</span>
-<span class="c1">#: turns a shot into an mp4. :func:`render_path_modules` walks its ``an.*``</span>
-<span class="c1">#: imports (module-level and function-local) from here.</span>
+<span class="c1">#: The cut-out renderer's historical module (the stage engine and</span>
+<span class="c1">#: ``CutoutRenderer`` live there until an#247 PR B moves them to ``an.stage``).</span>
+<span class="c1">#: The walk is no longer rooted HERE alone: :func:`render_path_roots` derives</span>
+<span class="c1">#: the roots from the registered renderer, and this module is one of them.</span>
 <span class="n">RENDER_PATH_ROOT</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"an.adapters.cutout.render"</span>
 
 <span class="c1">#: Modules the walk does NOT enter, each with the reason its change is already</span>
@@ -809,7 +814,7 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="compiled_document">
 <a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.cache_key.html#an.adapters.cutout.cache_key.compiled_document">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compiled_document</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The document `CutoutRenderer.render` will compile for ``shot`` under ``ctx``.</span>
+<span class="w">    </span><span class="sd">"""The document the stage engine (``StageEngine.open``) will compile for ``shot`` under ``ctx``.</span>
 
 <span class="sd">    The SAME call, argument for argument — `tests/test_shot_cache.py` pins the</span>
 <span class="sd">    two against each other, so a knob added to one and not the other fails</span>
@@ -876,12 +881,42 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">m</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">SVG_TEXT_MARKERS</span><span class="p">)</span>
 
 
+<span class="c1">#: The call that makes an old module's names LIVE aliases of another module's</span>
+<span class="c1">#: (:mod:`an._shims`). Its target is a STRING, invisible to an import walk.</span>
+<span class="n">FORWARDING_CALL</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"forward_module_attributes"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_forwarding_target</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The target module of a ``forward_module_attributes(name, "target", ...)`` call."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Call</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">func</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">func</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">id</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">)</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s2">"attr"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">name</span> <span class="o">==</span> <span class="n">FORWARDING_CALL</span>
+        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Constant</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">target</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_module_imports</span><span class="p">(</span><span class="n">tree</span><span class="p">:</span> <span class="n">ast</span><span class="o">.</span><span class="n">AST</span><span class="p">,</span> <span class="n">module</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Every ``an.*`` module ``tree`` imports, at any depth (function-local too)."""</span>
+<span class="w">    </span><span class="sd">"""Every ``an.*`` module ``tree`` imports, at any depth (function-local too),</span>
+<span class="sd">    plus every module a ``forward_module_attributes`` call forwards names to.</span>
+
+<span class="sd">    &gt;&gt;&gt; sorted(_module_imports(ast.parse(</span>
+<span class="sd">    ...     'forward_module_attributes(__name__, "an.media.mp4", ["X"])'), "an.old"))</span>
+<span class="sd">    ['an.media.mp4']</span>
+<span class="sd">    """</span>
     <span class="n">out</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">package</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">tree</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Import</span><span class="p">):</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">_forwarding_target</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Import</span><span class="p">):</span>
             <span class="n">out</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">names</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">ImportFrom</span><span class="p">):</span>
             <span class="n">base</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">module</span> <span class="ow">or</span> <span class="s2">""</span>
@@ -896,19 +931,59 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="p">{</span><span class="n">m</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">out</span> <span class="k">if</span> <span class="n">m</span> <span class="o">==</span> <span class="s2">"an"</span> <span class="ow">or</span> <span class="n">m</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"an."</span><span class="p">)}</span>
 
 
+<div class="viewcode-block" id="render_path_roots">
+<a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.cache_key.html#an.adapters.cutout.cache_key.render_path_roots">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">render_path_roots</span><span class="p">(</span><span class="n">renderer_type</span><span class="p">:</span> <span class="nb">type</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The modules a renderer's render path starts from, read off the renderer itself.</span>
+
+<span class="sd">    The renderer class's module, the module its ``render`` method is defined in</span>
+<span class="sd">    (the core frame stage, for a ``FrameStageRenderer``), and its default</span>
+<span class="sd">    engine's module -- so moving the renderer (an#247 PR B) or turning its old</span>
+<span class="sd">    module into a pure shim moves the roots with it. ``None`` is the cut-out</span>
+<span class="sd">    renderer, plus :data:`RENDER_PATH_ROOT`.</span>
+
+<span class="sd">    &gt;&gt;&gt; "an.engines.frame_stage" in render_path_roots()</span>
+<span class="sd">    True</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">renderer_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">CutoutRenderer</span>
+
+        <span class="n">renderer_type</span> <span class="o">=</span> <span class="n">CutoutRenderer</span>
+    <span class="n">roots</span> <span class="o">=</span> <span class="p">[</span><span class="n">renderer_type</span><span class="o">.</span><span class="vm">__module__</span><span class="p">,</span> <span class="n">renderer_type</span><span class="o">.</span><span class="n">render</span><span class="o">.</span><span class="vm">__module__</span><span class="p">]</span>
+    <span class="n">engine_field</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">renderer_type</span><span class="p">,</span> <span class="s2">"__dataclass_fields__"</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"engine"</span><span class="p">)</span>
+    <span class="n">factory</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">engine_field</span><span class="p">,</span> <span class="s2">"default_factory"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">engine_field</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">factory</span><span class="p">):</span>
+        <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">factory</span><span class="p">())</span><span class="o">.</span><span class="vm">__module__</span><span class="p">)</span>
+    <span class="n">roots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RENDER_PATH_ROOT</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">roots</span><span class="p">))</span></div>
+
+
+
 <div class="viewcode-block" id="render_path_modules">
 <a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.cache_key.html#an.adapters.cutout.cache_key.render_path_modules">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">render_path_modules</span><span class="p">(</span>
-    <span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">RENDER_PATH_ROOT</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">excluded</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">RENDER_PATH_EXCLUDED</span>
+    <span class="n">root</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">excluded</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">RENDER_PATH_EXCLUDED</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""``{module: source path}`` for every ``an`` module the render path reaches.</span>
+
+<span class="sd">    ``root`` is one module name or several; ``None`` is :func:`render_path_roots`.</span>
 
 <span class="sd">    &gt;&gt;&gt; mods = render_path_modules()</span>
 <span class="sd">    &gt;&gt;&gt; "an.adapters.cutout.canvas_capture" in mods and "an.adapters.cutout.compile" not in mods</span>
 <span class="sd">    True</span>
+<span class="sd">    &gt;&gt;&gt; {"an.engines.capture", "an.media.mp4"} &lt;= set(mods)</span>
+<span class="sd">    True</span>
 <span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">root</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">roots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">render_path_roots</span><span class="p">())</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">roots</span> <span class="o">=</span> <span class="p">[</span><span class="n">root</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">roots</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
     <span class="n">found</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="n">todo</span> <span class="o">=</span> <span class="p">[</span><span class="n">root</span><span class="p">]</span>
+    <span class="n">todo</span> <span class="o">=</span> <span class="n">roots</span>
     <span class="k">while</span> <span class="n">todo</span><span class="p">:</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">todo</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">found</span> <span class="ow">or</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">excluded</span> <span class="ow">or</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"an"</span><span class="p">:</span>
@@ -1081,16 +1156,23 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="render_knobs">
 <a class="viewcode-back" href="../../../../_autosummary/an.adapters.cutout.cache_key.html#an.adapters.cutout.cache_key.render_knobs">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">render_knobs</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""Every `RenderContext` knob, resolved the way `CutoutRenderer.render` resolves it.</span>
+<span class="w">    </span><span class="sd">"""Every `RenderContext` knob, resolved the way the frame stage resolves it.</span>
 
 <span class="sd">    Validated here too — an invalid ``pix_fmt`` or supersample factor raises</span>
 <span class="sd">    the render's own error before anything launches.</span>
 <span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.shutter</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_frame_samples</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.supersample</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_factor</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BT709_SCALE_FILTER</span><span class="p">,</span> <span class="n">MP4_FASTSTART_ARGS</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">mp4</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.shutter</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_frame_samples</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.supersample</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_factor</span>
 
     <span class="n">r</span> <span class="o">=</span> <span class="n">_render_module</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># What the frame stage itself calls (not the stage's old-name wrapper),</span>
+        <span class="c1"># so a rebinding the render does not see cannot move the key either.</span>
+        <span class="n">pix_fmt</span> <span class="o">=</span> <span class="n">mp4</span><span class="o">.</span><span class="n">check_pix_fmt</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">pix_fmt</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">mp4</span><span class="o">.</span><span class="n">MediaError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">r</span><span class="o">.</span><span class="n">CutoutRenderError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
     <span class="n">total_frames</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">*</span> <span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">)))</span>
     <span class="n">frame_samples</span> <span class="o">=</span> <span class="n">check_frame_samples</span><span class="p">(</span>
         <span class="n">ctx</span><span class="o">.</span><span class="n">frame_samples</span><span class="p">,</span> <span class="n">total_frames</span><span class="o">=</span><span class="n">total_frames</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="n">shot</span><span class="o">.</span><span class="n">duration</span>
@@ -1099,14 +1181,15 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"fps"</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">fps</span><span class="p">),</span>
         <span class="s2">"resolution"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">resolution</span><span class="p">),</span>
         <span class="s2">"supersample"</span><span class="p">:</span> <span class="n">check_factor</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">supersample</span><span class="p">),</span>
-        <span class="s2">"pix_fmt"</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">_check_pix_fmt</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">pix_fmt</span><span class="p">),</span>
+        <span class="s2">"pix_fmt"</span><span class="p">:</span> <span class="n">pix_fmt</span><span class="p">,</span>
         <span class="s2">"capture"</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">_check_capture</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">capture</span><span class="p">),</span>
         <span class="s2">"step_hz"</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">effective_step_hz</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="p">),</span>
         <span class="s2">"frame_samples"</span><span class="p">:</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">frame_samples</span><span class="p">]</span> <span class="k">if</span> <span class="n">frame_samples</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="s2">"strict_assets"</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">strict_assets</span><span class="p">),</span>
         <span class="s2">"extra"</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">extra</span><span class="p">),</span>
         <span class="s2">"chromium_args"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">DETERMINISTIC_CHROMIUM_ARGS</span><span class="p">),</span>
-        <span class="s2">"x264_args"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">DETERMINISTIC_X264_ARGS</span><span class="p">),</span>
+        <span class="c1"># Read at call time from where the mux reads it (the `high_crf` seam).</span>
+        <span class="s2">"x264_args"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">mp4</span><span class="o">.</span><span class="n">DETERMINISTIC_X264_ARGS</span><span class="p">),</span>
         <span class="s2">"scale_filter"</span><span class="p">:</span> <span class="n">BT709_SCALE_FILTER</span><span class="p">,</span>
         <span class="s2">"faststart_args"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">MP4_FASTSTART_ARGS</span><span class="p">),</span>
     <span class="p">}</span></div>

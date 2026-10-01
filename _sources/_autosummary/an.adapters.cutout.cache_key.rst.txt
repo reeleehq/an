@@ -12,6 +12,7 @@ an.adapters.cutout.cache\_key
       RENDER_PATH_ROOT
       RENDER_PATH_EXCLUDED
       SVG_TEXT_MARKERS
+      FORWARDING_CALL
       FONT_DIRS
    
    .. rubric:: Functions
@@ -27,6 +28,7 @@ an.adapters.cutout.cache\_key
       render_code_digest
       render_knobs
       render_path_modules
+      render_path_roots
       system_fonts_digest
       texture_digests
       x264_build

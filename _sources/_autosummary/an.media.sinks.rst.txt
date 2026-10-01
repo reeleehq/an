@@ -1,0 +1,23 @@
+an.media.sinks
+==============
+
+.. automodule:: an.media.sinks
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_sink
+      register_sink
+      sink_names
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FrameSink
+      GifSink
+      Mp4Sink
+      PngSequenceSink
+   

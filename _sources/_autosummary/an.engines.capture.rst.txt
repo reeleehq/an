@@ -1,0 +1,28 @@
+an.engines.capture
+==================
+
+.. automodule:: an.engines.capture
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_BATCH
+      DEFAULT_ENCODE_WORKERS
+      DEFAULT_BATCH_PIXELS
+      DEFAULT_MAX_INFLIGHT
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      capture_frames
+      default_resolve
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      FrameStageError
+   

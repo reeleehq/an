@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=9ffce637"></script>
+    <script src="../_static/documentation_options.js?v=3b84622e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="API reference" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.136" />
+  <meta name="docsearch:version" content="0.1.137" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -395,6 +395,12 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.determinism.html">an.determinism</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.engines.html">an.engines</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.capture.html">an.engines.capture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.frame_stage.html">an.engines.frame_stage</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.engines.protocol.html">an.engines.protocol</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.environments.html">an.environments</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.expression.html">an.expression</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.axes.html">an.expression.axes</a></li>
@@ -445,6 +451,15 @@
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.live_api.html">an.live_api</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.mp4.html">an.media.mp4</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.shutter.html">an.media.shutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.sinks.html">an.media.sinks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.media.supersample.html">an.media.supersample</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.motion.html">an.motion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.orchestrate.html">an.orchestrate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="an.paths.html">an.paths</a></li>
@@ -1432,32 +1447,38 @@ skip that shot rather than crash.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="an.determinism.html#module-an.determinism" title="an.determinism"><code class="xref py py-obj docutils literal notranslate"><span class="pre">determinism</span></code></a></p></td>
 <td><p>The determinism perimeter: what must stay true for a render to be reproducible.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.environments.html#module-an.environments" title="an.environments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environments</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.engines.html#module-an.engines" title="an.engines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">engines</span></code></a></p></td>
+<td><p>Engines: seekable things the core drives frame by frame, and the renderer that drives them.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.environments.html#module-an.environments" title="an.environments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environments</span></code></a></p></td>
 <td><p>Environments: a stage made of planes, at declared depths.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.expression.html#module-an.expression" title="an.expression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expression</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.expression.html#module-an.expression" title="an.expression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">expression</span></code></a></p></td>
 <td><p>Facial expression for the cutout face (an#98, epic #9 Wave 6).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.frame_clock.html#module-an.frame_clock" title="an.frame_clock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_clock</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.frame_clock.html#module-an.frame_clock" title="an.frame_clock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">frame_clock</span></code></a></p></td>
 <td><p>The frame clock: WHEN each output frame samples scene time.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.genres.html#module-an.genres" title="an.genres"><code class="xref py py-obj docutils literal notranslate"><span class="pre">genres</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.genres.html#module-an.genres" title="an.genres"><code class="xref py py-obj docutils literal notranslate"><span class="pre">genres</span></code></a></p></td>
 <td><p>Genres: what a kind of animation adds to the core, declared as one object.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.impacts.html#module-an.impacts" title="an.impacts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">impacts</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.impacts.html#module-an.impacts" title="an.impacts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">impacts</span></code></a></p></td>
 <td><p>Synthetic impact clips with exact ground truth, for scoring sub-frame timing.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.ir.html#module-an.ir" title="an.ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ir</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.ir.html#module-an.ir" title="an.ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ir</span></code></a></p></td>
 <td><p>Scene IR — the single source of truth for a scene.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.iterate.html#module-an.iterate" title="an.iterate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterate</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.iterate.html#module-an.iterate" title="an.iterate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iterate</span></code></a></p></td>
 <td><p>Iterative edit loop — free-text instruction → IR patch via Claude → re-render.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.library.html#module-an.library" title="an.library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.library.html#module-an.library" title="an.library"><code class="xref py py-obj docutils literal notranslate"><span class="pre">library</span></code></a></p></td>
 <td><p>The asset library: reusable assets that outlive their videos (ADR 0005).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.live_api.html#module-an.live_api" title="an.live_api"><code class="xref py py-obj docutils literal notranslate"><span class="pre">live_api</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.live_api.html#module-an.live_api" title="an.live_api"><code class="xref py py-obj docutils literal notranslate"><span class="pre">live_api</span></code></a></p></td>
 <td><p>The one switch that says &quot;yes, this run may spend money&quot;.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.media.html#module-an.media" title="an.media"><code class="xref py py-obj docutils literal notranslate"><span class="pre">media</span></code></a></p></td>
+<td><p>Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.motion.html#module-an.motion" title="an.motion"><code class="xref py py-obj docutils literal notranslate"><span class="pre">motion</span></code></a></p></td>
 <td><p>Motion presets: a named vocabulary of cut-out moves, as authoring macros.</p></td>

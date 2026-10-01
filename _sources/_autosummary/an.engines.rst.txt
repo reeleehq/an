@@ -1,0 +1,49 @@
+an.engines
+==========
+
+.. automodule:: an.engines
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      capture_frames
+      describe
+      drive_mode
+      frame_stage_renderer
+      require_engine
+      require_seekable
+      requests_as_dicts
+      shot_workspace
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Engine
+      EngineProfile
+      FrameJob
+      FrameRequest
+      FrameStageRenderer
+      LiveEngine
+      StateDriven
+      StateDrivenAdapter
+      TimeDriven
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      FrameStageError
+      UnseekableEngineError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   capture
+   frame_stage
+   protocol
