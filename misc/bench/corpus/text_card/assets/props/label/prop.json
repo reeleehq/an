@@ -1,0 +1,10 @@
+{
+  "kind": "TextDescriptor",
+  "schema_version": "0.1.0",
+  "name": "label",
+  "text": "world",
+  "layer": "world",
+  "unit": "line",
+  "size": 0.08,
+  "color": "#ffffff"
+}

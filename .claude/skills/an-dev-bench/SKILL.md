@@ -155,6 +155,35 @@ that pair's own change — the ledger's view of `tests/test_expression_goldens.p
 regenerates the staged IR from the md, so a developer who ran the example
 (`auto_audio=True` persists visemes) cannot move the fixture's contract hash.
 
+## The core corpus (an#279, ADR 0001 decision 7)
+
+`an/bench/core_corpus.py` (CORE, behind no firewall) owns `CORE_FIXTURES` —
+`path_draw`, `stage_pan`, `text_card`, `transitions`: character-free scenes on
+`an.stage` covering paths, text, planes, camera translation/zoom/roll, a fade and
+a dissolve. `an.bench.corpus.DFLT_FIXTURES` includes them (same objects), so the
+bless protocol, the ledger and the contract guard treat them like any scene.
+They are the pixel gate that stays in `an` when the cut-out corpus moves to
+`cutan` (P8): `tests/test_core_corpus.py` compiles and renders them in a fresh
+interpreter with **no genre registered**, importing no cut-out module the core
+had not already imported. That is all it proves today: `an.stage.compile` still
+imports `an.characters`/`an.expression` and a stage render RUNS
+`an.characters.play` (review of #301). The real proof — every cut-out module
+poisoned before `import an` — is the pair of **strict xfail** tests in the same
+file; P8's B0c (the stage-compile split, an#225) flips them to pass. A new core
+scene must not draw a character, and must keep the passing tests green.
+
+After P8 the bench runner (`run`, `corpus`, `capture`) leaves with `cutan`, so
+the core keeps the core corpus's goldens, bless records and contract hashes
+(`tests/test_core_corpus.py`) but not its metrics or ledger rows.
+
+**An assembled scene (transitions, a sound layer) is measured on its FILM.**
+`SceneCapture.film` (segment id `film`, frames composed from the shots by `an.assemble.write_film_frames` into `.an/render_work/film_frames` — since an#260 the film itself is a concat of segments and holds no frame sequence)
+replaces the shots' frames in every frame consumer — `capture.frame_segments` is
+the one accessor — because a dissolve overlaps its shots: pairing the shots'
+frames against the delivered mp4 would measure the overlap, not the encoder. Its
+golden frames record `shot_id: "film"`. A concatenated scene's `film` is `None`,
+so no earlier row moved.
+
 ## The golden gate (an#38)
 
 **The golden gate is one of four for a timing-kernel change** (an#233): unchanged

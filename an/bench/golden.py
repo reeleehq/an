@@ -132,13 +132,15 @@ def resolve_frames(capture: Any, times: Sequence[float]) -> list[FrameRef]:
     mp4 shows — so a pinned time can land in the second shot, which is exactly
     what ``multi_shot``'s second golden does.
     """
-    counts = [s.frame_count for s in capture.shots]
+    # What the delivered mp4 shows: the shots, or an assembled scene's film.
+    segments = list(getattr(capture, "frame_segments", capture.shots))
+    counts = [s.frame_count for s in segments]
     total = sum(counts)
     refs: list[FrameRef] = []
     for time in times:
         index = frame_index_for(time, fps=capture.fps, n_frames=total)
         remaining = index
-        for shot, count in zip(capture.shots, counts):
+        for shot, count in zip(segments, counts):
             if remaining < count:
                 refs.append(
                     FrameRef(
@@ -158,7 +160,8 @@ def frame_png_path(capture: Any, ref: FrameRef) -> Path:
     """Where the renderer left the PNG for one resolved frame."""
     from an.stage.render import DEFAULT_FRAME_PNG_PATTERN
 
-    shot = next(s for s in capture.shots if s.shot_id == ref.shot_id)
+    segments = getattr(capture, "frame_segments", capture.shots)
+    shot = next(s for s in segments if s.shot_id == ref.shot_id)
     return shot.frames_dir / (DEFAULT_FRAME_PNG_PATTERN % ref.local_index)
 
 

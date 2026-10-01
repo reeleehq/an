@@ -1,0 +1,46 @@
+{
+  "blessed_at": "2026-10-01T20:18:38Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 1688,
+      "file": "f0000-chromium140.0.7339.16.png",
+      "frame_key": "f0000",
+      "index": 0,
+      "local_index": 0,
+      "sha256": "42c4ed87ab1bc1d180231a3f35cc6adeb9a70b6034b9704b2d47a1cdd4080e2e",
+      "shot_id": "card",
+      "time": 0.0
+    },
+    {
+      "bytes": 6369,
+      "file": "f0008-chromium140.0.7339.16.png",
+      "frame_key": "f0008",
+      "index": 8,
+      "local_index": 8,
+      "sha256": "5a97f223b463161b07dc71c12f4df741096c75742a72ace97082b62779790462",
+      "shot_id": "card",
+      "time": 0.3333333333333333
+    }
+  ],
+  "git": {
+    "branch": "feat/279-core-corpus",
+    "dirty": true,
+    "sha": "10f74b209b281a3966faf329461e0b13fca24927"
+  },
+  "reason": "an#279: the core corpus's first goldens (ADR 0001 decision 7) \u2014 text under a camera zoom/roll, and a fade-in plus a dissolve measured on the composed film frames",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "text_card",
+  "scene_contract_sha256": "bfbc2104e42a976ba2c4890468eb78728291aeb0c26c719fe75eb93cd1b87286",
+  "shot_ids": [
+    "card"
+  ],
+  "source": "misc/bench/corpus/text_card",
+  "what_moves": "text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (`word_1` starts 0.125 s after `word_0`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning \u2014 a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."
+}

@@ -1,0 +1,50 @@
+{
+  "schema_version": "0.1.0",
+  "kind": "EnvironmentDescriptor",
+  "name": "dusk",
+  "planes": [
+    {
+      "name": "bg",
+      "art": {
+        "kind": "fill",
+        "color": "#203040",
+        "src": null
+      },
+      "depth": 0.0,
+      "parallax": null,
+      "offset": [
+        0.0,
+        0.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": null,
+      "fit": "contain"
+    },
+    {
+      "name": "sun",
+      "art": {
+        "kind": "fill",
+        "color": "#e0a030",
+        "src": null
+      },
+      "depth": 1.0,
+      "parallax": null,
+      "offset": [
+        -60.0,
+        -20.0
+      ],
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "size": [
+        80.0,
+        80.0
+      ],
+      "fit": "contain"
+    }
+  ]
+}

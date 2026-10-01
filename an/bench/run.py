@@ -215,7 +215,7 @@ def _assert_declared_resolution(capture: SceneCapture) -> None:
     runs above the ``_ffmpeg_available()`` fork so it covers both branches, and
     above the first decode so nothing is computed on a wrong shape.
     """
-    for shot in capture.shots:
+    for shot in capture.frame_segments:
         sizes = set(shot.frame_sizes)
         if sizes != {capture.resolution}:
             raise BenchError(
@@ -249,13 +249,14 @@ def _timeline_frames_dir(capture: SceneCapture):
     """
     from an.stage.render import DEFAULT_FRAME_PNG_PATTERN
 
-    if len(capture.shots) == 1:
-        yield capture.shots[0].frames_dir
+    segments = capture.frame_segments
+    if len(segments) == 1:
+        yield segments[0].frames_dir
         return
     staged = Path(tempfile.mkdtemp(prefix=f"an-bench-timeline-{capture.name}-"))
     try:
         index = 0
-        for shot in capture.shots:
+        for shot in segments:
             for src in sorted(shot.frames_dir.glob("frame_*.png")):
                 (staged / (DEFAULT_FRAME_PNG_PATTERN % index)).symlink_to(src)
                 index += 1
@@ -356,7 +357,7 @@ def _stack(loader, capture: SceneCapture, *, height: int, width: int):
 
     parts = [
         loader(s.frames_dir, height=height, width=width, frames=s.frame_count)
-        for s in capture.shots
+        for s in capture.frame_segments
     ]
     return parts[0] if len(parts) == 1 else np.concatenate(parts)
 
@@ -412,7 +413,7 @@ def _scene_metrics(
     # branches: everything below reshapes a byte stream to the DECLARED size.
     _assert_declared_resolution(capture)
     h, w = capture.resolution[1], capture.resolution[0]
-    n_source = sum(s.frame_count for s in capture.shots)
+    n_source = sum(s.frame_count for s in capture.frame_segments)
     values: dict[str, Value] = {}
 
     if not _ffmpeg_available():
@@ -437,7 +438,7 @@ def _scene_metrics(
             "decoder": "an.bench.png (ffmpeg absent)",
             "masks": {"render_edge": _render_edge_record(render_edge)},
             "source_pixels_sha256": contract.frames_sha256(src_rgb),
-            "frames_on_disk": sum(s.frame_count for s in capture.shots),
+            "frames_on_disk": sum(s.frame_count for s in capture.frame_segments),
             "decoded_source_frames": int(len(src_rgb)),
         }
 
@@ -468,7 +469,7 @@ def _scene_metrics(
         ),
         "decoder": "ffmpeg",
         "source_pixels_sha256": contract.frames_sha256(src_rgb),
-        "frames_on_disk": sum(s.frame_count for s in capture.shots),
+        "frames_on_disk": sum(s.frame_count for s in capture.frame_segments),
         "decoded_source_frames": int(len(src_rgb)),
         "tolerances": {
             "edge_flat_tol": M.EDGE_FLAT_TOL,
@@ -1025,7 +1026,8 @@ def run_bench(
                 [s.scene_json for s in capture.shots]
             )
             expected = sum(
-                expected_frame_count(s.duration, capture.fps) for s in capture.shots
+                expected_frame_count(s.duration, capture.fps)
+            for s in capture.frame_segments
             )
 
             if bless:

@@ -1,0 +1,57 @@
+{
+  "blessed_at": "2026-10-01T20:18:41Z",
+  "chromium_build": "140.0.7339.16",
+  "criterion": "sha256 of the DECODED RGB array, never the file bytes: Chromium 1187 -> 1223 changes every PNG file and zero pixels.",
+  "fps": 24,
+  "frames": [
+    {
+      "bytes": 742,
+      "file": "f0002-chromium140.0.7339.16.png",
+      "frame_key": "f0002",
+      "index": 2,
+      "local_index": 2,
+      "sha256": "fb43bed48a67a9b12827fef3a709829f37a0c052de7b41ee28758d9126fe9f2a",
+      "shot_id": "film",
+      "time": 0.08333333333333333
+    },
+    {
+      "bytes": 1554,
+      "file": "f0009-chromium140.0.7339.16.png",
+      "frame_key": "f0009",
+      "index": 9,
+      "local_index": 9,
+      "sha256": "9abd22ad5334d21c10ff3af55a3ec0c76899a2f86cf6b2722bec66f10b58aeec",
+      "shot_id": "film",
+      "time": 0.375
+    },
+    {
+      "bytes": 1228,
+      "file": "f0015-chromium140.0.7339.16.png",
+      "frame_key": "f0015",
+      "index": 15,
+      "local_index": 15,
+      "sha256": "4d38ecbc3ce4e283f931be2af123c47bd4193d8adcc261e9218e0b57b0be50ae",
+      "shot_id": "film",
+      "time": 0.625
+    }
+  ],
+  "git": {
+    "branch": "feat/279-core-corpus",
+    "dirty": true,
+    "sha": "10f74b209b281a3966faf329461e0b13fca24927"
+  },
+  "reason": "an#279: the core corpus's first goldens (ADR 0001 decision 7) \u2014 text under a camera zoom/roll, and a fade-in plus a dissolve measured on the composed film frames",
+  "removed": [],
+  "resolution": [
+    320,
+    240
+  ],
+  "scene": "transitions",
+  "scene_contract_sha256": "75ee337463530f56794122b9387cbc5e1196eaadd6b876fbfe2cd656f6698a76",
+  "shot_ids": [
+    "dusk",
+    "dawn"
+  ],
+  "source": "misc/bench/corpus/transitions",
+  "what_moves": "the delivered film's COMPOSED frames (an#279, the core corpus): `dusk` fades in from black over 0.25 s, then `dawn` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 `dawn` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' \u2014 what the delivered mp4 shows (an.bench.capture's film segment)."
+}

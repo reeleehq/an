@@ -30,6 +30,8 @@ half moved when the number does.
 
 from __future__ import annotations
 
+import io
+
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -111,7 +113,32 @@ def _style_values(style: str) -> dict[str, str]:
     }
 
 
-def svg_colours(svg_path: Path) -> tuple[set[int], set[str]]:
+def _data_uri_bytes(src: str) -> bytes | None:
+    """The payload of a ``data:`` URI (base64 or percent-encoded), or ``None``.
+
+    Text units travel INSIDE the compiled document as ``data:image/svg+xml``
+    srcs (an#155): their glyph outlines are typeset in Python, so there is no
+    staged file to open — and a data URI read as a path is an ``OSError``
+    (file name too long), which is how the first text fixture found this.
+
+    >>> _data_uri_bytes("data:image/svg+xml;base64,PHN2Zy8+")
+    b'<svg/>'
+    >>> _data_uri_bytes("data:image/svg+xml,%3Csvg%2F%3E")
+    b'<svg/>'
+    """
+    import base64
+    from urllib.parse import unquote_to_bytes
+
+    head, sep, payload = src.partition(",")
+    if not sep or not head.startswith("data:"):
+        return None
+    try:
+        return base64.b64decode(payload) if head.endswith(";base64") else unquote_to_bytes(payload)
+    except ValueError:
+        return None
+
+
+def svg_colours(svg_path: Any) -> tuple[set[int], set[str]]:
     """Every colour literal an SVG paints, plus the tokens that could not be resolved.
 
     Parsed as XML rather than scraped with a regex, so ``style="fill:#abc"``
@@ -128,7 +155,7 @@ def svg_colours(svg_path: Path) -> tuple[set[int], set[str]]:
     try:
         root = ET.parse(svg_path).getroot()
     except (ET.ParseError, OSError):
-        return colours, {f"unparseable:{svg_path.name}"}
+        return colours, {f"unparseable:{getattr(svg_path, 'name', '<data>')}"}
 
     def walk(el: Any, hidden: bool) -> None:
         style = _style_values(el.get("style", ""))
@@ -226,11 +253,18 @@ def palette_for_scene(scene_json: dict, *, runtime_dir: Path) -> dict:
         if not src:
             unresolved.add(f"alias-without-src:{alias}")
             continue
-        staged = runtime_dir / src
-        if not staged.is_file():
-            unresolved.add(f"unstaged:{src}")
-            continue
-        found, bad = svg_colours(staged)
+        if src.startswith("data:"):
+            data = _data_uri_bytes(src)
+            if data is None:
+                unresolved.add(f"undecodable-data-uri:{alias}")
+                continue
+            found, bad = svg_colours(io.BytesIO(data))
+        else:
+            staged = runtime_dir / src
+            if not staged.is_file():
+                unresolved.add(f"unstaged:{src}")
+                continue
+            found, bad = svg_colours(staged)
         colours.update(found)
         sources["svg"] += len(found)
         unresolved.update(bad)

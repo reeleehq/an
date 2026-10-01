@@ -16,9 +16,17 @@ scene JSON **the browser actually loaded** — an independent second opinion to
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Iterator, Sequence
+
+# Moved to the core (an#279, ADR 0001 decision 7) and re-exported: the fixture
+# type, the pinned render knobs and the corpus folder serve the CORE corpus too.
+from an.bench.core_corpus import (  # noqa: F401 — re-exported
+    BENCH_RENDER_KWARGS,
+    CORE_FIXTURES,
+    CORPUS_DIRNAME,
+    Fixture,
+)
 
 #: Per-shot subdirectory naming inside `.an/render_work`, and the staged scene
 #: filename. Mirrored from the renderer rather than restated as literals at
@@ -27,22 +35,6 @@ SHOT_DIR_GLOB: str = "shot_*"
 FRAMES_DIRNAME: str = "frames"
 RUNTIME_DIRNAME: str = "runtime"
 STAGED_SCENE_NAME: str = "scene.json"
-
-#: Rendering knobs pinned for every bench capture, recorded verbatim into the
-#: ledger. NOT flags: a bench whose render knobs vary per invocation produces
-#: incomparable rows.
-#:
-#: ``auto_audio=False`` because audio cannot move a pixel and would otherwise
-#: make the frames depend on the audio cache's warm/cold state; ``parallel=1``
-#: because a timing-sensitive pool is one more thing to explain if the pixels
-#: ever do differ; ``strict_assets=True`` because a stand-in asset renders
-#: happily as a DIFFERENT picture (an#33).
-BENCH_RENDER_KWARGS: dict[str, Any] = {
-    "auto_audio": False,
-    "parallel": 1,
-    "strict_assets": True,
-}
-
 
 class CorpusError(RuntimeError):
     """A fixture did not render what it declared."""
@@ -105,41 +97,6 @@ def _prepare_promote_demo(project_dir: Path) -> None:
     ir = project_dir / "ir" / "scene.json"
     if ir.exists():
         ir.unlink()
-
-
-@dataclass(frozen=True, slots=True)
-class Fixture:
-    """A corpus scene: where it lives, how to build it, what it must render."""
-
-    path: str
-    #: Run against the throwaway copy before loading, to regenerate build
-    #: products the repo does not track.
-    prepare: Callable[[Path], None] | None = None
-    #: Visual kinds the staged scene MUST contain — see the module docstring.
-    expect_visual_kinds: frozenset = frozenset()
-    #: Times (seconds, into the scene's CONCATENATED timeline) at which a
-    #: golden frame is blessed. Two per scene, the second chosen so something
-    #: has actually moved — `--bless` refuses a pair whose two frames are
-    #: pixel-identical, which is not hypothetical: `promote_demo`'s frame 0 and
-    #: its `duration/2` frame differ by exactly **zero** pixels.
-    golden_frames: tuple[float, ...] = field(default_factory=tuple)
-    #: One line saying what moves between the two golden times. Carried as data
-    #: because "pick a time where something moved" is a rule that decays into a
-    #: habit, and the reason is what a reviewer needs when a golden goes red.
-    golden_note: str = ""
-
-
-#: Where the bench-owned fixtures live. NOT under `examples/`, and the reason
-#: is mechanical rather than tidiness: `.gitignore` excludes every
-#: `examples/*/assets/`, so a corpus scene that needs committed art cannot live
-#: there without a carve-out per scene. `misc/` is not ignored at all.
-#:
-#: The second reason is that a metrics fixture must **hold still**. These four
-#: carry their whole rig as committed files and have no ``prepare`` step, so
-#: their pixels are a function of the repo alone — where `promote_demo`'s are a
-#: function of `an.characters.promote`, and would need re-blessing whenever that
-#: changes.
-CORPUS_DIRNAME: str = "misc/bench/corpus"
 
 
 #: The corpus. One fixture per render path, deliberately both: the descriptor
@@ -250,44 +207,8 @@ DFLT_FIXTURES: dict[str, Fixture] = {
             "not depend on how the frame containing t=0.25 rounds."
         ),
     ),
-    "stage_pan": Fixture(
-        path=f"{CORPUS_DIRNAME}/stage_pan",
-        expect_visual_kinds=frozenset({"rect"}),
-        golden_frames=(0.0, 8 / 24),
-        golden_note=(
-            "three coloured blocks at depths 0.25 / 1.0 / 2.0 under a "
-            "zoom-free pan (an#111). What moves between the goldens is the "
-            "SEPARATION: the blocks start aligned and end 10 / 40 / 80 px "
-            "apart, which is the parallax and nothing else. Frame 8, not the "
-            "mid-frame: the camera travels 5 px per frame and the far plane "
-            "moves a quarter of that, so only every fourth frame lands every "
-            "block on an exact pixel boundary — at any other frame the "
-            "anti-aliased edge changes the exact-colour mask's SIZE, and a "
-            "centroid measured against a different shape is not a "
-            "displacement (the measurement refuses it outright). "
-            "Zoom is held constant on purpose: the x = 0 probe that cancels "
-            "it in the JSON half does not reach a centroid, which sits at the "
-            "plane's own offset."
-        ),
-    ),
-    "path_draw": Fixture(
-        path=f"{CORPUS_DIRNAME}/path_draw",
-        expect_visual_kinds=frozenset({"path"}),
-        golden_frames=(0.0, 8 / 24),
-        golden_note=(
-            "two stroked paths (an#160, an#161), both dashed and both coloured "
-            "by a StylePack's `stroke` role: a marching-ants frame whose "
-            "`dash_offset` runs 0 -> 20 px, and a cubic arrow that draws itself "
-            "on (`trim_end` 0 -> 1) with its head on the moving tip. What "
-            "moves between the goldens is the ROUTE growing (frame 0 shows "
-            "none of it) and the frame's dashes sliding 6.7 px along their "
-            "path; a regression in trim, in the dash phase, in the "
-            "anchored-at-the-path-start rule that keeps a dash from crawling "
-            "as the tip advances, or in the pack reaching a path, moves a "
-            "golden. Butt caps, so a dash's ends are exact rather than "
-            "rounded past their length."
-        ),
-    ),
+    "stage_pan": CORE_FIXTURES["stage_pan"],
+    "path_draw": CORE_FIXTURES["path_draw"],
     "expressions": Fixture(
         path=f"{CORPUS_DIRNAME}/expressions",
         expect_visual_kinds=frozenset({"svg_sprite"}),
@@ -353,6 +274,9 @@ DFLT_FIXTURES: dict[str, Fixture] = {
             "inside one shot would not notice a shot rendered in the wrong order."
         ),
     ),
+    # The core corpus's own scenes (an#279), after every existing one so the
+    # ledger's scene order for the cut-out corpus is unchanged.
+    **{k: v for k, v in CORE_FIXTURES.items() if k not in ("stage_pan", "path_draw")},
 }
 
 

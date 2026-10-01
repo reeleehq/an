@@ -29,6 +29,16 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from an.bench.core_corpus import (  # noqa: F401 — moved to the core, re-exported
+    FRAME_PNG_GLOB,
+    IGNORED_ON_COPY,
+    IGNORED_RELPATHS_ON_COPY,
+    RENDER_WORK_RELPATH,
+    CaptureError,
+    _ignore_for,
+    compiled_contract_sha256,
+    stage_copy,
+)
 from an.bench.corpus import (
     BENCH_RENDER_KWARGS,
     Fixture,
@@ -38,34 +48,6 @@ from an.bench.corpus import (
     visual_kinds,
 )
 from an.bench.png import read_png_dimensions
-
-#: Copied for the render, but never these: they are the previous render's
-#: output, and one of them silently extends this one's frame sequence.
-#: Matched on the **basename**, at any depth — that is exactly what
-#: ``shutil.ignore_patterns`` does, and it is why ``artifacts/shots`` cannot be
-#: spelled here. See :data:`IGNORED_RELPATHS_ON_COPY`.
-IGNORED_ON_COPY: tuple[str, ...] = (".an", "output", ".anima")
-
-#: Excluded by their path **relative to the project root**, POSIX-spelled.
-#: ``mall["shots"]`` is ``<project>/artifacts/shots``, and ``artifacts/``
-#: itself is kept on purpose — it holds the audio cache, whose warm/cold state
-#: this module records rather than destroys.
-#:
-#: Neither spelling belongs in :data:`IGNORED_ON_COPY`, and **both fail
-#: silently**. ``shutil.ignore_patterns`` returns a closure handed the NAMES
-#: inside one directory, which it ``fnmatch.filter``s — so ``"artifacts/shots"``
-#: can never match anything (no name contains a separator) and a bare
-#: ``"shots"`` would delete every directory of that name **anywhere** in the
-#: tree, a character rig's included.
-IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ("artifacts/shots",)
-
-#: Where the renderer leaves its per-shot working tree inside the project.
-RENDER_WORK_RELPATH: str = ".an/render_work"
-
-#: How a shot's frames are named on disk. One constant rather than the literal
-#: repeated at each glob site.
-FRAME_PNG_GLOB: str = "frame_*.png"
-
 
 def distinct_png_sizes(frames_dir: Path) -> tuple[tuple[int, int], ...]:
     """Every distinct ``(width, height)`` among a shot's frame PNGs, sorted.
@@ -132,115 +114,23 @@ class SceneCapture:
     #: and a timing row is only readable beside the path that produced it
     #: (an#192 flipped the default).
     capture: str = ""
+    #: An ASSEMBLED scene's composed frames (transitions, a sound layer —
+    #: ``an.assemble``), as one segment: what the delivered mp4 shows. ``None``
+    #: for a scene that is the concatenation of its shots, which is every scene
+    #: before an#279's core corpus. When set, every metric, the golden frames
+    #: and the frame count read IT — pairing the shots' frames against a film
+    #: whose dissolves overlap them would measure the overlap, not the encoder.
+    film: ShotCapture | None = None
 
-
-class CaptureError(RuntimeError):
-    """A capture could not produce something the metrics need."""
-
-
-def _ignore_for(fixture_dir: Path):
-    """``copytree``'s ``ignore``, for basenames **and** project-relative paths.
-
-    ``copytree`` calls this once per directory with ``(that directory, the
-    names in it)``, so a path-shaped exclusion has to be reconstructed from the
-    directory it is handed — which is precisely why ``shutil.ignore_patterns``
-    cannot express one, and why asking it to do so is a silent no-op rather
-    than an error.
-    """
-    by_name = shutil.ignore_patterns(*IGNORED_ON_COPY)
-
-    def ignore(path: str, names: list[str]) -> set[str]:
-        try:
-            here = Path(path).relative_to(fixture_dir).as_posix()
-        except ValueError as e:
-            # Never seen: `copytree` builds every path it passes here by
-            # joining onto the one it was given. Raised rather than quietly
-            # degrading to basenames-only, because under-excluding is the
-            # defect this function exists to fix and it leaves no trace.
-            raise CaptureError(
-                f"stage_copy was asked about {path!r}, which is not under the "
-                f"fixture root {fixture_dir}, so the path-relative exclusions "
-                f"{IGNORED_RELPATHS_ON_COPY} could not be applied to it"
-            ) from e
-        prefix = "" if here == "." else f"{here}/"
-        return set(by_name(path, names)) | {
-            n for n in names if prefix + n in IGNORED_RELPATHS_ON_COPY
-        }
-
-    return ignore
-
-
-def stage_copy(fixture_dir: Path, base: Path) -> Path:
-    """Copy a fixture into ``base``, leaving the previous render behind.
-
-    Split out of :func:`capture_fixture` so the exclusion is testable without
-    rendering anything — which matters, because the failure it prevents is
-    silent. ``frames/`` is never cleared and ffmpeg's image2 demuxer reads the
-    contiguous ``frame_%06d.png`` run from 0, so a longer previous render is
-    appended to this one's source leg and to nothing else.
-
-    Two kinds of exclusion, because one kind cannot say both things:
-    :data:`IGNORED_ON_COPY` by basename at any depth, and
-    :data:`IGNORED_RELPATHS_ON_COPY` by path from the project root — which is
-    the only way to drop ``artifacts/shots`` while keeping ``artifacts/audio``.
-    """
-    base.mkdir(parents=True, exist_ok=True)
-    work_copy = base / fixture_dir.name
-    if work_copy.exists():
-        shutil.rmtree(work_copy)
-    shutil.copytree(fixture_dir, work_copy, ignore=_ignore_for(fixture_dir))
-    return work_copy
+    @property
+    def frame_segments(self) -> list[ShotCapture]:
+        """The frame sequence(s) the delivered mp4 shows, in order."""
+        return [self.film] if self.film is not None else list(self.shots)
 
 
 def _audio_cache_state(project_dir: Path) -> str:
     audio = project_dir / "artifacts" / "audio"
     return "warm" if audio.is_dir() and any(audio.iterdir()) else "cold"
-
-
-def compiled_contract_sha256(fixture: Fixture, *, repo_root: Path) -> str:
-    """The ``scene_contract_sha256`` a render of ``fixture`` would record — no browser.
-
-    Compiles every timeline shot the way the cutout renderer does (the scene's
-    size, fps, style pack, default easing and stepped-timing policy, with
-    ``strict_assets`` as the bench sets it) in a throwaway copy, and hashes the
-    documents. It is the default-leg twin of :func:`capture_fixture`: the
-    contract hash is a function of the compiled JSON alone, so the guards that
-    check it — against the newest ledger row and against each golden's bless
-    record — run on every PR, not only in the labelled browser lane.
-
-    It is the contract of a bench render, which passes no overrides: a render
-    given its own ``step_hz``, fps or resolution compiles something else.
-    """
-    from an.stage.compile import compile_shot, style_pack_for
-    from an.stage.serialize import to_dict
-    from an.bench.contract import scenes_contract_sha256
-    from an.ir.schema import resolve_step_hz
-    from an.project import load
-
-    with tempfile.TemporaryDirectory(prefix="an-contract-") as tmp:
-        work = stage_copy(Path(repo_root) / fixture.path, Path(tmp))
-        if fixture.prepare is not None:
-            fixture.prepare(work)
-        project = load(work)
-        meta = project.scene.meta
-        style_pack = style_pack_for(meta, project.mall.get("styles") or {})
-        docs = [
-            to_dict(
-                compile_shot(
-                    shot,
-                    mall=project.mall,
-                    fps=int(round(meta.fps)),
-                    width=meta.resolution.width,
-                    height=meta.resolution.height,
-                    strict_assets=BENCH_RENDER_KWARGS["strict_assets"],
-                    step_hz=resolve_step_hz(shot, meta.step_hz),
-                    style_pack=style_pack,
-                    default_easing=meta.default_easing,
-                )
-            )
-            for shot in project.scene.timeline
-        ]
-    return scenes_contract_sha256(docs)
 
 
 def capture_fixture(
@@ -327,7 +217,27 @@ def capture_fixture(
             "scene's row would pool two incompatible measurements"
         )
 
+    film = None
+    from an.assemble import film_timeline, needs_assembly
+
+    if needs_assembly(scene, fps=scene.meta.fps):
+        from an.bench.core_corpus import FILM_SEGMENT_ID, compose_film_frames
+
+        film_dir = compose_film_frames(scene, work_dir)
+        total = film_timeline(list(scene.timeline), fps=scene.meta.fps).total_frames
+        film = ShotCapture(
+            shot_id=FILM_SEGMENT_ID,
+            frames_dir=film_dir,
+            scene_json={},
+            runtime_dir=film_dir.parent,
+            frame_count=len(sorted(film_dir.glob(FRAME_PNG_GLOB))),
+            # So `expected_frame_count(duration, fps)` is the timeline's own count.
+            duration=total / float(scene.meta.fps),
+            frame_sizes=distinct_png_sizes(film_dir),
+        )
+
     return SceneCapture(
+        film=film,
         name=name,
         source=fixture.path,
         prepared=fixture.prepare is not None,
