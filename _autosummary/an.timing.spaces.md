@@ -42,15 +42,17 @@ DiscreteKind(switch_at=0.5)
 
 ### Module Attributes
 
-| [`SWAP_WRITE_GROUP`](#an.timing.spaces.SWAP_WRITE_GROUP)       | they all replace the one drawing the node carries (`viseme` and `viseme@happy` both set the mouth's texture, an#88).                                                                                                          |
-|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`SWAP_KIND`](#an.timing.spaces.SWAP_KIND)              | A replacement drawing never appears before its own key (an#86).                                                                                                                                                               |
-| [`STAGE_NODE_UNITS`](#an.timing.spaces.STAGE_NODE_UNITS)       | What the stage node's transform properties are measured in.                                                                                                                                                                   |
-| [`STAGE_NODE_ALIASES`](#an.timing.spaces.STAGE_NODE_ALIASES)     | Properties that write another property's value on the same node.                                                                                                                                                              |
-| [`CORE_OWNER`](#an.timing.spaces.CORE_OWNER)             | Who registered the seeded spaces (only these reach the contract files).                                                                                                                                                       |
-| [`DFLT_VALUE_TYPED_SPACE`](#an.timing.spaces.DFLT_VALUE_TYPED_SPACE) | The space whose write groups the value-typed rule (`space=None`) uses: the stage engine's node, resolved BY NAME at call time, so moving the stage's registration (P3: into `an.stage`) or replacing it needs no kernel edit. |
-| [`SpaceLike`](#an.timing.spaces.SpaceLike)              | one space for every target, a registered space's name, or a per-target resolver (P2: target -> its entity kind's space).                                                                                                      |
-| [`STAGE_NODE`](#an.timing.spaces.STAGE_NODE)             | P3 moves their registration into `an.stage`.                                                                                                                                                                                  |
+| [`SWAP_WRITE_GROUP`](#an.timing.spaces.SWAP_WRITE_GROUP)       | they all replace the one drawing the node carries (`viseme` and `viseme@happy` both set the mouth's texture, an#88).                                                                                                                                                          |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`SWAP_KIND`](#an.timing.spaces.SWAP_KIND)              | A replacement drawing never appears before its own key (an#86).                                                                                                                                                                                                               |
+| [`STAGE_NODE_UNITS`](#an.timing.spaces.STAGE_NODE_UNITS)       | What the stage node's transform properties are measured in.                                                                                                                                                                                                                   |
+| [`STAGE_NODE_ALIASES`](#an.timing.spaces.STAGE_NODE_ALIASES)     | Properties that write another property's value on the same node.                                                                                                                                                                                                              |
+| [`CORE_OWNER`](#an.timing.spaces.CORE_OWNER)             | Who registered the seeded spaces (only these reach the contract files).                                                                                                                                                                                                       |
+| [`DFLT_VALUE_TYPED_SPACE`](#an.timing.spaces.DFLT_VALUE_TYPED_SPACE) | The space whose write groups the value-typed rule ([`VALUE_TYPED`](#an.timing.spaces.VALUE_TYPED)) uses: the stage engine's node, resolved BY NAME at call time, so moving the stage's registration (P3: into `an.stage`) or replacing it needs no kernel edit. |
+| [`DFLT_TIMELINE_SPACE`](#an.timing.spaces.DFLT_TIMELINE_SPACE)    | DECLARED field kinds from this registered space, resolved by name at call time (ADR 0001 decision 11: field kinds are declared, never inferred).                                                                                                                              |
+| [`VALUE_TYPED`](#an.timing.spaces.VALUE_TYPED)            | Pass as `space=` to ask for the value-typed rule `runtime.js` implements (interpolate by the value's runtime type, the [`DFLT_VALUE_TYPED_SPACE`](#an.timing.spaces.DFLT_VALUE_TYPED_SPACE) write groups) — what the contract's parity lane holds the stage runtime to.    |
+| [`SpaceLike`](#an.timing.spaces.SpaceLike)              | one space for every target, a registered space's name, or a per-target resolver (P2: target -> its entity kind's space).                                                                                                                                                      |
+| [`STAGE_NODE`](#an.timing.spaces.STAGE_NODE)             | P3 moves their registration into `an.stage`.                                                                                                                                                                                                                                  |
 
 ### Functions
 
@@ -76,9 +78,31 @@ DiscreteKind(switch_at=0.5)
 
 Who registered the seeded spaces (only these reach the contract files).
 
+### an.timing.spaces.DFLT_TIMELINE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= 'stage.node'*
+
+DECLARED field
+kinds from this registered space, resolved by name at call time (ADR 0001
+decision 11: field kinds are declared, never inferred). The flip from the
+value-typed rule happened in P2 (an#239 item 2), once the compiler refused
+every keyframe value that fails its field kind — so the two rules agree on
+everything the compiler emits (the corpus-frame test and the golden vectors,
+which hold both). Every caller — compile’s from-less start, `impacts`’
+truth projections, the bench — inherits it. `None` here would restore the
+value-typed rule as the default.
+
+ONE space for every target, by design for now: a compiled stage document’s
+nodes are all stage nodes and it does not carry its entities’ kinds. The
+per-entity policy ([`an.genres.entity_space_resolver()`](an.genres.md#an.genres.entity_space_resolver)) is what
+`an validate` and the compiler’s keyframe check use; making it the
+evaluator’s default too belongs to the `Engine` seam (P3, an#245), where
+an engine knows its document’s entities (review-244 S7).
+
+* **Type:**
+  What `evaluate_timeline(..., space=None)` evaluates with
+
 ### an.timing.spaces.DFLT_VALUE_TYPED_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
 
-The space whose write groups the value-typed rule (`space=None`) uses:
+The space whose write groups the value-typed rule ([`VALUE_TYPED`](#an.timing.spaces.VALUE_TYPED)) uses:
 the stage engine’s node, resolved BY NAME at call time, so moving the stage’s
 registration (P3: into `an.stage`) or replacing it needs no kernel edit.
 
@@ -154,6 +178,12 @@ kind’s space).
   What an evaluator accepts as “the space”
 
 alias of [`PropertySpace`](#an.timing.spaces.PropertySpace) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `Callable`[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`PropertySpace`](#an.timing.spaces.PropertySpace)]
+
+### an.timing.spaces.VALUE_TYPED *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'value-typed'*
+
+Pass as `space=` to ask for the value-typed rule `runtime.js` implements
+(interpolate by the value’s runtime type, the [`DFLT_VALUE_TYPED_SPACE`](#an.timing.spaces.DFLT_VALUE_TYPED_SPACE)
+write groups) — what the contract’s parity lane holds the stage runtime to.
 
 ### an.timing.spaces.register_space(space, , replace=False, owner=None)
 

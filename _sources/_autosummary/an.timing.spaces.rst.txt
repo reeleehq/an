@@ -14,6 +14,8 @@ an.timing.spaces
       STAGE_NODE_ALIASES
       CORE_OWNER
       DFLT_VALUE_TYPED_SPACE
+      DFLT_TIMELINE_SPACE
+      VALUE_TYPED
       SpaceLike
       STAGE_NODE
    

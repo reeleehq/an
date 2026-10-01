@@ -9,15 +9,19 @@ an.ir.schema
    .. autosummary::
    
       DFLT_EXPRESSION_BLEND_S
+      CORE_ACTION_KINDS
+      EXTENSION_TAG
       Action
       DEFAULT_CAPTION_MAX_CHARS
       DEFAULT_CAPTION_SIZE
+      STAGE_NODE_SPACE
    
    .. rubric:: Functions
 
    .. autosummary::
    
       resolve_step_hz
+      unregistered_action_kind
    
    .. rubric:: Classes
 
@@ -30,6 +34,7 @@ an.ir.schema
       DelayAction
       Dialogue
       ExpressionAction
+      ExtensionAction
       LoopAction
       Meta
       Narration

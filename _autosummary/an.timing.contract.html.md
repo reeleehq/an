@@ -34,14 +34,14 @@ is a deliberate act: a change to a committed sample is a change of the contract.
 
 ### Module Attributes
 
-| [`CONTRACT_DIR`](#an.timing.contract.CONTRACT_DIR)           | Where the committed contract files live (inside the package, so they ship).                                                                                                                                  |
-|-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`REL_TOL`](#an.timing.contract.REL_TOL)                | ```<br/>|x - y|<br/>```<br/><br/> <= REL_TOL \* max(1, <br/><br/>```<br/>|x|<br/>```<br/><br/>, <br/><br/>```<br/>|y|<br/>```<br/><br/>).                                                                    |
-| [`VALUE_TYPED_CASE_SPACE`](#an.timing.contract.VALUE_TYPED_CASE_SPACE) | The cases whose space is the value-typed rule's write-group space are ALSO evaluated with `space=None` — the path compile, truth projections and the bench use — so both rules are held to the same numbers. |
-| [`SOLVER_PROBE_U`](#an.timing.contract.SOLVER_PROBE_U)         | a uniform grid, plus points that reach the solvers' fallbacks (near the ends, and around the middle of a curve whose slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).                                   |
-| [`PARAMETRIC_EXAMPLES`](#an.timing.contract.PARAMETRIC_EXAMPLES)    | Parametrised specs the easing file samples, beside the named entries.                                                                                                                                        |
-| [`CSS_IMPORT_ALIASES`](#an.timing.contract.CSS_IMPORT_ALIASES)     | How a CSS-named document's names map onto this registry where the name means something else here.                                                                                                            |
-| [`ADDRESS_PATTERN`](#an.timing.contract.ADDRESS_PATTERN)        | The address grammar as a regular expression (the parser is `an.timing.address`).                                                                                                                             |
+| [`CONTRACT_DIR`](#an.timing.contract.CONTRACT_DIR)           | Where the committed contract files live (inside the package, so they ship).                                                                                                                                                                                          |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`REL_TOL`](#an.timing.contract.REL_TOL)                | ```<br/>|x - y|<br/>```<br/><br/> <= REL_TOL \* max(1, <br/><br/>```<br/>|x|<br/>```<br/><br/>, <br/><br/>```<br/>|y|<br/>```<br/><br/>).                                                                                                                            |
+| [`VALUE_TYPED_CASE_SPACE`](#an.timing.contract.VALUE_TYPED_CASE_SPACE) | The cases whose space is the value-typed rule's write-group space are ALSO evaluated with `space=VALUE_TYPED` — the rule `runtime.js` implements — so both rules are held to the same numbers (the default, `space=None`, is the declared rule since an#239 item 2). |
+| [`SOLVER_PROBE_U`](#an.timing.contract.SOLVER_PROBE_U)         | a uniform grid, plus points that reach the solvers' fallbacks (near the ends, and around the middle of a curve whose slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).                                                                                           |
+| [`PARAMETRIC_EXAMPLES`](#an.timing.contract.PARAMETRIC_EXAMPLES)    | Parametrised specs the easing file samples, beside the named entries.                                                                                                                                                                                                |
+| [`CSS_IMPORT_ALIASES`](#an.timing.contract.CSS_IMPORT_ALIASES)     | How a CSS-named document's names map onto this registry where the name means something else here.                                                                                                                                                                    |
+| [`ADDRESS_PATTERN`](#an.timing.contract.ADDRESS_PATTERN)        | The address grammar as a regular expression (the parser is `an.timing.address`).                                                                                                                                                                                     |
 
 ### Functions
 
@@ -115,8 +115,9 @@ slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).
 ### an.timing.contract.VALUE_TYPED_CASE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
 
 The cases whose space is the value-typed rule’s write-group space are ALSO
-evaluated with `space=None` — the path compile, truth projections and the
-bench use — so both rules are held to the same numbers.
+evaluated with `space=VALUE_TYPED` — the rule `runtime.js` implements —
+so both rules are held to the same numbers (the default, `space=None`, is
+the declared rule since an#239 item 2).
 
 ### an.timing.contract.build_contract()
 
@@ -131,7 +132,7 @@ Every sample of `vectors` (default: the committed file) that `an.timing`
 does not reproduce, as one line each. Empty means the kernel meets the contract.
 
 Both evaluation rules are held: every case under its declared space, and every
-`stage.node` case also under the value-typed default (`space=None`).
+`stage.node` case also under the value-typed rule (`space=VALUE_TYPED`).
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]

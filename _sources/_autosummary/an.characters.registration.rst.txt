@@ -1,0 +1,14 @@
+an.characters.registration
+==========================
+
+.. automodule:: an.characters.registration
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      play_duration
+      read_play_md
+      write_play_md
+   

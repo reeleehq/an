@@ -38,7 +38,7 @@ function the assembler lays the picture out with) plus its shot-local frame,
 so a dissolve, which overlaps two shots and shortens the film, moves every
 later cue earlier by exactly its overlap.
 
-**Timing is materialised into ordinary actions**, the way [`an.text.stagger()`](an.text.html.md#an.text.stagger)
+**Timing is materialised into ordinary actions**, the way [`an.text.reveal_units()`](an.text.html.md#an.text.reveal_units)
 works: nothing in the compiler or the runtime knows what a caption is. The
 caption blocks are added to the shot at RENDER time, never written back to
 the scene — the word timings are the audio pipeline’s output, and a caption

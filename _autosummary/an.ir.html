@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.impacts.truth" href="an.impacts.truth.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
@@ -396,9 +397,15 @@
 <li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
@@ -563,40 +570,43 @@ authoring-time DSL to canonical-form actions.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.parallel" title="an.ir.parallel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">parallel</span></code></a>(*actions)</p></td>
 <td><p>Run all children at once.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.delay" title="an.ir.delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delay</span></code></a>(duration)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.stagger" title="an.ir.stagger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stagger</span></code></a>(lag, *actions)</p></td>
+<td><p>Start each action <code class="docutils literal notranslate"><span class="pre">lag</span></code> seconds after the previous one STARTS.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.delay" title="an.ir.delay"><code class="xref py py-obj docutils literal notranslate"><span class="pre">delay</span></code></a>(duration)</p></td>
 <td><p>An empty span that consumes time.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.loop" title="an.ir.loop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loop</span></code></a>(action, count)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.loop" title="an.ir.loop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loop</span></code></a>(action, count)</p></td>
 <td><p>Repeat <code class="docutils literal notranslate"><span class="pre">action</span></code> <code class="docutils literal notranslate"><span class="pre">count</span></code> times.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.flatten" title="an.ir.flatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></a>(action, *[, start, play_extent])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.flatten" title="an.ir.flatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></a>(action, *[, start, play_extent])</p></td>
 <td><p>Walk a composition tree, emitting leaf actions with absolute times.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate_schema" title="an.ir.validate_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schema</span></code></a>(doc)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate_schema" title="an.ir.validate_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schema</span></code></a>(doc)</p></td>
 <td><p>Validate that <code class="docutils literal notranslate"><span class="pre">doc</span></code> (dict, JSON string, or SceneIR) conforms to the schema.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate_semantic" title="an.ir.validate_semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_semantic</span></code></a>(scene, *[, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate_semantic" title="an.ir.validate_semantic"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_semantic</span></code></a>(scene, *[, ...])</p></td>
 <td><p>Cross-field semantic checks.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.migrate" title="an.ir.migrate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">migrate</span></code></a>(doc[, target_version, kind])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.migrate" title="an.ir.migrate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">migrate</span></code></a>(doc[, target_version, kind])</p></td>
 <td><p>Migrate a document to <code class="docutils literal notranslate"><span class="pre">target_version</span></code> (default: its kind's current).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.register_migration" title="an.ir.register_migration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_migration</span></code></a>(kind, from_version, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.register_migration" title="an.ir.register_migration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_migration</span></code></a>(kind, from_version, ...)</p></td>
 <td><p>Decorator: register a migration for one kind in <code class="xref py py-data docutils literal notranslate"><span class="pre">MIGRATIONS</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.register_kind" title="an.ir.register_kind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_kind</span></code></a>(kind)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.register_kind" title="an.ir.register_kind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_kind</span></code></a>(kind)</p></td>
 <td><p>Register a document kind.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.kind_of" title="an.ir.kind_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kind_of</span></code></a>(doc, *[, kind])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.kind_of" title="an.ir.kind_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kind_of</span></code></a>(doc, *[, kind])</p></td>
 <td><p>Resolve a document's kind, by explicit name or from its <code class="docutils literal notranslate"><span class="pre">kind</span></code> tag.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.markdown_to_ir" title="an.ir.markdown_to_ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markdown_to_ir</span></code></a>(md_text)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.markdown_to_ir" title="an.ir.markdown_to_ir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">markdown_to_ir</span></code></a>(md_text)</p></td>
 <td><p>Parse the structured Markdown form of a scene into a SceneIR.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.ir_to_markdown" title="an.ir.ir_to_markdown"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ir_to_markdown</span></code></a>(scene)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.ir_to_markdown" title="an.ir.ir_to_markdown"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ir_to_markdown</span></code></a>(scene)</p></td>
 <td><p>Render a SceneIR back into the structured Markdown form.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.sync" title="an.ir.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.sync" title="an.ir.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir)</p></td>
 <td><p>Reconcile <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code> inside a project directory.</p></td>
 </tr>
 </tbody>
@@ -658,10 +668,15 @@ forking the asset.</p>
 </dl>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.AssetRef.kind">
-<span class="sig-name descname"><span class="pre">kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'character'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'environment'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'voice'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'prop'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.AssetRef.kind" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">kind</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.ir.AssetRef.kind" title="Link to this definition">#</a></dt>
 <dd><p>it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
 renderer selector. Art direction arrives as a StylePack (#112).</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">str</span></code> in the schema, not a <code class="docutils literal notranslate"><span class="pre">Literal</span></code> (ADR 0001 decision 2): the
+values are the REGISTERED entity kinds (<a class="reference internal" href="an.genres.html#module-an.genres" title="an.genres"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.genres</span></code></a>) — the core’s
+<code class="docutils literal notranslate"><span class="pre">environment</span></code>, <code class="docutils literal notranslate"><span class="pre">prop</span></code> and <code class="docutils literal notranslate"><span class="pre">voice</span></code>, a genre’s <code class="docutils literal notranslate"><span class="pre">character</span></code> — and
+<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> checks it against that registry, naming the genre that
+provides an unregistered one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">&quot;style&quot;</span></code> was retired in an#106</p>
@@ -875,6 +890,17 @@ inherit. There is no per-shot override yet — style is a scene’s.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="an.ir.Meta.default_renderer">
+<span class="sig-name descname"><span class="pre">default_renderer</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.ir.Meta.default_renderer" title="Link to this definition">#</a></dt>
+<dd><p>a registered renderer’s name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Like <a class="reference internal" href="#an.ir.Shot.renderer" title="an.ir.Shot.renderer"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Shot.renderer</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.Meta.model_config">
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.ClassVar" title="(in Python v3.14)"><span class="pre">ClassVar</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'extra':</span> <span class="pre">'allow',</span> <span class="pre">'populate_by_name':</span> <span class="pre">True,</span> <span class="pre">'validate_by_alias':</span> <span class="pre">True,</span> <span class="pre">'validate_by_name':</span> <span class="pre">True}</span></span><a class="headerlink" href="#an.ir.Meta.model_config" title="Link to this definition">#</a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<code class="code docutils literal notranslate"><span class="pre">ConfigDict</span></code>][pydantic.config.ConfigDict].</p>
@@ -981,12 +1007,15 @@ same Shot fields; renderer-specific options go under <code class="docutils liter
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="an.ir.Shot.renderer">
-<span class="sig-name descname"><span class="pre">renderer</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'cutout'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'manim'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'motion_graphics'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'whiteboard'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#an.ir.Shot.renderer" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">renderer</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.ir.Shot.renderer" title="Link to this definition">#</a></dt>
 <dd><p>Which RENDERER draws this shot — not art direction. The field was
 called <code class="code docutils literal notranslate"><span class="pre">style</span></code> until an#106, colliding with the styles store (which
 holds art direction) and with <code class="code docutils literal notranslate"><span class="pre">AssetRef(kind=&quot;style&quot;)</span></code>; one word for two
 meanings is how a scene came to declare a “style” that selected a
-renderer while the thing that actually styles it went unread.</p>
+renderer while the thing that actually styles it went unread.
+A <code class="docutils literal notranslate"><span class="pre">str</span></code> in the schema (ADR 0001 decision 2): any name a renderer
+registered (<code class="docutils literal notranslate"><span class="pre">an.adapters.register_renderer</span></code>), checked by <code class="docutils literal notranslate"><span class="pre">an</span>
+<span class="pre">validate</span></code>. <code class="docutils literal notranslate"><span class="pre">cutout</span></code> stays the persisted default (decision 9).</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1068,6 +1097,11 @@ looping animation, which runs to the shot end.</p>
 <p>Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.</p>
+<p>Every node is dispatched through its registered kind
+(<a class="reference internal" href="an.genres.html#an.genres.ActionKind" title="an.genres.ActionKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionKind</span></code></a>), so a genre’s kind flattens without an
+edit here; a node whose kind nobody registered raises, naming the genre
+that provides it, and an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExtensionAction</span></code> read before its genre
+loaded is validated by the registered model on the way through.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="an.ir.compose.html#an.ir.compose.FlatAction" title="an.ir.compose.FlatAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">FlatAction</span></code></a>]</span></p>
@@ -1285,6 +1319,41 @@ presented as one unrelated test failing only in a full run (an#106).</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.stagger">
+<span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">stagger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lag</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#stagger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.stagger" title="Link to this definition">#</a></dt>
+<dd><p>Start each action <code class="docutils literal notranslate"><span class="pre">lag</span></code> seconds after the previous one STARTS.</p>
+<p>The <strong>stagger</strong> (Manim’s <code class="docutils literal notranslate"><span class="pre">LaggedStart</span></code>, <code class="docutils literal notranslate"><span class="pre">previz</span></code>’s compose, a crowd
+entering one by one): the children run in parallel, the <code class="docutils literal notranslate"><span class="pre">i</span></code>-th delayed
+by <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">*</span> <span class="pre">lag</span></code>. It is authoring sugar, not a new kind — it builds the
+<code class="docutils literal notranslate"><span class="pre">parallel</span></code> of <code class="docutils literal notranslate"><span class="pre">sequence(delay(i</span> <span class="pre">*</span> <span class="pre">lag),</span> <span class="pre">action)</span></code> it means, so the
+scene document, <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and every renderer see only core kinds.
+Total duration: the latest child’s end. <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> holds it verbatim (a
+<code class="docutils literal notranslate"><span class="pre">kind:</span> <span class="pre">parallel</span></code> entry), so it round-trips. (<code class="docutils literal notranslate"><span class="pre">an.text.reveal_units</span></code> —
+<code class="docutils literal notranslate"><span class="pre">an.text.stagger</span></code> before an#241 — is the text-block preset: a LIST of
+per-unit actions with holds, not a combinator.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.ParallelAction" title="an.ir.schema.ParallelAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAction</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">flat</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">stagger</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">tween</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>                             <span class="n">tween</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>                             <span class="n">tween</span><span class="p">(</span><span class="s2">"c"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flat</span><span class="p">]</span>
+<span class="go">[('a', 0.0, 1.0), ('b', 0.25, 1.25), ('c', 0.5, 1.5)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">duration_of</span><span class="p">(</span><span class="n">stagger</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)))</span>
+<span class="go">1.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stagger</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span><span class="o">.</span><span class="n">children</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stagger</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">stagger lag must be &gt;= 0, got -1.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.sync">
 <span class="sig-prename descclassname"><span class="pre">an.ir.</span></span><span class="sig-name descname"><span class="pre">sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/sync.html#sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.sync" title="Link to this definition">#</a></dt>
 <dd><p>Reconcile <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and <code class="docutils literal notranslate"><span class="pre">ir/scene.json</span></code> inside a project directory.</p>
@@ -1351,6 +1420,13 @@ dicts, an#87 / an#7). Pass <code class="docutils literal notranslate"><span clas
 skipping them is what it sounds like: a <code class="code docutils literal notranslate"><span class="pre">play</span></code> or a swap the compiler
 will refuse passes silently without the store (the CLI, <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>,
 always passes it).</p>
+<p>The checks are a REGISTRY (<a class="reference internal" href="an.genres.registry.html#an.genres.registry.register_check" title="an.genres.registry.register_check"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.genres.registry.register_check()</span></code></a>):
+the core’s own register below, a genre’s when it is loaded (the cut-out
+genre’s <code class="code docutils literal notranslate"><span class="pre">play</span></code>, <code class="code docutils literal notranslate"><span class="pre">expression</span></code>, turn and view checks), and they run in
+stages — <code class="docutils literal notranslate"><span class="pre">scene</span></code>, then <code class="docutils literal notranslate"><span class="pre">shot</span></code> once per shot, then <code class="docutils literal notranslate"><span class="pre">finish</span></code> — each by
+its <code class="docutils literal notranslate"><span class="pre">order</span></code>. An action or entity kind no loaded genre registered is one
+error naming the genre that provides it; checks that would trip over it
+skip that shot rather than crash.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.validate.html#an.ir.validate.ValidationReport" title="an.ir.validate.ValidationReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValidationReport</span></code></a></span></p>
@@ -1457,6 +1533,7 @@ always passes it).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta"><code class="docutils literal notranslate"><span class="pre">Meta</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.captions"><code class="docutils literal notranslate"><span class="pre">Meta.captions</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.default_easing"><code class="docutils literal notranslate"><span class="pre">Meta.default_easing</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.default_renderer"><code class="docutils literal notranslate"><span class="pre">Meta.default_renderer</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.model_config"><code class="docutils literal notranslate"><span class="pre">Meta.model_config</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.sounds"><code class="docutils literal notranslate"><span class="pre">Meta.sounds</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.Meta.step_hz"><code class="docutils literal notranslate"><span class="pre">Meta.step_hz</span></code></a></li>
@@ -1495,6 +1572,7 @@ always passes it).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.register_migration"><code class="docutils literal notranslate"><span class="pre">register_migration()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.sequence"><code class="docutils literal notranslate"><span class="pre">sequence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.set_"><code class="docutils literal notranslate"><span class="pre">set_()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.stagger"><code class="docutils literal notranslate"><span class="pre">stagger()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.sync"><code class="docutils literal notranslate"><span class="pre">sync()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.tween"><code class="docutils literal notranslate"><span class="pre">tween()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate_schema"><code class="docutils literal notranslate"><span class="pre">validate_schema()</span></code></a></li>

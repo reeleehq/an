@@ -22,6 +22,7 @@ authoring-time DSL to canonical-form actions.
 | [`expression`](#an.ir.expression)(target[, preset, axes, ...])          | Hold a facial expression on an entity (an#98).                              |
 | [`sequence`](#an.ir.sequence)(\*actions)                              | Run children one after the other.                                           |
 | [`parallel`](#an.ir.parallel)(\*actions)                              | Run all children at once.                                                   |
+| [`stagger`](#an.ir.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.              |
 | [`delay`](#an.ir.delay)(duration)                                  | An empty span that consumes time.                                           |
 | [`loop`](#an.ir.loop)(action, count)                              | Repeat `action` `count` times.                                              |
 | [`flatten`](#an.ir.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.         |
@@ -66,11 +67,17 @@ forking the asset.
 'maya'
 ```
 
-#### kind *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['character', 'environment', 'voice', 'prop']*
+#### kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
 renderer selector. Art direction arrives as a StylePack (#112).
+
+A `str` in the schema, not a `Literal` (ADR 0001 decision 2): the
+values are the REGISTERED entity kinds ([`an.genres`](an.genres.md#module-an.genres)) — the core’s
+`environment`, `prop` and `voice`, a genre’s `character` — and
+`an validate` checks it against that registry, naming the genre that
+provides an unregistered one.
 
 * **Type:**
   `"style"` was retired in an#106
@@ -243,6 +250,13 @@ a motion preset writes its own easings, the camera’s named moves supply
 theirs, and blinks, `play` clips and swap channels have none to
 inherit. There is no per-shot override yet — style is a scene’s.
 
+#### default_renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+a registered renderer’s name.
+
+* **Type:**
+  Like [`Shot.renderer`](#an.ir.Shot.renderer)
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -329,13 +343,16 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### renderer *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['cutout', 'manim', 'motion_graphics', 'whiteboard']*
+#### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was
 called `style` until an#106, colliding with the styles store (which
 holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
+A `str` in the schema (ADR 0001 decision 2): any name a renderer
+registered (`an.adapters.register_renderer`), checked by `an
+validate`. `cutout` stays the persisted default (decision 9).
 
 #### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](an.ir.schema.md#an.ir.schema.SoundCue)]*
 
@@ -398,6 +415,12 @@ looping animation, which runs to the shot end.
 Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.
+
+Every node is dispatched through its registered kind
+([`ActionKind`](an.genres.md#an.genres.ActionKind)), so a genre’s kind flattens without an
+edit here; a node whose kind nobody registered raises, naming the genre
+that provides it, and an `ExtensionAction` read before its genre
+loaded is validated by the registered model on the way through.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](an.ir.compose.md#an.ir.compose.FlatAction)]
@@ -579,6 +602,39 @@ Discrete property set at time `at` (relative to its enclosing scope).
 * **Return type:**
   [`SetAction`](an.ir.schema.md#an.ir.schema.SetAction)
 
+### an.ir.stagger(lag, \*actions)
+
+Start each action `lag` seconds after the previous one STARTS.
+
+The **stagger** (Manim’s `LaggedStart`, `previz`’s compose, a crowd
+entering one by one): the children run in parallel, the `i`-th delayed
+by `i * lag`. It is authoring sugar, not a new kind — it builds the
+`parallel` of `sequence(delay(i * lag), action)` it means, so the
+scene document, `scene.md` and every renderer see only core kinds.
+Total duration: the latest child’s end. `scene.md` holds it verbatim (a
+`kind: parallel` entry), so it round-trips. (`an.text.reveal_units` —
+`an.text.stagger` before an#241 — is the text-block preset: a LIST of
+per-unit actions with holds, not a combinator.)
+
+* **Return type:**
+  [`ParallelAction`](an.ir.schema.md#an.ir.schema.ParallelAction)
+
+```pycon
+>>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
+...                              tween("b", "x", to=1.0, duration=1.0),
+...                              tween("c", "x", to=1.0, duration=1.0)))
+>>> [(f.action.target, f.start, f.end) for f in flat]
+[('a', 0.0, 1.0), ('b', 0.25, 1.25), ('c', 0.5, 1.5)]
+>>> duration_of(stagger(0.5, delay(1.0), delay(1.0)))
+1.5
+>>> stagger(0.1).children
+[]
+>>> stagger(-1.0, delay(1.0))
+Traceback (most recent call last):
+...
+ValueError: stagger lag must be >= 0, got -1.0
+```
+
 ### an.ir.sync(project_dir)
 
 Reconcile `scene.md` and `ir/scene.json` inside a project directory.
@@ -638,6 +694,14 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+The checks are a REGISTRY ([`an.genres.registry.register_check()`](an.genres.registry.md#an.genres.registry.register_check)):
+the core’s own register below, a genre’s when it is loaded (the cut-out
+genre’s `play`, `expression`, turn and view checks), and they run in
+stages — `scene`, then `shot` once per shot, then `finish` — each by
+its `order`. An action or entity kind no loaded genre registered is one
+error naming the genre that provides it; checks that would trip over it
+skip that shot rather than crash.
 
 * **Return type:**
   [`ValidationReport`](an.ir.validate.md#an.ir.validate.ValidationReport)

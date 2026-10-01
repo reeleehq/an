@@ -1,0 +1,59 @@
+an.genres
+=========
+
+.. automodule:: an.genres
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      ENTRY_POINT_GROUP
+      IN_DISTRIBUTION_GENRES
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      action_kind
+      action_kind_names
+      available
+      entity_kind
+      entity_kind_names
+      entity_space_resolver
+      discovered_entry_points
+      genre_entry_points
+      genres_declaring
+      installed
+      installed_genre
+      load
+      providers_of
+      register_genre
+      without_genres
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ActionKind
+      DialogueSugar
+      EntityKind
+      Genre
+      SemanticCheck
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      GenreError
+      RegistryError
+      UnregisteredKindError
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   cutout
+   registry

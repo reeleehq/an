@@ -706,17 +706,18 @@ namespace as the default, so the output is a valid standalone SVG.
 
 ### Modules
 
-| [`cli`](an.characters.cli.html.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                           |
-|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`colour_roles`](an.characters.colour_roles.html.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…        |
-| [`dicebear`](an.characters.dicebear.html.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                          |
-| [`factory`](an.characters.factory.html.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                          |
-| [`idle`](an.characters.idle.html.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                           |
-| [`licenses`](an.characters.licenses.html.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                            |
-| [`mouth_set`](an.characters.mouth_set.html.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                       |
-| [`play`](an.characters.play.html.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7). |
-| [`record`](an.characters.record.html.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                     |
-| [`schema`](an.characters.schema.html.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                         |
-| [`silhouette`](an.characters.silhouette.html.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                     |
-| [`svg_utils`](an.characters.svg_utils.html.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.          |
-| [`validate`](an.characters.validate.html.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                  |
+| [`cli`](an.characters.cli.html.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                            |
+|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`colour_roles`](an.characters.colour_roles.html.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…         |
+| [`dicebear`](an.characters.dicebear.html.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                           |
+| [`factory`](an.characters.factory.html.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                           |
+| [`idle`](an.characters.idle.html.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                            |
+| [`licenses`](an.characters.licenses.html.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                             |
+| [`mouth_set`](an.characters.mouth_set.html.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                        |
+| [`play`](an.characters.play.html.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7).  |
+| [`record`](an.characters.record.html.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                      |
+| [`registration`](an.characters.registration.html.md#module-an.characters.registration) | The character side of the cut-out genre, as declarations: `play` and `character`. |
+| [`schema`](an.characters.schema.html.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                          |
+| [`silhouette`](an.characters.silhouette.html.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                      |
+| [`svg_utils`](an.characters.svg_utils.html.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.           |
+| [`validate`](an.characters.validate.html.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                   |

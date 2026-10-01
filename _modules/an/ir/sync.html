@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -770,6 +770,16 @@ window.runMermaid = runMermaid;</script>
     <span class="n">readable_without_migration</span><span class="p">,</span>
     <span class="n">version_tuple</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CORE_OWNER</span><span class="p">,</span>
+    <span class="n">DIALOGUE_BRACKETS</span><span class="p">,</span>
+    <span class="n">UnregisteredKindError</span><span class="p">,</span>
+    <span class="n">action_kind</span><span class="p">,</span>
+    <span class="n">action_kind_names</span><span class="p">,</span>
+    <span class="n">dialogue_sugar</span><span class="p">,</span>
+    <span class="n">dialogue_sugars</span><span class="p">,</span>
+    <span class="n">register_action_kind</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">AssetRef</span><span class="p">,</span> <span class="n">Dialogue</span><span class="p">,</span> <span class="n">Meta</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="n">Shot</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">_read_text</span><span class="p">,</span> <span class="n">_write_json</span><span class="p">,</span> <span class="n">_write_text</span>
 
@@ -997,7 +1007,39 @@ window.runMermaid = runMermaid;</script>
 <span class="n">_DIALOGUE_MOD_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
     <span class="sa">r</span><span class="s2">"\[(?P&lt;bracket&gt;[^\]]*)\]|\((?P&lt;paren&gt;[^)]*)\)|\{(?P&lt;brace&gt;[^}]*)\}"</span>
 <span class="p">)</span>
-<span class="n">_EMOTION_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[\w-]+"</span><span class="p">)</span>
+<span class="c1">#: ``Dialogue`` fields that ``scene.md`` spells ONLY through registered sugar</span>
+<span class="c1">#: (``maya [happy]: …``). The field is core in v1 (ADR 0001 "stays awkward");</span>
+<span class="c1">#: its spelling is the genre's.</span>
+<span class="n">_SUGAR_ONLY_FIELDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"emotion"</span><span class="p">,)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sugar_providers</span><span class="p">(</span><span class="n">field_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The installed genres whose dialogue sugar fills ``field_name``."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">genres_declaring</span>
+
+    <span class="k">return</span> <span class="n">genres_declaring</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">g</span><span class="p">:</span> <span class="nb">any</span><span class="p">(</span><span class="n">sugar</span><span class="o">.</span><span class="n">field</span> <span class="o">==</span> <span class="n">field_name</span> <span class="k">for</span> <span class="n">sugar</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">dialogue_sugar</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unregistered_sugar_message</span><span class="p">(</span><span class="n">opener</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">genres_declaring</span>
+
+    <span class="n">providers</span> <span class="o">=</span> <span class="n">genres_declaring</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">g</span><span class="p">:</span> <span class="nb">any</span><span class="p">(</span><span class="n">sugar</span><span class="o">.</span><span class="n">opener</span> <span class="o">==</span> <span class="n">opener</span> <span class="k">for</span> <span class="n">sugar</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">dialogue_sugar</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">who</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"the genre(s) </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">providers</span><span class="p">)</span><span class="si">}</span><span class="s2"> define it but are not loaded — call "</span>
+        <span class="s2">"`an.genres.load()` (the CLI and `an.load(project)` do)"</span>
+        <span class="k">if</span> <span class="n">providers</span>
+        <span class="k">else</span> <span class="s2">"no installed genre defines it"</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"has </span><span class="si">{</span><span class="n">opener</span><span class="si">}{</span><span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}{</span><span class="n">DIALOGUE_BRACKETS</span><span class="p">[</span><span class="n">opener</span><span class="p">]</span><span class="si">}</span><span class="s2">, which is "</span>
+        <span class="sa">f</span><span class="s2">"genre sugar no loaded genre registered: </span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
+
+
 <span class="c1">#: ``(pause 1.5)``, ``(pause 1.5s)``, ``(at 3)``, ``(at 3.0s)`` — the timing a</span>
 <span class="c1">#: dialogue line may carry in ``scene.md`` (an#187). Parentheses hold timing,</span>
 <span class="c1">#: square brackets hold the emotion.</span>
@@ -1044,12 +1086,19 @@ window.runMermaid = runMermaid;</script>
             <span class="n">kwargs</span><span class="p">[</span><span class="s2">"direction"</span><span class="p">]</span> <span class="o">=</span> <span class="n">cues</span>
             <span class="k">continue</span>
         <span class="k">if</span> <span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"bracket"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">emotion</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"bracket"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">_EMOTION_RE</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">emotion</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="sa">f</span><span class="s2">"has [</span><span class="si">{</span><span class="n">emotion</span><span class="si">}</span><span class="s2">], which is not an emotion name"</span><span class="p">)</span>
-            <span class="k">if</span> <span class="s2">"emotion"</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="s2">"names two emotions"</span><span class="p">)</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">"emotion"</span><span class="p">]</span> <span class="o">=</span> <span class="n">emotion</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="c1"># `[…]` is genre SUGAR (the cut-out genre's `[emotion]`), looked up</span>
+            <span class="c1"># in the registry rather than known here (ADR 0001 decision 4).</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"bracket"</span><span class="p">)</span>
+            <span class="n">sugar</span> <span class="o">=</span> <span class="n">dialogue_sugar</span><span class="p">(</span><span class="s2">"["</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sugar</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="n">_unregistered_sugar_message</span><span class="p">(</span><span class="s2">"["</span><span class="p">,</span> <span class="n">content</span><span class="p">))</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">sugar</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+            <span class="k">if</span> <span class="n">sugar</span><span class="o">.</span><span class="n">field</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">refuse</span><span class="p">(</span><span class="sa">f</span><span class="s2">"names two </span><span class="si">{</span><span class="n">sugar</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">s"</span><span class="p">)</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="n">sugar</span><span class="o">.</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
             <span class="k">continue</span>
         <span class="n">timing</span> <span class="o">=</span> <span class="n">_DIALOGUE_TIMING_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"paren"</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">timing</span><span class="p">:</span>
@@ -1071,8 +1120,23 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_format_dialogue_line</span><span class="p">(</span><span class="n">line</span><span class="p">:</span> <span class="n">Dialogue</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""The `scene.md` spelling of ``line`` — `_parse_dialogue_line`'s inverse."""</span>
     <span class="n">head</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">speaker</span>
-    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">emotion</span><span class="p">:</span>
-        <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">emotion</span><span class="si">}</span><span class="s2">]"</span>
+    <span class="k">for</span> <span class="n">sugar</span> <span class="ow">in</span> <span class="n">dialogue_sugars</span><span class="p">():</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="n">sugar</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">content</span><span class="p">:</span>
+            <span class="n">head</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" </span><span class="si">{</span><span class="n">sugar</span><span class="o">.</span><span class="n">opener</span><span class="si">}{</span><span class="n">content</span><span class="si">}{</span><span class="n">sugar</span><span class="o">.</span><span class="n">closer</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">for</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">_SUGAR_ONLY_FIELDS</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">field</span> <span class="o">==</span> <span class="n">field_name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dialogue_sugars</span><span class="p">()</span>
+        <span class="p">):</span>
+            <span class="c1"># Writing the line without it would drop it from scene.md, and</span>
+            <span class="c1"># the next md edit would drop it from the JSON: refuse instead.</span>
+            <span class="k">raise</span> <span class="n">UnregisteredKindError</span><span class="p">(</span>
+                <span class="s2">"dialogue sugar for"</span><span class="p">,</span>
+                <span class="n">field_name</span><span class="p">,</span>
+                <span class="n">known</span><span class="o">=</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dialogue_sugars</span><span class="p">()],</span>
+                <span class="n">providers</span><span class="o">=</span><span class="n">_sugar_providers</span><span class="p">(</span><span class="n">field_name</span><span class="p">),</span>
+                <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"dialogue line </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> has </span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">line</span><span class="p">,</span><span class="w"> </span><span class="n">field_name</span><span class="p">)</span><span class="si">!r}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>
     <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">direction</span><span class="p">:</span>
         <span class="n">head</span> <span class="o">+=</span> <span class="s2">" {"</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">direction</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"}"</span>
     <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"pause"</span><span class="p">,</span> <span class="s2">"at"</span><span class="p">):</span>
@@ -1144,36 +1208,26 @@ window.runMermaid = runMermaid;</script>
     <span class="k">return</span> <span class="n">out</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_play_args</span><span class="p">(</span><span class="n">raw</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A ``play``'s ``args:`` — a mapping of motion-preset parameters, or absent."""</span>
-    <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">SceneMarkdownError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"actions[</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">].args must be a mapping of motion-preset "</span>
-            <span class="sa">f</span><span class="s2">"parameters (e.g. `args: </span><span class="se">{{</span><span class="s2">height: 30</span><span class="se">}}</span><span class="s2">`); got </span><span class="si">{</span><span class="n">raw</span><span class="si">!r}</span><span class="s2">"</span>
-        <span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">raw</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_actions_block</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Parse a ```yaml actions block: a list of leaf-action dicts.</span>
 
-<span class="sd">    Supported entry shapes (one per item in the YAML list):</span>
+<span class="sd">    Each item's ``kind`` is looked up in the action-kind registry and read by</span>
+<span class="sd">    that kind's ``read_md`` hook (ADR 0001 decision 4), so a genre's kinds</span>
+<span class="sd">    parse without an edit here. The core's two:</span>
+
 <span class="sd">      - ``{kind: tween, target, property, to, duration, [from_], [easing], [start]}``</span>
 <span class="sd">      - ``{kind: set,   target, property, value, [at]}`` — `at`, never</span>
 <span class="sd">        `start`: a `set` is instantaneous, and `start` on one RAISES rather</span>
 <span class="sd">        than being silently dropped as it was before an#108.</span>
-<span class="sd">      - ``{kind: play,  target, animation, [duration], [speed], [loop], [args], [start]}``</span>
-<span class="sd">        — resolved at compile against the target entity's descriptor</span>
-<span class="sd">        ``animations`` (an#7), falling back to the motion presets of</span>
-<span class="sd">        ``an.motion.PRESETS`` for a name the descriptor does not declare, with</span>
-<span class="sd">        ``args`` as the preset's parameters (an#166). ``loop`` omitted means</span>
-<span class="sd">        the animation's own.</span>
 
-<span class="sd">    A leaf action with a ``start`` key is wrapped in ``sequence(delay(start),</span>
-<span class="sd">    action)`` so flatten yields the correct absolute time. ``set`` uses ``at``</span>
-<span class="sd">    instead (built into the schema). Returns the list of authoring Actions.</span>
+<span class="sd">    and, with the cut-out genre loaded, ``play`` (an#7, an#166) and</span>
+<span class="sd">    ``expression`` (an#98) — see :mod:`an.characters.registration` and</span>
+<span class="sd">    :mod:`an.expression.registration`.</span>
+
+<span class="sd">    A leaf action with a ``start`` key (any kind registered with</span>
+<span class="sd">    ``md_start=True``) is wrapped in ``sequence(delay(start), action)`` so</span>
+<span class="sd">    flatten yields the correct absolute time. ``set`` uses ``at`` instead</span>
+<span class="sd">    (built into the schema). Returns the list of authoring Actions.</span>
 <span class="sd">    """</span>
     <span class="n">raw</span> <span class="o">=</span> <span class="n">_extract_yaml_list_block</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="s2">"actions"</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
@@ -1188,102 +1242,157 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"each entry under `yaml actions` must be a mapping; got </span><span class="si">{</span><span class="n">item</span><span class="si">!r}</span><span class="s2">"</span>
             <span class="p">)</span>
         <span class="n">kind</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span>
-        <span class="n">start</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">item</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"start"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"tween"</span><span class="p">,</span> <span class="s2">"play"</span><span class="p">,</span> <span class="s2">"expression"</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"tween"</span><span class="p">:</span>
-            <span class="n">target</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"target"</span><span class="p">]</span>
-            <span class="n">property_</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"property"</span><span class="p">]</span>
-            <span class="n">to</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"to"</span><span class="p">]</span>
-            <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">])</span>
-            <span class="n">from_</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"from_"</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"from_"</span> <span class="ow">in</span> <span class="n">item</span> <span class="k">else</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"from"</span><span class="p">)</span>
-            <span class="c1"># An `easing:` key the author did not write stays UNSET, so the</span>
-            <span class="c1"># scene's `default_easing` reaches it (an#166); `easing: null` is</span>
-            <span class="c1"># an explicit linear ramp, so presence — not truthiness — decides.</span>
-            <span class="n">action</span> <span class="o">=</span> <span class="n">_compose</span><span class="o">.</span><span class="n">tween</span><span class="p">(</span>
-                <span class="n">target</span><span class="p">,</span>
-                <span class="n">property_</span><span class="p">,</span>
-                <span class="n">to</span><span class="o">=</span><span class="n">to</span><span class="p">,</span>
-                <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
-                <span class="n">from_</span><span class="o">=</span><span class="n">from_</span><span class="p">,</span>
-                <span class="n">easing</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">"easing"</span><span class="p">]</span> <span class="k">if</span> <span class="s2">"easing"</span> <span class="ow">in</span> <span class="n">item</span> <span class="k">else</span> <span class="n">_compose</span><span class="o">.</span><span class="n">INHERIT</span><span class="p">,</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"set"</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s2">"start"</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
-                <span class="c1"># A REFUSAL, not an alias. `start` is the wrapper key for</span>
-                <span class="c1"># actions that HAVE a duration — the parser turns it into</span>
-                <span class="c1"># `sequence(delay(start), action)`. A `set` is instantaneous,</span>
-                <span class="c1"># so its time IS `at`, and giving one number two names is how</span>
-                <span class="c1"># a scene ends up with both.</span>
-                <span class="c1">#</span>
-                <span class="c1"># It was silently dropped before an#108: `start` is popped only</span>
-                <span class="c1"># for tween/play/expression, and this branch reads `at` alone,</span>
-                <span class="c1"># so `{kind: set, start: 1.0}` compiled to a swap at t=0. The</span>
-                <span class="c1"># author sees a lamp that is lit from the first frame and no</span>
-                <span class="c1"># message anywhere.</span>
-                <span class="k">raise</span> <span class="n">SceneMarkdownError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"actions[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">] is a `set` with `start: </span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'start'</span><span class="p">]</span><span class="si">!r}</span><span class="s2">`, "</span>
-                    <span class="s2">"which does nothing: a `set` is instantaneous and its time "</span>
-                    <span class="sa">f</span><span class="s2">"is `at:`. Write `at: </span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'start'</span><span class="p">]</span><span class="si">!r}</span><span class="s2">`."</span>
-                <span class="p">)</span>
-            <span class="n">action</span> <span class="o">=</span> <span class="n">_compose</span><span class="o">.</span><span class="n">set_</span><span class="p">(</span>
-                <span class="n">item</span><span class="p">[</span><span class="s2">"target"</span><span class="p">],</span>
-                <span class="n">item</span><span class="p">[</span><span class="s2">"property"</span><span class="p">],</span>
-                <span class="n">item</span><span class="p">[</span><span class="s2">"value"</span><span class="p">],</span>
-                <span class="n">at</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"at"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"play"</span><span class="p">:</span>
-            <span class="c1"># `{kind: play, target, animation, [duration], [speed], [loop],</span>
-            <span class="c1"># [start]}` — resolved at compile against the target entity's</span>
-            <span class="c1"># descriptor `animations` (an#7). This reader accepted the shape</span>
-            <span class="c1"># from the start, then #24 made it refuse (nothing resolved a</span>
-            <span class="c1"># play) while the writer below kept emitting it — three days of</span>
-            <span class="c1"># a project's own scene.md failing to parse, ended here.</span>
-            <span class="n">action</span> <span class="o">=</span> <span class="n">_compose</span><span class="o">.</span><span class="n">play</span><span class="p">(</span>
-                <span class="n">item</span><span class="p">[</span><span class="s2">"target"</span><span class="p">],</span>
-                <span class="n">item</span><span class="p">[</span><span class="s2">"animation"</span><span class="p">],</span>
-                <span class="n">duration</span><span class="o">=</span><span class="p">(</span>
-                    <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">])</span>
-                    <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"duration"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                    <span class="k">else</span> <span class="kc">None</span>
-                <span class="p">),</span>
-                <span class="n">speed</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"speed"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span>
-                <span class="n">loop</span><span class="o">=</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"loop"</span><span class="p">])</span> <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"loop"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
-                <span class="n">args</span><span class="o">=</span><span class="n">_play_args</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"args"</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">i</span><span class="p">),</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"expression"</span><span class="p">:</span>
-            <span class="c1"># `{kind: expression, target, [preset], [axes], [intensity],</span>
-            <span class="c1"># [duration], [blend], [start]}` (an#98). Landed with its writer</span>
-            <span class="c1"># and round trip in one commit: the writer skips unknown leaves</span>
-            <span class="c1"># silently, so a parser-only entry would vanish from scene.md on</span>
-            <span class="c1"># the next sync and then from the JSON on the next md edit.</span>
-            <span class="n">raw_axes</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"axes"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">raw_axes</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">SceneMarkdownError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"actions[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">].axes must be a mapping; got </span><span class="si">{</span><span class="n">raw_axes</span><span class="si">!r}</span><span class="s2">"</span>
-                <span class="p">)</span>
-            <span class="n">action</span> <span class="o">=</span> <span class="n">_compose</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
-                <span class="n">item</span><span class="p">[</span><span class="s2">"target"</span><span class="p">],</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"preset"</span><span class="p">),</span>
-                <span class="n">axes</span><span class="o">=</span><span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">):</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">raw_axes</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
-                <span class="n">intensity</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"intensity"</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)),</span>
-                <span class="n">duration</span><span class="o">=</span><span class="p">(</span>
-                    <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">])</span>
-                    <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"duration"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                    <span class="k">else</span> <span class="kc">None</span>
-                <span class="p">),</span>
-                <span class="n">blend</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"blend"</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"blend"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="k">else</span> <span class="n">_compose</span><span class="o">.</span><span class="n">DFLT_EXPRESSION_BLEND_S</span><span class="p">,</span>
-            <span class="p">)</span>
+        <span class="n">registered</span> <span class="o">=</span> <span class="n">action_kind</span><span class="p">(</span><span class="n">kind</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">registered</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SceneMarkdownError</span><span class="p">(</span><span class="n">_unknown_md_kind_message</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">kind</span><span class="p">))</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"start"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">if</span> <span class="n">registered</span><span class="o">.</span><span class="n">md_start</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">registered</span><span class="o">.</span><span class="n">read_md</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">registered</span><span class="o">.</span><span class="n">read_md</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">SceneMarkdownError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"actions[</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">].kind must be one of tween/set/play/expression; got </span><span class="si">{</span><span class="n">kind</span><span class="si">!r}</span><span class="s2">"</span>
-            <span class="p">)</span>
+            <span class="c1"># A kind with no short form (a composite, a genre leaf without md</span>
+            <span class="c1"># hooks) is written verbatim; it reads back through the schema.</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="n">_validate_action</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">i</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">float</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">action</span> <span class="o">=</span> <span class="n">_compose</span><span class="o">.</span><span class="n">sequence</span><span class="p">(</span><span class="n">_compose</span><span class="o">.</span><span class="n">delay</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">start</span><span class="p">)),</span> <span class="n">action</span><span class="p">)</span>
         <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_action</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A verbatim ``yaml actions`` entry, validated by the schema's union."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypeAdapter</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Action</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">TypeAdapter</span><span class="p">(</span><span class="n">Action</span><span class="p">)</span><span class="o">.</span><span class="n">validate_python</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SceneMarkdownError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"actions[</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">] is not a valid action: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_md_kinds</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The action kinds ``scene.md`` can spell, in registration order."""</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">action_kind_names</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unknown_md_kind_message</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">kind</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"actions[</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">].kind must be one of </span><span class="si">{</span><span class="s1">'/'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_md_kinds</span><span class="p">())</span><span class="si">}</span><span class="s2">; got </span><span class="si">{</span><span class="n">kind</span><span class="si">!r}</span><span class="s2">"</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">providers_of</span>
+
+        <span class="n">providers</span> <span class="o">=</span> <span class="n">providers_of</span><span class="p">(</span><span class="n">kind</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">providers</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">" — `</span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2">` is defined by the genre(s) </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">providers</span><span class="p">)</span><span class="si">}</span><span class="s2">, which "</span>
+                <span class="s2">"are installed but not loaded: call `an.genres.load()` (the CLI "</span>
+                <span class="s2">"and `an.load(project)` do)"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">message</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_tween_md</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``{kind: tween, target, property, to, duration, [from_], [easing]}``."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose</span> <span class="k">as</span> <span class="n">_compose</span>
+
+    <span class="n">target</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"target"</span><span class="p">]</span>
+    <span class="n">property_</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"property"</span><span class="p">]</span>
+    <span class="n">to</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="s2">"to"</span><span class="p">]</span>
+    <span class="n">duration</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">])</span>
+    <span class="n">from_</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"from_"</span><span class="p">)</span> <span class="k">if</span> <span class="s2">"from_"</span> <span class="ow">in</span> <span class="n">item</span> <span class="k">else</span> <span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"from"</span><span class="p">)</span>
+    <span class="c1"># An `easing:` key the author did not write stays UNSET, so the</span>
+    <span class="c1"># scene's `default_easing` reaches it (an#166); `easing: null` is</span>
+    <span class="c1"># an explicit linear ramp, so presence — not truthiness — decides.</span>
+    <span class="k">return</span> <span class="n">_compose</span><span class="o">.</span><span class="n">tween</span><span class="p">(</span>
+        <span class="n">target</span><span class="p">,</span>
+        <span class="n">property_</span><span class="p">,</span>
+        <span class="n">to</span><span class="o">=</span><span class="n">to</span><span class="p">,</span>
+        <span class="n">duration</span><span class="o">=</span><span class="n">duration</span><span class="p">,</span>
+        <span class="n">from_</span><span class="o">=</span><span class="n">from_</span><span class="p">,</span>
+        <span class="n">easing</span><span class="o">=</span><span class="n">item</span><span class="p">[</span><span class="s2">"easing"</span><span class="p">]</span> <span class="k">if</span> <span class="s2">"easing"</span> <span class="ow">in</span> <span class="n">item</span> <span class="k">else</span> <span class="n">_compose</span><span class="o">.</span><span class="n">INHERIT</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_set_md</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">*</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``{kind: set, target, property, value, [at]}``."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose</span> <span class="k">as</span> <span class="n">_compose</span>
+
+    <span class="k">if</span> <span class="s2">"start"</span> <span class="ow">in</span> <span class="n">item</span><span class="p">:</span>
+        <span class="c1"># A REFUSAL, not an alias. `start` is the wrapper key for</span>
+        <span class="c1"># actions that HAVE a duration — the parser turns it into</span>
+        <span class="c1"># `sequence(delay(start), action)`. A `set` is instantaneous,</span>
+        <span class="c1"># so its time IS `at`, and giving one number two names is how</span>
+        <span class="c1"># a scene ends up with both.</span>
+        <span class="c1">#</span>
+        <span class="c1"># It was silently dropped before an#108: `start` is popped only</span>
+        <span class="c1"># for kinds registered with `md_start`, and this reader reads `at`</span>
+        <span class="c1"># alone, so `{kind: set, start: 1.0}` compiled to a swap at t=0. The</span>
+        <span class="c1"># author sees a lamp that is lit from the first frame and no</span>
+        <span class="c1"># message anywhere.</span>
+        <span class="k">raise</span> <span class="n">SceneMarkdownError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"actions[</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">] is a `set` with `start: </span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'start'</span><span class="p">]</span><span class="si">!r}</span><span class="s2">`, "</span>
+            <span class="s2">"which does nothing: a `set` is instantaneous and its time "</span>
+            <span class="sa">f</span><span class="s2">"is `at:`. Write `at: </span><span class="si">{</span><span class="n">item</span><span class="p">[</span><span class="s1">'start'</span><span class="p">]</span><span class="si">!r}</span><span class="s2">`."</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_compose</span><span class="o">.</span><span class="n">set_</span><span class="p">(</span>
+        <span class="n">item</span><span class="p">[</span><span class="s2">"target"</span><span class="p">],</span>
+        <span class="n">item</span><span class="p">[</span><span class="s2">"property"</span><span class="p">],</span>
+        <span class="n">item</span><span class="p">[</span><span class="s2">"value"</span><span class="p">],</span>
+        <span class="n">at</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"at"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_tween_md</span><span class="p">(</span><span class="n">leaf</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"tween"</span><span class="p">,</span>
+        <span class="s2">"target"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
+        <span class="s2">"property"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">property</span><span class="p">,</span>
+        <span class="s2">"to"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">to_value</span><span class="p">,</span>
+        <span class="s2">"duration"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">from_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">entry</span><span class="p">[</span><span class="s2">"from"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">from_value</span>
+    <span class="c1"># Written exactly when the author set it — `ease_in_out` included,</span>
+    <span class="c1"># because under a scene `default_easing` an explicit ease_in_out</span>
+    <span class="c1"># and an unset easing draw different curves (an#166).</span>
+    <span class="k">if</span> <span class="s2">"easing"</span> <span class="ow">in</span> <span class="n">leaf</span><span class="o">.</span><span class="n">model_fields_set</span><span class="p">:</span>
+        <span class="n">entry</span><span class="p">[</span><span class="s2">"easing"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">easing</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">easing</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">leaf</span><span class="o">.</span><span class="n">easing</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">entry</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_write_set_md</span><span class="p">(</span><span class="n">leaf</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"set"</span><span class="p">,</span>
+        <span class="s2">"target"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
+        <span class="s2">"property"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">property</span><span class="p">,</span>
+        <span class="s2">"value"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">at</span><span class="p">:</span>
+        <span class="n">entry</span><span class="p">[</span><span class="s2">"at"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">at</span>
+    <span class="k">return</span> <span class="n">entry</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_attach_core_md_hooks</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Give the core's ``set`` and ``tween`` (registered by :mod:`an.ir.compose`)</span>
+<span class="sd">    their ``scene.md`` hooks: this module owns the markdown form."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">replace</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose</span> <span class="k">as</span> <span class="n">_compose</span>  <span class="c1"># noqa: F401 — registers the core kinds</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">read</span><span class="p">,</span> <span class="n">write</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">"set"</span><span class="p">,</span> <span class="n">_read_set_md</span><span class="p">,</span> <span class="n">_write_set_md</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"tween"</span><span class="p">,</span> <span class="n">_read_tween_md</span><span class="p">,</span> <span class="n">_write_tween_md</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">action_kind</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">current</span><span class="o">.</span><span class="n">read_md</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">register_action_kind</span><span class="p">(</span>
+                <span class="n">replace</span><span class="p">(</span><span class="n">current</span><span class="p">,</span> <span class="n">read_md</span><span class="o">=</span><span class="n">read</span><span class="p">,</span> <span class="n">write_md</span><span class="o">=</span><span class="n">write</span><span class="p">),</span>
+                <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">,</span>
+                <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_yaml_list_block</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">label</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -1405,24 +1514,32 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">_actions_to_yaml_list</span><span class="p">(</span><span class="n">actions</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Convert authoring Action objects back to the markdown-friendly dicts.</span>
 
-<span class="sd">    Only handles the leaf-action shapes that the markdown parser also accepts:</span>
-<span class="sd">    set, tween, play, plus the ``sequence(delay(start), &lt;leaf&gt;)`` wrapper that</span>
-<span class="sd">    the parser produces for actions with a ``start`` time. Composition trees</span>
-<span class="sd">    that don't fit those shapes are skipped (logged via the JSON fallback —</span>
-<span class="sd">    no data loss, just no markdown round-trip).</span>
+<span class="sd">    A leaf whose registered kind has a ``write_md`` hook (the core's set and</span>
+<span class="sd">    tween, a genre's leaves such as ``play``) is written in its short form,</span>
+<span class="sd">    and so is the ``sequence(delay(start), &lt;leaf&gt;)`` wrapper the parser</span>
+<span class="sd">    produces for a ``start:`` key. Anything else — a ``parallel`` (``stagger``</span>
+<span class="sd">    builds one), a ``loop``, a nested ``sequence``, a genre leaf with no md</span>
+<span class="sd">    form — is written VERBATIM, as the action's own JSON form, which the reader</span>
+<span class="sd">    validates back through the schema. Nothing is ever dropped: scene.md is</span>
+<span class="sd">    what the JSON is regenerated from on the next md edit (review-244 S4/S5).</span>
+
+<span class="sd">    An action whose kind no loaded genre registered — a bare</span>
+<span class="sd">    ``ExtensionAction``, or a typed genre action built in Python while its</span>
+<span class="sd">    genre is not registered — is REFUSED, naming the genre that provides it.</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">iter_actions</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-        <span class="n">DFLT_EXPRESSION_BLEND_S</span><span class="p">,</span>
         <span class="n">DelayAction</span><span class="p">,</span>
-        <span class="n">ExpressionAction</span><span class="p">,</span>
-        <span class="n">PlayAction</span><span class="p">,</span>
+        <span class="n">ExtensionAction</span><span class="p">,</span>
         <span class="n">SequenceAction</span><span class="p">,</span>
-        <span class="n">SetAction</span><span class="p">,</span>
-        <span class="n">TweenAction</span><span class="p">,</span>
+        <span class="n">unregistered_action_kind</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">out</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">action</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">action_kind</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">unregistered_action_kind</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)))</span>
         <span class="c1"># Unwrap sequence(delay(start), leaf) → leaf with start.</span>
         <span class="n">start</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">leaf</span> <span class="o">=</span> <span class="n">action</span>
@@ -1433,70 +1550,36 @@ window.runMermaid = runMermaid;</script>
         <span class="p">):</span>
             <span class="n">start</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">duration</span>
             <span class="n">leaf</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">TweenAction</span><span class="p">):</span>
-            <span class="n">entry</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"tween"</span><span class="p">,</span>
-                <span class="s2">"target"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
-                <span class="s2">"property"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">property</span><span class="p">,</span>
-                <span class="s2">"to"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">to_value</span><span class="p">,</span>
-                <span class="s2">"duration"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">from_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"from"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">from_value</span>
-            <span class="c1"># Written exactly when the author set it — `ease_in_out` included,</span>
-            <span class="c1"># because under a scene `default_easing` an explicit ease_in_out</span>
-            <span class="c1"># and an unset easing draw different curves (an#166).</span>
-            <span class="k">if</span> <span class="s2">"easing"</span> <span class="ow">in</span> <span class="n">leaf</span><span class="o">.</span><span class="n">model_fields_set</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"easing"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="nb">list</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">easing</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">easing</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="n">leaf</span><span class="o">.</span><span class="n">easing</span>
-                <span class="p">)</span>
-            <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">SetAction</span><span class="p">):</span>
-            <span class="n">entry</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"set"</span><span class="p">,</span>
-                <span class="s2">"target"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
-                <span class="s2">"property"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">property</span><span class="p">,</span>
-                <span class="s2">"value"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">at</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"at"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">at</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">PlayAction</span><span class="p">):</span>
-            <span class="n">entry</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"play"</span><span class="p">,</span>
-                <span class="s2">"target"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
-                <span class="s2">"animation"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">animation</span><span class="p">,</span>
-            <span class="p">}</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">duration</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">speed</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"speed"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">speed</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">loop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"loop"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">loop</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"args"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="n">ExpressionAction</span><span class="p">):</span>
-            <span class="n">entry</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"kind"</span><span class="p">:</span> <span class="s2">"expression"</span><span class="p">,</span> <span class="s2">"target"</span><span class="p">:</span> <span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="p">}</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">preset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"preset"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">preset</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">axes</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"axes"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">axes</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">intensity</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"intensity"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">intensity</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">duration</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"duration"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">duration</span>
-            <span class="k">if</span> <span class="n">leaf</span><span class="o">.</span><span class="n">blend</span> <span class="o">!=</span> <span class="n">DFLT_EXPRESSION_BLEND_S</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"blend"</span><span class="p">]</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">blend</span>
-            <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">entry</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
-        <span class="c1"># else: skip (composition trees that don't round-trip cleanly to md).</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">leaf</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ExtensionAction</span><span class="p">:</span>
+            <span class="n">leaf</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">resolved</span><span class="p">()</span>
+        <span class="n">registered</span> <span class="o">=</span> <span class="n">action_kind</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">registered</span><span class="o">.</span><span class="n">write_md</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">registered</span><span class="o">.</span><span class="n">md_start</span><span class="p">):</span>
+            <span class="n">entry</span> <span class="o">=</span> <span class="n">registered</span><span class="o">.</span><span class="n">write_md</span><span class="p">(</span><span class="n">leaf</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_verbatim_action</span><span class="p">(</span><span class="n">action</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">entry</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_verbatim_action</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``action``'s own JSON form, minus the ``name: null`` noise on every node."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">strip</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">strip</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="s2">"name"</span> <span class="ow">and</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">strip</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"json"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">strip</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
 
 
 <span class="c1"># -----------------------------------------------------------------------------</span>
@@ -1646,6 +1729,9 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># else: within tolerance, no rewrite needed.</span>
     <span class="k">return</span> <span class="n">result</span></div>
 
+
+
+<span class="n">_attach_core_md_hooks</span><span class="p">()</span>
 </pre></div>
 
                 </article>

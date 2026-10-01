@@ -1,0 +1,53 @@
+an.genres.registry
+==================
+
+.. automodule:: an.genres.registry
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      CORE_OWNER
+      DurationHook
+      CheckStage
+      DIALOGUE_BRACKETS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      action_kind
+      action_kind_names
+      action_kind_owner
+      check_names
+      checks
+      dialogue_sugar
+      dialogue_sugars
+      entity_kind
+      entity_kind_names
+      owners
+      register_action_kind
+      register_check
+      register_dialogue_sugar
+      register_entity_kind
+      restore
+      snapshot
+      unregister_owner
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      ActionKind
+      DialogueSugar
+      EntityKind
+      SemanticCheck
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      RegistryError
+      UnregisteredKindError
+   

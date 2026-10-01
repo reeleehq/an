@@ -17,7 +17,7 @@ Layout (from spec §11):
 
 | [`init`](#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                 |
 |-----------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| [`load`](#an.project.load)(project_dir)                      | Load an existing project.                                   |
+| [`load`](#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                   |
 | [`save`](#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json). |
 
 ### Classes
@@ -41,9 +41,21 @@ pass `force=True` to overwrite. Returns the absolute project root.
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.project.load(project_dir)
+### an.project.load(project_dir, , check_kinds=True)
 
 Load an existing project. Reconciles scene.md / ir/scene.json first.
+
+Registers the installed genres first ([`an.genres.load()`](an.genres.md#an.genres.load), ADR 0001
+decision 3: discovery is explicit, and loading a project is one of the
+places it happens), so the scene’s genre kinds — the cut-out genre’s
+`play`, `expression` and `character` — read as their own models.
+
+Then refuses a scene that names an action kind, entity kind or renderer
+nothing registered ([`an.ir.validate.require_registered_kinds()`](an.ir.validate.md#an.ir.validate.require_registered_kinds)): the
+schema holds those as `str` (ADR 0001 decision 2), so without this a
+typo’d `kind: enviroment` would load and render silently without its
+backdrop. `check_kinds=False` is for `an validate`, which reports them
+as findings instead.
 
 * **Return type:**
   [`Project`](#an.project.Project)

@@ -22,7 +22,7 @@ an.text
       text_entity_problem
       layout_text
       unit_names
-      stagger
+      reveal_units
    
    .. rubric:: Classes
 

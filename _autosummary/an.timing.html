@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.text" href="an.text.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
@@ -396,9 +397,15 @@
 <li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
@@ -1348,9 +1355,12 @@ WRITTEN — an ended <code class="docutils literal notranslate"><span class="pre
 track that took the mouth back.</p>
 <p><code class="docutils literal notranslate"><span class="pre">space</span></code> says what each property is (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>): one space, a
 registered space’s name, or a <code class="docutils literal notranslate"><span class="pre">target</span> <span class="pre">-&gt;</span> <span class="pre">space</span></code> resolver. Its field kinds
-interpolate and its write groups resolve. <code class="docutils literal notranslate"><span class="pre">None</span></code> is the stage runtime’s
-rule, which <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> implements: interpolation by value type, the
-<code class="docutils literal notranslate"><span class="pre">stage.node</span></code> write groups.</p>
+interpolate and its write groups resolve. <code class="docutils literal notranslate"><span class="pre">None</span></code> is the default space,
+<a class="reference internal" href="an.timing.spaces.html#an.timing.spaces.DFLT_TIMELINE_SPACE" title="an.timing.spaces.DFLT_TIMELINE_SPACE"><code class="xref py py-data docutils literal notranslate"><span class="pre">an.timing.spaces.DFLT_TIMELINE_SPACE</span></code></a> (the stage node’s declared
+kinds, by name at call time). <code class="docutils literal notranslate"><span class="pre">space=VALUE_TYPED</span></code> is the rule
+<code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> implements — interpolation by value type, the <code class="docutils literal notranslate"><span class="pre">stage.node</span></code>
+write groups — which gives the same pose on every timeline the compiler
+emits (it refuses a value that fails its field kind).</p>
 <p>Forward-order rendering used to show the value at the clip’s last SAMPLED
 frame instead (the runtime kept whatever it last applied). The two agree
 whenever a clip ends on the frame grid — true of every golden-corpus clip

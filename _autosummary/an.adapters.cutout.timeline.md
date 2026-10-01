@@ -182,9 +182,12 @@ track that took the mouth back.
 
 `space` says what each property is ([`an.timing.spaces`](an.timing.spaces.md#module-an.timing.spaces)): one space, a
 registered space’s name, or a `target -> space` resolver. Its field kinds
-interpolate and its write groups resolve. `None` is the stage runtime’s
-rule, which `runtime.js` implements: interpolation by value type, the
-`stage.node` write groups.
+interpolate and its write groups resolve. `None` is the default space,
+[`an.timing.spaces.DFLT_TIMELINE_SPACE`](an.timing.spaces.md#an.timing.spaces.DFLT_TIMELINE_SPACE) (the stage node’s declared
+kinds, by name at call time). `space=VALUE_TYPED` is the rule
+`runtime.js` implements — interpolation by value type, the `stage.node`
+write groups — which gives the same pose on every timeline the compiler
+emits (it refuses a value that fails its field kind).
 
 Forward-order rendering used to show the value at the clip’s last SAMPLED
 frame instead (the runtime kept whatever it last applied). The two agree

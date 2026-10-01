@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.styles" href="an.styles.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
@@ -396,9 +397,15 @@
 <li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
@@ -552,10 +559,11 @@ never reach the frame path and the determinism perimeter is unchanged.</p>
 <p><strong>Units are addressable, so text animates with ordinary tweens.</strong> A block of
 <code class="docutils literal notranslate"><span class="pre">unit=&quot;word&quot;</span></code> builds <code class="docutils literal notranslate"><span class="pre">&lt;id&gt;/word_0</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;id&gt;/word_1</span></code>, …; <code class="docutils literal notranslate"><span class="pre">&quot;glyph&quot;</span></code> and
 <code class="docutils literal notranslate"><span class="pre">&quot;line&quot;</span></code> likewise. <code class="docutils literal notranslate"><span class="pre">index</span></code> counts DRAWN units in reading order (spaces are
-not units). <a class="reference internal" href="#an.text.stagger" title="an.text.stagger"><code class="xref py py-func docutils literal notranslate"><span class="pre">stagger()</span></code></a> is a Python-side generator of ordinary actions for
-a staggered reveal — a preset, not a new IR node:</p>
+not units). <a class="reference internal" href="#an.text.reveal_units" title="an.text.reveal_units"><code class="xref py py-func docutils literal notranslate"><span class="pre">reveal_units()</span></code></a> is a Python-side generator of ordinary actions
+for a staggered reveal — a preset, not a new IR node (the general combinator is
+<a class="reference internal" href="an.ir.compose.html#an.ir.compose.stagger" title="an.ir.compose.stagger"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.compose.stagger()</span></code></a>):</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">reveal</span> <span class="o">=</span> <span class="n">stagger</span><span class="p">(</span><span class="s2">"title"</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">reveal</span> <span class="o">=</span> <span class="n">reveal_units</span><span class="p">(</span><span class="s2">"title"</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">reveal</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 <span class="gp">... </span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"tween"</span><span class="p">]</span>
 <span class="go">[('title/word_0', 0.0), ('title/word_1', 0.1), ('title/word_2', 0.2)]</span>
@@ -613,7 +621,7 @@ recorded in the compiled document.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.text.unit_names" title="an.text.unit_names"><code class="xref py py-obj docutils literal notranslate"><span class="pre">unit_names</span></code></a>(desc, *, width, height[, base_dir])</p></td>
 <td><p>The node names a block builds — what <code class="docutils literal notranslate"><span class="pre">&lt;id&gt;/&lt;name&gt;</span></code> targets may address.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.text.stagger" title="an.text.stagger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stagger</span></code></a>(entity_id, count, property, *, to, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.text.reveal_units" title="an.text.reveal_units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reveal_units</span></code></a>(entity_id, count, property, *, ...)</p></td>
 <td><p>Tween <code class="docutils literal notranslate"><span class="pre">property</span></code> from <code class="docutils literal notranslate"><span class="pre">from_</span></code> to <code class="docutils literal notranslate"><span class="pre">to</span></code> on units <code class="docutils literal notranslate"><span class="pre">0..count-1</span></code> of a text block, each <code class="docutils literal notranslate"><span class="pre">step</span></code> seconds after the last — a word-by-word (or letter-by-letter) reveal.</p></td>
 </tr>
 </tbody>
@@ -920,8 +928,8 @@ style with no <code class="docutils literal notranslate"><span class="pre">text<
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="an.text.stagger">
-<span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">stagger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'word'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ease_out'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/text.html#stagger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.text.stagger" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="an.text.reveal_units">
+<span class="sig-prename descclassname"><span class="pre">an.text.</span></span><span class="sig-name descname"><span class="pre">reveal_units</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entity_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">count</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'word'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">easing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ease_out'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/text.html#reveal_units"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.text.reveal_units" title="Link to this definition">#</a></dt>
 <dd><p>Tween <code class="docutils literal notranslate"><span class="pre">property</span></code> from <code class="docutils literal notranslate"><span class="pre">from_</span></code> to <code class="docutils literal notranslate"><span class="pre">to</span></code> on units <code class="docutils literal notranslate"><span class="pre">0..count-1</span></code> of a
 text block, each <code class="docutils literal notranslate"><span class="pre">step</span></code> seconds after the last — a word-by-word (or
 letter-by-letter) reveal. Unit <code class="docutils literal notranslate"><span class="pre">i</span></code> starts at <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">+</span> <span class="pre">i*step</span></code>.</p>
@@ -932,14 +940,17 @@ That is also why <code class="docutils literal notranslate"><span class="pre">fr
 <p>Returns a LIST of top-level actions — <code class="docutils literal notranslate"><span class="pre">set</span></code>, a bare <code class="docutils literal notranslate"><span class="pre">tween</span></code>, or the
 <code class="docutils literal notranslate"><span class="pre">sequence(delay(start),</span> <span class="pre">tween)</span></code> wrapper the <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> parser itself
 produces for a <code class="docutils literal notranslate"><span class="pre">start:</span></code> key — so <code class="docutils literal notranslate"><span class="pre">shot.actions.extend(stagger(...))</span></code>
-round-trips through <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>. (A <code class="docutils literal notranslate"><span class="pre">parallel</span></code> would not: the markdown
-writer only knows leaf shapes and that one wrapper.)</p>
+round-trips through <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> in its short form, one entry per unit.</p>
+<p>Named <code class="docutils literal notranslate"><span class="pre">stagger</span></code> until an#241 gave the core a general combinator of that
+name (<a class="reference internal" href="an.ir.compose.html#an.ir.compose.stagger" title="an.ir.compose.stagger"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.compose.stagger()</span></code></a>, any actions, one <code class="docutils literal notranslate"><span class="pre">parallel</span></code>);
+<code class="docutils literal notranslate"><span class="pre">an.text.stagger</span></code> stays as an alias of this function so old imports
+keep working.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></span></p>
 </dd>
 </dl>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">stagger</span><span class="p">(</span><span class="s2">"t"</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)]</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">reveal_units</span><span class="p">(</span><span class="s2">"t"</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"alpha"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">from_</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)]</span>
 <span class="go">['tween', 'set', 'sequence']</span>
 </pre></div>
 </div>
@@ -1055,7 +1066,7 @@ camera’s node in the runtime’s index;</p></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.text.font_base_dir"><code class="docutils literal notranslate"><span class="pre">font_base_dir()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.text.layout_text"><code class="docutils literal notranslate"><span class="pre">layout_text()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.text.resolve_text"><code class="docutils literal notranslate"><span class="pre">resolve_text()</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.text.stagger"><code class="docutils literal notranslate"><span class="pre">stagger()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.text.reveal_units"><code class="docutils literal notranslate"><span class="pre">reveal_units()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.text.text_entity_problem"><code class="docutils literal notranslate"><span class="pre">text_entity_problem()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.text.unit_names"><code class="docutils literal notranslate"><span class="pre">unit_names()</span></code></a></li>
 </ul>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -775,8 +775,12 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># — the store would happily persist `version: "0.0.42"`, and the very</span>
         <span class="c1"># next read raised. Symmetric boundaries or none.</span>
         <span class="n">scene</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">SceneIR</span><span class="p">)</span> <span class="k">else</span> <span class="n">scene_from_json_doc</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="c1"># The markdown FIRST: it can refuse (an action or dialogue sugar no</span>
+        <span class="c1"># loaded genre can spell), and a refusal must leave the pair as it was,</span>
+        <span class="c1"># not a new JSON beside a stale md (review-244 N5).</span>
+        <span class="n">markdown</span> <span class="o">=</span> <span class="n">ir_to_markdown</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
         <span class="n">_write_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json_path</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()))</span>
-        <span class="n">_write_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md_path</span><span class="p">,</span> <span class="n">ir_to_markdown</span><span class="p">(</span><span class="n">scene</span><span class="p">))</span>
+        <span class="n">_write_text</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md_path</span><span class="p">,</span> <span class="n">markdown</span><span class="p">)</span>
         <span class="c1"># Equalize mtimes so the JSON wins ties on subsequent sync()s. Pipeline</span>
         <span class="c1"># stages (audio, lip-sync) inject rich state into the JSON that the</span>
         <span class="c1"># Markdown can't represent — without this, sync() would round-trip</span>

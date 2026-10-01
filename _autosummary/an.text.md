@@ -25,12 +25,13 @@ never reach the frame path and the determinism perimeter is unchanged.
 **Units are addressable, so text animates with ordinary tweens.** A block of
 `unit="word"` builds `<id>/word_0`, `<id>/word_1`, …; `"glyph"` and
 `"line"` likewise. `index` counts DRAWN units in reading order (spaces are
-not units). [`stagger()`](#an.text.stagger) is a Python-side generator of ordinary actions for
-a staggered reveal — a preset, not a new IR node:
+not units). [`reveal_units()`](#an.text.reveal_units) is a Python-side generator of ordinary actions
+for a staggered reveal — a preset, not a new IR node (the general combinator is
+[`an.ir.compose.stagger()`](an.ir.compose.md#an.ir.compose.stagger)):
 
 ```pycon
 >>> from an.ir.compose import flatten
->>> reveal = stagger("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.1)
+>>> reveal = reveal_units("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.1)
 >>> [(f.action.target, round(f.start, 3)) for a in reveal for f in flatten(a)
 ...  if f.action.kind == "tween"]
 [('title/word_0', 0.0), ('title/word_1', 0.1), ('title/word_2', 0.2)]
@@ -64,13 +65,13 @@ recorded in the compiled document.
 
 ### Functions
 
-| [`resolve_text`](#an.text.resolve_text)(document[, overrides])              | The text block an entity draws: its stored document with `overrides` on top.                                                                                                                                                                                                              |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`font_base_dir`](#an.text.font_base_dir)(props_store, ref)                  | What a relative `font` path resolves against: the text document's own directory in an on-disk props store — `None` for an in-memory one, where a relative path then RAISES rather than resolving against the working directory (which would make the picture depend on where you ran it). |
-| [`text_entity_problem`](#an.text.text_entity_problem)(entity, desc)                | What is wrong with WHERE this entity puts its block, or `None`.                                                                                                                                                                                                                           |
-| [`layout_text`](#an.text.layout_text)(desc, \*, width, height[, base_dir]) | Set `desc` on a `width` x `height` frame and take each unit's contours.                                                                                                                                                                                                                   |
-| [`unit_names`](#an.text.unit_names)(desc, \*, width, height[, base_dir])  | The node names a block builds — what `<id>/<name>` targets may address.                                                                                                                                                                                                                   |
-| [`stagger`](#an.text.stagger)(entity_id, count, property, \*, to, ...) | Tween `property` from `from_` to `to` on units `0..count-1` of a text block, each `step` seconds after the last — a word-by-word (or letter-by-letter) reveal.                                                                                                                            |
+| [`resolve_text`](#an.text.resolve_text)(document[, overrides])               | The text block an entity draws: its stored document with `overrides` on top.                                                                                                                                                                                                              |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`font_base_dir`](#an.text.font_base_dir)(props_store, ref)                   | What a relative `font` path resolves against: the text document's own directory in an on-disk props store — `None` for an in-memory one, where a relative path then RAISES rather than resolving against the working directory (which would make the picture depend on where you ran it). |
+| [`text_entity_problem`](#an.text.text_entity_problem)(entity, desc)                 | What is wrong with WHERE this entity puts its block, or `None`.                                                                                                                                                                                                                           |
+| [`layout_text`](#an.text.layout_text)(desc, \*, width, height[, base_dir])  | Set `desc` on a `width` x `height` frame and take each unit's contours.                                                                                                                                                                                                                   |
+| [`unit_names`](#an.text.unit_names)(desc, \*, width, height[, base_dir])   | The node names a block builds — what `<id>/<name>` targets may address.                                                                                                                                                                                                                   |
+| [`reveal_units`](#an.text.reveal_units)(entity_id, count, property, \*, ...) | Tween `property` from `from_` to `to` on units `0..count-1` of a text block, each `step` seconds after the last — a word-by-word (or letter-by-letter) reveal.                                                                                                                            |
 
 ### Classes
 
@@ -292,7 +293,7 @@ style with no `text` of its own, and each entity supplies the words:
 'Paris'
 ```
 
-### an.text.stagger(entity_id, count, property, , to, from_, duration, step, start=0.0, unit='word', easing='ease_out')
+### an.text.reveal_units(entity_id, count, property, , to, from_, duration, step, start=0.0, unit='word', easing='ease_out')
 
 Tween `property` from `from_` to `to` on units `0..count-1` of a
 text block, each `step` seconds after the last — a word-by-word (or
@@ -306,14 +307,18 @@ That is also why `from_` is required.
 Returns a LIST of top-level actions — `set`, a bare `tween`, or the
 `sequence(delay(start), tween)` wrapper the `scene.md` parser itself
 produces for a `start:` key — so `shot.actions.extend(stagger(...))`
-round-trips through `scene.md`. (A `parallel` would not: the markdown
-writer only knows leaf shapes and that one wrapper.)
+round-trips through `scene.md` in its short form, one entry per unit.
+
+Named `stagger` until an#241 gave the core a general combinator of that
+name ([`an.ir.compose.stagger()`](an.ir.compose.md#an.ir.compose.stagger), any actions, one `parallel`);
+`an.text.stagger` stays as an alias of this function so old imports
+keep working.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ```pycon
->>> [a.kind for a in stagger("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
+>>> [a.kind for a in reveal_units("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
 ['tween', 'set', 'sequence']
 ```
 

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../../../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -755,6 +755,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">TRANSFORM_PROPERTIES</span><span class="p">,</span> <span class="n">TRIM_PROPERTIES</span><span class="p">,</span> <span class="n">swap_set_name_problem</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.easing</span><span class="w"> </span><span class="kn">import</span> <span class="n">apply_easing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_space_resolver</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.path</span><span class="w"> </span><span class="kn">import</span> <span class="n">flatten_curve</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters.cutout.coarticulate</span><span class="w"> </span><span class="kn">import</span> <span class="n">coarticulate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.expression.axes</span><span class="w"> </span><span class="kn">import</span> <span class="n">LID_KEY_CLOSED</span><span class="p">,</span> <span class="n">LID_KEY_OPEN</span><span class="p">,</span> <span class="n">lid_key</span>
@@ -1538,6 +1539,9 @@ window.runMermaid = runMermaid;</script>
     <span class="n">node_transforms</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">TransformJSON</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="c1">#: entity id → k, the view_box → scene-pixel factor its rig was built with.</span>
     <span class="n">entity_scale</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+    <span class="c1">#: target → its property space (:func:`an.genres.entity_space_resolver`),</span>
+    <span class="c1">#: the policy `an validate` checks values with too (review-244 S7).</span>
+    <span class="n">space_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1">#: Node paths whose visual is a stroked path — the only nodes a</span>
     <span class="c1">#: `trim_start`/`trim_end` channel may target (an#160).</span>
     <span class="n">path_nodes</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>
@@ -1663,6 +1667,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">entity_scale</span><span class="o">=</span><span class="n">entity_scale</span><span class="p">,</span>
         <span class="n">path_nodes</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">path_nodes</span><span class="p">),</span>
         <span class="n">path_trims</span><span class="o">=</span><span class="n">path_trims</span><span class="p">,</span>
+        <span class="n">space_of</span><span class="o">=</span><span class="n">entity_space_resolver</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">),</span>
     <span class="p">)</span>
 
 
@@ -1976,6 +1981,7 @@ window.runMermaid = runMermaid;</script>
     <span class="n">reached</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">skipped</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
     <span class="n">raster</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">_refuse_unregistered_entity_kinds</span><span class="p">(</span><span class="n">shot</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"environment"</span><span class="p">:</span>
             <span class="n">node</span><span class="p">,</span> <span class="n">front</span> <span class="o">=</span> <span class="n">_build_environment_subtree</span><span class="p">(</span>
@@ -3806,7 +3812,12 @@ window.runMermaid = runMermaid;</script>
             <span class="n">kfs</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">run</span><span class="p">:</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">value</span>
-                <span class="n">_check_keyframe_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="n">prop</span><span class="p">)</span>
+                <span class="n">_check_keyframe_value</span><span class="p">(</span>
+                    <span class="n">value</span><span class="p">,</span>
+                    <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+                    <span class="n">prop</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span>
+                    <span class="n">space_of</span><span class="o">=</span><span class="n">vocab</span><span class="o">.</span><span class="n">space_of</span> <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="k">if</span> <span class="n">flat</span><span class="o">.</span><span class="n">start</span> <span class="o">&gt;</span> <span class="n">shot_duration</span><span class="p">:</span>
                     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">"set on </span><span class="si">{</span><span class="n">target</span><span class="si">!r}</span><span class="s2">:</span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2"> at t=</span><span class="si">{</span><span class="n">flat</span><span class="o">.</span><span class="n">start</span><span class="si">}</span><span class="s2"> is past "</span>
@@ -4183,10 +4194,24 @@ window.runMermaid = runMermaid;</script>
             <span class="n">speed</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">speed</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">anim_id</span><span class="p">,</span> <span class="n">_track_root_of</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">),</span> <span class="n">placed</span>
-    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unsupported FlatAction.action type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="c1"># A kind some genre registered that this renderer has no clip for: said</span>
+    <span class="c1"># by name rather than as a bare TypeError (the IR is open, ADR 0001</span>
+    <span class="c1"># decision 2, so "a kind the cutout compiler does not draw" is a real,</span>
+    <span class="c1"># reachable case, not a programming error).</span>
+    <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"the cutout renderer cannot draw a </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span><span class="w"> </span><span class="s1">'kind'</span><span class="p">,</span><span class="w"> </span><span class="kc">None</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"action (</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">) on </span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span><span class="w"> </span><span class="s1">'target'</span><span class="p">,</span><span class="w"> </span><span class="s1">'?'</span><span class="p">)</span><span class="si">!r}</span><span class="s2">: "</span>
+        <span class="s2">"it compiles set, tween and the cut-out genre's play and expression"</span>
+    <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_check_keyframe_value</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_keyframe_value</span><span class="p">(</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">prop</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">space_of</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Refuse keyframe values the two evaluators would disagree on.</span>
 
 <span class="sd">    ``bool`` is the trap: Python's ``isinstance(True, int)`` would lerp it while</span>
@@ -4204,7 +4229,53 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"evaluate differently in the Python spec and the JS runtime, so "</span>
             <span class="s2">"the compiler refuses them rather than pick a side silently."</span>
         <span class="p">)</span>
+    <span class="c1"># The value must fit the field kind the stage node DECLARES for `prop`</span>
+    <span class="c1"># (an#239 item 2, the precondition of the declared-kinds default): a</span>
+    <span class="c1"># string on `x` used to compile, the runtime snapped it, and the declared</span>
+    <span class="c1"># evaluator now refuses it — so the compiler says so first, by name.</span>
+    <span class="c1"># The space comes from the target's entity kind (`space_of`, the policy</span>
+    <span class="c1"># `an validate` uses); without a shot's vocabulary, the stage node's.</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_space</span>
+
+    <span class="n">space</span> <span class="o">=</span> <span class="n">space_of</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="k">if</span> <span class="n">space_of</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">get_space</span><span class="p">(</span><span class="n">STAGE_NODE_SPACE</span><span class="p">)</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">space</span><span class="o">.</span><span class="n">kind_of</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">kind</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"keyframe on </span><span class="si">{</span><span class="n">target</span><span class="si">!r}</span><span class="s2">:</span><span class="si">{</span><span class="n">prop</span><span class="si">!r}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">. `</span><span class="si">{</span><span class="n">prop</span><span class="si">}</span><span class="s2">` is a "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">kind</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> field of a stage node (the </span><span class="si">{</span><span class="n">space</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> property "</span>
+            <span class="s2">"space), so a value of another kind cannot be keyed on it."</span>
+        <span class="p">)</span>
     <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse_unregistered_entity_kinds</span><span class="p">(</span><span class="n">shot</span><span class="p">:</span> <span class="n">Shot</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""An entity whose ``kind`` nothing registered is REFUSED, naming the genre</span>
+<span class="sd">    that provides it — never skipped (review-244 S2). ``AssetRef.kind`` is a</span>
+<span class="sd">    ``str`` since ADR 0001 decision 2, so the entity dispatch below would</span>
+<span class="sd">    otherwise draw a typo'd ``kind: enviroment`` as nothing, and the render</span>
+<span class="sd">    would succeed without its backdrop."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">providers_of</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="n">UnregisteredKindError</span><span class="p">,</span>
+        <span class="n">entity_kind</span><span class="p">,</span>
+        <span class="n">entity_kind_names</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">error</span> <span class="o">=</span> <span class="n">UnregisteredKindError</span><span class="p">(</span>
+                <span class="s2">"entity kind"</span><span class="p">,</span>
+                <span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
+                <span class="n">known</span><span class="o">=</span><span class="n">entity_kind_names</span><span class="p">(),</span>
+                <span class="n">providers</span><span class="o">=</span><span class="n">providers_of</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span> <span class="n">registry</span><span class="o">=</span><span class="s2">"entity kinds"</span><span class="p">),</span>
+                <span class="n">where</span><span class="o">=</span><span class="sa">f</span><span class="s2">"shot </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">: entity </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">CutoutCompileError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+
+
+<span class="c1">#: The property space every compiled node lives in (:mod:`an.timing.spaces`).</span>
+<span class="n">STAGE_NODE_SPACE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"stage.node"</span>
 
 
 <div class="viewcode-block" id="parse_tint">
@@ -4305,9 +4376,15 @@ window.runMermaid = runMermaid;</script>
             <span class="n">from_value</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">path_trims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">from_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">from_value</span> <span class="o">=</span> <span class="n">_rest_value_for</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">,</span> <span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
-        <span class="n">_check_keyframe_value</span><span class="p">(</span><span class="n">from_value</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">)</span>
+        <span class="n">space_of</span> <span class="o">=</span> <span class="n">vocab</span><span class="o">.</span><span class="n">space_of</span> <span class="k">if</span> <span class="n">vocab</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">_check_keyframe_value</span><span class="p">(</span>
-            <span class="n">action</span><span class="o">.</span><span class="n">to_value</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">property</span>
+            <span class="n">from_value</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">prop</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">,</span> <span class="n">space_of</span><span class="o">=</span><span class="n">space_of</span>
+        <span class="p">)</span>
+        <span class="n">_check_keyframe_value</span><span class="p">(</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">to_value</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span>
+            <span class="n">prop</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">property</span><span class="p">,</span>
+            <span class="n">space_of</span><span class="o">=</span><span class="n">space_of</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">easing</span> <span class="o">=</span> <span class="n">_easing_to_json</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">resolved_easing</span><span class="p">(</span><span class="n">default_easing</span><span class="p">))</span>
         <span class="c1"># Only an easing the author actually WROTE earns a warning:</span>

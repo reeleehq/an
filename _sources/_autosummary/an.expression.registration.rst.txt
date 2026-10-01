@@ -1,0 +1,22 @@
+an.expression.registration
+==========================
+
+.. automodule:: an.expression.registration
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      EMOTION_NAME_RE
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      expression_duration
+      format_emotion
+      parse_emotion
+      read_expression_md
+      write_expression_md
+   

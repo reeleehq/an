@@ -11,8 +11,14 @@ Design principles (locked in from the architectural plan):
   `compatible_version`. Migrations live in `an.ir.migrate`.
 - **Forward-compatible reads.** Top-level model has `extra="allow"` so a future
   field doesn’t crash an older reader.
-- \*\*Discriminated `Action` union.\*\* All authoring-time and flattened actions
-  carry a `kind` literal so Pydantic dispatches to the right validator.
+- \*\*Open `Action` union\*\* (ADR 0001 decision 2). The union holds the core
+  kinds (`set`, `tween`, `sequence`, `parallel`, `delay`, `loop`)
+  and ONE open member, [`ExtensionAction`](#an.ir.schema.ExtensionAction), which a callable
+  discriminator selects for any other `kind`. A genre registers its kinds
+  ([`an.genres`](an.genres.md#module-an.genres)); a document’s `kind: play` then validates to the
+  registered model, and before registration it stays an `ExtensionAction`
+  that round-trips untouched and that validate, flatten and the compiler
+  refuse by name. The union is never rebuilt at registration.
 - **Time in seconds (float).** Always.
 
 Doctest:
@@ -34,16 +40,20 @@ True
 
 ### Module Attributes
 
-| [`DFLT_EXPRESSION_BLEND_S`](#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).                                                                                  |
-|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Action`](#an.ir.schema.Action)                    | Discriminated union of every action variant.                                                                                              |
-| [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                   |
-| [`DEFAULT_CAPTION_SIZE`](#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched. |
+| [`DFLT_EXPRESSION_BLEND_S`](#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).                                                                                                                   |
+|----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CORE_ACTION_KINDS`](#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                    |
+| [`EXTENSION_TAG`](#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                          |
+| [`Action`](#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it). |
+| [`DEFAULT_CAPTION_MAX_CHARS`](#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                    |
+| [`DEFAULT_CAPTION_SIZE`](#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.                                  |
+| [`STAGE_NODE_SPACE`](#an.ir.schema.STAGE_NODE_SPACE)          | The property space a 2D stage engine's node lives in ([`an.timing.spaces`](an.timing.spaces.md#module-an.timing.spaces)).                          |
 
 ### Functions
 
-| [`resolve_step_hz`](#an.ir.schema.resolve_step_hz)(shot, scene_step_hz)   | The stepped-timing policy `shot` renders under: its own `step_hz` when it declares one, else the scene's, else `None` (smooth).   |
-|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`resolve_step_hz`](#an.ir.schema.resolve_step_hz)(shot, scene_step_hz)        | The stepped-timing policy `shot` renders under: its own `step_hz` when it declares one, else the scene's, else `None` (smooth).   |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`unregistered_action_kind`](#an.ir.schema.unregistered_action_kind)(kind, \*[, where]) | The error for an action `kind` no loaded genre registered.                                                                        |
 
 ### Classes
 
@@ -55,6 +65,7 @@ True
 | [`DelayAction`](#an.ir.schema.DelayAction)(\*\*data)      | Composition: an empty span that consumes time.                                                                                                                      |
 | [`Dialogue`](#an.ir.schema.Dialogue)(\*\*data)         | One line of spoken dialogue.                                                                                                                                        |
 | [`ExpressionAction`](#an.ir.schema.ExpressionAction)(\*\*data) | Hold a facial expression on an entity (an#98, epic #9 Wave 6).                                                                                                      |
+| [`ExtensionAction`](#an.ir.schema.ExtensionAction)(\*\*data)  | An action of a kind the core does not define: the IR's one open member.                                                                                             |
 | [`LoopAction`](#an.ir.schema.LoopAction)(\*\*data)       | Composition: repeat `child` `count` times.                                                                                                                          |
 | [`Meta`](#an.ir.schema.Meta)(\*\*data)             | Scene metadata.                                                                                                                                                     |
 | [`Narration`](#an.ir.schema.Narration)(\*\*data)        | Off-screen narration.                                                                                                                                               |
@@ -75,9 +86,15 @@ True
 
 ### an.ir.schema.Action
 
-Discriminated union of every action variant. Pydantic dispatches on `kind`.
+the core kinds plus [`ExtensionAction`](#an.ir.schema.ExtensionAction) for any other
+`kind` (a registered genre kind validates to its own model through it).
+`SerializeAsAny` makes a typed genre instance (a `PlayAction`) serialize
+with its own fields rather than the open member’s.
 
-alias of `Annotated`[[`SetAction`](#an.ir.schema.SetAction) | [`TweenAction`](#an.ir.schema.TweenAction) | [`PlayAction`](#an.ir.schema.PlayAction) | [`ExpressionAction`](#an.ir.schema.ExpressionAction) | [`SequenceAction`](#an.ir.schema.SequenceAction) | [`ParallelAction`](#an.ir.schema.ParallelAction) | [`DelayAction`](#an.ir.schema.DelayAction) | [`LoopAction`](#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator=’kind’)]
+* **Type:**
+  Every action
+
+alias of `Annotated`[`Annotated`[[`SetAction`](#an.ir.schema.SetAction), `Tag`(tag=set)] | `Annotated`[[`TweenAction`](#an.ir.schema.TweenAction), `Tag`(tag=tween)] | `Annotated`[[`SequenceAction`](#an.ir.schema.SequenceAction), `Tag`(tag=sequence)] | `Annotated`[[`ParallelAction`](#an.ir.schema.ParallelAction), `Tag`(tag=parallel)] | `Annotated`[[`DelayAction`](#an.ir.schema.DelayAction), `Tag`(tag=delay)] | `Annotated`[[`LoopAction`](#an.ir.schema.LoopAction), `Tag`(tag=loop)] | `Annotated`[[`ExtensionAction`](#an.ir.schema.ExtensionAction), `SerializeAsAny`(), `Tag`(tag=extension)], `Discriminator`(discriminator=`_action_tag`, custom_error_type=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[`None`](https://docs.python.org/3/builtins/constants.html#None))]
 
 ### *class* an.ir.schema.AssetRef(\*\*data)
 
@@ -95,11 +112,17 @@ forking the asset.
 'maya'
 ```
 
-#### kind *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['character', 'environment', 'voice', 'prop']*
+#### kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
 renderer selector. Art direction arrives as a StylePack (#112).
+
+A `str` in the schema, not a `Literal` (ADR 0001 decision 2): the
+values are the REGISTERED entity kinds ([`an.genres`](an.genres.md#module-an.genres)) — the core’s
+`environment`, `prop` and `voice`, a genre’s `character` — and
+`an validate` checks it against that registry, naming the genre that
+provides an unregistered one.
 
 * **Type:**
   `"style"` was retired in an#106
@@ -117,6 +140,10 @@ which for characters is the evenly-spaced row the compiler computes.
 **Additive by construction, and hash-free by construction**: the
 contract hashes the COMPILED document, and an `AssetRef` never reaches
 it. So this field can grow without retiring a single ledger row.
+
+### an.ir.schema.CORE_ACTION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('set', 'tween', 'sequence', 'parallel', 'delay', 'loop')*
+
+The `kind` of every action the core defines (the static union members).
 
 ### *class* an.ir.schema.Camera(\*\*data)
 
@@ -348,9 +375,13 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 The provider’s word timings, line-relative; `None` when the provider
 has none (offline, Rhubarb) or the line was stamped before an#96.
 
+### an.ir.schema.EXTENSION_TAG *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'extension'*
+
+The union tag of the open member.
+
 ### *class* an.ir.schema.ExpressionAction(\*\*data)
 
-Bases: `_ActionBase`
+Bases: [`ExtensionAction`](#an.ir.schema.ExtensionAction)
 
 Hold a facial expression on an entity (an#98, epic #9 Wave 6).
 
@@ -374,6 +405,45 @@ frame lands on it with `blend=0` — cut the blend for a flash.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.schema.ExtensionAction(\*\*data)
+
+Bases: `_ActionBase`
+
+An action of a kind the core does not define: the IR’s one open member.
+
+The schema’s `Action` union selects this for any `kind` other than the
+core’s (ADR 0001 decision 2). When a genre has REGISTERED that kind
+([`an.genres.registry.register_action_kind()`](an.genres.registry.md#an.genres.registry.register_action_kind)), validating a document
+yields the registered model instead — a `PlayAction` for `kind: play` —
+so code downstream sees typed actions. Before registration the action
+stays an `ExtensionAction`: its fields are kept as extras and round-trip
+byte for byte, and [`resolved()`](#an.ir.schema.ExtensionAction.resolved) (called by `flatten`, `an validate`
+and the compiler) refuses it naming the genre that provides it.
+
+Every genre’s action model subclasses this, which is what lets a typed
+instance sit in the union and serialize with its own fields.
+
+```pycon
+>>> ExtensionAction(kind="wave", target="flag").model_dump()
+{'name': None, 'kind': 'wave', 'target': 'flag'}
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### resolved(, strict=True)
+
+This action as its registered model.
+
+A typed instance is returned as is. A bare `ExtensionAction` is
+validated by the model its kind registered — or, unregistered, raises
+[`UnregisteredKindError`](an.genres.registry.md#an.genres.registry.UnregisteredKindError) (`strict`) or
+comes back unchanged (`strict=False`).
+
+* **Return type:**
+  [`ExtensionAction`](#an.ir.schema.ExtensionAction)
 
 ### *class* an.ir.schema.LoopAction(\*\*data)
 
@@ -408,6 +478,13 @@ scene and no compiled document moves. It reaches authored tweens ONLY:
 a motion preset writes its own easings, the camera’s named moves supply
 theirs, and blinks, `play` clips and swap channels have none to
 inherit. There is no per-shot override yet — style is a scene’s.
+
+#### default_renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+a registered renderer’s name.
+
+* **Type:**
+  Like [`Shot.renderer`](#an.ir.schema.Shot.renderer)
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
@@ -471,7 +548,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 ### *class* an.ir.schema.PlayAction(\*\*data)
 
-Bases: `_ActionBase`
+Bases: [`ExtensionAction`](#an.ir.schema.ExtensionAction)
 
 Play a named animation of the target entity’s descriptor (an#7).
 
@@ -518,6 +595,10 @@ Pixel dimensions of the rendered output.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.schema.STAGE_NODE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
+
+The property space a 2D stage engine’s node lives in ([`an.timing.spaces`](an.timing.spaces.md#module-an.timing.spaces)).
 
 ### *class* an.ir.schema.SceneIR(\*\*data)
 
@@ -575,13 +656,16 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### renderer *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['cutout', 'manim', 'motion_graphics', 'whiteboard']*
+#### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was
 called `style` until an#106, colliding with the styles store (which
 holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
+A `str` in the schema (ADR 0001 decision 2): any name a renderer
+registered (`an.adapters.register_renderer`), checked by `an
+validate`. `cutout` stays the persisted default (decision 9).
 
 #### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](#an.ir.schema.SoundCue)]*
 
@@ -845,3 +929,13 @@ and the project renderer all call it (an#89 review: three copies).
 >>> resolve_step_hz(Shot(id="s"), None) is None
 True
 ```
+
+### an.ir.schema.unregistered_action_kind(kind, , where='')
+
+The error for an action `kind` no loaded genre registered.
+
+It names the installed genres whose declaration provides the kind, read
+without loading them ([`an.genres.providers_of()`](an.genres.md#an.genres.providers_of)).
+
+* **Return type:**
+  [`Exception`](https://docs.python.org/3/builtins/exceptions.html#Exception)

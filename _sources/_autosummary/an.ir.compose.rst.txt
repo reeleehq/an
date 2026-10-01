@@ -20,11 +20,15 @@ an.ir.compose
       duration_of
       expression
       flatten
+      iter_actions
+      kind_of
       loop
       parallel
       play
+      resolve_action
       sequence
       set_
+      stagger
       tween
    
    .. rubric:: Classes
@@ -32,4 +36,5 @@ an.ir.compose
    .. autosummary::
    
       FlatAction
+      FlattenContext
    

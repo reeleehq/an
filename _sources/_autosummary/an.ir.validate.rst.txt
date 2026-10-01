@@ -17,6 +17,14 @@ an.ir.validate
 
    .. autosummary::
    
+      check_character_refs
+      check_expression_actions
+      check_hidden_mouth_while_speaking
+      check_play_actions
+      check_turns
+      check_view_continuity
+      registered_kind_problems
+      require_registered_kinds
       validate_schema
       validate_semantic
    
@@ -24,6 +32,13 @@ an.ir.validate
 
    .. autosummary::
    
+      ValidationContext
       ValidationFinding
       ValidationReport
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      UnregisteredInSceneError
    

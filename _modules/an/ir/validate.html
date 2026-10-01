@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -757,6 +757,17 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.migrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentMigrationError</span><span class="p">,</span> <span class="n">migrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.sync</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneValidationError</span><span class="p">,</span> <span class="n">scene_from_json_doc</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">SceneIR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SUPPORTED_RENDERERS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CORE_OWNER</span><span class="p">,</span>
+    <span class="n">SemanticCheck</span><span class="p">,</span>
+    <span class="n">UnregisteredKindError</span><span class="p">,</span>
+    <span class="n">action_kind</span><span class="p">,</span>
+    <span class="n">check_names</span><span class="p">,</span>
+    <span class="n">checks</span> <span class="k">as</span> <span class="n">registered_checks</span><span class="p">,</span>
+    <span class="n">entity_kind</span><span class="p">,</span>
+    <span class="n">register_check</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <span class="n">Severity</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"error"</span><span class="p">,</span> <span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"info"</span><span class="p">]</span>
@@ -1108,49 +1119,37 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_check_swap_references</span><span class="p">(</span>
-    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A set/tween on a non-transform property must name a declared asset set</span>
-<span class="sd">    and key of its target entity's descriptor, and a `play` must resolve</span>
-<span class="sd">    against that descriptor's animations — checked HERE, before the author</span>
-<span class="sd">    pays for TTS or a Chromium launch, because compile raises on both</span>
-<span class="sd">    (an#87, an#7). Same charter as `_check_renderable`; needs the store, so</span>
-<span class="sd">    it runs from `validate_semantic`'s shot loop — and ONLY then: with</span>
-<span class="sd">    no stores neither check runs, so a bare `validate_semantic(scene)` passes</span>
-<span class="sd">    a play the compiler will refuse.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_rig_scope</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``(rigged entities by id, ids whose rig store was not supplied)``.</span>
 
-<span class="sd">    ``stores`` is keyed by MALL NAME, not by entity kind, and `RIG_STORES`</span>
-<span class="sd">    maps between them — because an#108 gave props the same rig machinery, and</span>
-<span class="sd">    a check that only knows how to find a *character's* descriptor reports</span>
-<span class="sd">    "no descriptor declaring asset sets" for a lamp whose descriptor is right</span>
-<span class="sd">    there in the props store.</span>
-
-<span class="sd">    Descriptor-less (procedural) entities get a carve-out for `viseme` — the</span>
-<span class="sd">    compiler validates its codes against the drawn-mouth shapes — and an</span>
-<span class="sd">    error for anything else, matching the compiler's verdicts.</span>
+<span class="sd">    PER-KIND, not per-call. an#108's first pass changed the gate from</span>
+<span class="sd">    "characters store absent → skip" to "no stores at all → skip", which made</span>
+<span class="sd">    `validate_semantic(scene, available_characters=X)` — the signature every</span>
+<span class="sd">    caller outside this repo has — report EVERY prop swap as "has no</span>
+<span class="sd">    descriptor declaring asset sets" on a scene that compiles fine. A store</span>
+<span class="sd">    that was not supplied means the check did not run for that kind; it never</span>
+<span class="sd">    means the descriptor is missing: those entities' checks are SKIPPED, not</span>
+<span class="sd">    failed.</span>
 <span class="sd">    """</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">stores</span><span class="p">:</span>
-        <span class="k">return</span>
-    <span class="c1"># PER-KIND, not per-call. an#108's first pass changed the gate from</span>
-    <span class="c1"># "characters store absent → skip" to "no stores at all → skip", which made</span>
-    <span class="c1"># `validate_semantic(scene, available_characters=X)` — the signature every</span>
-    <span class="c1"># caller outside this repo has — report EVERY prop swap as</span>
-    <span class="c1"># "has no descriptor declaring asset sets" on a scene that compiles fine.</span>
-    <span class="c1"># A store that was not supplied means the check did not run for that kind;</span>
-    <span class="c1"># it never means the descriptor is missing.</span>
     <span class="n">rigs</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="n">RIG_STORES</span><span class="p">}</span>
-    <span class="c1">#: Entities whose rig store was not supplied. Their checks are SKIPPED, not</span>
-    <span class="c1">#: failed: "no store" and "no descriptor" are different facts, and reporting</span>
-    <span class="c1">#: the first as the second is how a caller who passes only characters gets</span>
-    <span class="c1">#: an error on every prop swap in a scene that compiles fine.</span>
     <span class="n">unchecked</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">eid</span> <span class="k">for</span> <span class="n">eid</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">rigs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RIG_STORES</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">kind</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="kc">None</span>
     <span class="p">}</span>
-    <span class="c1"># The expression and dialogue-emotion checks below are CHARACTER-only:</span>
-    <span class="c1"># a prop has no face.</span>
-    <span class="n">refs_by_entity</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">ref</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span><span class="p">}</span>
-    <span class="n">available_characters</span> <span class="o">=</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rigs</span><span class="p">,</span> <span class="n">unchecked</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_play_actions</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A `play` must resolve against its target's descriptor animations, or a</span>
+<span class="sd">    motion preset — checked HERE, before the author pays for TTS or a Chromium</span>
+<span class="sd">    launch, because compile raises (an#7, an#166). The cut-out genre's check</span>
+<span class="sd">    (registered by :mod:`an.genres.cutout`); with no stores it does not run, so</span>
+<span class="sd">    a bare `validate_semantic(scene)` passes a play the compiler will refuse.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stores</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">rigs</span><span class="p">,</span> <span class="n">unchecked</span> <span class="o">=</span> <span class="n">_rig_scope</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span>
     <span class="c1"># `play` (an#7): resolved against the target entity's MIGRATED descriptor</span>
     <span class="c1"># by `an.characters.play` — the SAME code the compiler resolves with, so</span>
     <span class="c1"># validate's verdict is compile's (an unknown bone property, a bone with</span>
@@ -1270,6 +1269,18 @@ window.runMermaid = runMermaid;</script>
                     <span class="sa">f</span><span class="s2">"`play` of </span><span class="si">{</span><span class="n">leaf</span><span class="o">.</span><span class="n">animation</span><span class="si">!r}</span><span class="s2"> on </span><span class="si">{</span><span class="n">entity_id</span><span class="si">!r}</span><span class="s2"> cannot "</span>
                     <span class="sa">f</span><span class="s2">"resolve: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2"> — compiling this shot raises."</span><span class="p">,</span>
                 <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_expression_actions</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""An `expression` and a dialogue `[emotion]` must resolve (an#98) — the</span>
+<span class="sd">    cut-out genre's check (registered by :mod:`an.genres.cutout`). CHARACTER</span>
+<span class="sd">    entities only: a prop has no face."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stores</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">refs_by_entity</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">ref</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span><span class="p">}</span>
+    <span class="n">available_characters</span> <span class="o">=</span> <span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">)</span>
     <span class="c1"># `expression` (an#98) and the dialogue `[emotion]` sugar resolve through</span>
     <span class="c1"># `an.expression.binding.expression_problems` — the SAME function the face</span>
     <span class="c1"># solver raises with. An unknown preset used to be silence.</span>
@@ -1313,6 +1324,30 @@ window.runMermaid = runMermaid;</script>
                 <span class="s2">"(face_overlay: false), so the [emotion] on this line moves "</span>
                 <span class="s2">"nothing; the audio still plays."</span><span class="p">,</span>
             <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_swap_references</span><span class="p">(</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">report</span><span class="p">:</span> <span class="s2">"ValidationReport"</span><span class="p">,</span> <span class="n">stores</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A set/tween on a non-transform property must name a declared asset set</span>
+<span class="sd">    and key of its target entity's descriptor — checked HERE, before the</span>
+<span class="sd">    author pays for TTS or a Chromium launch, because compile raises on it</span>
+<span class="sd">    (an#87). Same charter as `_check_renderable`; needs the store, so with no</span>
+<span class="sd">    stores it does not run.</span>
+
+<span class="sd">    ``stores`` is keyed by MALL NAME, not by entity kind, and `RIG_STORES`</span>
+<span class="sd">    maps between them — because an#108 gave props the same rig machinery, and</span>
+<span class="sd">    a check that only knows how to find a *character's* descriptor reports</span>
+<span class="sd">    "no descriptor declaring asset sets" for a lamp whose descriptor is right</span>
+<span class="sd">    there in the props store.</span>
+
+<span class="sd">    Descriptor-less (procedural) entities get a carve-out for `viseme` — the</span>
+<span class="sd">    compiler validates its codes against the drawn-mouth shapes — and an</span>
+<span class="sd">    error for anything else, matching the compiler's verdicts.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stores</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">rigs</span><span class="p">,</span> <span class="n">unchecked</span> <span class="o">=</span> <span class="n">_rig_scope</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">stores</span><span class="p">)</span>
     <span class="c1"># Flattened, like the compiler: the documented `start:` idiom wraps every</span>
     <span class="c1"># leaf in a `sequence`, so walking only top-level actions would miss the</span>
     <span class="c1"># common case (an#87 review) — an authoring-time gate that only sees the</span>
@@ -1699,6 +1734,13 @@ window.runMermaid = runMermaid;</script>
 <span class="c1">#: Leaf kinds whose ``target`` is a NODE path the runtime animates. `play` and</span>
 <span class="c1">#: `expression` target an entity and are resolved by their own checks above.</span>
 <span class="n">_NODE_TARGETING_KINDS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"set"</span><span class="p">,</span> <span class="s2">"tween"</span><span class="p">})</span>
+
+<span class="c1">#: Authorable properties that are compiler SUGAR, never a channel: ``tint`` is</span>
+<span class="c1">#: a ``#rrggbb`` string the compiler expands into three numbers (an#62), so it</span>
+<span class="c1">#: is not a field of any space.</span>
+<span class="n">_AUTHORING_SUGAR_PROPERTIES</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">AUTHORABLE_PROPERTIES</span> <span class="o">-</span> <span class="n">TRANSFORM_PROPERTIES</span>
+<span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_check_action_targets</span><span class="p">(</span>
@@ -2109,6 +2151,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">_check_camera</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/camera"</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">stores</span><span class="o">=</span><span class="n">stores</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># unregistered: `entity_kinds` reported it, naming its genre</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_DRAWABLE_ENTITY_KINDS</span>
             <span class="ow">and</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_CONFIGURING_ENTITY_KINDS</span>
@@ -2289,6 +2333,46 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">)</span>
 
 
+<div class="viewcode-block" id="ValidationContext">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.ValidationContext">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ValidationContext</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""What a registered semantic check (:class:`an.genres.SemanticCheck`) reads.</span>
+
+<span class="sd">    ``stores`` holds only the stores actually supplied, keyed by MALL name (an</span>
+<span class="sd">    absent one means its checks did not RUN — never that what it holds is</span>
+<span class="sd">    missing). ``shot`` and ``index`` are set while the ``shot`` stage runs.</span>
+<span class="sd">    ``memo`` is shared by every check of one ``validate_semantic`` call, so</span>
+<span class="sd">    two checks that need the same derived fact compute it once</span>
+<span class="sd">    (:meth:`cached`).</span>
+<span class="sd">    """</span>
+
+    <span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span>
+    <span class="n">report</span><span class="p">:</span> <span class="n">ValidationReport</span>
+    <span class="n">stores</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">voices</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">characters</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">sounds</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">index</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">memo</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The IR path of the current shot (``timeline/&lt;index&gt;``)."""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">"</span>
+
+<div class="viewcode-block" id="ValidationContext.cached">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.ValidationContext.cached">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cached</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">compute</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""``compute()``, once per ``key`` per validation."""</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">memo</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">memo</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">memo</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+</div>
+
+
+
 <div class="viewcode-block" id="validate_semantic">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.validate_semantic">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">validate_semantic</span><span class="p">(</span>
@@ -2314,16 +2398,17 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    skipping them is what it sounds like: a `play` or a swap the compiler</span>
 <span class="sd">    will refuse passes silently without the store (the CLI, `an validate`,</span>
 <span class="sd">    always passes it).</span>
+
+<span class="sd">    The checks are a REGISTRY (:func:`an.genres.registry.register_check`):</span>
+<span class="sd">    the core's own register below, a genre's when it is loaded (the cut-out</span>
+<span class="sd">    genre's `play`, `expression`, turn and view checks), and they run in</span>
+<span class="sd">    stages — ``scene``, then ``shot`` once per shot, then ``finish`` — each by</span>
+<span class="sd">    its ``order``. An action or entity kind no loaded genre registered is one</span>
+<span class="sd">    error naming the genre that provides it; checks that would trip over it</span>
+<span class="sd">    skip that shot rather than crash.</span>
 <span class="sd">    """</span>
     <span class="n">report</span> <span class="o">=</span> <span class="n">ValidationReport</span><span class="p">()</span>
-    <span class="c1">#: Only the stores actually supplied — an absent one skips its checks</span>
-    <span class="c1">#: rather than reporting everything it would have found as missing.</span>
-    <span class="c1">#: Every store that was actually supplied, keyed by MALL name. The rig</span>
-    <span class="c1">#: checks look up `RIG_STORES[kind][0]`, so an `environments` entry is</span>
-    <span class="c1">#: inert to them and available to the checks that need it (an#111's flat-pan</span>
-    <span class="c1">#: warning reads planes). An absent store means its checks did not RUN —</span>
-    <span class="c1">#: never that the thing it holds is missing.</span>
-    <span class="n">rig_stores</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">stores</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">name</span><span class="p">:</span> <span class="n">store</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="p">(</span>
             <span class="p">(</span><span class="s2">"characters"</span><span class="p">,</span> <span class="n">available_characters</span><span class="p">),</span>
@@ -2332,8 +2417,54 @@ window.runMermaid = runMermaid;</script>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
     <span class="p">}</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">ValidationContext</span><span class="p">(</span>
+        <span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span>
+        <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">,</span>
+        <span class="n">stores</span><span class="o">=</span><span class="n">stores</span><span class="p">,</span>
+        <span class="n">voices</span><span class="o">=</span><span class="n">available_voices</span><span class="p">,</span>
+        <span class="n">characters</span><span class="o">=</span><span class="n">available_characters</span><span class="p">,</span>
+        <span class="n">sounds</span><span class="o">=</span><span class="n">available_sounds</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">registered_checks</span><span class="p">(</span><span class="s2">"scene"</span><span class="p">):</span>
+        <span class="n">_run_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">shot</span><span class="p">,</span> <span class="n">i</span>
+        <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">registered_checks</span><span class="p">(</span><span class="s2">"shot"</span><span class="p">):</span>
+            <span class="n">_run_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+    <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="n">registered_checks</span><span class="p">(</span><span class="s2">"finish"</span><span class="p">):</span>
+        <span class="n">_run_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">ctx</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">report</span></div>
 
-    <span class="n">_check_retired_keys</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_run_check</span><span class="p">(</span><span class="n">check</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Run one check; an unregistered kind it trips over was already reported</span>
+<span class="sd">    (by ``action_kinds`` / ``entity_kinds``), so it costs that check, not the</span>
+<span class="sd">    whole report."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">check</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">UnregisteredKindError</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">_KIND_PROBLEM_REPORTED</span><span class="p">):</span>
+            <span class="k">raise</span>
+
+
+<span class="c1">#: Set in the memo once an action or entity kind problem — unregistered, or a</span>
+<span class="c1">#: genre kind its own model refuses — has been reported as a finding.</span>
+<span class="n">_KIND_PROBLEM_REPORTED</span> <span class="o">=</span> <span class="s2">"kind problem reported"</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The core's checks, as registered entries (the order is the report's order)</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_retired_keys</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_check_retired_keys</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_meta</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">scene</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span>
     <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">duration</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="s2">"meta/duration"</span><span class="p">,</span> <span class="s2">"duration must be non-negative"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -2341,165 +2472,492 @@ window.runMermaid = runMermaid;</script>
     <span class="n">_check_step_hz</span><span class="p">(</span>
         <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s2">"meta/step_hz"</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span>
     <span class="p">)</span>
-    <span class="n">_check_default_easing</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
-    <span class="n">_check_tween_easings</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
-    <span class="n">_check_default_easing_reach</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
-        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_easings</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_check_default_easing</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">)</span>
+    <span class="n">_check_tween_easings</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">)</span>
+    <span class="n">_check_default_easing_reach</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_has_shots</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
             <span class="s2">"warning"</span><span class="p">,</span>
             <span class="s2">"timeline"</span><span class="p">,</span>
             <span class="s2">"scene has no shots — nothing to render. Add at least one "</span>
             <span class="s2">"`## Shot &lt;id&gt; (cutout)` heading to scene.md."</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="n">seen_shot_ids</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="n">turn_resolutions</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span>
-        <span class="n">_check_step_hz</span><span class="p">(</span>
-            <span class="n">shot</span><span class="o">.</span><span class="n">step_hz</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/step_hz"</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
-            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/id"</span><span class="p">,</span> <span class="s2">"shot id may not be empty"</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">seen_shot_ids</span><span class="p">:</span>
-            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/id"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"duplicate shot id: </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
-        <span class="n">seen_shot_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/duration"</span><span class="p">,</span> <span class="s2">"shot duration must be &gt; 0"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_action_kinds</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Every action's kind is registered, and a registered genre kind read</span>
+<span class="sd">    before its genre loaded validates against its own model (ADR 0001</span>
+<span class="sd">    decision 2: the schema accepts any ``kind``; this is where it is held).</span>
+<span class="sd">    Runs first, over every shot, so the checks after it can skip what it</span>
+<span class="sd">    reported instead of crashing on it."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.compose</span><span class="w"> </span><span class="kn">import</span> <span class="n">iter_actions</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExtensionAction</span><span class="p">,</span> <span class="n">unregistered_action_kind</span>
 
-        <span class="n">_check_renderable</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">stores</span><span class="o">=</span><span class="n">rig_stores</span><span class="p">)</span>
-        <span class="n">_check_framing</span><span class="p">(</span>
-            <span class="n">shot</span><span class="p">,</span>
-            <span class="n">path</span><span class="p">,</span>
-            <span class="n">report</span><span class="p">,</span>
-            <span class="n">rig_stores</span><span class="p">,</span>
-            <span class="n">width</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-            <span class="n">height</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">_check_swap_references</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span>
-        <span class="n">turn_resolutions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_turn_resolution</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">))</span>
-        <span class="n">_check_turns</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">turn_resolutions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">_check_hidden_mouth_while_speaking</span><span class="p">(</span>
-            <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">turn_resolutions</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">rig_stores</span>
-        <span class="p">)</span>
-        <span class="n">_check_trim_targets</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span>
-        <span class="n">text_ids</span> <span class="o">=</span> <span class="n">_check_text_blocks</span><span class="p">(</span>
-            <span class="n">shot</span><span class="p">,</span>
-            <span class="n">path</span><span class="p">,</span>
-            <span class="n">report</span><span class="p">,</span>
-            <span class="n">rig_stores</span><span class="p">,</span>
-            <span class="n">width</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-            <span class="n">height</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">_check_action_targets</span><span class="p">(</span>
-            <span class="n">shot</span><span class="p">,</span>
-            <span class="n">path</span><span class="p">,</span>
-            <span class="n">report</span><span class="p">,</span>
-            <span class="n">rig_stores</span><span class="p">,</span>
-            <span class="n">resolution</span><span class="o">=</span><span class="p">(</span>
-                <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
-                <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">skip</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">text_ids</span><span class="p">),</span>
-        <span class="p">)</span>
-
-        <span class="c1"># Entity references resolve?</span>
-        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">RIG_STORES</span> <span class="ow">or</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">text_ids</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">store_name</span><span class="p">,</span> <span class="n">want_kind</span> <span class="o">=</span> <span class="n">RIG_STORES</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">]</span>
-            <span class="n">store</span> <span class="o">=</span> <span class="n">rig_stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store_name</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">continue</span>  <span class="c1"># store not supplied → this check did not run</span>
-            <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="s2">"character"</span><span class="p">:</span>
-                <span class="c1"># A WARNING: the compiler falls back to the built-in placeholder</span>
-                <span class="c1"># rig and the scene still renders. Deliberately not escalated —</span>
-                <span class="c1"># an asset-less project rendering placeholders is a supported</span>
-                <span class="c1"># way to work.</span>
-                <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
-                    <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                        <span class="s2">"warning"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"character ref </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> not in characters store"</span><span class="p">,</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">top</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">top</span><span class="p">):</span>
+                <span class="c1"># EVERY node, whatever its type: a typed genre action built in</span>
+                <span class="c1"># Python (`an.play(...)`) while its genre is not loaded is as</span>
+                <span class="c1"># unregistered as a bare `ExtensionAction` (review-244 S3).</span>
+                <span class="k">if</span> <span class="n">action_kind</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">action</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="p">[</span><span class="n">_KIND_PROBLEM_REPORTED</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                        <span class="s2">"error"</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">unregistered_action_kind</span><span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">kind</span><span class="p">))</span>
                     <span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="c1"># A stroked path (an#160) is a prop whose document is a</span>
-            <span class="c1"># `PathDescriptor`; it is checked by the same resolver the</span>
-            <span class="c1"># compiler builds it with, overrides merged, so the verdicts agree.</span>
-            <span class="n">path_problem</span> <span class="o">=</span> <span class="n">_path_document_problem</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">path_problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">path_problem</span><span class="p">:</span>
-                    <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">path_problem</span><span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="c1"># A prop has NO placeholder rig — the placeholder IS a humanoid, so</span>
-            <span class="c1"># falling back would draw a person where the prop should be — which</span>
-            <span class="c1"># makes an unresolvable prop a hard raise at compile. The pre-flight</span>
-            <span class="c1"># for a hard raise is an ERROR, and before an#108's review this arm</span>
-            <span class="c1"># did not exist at all: the harsher outcome had the weaker</span>
-            <span class="c1"># prediction, and `an validate` said "passed" about a scene that</span>
-            <span class="c1"># cannot render.</span>
-            <span class="k">if</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
-                    <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"is in the </span><span class="si">{</span><span class="n">store_name</span><span class="si">!r}</span><span class="s2"> store but is not a "</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">want_kind</span><span class="si">}</span><span class="s2"> (rendering this shot raises)"</span>
-                    <span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"is not in the </span><span class="si">{</span><span class="n">store_name</span><span class="si">!r}</span><span class="s2"> store, and a </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2"> "</span>
-                        <span class="s2">"has no placeholder rig (rendering this shot raises)"</span>
-                    <span class="p">)</span>
-                <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                    <span class="s2">"error"</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2"> ref </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="p">)</span>
-
-        <span class="c1"># Dialogue voice refs resolve?</span>
-        <span class="c1"># The line's own voice_ref, else the one its speaker is bound to — the</span>
-        <span class="c1"># resolver the audio pipeline speaks with (an#194).</span>
-        <span class="k">if</span> <span class="n">available_voices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
-                <span class="n">voice_ref</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">or</span> <span class="n">speaker_voice_ref</span><span class="p">(</span>
-                    <span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="p">{</span><span class="s2">"characters"</span><span class="p">:</span> <span class="n">available_characters</span><span class="p">}</span>
-                <span class="p">)</span>
-                <span class="k">if</span> <span class="n">voice_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>
-                <span class="k">if</span> <span class="n">voice_ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">available_voices</span><span class="p">:</span>
-                    <span class="n">bound</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="s2">""</span>
-                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span>
-                        <span class="k">else</span> <span class="sa">f</span><span class="s2">" (the voice character </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">!r}</span><span class="s2"> is bound to)"</span>
-                    <span class="p">)</span>
-                    <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                        <span class="s2">"warning"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/voice_ref"</span><span class="p">,</span>
-                        <span class="sa">f</span><span class="s2">"voice ref </span><span class="si">{</span><span class="n">voice_ref</span><span class="si">!r}{</span><span class="n">bound</span><span class="si">}</span><span class="s2"> not in voices store; "</span>
-                        <span class="s2">"the TTS provider is handed the name itself"</span><span class="p">,</span>
-                    <span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">_check_voice_effects</span><span class="p">(</span>
-                        <span class="n">report</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">voice_ref</span><span class="p">,</span> <span class="n">available_voices</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">line</span>
+                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">action</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">ExtensionAction</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">action</span><span class="o">.</span><span class="n">resolved</span><span class="p">()</span>
+                <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="p">[</span><span class="n">_KIND_PROBLEM_REPORTED</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">errors</span><span class="p">():</span>
+                        <span class="n">loc</span> <span class="o">=</span> <span class="s2">"/"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">err</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"loc"</span><span class="p">,</span> <span class="p">()))</span>
+                        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                            <span class="s2">"error"</span><span class="p">,</span>
+                            <span class="n">where</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"/</span><span class="si">{</span><span class="n">loc</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">loc</span> <span class="k">else</span> <span class="s2">""</span><span class="p">),</span>
+                            <span class="sa">f</span><span class="s2">"`</span><span class="si">{</span><span class="n">action</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2">` action: </span><span class="si">{</span><span class="n">err</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'msg'</span><span class="p">,</span><span class="w"> </span><span class="s1">'invalid'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_entity_kinds</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Every entity's ``kind`` is a registered entity kind (ADR 0001 decision</span>
+<span class="sd">    2: ``AssetRef.kind`` is a ``str`` in the schema, held here)."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">providers_of</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_kind_names</span>
+
+    <span class="n">located</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"assets"</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">assets</span><span class="p">)]</span> <span class="o">+</span> <span class="p">[</span>
+        <span class="p">(</span><span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/entities"</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">where</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">located</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="p">[</span><span class="n">_KIND_PROBLEM_REPORTED</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="n">UnregisteredKindError</span><span class="p">(</span>
+            <span class="s2">"entity kind"</span><span class="p">,</span>
+            <span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span>
+            <span class="n">known</span><span class="o">=</span><span class="n">entity_kind_names</span><span class="p">(),</span>
+            <span class="n">providers</span><span class="o">=</span><span class="n">providers_of</span><span class="p">(</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">,</span> <span class="n">registry</span><span class="o">=</span><span class="s2">"entity kinds"</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">error</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_known_renderers</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.adapters._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">list_renderers</span>
+
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">SUPPORTED_RENDERERS</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">list_renderers</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_renderer_problem</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">known</span> <span class="o">=</span> <span class="n">_known_renderers</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">known</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"renderer </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is not registered; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">known</span><span class="p">)</span><span class="si">}</span><span class="s2">. A "</span>
+        <span class="s2">"renderer registers with `an.adapters.register_renderer`."</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_renderer</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The shot's ``renderer`` names a renderer this build has: a built-in one</span>
+<span class="sd">    (:data:`an.base.SUPPORTED_RENDERERS`) or one registered with</span>
+<span class="sd">    ``an.adapters.register_renderer``."""</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">_renderer_problem</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/renderer"</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="registered_kind_problems">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.registered_kind_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">registered_kind_problems</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ValidationReport</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The findings of the three registry checks alone — every action kind,</span>
+<span class="sd">    entity kind and renderer the scene names must be registered — without the</span>
+<span class="sd">    rest of ``validate_semantic`` (no stores, no rig builds; cheap)."""</span>
+    <span class="n">ctx</span> <span class="o">=</span> <span class="n">ValidationContext</span><span class="p">(</span><span class="n">scene</span><span class="o">=</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">ValidationReport</span><span class="p">(),</span> <span class="n">stores</span><span class="o">=</span><span class="p">{})</span>
+    <span class="n">_core_action_kinds</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="n">_core_entity_kinds</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">):</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">_renderer_problem</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">renderer</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">problem</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"timeline/</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/renderer"</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span>
+    <span class="n">problem</span> <span class="o">=</span> <span class="n">_renderer_problem</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">default_renderer</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">problem</span><span class="p">:</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="s2">"meta/default_renderer"</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span></div>
+
+
+
+<div class="viewcode-block" id="UnregisteredInSceneError">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.UnregisteredInSceneError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnregisteredInSceneError</span><span class="p">(</span><span class="n">UnregisteredKindError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A scene names kinds or renderers nothing registered: refused at load.</span>
+
+<span class="sd">    Raised by :func:`require_registered_kinds` — what ``an.load(project)``</span>
+<span class="sd">    (and so ``an render``) runs, so a typo'd ``kind:`` or ``renderer:`` can no</span>
+<span class="sd">    longer render silently wrong now that the schema holds them as ``str``</span>
+<span class="sd">    (review-244 S2). ``findings`` keeps each one with its IR path.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">findings</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">findings</span> <span class="o">=</span> <span class="n">findings</span>
+        <span class="ne">ValueError</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: "</span> <span class="k">if</span> <span class="n">where</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">"the scene names what no loaded genre or renderer registered:</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">ir_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">description</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">findings</span><span class="p">),</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="require_registered_kinds">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.require_registered_kinds">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">require_registered_kinds</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">SceneIR</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SceneIR</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``scene``, or :class:`UnregisteredInSceneError` naming every action</span>
+<span class="sd">    kind, entity kind and renderer it uses that is not registered."""</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="n">registered_kind_problems</span><span class="p">(</span><span class="n">scene</span><span class="p">)</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">report</span><span class="o">.</span><span class="n">findings</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">severity</span> <span class="o">==</span> <span class="s2">"error"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">UnregisteredInSceneError</span><span class="p">(</span><span class="n">errors</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">scene</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_shot_basics</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span>
+    <span class="n">_check_step_hz</span><span class="p">(</span>
+        <span class="n">shot</span><span class="o">.</span><span class="n">step_hz</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/step_hz"</span><span class="p">,</span> <span class="n">report</span><span class="o">=</span><span class="n">report</span>
+    <span class="p">)</span>
+    <span class="n">seen_shot_ids</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">memo</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">"seen shot ids"</span><span class="p">,</span> <span class="nb">set</span><span class="p">())</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/id"</span><span class="p">,</span> <span class="s2">"shot id may not be empty"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">seen_shot_ids</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/id"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"duplicate shot id: </span><span class="si">{</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">seen_shot_ids</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">shot</span><span class="o">.</span><span class="n">duration</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/duration"</span><span class="p">,</span> <span class="s2">"shot duration must be &gt; 0"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_renderable</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_check_renderable</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">stores</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_framing</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span>
+    <span class="n">_check_framing</span><span class="p">(</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">height</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_swap_references</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_check_swap_references</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_trim_targets</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_check_trim_targets</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The current shot's text-block entity ids (checked by `_check_text_blocks`,</span>
+<span class="sd">    once; the target and entity-reference checks skip them)."""</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span>
+    <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">cached</span><span class="p">(</span>
+        <span class="p">(</span><span class="s2">"text ids"</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">_check_text_blocks</span><span class="p">(</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_text_blocks</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_action_targets</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span>
+    <span class="n">_check_action_targets</span><span class="p">(</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">,</span>
+        <span class="n">resolution</span><span class="o">=</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">width</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">height</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">skip</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_field_kinds</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Generic target validation against the property space (ADR 0001 decision</span>
+<span class="sd">    11): every value a ``set``/``tween`` writes must fit the field kind its</span>
+<span class="sd">    target's space declares — resolved by :func:`an.genres.entity_space_resolver`,</span>
+<span class="sd">    the same policy the compiler's keyframe check uses, so validate and compile</span>
+<span class="sd">    agree (review-244 S7). A string on a stage node's ``x`` is refused here, as</span>
+<span class="sd">    the compiler refuses it. Entities with no registered kind are reported by</span>
+<span class="sd">    ``entity_kinds``; an entity kind with no space (a voice) has no fields."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">entity_space_resolver</span>
+
+    <span class="n">shot</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span>
+    <span class="n">space_of</span> <span class="o">=</span> <span class="n">entity_space_resolver</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">)</span>
+    <span class="n">kinds</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">e</span><span class="o">.</span><span class="n">kind</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">top</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">actions</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">flat</span> <span class="ow">in</span> <span class="n">flatten</span><span class="p">(</span><span class="n">top</span><span class="p">):</span>
+            <span class="n">leaf</span> <span class="o">=</span> <span class="n">flat</span><span class="o">.</span><span class="n">action</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_NODE_TARGETING_KINDS</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">prop</span> <span class="o">=</span> <span class="n">leaf</span><span class="o">.</span><span class="n">property</span>
+            <span class="k">if</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">_AUTHORING_SUGAR_PROPERTIES</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># expanded by the compiler before any channel exists</span>
+            <span class="n">owner</span> <span class="o">=</span> <span class="n">kinds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"/"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">registered</span> <span class="o">=</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">owner</span><span class="p">)</span> <span class="k">if</span> <span class="n">owner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">owner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">registered</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">registered</span><span class="o">.</span><span class="n">space</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">space</span> <span class="o">=</span> <span class="n">space_of</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+            <span class="n">field_kind</span> <span class="o">=</span> <span class="n">space</span><span class="o">.</span><span class="n">kind_of</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"value"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"from_value"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+                <span class="nb">getattr</span><span class="p">(</span><span class="n">leaf</span><span class="p">,</span> <span class="s2">"to_value"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+            <span class="p">):</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">problem</span> <span class="o">=</span> <span class="n">field_kind</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">problem</span><span class="p">:</span>
+                    <span class="n">who</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"a </span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">owner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"the stage"</span>
+                    <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                        <span class="s2">"error"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/actions/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">leaf</span><span class="o">.</span><span class="n">target</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">prop</span><span class="si">}</span><span class="s2"> is a </span><span class="si">{</span><span class="n">field_kind</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> field of "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">space</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2"> — compiling this "</span>
+                        <span class="s2">"shot raises."</span><span class="p">,</span>
                     <span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
-                <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                    <span class="s2">"warning"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/text"</span><span class="p">,</span> <span class="s2">"empty dialogue line"</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_entity_refs</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Entity references resolve?"""</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">rig_stores</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span>
+    <span class="n">text_ids</span> <span class="o">=</span> <span class="n">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">RIG_STORES</span> <span class="ow">or</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">text_ids</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">store_name</span><span class="p">,</span> <span class="n">want_kind</span> <span class="o">=</span> <span class="n">RIG_STORES</span><span class="p">[</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="p">]</span>
+        <span class="n">store</span> <span class="o">=</span> <span class="n">rig_stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">store_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># store not supplied → this check did not run</span>
+        <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="ow">in</span> <span class="n">_PLACEHOLDER_RIG_KINDS</span><span class="p">:</span>
+            <span class="k">continue</span>  <span class="c1"># its genre reports a missing ref (`check_character_refs`)</span>
+        <span class="c1"># A stroked path (an#160) is a prop whose document is a</span>
+        <span class="c1"># `PathDescriptor`; it is checked by the same resolver the</span>
+        <span class="c1"># compiler builds it with, overrides merged, so the verdicts agree.</span>
+        <span class="n">path_problem</span> <span class="o">=</span> <span class="n">_path_document_problem</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path_problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path_problem</span><span class="p">:</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"error"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">path_problem</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="c1"># A prop has NO placeholder rig — the placeholder IS a humanoid, so</span>
+        <span class="c1"># falling back would draw a person where the prop should be — which</span>
+        <span class="c1"># makes an unresolvable prop a hard raise at compile. The pre-flight</span>
+        <span class="c1"># for a hard raise is an ERROR, and before an#108's review this arm</span>
+        <span class="c1"># did not exist at all: the harsher outcome had the weaker</span>
+        <span class="c1"># prediction, and `an validate` said "passed" about a scene that</span>
+        <span class="c1"># cannot render.</span>
+        <span class="k">if</span> <span class="n">_rig_document</span><span class="p">(</span><span class="n">entity</span><span class="p">,</span> <span class="n">rig_stores</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
+                <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"is in the </span><span class="si">{</span><span class="n">store_name</span><span class="si">!r}</span><span class="s2"> store but is not a "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">want_kind</span><span class="si">}</span><span class="s2"> (rendering this shot raises)"</span>
                 <span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">:</span>
-                <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-                    <span class="s2">"error"</span><span class="p">,</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/speaker"</span><span class="p">,</span>
-                    <span class="s2">"dialogue requires a speaker"</span><span class="p">,</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">why</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"is not in the </span><span class="si">{</span><span class="n">store_name</span><span class="si">!r}</span><span class="s2"> store, and a </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="s2">"has no placeholder rig (rendering this shot raises)"</span>
                 <span class="p">)</span>
-        <span class="n">_check_dialogue_fits</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"error"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">kind</span><span class="si">}</span><span class="s2"> ref </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>
 
-    <span class="n">_check_view_continuity</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">turn_resolutions</span><span class="p">)</span>
-    <span class="n">_check_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">report</span><span class="p">,</span> <span class="n">sounds</span><span class="o">=</span><span class="n">available_sounds</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">report</span></div>
 
+<span class="c1">#: Entity kinds whose missing ref is NOT an error, because the compiler draws</span>
+<span class="c1">#: a placeholder rig instead: the cut-out genre's `character`, reported by its</span>
+<span class="c1">#: own check (:func:`check_character_refs`). P8 moves this with the genre.</span>
+<span class="n">_PLACEHOLDER_RIG_KINDS</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="s2">"character"</span><span class="p">})</span>
+
+
+<div class="viewcode-block" id="check_character_refs">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.check_character_refs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_character_refs</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The cut-out genre's missing-character warning. A WARNING: the compiler</span>
+<span class="sd">    falls back to the built-in placeholder rig and the scene still renders.</span>
+<span class="sd">    Deliberately not escalated — an asset-less project rendering placeholders</span>
+<span class="sd">    is a supported way to work."""</span>
+    <span class="n">store</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"characters"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>  <span class="c1"># store not supplied → this check did not run</span>
+    <span class="n">text_ids</span> <span class="o">=</span> <span class="n">_text_ids</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">entity</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="o">.</span><span class="n">entities</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">kind</span> <span class="o">!=</span> <span class="s2">"character"</span> <span class="ow">or</span> <span class="n">entity</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">text_ids</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">entity</span><span class="o">.</span><span class="n">ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">store</span><span class="p">:</span>
+            <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/entities/</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"character ref </span><span class="si">{</span><span class="n">entity</span><span class="o">.</span><span class="n">ref</span><span class="si">!r}</span><span class="s2"> not in characters store"</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_voices</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Dialogue voice refs resolve? The line's own voice_ref, else the one its</span>
+<span class="sd">    speaker is bound to — the resolver the audio pipeline speaks with (an#194)."""</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span>
+    <span class="n">available_voices</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">voices</span>
+    <span class="k">if</span> <span class="n">available_voices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
+        <span class="n">voice_ref</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span> <span class="ow">or</span> <span class="n">speaker_voice_ref</span><span class="p">(</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">,</span> <span class="n">shot</span><span class="p">,</span> <span class="p">{</span><span class="s2">"characters"</span><span class="p">:</span> <span class="n">ctx</span><span class="o">.</span><span class="n">characters</span><span class="p">}</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">voice_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">voice_ref</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">available_voices</span><span class="p">:</span>
+            <span class="n">bound</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">""</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">voice_ref</span>
+                <span class="k">else</span> <span class="sa">f</span><span class="s2">" (the voice character </span><span class="si">{</span><span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="si">!r}</span><span class="s2"> is bound to)"</span>
+            <span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"warning"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/voice_ref"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"voice ref </span><span class="si">{</span><span class="n">voice_ref</span><span class="si">!r}{</span><span class="n">bound</span><span class="si">}</span><span class="s2"> not in voices store; "</span>
+                <span class="s2">"the TTS provider is handed the name itself"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_check_voice_effects</span><span class="p">(</span>
+                <span class="n">report</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">voice_ref</span><span class="p">,</span> <span class="n">available_voices</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="n">line</span>
+            <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_dialogue_lines</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">shot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">dialogue</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/text"</span><span class="p">,</span> <span class="s2">"empty dialogue line"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">speaker</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
+                <span class="s2">"error"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">/dialogue/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">/speaker"</span><span class="p">,</span>
+                <span class="s2">"dialogue requires a speaker"</span><span class="p">,</span>
+            <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_dialogue_fits</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_check_dialogue_fits</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_core_assembly</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">_check_assembly</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">sounds</span><span class="o">=</span><span class="n">ctx</span><span class="o">.</span><span class="n">sounds</span><span class="p">)</span>
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The cut-out genre's checks, as context functions. The genre object</span>
+<span class="c1"># (`an.genres.cutout.CUTOUT`) registers them; the core never runs them on its</span>
+<span class="c1"># own. They live here until the genre package exists (P8 moves them).</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_turns_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">shot</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">ctx</span><span class="o">.</span><span class="n">cached</span><span class="p">((</span><span class="s2">"turns"</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">_turn_resolution</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="check_play_actions">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.check_play_actions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_play_actions</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The cut-out genre's `play` check (:func:`_check_play_actions`)."""</span>
+    <span class="n">_check_play_actions</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="check_expression_actions">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.check_expression_actions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_expression_actions</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The cut-out genre's `expression` / `[emotion]` check."""</span>
+    <span class="n">_check_expression_actions</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="check_turns">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.check_turns">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_turns</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The cut-out genre's contradicted-turn warning (:func:`_check_turns`)."""</span>
+    <span class="n">_check_turns</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">_turns_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="check_hidden_mouth_while_speaking">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.check_hidden_mouth_while_speaking">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_hidden_mouth_while_speaking</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The cut-out genre's mouth-hidden-by-a-view warning."""</span>
+    <span class="n">_check_hidden_mouth_while_speaking</span><span class="p">(</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span>
+        <span class="n">_turns_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">shot</span><span class="p">),</span>
+        <span class="n">ctx</span><span class="o">.</span><span class="n">stores</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="check_view_continuity">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.validate.html#an.check_view_continuity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_view_continuity</span><span class="p">(</span><span class="n">ctx</span><span class="p">:</span> <span class="n">ValidationContext</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The cut-out genre's view-across-a-cut warning (:func:`_check_view_continuity`)."""</span>
+    <span class="n">resolved</span> <span class="o">=</span> <span class="p">[</span><span class="n">_turns_of</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">shot</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">)]</span>
+    <span class="n">_check_view_continuity</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">ctx</span><span class="o">.</span><span class="n">report</span><span class="p">,</span> <span class="n">resolved</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_register_core_checks</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The core's checks. The gaps in ``order`` are where the cut-out genre's</span>
+<span class="sd">    land (its `play` and `expression` checks at 40-41, turns at 60-61, view</span>
+<span class="sd">    continuity at 10 of ``finish``), which keeps a report's order exactly</span>
+<span class="sd">    what it was when all of them were one function."""</span>
+    <span class="k">for</span> <span class="n">check</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"retired_keys"</span><span class="p">,</span> <span class="n">_core_retired_keys</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">"scene"</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"meta"</span><span class="p">,</span> <span class="n">_core_meta</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">"scene"</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"easings"</span><span class="p">,</span> <span class="n">_core_easings</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">"scene"</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"has_shots"</span><span class="p">,</span> <span class="n">_core_has_shots</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">"scene"</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">40</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"action_kinds"</span><span class="p">,</span> <span class="n">_core_action_kinds</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">"scene"</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"entity_kinds"</span><span class="p">,</span> <span class="n">_core_entity_kinds</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">"scene"</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"renderer"</span><span class="p">,</span> <span class="n">_core_renderer</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"shot_basics"</span><span class="p">,</span> <span class="n">_core_shot_basics</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"renderable"</span><span class="p">,</span> <span class="n">_core_renderable</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"framing"</span><span class="p">,</span> <span class="n">_core_framing</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">30</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"swap_references"</span><span class="p">,</span> <span class="n">_core_swap_references</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">50</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"trim_targets"</span><span class="p">,</span> <span class="n">_core_trim_targets</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">70</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"text_blocks"</span><span class="p">,</span> <span class="n">_core_text_blocks</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">80</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"action_targets"</span><span class="p">,</span> <span class="n">_core_action_targets</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">90</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"field_kinds"</span><span class="p">,</span> <span class="n">_core_field_kinds</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">95</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"entity_refs"</span><span class="p">,</span> <span class="n">_core_entity_refs</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">100</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"voices"</span><span class="p">,</span> <span class="n">_core_voices</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">110</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"dialogue_lines"</span><span class="p">,</span> <span class="n">_core_dialogue_lines</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">120</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"dialogue_fits"</span><span class="p">,</span> <span class="n">_core_dialogue_fits</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">130</span><span class="p">),</span>
+        <span class="n">SemanticCheck</span><span class="p">(</span><span class="s2">"assembly"</span><span class="p">,</span> <span class="n">_core_assembly</span><span class="p">,</span> <span class="n">stage</span><span class="o">=</span><span class="s2">"finish"</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">20</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">check</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">check_names</span><span class="p">(</span><span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">):</span>
+            <span class="n">register_check</span><span class="p">(</span><span class="n">check</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>
 
 
 <span class="c1">#: Slack before a line counts as running past its shot: a frame at 60 fps.</span>
@@ -2662,6 +3120,9 @@ window.runMermaid = runMermaid;</script>
                 <span class="sa">f</span><span class="s2">"sound </span><span class="si">{</span><span class="n">cue</span><span class="o">.</span><span class="n">sound</span><span class="si">!r}</span><span class="s2"> has no recorded licence; `an credits` "</span>
                 <span class="s2">"reports it UNVERIFIED — unknown is not unencumbered"</span><span class="p">,</span>
             <span class="p">)</span>
+
+
+<span class="n">_register_core_checks</span><span class="p">()</span>
 </pre></div>
 
                 </article>

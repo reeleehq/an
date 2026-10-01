@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -733,11 +733,12 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">**Units are addressable, so text animates with ordinary tweens.** A block of</span>
 <span class="sd">``unit="word"`` builds ``&lt;id&gt;/word_0``, ``&lt;id&gt;/word_1``, …; ``"glyph"`` and</span>
 <span class="sd">``"line"`` likewise. ``index`` counts DRAWN units in reading order (spaces are</span>
-<span class="sd">not units). :func:`stagger` is a Python-side generator of ordinary actions for</span>
-<span class="sd">a staggered reveal — a preset, not a new IR node:</span>
+<span class="sd">not units). :func:`reveal_units` is a Python-side generator of ordinary actions</span>
+<span class="sd">for a staggered reveal — a preset, not a new IR node (the general combinator is</span>
+<span class="sd">:func:`an.ir.compose.stagger`):</span>
 
 <span class="sd">&gt;&gt;&gt; from an.ir.compose import flatten</span>
-<span class="sd">&gt;&gt;&gt; reveal = stagger("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.1)</span>
+<span class="sd">&gt;&gt;&gt; reveal = reveal_units("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.1)</span>
 <span class="sd">&gt;&gt;&gt; [(f.action.target, round(f.start, 3)) for a in reveal for f in flatten(a)</span>
 <span class="sd">...  if f.action.kind == "tween"]</span>
 <span class="sd">[('title/word_0', 0.0), ('title/word_1', 0.1), ('title/word_2', 0.2)]</span>
@@ -796,7 +797,7 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"RESERVED_TEXT_IDS"</span><span class="p">,</span>
     <span class="s2">"layout_text"</span><span class="p">,</span>
     <span class="s2">"unit_names"</span><span class="p">,</span>
-    <span class="s2">"stagger"</span><span class="p">,</span>
+    <span class="s2">"reveal_units"</span><span class="p">,</span>
     <span class="s2">"DFLT_TEXT_COLOUR"</span><span class="p">,</span>
     <span class="s2">"DFLT_TEXT_SIZE"</span><span class="p">,</span>
 <span class="p">]</span>
@@ -1265,9 +1266,9 @@ window.runMermaid = runMermaid;</script>
 <span class="c1"># -----------------------------------------------------------------------------</span>
 
 
-<div class="viewcode-block" id="stagger">
-<a class="viewcode-back" href="../../_autosummary/an.text.html#an.text.stagger">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">stagger</span><span class="p">(</span>
+<div class="viewcode-block" id="reveal_units">
+<a class="viewcode-back" href="../../_autosummary/an.text.html#an.text.reveal_units">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">reveal_units</span><span class="p">(</span>
     <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -1292,16 +1293,20 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    Returns a LIST of top-level actions — ``set``, a bare ``tween``, or the</span>
 <span class="sd">    ``sequence(delay(start), tween)`` wrapper the ``scene.md`` parser itself</span>
 <span class="sd">    produces for a ``start:`` key — so ``shot.actions.extend(stagger(...))``</span>
-<span class="sd">    round-trips through ``scene.md``. (A ``parallel`` would not: the markdown</span>
-<span class="sd">    writer only knows leaf shapes and that one wrapper.)</span>
+<span class="sd">    round-trips through ``scene.md`` in its short form, one entry per unit.</span>
 
-<span class="sd">    &gt;&gt;&gt; [a.kind for a in stagger("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]</span>
+<span class="sd">    Named ``stagger`` until an#241 gave the core a general combinator of that</span>
+<span class="sd">    name (:func:`an.ir.compose.stagger`, any actions, one ``parallel``);</span>
+<span class="sd">    ``an.text.stagger`` stays as an alias of this function so old imports</span>
+<span class="sd">    keep working.</span>
+
+<span class="sd">    &gt;&gt;&gt; [a.kind for a in reveal_units("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]</span>
 <span class="sd">    ['tween', 'set', 'sequence']</span>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir</span><span class="w"> </span><span class="kn">import</span> <span class="n">compose</span> <span class="k">as</span> <span class="n">c</span>
 
     <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"stagger needs at least one unit; got count=</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"reveal_units needs at least one unit; got count=</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">count</span><span class="p">):</span>
         <span class="n">target</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entity_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">unit</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span>
@@ -1316,6 +1321,10 @@ window.runMermaid = runMermaid;</script>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tween</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span></div>
 
+
+
+<span class="c1">#: The pre-an#241 name of :func:`reveal_units`, kept so old imports work.</span>
+<span class="n">stagger</span> <span class="o">=</span> <span class="n">reveal_units</span>
 </pre></div>
 
                 </article>

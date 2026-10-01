@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -778,7 +778,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">VectorKind</span><span class="p">,</span>
     <span class="n">kind_from_spec</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="n">PropertySpace</span><span class="p">,</span> <span class="n">get_space</span><span class="p">,</span> <span class="n">space_from_json</span><span class="p">,</span> <span class="n">space_names</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.spaces</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">VALUE_TYPED</span><span class="p">,</span>
+    <span class="n">PropertySpace</span><span class="p">,</span>
+    <span class="n">get_space</span><span class="p">,</span>
+    <span class="n">space_from_json</span><span class="p">,</span>
+    <span class="n">space_names</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.timing.timeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_timeline</span><span class="p">,</span> <span class="n">timeline_from_compiled</span>
 
 <span class="c1">#: Where the committed contract files live (inside the package, so they ship).</span>
@@ -871,13 +877,14 @@ window.runMermaid = runMermaid;</script>
 
 
 <span class="c1">#: The cases whose space is the value-typed rule's write-group space are ALSO</span>
-<span class="c1">#: evaluated with ``space=None`` — the path compile, truth projections and the</span>
-<span class="c1">#: bench use — so both rules are held to the same numbers.</span>
+<span class="c1">#: evaluated with ``space=VALUE_TYPED`` — the rule ``runtime.js`` implements —</span>
+<span class="c1">#: so both rules are held to the same numbers (the default, ``space=None``, is</span>
+<span class="c1">#: the declared rule since an#239 item 2).</span>
 <span class="n">VALUE_TYPED_CASE_SPACE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"stage.node"</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_state_value_typed</span><span class="p">(</span><span class="n">doc</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">t</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-    <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline_from_compiled</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">pose</span> <span class="o">=</span> <span class="n">evaluate_timeline</span><span class="p">(</span><span class="n">timeline_from_compiled</span><span class="p">(</span><span class="n">doc</span><span class="p">),</span> <span class="n">t</span><span class="p">,</span> <span class="n">space</span><span class="o">=</span><span class="n">VALUE_TYPED</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">format_address</span><span class="p">(</span><span class="n">tg</span><span class="p">,</span> <span class="n">pr</span><span class="p">):</span> <span class="n">_jsonable</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">tg</span><span class="p">,</span> <span class="n">pr</span><span class="p">),</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pose</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
 
@@ -888,7 +895,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    does not reproduce, as one line each. Empty means the kernel meets the contract.</span>
 
 <span class="sd">    Both evaluation rules are held: every case under its declared space, and every</span>
-<span class="sd">    ``stage.node`` case also under the value-typed default (``space=None``)."""</span>
+<span class="sd">    ``stage.node`` case also under the value-typed rule (``space=VALUE_TYPED``)."""</span>
     <span class="k">if</span> <span class="n">vectors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">vectors</span> <span class="o">=</span> <span class="n">load_contract_file</span><span class="p">(</span><span class="n">VECTORS_FILE</span><span class="p">)</span>
     <span class="n">problems</span> <span class="o">=</span> <span class="p">[]</span>

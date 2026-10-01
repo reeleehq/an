@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.preview" href="an.preview.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
@@ -396,9 +397,15 @@
 <li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
@@ -549,7 +556,7 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.project.init" title="an.project.init"><code class="xref py py-obj docutils literal notranslate"><span class="pre">init</span></code></a>(project_dir, *[, name, force])</p></td>
 <td><p>Create a fresh an project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.project.load" title="an.project.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(project_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.project.load" title="an.project.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a>(project_dir, *[, check_kinds])</p></td>
 <td><p>Load an existing project.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.project.save" title="an.project.save"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save</span></code></a>(project)</p></td>
@@ -591,8 +598,18 @@ pass <code class="docutils literal notranslate"><span class="pre">force=True</sp
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.project.load">
-<span class="sig-prename descclassname"><span class="pre">an.project.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/project.html#load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.project.load" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.project.</span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_kinds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/project.html#load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.project.load" title="Link to this definition">#</a></dt>
 <dd><p>Load an existing project. Reconciles scene.md / ir/scene.json first.</p>
+<p>Registers the installed genres first (<a class="reference internal" href="an.genres.html#an.genres.load" title="an.genres.load"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.genres.load()</span></code></a>, ADR 0001
+decision 3: discovery is explicit, and loading a project is one of the
+places it happens), so the scene’s genre kinds — the cut-out genre’s
+<code class="docutils literal notranslate"><span class="pre">play</span></code>, <code class="docutils literal notranslate"><span class="pre">expression</span></code> and <code class="docutils literal notranslate"><span class="pre">character</span></code> — read as their own models.</p>
+<p>Then refuses a scene that names an action kind, entity kind or renderer
+nothing registered (<a class="reference internal" href="an.ir.validate.html#an.ir.validate.require_registered_kinds" title="an.ir.validate.require_registered_kinds"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.ir.validate.require_registered_kinds()</span></code></a>): the
+schema holds those as <code class="docutils literal notranslate"><span class="pre">str</span></code> (ADR 0001 decision 2), so without this a
+typo’d <code class="docutils literal notranslate"><span class="pre">kind:</span> <span class="pre">enviroment</span></code> would load and render silently without its
+backdrop. <code class="docutils literal notranslate"><span class="pre">check_kinds=False</span></code> is for <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>, which reports them
+as findings instead.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.project.Project" title="an.project.Project"><code class="xref py py-class docutils literal notranslate"><span class="pre">Project</span></code></a></span></p>

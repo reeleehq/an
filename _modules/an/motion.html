@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -771,7 +771,8 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">``sequence`` a ``play`` without a ``duration`` occupies the preset's own</span>
 <span class="sd">length divided by ``speed``, so two in a row run one after the other.</span>
 <span class="sd">:func:`as_leaves` remains for a preset composed in Python and written into</span>
-<span class="sd">``scene.md`` as plain tweens (a composition tree does not round-trip).</span>
+<span class="sd">``scene.md`` as plain, hand-editable tweens (a composition tree round-trips</span>
+<span class="sd">too since an#241, but verbatim, as its JSON form).</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -1790,10 +1791,11 @@ window.runMermaid = runMermaid;</script>
 <span class="k">def</span><span class="w"> </span><span class="nf">as_leaves</span><span class="p">(</span><span class="n">action</span><span class="p">:</span> <span class="n">Action</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Action</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""``action`` as top-level leaves that ``scene.md`` can round-trip.</span>
 
-<span class="sd">    The markdown writer keeps a leaf and the ``sequence(delay(start), leaf)``</span>
-<span class="sd">    wrapper the parser produces for a ``start:`` key, and drops composition</span>
-<span class="sd">    trees from ``scene.md``. This flattens a preset (or any tree) into exactly</span>
-<span class="sd">    those, with the same absolute times.</span>
+<span class="sd">    The markdown writer spells a leaf and the ``sequence(delay(start), leaf)``</span>
+<span class="sd">    wrapper the parser produces for a ``start:`` key in their short form, and</span>
+<span class="sd">    writes any other composition tree verbatim (its JSON form, an#241). This</span>
+<span class="sd">    flattens a preset (or any tree) into the short form, with the same</span>
+<span class="sd">    absolute times, which is what a person editing ``scene.md`` wants.</span>
 
 <span class="sd">    A ``set`` keeps its absolute time in ``at`` instead of a wrapper.</span>
 

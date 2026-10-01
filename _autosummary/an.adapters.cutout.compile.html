@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.cutout.coarticulate" href="an.adapters.cutout.coarticulate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
@@ -396,9 +397,15 @@
 <li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
@@ -618,6 +625,9 @@ mall). It reads only.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.cutout.compile.PROP_ART_PREFIX" title="an.adapters.cutout.compile.PROP_ART_PREFIX"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PROP_ART_PREFIX</span></code></a></p></td>
 <td><p>The same, for props.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.cutout.compile.STAGE_NODE_SPACE" title="an.adapters.cutout.compile.STAGE_NODE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></p></td>
+<td><p>The property space every compiled node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p></td>
 </tr>
 </tbody>
 </table>
@@ -862,6 +872,12 @@ seven deleted <code class="docutils literal notranslate"><span class="pre">_SVG_
 legs 37.7x118.6 against 38x120. The constants were an approximation of
 exactly this product, which is the evidence that the rig should have been
 driving it all along.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="an.adapters.cutout.compile.STAGE_NODE_SPACE">
+<span class="sig-prename descclassname"><span class="pre">an.adapters.cutout.compile.</span></span><span class="sig-name descname"><span class="pre">STAGE_NODE_SPACE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'stage.node'</span></span><a class="headerlink" href="#an.adapters.cutout.compile.STAGE_NODE_SPACE" title="Link to this definition">#</a></dt>
+<dd><p>The property space every compiled node lives in (<a class="reference internal" href="an.timing.spaces.html#module-an.timing.spaces" title="an.timing.spaces"><code class="xref py py-mod docutils literal notranslate"><span class="pre">an.timing.spaces</span></code></a>).</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1142,6 +1158,7 @@ reports it), so the two say the same thing about the same path.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.compile.PUPIL_NODE_NAMES"><code class="docutils literal notranslate"><span class="pre">PUPIL_NODE_NAMES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.compile.RUNTIME_APPLIED_PROPERTIES"><code class="docutils literal notranslate"><span class="pre">RUNTIME_APPLIED_PROPERTIES</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.compile.SCENE_PX_PER_VIEW_BOX"><code class="docutils literal notranslate"><span class="pre">SCENE_PX_PER_VIEW_BOX</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.compile.STAGE_NODE_SPACE"><code class="docutils literal notranslate"><span class="pre">STAGE_NODE_SPACE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.compile.blink_phase"><code class="docutils literal notranslate"><span class="pre">blink_phase()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.compile.camera_keys"><code class="docutils literal notranslate"><span class="pre">camera_keys()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.cutout.compile.compile_shot"><code class="docutils literal notranslate"><span class="pre">compile_shot()</span></code></a></li>

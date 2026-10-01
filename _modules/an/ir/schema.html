@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -721,8 +721,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">  `compatible_version`. Migrations live in `an.ir.migrate`.</span>
 <span class="sd">- **Forward-compatible reads.** Top-level model has ``extra="allow"`` so a future</span>
 <span class="sd">  field doesn't crash an older reader.</span>
-<span class="sd">- **Discriminated `Action` union.** All authoring-time and flattened actions</span>
-<span class="sd">  carry a `kind` literal so Pydantic dispatches to the right validator.</span>
+<span class="sd">- **Open `Action` union** (ADR 0001 decision 2). The union holds the core</span>
+<span class="sd">  kinds (``set``, ``tween``, ``sequence``, ``parallel``, ``delay``, ``loop``)</span>
+<span class="sd">  and ONE open member, :class:`ExtensionAction`, which a callable</span>
+<span class="sd">  discriminator selects for any other ``kind``. A genre registers its kinds</span>
+<span class="sd">  (:mod:`an.genres`); a document's ``kind: play`` then validates to the</span>
+<span class="sd">  registered model, and before registration it stays an ``ExtensionAction``</span>
+<span class="sd">  that round-trips untouched and that validate, flatten and the compiler</span>
+<span class="sd">  refuse by name. The union is never rebuilt at registration.</span>
 <span class="sd">- **Time in seconds (float).** Always.</span>
 
 <span class="sd">Doctest:</span>
@@ -750,7 +756,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">model_serializer</span><span class="p">,</span>
     <span class="n">BaseModel</span><span class="p">,</span>
     <span class="n">ConfigDict</span><span class="p">,</span>
+    <span class="n">Discriminator</span><span class="p">,</span>
     <span class="n">Field</span><span class="p">,</span>
+    <span class="n">SerializeAsAny</span><span class="p">,</span>
+    <span class="n">Tag</span><span class="p">,</span>
     <span class="n">field_validator</span><span class="p">,</span>
     <span class="n">model_validator</span><span class="p">,</span>
 <span class="p">)</span>
@@ -768,7 +777,13 @@ window.runMermaid = runMermaid;</script>
     <span class="n">EasingSpec</span><span class="p">,</span>
     <span class="n">PathStr</span><span class="p">,</span>
     <span class="n">Seconds</span><span class="p">,</span>
-    <span class="n">RendererName</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CORE_OWNER</span><span class="p">,</span>
+    <span class="n">EntityKind</span><span class="p">,</span>
+    <span class="n">action_kind</span><span class="p">,</span>
+    <span class="n">entity_kind</span><span class="p">,</span>
+    <span class="n">register_entity_kind</span><span class="p">,</span>
 <span class="p">)</span>
 
 
@@ -952,7 +967,13 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: ``"style"`` was retired in an#106: it selected nothing (the compiler</span>
     <span class="c1">#: skipped it, nothing read the styles store) and the name belonged to the</span>
     <span class="c1">#: renderer selector. Art direction arrives as a StylePack (#112).</span>
-    <span class="n">kind</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"character"</span><span class="p">,</span> <span class="s2">"environment"</span><span class="p">,</span> <span class="s2">"voice"</span><span class="p">,</span> <span class="s2">"prop"</span><span class="p">]</span>
+    <span class="c1">#:</span>
+    <span class="c1">#: A ``str`` in the schema, not a ``Literal`` (ADR 0001 decision 2): the</span>
+    <span class="c1">#: values are the REGISTERED entity kinds (:mod:`an.genres`) — the core's</span>
+    <span class="c1">#: ``environment``, ``prop`` and ``voice``, a genre's ``character`` — and</span>
+    <span class="c1">#: ``an validate`` checks it against that registry, naming the genre that</span>
+    <span class="c1">#: provides an unregistered one.</span>
+    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span>
     <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">store</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># which store in the project mall</span>
     <span class="n">ref</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># key inside that store</span>
@@ -1070,9 +1091,110 @@ window.runMermaid = runMermaid;</script>
 
 
 
+<div class="viewcode-block" id="ExtensionAction">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.ExtensionAction">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExtensionAction</span><span class="p">(</span><span class="n">_ActionBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""An action of a kind the core does not define: the IR's one open member.</span>
+
+<span class="sd">    The schema's ``Action`` union selects this for any ``kind`` other than the</span>
+<span class="sd">    core's (ADR 0001 decision 2). When a genre has REGISTERED that kind</span>
+<span class="sd">    (:func:`an.genres.registry.register_action_kind`), validating a document</span>
+<span class="sd">    yields the registered model instead — a ``PlayAction`` for ``kind: play`` —</span>
+<span class="sd">    so code downstream sees typed actions. Before registration the action</span>
+<span class="sd">    stays an ``ExtensionAction``: its fields are kept as extras and round-trip</span>
+<span class="sd">    byte for byte, and :meth:`resolved` (called by ``flatten``, ``an validate``</span>
+<span class="sd">    and the compiler) refuses it naming the genre that provides it.</span>
+
+<span class="sd">    Every genre's action model subclasses this, which is what lets a typed</span>
+<span class="sd">    instance sit in the union and serialize with its own fields.</span>
+
+<span class="sd">    &gt;&gt;&gt; ExtensionAction(kind="wave", target="flag").model_dump()</span>
+<span class="sd">    {'name': None, 'kind': 'wave', 'target': 'flag'}</span>
+<span class="sd">    """</span>
+
+    <span class="n">kind</span><span class="p">:</span> <span class="nb">str</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ExtensionAction</span><span class="p">:</span>
+            <span class="n">registered</span> <span class="o">=</span> <span class="n">action_kind</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="k">if</span> <span class="n">registered</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">registered</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">ExtensionAction</span><span class="p">:</span>
+                <span class="c1"># The validator below would hand back ANOTHER model, which</span>
+                <span class="c1"># `__init__` cannot return (review-244 N1): say what works.</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"kind </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'kind'</span><span class="p">)</span><span class="si">!r}</span><span class="s2"> is registered with its own model, "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">registered</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: construct that, or call "</span>
+                    <span class="s2">"ExtensionAction.model_validate(...) to get it from a dict"</span>
+                <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@model_validator</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">"wrap"</span><span class="p">)</span>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_as_registered_kind</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">handler</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""A registered kind validates to its own model; anything else stays open."""</span>
+        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="n">ExtensionAction</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">registered</span> <span class="o">=</span> <span class="n">action_kind</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
+                <span class="k">if</span> <span class="n">registered</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">registered</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">cls</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">registered</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ExtensionAction</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">data</span><span class="o">.</span><span class="n">resolved</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">handler</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ExtensionAction.resolved">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.ExtensionAction.resolved">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolved</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"ExtensionAction"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""This action as its registered model.</span>
+
+<span class="sd">        A typed instance is returned as is. A bare ``ExtensionAction`` is</span>
+<span class="sd">        validated by the model its kind registered — or, unregistered, raises</span>
+<span class="sd">        :class:`~an.genres.registry.UnregisteredKindError` (``strict``) or</span>
+<span class="sd">        comes back unchanged (``strict=False``).</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">ExtensionAction</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="n">registered</span> <span class="o">=</span> <span class="n">action_kind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">registered</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">registered</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="n">ExtensionAction</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">strict</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">unregistered_action_kind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kind</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">registered</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">exclude_unset</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="unregistered_action_kind">
+<a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.unregistered_action_kind">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">unregistered_action_kind</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="ne">Exception</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The error for an action ``kind`` no loaded genre registered.</span>
+
+<span class="sd">    It names the installed genres whose declaration provides the kind, read</span>
+<span class="sd">    without loading them (:func:`an.genres.providers_of`).</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres</span><span class="w"> </span><span class="kn">import</span> <span class="n">providers_of</span>  <span class="c1"># lazy: discovery reads entry points</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.genres.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">UnregisteredKindError</span><span class="p">,</span> <span class="n">action_kind_names</span>
+
+    <span class="k">return</span> <span class="n">UnregisteredKindError</span><span class="p">(</span>
+        <span class="s2">"action kind"</span><span class="p">,</span>
+        <span class="n">kind</span><span class="p">,</span>
+        <span class="n">known</span><span class="o">=</span><span class="n">action_kind_names</span><span class="p">(),</span>
+        <span class="n">providers</span><span class="o">=</span><span class="n">providers_of</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="n">registry</span><span class="o">=</span><span class="s2">"action kinds"</span><span class="p">),</span>
+        <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The cut-out genre's action models (ADR 0001 §First slice). They are DEFINED</span>
+<span class="c1"># here, beside the core's, until the genre package exists (P8 moves them, with a</span>
+<span class="c1"># re-export), but they are not core: nothing dispatches on them unless the</span>
+<span class="c1"># cut-out genre is registered (``an.genres.cutout``), and a document's</span>
+<span class="c1"># ``kind: play`` validates to `PlayAction` only after that.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+
 <div class="viewcode-block" id="PlayAction">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.PlayAction">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">PlayAction</span><span class="p">(</span><span class="n">_ActionBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlayAction</span><span class="p">(</span><span class="n">ExtensionAction</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Play a named animation of the target entity's descriptor (an#7).</span>
 
 <span class="sd">    ``animation`` names an entry of ``CharacterDescriptor.animations`` (the</span>
@@ -1129,7 +1251,7 @@ window.runMermaid = runMermaid;</script>
 
 <div class="viewcode-block" id="ExpressionAction">
 <a class="viewcode-back" href="../../../_autosummary/an.ir.schema.html#an.ExpressionAction">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">ExpressionAction</span><span class="p">(</span><span class="n">_ActionBase</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExpressionAction</span><span class="p">(</span><span class="n">ExtensionAction</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Hold a facial expression on an entity (an#98, epic #9 Wave 6).</span>
 
 <span class="sd">    ``preset`` names one of :data:`an.expression.presets.PRESETS`; ``axes``</span>
@@ -1201,19 +1323,43 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="c1">#: Discriminated union of every action variant. Pydantic dispatches on `kind`.</span>
+<span class="c1">#: The ``kind`` of every action the core defines (the static union members).</span>
+<span class="n">CORE_ACTION_KINDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"set"</span><span class="p">,</span>
+    <span class="s2">"tween"</span><span class="p">,</span>
+    <span class="s2">"sequence"</span><span class="p">,</span>
+    <span class="s2">"parallel"</span><span class="p">,</span>
+    <span class="s2">"delay"</span><span class="p">,</span>
+    <span class="s2">"loop"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1">#: The union tag of the open member.</span>
+<span class="n">EXTENSION_TAG</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"extension"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_action_tag</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The union member for ``value``: its own ``kind`` if core, else the open one."""</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"kind"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">"kind"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">kind</span> <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">CORE_ACTION_KINDS</span> <span class="k">else</span> <span class="n">EXTENSION_TAG</span>
+
+
+<span class="c1">#: Every action: the core kinds plus :class:`ExtensionAction` for any other</span>
+<span class="c1">#: ``kind`` (a registered genre kind validates to its own model through it).</span>
+<span class="c1">#: ``SerializeAsAny`` makes a typed genre instance (a ``PlayAction``) serialize</span>
+<span class="c1">#: with its own fields rather than the open member's.</span>
 <span class="n">Action</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span>
     <span class="n">Union</span><span class="p">[</span>
-        <span class="n">SetAction</span><span class="p">,</span>
-        <span class="n">TweenAction</span><span class="p">,</span>
-        <span class="n">PlayAction</span><span class="p">,</span>
-        <span class="n">ExpressionAction</span><span class="p">,</span>
-        <span class="n">SequenceAction</span><span class="p">,</span>
-        <span class="n">ParallelAction</span><span class="p">,</span>
-        <span class="n">DelayAction</span><span class="p">,</span>
-        <span class="n">LoopAction</span><span class="p">,</span>
+        <span class="n">Annotated</span><span class="p">[</span><span class="n">SetAction</span><span class="p">,</span> <span class="n">Tag</span><span class="p">(</span><span class="s2">"set"</span><span class="p">)],</span>
+        <span class="n">Annotated</span><span class="p">[</span><span class="n">TweenAction</span><span class="p">,</span> <span class="n">Tag</span><span class="p">(</span><span class="s2">"tween"</span><span class="p">)],</span>
+        <span class="n">Annotated</span><span class="p">[</span><span class="n">SequenceAction</span><span class="p">,</span> <span class="n">Tag</span><span class="p">(</span><span class="s2">"sequence"</span><span class="p">)],</span>
+        <span class="n">Annotated</span><span class="p">[</span><span class="n">ParallelAction</span><span class="p">,</span> <span class="n">Tag</span><span class="p">(</span><span class="s2">"parallel"</span><span class="p">)],</span>
+        <span class="n">Annotated</span><span class="p">[</span><span class="n">DelayAction</span><span class="p">,</span> <span class="n">Tag</span><span class="p">(</span><span class="s2">"delay"</span><span class="p">)],</span>
+        <span class="n">Annotated</span><span class="p">[</span><span class="n">LoopAction</span><span class="p">,</span> <span class="n">Tag</span><span class="p">(</span><span class="s2">"loop"</span><span class="p">)],</span>
+        <span class="n">Annotated</span><span class="p">[</span><span class="n">SerializeAsAny</span><span class="p">[</span><span class="n">ExtensionAction</span><span class="p">],</span> <span class="n">Tag</span><span class="p">(</span><span class="n">EXTENSION_TAG</span><span class="p">)],</span>
     <span class="p">],</span>
-    <span class="n">Field</span><span class="p">(</span><span class="n">discriminator</span><span class="o">=</span><span class="s2">"kind"</span><span class="p">),</span>
+    <span class="n">Discriminator</span><span class="p">(</span><span class="n">_action_tag</span><span class="p">),</span>
 <span class="p">]</span>
 
 
@@ -1576,7 +1722,10 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: holds art direction) and with `AssetRef(kind="style")`; one word for two</span>
     <span class="c1">#: meanings is how a scene came to declare a "style" that selected a</span>
     <span class="c1">#: renderer while the thing that actually styles it went unread.</span>
-    <span class="n">renderer</span><span class="p">:</span> <span class="n">RendererName</span> <span class="o">=</span> <span class="s2">"cutout"</span>
+    <span class="c1">#: A ``str`` in the schema (ADR 0001 decision 2): any name a renderer</span>
+    <span class="c1">#: registered (``an.adapters.register_renderer``), checked by ``an</span>
+    <span class="c1">#: validate``. ``cutout`` stays the persisted default (decision 9).</span>
+    <span class="n">renderer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"cutout"</span>
     <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="n">DEFAULT_DURATION</span>
     <span class="n">camera</span><span class="p">:</span> <span class="n">Camera</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">entities</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetRef</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
@@ -1643,7 +1792,8 @@ window.runMermaid = runMermaid;</script>
     <span class="n">duration</span><span class="p">:</span> <span class="n">Seconds</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">fps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">DEFAULT_FPS</span>
     <span class="n">resolution</span><span class="p">:</span> <span class="n">Resolution</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">Resolution</span><span class="p">)</span>
-    <span class="n">default_renderer</span><span class="p">:</span> <span class="n">RendererName</span> <span class="o">=</span> <span class="s2">"cutout"</span>
+    <span class="c1">#: Like :attr:`Shot.renderer`: a registered renderer's name.</span>
+    <span class="n">default_renderer</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"cutout"</span>
     <span class="n">notes</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="c1">#: Stepped timing for AUTHORED TWEENS, in pose updates per second; ``None``</span>
     <span class="c1">#: (the default) leaves every tween smooth. At 30 fps, ``15`` is "on twos"</span>
@@ -1747,6 +1897,39 @@ window.runMermaid = runMermaid;</script>
     <span class="n">assets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AssetRef</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
     <span class="n">timeline</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Shot</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
 
+
+
+<span class="c1"># -----------------------------------------------------------------------------</span>
+<span class="c1"># The core's entity kinds (``AssetRef.kind``). A genre adds its own</span>
+<span class="c1"># (:class:`an.genres.EntityKind`); the cut-out genre adds ``character``.</span>
+<span class="c1"># -----------------------------------------------------------------------------</span>
+
+<span class="c1">#: The property space a 2D stage engine's node lives in (:mod:`an.timing.spaces`).</span>
+<span class="n">STAGE_NODE_SPACE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"stage.node"</span>
+
+<span class="n">CORE_ENTITY_KINDS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">EntityKind</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">EntityKind</span><span class="p">(</span>
+        <span class="s2">"environment"</span><span class="p">,</span>
+        <span class="n">space</span><span class="o">=</span><span class="n">STAGE_NODE_SPACE</span><span class="p">,</span>
+        <span class="n">store</span><span class="o">=</span><span class="s2">"environments"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"the set / background: planes, with parallax, drawn behind"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">EntityKind</span><span class="p">(</span>
+        <span class="s2">"prop"</span><span class="p">,</span>
+        <span class="n">space</span><span class="o">=</span><span class="n">STAGE_NODE_SPACE</span><span class="p">,</span>
+        <span class="n">store</span><span class="o">=</span><span class="s2">"props"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"a prop or piece of set dressing; also stroked paths and text blocks"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">EntityKind</span><span class="p">(</span>
+        <span class="s2">"voice"</span><span class="p">,</span>
+        <span class="n">store</span><span class="o">=</span><span class="s2">"voices"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"a voice the audio pipeline speaks with; draws nothing"</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">_kind</span> <span class="ow">in</span> <span class="n">CORE_ENTITY_KINDS</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">entity_kind</span><span class="p">(</span><span class="n">_kind</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">register_entity_kind</span><span class="p">(</span><span class="n">_kind</span><span class="p">,</span> <span class="n">owner</span><span class="o">=</span><span class="n">CORE_OWNER</span><span class="p">)</span>
 </pre></div>
 
                 </article>

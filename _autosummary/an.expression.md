@@ -301,9 +301,10 @@ The swap-set name for a mouth form (`@` is a legal set-name character).
 
 ### Modules
 
-| [`axes`](an.expression.axes.md#module-an.expression.axes)               | The facial expression axes: what a cutout face can be asked to do (an#98).           |
-|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`binding`](an.expression.binding.md#module-an.expression.binding)         | How the axes reach a character: the binding and the mouth-set resolver (an#98).      |
-| [`blendshapes`](an.expression.blendshapes.md#module-an.expression.blendshapes) | The 52-coefficient blendshape vocabulary, as an import/export mapping (an#98).       |
-| [`presets`](an.expression.presets.md#module-an.expression.presets)         | Expression presets: our art direction on the axes (an#98).                           |
-| [`provider`](an.expression.provider.md#module-an.expression.provider)       | The expression provider: authored leaves + dialogue sugar → per-axis curves (an#98). |
+| [`axes`](an.expression.axes.md#module-an.expression.axes)                 | The facial expression axes: what a cutout face can be asked to do (an#98).           |
+|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`binding`](an.expression.binding.md#module-an.expression.binding)           | How the axes reach a character: the binding and the mouth-set resolver (an#98).      |
+| [`blendshapes`](an.expression.blendshapes.md#module-an.expression.blendshapes)   | The 52-coefficient blendshape vocabulary, as an import/export mapping (an#98).       |
+| [`presets`](an.expression.presets.md#module-an.expression.presets)           | Expression presets: our art direction on the axes (an#98).                           |
+| [`provider`](an.expression.provider.md#module-an.expression.provider)         | The expression provider: authored leaves + dialogue sugar → per-axis curves (an#98). |
+| [`registration`](an.expression.registration.md#module-an.expression.registration) | The face side of the cut-out genre, as declarations: `expression` and `[emotion]`.   |

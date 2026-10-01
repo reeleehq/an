@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.camera" href="an.ir.camera.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
@@ -396,9 +397,15 @@
 <li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
@@ -589,6 +596,12 @@ what tooling reasons about.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.flatten" title="an.ir.compose.flatten"><code class="xref py py-obj docutils literal notranslate"><span class="pre">flatten</span></code></a>(action, *[, start, play_extent])</p></td>
 <td><p>Walk a composition tree, emitting leaf actions with absolute times.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.iter_actions" title="an.ir.compose.iter_actions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">iter_actions</span></code></a>(action)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">action</span></code> and every action under it, depth first (composites through their kind's <code class="docutils literal notranslate"><span class="pre">children</span></code> hook).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.kind_of" title="an.ir.compose.kind_of"><code class="xref py py-obj docutils literal notranslate"><span class="pre">kind_of</span></code></a>(action)</p></td>
+<td><p>The registered <a class="reference internal" href="an.genres.html#an.genres.ActionKind" title="an.genres.ActionKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionKind</span></code></a> that governs <code class="docutils literal notranslate"><span class="pre">action</span></code>.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.loop" title="an.ir.compose.loop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loop</span></code></a>(action, count)</p></td>
 <td><p>Repeat <code class="docutils literal notranslate"><span class="pre">action</span></code> <code class="docutils literal notranslate"><span class="pre">count</span></code> times.</p></td>
 </tr>
@@ -598,11 +611,17 @@ what tooling reasons about.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.play" title="an.ir.compose.play"><code class="xref py py-obj docutils literal notranslate"><span class="pre">play</span></code></a>(target, animation, *[, duration, ...])</p></td>
 <td><p>Play a named animation of the target entity's descriptor (an#7).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.sequence" title="an.ir.compose.sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sequence</span></code></a>(*actions)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.resolve_action" title="an.ir.compose.resolve_action"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resolve_action</span></code></a>(action)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">action</span></code> as its registered model (an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExtensionAction</span></code> left open by a document read before its genre loaded is validated now).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.sequence" title="an.ir.compose.sequence"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sequence</span></code></a>(*actions)</p></td>
 <td><p>Run children one after the other.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.set_" title="an.ir.compose.set_"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_</span></code></a>(target, property, value, *[, at])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.set_" title="an.ir.compose.set_"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_</span></code></a>(target, property, value, *[, at])</p></td>
 <td><p>Discrete property set at time <code class="docutils literal notranslate"><span class="pre">at</span></code> (relative to its enclosing scope).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.stagger" title="an.ir.compose.stagger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stagger</span></code></a>(lag, *actions)</p></td>
+<td><p>Start each action <code class="docutils literal notranslate"><span class="pre">lag</span></code> seconds after the previous one STARTS.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.tween" title="an.ir.compose.tween"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tween</span></code></a>(target, property, to, duration, *[, ...])</p></td>
 <td><p>Animate a property from <code class="docutils literal notranslate"><span class="pre">from_</span></code> (or its current value) to <code class="docutils literal notranslate"><span class="pre">to</span></code>.</p></td>
@@ -615,6 +634,9 @@ what tooling reasons about.</p>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.compose.FlatAction" title="an.ir.compose.FlatAction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlatAction</span></code></a>(start, end, action)</p></td>
 <td><p>A leaf action with its absolute start and end times.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.compose.FlattenContext" title="an.ir.compose.FlattenContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FlattenContext</span></code></a>(out[, extent])</p></td>
+<td><p>What a kind's <code class="docutils literal notranslate"><span class="pre">flatten</span></code> hook gets: where to put leaves, how to recurse.</p></td>
 </tr>
 </tbody>
 </table>
@@ -631,6 +653,28 @@ appear in the flat form — they’re collapsed into time offsets.</p>
 </dl>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.compose.FlattenContext">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">FlattenContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#FlattenContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.FlattenContext" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What a kind’s <code class="docutils literal notranslate"><span class="pre">flatten</span></code> hook gets: where to put leaves, how to recurse.</p>
+<p><code class="docutils literal notranslate"><span class="pre">extent</span></code> is the caller’s extent resolver (<a class="reference internal" href="#an.ir.compose.PlayExtent" title="an.ir.compose.PlayExtent"><code class="xref py py-data docutils literal notranslate"><span class="pre">PlayExtent</span></code></a>), passed on
+to every leaf’s <code class="docutils literal notranslate"><span class="pre">duration</span></code> hook.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.ir.compose.FlattenContext.flatten">
+<span class="sig-name descname"><span class="pre">flatten</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#FlattenContext.flatten"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.FlattenContext.flatten" title="Link to this definition">#</a></dt>
+<dd><p>Flatten <code class="docutils literal notranslate"><span class="pre">action</span></code> starting at <code class="docutils literal notranslate"><span class="pre">t</span></code>; return the new cursor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="an.ir.compose.INHERIT">
 <span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">INHERIT</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">INHERIT</span></span><a class="headerlink" href="#an.ir.compose.INHERIT" title="Link to this definition">#</a></dt>
@@ -644,7 +688,10 @@ A sentinel rather than <code class="docutils literal notranslate"><span class="p
 <span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">PlayExtent</span></span><a class="headerlink" href="#an.ir.compose.PlayExtent" title="Link to this definition">#</a></dt>
 <dd><p><code class="docutils literal notranslate"><span class="pre">PlayAction</span> <span class="pre">-&gt;</span> <span class="pre">seconds</span></code> a play WITHOUT an explicit <code class="docutils literal notranslate"><span class="pre">duration</span></code> occupies in
 a <code class="docutils literal notranslate"><span class="pre">sequence</span></code>. The default is <a class="reference internal" href="#an.ir.compose.default_play_extent" title="an.ir.compose.default_play_extent"><code class="xref py py-func docutils literal notranslate"><span class="pre">default_play_extent()</span></code></a>; the compiler and
-<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> pass one bound to the entity’s descriptor.</p>
+<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> pass one bound to the entity’s descriptor. Generically, it is
+the caller’s <strong>extent resolver</strong>: it is handed to every leaf kind’s
+<code class="docutils literal notranslate"><span class="pre">duration</span></code> hook (<a class="reference internal" href="an.genres.html#an.genres.ActionKind" title="an.genres.ActionKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.genres.ActionKind</span></code></a>), and the kinds that have an
+open-ended length (the cut-out genre’s <code class="docutils literal notranslate"><span class="pre">play</span></code>) consult it.</p>
 <p>alias of <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code></a>[[<a class="reference internal" href="an.ir.schema.html#an.ir.schema.PlayAction" title="an.ir.schema.PlayAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">PlayAction</span></code></a>], <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]</p>
 </dd></dl>
 
@@ -732,11 +779,47 @@ looping animation, which runs to the shot end.</p>
 <p>Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.</p>
+<p>Every node is dispatched through its registered kind
+(<a class="reference internal" href="an.genres.html#an.genres.ActionKind" title="an.genres.ActionKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionKind</span></code></a>), so a genre’s kind flattens without an
+edit here; a node whose kind nobody registered raises, naming the genre
+that provides it, and an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExtensionAction</span></code> read before its genre
+loaded is validated by the registered model on the way through.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#an.ir.compose.FlatAction" title="an.ir.compose.FlatAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">FlatAction</span></code></a>]</span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.compose.iter_actions">
+<span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">iter_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#iter_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.iter_actions" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">action</span></code> and every action under it, depth first (composites through
+their kind’s <code class="docutils literal notranslate"><span class="pre">children</span></code> hook). Unregistered kinds are yielded, not raised:
+a validator walks with this to REPORT them.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">kind</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">iter_actions</span><span class="p">(</span><span class="n">sequence</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">loop</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">0.5</span><span class="p">),</span> <span class="mi">2</span><span class="p">)))]</span>
+<span class="go">['sequence', 'delay', 'loop', 'delay']</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.compose.kind_of">
+<span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">kind_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#kind_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.kind_of" title="Link to this definition">#</a></dt>
+<dd><p>The registered <a class="reference internal" href="an.genres.html#an.genres.ActionKind" title="an.genres.ActionKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionKind</span></code></a> that governs <code class="docutils literal notranslate"><span class="pre">action</span></code>.</p>
+<p>Raises <a class="reference internal" href="an.genres.html#an.genres.UnregisteredKindError" title="an.genres.UnregisteredKindError"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnregisteredKindError</span></code></a>, naming the genre that
+provides it, for a kind nobody registered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.genres.registry.html#an.genres.registry.ActionKind" title="an.genres.registry.ActionKind"><code class="xref py py-class docutils literal notranslate"><span class="pre">ActionKind</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kind_of</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span><span class="o">.</span><span class="n">name</span>
+<span class="go">'delay'</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -799,6 +882,22 @@ descriptor’s.)</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="an.ir.compose.resolve_action">
+<span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">resolve_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#resolve_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.resolve_action" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">action</span></code> as its registered model (an <code class="xref py py-class docutils literal notranslate"><span class="pre">ExtensionAction</span></code> left open
+by a document read before its genre loaded is validated now).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">resolve_action</span><span class="p">(</span><span class="n">delay</span><span class="p">(</span><span class="mf">0.5</span><span class="p">))</span><span class="o">.</span><span class="n">duration</span>
+<span class="go">0.5</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="an.ir.compose.sequence">
 <span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.sequence" title="Link to this definition">#</a></dt>
 <dd><p>Run children one after the other. Total duration = sum of child durations.</p>
@@ -818,6 +917,41 @@ descriptor’s.)</p>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.SetAction" title="an.ir.schema.SetAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">SetAction</span></code></a></span></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.compose.stagger">
+<span class="sig-prename descclassname"><span class="pre">an.ir.compose.</span></span><span class="sig-name descname"><span class="pre">stagger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lag</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">actions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/compose.html#stagger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.compose.stagger" title="Link to this definition">#</a></dt>
+<dd><p>Start each action <code class="docutils literal notranslate"><span class="pre">lag</span></code> seconds after the previous one STARTS.</p>
+<p>The <strong>stagger</strong> (Manim’s <code class="docutils literal notranslate"><span class="pre">LaggedStart</span></code>, <code class="docutils literal notranslate"><span class="pre">previz</span></code>’s compose, a crowd
+entering one by one): the children run in parallel, the <code class="docutils literal notranslate"><span class="pre">i</span></code>-th delayed
+by <code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">*</span> <span class="pre">lag</span></code>. It is authoring sugar, not a new kind — it builds the
+<code class="docutils literal notranslate"><span class="pre">parallel</span></code> of <code class="docutils literal notranslate"><span class="pre">sequence(delay(i</span> <span class="pre">*</span> <span class="pre">lag),</span> <span class="pre">action)</span></code> it means, so the
+scene document, <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> and every renderer see only core kinds.
+Total duration: the latest child’s end. <code class="docutils literal notranslate"><span class="pre">scene.md</span></code> holds it verbatim (a
+<code class="docutils literal notranslate"><span class="pre">kind:</span> <span class="pre">parallel</span></code> entry), so it round-trips. (<code class="docutils literal notranslate"><span class="pre">an.text.reveal_units</span></code> —
+<code class="docutils literal notranslate"><span class="pre">an.text.stagger</span></code> before an#241 — is the text-block preset: a LIST of
+per-unit actions with holds, not a combinator.)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.ParallelAction" title="an.ir.schema.ParallelAction"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelAction</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">flat</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">stagger</span><span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">tween</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>                             <span class="n">tween</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
+<span class="gp">... </span>                             <span class="n">tween</span><span class="p">(</span><span class="s2">"c"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[(</span><span class="n">f</span><span class="o">.</span><span class="n">action</span><span class="o">.</span><span class="n">target</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">end</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flat</span><span class="p">]</span>
+<span class="go">[('a', 0.0, 1.0), ('b', 0.25, 1.25), ('c', 0.5, 1.5)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">duration_of</span><span class="p">(</span><span class="n">stagger</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">),</span> <span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)))</span>
+<span class="go">1.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stagger</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span><span class="o">.</span><span class="n">children</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stagger</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">delay</span><span class="p">(</span><span class="mf">1.0</span><span class="p">))</span>
+<span class="gt">Traceback (most recent call last):</span>
+<span class="c">...</span>
+<span class="gr">ValueError</span>: <span class="n">stagger lag must be &gt;= 0, got -1.0</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -889,6 +1023,10 @@ descriptor’s.)</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.FlatAction"><code class="docutils literal notranslate"><span class="pre">FlatAction</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.FlattenContext"><code class="docutils literal notranslate"><span class="pre">FlattenContext</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.FlattenContext.flatten"><code class="docutils literal notranslate"><span class="pre">FlattenContext.flatten()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.INHERIT"><code class="docutils literal notranslate"><span class="pre">INHERIT</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.PlayExtent"><code class="docutils literal notranslate"><span class="pre">PlayExtent</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.default_play_extent"><code class="docutils literal notranslate"><span class="pre">default_play_extent()</span></code></a></li>
@@ -896,11 +1034,15 @@ descriptor’s.)</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.duration_of"><code class="docutils literal notranslate"><span class="pre">duration_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.expression"><code class="docutils literal notranslate"><span class="pre">expression()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.flatten"><code class="docutils literal notranslate"><span class="pre">flatten()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.iter_actions"><code class="docutils literal notranslate"><span class="pre">iter_actions()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.kind_of"><code class="docutils literal notranslate"><span class="pre">kind_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.loop"><code class="docutils literal notranslate"><span class="pre">loop()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.parallel"><code class="docutils literal notranslate"><span class="pre">parallel()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.play"><code class="docutils literal notranslate"><span class="pre">play()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.resolve_action"><code class="docutils literal notranslate"><span class="pre">resolve_action()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.sequence"><code class="docutils literal notranslate"><span class="pre">sequence()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.set_"><code class="docutils literal notranslate"><span class="pre">set_()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.stagger"><code class="docutils literal notranslate"><span class="pre">stagger()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.compose.tween"><code class="docutils literal notranslate"><span class="pre">tween()</span></code></a></li>
 </ul>
   </nav></div>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../../../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -939,6 +939,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    ``owner`` names who registered it; only :data:`CORE_OWNER`'s spaces reach</span>
 <span class="sd">    `an`'s contract files, so an installed genre never edits the core contract.</span>
 <span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">space</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">VALUE_TYPED</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">SpaceError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">VALUE_TYPED</span><span class="si">!r}</span><span class="s2"> is reserved: `space=</span><span class="si">{</span><span class="n">VALUE_TYPED</span><span class="si">!r}</span><span class="s2">` asks "</span>
+            <span class="s2">"evaluate_timeline for the value-typed rule"</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">replace</span> <span class="ow">and</span> <span class="n">space</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">_REGISTRY</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">SpaceError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"property space </span><span class="si">{</span><span class="n">space</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> is already registered"</span><span class="p">)</span>
     <span class="n">_REGISTRY</span><span class="p">[</span><span class="n">space</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">space</span>
@@ -964,10 +969,33 @@ window.runMermaid = runMermaid;</script>
 
 
 
-<span class="c1">#: The space whose write groups the value-typed rule (``space=None``) uses:</span>
+<span class="c1">#: The space whose write groups the value-typed rule (:data:`VALUE_TYPED`) uses:</span>
 <span class="c1">#: the stage engine's node, resolved BY NAME at call time, so moving the stage's</span>
 <span class="c1">#: registration (P3: into ``an.stage``) or replacing it needs no kernel edit.</span>
 <span class="n">DFLT_VALUE_TYPED_SPACE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"stage.node"</span>
+
+<span class="c1">#: What ``evaluate_timeline(..., space=None)`` evaluates with: DECLARED field</span>
+<span class="c1">#: kinds from this registered space, resolved by name at call time (ADR 0001</span>
+<span class="c1">#: decision 11: field kinds are declared, never inferred). The flip from the</span>
+<span class="c1">#: value-typed rule happened in P2 (an#239 item 2), once the compiler refused</span>
+<span class="c1">#: every keyframe value that fails its field kind — so the two rules agree on</span>
+<span class="c1">#: everything the compiler emits (the corpus-frame test and the golden vectors,</span>
+<span class="c1">#: which hold both). Every caller — compile's from-less start, ``impacts``'</span>
+<span class="c1">#: truth projections, the bench — inherits it. ``None`` here would restore the</span>
+<span class="c1">#: value-typed rule as the default.</span>
+<span class="c1">#:</span>
+<span class="c1">#: ONE space for every target, by design for now: a compiled stage document's</span>
+<span class="c1">#: nodes are all stage nodes and it does not carry its entities' kinds. The</span>
+<span class="c1">#: per-entity policy (:func:`an.genres.entity_space_resolver`) is what</span>
+<span class="c1">#: ``an validate`` and the compiler's keyframe check use; making it the</span>
+<span class="c1">#: evaluator's default too belongs to the ``Engine`` seam (P3, an#245), where</span>
+<span class="c1">#: an engine knows its document's entities (review-244 S7).</span>
+<span class="n">DFLT_TIMELINE_SPACE</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="s2">"stage.node"</span>
+
+<span class="c1">#: Pass as ``space=`` to ask for the value-typed rule ``runtime.js`` implements</span>
+<span class="c1">#: (interpolate by the value's runtime type, the :data:`DFLT_VALUE_TYPED_SPACE`</span>
+<span class="c1">#: write groups) — what the contract's parity lane holds the stage runtime to.</span>
+<span class="n">VALUE_TYPED</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"value-typed"</span>
 
 
 <span class="c1">#: What an evaluator accepts as "the space": one space for every target, a</span>

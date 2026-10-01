@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.timing.kinds" href="an.timing.kinds.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
@@ -396,9 +397,15 @@
 <li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
@@ -591,7 +598,13 @@ rotation by declaring their own camera space, not by changing this one.</p></li>
 <td><p>Who registered the seeded spaces (only these reach the contract files).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.timing.spaces.DFLT_VALUE_TYPED_SPACE" title="an.timing.spaces.DFLT_VALUE_TYPED_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_VALUE_TYPED_SPACE</span></code></a></p></td>
-<td><p>The space whose write groups the value-typed rule (<code class="docutils literal notranslate"><span class="pre">space=None</span></code>) uses: the stage engine's node, resolved BY NAME at call time, so moving the stage's registration (P3: into <code class="docutils literal notranslate"><span class="pre">an.stage</span></code>) or replacing it needs no kernel edit.</p></td>
+<td><p>The space whose write groups the value-typed rule (<a class="reference internal" href="#an.timing.spaces.VALUE_TYPED" title="an.timing.spaces.VALUE_TYPED"><code class="xref py py-data docutils literal notranslate"><span class="pre">VALUE_TYPED</span></code></a>) uses: the stage engine's node, resolved BY NAME at call time, so moving the stage's registration (P3: into <code class="docutils literal notranslate"><span class="pre">an.stage</span></code>) or replacing it needs no kernel edit.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.spaces.DFLT_TIMELINE_SPACE" title="an.timing.spaces.DFLT_TIMELINE_SPACE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DFLT_TIMELINE_SPACE</span></code></a></p></td>
+<td><p>DECLARED field kinds from this registered space, resolved by name at call time (ADR 0001 decision 11: field kinds are declared, never inferred).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.timing.spaces.VALUE_TYPED" title="an.timing.spaces.VALUE_TYPED"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VALUE_TYPED</span></code></a></p></td>
+<td><p>Pass as <code class="docutils literal notranslate"><span class="pre">space=</span></code> to ask for the value-typed rule <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> implements (interpolate by the value's runtime type, the <a class="reference internal" href="#an.timing.spaces.DFLT_VALUE_TYPED_SPACE" title="an.timing.spaces.DFLT_VALUE_TYPED_SPACE"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_VALUE_TYPED_SPACE</span></code></a> write groups) — what the contract's parity lane holds the stage runtime to.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.timing.spaces.SpaceLike" title="an.timing.spaces.SpaceLike"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpaceLike</span></code></a></p></td>
 <td><p>one space for every target, a registered space's name, or a per-target resolver (P2: target -&gt; its entity kind's space).</p></td>
@@ -651,9 +664,34 @@ rotation by declaring their own camera space, not by changing this one.</p></li>
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="an.timing.spaces.DFLT_TIMELINE_SPACE">
+<span class="sig-prename descclassname"><span class="pre">an.timing.spaces.</span></span><span class="sig-name descname"><span class="pre">DFLT_TIMELINE_SPACE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'stage.node'</span></span><a class="headerlink" href="#an.timing.spaces.DFLT_TIMELINE_SPACE" title="Link to this definition">#</a></dt>
+<dd><p>DECLARED field
+kinds from this registered space, resolved by name at call time (ADR 0001
+decision 11: field kinds are declared, never inferred). The flip from the
+value-typed rule happened in P2 (an#239 item 2), once the compiler refused
+every keyframe value that fails its field kind — so the two rules agree on
+everything the compiler emits (the corpus-frame test and the golden vectors,
+which hold both). Every caller — compile’s from-less start, <code class="docutils literal notranslate"><span class="pre">impacts</span></code>’
+truth projections, the bench — inherits it. <code class="docutils literal notranslate"><span class="pre">None</span></code> here would restore the
+value-typed rule as the default.</p>
+<p>ONE space for every target, by design for now: a compiled stage document’s
+nodes are all stage nodes and it does not carry its entities’ kinds. The
+per-entity policy (<a class="reference internal" href="an.genres.html#an.genres.entity_space_resolver" title="an.genres.entity_space_resolver"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.genres.entity_space_resolver()</span></code></a>) is what
+<code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code> and the compiler’s keyframe check use; making it the
+evaluator’s default too belongs to the <code class="docutils literal notranslate"><span class="pre">Engine</span></code> seam (P3, an#245), where
+an engine knows its document’s entities (review-244 S7).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>What <code class="docutils literal notranslate"><span class="pre">evaluate_timeline(...,</span> <span class="pre">space=None)</span></code> evaluates with</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="an.timing.spaces.DFLT_VALUE_TYPED_SPACE">
 <span class="sig-prename descclassname"><span class="pre">an.timing.spaces.</span></span><span class="sig-name descname"><span class="pre">DFLT_VALUE_TYPED_SPACE</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'stage.node'</span></span><a class="headerlink" href="#an.timing.spaces.DFLT_VALUE_TYPED_SPACE" title="Link to this definition">#</a></dt>
-<dd><p>The space whose write groups the value-typed rule (<code class="docutils literal notranslate"><span class="pre">space=None</span></code>) uses:
+<dd><p>The space whose write groups the value-typed rule (<a class="reference internal" href="#an.timing.spaces.VALUE_TYPED" title="an.timing.spaces.VALUE_TYPED"><code class="xref py py-data docutils literal notranslate"><span class="pre">VALUE_TYPED</span></code></a>) uses:
 the stage engine’s node, resolved BY NAME at call time, so moving the stage’s
 registration (P3: into <code class="docutils literal notranslate"><span class="pre">an.stage</span></code>) or replacing it needs no kernel edit.</p>
 </dd></dl>
@@ -763,6 +801,14 @@ kind’s space).</p>
 <p>alias of <a class="reference internal" href="#an.timing.spaces.PropertySpace" title="an.timing.spaces.PropertySpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertySpace</span></code></a> | <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Callable</span></code>[[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>], <a class="reference internal" href="#an.timing.spaces.PropertySpace" title="an.timing.spaces.PropertySpace"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertySpace</span></code></a>]</p>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="an.timing.spaces.VALUE_TYPED">
+<span class="sig-prename descclassname"><span class="pre">an.timing.spaces.</span></span><span class="sig-name descname"><span class="pre">VALUE_TYPED</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'value-typed'</span></span><a class="headerlink" href="#an.timing.spaces.VALUE_TYPED" title="Link to this definition">#</a></dt>
+<dd><p>Pass as <code class="docutils literal notranslate"><span class="pre">space=</span></code> to ask for the value-typed rule <code class="docutils literal notranslate"><span class="pre">runtime.js</span></code> implements
+(interpolate by the value’s runtime type, the <a class="reference internal" href="#an.timing.spaces.DFLT_VALUE_TYPED_SPACE" title="an.timing.spaces.DFLT_VALUE_TYPED_SPACE"><code class="xref py py-data docutils literal notranslate"><span class="pre">DFLT_VALUE_TYPED_SPACE</span></code></a>
+write groups) — what the contract’s parity lane holds the stage runtime to.</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="an.timing.spaces.register_space">
 <span class="sig-prename descclassname"><span class="pre">an.timing.spaces.</span></span><span class="sig-name descname"><span class="pre">register_space</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">space</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">replace</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/timing/spaces.html#register_space"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.timing.spaces.register_space" title="Link to this definition">#</a></dt>
@@ -859,6 +905,7 @@ kind’s space).</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.CORE_OWNER"><code class="docutils literal notranslate"><span class="pre">CORE_OWNER</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.DFLT_TIMELINE_SPACE"><code class="docutils literal notranslate"><span class="pre">DFLT_TIMELINE_SPACE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.DFLT_VALUE_TYPED_SPACE"><code class="docutils literal notranslate"><span class="pre">DFLT_VALUE_TYPED_SPACE</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.FieldDecl"><code class="docutils literal notranslate"><span class="pre">FieldDecl</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.FieldDecl.writes"><code class="docutils literal notranslate"><span class="pre">FieldDecl.writes</span></code></a></li>
@@ -876,6 +923,7 @@ kind’s space).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.SWAP_WRITE_GROUP"><code class="docutils literal notranslate"><span class="pre">SWAP_WRITE_GROUP</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.SpaceError"><code class="docutils literal notranslate"><span class="pre">SpaceError</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.SpaceLike"><code class="docutils literal notranslate"><span class="pre">SpaceLike</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.VALUE_TYPED"><code class="docutils literal notranslate"><span class="pre">VALUE_TYPED</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.register_space"><code class="docutils literal notranslate"><span class="pre">register_space()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.space_from_json"><code class="docutils literal notranslate"><span class="pre">space_from_json()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.timing.spaces.space_names"><code class="docutils literal notranslate"><span class="pre">space_names()</span></code></a></li>

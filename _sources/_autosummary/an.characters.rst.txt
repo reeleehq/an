@@ -53,6 +53,7 @@ an.characters
    mouth_set
    play
    record
+   registration
    schema
    silhouette
    svg_utils

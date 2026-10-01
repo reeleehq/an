@@ -13,6 +13,7 @@
       play
       sequence
       parallel
+      stagger
       delay
       loop
       flatten
@@ -61,6 +62,7 @@
    expression
    frame_clock
    genre
+   genres
    impacts
    ir
    iterate

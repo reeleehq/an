@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=547576fa"></script>
+    <script src="../_static/documentation_options.js?v=638dfc90"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.ir.schema" href="an.ir.schema.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.131" />
+  <meta name="docsearch:version" content="0.1.132" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -376,6 +376,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.characters.mouth_set.html">an.characters.mouth_set</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.play.html">an.characters.play</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.record.html">an.characters.record</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.characters.registration.html">an.characters.registration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.schema.html">an.characters.schema</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.silhouette.html">an.characters.silhouette</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.characters.svg_utils.html">an.characters.svg_utils</a></li>
@@ -396,9 +397,15 @@
 <li class="toctree-l3"><a class="reference internal" href="an.expression.blendshapes.html">an.expression.blendshapes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.presets.html">an.expression.presets</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.expression.provider.html">an.expression.provider</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.expression.registration.html">an.expression.registration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l2"><a class="reference internal" href="an.frame_clock.html">an.frame_clock</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="an.genres.html">an.genres</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.cutout.html">an.genres.cutout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.genres.registry.html">an.genres.registry</a></li>
+</ul>
+</details></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.impacts.html">an.impacts</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.cli.html">an.impacts.cli</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.impacts.clip.html">an.impacts.clip</a></li>
@@ -565,6 +572,30 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 <p class="rubric">Functions</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.check_character_refs" title="an.ir.validate.check_character_refs"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_character_refs</span></code></a>(ctx)</p></td>
+<td><p>The cut-out genre's missing-character warning.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.check_expression_actions" title="an.ir.validate.check_expression_actions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_expression_actions</span></code></a>(ctx)</p></td>
+<td><p>The cut-out genre's <code class="code docutils literal notranslate"><span class="pre">expression</span></code> / <code class="code docutils literal notranslate"><span class="pre">[emotion]</span></code> check.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.check_hidden_mouth_while_speaking" title="an.ir.validate.check_hidden_mouth_while_speaking"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_hidden_mouth_while_speaking</span></code></a>(ctx)</p></td>
+<td><p>The cut-out genre's mouth-hidden-by-a-view warning.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.check_play_actions" title="an.ir.validate.check_play_actions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_play_actions</span></code></a>(ctx)</p></td>
+<td><p>The cut-out genre's <code class="code docutils literal notranslate"><span class="pre">play</span></code> check (<code class="xref py py-func docutils literal notranslate"><span class="pre">_check_play_actions()</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.check_turns" title="an.ir.validate.check_turns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_turns</span></code></a>(ctx)</p></td>
+<td><p>The cut-out genre's contradicted-turn warning (<code class="xref py py-func docutils literal notranslate"><span class="pre">_check_turns()</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.check_view_continuity" title="an.ir.validate.check_view_continuity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_view_continuity</span></code></a>(ctx)</p></td>
+<td><p>The cut-out genre's view-across-a-cut warning (<code class="xref py py-func docutils literal notranslate"><span class="pre">_check_view_continuity()</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.registered_kind_problems" title="an.ir.validate.registered_kind_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registered_kind_problems</span></code></a>(scene)</p></td>
+<td><p>The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of <code class="docutils literal notranslate"><span class="pre">validate_semantic</span></code> (no stores, no rig builds; cheap).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.require_registered_kinds" title="an.ir.validate.require_registered_kinds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">require_registered_kinds</span></code></a>(scene, *[, where])</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">scene</span></code>, or <a class="reference internal" href="#an.ir.validate.UnregisteredInSceneError" title="an.ir.validate.UnregisteredInSceneError"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnregisteredInSceneError</span></code></a> naming every action kind, entity kind and renderer it uses that is not registered.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.validate_schema" title="an.ir.validate.validate_schema"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate_schema</span></code></a>(doc)</p></td>
 <td><p>Validate that <code class="docutils literal notranslate"><span class="pre">doc</span></code> (dict, JSON string, or SceneIR) conforms to the schema.</p></td>
 </tr>
@@ -577,11 +608,23 @@ zero-duration shots, voice refs missing from a voices store.</p></li>
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.ValidationFinding" title="an.ir.validate.ValidationFinding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValidationFinding</span></code></a>(severity, ir_path, description)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.ValidationContext" title="an.ir.validate.ValidationContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValidationContext</span></code></a>(scene, report, stores[, ...])</p></td>
+<td><p>What a registered semantic check (<a class="reference internal" href="an.genres.html#an.genres.SemanticCheck" title="an.genres.SemanticCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.genres.SemanticCheck</span></code></a>) reads.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.ValidationFinding" title="an.ir.validate.ValidationFinding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValidationFinding</span></code></a>(severity, ir_path, description)</p></td>
 <td><p>A single validation issue with a path into the IR.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.ir.validate.ValidationReport" title="an.ir.validate.ValidationReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValidationReport</span></code></a>([passed, findings])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.ValidationReport" title="an.ir.validate.ValidationReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ValidationReport</span></code></a>([passed, findings])</p></td>
 <td><p>Result of running one or more validators.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Exceptions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.ir.validate.UnregisteredInSceneError" title="an.ir.validate.UnregisteredInSceneError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnregisteredInSceneError</span></code></a>(findings, *[, where])</p></td>
+<td><p>A scene names kinds or renderers nothing registered: refused at load.</p></td>
 </tr>
 </tbody>
 </table>
@@ -631,6 +674,51 @@ that store’s documents carry). <code class="code docutils literal notranslate"
 neither has a rig to declare asset sets on.</p>
 </dd></dl>
 
+<dl class="py exception">
+<dt class="sig sig-object py" id="an.ir.validate.UnregisteredInSceneError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">UnregisteredInSceneError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">findings</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#UnregisteredInSceneError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.UnregisteredInSceneError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="an.genres.registry.html#an.genres.registry.UnregisteredKindError" title="an.genres.registry.UnregisteredKindError"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnregisteredKindError</span></code></a></p>
+<p>A scene names kinds or renderers nothing registered: refused at load.</p>
+<p>Raised by <a class="reference internal" href="#an.ir.validate.require_registered_kinds" title="an.ir.validate.require_registered_kinds"><code class="xref py py-func docutils literal notranslate"><span class="pre">require_registered_kinds()</span></code></a> — what <code class="docutils literal notranslate"><span class="pre">an.load(project)</span></code>
+(and so <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code>) runs, so a typo’d <code class="docutils literal notranslate"><span class="pre">kind:</span></code> or <code class="docutils literal notranslate"><span class="pre">renderer:</span></code> can no
+longer render silently wrong now that the schema holds them as <code class="docutils literal notranslate"><span class="pre">str</span></code>
+(review-244 S2). <code class="docutils literal notranslate"><span class="pre">findings</span></code> keeps each one with its IR path.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.ir.validate.ValidationContext">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">ValidationContext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">report</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stores</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">characters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#ValidationContext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.ValidationContext" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>What a registered semantic check (<a class="reference internal" href="an.genres.html#an.genres.SemanticCheck" title="an.genres.SemanticCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">an.genres.SemanticCheck</span></code></a>) reads.</p>
+<p><code class="docutils literal notranslate"><span class="pre">stores</span></code> holds only the stores actually supplied, keyed by MALL name (an
+absent one means its checks did not RUN — never that what it holds is
+missing). <code class="docutils literal notranslate"><span class="pre">shot</span></code> and <code class="docutils literal notranslate"><span class="pre">index</span></code> are set while the <code class="docutils literal notranslate"><span class="pre">shot</span></code> stage runs.
+<code class="docutils literal notranslate"><span class="pre">memo</span></code> is shared by every check of one <code class="docutils literal notranslate"><span class="pre">validate_semantic</span></code> call, so
+two checks that need the same derived fact compute it once
+(<a class="reference internal" href="#an.ir.validate.ValidationContext.cached" title="an.ir.validate.ValidationContext.cached"><code class="xref py py-meth docutils literal notranslate"><span class="pre">cached()</span></code></a>).</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.ir.validate.ValidationContext.cached">
+<span class="sig-name descname"><span class="pre">cached</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compute</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#ValidationContext.cached"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.ValidationContext.cached" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">compute()</span></code>, once per <code class="docutils literal notranslate"><span class="pre">key</span></code> per validation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="an.ir.validate.ValidationContext.path">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">path</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#an.ir.validate.ValidationContext.path" title="Link to this definition">#</a></dt>
+<dd><p>The IR path of the current shot (<code class="docutils literal notranslate"><span class="pre">timeline/&lt;index&gt;</span></code>).</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="an.ir.validate.ValidationFinding">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">ValidationFinding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">severity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#ValidationFinding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.ValidationFinding" title="Link to this definition">#</a></dt>
@@ -647,6 +735,100 @@ neither has a rig to declare asset sets on.</p>
 <p>Result of running one or more validators.</p>
 <p><code class="docutils literal notranslate"><span class="pre">passed</span></code> is True iff there are no error-severity findings.</p>
 <dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.validate.check_character_refs">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">check_character_refs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#check_character_refs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.check_character_refs" title="Link to this definition">#</a></dt>
+<dd><p>The cut-out genre’s missing-character warning. A WARNING: the compiler
+falls back to the built-in placeholder rig and the scene still renders.
+Deliberately not escalated — an asset-less project rendering placeholders
+is a supported way to work.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.validate.check_expression_actions">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">check_expression_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#check_expression_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.check_expression_actions" title="Link to this definition">#</a></dt>
+<dd><p>The cut-out genre’s <code class="code docutils literal notranslate"><span class="pre">expression</span></code> / <code class="code docutils literal notranslate"><span class="pre">[emotion]</span></code> check.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.validate.check_hidden_mouth_while_speaking">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">check_hidden_mouth_while_speaking</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#check_hidden_mouth_while_speaking"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.check_hidden_mouth_while_speaking" title="Link to this definition">#</a></dt>
+<dd><p>The cut-out genre’s mouth-hidden-by-a-view warning.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.validate.check_play_actions">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">check_play_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#check_play_actions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.check_play_actions" title="Link to this definition">#</a></dt>
+<dd><p>The cut-out genre’s <code class="code docutils literal notranslate"><span class="pre">play</span></code> check (<code class="xref py py-func docutils literal notranslate"><span class="pre">_check_play_actions()</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.validate.check_turns">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">check_turns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#check_turns"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.check_turns" title="Link to this definition">#</a></dt>
+<dd><p>The cut-out genre’s contradicted-turn warning (<code class="xref py py-func docutils literal notranslate"><span class="pre">_check_turns()</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.validate.check_view_continuity">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">check_view_continuity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#check_view_continuity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.check_view_continuity" title="Link to this definition">#</a></dt>
+<dd><p>The cut-out genre’s view-across-a-cut warning (<code class="xref py py-func docutils literal notranslate"><span class="pre">_check_view_continuity()</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.validate.registered_kind_problems">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">registered_kind_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#registered_kind_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.registered_kind_problems" title="Link to this definition">#</a></dt>
+<dd><p>The findings of the three registry checks alone — every action kind,
+entity kind and renderer the scene names must be registered — without the
+rest of <code class="docutils literal notranslate"><span class="pre">validate_semantic</span></code> (no stores, no rig builds; cheap).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.ir.validate.ValidationReport" title="an.ir.validate.ValidationReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValidationReport</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.ir.validate.require_registered_kinds">
+<span class="sig-prename descclassname"><span class="pre">an.ir.validate.</span></span><span class="sig-name descname"><span class="pre">require_registered_kinds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scene</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">where</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/ir/validate.html#require_registered_kinds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.ir.validate.require_registered_kinds" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">scene</span></code>, or <a class="reference internal" href="#an.ir.validate.UnregisteredInSceneError" title="an.ir.validate.UnregisteredInSceneError"><code class="xref py py-class docutils literal notranslate"><span class="pre">UnregisteredInSceneError</span></code></a> naming every action
+kind, entity kind and renderer it uses that is not registered.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="an.ir.schema.html#an.ir.schema.SceneIR" title="an.ir.schema.SceneIR"><code class="xref py py-class docutils literal notranslate"><span class="pre">SceneIR</span></code></a></span></p>
+</dd>
 </dl>
 </dd></dl>
 
@@ -684,6 +866,13 @@ dicts, an#87 / an#7). Pass <code class="docutils literal notranslate"><span clas
 skipping them is what it sounds like: a <code class="code docutils literal notranslate"><span class="pre">play</span></code> or a swap the compiler
 will refuse passes silently without the store (the CLI, <code class="code docutils literal notranslate"><span class="pre">an</span> <span class="pre">validate</span></code>,
 always passes it).</p>
+<p>The checks are a REGISTRY (<a class="reference internal" href="an.genres.registry.html#an.genres.registry.register_check" title="an.genres.registry.register_check"><code class="xref py py-func docutils literal notranslate"><span class="pre">an.genres.registry.register_check()</span></code></a>):
+the core’s own register below, a genre’s when it is loaded (the cut-out
+genre’s <code class="code docutils literal notranslate"><span class="pre">play</span></code>, <code class="code docutils literal notranslate"><span class="pre">expression</span></code>, turn and view checks), and they run in
+stages — <code class="docutils literal notranslate"><span class="pre">scene</span></code>, then <code class="docutils literal notranslate"><span class="pre">shot</span></code> once per shot, then <code class="docutils literal notranslate"><span class="pre">finish</span></code> — each by
+its <code class="docutils literal notranslate"><span class="pre">order</span></code>. An action or entity kind no loaded genre registered is one
+error naming the genre that provides it; checks that would trip over it
+skip that shot rather than crash.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.ir.validate.ValidationReport" title="an.ir.validate.ValidationReport"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValidationReport</span></code></a></span></p>
@@ -744,8 +933,22 @@ always passes it).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.RETIRED_CAMERA_KEYS"><code class="docutils literal notranslate"><span class="pre">RETIRED_CAMERA_KEYS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.RETIRED_KEYS"><code class="docutils literal notranslate"><span class="pre">RETIRED_KEYS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.RIG_STORES"><code class="docutils literal notranslate"><span class="pre">RIG_STORES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.UnregisteredInSceneError"><code class="docutils literal notranslate"><span class="pre">UnregisteredInSceneError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.ValidationContext"><code class="docutils literal notranslate"><span class="pre">ValidationContext</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.ValidationContext.cached"><code class="docutils literal notranslate"><span class="pre">ValidationContext.cached()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.ValidationContext.path"><code class="docutils literal notranslate"><span class="pre">ValidationContext.path</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.ValidationFinding"><code class="docutils literal notranslate"><span class="pre">ValidationFinding</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.ValidationReport"><code class="docutils literal notranslate"><span class="pre">ValidationReport</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.check_character_refs"><code class="docutils literal notranslate"><span class="pre">check_character_refs()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.check_expression_actions"><code class="docutils literal notranslate"><span class="pre">check_expression_actions()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.check_hidden_mouth_while_speaking"><code class="docutils literal notranslate"><span class="pre">check_hidden_mouth_while_speaking()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.check_play_actions"><code class="docutils literal notranslate"><span class="pre">check_play_actions()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.check_turns"><code class="docutils literal notranslate"><span class="pre">check_turns()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.check_view_continuity"><code class="docutils literal notranslate"><span class="pre">check_view_continuity()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.registered_kind_problems"><code class="docutils literal notranslate"><span class="pre">registered_kind_problems()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.require_registered_kinds"><code class="docutils literal notranslate"><span class="pre">require_registered_kinds()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.validate_schema"><code class="docutils literal notranslate"><span class="pre">validate_schema()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.ir.validate.validate_semantic"><code class="docutils literal notranslate"><span class="pre">validate_semantic()</span></code></a></li>
 </ul>

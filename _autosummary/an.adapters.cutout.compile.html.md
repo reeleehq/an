@@ -58,6 +58,7 @@ mall). It reads only.
 | [`CONTAIN_FIT`](#an.adapters.cutout.compile.CONTAIN_FIT)                | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                |
 | [`CHARACTER_ART_PREFIX`](#an.adapters.cutout.compile.CHARACTER_ART_PREFIX)       | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                                                                                                       |
 | [`PROP_ART_PREFIX`](#an.adapters.cutout.compile.PROP_ART_PREFIX)            | The same, for props.                                                                                                                                                                                                                                                                                         |
+| [`STAGE_NODE_SPACE`](#an.adapters.cutout.compile.STAGE_NODE_SPACE)           | The property space every compiled node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).                                                                                                                                                                 |
 
 ### Functions
 
@@ -237,6 +238,10 @@ seven deleted `_SVG_*_SIZE` constants hand-tuned: at k = 345/1024 = 0.3369,
 legs 37.7x118.6 against 38x120. The constants were an approximation of
 exactly this product, which is the evidence that the rig should have been
 driving it all along.
+
+### an.adapters.cutout.compile.STAGE_NODE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
+
+The property space every compiled node lives in ([`an.timing.spaces`](an.timing.spaces.html.md#module-an.timing.spaces)).
 
 ### an.adapters.cutout.compile.blink_phase(entity_id)
 

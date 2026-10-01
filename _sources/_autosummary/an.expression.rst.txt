@@ -52,3 +52,4 @@ an.expression
    blendshapes
    presets
    provider
+   registration

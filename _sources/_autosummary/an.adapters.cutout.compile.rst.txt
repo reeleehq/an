@@ -25,6 +25,7 @@ an.adapters.cutout.compile
       CONTAIN_FIT
       CHARACTER_ART_PREFIX
       PROP_ART_PREFIX
+      STAGE_NODE_SPACE
    
    .. rubric:: Functions
 

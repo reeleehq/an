@@ -1,4 +1,4 @@
-> built 2026-10-01 12:05 UTC from 8816a48 (main) · an 0.1.131. Details: build_info.json
+> built 2026-10-01 13:39 UTC from b9b87c0 (main) · an 0.1.132. Details: build_info.json
 
 # index.html.md
 
@@ -970,6 +970,7 @@ mall). It reads only.
 | [`CONTAIN_FIT`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.CONTAIN_FIT)                | The fit policy every compiled sprite carries.                                                                                                                                                                                                                                                                |
 | [`CHARACTER_ART_PREFIX`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.CHARACTER_ART_PREFIX)       | The `assets.textures` `src` prefix a rig's art is addressed under, which is also the mall store that resolves it (`render.ASSET_SRC_PREFIX_TO_STORE`).                                                                                                                                                       |
 | [`PROP_ART_PREFIX`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.PROP_ART_PREFIX)            | The same, for props.                                                                                                                                                                                                                                                                                         |
+| [`STAGE_NODE_SPACE`](_autosummary/an.adapters.cutout.compile.html.md#an.adapters.cutout.compile.STAGE_NODE_SPACE)           | The property space every compiled node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).                                                                                                                                                                 |
 
 ### Functions
 
@@ -1149,6 +1150,10 @@ seven deleted `_SVG_*_SIZE` constants hand-tuned: at k = 345/1024 = 0.3369,
 legs 37.7x118.6 against 38x120. The constants were an approximation of
 exactly this product, which is the evidence that the rig should have been
 driving it all along.
+
+### an.adapters.cutout.compile.STAGE_NODE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
+
+The property space every compiled node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).
 
 ### an.adapters.cutout.compile.blink_phase(entity_id)
 
@@ -3697,9 +3702,12 @@ track that took the mouth back.
 
 `space` says what each property is ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)): one space, a
 registered space’s name, or a `target -> space` resolver. Its field kinds
-interpolate and its write groups resolve. `None` is the stage runtime’s
-rule, which `runtime.js` implements: interpolation by value type, the
-`stage.node` write groups.
+interpolate and its write groups resolve. `None` is the default space,
+[`an.timing.spaces.DFLT_TIMELINE_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE) (the stage node’s declared
+kinds, by name at call time). `space=VALUE_TYPED` is the rule
+`runtime.js` implements — interpolation by value type, the `stage.node`
+write groups — which gives the same pose on every timeline the compiler
+emits (it refuses a value that fails its field kind).
 
 Forward-order rendering used to show the value at the clip’s last SAMPLED
 frame instead (the runtime kept whatever it last applied). The two agree
@@ -7042,7 +7050,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'eye', 'rect', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse', 'mouth', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -10830,7 +10838,7 @@ function the assembler lays the picture out with) plus its shot-local frame,
 so a dissolve, which overlaps two shots and shortens the film, moves every
 later cue earlier by exactly its overlap.
 
-**Timing is materialised into ordinary actions**, the way [`an.text.stagger()`](_autosummary/an.text.html.md#an.text.stagger)
+**Timing is materialised into ordinary actions**, the way [`an.text.reveal_units()`](_autosummary/an.text.html.md#an.text.reveal_units)
 works: nothing in the compiler or the runtime knows what a caption is. The
 caption blocks are added to the shot at RENDER time, never written back to
 the scene — the word timings are the audio pipeline’s output, and a caption
@@ -12563,20 +12571,21 @@ namespace as the default, so the output is a valid standalone SVG.
 
 ### Modules
 
-| [`cli`](_autosummary/an.characters.cli.html.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                           |
-|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…        |
-| [`dicebear`](_autosummary/an.characters.dicebear.html.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                          |
-| [`factory`](_autosummary/an.characters.factory.html.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                          |
-| [`idle`](_autosummary/an.characters.idle.html.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                           |
-| [`licenses`](_autosummary/an.characters.licenses.html.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                            |
-| [`mouth_set`](_autosummary/an.characters.mouth_set.html.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                       |
-| [`play`](_autosummary/an.characters.play.html.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7). |
-| [`record`](_autosummary/an.characters.record.html.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                     |
-| [`schema`](_autosummary/an.characters.schema.html.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                         |
-| [`silhouette`](_autosummary/an.characters.silhouette.html.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                     |
-| [`svg_utils`](_autosummary/an.characters.svg_utils.html.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.          |
-| [`validate`](_autosummary/an.characters.validate.html.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                  |
+| [`cli`](_autosummary/an.characters.cli.html.md#module-an.characters.cli)                   | User-facing character CLI subcommands.                                            |
+|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`colour_roles`](_autosummary/an.characters.colour_roles.html.md#module-an.characters.colour_roles) | Colour roles: which colour literal in which part is skin, clothing, hair…         |
+| [`dicebear`](_autosummary/an.characters.dicebear.html.md#module-an.characters.dicebear)         | DiceBear HTTP API client + best-effort post-processing.                           |
+| [`factory`](_autosummary/an.characters.factory.html.md#module-an.characters.factory)           | High-level entry points: build and inspect a character.                           |
+| [`idle`](_autosummary/an.characters.idle.html.md#module-an.characters.idle)                 | Idle animation factories: breath, blink, weight-shift.                            |
+| [`licenses`](_autosummary/an.characters.licenses.html.md#module-an.characters.licenses)         | DiceBear per-style licences, as data.                                             |
+| [`mouth_set`](_autosummary/an.characters.mouth_set.html.md#module-an.characters.mouth_set)       | Generate the 9-shape default mouth set as parametric SVGs.                        |
+| [`play`](_autosummary/an.characters.play.html.md#module-an.characters.play)                 | Resolve a `play` against a character descriptor — the renderer-free half (an#7).  |
+| [`record`](_autosummary/an.characters.record.html.md#module-an.characters.record)             | Record a character's preview HTML to an mp4.                                      |
+| [`registration`](_autosummary/an.characters.registration.html.md#module-an.characters.registration) | The character side of the cut-out genre, as declarations: `play` and `character`. |
+| [`schema`](_autosummary/an.characters.schema.html.md#module-an.characters.schema)             | Character descriptor schema (Spine-shaped, Pydantic v2).                          |
+| [`silhouette`](_autosummary/an.characters.silhouette.html.md#module-an.characters.silhouette)     | Silhouette rendering and comparison for the silhouette test.                      |
+| [`svg_utils`](_autosummary/an.characters.svg_utils.html.md#module-an.characters.svg_utils)       | SVG manipulation: namespace-aware DOM helpers using stdlib `xml.etree`.           |
+| [`validate`](_autosummary/an.characters.validate.html.md#module-an.characters.validate)         | Whether an art package is one the compiler can actually render.                   |
 
 
 # _autosummary/an.characters.idle.html.md
@@ -13501,6 +13510,76 @@ required by the renderer) must be installed.
 
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+
+# _autosummary/an.characters.registration.html.md
+
+# an.characters.registration
+
+The character side of the cut-out genre, as declarations: `play` and `character`.
+
+What the cut-out genre ([`an.genres.cutout`](_autosummary/an.genres.cutout.html.md#module-an.genres.cutout)) registers from here (ADR 0001
+§First slice):
+
+- the **\`\`play\`\` action kind** — [`an.ir.schema.PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), how long a
+  duration-less play occupies a `sequence` (its natural length, through the
+  caller’s extent resolver), and its `scene.md` spelling;
+- the **\`\`character\`\` entity kind** — a rigged character, whose nodes are
+  nodes of the 2D stage engine (the `stage.node` property space).
+
+Plain declarations: importing this module registers nothing.
+
+```pycon
+>>> PLAY.name, CHARACTER.space
+('play', 'stage.node')
+```
+
+### Functions
+
+| [`play_duration`](_autosummary/an.characters.registration.html.md#an.characters.registration.play_duration)(action, extent)   | The span a `play` occupies: its `duration`, else its natural extent.    |
+|----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`read_play_md`](_autosummary/an.characters.registration.html.md#an.characters.registration.read_play_md)(item, \*, index)   | `{kind: play, target, animation, [duration], [speed], [loop], [args]}`. |
+| [`write_play_md`](_autosummary/an.characters.registration.html.md#an.characters.registration.write_play_md)(leaf)             | The `scene.md` entry for `leaf` (`read_play_md`'s inverse).             |
+
+### an.characters.registration.play_duration(action, extent)
+
+The span a `play` occupies: its `duration`, else its natural extent.
+
+`extent` is the caller’s resolver (the compiler and `an validate` pass
+one bound to the entity’s descriptor); without one, a motion preset’s own
+length ([`an.ir.compose.default_play_extent()`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent)).
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> play_duration(PlayAction(target="a", animation="hop", duration=2.0), None)
+2.0
+>>> play_duration(PlayAction(target="a", animation="hop"), None)
+0.5
+```
+
+### an.characters.registration.read_play_md(item, , index)
+
+`{kind: play, target, animation, [duration], [speed], [loop], [args]}`.
+
+Resolved at compile against the target entity’s descriptor `animations`
+(an#7), falling back to the motion presets of `an.motion.PRESETS` for a
+name the descriptor does not declare, with `args` as the preset’s
+parameters (an#166). `loop` omitted means the animation’s own. This
+reader accepted the shape from the start, then #24 made it refuse (nothing
+resolved a play) while the writer kept emitting it — three days of a
+project’s own scene.md failing to parse.
+
+* **Return type:**
+  [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)
+
+### an.characters.registration.write_play_md(leaf)
+
+The `scene.md` entry for `leaf` (`read_play_md`’s inverse).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
 
 
 # _autosummary/an.characters.schema.html.md
@@ -15806,12 +15885,13 @@ The swap-set name for a mouth form (`@` is a legal set-name character).
 
 ### Modules
 
-| [`axes`](_autosummary/an.expression.axes.html.md#module-an.expression.axes)               | The facial expression axes: what a cutout face can be asked to do (an#98).           |
-|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| [`binding`](_autosummary/an.expression.binding.html.md#module-an.expression.binding)         | How the axes reach a character: the binding and the mouth-set resolver (an#98).      |
-| [`blendshapes`](_autosummary/an.expression.blendshapes.html.md#module-an.expression.blendshapes) | The 52-coefficient blendshape vocabulary, as an import/export mapping (an#98).       |
-| [`presets`](_autosummary/an.expression.presets.html.md#module-an.expression.presets)         | Expression presets: our art direction on the axes (an#98).                           |
-| [`provider`](_autosummary/an.expression.provider.html.md#module-an.expression.provider)       | The expression provider: authored leaves + dialogue sugar → per-axis curves (an#98). |
+| [`axes`](_autosummary/an.expression.axes.html.md#module-an.expression.axes)                 | The facial expression axes: what a cutout face can be asked to do (an#98).           |
+|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| [`binding`](_autosummary/an.expression.binding.html.md#module-an.expression.binding)           | How the axes reach a character: the binding and the mouth-set resolver (an#98).      |
+| [`blendshapes`](_autosummary/an.expression.blendshapes.html.md#module-an.expression.blendshapes)   | The 52-coefficient blendshape vocabulary, as an import/export mapping (an#98).       |
+| [`presets`](_autosummary/an.expression.presets.html.md#module-an.expression.presets)           | Expression presets: our art direction on the axes (an#98).                           |
+| [`provider`](_autosummary/an.expression.provider.html.md#module-an.expression.provider)         | The expression provider: authored leaves + dialogue sugar → per-axis curves (an#98). |
+| [`registration`](_autosummary/an.expression.registration.html.md#module-an.expression.registration) | The face side of the cut-out genre, as declarations: `expression` and `[emotion]`.   |
 
 
 # _autosummary/an.expression.presets.html.md
@@ -16035,6 +16115,96 @@ rule); a span never extends past the shot.
 The shot’s `expression` leaves with absolute times (other leaves dropped).
 
 
+# _autosummary/an.expression.registration.html.md
+
+# an.expression.registration
+
+The face side of the cut-out genre, as declarations: `expression` and `[emotion]`.
+
+What the cut-out genre ([`an.genres.cutout`](_autosummary/an.genres.cutout.html.md#module-an.genres.cutout)) registers from here:
+
+- the **\`\`expression\`\` action kind** — [`an.ir.schema.ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)
+  (hold a facial expression, an#98): zero-width in a `sequence` when it runs
+  to the shot end, and its `scene.md` spelling;
+- the **\`\`[emotion]\`\` dialogue sugar** — `maya [happy]: Hi!` fills
+  `an.ir.schema.Dialogue.emotion`, which the expression provider turns
+  > into an expression over the line, in memory only.
+
+Plain declarations: importing this module registers nothing.
+
+```pycon
+>>> EXPRESSION.name, EMOTION.opener, EMOTION.parse(" Happy ")
+('expression', '[', 'happy')
+```
+
+### Module Attributes
+
+| [`EMOTION_NAME_RE`](_autosummary/an.expression.registration.html.md#an.expression.registration.EMOTION_NAME_RE)   | a preset name (`happy`, `wry-smile`).   |
+|--------------------------------------------------------------------|-----------------------------------------|
+
+### Functions
+
+| [`expression_duration`](_autosummary/an.expression.registration.html.md#an.expression.registration.expression_duration)(action, extent)   | An expression's span: its `duration`, else zero (it runs to the shot end).        |
+|----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`format_emotion`](_autosummary/an.expression.registration.html.md#an.expression.registration.format_emotion)(line)                  | The `[…]` content for `line`, or `None` when it carries no emotion.               |
+| [`parse_emotion`](_autosummary/an.expression.registration.html.md#an.expression.registration.parse_emotion)(content)                | `[happy]`'s content to the line's emotion, lower-cased; refuse a non-name.        |
+| [`read_expression_md`](_autosummary/an.expression.registration.html.md#an.expression.registration.read_expression_md)(item, \*, index)   | `{kind: expression, target, [preset], [axes], [intensity], [duration], [blend]}`. |
+| [`write_expression_md`](_autosummary/an.expression.registration.html.md#an.expression.registration.write_expression_md)(leaf)             | The `scene.md` entry for `leaf` (`read_expression_md`'s inverse).                 |
+
+### an.expression.registration.EMOTION_NAME_RE *= re.compile('[\\\\w-]+')*
+
+a preset name (`happy`, `wry-smile`).
+
+* **Type:**
+  What an emotion name may be
+
+### an.expression.registration.expression_duration(action, extent)
+
+An expression’s span: its `duration`, else zero (it runs to the shot end).
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
+```pycon
+>>> expression_duration(ExpressionAction(target="a", duration=2.0), None)
+2.0
+>>> expression_duration(ExpressionAction(target="a"), None)
+0.0
+```
+
+### an.expression.registration.format_emotion(line)
+
+The `[…]` content for `line`, or `None` when it carries no emotion.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.expression.registration.parse_emotion(content)
+
+`[happy]`’s content to the line’s emotion, lower-cased; refuse a non-name.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.expression.registration.read_expression_md(item, , index)
+
+`{kind: expression, target, [preset], [axes], [intensity], [duration], [blend]}`.
+
+Landed with its writer and round trip in one commit (an#98): the writer
+skips unknown leaves, so a parser-only entry would vanish from scene.md on
+the next sync and then from the JSON on the next md edit.
+
+* **Return type:**
+  [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)
+
+### an.expression.registration.write_expression_md(leaf)
+
+The `scene.md` entry for `leaf` (`read_expression_md`’s inverse).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+
 # _autosummary/an.frame_clock.html.md
 
 # an.frame_clock
@@ -16230,6 +16400,665 @@ Frames in a render of `duration` seconds — the renderer’s own rule.
 ```
 
 
+# _autosummary/an.genres.cutout.html.md
+
+# an.genres.cutout
+
+The cut-out animation genre, declared as one object (still inside `an`).
+
+ADR 0001 §First slice: the cut-out genre’s IR extensions register through the
+same door any genre uses — the `an.genres` entry point (`pyproject.toml`
+declares `cutout_animation = "an.genres.cutout:CUTOUT"`) — instead of being
+wired into the core. `CUTOUT` lists:
+
+- **action kinds** `play` ([`an.characters.registration`](_autosummary/an.characters.registration.html.md#module-an.characters.registration)) and
+  `expression` ([`an.expression.registration`](_autosummary/an.expression.registration.html.md#module-an.expression.registration));
+- **entity kind** `character`, whose nodes are stage nodes (`stage.node`);
+- the **\`\`[emotion]\`\`** dialogue sugar;
+- its **semantic checks**: `play` and `expression` resolution, the turn
+  checks (contradicted `from_direction`, a mouth hidden while speaking) and
+  view continuity across a cut, placed in the report where they always were.
+
+Its `name` is the persisted genre slug `cutout_animation`, the one
+`an.genre` declares to `nw` (ADR 0001 decision 9: persisted
+identifiers do not change). When the `cutan` package exists (P8), this object
+moves there and registers through the same entry point from that distribution;
+nothing in the core’s dispatch changes.
+
+Importing this module registers nothing: [`an.genres.load()`](_autosummary/an.genres.html.md#an.genres.load) (or
+[`an.genres.register_genre()`](_autosummary/an.genres.html.md#an.genres.register_genre)) does.
+
+```pycon
+>>> CUTOUT.provides()["action kinds"]
+('play', 'expression')
+```
+
+### Module Attributes
+
+| [`CUTOUT_GENRE_NAME`](_autosummary/an.genres.cutout.html.md#an.genres.cutout.CUTOUT_GENRE_NAME)   | The genre's persisted slug (also `an.genre.CUTOUT_ANIMATION_SLUG`).   |
+|----------------------------------------------------------------------|-----------------------------------------------------------------------|
+
+### an.genres.cutout.CUTOUT_GENRE_NAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'cutout_animation'*
+
+The genre’s persisted slug (also `an.genre.CUTOUT_ANIMATION_SLUG`).
+
+
+# _autosummary/an.genres.html.md
+
+# an.genres
+
+Genres: what a kind of animation adds to the core, declared as one object.
+
+ADR 0001 decisions 2-4 and the core study §2.15. A **genre** (cut-out
+animation, data visualisation, mathematical explainers, …) extends the core by
+*registration*, never by editing a core `if kind == …` chain. It is one plain,
+declarative [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre) object — the shape `shaping` uses (“a new genre is
+one file”) — listing what it registers:
+
+- **action kinds** ([`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind)): a model, how it occupies time, how
+  `scene.md` spells it;
+- **entity kinds** ([`EntityKind`](_autosummary/an.genres.html.md#an.genres.EntityKind)), each naming the property space its
+  nodes live in, plus any new **property spaces** and **field kinds** for the
+  timing kernel ([`an.timing`](_autosummary/an.timing.html.md#module-an.timing));
+- **semantic checks** ([`SemanticCheck`](_autosummary/an.genres.html.md#an.genres.SemanticCheck)) that `an validate` runs;
+- **md sugar** ([`DialogueSugar`](_autosummary/an.genres.html.md#an.genres.DialogueSugar)) on `scene.md` dialogue lines.
+
+Because the object is plain data, a genre is \*\*inspectable before it is
+loaded\*\*: [`available()`](_autosummary/an.genres.html.md#an.genres.available) reads every installed genre’s declaration without
+registering anything, which is how an unregistered kind’s error can name the
+package that provides it.
+
+**Discovery is explicit, never at import time** (decision 3). Importing `an`
+registers no genre. [`load()`](_autosummary/an.genres.html.md#an.genres.load) reads the `an.genres` entry point group and
+registers each genre it finds; `an.load(project)`, the `an` CLI and (later)
+the MCP entry call it, and anyone can. A package declares its genre as:
+
+```default
+[project.entry-points."an.genres"]
+cutout_animation = "an.genres.cutout:CUTOUT"
+```
+
+[`register_genre()`](_autosummary/an.genres.html.md#an.genres.register_genre) installs a genre object directly (a test, a notebook, a
+genre defined in the same process).
+
+```pycon
+>>> from an.genres import Genre, register_genre, installed, without_genres
+>>> with without_genres():
+...     installed()
+()
+>>> demo = Genre("demo_genre", title="Demo")
+>>> with without_genres():
+...     _ = register_genre(demo)
+...     installed()
+('demo_genre',)
+```
+
+### Module Attributes
+
+| [`ENTRY_POINT_GROUP`](_autosummary/an.genres.html.md#an.genres.ENTRY_POINT_GROUP)      | The entry-point group a genre package declares its [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre) under.   |
+|-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| [`IN_DISTRIBUTION_GENRES`](_autosummary/an.genres.html.md#an.genres.IN_DISTRIBUTION_GENRES) | Genres the `an` distribution itself ships, as entry-point values.                                                  |
+
+### Functions
+
+| [`action_kind`](_autosummary/an.genres.html.md#an.genres.action_kind)(name)                                | The registered kind called `name`, or `None`.                                                                                                                                                                           |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`action_kind_names`](_autosummary/an.genres.html.md#an.genres.action_kind_names)(\*[, owner])                   | Registered action-kind names in registration order; `owner`'s only when given.                                                                                                                                          |
+| [`available`](_autosummary/an.genres.html.md#an.genres.available)(\*[, entry_points, builtin])           | Every discoverable genre's declaration, by name — read, never registered.                                                                                                                                               |
+| `entity_kind`(name)                                                                               |                                                                                                                                                                                                                         |
+| `entity_kind_names`(\*[, owner])                                                                  |                                                                                                                                                                                                                         |
+| [`entity_space_resolver`](_autosummary/an.genres.html.md#an.genres.entity_space_resolver)(entities, \*[, default])   | `target -> PropertySpace`: the space its ENTITY's kind declares.                                                                                                                                                        |
+| [`discovered_entry_points`](_autosummary/an.genres.html.md#an.genres.discovered_entry_points)(\*[, entry_points, ...]) | The in-distribution genres (`builtin`) merged with `entry_points` (default: the installed ones), de-duplicated by name — the in-distribution declaration first, so a stale or missing installed entry cannot shadow it. |
+| [`genre_entry_points`](_autosummary/an.genres.html.md#an.genres.genre_entry_points)(\*[, group])                  | The installed `an.genres` entry points (nothing is imported).                                                                                                                                                           |
+| [`genres_declaring`](_autosummary/an.genres.html.md#an.genres.genres_declaring)(test)                           | The installed genres (loaded or not) whose declaration passes `test`.                                                                                                                                                   |
+| [`installed`](_autosummary/an.genres.html.md#an.genres.installed)()                                      | The names of the genres registered in this process, in registration order.                                                                                                                                              |
+| `installed_genre`(name)                                                                           |                                                                                                                                                                                                                         |
+| [`load`](_autosummary/an.genres.html.md#an.genres.load)(\*[, entry_points, builtin])                | Register every discoverable genre.                                                                                                                                                                                      |
+| [`providers_of`](_autosummary/an.genres.html.md#an.genres.providers_of)(kind, \*[, registry])               | The installed genres (loaded or not) that declare `kind` in `registry` (a key of [`Genre.provides()`](_autosummary/an.genres.html.md#an.genres.Genre.provides)).                                                                    |
+| [`register_genre`](_autosummary/an.genres.html.md#an.genres.register_genre)(genre, \*[, replace])             | Register everything `genre` declares, owned by `genre.name`.                                                                                                                                                            |
+| [`without_genres`](_autosummary/an.genres.html.md#an.genres.without_genres)()                                 | Run a block with no genre registered (the core alone), then restore.                                                                                                                                                    |
+
+### Classes
+
+| [`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.   |
+|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`DialogueSugar`](_autosummary/an.genres.html.md#an.genres.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.     |
+| [`EntityKind`](_autosummary/an.genres.html.md#an.genres.EntityKind)(name[, space, store, description])       | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
+| [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre)(name[, title, description, package, ...])     | A genre: one plain, declarative object listing what it registers.                |
+| [`SemanticCheck`](_autosummary/an.genres.html.md#an.genres.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.         |
+
+### Exceptions
+
+| [`GenreError`](_autosummary/an.genres.html.md#an.genres.GenreError)                                   | A genre declaration is malformed, or its entry point does not resolve.   |
+|-----------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
+| [`RegistryError`](_autosummary/an.genres.html.md#an.genres.RegistryError)                                | A registration is malformed or collides with one already made.           |
+| [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.                      |
+
+### *class* an.genres.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One kind of action: its model, how it occupies time, how `scene.md` spells it.
+
+- `model` validates a document’s action of this kind. A genre’s model
+  subclasses [`an.ir.schema.ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction); the core’s are the
+  static members of the schema’s union.
+- `duration` is a LEAF’s natural length; a leaf flattens to one
+  `FlatAction` on `[t, t + duration]` and advances a `sequence` by it.
+- `flatten` replaces that default for kinds that place themselves
+  differently (`set` does not advance the cursor) or that hold children
+  (`sequence`): `flatten(action, t, ctx) -> new cursor`, where `ctx`
+  is [`an.ir.compose.FlattenContext`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlattenContext).
+- `children` lists a composite’s child actions, so generic walkers
+  (validation) reach every leaf without knowing the kind.
+- `read_md` / `write_md` are the `scene.md` `yaml actions` hooks:
+  `read_md(item, index=i) -> action` (`start:` already removed when
+  `md_start`) and `write_md(action) -> dict` (without `start`).
+  A kind with no `read_md` has no `scene.md` form.
+
+#### md_start *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+Does `start:` in `scene.md` wrap this kind in `sequence(delay(start), …)`?
+
+### *class* an.genres.DialogueSugar(name, opener, field, parse, format, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+`scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.
+
+`parse(content) -> value` turns what is between the brackets into the
+field’s value (raise `ValueError(why)` to refuse it); `format(line) ->
+str | None` is the inverse (the content, without brackets, or `None` when
+the line carries none). The cut-out genre’s `[emotion]` is one.
+
+### an.genres.ENTRY_POINT_GROUP *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an.genres'*
+
+The entry-point group a genre package declares its [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre) under.
+
+### *class* an.genres.EntityKind(name, space=None, store=None, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
+
+`space` names the registered [`an.timing.spaces.PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) its
+nodes’ properties live in (`None`: the entity has no animatable nodes, as
+a voice); `store` is the project-mall store its `ref` keys into.
+
+### *class* an.genres.Genre(name, title='', description='', package='', action_kinds=(), entity_kinds=(), spaces=(), field_kinds=(), checks=(), dialogue_sugar=())
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A genre: one plain, declarative object listing what it registers.
+
+`name` is the genre’s persisted slug (`cutout_animation`); it is also
+the owner of every entry it registers. `package` names the distribution
+that ships it, for error messages. Every collection defaults to empty, so a
+later phase adds a field (compile passes, vocabulary, capabilities) without
+touching any genre that does not use it.
+
+`spaces` are [`an.timing.spaces.PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) objects and
+`field_kinds` are `(name, factory)` pairs for
+[`an.timing.kinds.register_kind()`](_autosummary/an.timing.kinds.html.md#an.timing.kinds.register_kind).
+
+#### provides()
+
+What this genre registers, by registry, as names — without registering it.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]]
+
+```pycon
+>>> Genre("g", action_kinds=()).provides()["action kinds"]
+()
+```
+
+### *exception* an.genres.GenreError
+
+Bases: [`RegistryError`](_autosummary/an.genres.registry.html.md#an.genres.registry.RegistryError)
+
+A genre declaration is malformed, or its entry point does not resolve.
+
+### an.genres.IN_DISTRIBUTION_GENRES *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)], ...]* *= (('cutout_animation', 'an.genres.cutout:CUTOUT'),)*
+
+Genres the `an` distribution itself ships, as entry-point values. They are
+found by [`load()`](_autosummary/an.genres.html.md#an.genres.load) WITHOUT relying on installed metadata: an editable
+install made before the `an.genres` group existed never refreshes its
+`dist-info`, and a missing entry point must never silently drop a genre
+that ships in the same distribution as the core (review-244 S1). Still
+explicit discovery (only [`load()`](_autosummary/an.genres.html.md#an.genres.load) reads it, never an import). External
+genres (`cutan` after P8) come through the entry point alone; when the
+cut-out genre moves there, its line here goes.
+
+### *exception* an.genres.RegistryError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A registration is malformed or collides with one already made.
+
+### *class* an.genres.SemanticCheck(name, run, stage='shot', order=0.0, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.
+
+`ctx` is [`an.ir.validate.ValidationContext`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationContext); a `shot` check is
+called once per shot with `ctx.shot` set. Within a stage, checks run by
+`order` (then registration order), so a genre’s check lands exactly where
+it belongs in the report.
+
+### *exception* an.genres.UnregisteredKindError(what, name, , known=(), providers=(), where='')
+
+Bases: [`RegistryError`](_autosummary/an.genres.registry.html.md#an.genres.registry.RegistryError)
+
+A document names a kind no loaded genre registered.
+
+The message names the installed genres that *could* provide it (read from
+their declarations, which are inspectable without loading them), so the fix
+is one line: `an.genres.load()`, or installing the package named.
+
+### an.genres.action_kind(name)
+
+The registered kind called `name`, or `None`.
+
+* **Return type:**
+  [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.genres.action_kind_names(, owner=None)
+
+Registered action-kind names in registration order; `owner`’s only when given.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.available(, entry_points=None, builtin=True)
+
+Every discoverable genre’s declaration, by name — read, never registered.
+
+The in-distribution genres plus the entry points ([`discovered_entry_points()`](_autosummary/an.genres.html.md#an.genres.discovered_entry_points)).
+A genre whose entry point does not import is left out (its error is what
+[`load()`](_autosummary/an.genres.html.md#an.genres.load) raises).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre)]
+
+### an.genres.discovered_entry_points(, entry_points=None, builtin=True)
+
+The in-distribution genres (`builtin`) merged with `entry_points`
+(default: the installed ones), de-duplicated by name — the in-distribution
+declaration first, so a stale or missing installed entry cannot shadow it.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+```pycon
+>>> [ep.name for ep in discovered_entry_points(entry_points=())]
+['cutout_animation']
+```
+
+### an.genres.entity_space_resolver(entities, , default=None)
+
+`target -> PropertySpace`: the space its ENTITY’s kind declares.
+
+The ONE policy for “what are this target’s properties” (review-244 S7):
+`an validate`’s generic target check and the compiler’s keyframe check
+both use it. A target’s entity is its first path segment; a target with no
+entity (the stage camera’s `root`), or an entity whose kind is
+unregistered or declares no space, gets `default` — the timing default
+[`an.timing.spaces.DFLT_TIMELINE_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE) when `None`.
+
+(The default EVALUATOR still uses that one space for every target: a
+compiled stage document does not carry its entities’ kinds, so a
+per-entity evaluation default arrives with the `Engine` seam, P3.)
+
+```pycon
+>>> from an.ir.schema import AssetRef
+>>> space_of = entity_space_resolver([AssetRef(kind="prop", id="lamp", store="props", ref="l")])
+>>> space_of("lamp/shade").name, space_of("root").name
+('stage.node', 'stage.node')
+```
+
+### an.genres.genre_entry_points(, group='an.genres')
+
+The installed `an.genres` entry points (nothing is imported).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`EntryPoint`](https://docs.python.org/3/library/importlib.metadata.html#importlib.metadata.EntryPoint), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.genres_declaring(test)
+
+The installed genres (loaded or not) whose declaration passes `test`.
+
+Each is named as `genre (package)`. Reading declarations imports the
+genre modules but registers nothing.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.installed()
+
+The names of the genres registered in this process, in registration order.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.load(, entry_points=None, builtin=True)
+
+Register every discoverable genre. Idempotent.
+
+Discoverable: the genres the `an` distribution ships
+([`IN_DISTRIBUTION_GENRES`](_autosummary/an.genres.html.md#an.genres.IN_DISTRIBUTION_GENRES), unless `builtin=False`) and the
+`an.genres` entry points (`entry_points` replaces the installed ones —
+tests, a host that curates). Returns the names of the genres registered
+after the call. Never called at import time: the CLI, `an.load(project)`
+and the MCP entry call it, so a document naming a genre’s kind validates to
+that kind’s model.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.providers_of(kind, , registry='action kinds')
+
+The installed genres (loaded or not) that declare `kind` in `registry`
+(a key of [`Genre.provides()`](_autosummary/an.genres.html.md#an.genres.Genre.provides)). Used by the unregistered-kind errors.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.register_genre(genre, , replace=False)
+
+Register everything `genre` declares, owned by `genre.name`.
+
+Idempotent for the same object: registering a genre that is already
+installed is a no-op, so [`load()`](_autosummary/an.genres.html.md#an.genres.load) can be called from every entry point.
+A different object under an installed name raises unless `replace`.
+All or nothing: a registration that fails part-way leaves no trace.
+
+* **Return type:**
+  [`Genre`](_autosummary/an.genres.html.md#an.genres.Genre)
+
+### an.genres.without_genres()
+
+Run a block with no genre registered (the core alone), then restore.
+
+* **Return type:**
+  [`Iterator`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterator)[[`None`](https://docs.python.org/3/builtins/constants.html#None)]
+
+```pycon
+>>> with without_genres():
+...     action_kind("play") is None
+True
+```
+
+### Modules
+
+| [`cutout`](_autosummary/an.genres.cutout.html.md#module-an.genres.cutout)     | The cut-out animation genre, declared as one object (still inside `an`).           |
+|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
+| [`registry`](_autosummary/an.genres.registry.html.md#module-an.genres.registry) | The core's open registries: action kinds, entity kinds, semantic checks, md sugar. |
+
+
+# _autosummary/an.genres.registry.html.md
+
+# an.genres.registry
+
+The core’s open registries: action kinds, entity kinds, semantic checks, md sugar.
+
+ADR 0001 decision 2 (“the IR is open at the type level; genres register, never
+edit”) and decision 4 (the first batch of registries). Each registry is a plain
+name-keyed table with an **owner** per entry, so the core can tell its own
+entries from a genre’s (the timing contract does the same, review-237 S3), and a
+test can take every genre out and put it back ([`snapshot()`](_autosummary/an.genres.registry.html.md#an.genres.registry.snapshot) /
+`restore()`).
+
+This module imports nothing from `an.ir`: the schema consults it while it
+validates (a document’s `kind: play` is looked up here), so it must sit below
+the schema in the import graph. That is also why an entry holds its model class
+and hooks as plain values: the registry never needs to know what they are.
+
+```pycon
+>>> isinstance(action_kind("tween"), ActionKind)  # core kinds register on import of the IR
+True
+>>> "play" in action_kind_names(owner=CORE_OWNER)  # a genre's kind is never the core's
+False
+```
+
+### Module Attributes
+
+| [`CORE_OWNER`](_autosummary/an.genres.registry.html.md#an.genres.registry.CORE_OWNER)        | The owner of every entry the core registers itself.                |
+|--------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`DurationHook`](_autosummary/an.genres.registry.html.md#an.genres.registry.DurationHook)      | the natural length of a leaf.                                      |
+| [`CheckStage`](_autosummary/an.genres.registry.html.md#an.genres.registry.CheckStage)        | once before the shots, once per shot, once after them.             |
+| [`DIALOGUE_BRACKETS`](_autosummary/an.genres.registry.html.md#an.genres.registry.DIALOGUE_BRACKETS) | The bracket pairs a GENRE may claim on a `scene.md` dialogue line. |
+
+### Functions
+
+| [`action_kind`](_autosummary/an.genres.registry.html.md#an.genres.registry.action_kind)(name)                                | The registered kind called `name`, or `None`.                                     |
+|---------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`action_kind_names`](_autosummary/an.genres.registry.html.md#an.genres.registry.action_kind_names)(\*[, owner])                   | Registered action-kind names in registration order; `owner`'s only when given.    |
+| `action_kind_owner`(name)                                                                         |                                                                                   |
+| `check_names`(\*[, owner])                                                                        |                                                                                   |
+| [`checks`](_autosummary/an.genres.registry.html.md#an.genres.registry.checks)(stage)                                    | The registered checks of `stage`, in run order (`order`, then registration).      |
+| [`dialogue_sugar`](_autosummary/an.genres.registry.html.md#an.genres.registry.dialogue_sugar)(opener)                           | The sugar registered for the bracket `opener`, or `None`.                         |
+| `dialogue_sugars`()                                                                               |                                                                                   |
+| `entity_kind`(name)                                                                               |                                                                                   |
+| `entity_kind_names`(\*[, owner])                                                                  |                                                                                   |
+| [`owners`](_autosummary/an.genres.registry.html.md#an.genres.registry.owners)()                                         | Every owner with at least one entry, the core first.                              |
+| [`register_action_kind`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_action_kind)(kind, \*[, owner, replace]) | Register an action kind.                                                          |
+| [`register_check`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_check)(check, \*[, owner, replace])      | Register a semantic-validation check (run by `an.ir.validate.validate_semantic`). |
+| [`register_dialogue_sugar`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_dialogue_sugar)(sugar, \*[, owner, ...]) | Register `scene.md` dialogue sugar.                                               |
+| [`register_entity_kind`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_entity_kind)(kind, \*[, owner, replace]) | Register an entity kind (a value `AssetRef.kind` may take).                       |
+| `restore`(state)                                                                                  |                                                                                   |
+| [`snapshot`](_autosummary/an.genres.registry.html.md#an.genres.registry.snapshot)()                                       | The state of every table, for `restore()`.                                        |
+| [`unregister_owner`](_autosummary/an.genres.registry.html.md#an.genres.registry.unregister_owner)(owner)                          | Remove every entry `owner` registered, from every table.                          |
+
+### Classes
+
+| [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind)(name, model[, duration, flatten, ...])   | One kind of action: its model, how it occupies time, how `scene.md` spells it.   |
+|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
+| [`DialogueSugar`](_autosummary/an.genres.registry.html.md#an.genres.registry.DialogueSugar)(name, opener, field, parse, format)   | `scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.     |
+| [`EntityKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.EntityKind)(name[, space, store, description])       | One kind of entity (`AssetRef.kind`): what its nodes' properties are.            |
+| [`SemanticCheck`](_autosummary/an.genres.registry.html.md#an.genres.registry.SemanticCheck)(name, run[, stage, order, ...])       | One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.         |
+
+### Exceptions
+
+| [`RegistryError`](_autosummary/an.genres.registry.html.md#an.genres.registry.RegistryError)                                | A registration is malformed or collides with one already made.   |
+|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------|
+| [`UnregisteredKindError`](_autosummary/an.genres.registry.html.md#an.genres.registry.UnregisteredKindError)(what, name, \*[, ...]) | A document names a kind no loaded genre registered.              |
+
+### *class* an.genres.registry.ActionKind(name, model, duration=None, flatten=None, children=None, read_md=None, write_md=None, md_start=True, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One kind of action: its model, how it occupies time, how `scene.md` spells it.
+
+- `model` validates a document’s action of this kind. A genre’s model
+  subclasses [`an.ir.schema.ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction); the core’s are the
+  static members of the schema’s union.
+- `duration` is a LEAF’s natural length; a leaf flattens to one
+  `FlatAction` on `[t, t + duration]` and advances a `sequence` by it.
+- `flatten` replaces that default for kinds that place themselves
+  differently (`set` does not advance the cursor) or that hold children
+  (`sequence`): `flatten(action, t, ctx) -> new cursor`, where `ctx`
+  is [`an.ir.compose.FlattenContext`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlattenContext).
+- `children` lists a composite’s child actions, so generic walkers
+  (validation) reach every leaf without knowing the kind.
+- `read_md` / `write_md` are the `scene.md` `yaml actions` hooks:
+  `read_md(item, index=i) -> action` (`start:` already removed when
+  `md_start`) and `write_md(action) -> dict` (without `start`).
+  A kind with no `read_md` has no `scene.md` form.
+
+#### md_start *: [bool](https://docs.python.org/3/builtins/functions.html#bool)* *= True*
+
+Does `start:` in `scene.md` wrap this kind in `sequence(delay(start), …)`?
+
+### an.genres.registry.CORE_OWNER *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'an'*
+
+The owner of every entry the core registers itself. A genre registers under
+its own name (`an.genres.Genre.name`).
+
+### an.genres.registry.CheckStage
+
+once before the shots, once per shot, once after them.
+
+* **Type:**
+  When a check runs
+
+alias of [`Literal`](https://docs.python.org/3/library/typing.html#typing.Literal)[‘scene’, ‘shot’, ‘finish’]
+
+### an.genres.registry.DIALOGUE_BRACKETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [str](https://docs.python.org/3/builtins/stdtypes.html#str)]* *= {'[': ']'}*
+
+The bracket pairs a GENRE may claim on a `scene.md` dialogue line. The
+line grammar has three: `(…)` (timing) and `{…}` (delivery direction)
+are the core’s own and never registered; `[…]` is the one left for sugar.
+
+### *class* an.genres.registry.DialogueSugar(name, opener, field, parse, format, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+`scene.md` sugar on a dialogue line: one bracket pair, one `Dialogue` field.
+
+`parse(content) -> value` turns what is between the brackets into the
+field’s value (raise `ValueError(why)` to refuse it); `format(line) ->
+str | None` is the inverse (the content, without brackets, or `None` when
+the line carries none). The cut-out genre’s `[emotion]` is one.
+
+### an.genres.registry.DurationHook
+
+the natural length of a leaf. `extent` is
+the caller’s per-call resolver for a leaf that has no explicit duration (the
+compiler and `an validate` pass one bound to the entity’s descriptor), or
+`None`.
+
+* **Type:**
+  `(action, extent) -> seconds`
+
+alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`Any`](https://docs.python.org/3/library/typing.html#typing.Any), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### *class* an.genres.registry.EntityKind(name, space=None, store=None, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One kind of entity (`AssetRef.kind`): what its nodes’ properties are.
+
+`space` names the registered [`an.timing.spaces.PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) its
+nodes’ properties live in (`None`: the entity has no animatable nodes, as
+a voice); `store` is the project-mall store its `ref` keys into.
+
+### *exception* an.genres.registry.RegistryError
+
+Bases: [`ValueError`](https://docs.python.org/3/builtins/exceptions.html#ValueError)
+
+A registration is malformed or collides with one already made.
+
+### *class* an.genres.registry.SemanticCheck(name, run, stage='shot', order=0.0, description='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One semantic-validation check: `run(ctx)` adds findings to `ctx.report`.
+
+`ctx` is [`an.ir.validate.ValidationContext`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationContext); a `shot` check is
+called once per shot with `ctx.shot` set. Within a stage, checks run by
+`order` (then registration order), so a genre’s check lands exactly where
+it belongs in the report.
+
+### *exception* an.genres.registry.UnregisteredKindError(what, name, , known=(), providers=(), where='')
+
+Bases: [`RegistryError`](_autosummary/an.genres.registry.html.md#an.genres.registry.RegistryError)
+
+A document names a kind no loaded genre registered.
+
+The message names the installed genres that *could* provide it (read from
+their declarations, which are inspectable without loading them), so the fix
+is one line: `an.genres.load()`, or installing the package named.
+
+### an.genres.registry.action_kind(name)
+
+The registered kind called `name`, or `None`.
+
+* **Return type:**
+  [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.genres.registry.action_kind_names(, owner=None)
+
+Registered action-kind names in registration order; `owner`’s only when given.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.registry.checks(stage)
+
+The registered checks of `stage`, in run order (`order`, then registration).
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SemanticCheck`](_autosummary/an.genres.registry.html.md#an.genres.registry.SemanticCheck), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.registry.dialogue_sugar(opener)
+
+The sugar registered for the bracket `opener`, or `None`.
+
+* **Return type:**
+  [`DialogueSugar`](_autosummary/an.genres.registry.html.md#an.genres.registry.DialogueSugar) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.genres.registry.owners()
+
+Every owner with at least one entry, the core first.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`...`](https://docs.python.org/3/builtins/constants.html#Ellipsis)]
+
+### an.genres.registry.register_action_kind(kind, , owner='an', replace=False)
+
+Register an action kind. Its model’s `kind` must default to its name.
+
+* **Return type:**
+  [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind)
+
+```pycon
+>>> from pydantic import BaseModel
+>>> class Bad(BaseModel):
+...     kind: str = "other"
+>>> register_action_kind(ActionKind("wave", Bad), owner="demo")
+Traceback (most recent call last):
+...
+an.genres.registry.RegistryError: action kind 'wave': ...
+```
+
+### an.genres.registry.register_check(check, , owner='an', replace=False)
+
+Register a semantic-validation check (run by `an.ir.validate.validate_semantic`).
+
+* **Return type:**
+  [`SemanticCheck`](_autosummary/an.genres.registry.html.md#an.genres.registry.SemanticCheck)
+
+### an.genres.registry.register_dialogue_sugar(sugar, , owner='an', replace=False)
+
+Register `scene.md` dialogue sugar. One sugar per bracket pair.
+
+* **Return type:**
+  [`DialogueSugar`](_autosummary/an.genres.registry.html.md#an.genres.registry.DialogueSugar)
+
+### an.genres.registry.register_entity_kind(kind, , owner='an', replace=False)
+
+Register an entity kind (a value `AssetRef.kind` may take).
+
+* **Return type:**
+  [`EntityKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.EntityKind)
+
+### an.genres.registry.snapshot()
+
+The state of every table, for `restore()`.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)
+
+### an.genres.registry.unregister_owner(owner)
+
+Remove every entry `owner` registered, from every table.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+
 # _autosummary/an.html.md
 
 # an
@@ -16254,6 +17083,7 @@ True
 | [`play`](_autosummary/an.html.md#an.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).            |
 | [`sequence`](_autosummary/an.html.md#an.sequence)(\*actions)                              | Run children one after the other.                                           |
 | [`parallel`](_autosummary/an.html.md#an.parallel)(\*actions)                              | Run all children at once.                                                   |
+| [`stagger`](_autosummary/an.html.md#an.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.              |
 | [`delay`](_autosummary/an.html.md#an.delay)(duration)                                  | An empty span that consumes time.                                           |
 | [`loop`](_autosummary/an.html.md#an.loop)(action, count)                              | Repeat `action` `count` times.                                              |
 | [`flatten`](_autosummary/an.html.md#an.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.         |
@@ -16262,7 +17092,7 @@ True
 | [`markdown_to_ir`](_autosummary/an.html.md#an.markdown_to_ir)(md_text)                          | Parse the structured Markdown form of a scene into a SceneIR.               |
 | [`ir_to_markdown`](_autosummary/an.html.md#an.ir_to_markdown)(scene)                            | Render a SceneIR back into the structured Markdown form.                    |
 | [`init`](_autosummary/an.html.md#an.init)(project_dir, \*[, name, force])             | Create a fresh an project at `project_dir`.                                 |
-| [`load`](_autosummary/an.html.md#an.load)(project_dir)                                | Load an existing project.                                                   |
+| [`load`](_autosummary/an.html.md#an.load)(project_dir, \*[, check_kinds])             | Load an existing project.                                                   |
 | [`save`](_autosummary/an.html.md#an.save)(project)                                    | Persist a Project's current scene back to disk (md + json).                 |
 | [`build_project_mall`](_autosummary/an.html.md#an.build_project_mall)(project_dir, \*[, ensure])    | Build the standard project mall over `project_dir`.                         |
 | [`check_requirements`](_autosummary/an.html.md#an.check_requirements)()                             | Return a per-tool status dict.                                              |
@@ -16296,11 +17126,17 @@ forking the asset.
 'maya'
 ```
 
-#### kind *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['character', 'environment', 'voice', 'prop']*
+#### kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
 renderer selector. Art direction arrives as a StylePack (#112).
+
+A `str` in the schema, not a `Literal` (ADR 0001 decision 2): the
+values are the REGISTERED entity kinds ([`an.genres`](_autosummary/an.genres.html.md#module-an.genres)) — the core’s
+`environment`, `prop` and `voice`, a genre’s `character` — and
+`an validate` checks it against that registry, naming the genre that
+provides an unregistered one.
 
 * **Type:**
   `"style"` was retired in an#106
@@ -16456,6 +17292,13 @@ a motion preset writes its own easings, the camera’s named moves supply
 theirs, and blinks, `play` clips and swap channels have none to
 inherit. There is no per-shot override yet — style is a scene’s.
 
+#### default_renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+a registered renderer’s name.
+
+* **Type:**
+  Like [`Shot.renderer`](_autosummary/an.html.md#an.Shot.renderer)
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -16548,13 +17391,16 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### renderer *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['cutout', 'manim', 'motion_graphics', 'whiteboard']*
+#### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was
 called `style` until an#106, colliding with the styles store (which
 holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
+A `str` in the schema (ADR 0001 decision 2): any name a renderer
+registered (`an.adapters.register_renderer`), checked by `an
+validate`. `cutout` stays the persisted default (decision 9).
 
 #### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
@@ -16608,6 +17454,12 @@ Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.
 
+Every node is dispatched through its registered kind
+([`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind)), so a genre’s kind flattens without an
+edit here; a node whose kind nobody registered raises, naming the genre
+that provides it, and an `ExtensionAction` read before its genre
+loaded is validated by the registered model on the way through.
+
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
 
@@ -16639,9 +17491,21 @@ True
 True
 ```
 
-### an.load(project_dir)
+### an.load(project_dir, , check_kinds=True)
 
 Load an existing project. Reconciles scene.md / ir/scene.json first.
+
+Registers the installed genres first ([`an.genres.load()`](_autosummary/an.genres.html.md#an.genres.load), ADR 0001
+decision 3: discovery is explicit, and loading a project is one of the
+places it happens), so the scene’s genre kinds — the cut-out genre’s
+`play`, `expression` and `character` — read as their own models.
+
+Then refuses a scene that names an action kind, entity kind or renderer
+nothing registered ([`an.ir.validate.require_registered_kinds()`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)): the
+schema holds those as `str` (ADR 0001 decision 2), so without this a
+typo’d `kind: enviroment` would load and render silently without its
+backdrop. `check_kinds=False` is for `an validate`, which reports them
+as findings instead.
 
 * **Return type:**
   [`Project`](_autosummary/an.project.html.md#an.project.Project)
@@ -16753,6 +17617,39 @@ Discrete property set at time `at` (relative to its enclosing scope).
 * **Return type:**
   [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)
 
+### an.stagger(lag, \*actions)
+
+Start each action `lag` seconds after the previous one STARTS.
+
+The **stagger** (Manim’s `LaggedStart`, `previz`’s compose, a crowd
+entering one by one): the children run in parallel, the `i`-th delayed
+by `i * lag`. It is authoring sugar, not a new kind — it builds the
+`parallel` of `sequence(delay(i * lag), action)` it means, so the
+scene document, `scene.md` and every renderer see only core kinds.
+Total duration: the latest child’s end. `scene.md` holds it verbatim (a
+`kind: parallel` entry), so it round-trips. (`an.text.reveal_units` —
+`an.text.stagger` before an#241 — is the text-block preset: a LIST of
+per-unit actions with holds, not a combinator.)
+
+* **Return type:**
+  [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
+
+```pycon
+>>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
+...                              tween("b", "x", to=1.0, duration=1.0),
+...                              tween("c", "x", to=1.0, duration=1.0)))
+>>> [(f.action.target, f.start, f.end) for f in flat]
+[('a', 0.0, 1.0), ('b', 0.25, 1.25), ('c', 0.5, 1.5)]
+>>> duration_of(stagger(0.5, delay(1.0), delay(1.0)))
+1.5
+>>> stagger(0.1).children
+[]
+>>> stagger(-1.0, delay(1.0))
+Traceback (most recent call last):
+...
+ValueError: stagger lag must be >= 0, got -1.0
+```
+
 ### an.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
 Animate a property from `from_` (or its current value) to `to`.
@@ -16802,6 +17699,14 @@ skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
 
+The checks are a REGISTRY ([`an.genres.registry.register_check()`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_check)):
+the core’s own register below, a genre’s when it is loaded (the cut-out
+genre’s `play`, `expression`, turn and view checks), and they run in
+stages — `scene`, then `shot` once per shot, then `finish` — each by
+its `order`. An action or entity kind no loaded genre registered is one
+error naming the genre that provides it; checks that would trip over it
+skip that shot rather than crash.
+
 * **Return type:**
   [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
@@ -16822,6 +17727,7 @@ always passes it).
 | [`environments`](_autosummary/an.environments.html.md#module-an.environments) | Environments: a stage made of planes, at declared depths.                              |
 | [`expression`](_autosummary/an.expression.html.md#module-an.expression)     | Facial expression for the cutout face (an#98, epic #9 Wave 6).                         |
 | [`frame_clock`](_autosummary/an.frame_clock.html.md#module-an.frame_clock)   | The frame clock: WHEN each output frame samples scene time.                            |
+| [`genres`](_autosummary/an.genres.html.md#module-an.genres)             | Genres: what a kind of animation adds to the core, declared as one object.             |
 | [`impacts`](_autosummary/an.impacts.html.md#module-an.impacts)           | Synthetic impact clips with exact ground truth, for scoring sub-frame timing.          |
 | [`ir`](_autosummary/an.ir.html.md#module-an.ir)                     | Scene IR — the single source of truth for a scene.                                     |
 | [`iterate`](_autosummary/an.iterate.html.md#module-an.iterate)           | Iterative edit loop — free-text instruction → IR patch via Claude → re-render.         |
@@ -18471,23 +19377,28 @@ what tooling reasons about.
 
 ### Functions
 
-| [`default_play_extent`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent)(action)                      | A duration-less play's extent when no descriptor is known: a motion preset's natural length over `speed`, else `0.0`.   |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| [`delay`](_autosummary/an.ir.compose.html.md#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                                                                       |
-| [`duration_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.duration_of)(action, \*[, play_extent])           | Compute the total duration of an action tree without evaluating it.                                                     |
-| [`expression`](_autosummary/an.ir.compose.html.md#an.ir.compose.expression)(target[, preset, axes, ...])          | Hold a facial expression on an entity (an#98).                                                                          |
-| [`flatten`](_autosummary/an.ir.compose.html.md#an.ir.compose.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.                                                     |
-| [`loop`](_autosummary/an.ir.compose.html.md#an.ir.compose.loop)(action, count)                              | Repeat `action` `count` times.                                                                                          |
-| [`parallel`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel)(\*actions)                              | Run all children at once.                                                                                               |
-| [`play`](_autosummary/an.ir.compose.html.md#an.ir.compose.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).                                                        |
-| [`sequence`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence)(\*actions)                              | Run children one after the other.                                                                                       |
-| [`set_`](_autosummary/an.ir.compose.html.md#an.ir.compose.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).                                                   |
-| [`tween`](_autosummary/an.ir.compose.html.md#an.ir.compose.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                                                         |
+| [`default_play_extent`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent)(action)                      | A duration-less play's extent when no descriptor is known: a motion preset's natural length over `speed`, else `0.0`.          |
+|---------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| [`delay`](_autosummary/an.ir.compose.html.md#an.ir.compose.delay)(duration)                                  | An empty span that consumes time.                                                                                              |
+| [`duration_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.duration_of)(action, \*[, play_extent])           | Compute the total duration of an action tree without evaluating it.                                                            |
+| [`expression`](_autosummary/an.ir.compose.html.md#an.ir.compose.expression)(target[, preset, axes, ...])          | Hold a facial expression on an entity (an#98).                                                                                 |
+| [`flatten`](_autosummary/an.ir.compose.html.md#an.ir.compose.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.                                                            |
+| [`iter_actions`](_autosummary/an.ir.compose.html.md#an.ir.compose.iter_actions)(action)                             | `action` and every action under it, depth first (composites through their kind's `children` hook).                             |
+| [`kind_of`](_autosummary/an.ir.compose.html.md#an.ir.compose.kind_of)(action)                                  | The registered [`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind) that governs `action`.         |
+| [`loop`](_autosummary/an.ir.compose.html.md#an.ir.compose.loop)(action, count)                              | Repeat `action` `count` times.                                                                                                 |
+| [`parallel`](_autosummary/an.ir.compose.html.md#an.ir.compose.parallel)(\*actions)                              | Run all children at once.                                                                                                      |
+| [`play`](_autosummary/an.ir.compose.html.md#an.ir.compose.play)(target, animation, \*[, duration, ...])     | Play a named animation of the target entity's descriptor (an#7).                                                               |
+| [`resolve_action`](_autosummary/an.ir.compose.html.md#an.ir.compose.resolve_action)(action)                           | `action` as its registered model (an `ExtensionAction` left open by a document read before its genre loaded is validated now). |
+| [`sequence`](_autosummary/an.ir.compose.html.md#an.ir.compose.sequence)(\*actions)                              | Run children one after the other.                                                                                              |
+| [`set_`](_autosummary/an.ir.compose.html.md#an.ir.compose.set_)(target, property, value, \*[, at])          | Discrete property set at time `at` (relative to its enclosing scope).                                                          |
+| [`stagger`](_autosummary/an.ir.compose.html.md#an.ir.compose.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.                                                                 |
+| [`tween`](_autosummary/an.ir.compose.html.md#an.ir.compose.tween)(target, property, to, duration, \*[, ...]) | Animate a property from `from_` (or its current value) to `to`.                                                                |
 
 ### Classes
 
-| [`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)(start, end, action)   | A leaf action with its absolute start and end times.   |
-|-----------------------------------------------------------------------------------|--------------------------------------------------------|
+| [`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)(start, end, action)   | A leaf action with its absolute start and end times.                    |
+|-----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| [`FlattenContext`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlattenContext)(out[, extent])    | What a kind's `flatten` hook gets: where to put leaves, how to recurse. |
 
 ### *class* an.ir.compose.FlatAction(start, end, action)
 
@@ -18499,6 +19410,22 @@ The flat-form list is the canonical representation passed to renderers
 and verifiers. Composition nodes (sequence/parallel/delay/loop) do not
 appear in the flat form — they’re collapsed into time offsets.
 
+### *class* an.ir.compose.FlattenContext(out, extent=None)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a kind’s `flatten` hook gets: where to put leaves, how to recurse.
+
+`extent` is the caller’s extent resolver ([`PlayExtent`](_autosummary/an.ir.compose.html.md#an.ir.compose.PlayExtent)), passed on
+to every leaf’s `duration` hook.
+
+#### flatten(action, t)
+
+Flatten `action` starting at `t`; return the new cursor.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float)
+
 ### an.ir.compose.INHERIT *= INHERIT*
 
 `tween(..., easing=INHERIT)` — the default — leaves the easing UNSET, so
@@ -18509,7 +19436,10 @@ A sentinel rather than `None` because `None` already means linear.
 
 `PlayAction -> seconds` a play WITHOUT an explicit `duration` occupies in
 a `sequence`. The default is [`default_play_extent()`](_autosummary/an.ir.compose.html.md#an.ir.compose.default_play_extent); the compiler and
-`an validate` pass one bound to the entity’s descriptor.
+`an validate` pass one bound to the entity’s descriptor. Generically, it is
+the caller’s **extent resolver**: it is handed to every leaf kind’s
+`duration` hook ([`an.genres.ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind)), and the kinds that have an
+open-ended length (the cut-out genre’s `play`) consult it.
 
 alias of [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction)], [`float`](https://docs.python.org/3/builtins/functions.html#float)]
 
@@ -18589,8 +19519,40 @@ Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.
 
+Every node is dispatched through its registered kind
+([`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind)), so a genre’s kind flattens without an
+edit here; a node whose kind nobody registered raises, naming the genre
+that provides it, and an `ExtensionAction` read before its genre
+loaded is validated by the registered model on the way through.
+
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
+
+### an.ir.compose.iter_actions(action)
+
+`action` and every action under it, depth first (composites through
+their kind’s `children` hook). Unregistered kinds are yielded, not raised:
+a validator walks with this to REPORT them.
+
+```pycon
+>>> [a.kind for a in iter_actions(sequence(delay(1.0), loop(delay(0.5), 2)))]
+['sequence', 'delay', 'loop', 'delay']
+```
+
+### an.ir.compose.kind_of(action)
+
+The registered [`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind) that governs `action`.
+
+Raises [`UnregisteredKindError`](_autosummary/an.genres.html.md#an.genres.UnregisteredKindError), naming the genre that
+provides it, for a kind nobody registered.
+
+* **Return type:**
+  [`ActionKind`](_autosummary/an.genres.registry.html.md#an.genres.registry.ActionKind)
+
+```pycon
+>>> kind_of(delay(1.0)).name
+'delay'
+```
 
 ### an.ir.compose.loop(action, count)
 
@@ -18644,6 +19606,19 @@ A name the descriptor does not declare falls back to a motion preset of
 {'height': 30}
 ```
 
+### an.ir.compose.resolve_action(action)
+
+`action` as its registered model (an `ExtensionAction` left open
+by a document read before its genre loaded is validated now).
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+```pycon
+>>> resolve_action(delay(0.5)).duration
+0.5
+```
+
 ### an.ir.compose.sequence(\*actions)
 
 Run children one after the other. Total duration = sum of child durations.
@@ -18657,6 +19632,39 @@ Discrete property set at time `at` (relative to its enclosing scope).
 
 * **Return type:**
   [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)
+
+### an.ir.compose.stagger(lag, \*actions)
+
+Start each action `lag` seconds after the previous one STARTS.
+
+The **stagger** (Manim’s `LaggedStart`, `previz`’s compose, a crowd
+entering one by one): the children run in parallel, the `i`-th delayed
+by `i * lag`. It is authoring sugar, not a new kind — it builds the
+`parallel` of `sequence(delay(i * lag), action)` it means, so the
+scene document, `scene.md` and every renderer see only core kinds.
+Total duration: the latest child’s end. `scene.md` holds it verbatim (a
+`kind: parallel` entry), so it round-trips. (`an.text.reveal_units` —
+`an.text.stagger` before an#241 — is the text-block preset: a LIST of
+per-unit actions with holds, not a combinator.)
+
+* **Return type:**
+  [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
+
+```pycon
+>>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
+...                              tween("b", "x", to=1.0, duration=1.0),
+...                              tween("c", "x", to=1.0, duration=1.0)))
+>>> [(f.action.target, f.start, f.end) for f in flat]
+[('a', 0.0, 1.0), ('b', 0.25, 1.25), ('c', 0.5, 1.5)]
+>>> duration_of(stagger(0.5, delay(1.0), delay(1.0)))
+1.5
+>>> stagger(0.1).children
+[]
+>>> stagger(-1.0, delay(1.0))
+Traceback (most recent call last):
+...
+ValueError: stagger lag must be >= 0, got -1.0
+```
 
 ### an.ir.compose.tween(target, property, to, duration, , from_=None, easing=INHERIT)
 
@@ -18702,6 +19710,7 @@ authoring-time DSL to canonical-form actions.
 | [`expression`](_autosummary/an.ir.html.md#an.ir.expression)(target[, preset, axes, ...])          | Hold a facial expression on an entity (an#98).                              |
 | [`sequence`](_autosummary/an.ir.html.md#an.ir.sequence)(\*actions)                              | Run children one after the other.                                           |
 | [`parallel`](_autosummary/an.ir.html.md#an.ir.parallel)(\*actions)                              | Run all children at once.                                                   |
+| [`stagger`](_autosummary/an.ir.html.md#an.ir.stagger)(lag, \*actions)                          | Start each action `lag` seconds after the previous one STARTS.              |
 | [`delay`](_autosummary/an.ir.html.md#an.ir.delay)(duration)                                  | An empty span that consumes time.                                           |
 | [`loop`](_autosummary/an.ir.html.md#an.ir.loop)(action, count)                              | Repeat `action` `count` times.                                              |
 | [`flatten`](_autosummary/an.ir.html.md#an.ir.flatten)(action, \*[, start, play_extent])        | Walk a composition tree, emitting leaf actions with absolute times.         |
@@ -18746,11 +19755,17 @@ forking the asset.
 'maya'
 ```
 
-#### kind *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['character', 'environment', 'voice', 'prop']*
+#### kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
 renderer selector. Art direction arrives as a StylePack (#112).
+
+A `str` in the schema, not a `Literal` (ADR 0001 decision 2): the
+values are the REGISTERED entity kinds ([`an.genres`](_autosummary/an.genres.html.md#module-an.genres)) — the core’s
+`environment`, `prop` and `voice`, a genre’s `character` — and
+`an validate` checks it against that registry, naming the genre that
+provides an unregistered one.
 
 * **Type:**
   `"style"` was retired in an#106
@@ -18923,6 +19938,13 @@ a motion preset writes its own easings, the camera’s named moves supply
 theirs, and blinks, `play` clips and swap channels have none to
 inherit. There is no per-shot override yet — style is a scene’s.
 
+#### default_renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+a registered renderer’s name.
+
+* **Type:**
+  Like [`Shot.renderer`](_autosummary/an.ir.html.md#an.ir.Shot.renderer)
+
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
@@ -19009,13 +20031,16 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### renderer *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['cutout', 'manim', 'motion_graphics', 'whiteboard']*
+#### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was
 called `style` until an#106, colliding with the styles store (which
 holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
+A `str` in the schema (ADR 0001 decision 2): any name a renderer
+registered (`an.adapters.register_renderer`), checked by `an
+validate`. `cutout` stays the persisted default (decision 9).
 
 #### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
@@ -19078,6 +20103,12 @@ looping animation, which runs to the shot end.
 Delays are absorbed into the timeline (they don’t appear in the output).
 Loops are unrolled by simple repetition — appropriate at v0.1; the cutout
 runtime can re-roll for efficiency later.
+
+Every node is dispatched through its registered kind
+([`ActionKind`](_autosummary/an.genres.html.md#an.genres.ActionKind)), so a genre’s kind flattens without an
+edit here; a node whose kind nobody registered raises, naming the genre
+that provides it, and an `ExtensionAction` read before its genre
+loaded is validated by the registered model on the way through.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`FlatAction`](_autosummary/an.ir.compose.html.md#an.ir.compose.FlatAction)]
@@ -19259,6 +20290,39 @@ Discrete property set at time `at` (relative to its enclosing scope).
 * **Return type:**
   [`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction)
 
+### an.ir.stagger(lag, \*actions)
+
+Start each action `lag` seconds after the previous one STARTS.
+
+The **stagger** (Manim’s `LaggedStart`, `previz`’s compose, a crowd
+entering one by one): the children run in parallel, the `i`-th delayed
+by `i * lag`. It is authoring sugar, not a new kind — it builds the
+`parallel` of `sequence(delay(i * lag), action)` it means, so the
+scene document, `scene.md` and every renderer see only core kinds.
+Total duration: the latest child’s end. `scene.md` holds it verbatim (a
+`kind: parallel` entry), so it round-trips. (`an.text.reveal_units` —
+`an.text.stagger` before an#241 — is the text-block preset: a LIST of
+per-unit actions with holds, not a combinator.)
+
+* **Return type:**
+  [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction)
+
+```pycon
+>>> flat = flatten(stagger(0.25, tween("a", "x", to=1.0, duration=1.0),
+...                              tween("b", "x", to=1.0, duration=1.0),
+...                              tween("c", "x", to=1.0, duration=1.0)))
+>>> [(f.action.target, f.start, f.end) for f in flat]
+[('a', 0.0, 1.0), ('b', 0.25, 1.25), ('c', 0.5, 1.5)]
+>>> duration_of(stagger(0.5, delay(1.0), delay(1.0)))
+1.5
+>>> stagger(0.1).children
+[]
+>>> stagger(-1.0, delay(1.0))
+Traceback (most recent call last):
+...
+ValueError: stagger lag must be >= 0, got -1.0
+```
+
 ### an.ir.sync(project_dir)
 
 Reconcile `scene.md` and `ir/scene.json` inside a project directory.
@@ -19319,6 +20383,14 @@ skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
 
+The checks are a REGISTRY ([`an.genres.registry.register_check()`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_check)):
+the core’s own register below, a genre’s when it is loaded (the cut-out
+genre’s `play`, `expression`, turn and view checks), and they run in
+stages — `scene`, then `shot` once per shot, then `finish` — each by
+its `order`. An action or entity kind no loaded genre registered is one
+error naming the genre that provides it; checks that would trip over it
+skip that shot rather than crash.
+
 * **Return type:**
   [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
 
@@ -19347,8 +20419,14 @@ Design principles (locked in from the architectural plan):
   `compatible_version`. Migrations live in `an.ir.migrate`.
 - **Forward-compatible reads.** Top-level model has `extra="allow"` so a future
   field doesn’t crash an older reader.
-- \*\*Discriminated `Action` union.\*\* All authoring-time and flattened actions
-  carry a `kind` literal so Pydantic dispatches to the right validator.
+- \*\*Open `Action` union\*\* (ADR 0001 decision 2). The union holds the core
+  kinds (`set`, `tween`, `sequence`, `parallel`, `delay`, `loop`)
+  and ONE open member, [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction), which a callable
+  discriminator selects for any other `kind`. A genre registers its kinds
+  ([`an.genres`](_autosummary/an.genres.html.md#module-an.genres)); a document’s `kind: play` then validates to the
+  registered model, and before registration it stays an `ExtensionAction`
+  that round-trips untouched and that validate, flatten and the compiler
+  refuse by name. The union is never rebuilt at registration.
 - **Time in seconds (float).** Always.
 
 Doctest:
@@ -19370,16 +20448,20 @@ True
 
 ### Module Attributes
 
-| [`DFLT_EXPRESSION_BLEND_S`](_autosummary/an.ir.schema.html.md#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).                                                                                  |
-|----------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| [`Action`](_autosummary/an.ir.schema.html.md#an.ir.schema.Action)                    | Discriminated union of every action variant.                                                                                              |
-| [`DEFAULT_CAPTION_MAX_CHARS`](_autosummary/an.ir.schema.html.md#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                   |
-| [`DEFAULT_CAPTION_SIZE`](_autosummary/an.ir.schema.html.md#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched. |
+| [`DFLT_EXPRESSION_BLEND_S`](_autosummary/an.ir.schema.html.md#an.ir.schema.DFLT_EXPRESSION_BLEND_S)   | Default ramp in/out of an expression, seconds (0 = cut).                                                                                                                   |
+|----------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CORE_ACTION_KINDS`](_autosummary/an.ir.schema.html.md#an.ir.schema.CORE_ACTION_KINDS)         | The `kind` of every action the core defines (the static union members).                                                                                                    |
+| [`EXTENSION_TAG`](_autosummary/an.ir.schema.html.md#an.ir.schema.EXTENSION_TAG)             | The union tag of the open member.                                                                                                                                          |
+| [`Action`](_autosummary/an.ir.schema.html.md#an.ir.schema.Action)                    | the core kinds plus [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction) for any other `kind` (a registered genre kind validates to its own model through it). |
+| [`DEFAULT_CAPTION_MAX_CHARS`](_autosummary/an.ir.schema.html.md#an.ir.schema.DEFAULT_CAPTION_MAX_CHARS) | the broadcast convention (BBC / Netflix timed-text guidance: 42 characters, two lines).                                                                                    |
+| [`DEFAULT_CAPTION_SIZE`](_autosummary/an.ir.schema.html.md#an.ir.schema.DEFAULT_CAPTION_SIZE)      | Caption type size as a fraction of frame height — a little under the title default, as captions are read while something else is watched.                                  |
+| [`STAGE_NODE_SPACE`](_autosummary/an.ir.schema.html.md#an.ir.schema.STAGE_NODE_SPACE)          | The property space a 2D stage engine's node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).                          |
 
 ### Functions
 
-| [`resolve_step_hz`](_autosummary/an.ir.schema.html.md#an.ir.schema.resolve_step_hz)(shot, scene_step_hz)   | The stepped-timing policy `shot` renders under: its own `step_hz` when it declares one, else the scene's, else `None` (smooth).   |
-|-----------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`resolve_step_hz`](_autosummary/an.ir.schema.html.md#an.ir.schema.resolve_step_hz)(shot, scene_step_hz)        | The stepped-timing policy `shot` renders under: its own `step_hz` when it declares one, else the scene's, else `None` (smooth).   |
+|----------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| [`unregistered_action_kind`](_autosummary/an.ir.schema.html.md#an.ir.schema.unregistered_action_kind)(kind, \*[, where]) | The error for an action `kind` no loaded genre registered.                                                                        |
 
 ### Classes
 
@@ -19391,6 +20473,7 @@ True
 | [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction)(\*\*data)      | Composition: an empty span that consumes time.                                                                                                                      |
 | [`Dialogue`](_autosummary/an.ir.schema.html.md#an.ir.schema.Dialogue)(\*\*data)         | One line of spoken dialogue.                                                                                                                                        |
 | [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction)(\*\*data) | Hold a facial expression on an entity (an#98, epic #9 Wave 6).                                                                                                      |
+| [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)(\*\*data)  | An action of a kind the core does not define: the IR's one open member.                                                                                             |
 | [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)(\*\*data)       | Composition: repeat `child` `count` times.                                                                                                                          |
 | [`Meta`](_autosummary/an.ir.schema.html.md#an.ir.schema.Meta)(\*\*data)             | Scene metadata.                                                                                                                                                     |
 | [`Narration`](_autosummary/an.ir.schema.html.md#an.ir.schema.Narration)(\*\*data)        | Off-screen narration.                                                                                                                                               |
@@ -19411,9 +20494,15 @@ True
 
 ### an.ir.schema.Action
 
-Discriminated union of every action variant. Pydantic dispatches on `kind`.
+the core kinds plus [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction) for any other
+`kind` (a registered genre kind validates to its own model through it).
+`SerializeAsAny` makes a typed genre instance (a `PlayAction`) serialize
+with its own fields rather than the open member’s.
 
-alias of `Annotated`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction) | [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction) | [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction) | [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction) | [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction) | [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction) | [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator=’kind’)]
+* **Type:**
+  Every action
+
+alias of `Annotated`[`Annotated`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), `Tag`(tag=set)] | `Annotated`[[`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), `Tag`(tag=tween)] | `Annotated`[[`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), `Tag`(tag=sequence)] | `Annotated`[[`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), `Tag`(tag=parallel)] | `Annotated`[[`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), `Tag`(tag=delay)] | `Annotated`[[`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), `Tag`(tag=loop)] | `Annotated`[[`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction), `SerializeAsAny`(), `Tag`(tag=extension)], `Discriminator`(discriminator=`_action_tag`, custom_error_type=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[`None`](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[`None`](https://docs.python.org/3/builtins/constants.html#None))]
 
 ### *class* an.ir.schema.AssetRef(\*\*data)
 
@@ -19431,11 +20520,17 @@ forking the asset.
 'maya'
 ```
 
-#### kind *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['character', 'environment', 'voice', 'prop']*
+#### kind *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 it selected nothing (the compiler
 skipped it, nothing read the styles store) and the name belonged to the
 renderer selector. Art direction arrives as a StylePack (#112).
+
+A `str` in the schema, not a `Literal` (ADR 0001 decision 2): the
+values are the REGISTERED entity kinds ([`an.genres`](_autosummary/an.genres.html.md#module-an.genres)) — the core’s
+`environment`, `prop` and `voice`, a genre’s `character` — and
+`an validate` checks it against that registry, naming the genre that
+provides an unregistered one.
 
 * **Type:**
   `"style"` was retired in an#106
@@ -19453,6 +20548,10 @@ which for characters is the evenly-spaced row the compiler computes.
 **Additive by construction, and hash-free by construction**: the
 contract hashes the COMPILED document, and an `AssetRef` never reaches
 it. So this field can grow without retiring a single ledger row.
+
+### an.ir.schema.CORE_ACTION_KINDS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('set', 'tween', 'sequence', 'parallel', 'delay', 'loop')*
+
+The `kind` of every action the core defines (the static union members).
 
 ### *class* an.ir.schema.Camera(\*\*data)
 
@@ -19684,9 +20783,13 @@ line’s `start` is the pipeline’s own stamp, re-derived here.
 The provider’s word timings, line-relative; `None` when the provider
 has none (offline, Rhubarb) or the line was stamped before an#96.
 
+### an.ir.schema.EXTENSION_TAG *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'extension'*
+
+The union tag of the open member.
+
 ### *class* an.ir.schema.ExpressionAction(\*\*data)
 
-Bases: `_ActionBase`
+Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
 
 Hold a facial expression on an entity (an#98, epic #9 Wave 6).
 
@@ -19710,6 +20813,45 @@ frame lands on it with `blend=0` — cut the blend for a flash.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### *class* an.ir.schema.ExtensionAction(\*\*data)
+
+Bases: `_ActionBase`
+
+An action of a kind the core does not define: the IR’s one open member.
+
+The schema’s `Action` union selects this for any `kind` other than the
+core’s (ADR 0001 decision 2). When a genre has REGISTERED that kind
+([`an.genres.registry.register_action_kind()`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_action_kind)), validating a document
+yields the registered model instead — a `PlayAction` for `kind: play` —
+so code downstream sees typed actions. Before registration the action
+stays an `ExtensionAction`: its fields are kept as extras and round-trip
+byte for byte, and [`resolved()`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction.resolved) (called by `flatten`, `an validate`
+and the compiler) refuses it naming the genre that provides it.
+
+Every genre’s action model subclasses this, which is what lets a typed
+instance sit in the union and serialize with its own fields.
+
+```pycon
+>>> ExtensionAction(kind="wave", target="flag").model_dump()
+{'name': None, 'kind': 'wave', 'target': 'flag'}
+```
+
+#### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
+
+Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+#### resolved(, strict=True)
+
+This action as its registered model.
+
+A typed instance is returned as is. A bare `ExtensionAction` is
+validated by the model its kind registered — or, unregistered, raises
+[`UnregisteredKindError`](_autosummary/an.genres.registry.html.md#an.genres.registry.UnregisteredKindError) (`strict`) or
+comes back unchanged (`strict=False`).
+
+* **Return type:**
+  [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
 
 ### *class* an.ir.schema.LoopAction(\*\*data)
 
@@ -19744,6 +20886,13 @@ scene and no compiled document moves. It reaches authored tweens ONLY:
 a motion preset writes its own easings, the camera’s named moves supply
 theirs, and blinks, `play` clips and swap channels have none to
 inherit. There is no per-shot override yet — style is a scene’s.
+
+#### default_renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+a registered renderer’s name.
+
+* **Type:**
+  Like [`Shot.renderer`](_autosummary/an.ir.schema.html.md#an.ir.schema.Shot.renderer)
 
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
@@ -19807,7 +20956,7 @@ Configuration for the model, should be a dictionary conforming to [`ConfigDict`]
 
 ### *class* an.ir.schema.PlayAction(\*\*data)
 
-Bases: `_ActionBase`
+Bases: [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)
 
 Play a named animation of the target entity’s descriptor (an#7).
 
@@ -19854,6 +21003,10 @@ Pixel dimensions of the rendered output.
 #### model_config *: [ClassVar](https://docs.python.org/3/library/typing.html#typing.ClassVar)[ConfigDict]* *= {'extra': 'allow', 'populate_by_name': True, 'validate_by_alias': True, 'validate_by_name': True}*
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
+
+### an.ir.schema.STAGE_NODE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
+
+The property space a 2D stage engine’s node lives in ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)).
 
 ### *class* an.ir.schema.SceneIR(\*\*data)
 
@@ -19911,13 +21064,16 @@ same Shot fields; renderer-specific options go under `options`.
 
 Configuration for the model, should be a dictionary conforming to [`ConfigDict`][pydantic.config.ConfigDict].
 
-#### renderer *: [Literal](https://docs.python.org/3/library/typing.html#typing.Literal)['cutout', 'manim', 'motion_graphics', 'whiteboard']*
+#### renderer *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
 
 Which RENDERER draws this shot — not art direction. The field was
 called `style` until an#106, colliding with the styles store (which
 holds art direction) and with `AssetRef(kind="style")`; one word for two
 meanings is how a scene came to declare a “style” that selected a
 renderer while the thing that actually styles it went unread.
+A `str` in the schema (ADR 0001 decision 2): any name a renderer
+registered (`an.adapters.register_renderer`), checked by `an
+validate`. `cutout` stays the persisted default (decision 9).
 
 #### sounds *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[SoundCue](_autosummary/an.ir.schema.html.md#an.ir.schema.SoundCue)]*
 
@@ -20182,6 +21338,16 @@ and the project renderer all call it (an#89 review: three copies).
 True
 ```
 
+### an.ir.schema.unregistered_action_kind(kind, , where='')
+
+The error for an action `kind` no loaded genre registered.
+
+It names the installed genres whose declaration provides the kind, read
+without loading them ([`an.genres.providers_of()`](_autosummary/an.genres.html.md#an.genres.providers_of)).
+
+* **Return type:**
+  [`Exception`](https://docs.python.org/3/builtins/exceptions.html#Exception)
+
 
 # _autosummary/an.ir.validate.html.md
 
@@ -20209,15 +21375,29 @@ Layout-overlap checks (boxes off-screen, text behind sprites) live in
 
 ### Functions
 
-| [`validate_schema`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_schema)(doc)                | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.   |
-|--------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [`validate_semantic`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_semantic)(scene, \*[, ...]) | Cross-field semantic checks.                                                  |
+| [`check_character_refs`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_character_refs)(ctx)                    | The cut-out genre's missing-character warning.                                                                                                                                                                |
+|-----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`check_expression_actions`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_expression_actions)(ctx)                | The cut-out genre's `expression` / `[emotion]` check.                                                                                                                                                         |
+| [`check_hidden_mouth_while_speaking`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_hidden_mouth_while_speaking)(ctx)       | The cut-out genre's mouth-hidden-by-a-view warning.                                                                                                                                                           |
+| [`check_play_actions`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_play_actions)(ctx)                      | The cut-out genre's `play` check (`_check_play_actions()`).                                                                                                                                                   |
+| [`check_turns`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_turns)(ctx)                             | The cut-out genre's contradicted-turn warning (`_check_turns()`).                                                                                                                                             |
+| [`check_view_continuity`](_autosummary/an.ir.validate.html.md#an.ir.validate.check_view_continuity)(ctx)                   | The cut-out genre's view-across-a-cut warning (`_check_view_continuity()`).                                                                                                                                   |
+| [`registered_kind_problems`](_autosummary/an.ir.validate.html.md#an.ir.validate.registered_kind_problems)(scene)              | The findings of the three registry checks alone — every action kind, entity kind and renderer the scene names must be registered — without the rest of `validate_semantic` (no stores, no rig builds; cheap). |
+| [`require_registered_kinds`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)(scene, \*[, where]) | `scene`, or [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError) naming every action kind, entity kind and renderer it uses that is not registered.                                      |
+| [`validate_schema`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_schema)(doc)                         | Validate that `doc` (dict, JSON string, or SceneIR) conforms to the schema.                                                                                                                                   |
+| [`validate_semantic`](_autosummary/an.ir.validate.html.md#an.ir.validate.validate_semantic)(scene, \*[, ...])          | Cross-field semantic checks.                                                                                                                                                                                  |
 
 ### Classes
 
-| [`ValidationFinding`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationFinding)(severity, ir_path, description)   | A single validation issue with a path into the IR.   |
-|------------------------------------------------------------------------------------------------------|------------------------------------------------------|
-| [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)([passed, findings])                | Result of running one or more validators.            |
+| [`ValidationContext`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationContext)(scene, report, stores[, ...])   | What a registered semantic check ([`an.genres.SemanticCheck`](_autosummary/an.genres.html.md#an.genres.SemanticCheck)) reads.   |
+|----------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ValidationFinding`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationFinding)(severity, ir_path, description) | A single validation issue with a path into the IR.                                                                                           |
+| [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)([passed, findings])              | Result of running one or more validators.                                                                                                    |
+
+### Exceptions
+
+| [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError)(findings, \*[, where])   | A scene names kinds or renderers nothing registered: refused at load.   |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
 
 ### an.ir.validate.DIALOGUE_OVERRUN_TOLERANCE_S *: [float](https://docs.python.org/3/builtins/functions.html#float)* *= 0.016666666666666666*
 
@@ -20255,6 +21435,41 @@ Entity kind → (the mall store holding its rig, the descriptor `kind` tag
 that store’s documents carry). `environment` and `voice` are absent because
 neither has a rig to declare asset sets on.
 
+### *exception* an.ir.validate.UnregisteredInSceneError(findings, , where='')
+
+Bases: [`UnregisteredKindError`](_autosummary/an.genres.registry.html.md#an.genres.registry.UnregisteredKindError)
+
+A scene names kinds or renderers nothing registered: refused at load.
+
+Raised by [`require_registered_kinds()`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds) — what `an.load(project)`
+(and so `an render`) runs, so a typo’d `kind:` or `renderer:` can no
+longer render silently wrong now that the schema holds them as `str`
+(review-244 S2). `findings` keeps each one with its IR path.
+
+### *class* an.ir.validate.ValidationContext(scene, report, stores, voices=None, characters=None, sounds=None, shot=None, index=None, memo=<factory>)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a registered semantic check ([`an.genres.SemanticCheck`](_autosummary/an.genres.html.md#an.genres.SemanticCheck)) reads.
+
+`stores` holds only the stores actually supplied, keyed by MALL name (an
+absent one means its checks did not RUN — never that what it holds is
+missing). `shot` and `index` are set while the `shot` stage runs.
+`memo` is shared by every check of one `validate_semantic` call, so
+two checks that need the same derived fact compute it once
+([`cached()`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationContext.cached)).
+
+#### cached(key, compute)
+
+`compute()`, once per `key` per validation.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)
+
+#### *property* path *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+The IR path of the current shot (`timeline/<index>`).
+
 ### *class* an.ir.validate.ValidationFinding(severity, ir_path, description)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
@@ -20268,6 +21483,68 @@ Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 Result of running one or more validators.
 
 `passed` is True iff there are no error-severity findings.
+
+### an.ir.validate.check_character_refs(ctx)
+
+The cut-out genre’s missing-character warning. A WARNING: the compiler
+falls back to the built-in placeholder rig and the scene still renders.
+Deliberately not escalated — an asset-less project rendering placeholders
+is a supported way to work.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.validate.check_expression_actions(ctx)
+
+The cut-out genre’s `expression` / `[emotion]` check.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.validate.check_hidden_mouth_while_speaking(ctx)
+
+The cut-out genre’s mouth-hidden-by-a-view warning.
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.validate.check_play_actions(ctx)
+
+The cut-out genre’s `play` check (`_check_play_actions()`).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.validate.check_turns(ctx)
+
+The cut-out genre’s contradicted-turn warning (`_check_turns()`).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.validate.check_view_continuity(ctx)
+
+The cut-out genre’s view-across-a-cut warning (`_check_view_continuity()`).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.ir.validate.registered_kind_problems(scene)
+
+The findings of the three registry checks alone — every action kind,
+entity kind and renderer the scene names must be registered — without the
+rest of `validate_semantic` (no stores, no rig builds; cheap).
+
+* **Return type:**
+  [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
+
+### an.ir.validate.require_registered_kinds(scene, , where='')
+
+`scene`, or [`UnregisteredInSceneError`](_autosummary/an.ir.validate.html.md#an.ir.validate.UnregisteredInSceneError) naming every action
+kind, entity kind and renderer it uses that is not registered.
+
+* **Return type:**
+  [`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR)
 
 ### an.ir.validate.validate_schema(doc)
 
@@ -20300,6 +21577,14 @@ dicts, an#87 / an#7). Pass `None` to skip those checks — and know that
 skipping them is what it sounds like: a `play` or a swap the compiler
 will refuse passes silently without the store (the CLI, `an validate`,
 always passes it).
+
+The checks are a REGISTRY ([`an.genres.registry.register_check()`](_autosummary/an.genres.registry.html.md#an.genres.registry.register_check)):
+the core’s own register below, a genre’s when it is loaded (the cut-out
+genre’s `play`, `expression`, turn and view checks), and they run in
+stages — `scene`, then `shot` once per shot, then `finish` — each by
+its `order`. An action or entity kind no loaded genre registered is one
+error naming the genre that provides it; checks that would trip over it
+skip that shot rather than crash.
 
 * **Return type:**
   [`ValidationReport`](_autosummary/an.ir.validate.html.md#an.ir.validate.ValidationReport)
@@ -20564,7 +21849,8 @@ stretches the move and `speed` divides it; `loop` is refused. In a
 `sequence` a `play` without a `duration` occupies the preset’s own
 length divided by `speed`, so two in a row run one after the other.
 [`as_leaves()`](_autosummary/an.motion.html.md#an.motion.as_leaves) remains for a preset composed in Python and written into
-`scene.md` as plain tweens (a composition tree does not round-trip).
+`scene.md` as plain, hand-editable tweens (a composition tree round-trips
+too since an#241, but verbatim, as its JSON form).
 
 ### Module Attributes
 
@@ -20611,7 +21897,7 @@ A cubic-Bézier that overshoots its target by about 10% and settles back
 (CSS “easeOutBack”). The compiler and both evaluators take any 4-point
 Bézier on a numeric channel, and nothing clamps `y` to `[0, 1]`.
 
-### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction) | [TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction) | [PlayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction) | [ExpressionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction) | [SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction) | [ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction) | [DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction) | [LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
+### an.motion.PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Callable](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[...], [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SetAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), Tag(tag=[set](https://docs.python.org/3/builtins/stdtypes.html#set))] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[TweenAction](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), Tag(tag=tween)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[SequenceAction](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), Tag(tag=sequence)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ParallelAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), Tag(tag=parallel)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[DelayAction](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), Tag(tag=delay)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[LoopAction](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), Tag(tag=loop)] | [Annotated](https://docs.python.org/3/library/typing.html#typing.Annotated)[[ExtensionAction](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction), SerializeAsAny(), Tag(tag=extension)], Discriminator(discriminator=\_action_tag, custom_error_type=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_message=[None](https://docs.python.org/3/builtins/constants.html#None), custom_error_context=[None](https://docs.python.org/3/builtins/constants.html#None))]]]* *= {'hop': <function hop>, 'nod': <function nod>, 'point': <function point>, 'pop_in': <function pop_in>, 'shake': <function shake>, 'slide_in': <function slide_in>, 'slide_out': <function slide_out>, 'squash_stretch': <function squash_stretch>, 'turn': <function turn>, 'waddle': <function waddle>, 'walk': <function walk>}*
 
 Every preset by name — the one list the skill, the demo and the `play`
 fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.html.md#an.characters.play.play_source), an#166) read.
@@ -20620,15 +21906,16 @@ fallback ([`an.characters.play.play_source()`](_autosummary/an.characters.play.h
 
 `action` as top-level leaves that `scene.md` can round-trip.
 
-The markdown writer keeps a leaf and the `sequence(delay(start), leaf)`
-wrapper the parser produces for a `start:` key, and drops composition
-trees from `scene.md`. This flattens a preset (or any tree) into exactly
-those, with the same absolute times.
+The markdown writer spells a leaf and the `sequence(delay(start), leaf)`
+wrapper the parser produces for a `start:` key in their short form, and
+writes any other composition tree verbatim (its JSON form, an#241). This
+flattens a preset (or any tree) into the short form, with the same
+absolute times, which is what a person editing `scene.md` wants.
 
 A `set` keeps its absolute time in `at` instead of a wrapper.
 
 * **Return type:**
-  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]]
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[`Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]]
 
 ```pycon
 >>> leaves = as_leaves(hop("charlie"), start=1.0)
@@ -20645,7 +21932,7 @@ off the stage, so a profile looks at the other character wherever the
 layout put them.
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> from an.ir.schema import AssetRef
@@ -20660,7 +21947,7 @@ layout put them.
 Jump up by `height` scene pixels and land back where it started.
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.from_value, f.action.to_value) for f in _tweens(hop("charlie", height=30))]
@@ -20675,7 +21962,7 @@ In a front-facing 2D cut-out a nod reads as a small head rotation about
 its pivot; `rest` is the HEAD’s rest, not the entity’s.
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.target, round(f.action.to_value, 2)) for f in _tweens(nod("charlie", count=1))]
@@ -20691,7 +21978,7 @@ rig, `"maya/arm_r"` on a descriptor rig (and there, since that arm hangs
 on the viewer’s left, pass a positive `angle` to point outward).
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.start, f.action.to_value) for f in _tweens(point("charlie/right_arm", hold=0.5))]
@@ -20708,7 +21995,7 @@ preset at the target’s first frame (or hold `scale_x`/`scale_y` at 0
 with a `set` before it).
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.property, f.action.from_value, f.action.to_value)
@@ -20744,7 +22031,7 @@ a descriptor rig is built from its character store.
 Tremble side to side `cycles` times and come back to rest (on `x`).
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [f.action.to_value for f in _tweens(shake("charlie", amplitude=5, cycles=2))]
@@ -20758,7 +22045,7 @@ Tremble side to side `cycles` times and come back to rest (on `x`).
 Whip in from `distance` pixels off to one side, overshoot, and settle.
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_in("charlie", distance=400))]
@@ -20770,7 +22057,7 @@ Whip in from `distance` pixels off to one side, overshoot, and settle.
 Exit `distance` pixels off to one side, accelerating (an exit).
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [(f.action.from_value, f.action.to_value) for f in _tweens(slide_out("charlie", to_side="left"))]
@@ -20785,7 +22072,7 @@ Scales about the target’s own origin (for the procedural rig, the torso’s
 centre). Volume is roughly kept: one axis grows by what the other loses.
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> [[round(f.action.to_value, 2) for f in _tweens(squash_stretch("c"))
@@ -20835,7 +22122,7 @@ which the compiler fans out to the head and torso and which poses the face
 its `scale_x` magnitude is where the turn opens to.
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> def lands(a):  # a tween's end value, a set's value
@@ -20855,7 +22142,7 @@ carries the body sideways over the whole walk — the one `x` move here,
 so it is the one that needs `rest` in a multi-character shot.
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> w = _tweens(waddle("charlie", steps=2, travel=100))
@@ -20911,7 +22198,7 @@ walks first (`turn`, `direction`) — the classic walk-off is `turn`
 then `walk`.
 
 * **Return type:**
-  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`PlayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.PlayAction), [`ExpressionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExpressionAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction)]
+  `Union`[[`SetAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SetAction), [`TweenAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.TweenAction), [`SequenceAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.SequenceAction), [`ParallelAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ParallelAction), [`DelayAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.DelayAction), [`LoopAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.LoopAction), [`ExtensionAction`](_autosummary/an.ir.schema.html.md#an.ir.schema.ExtensionAction)]
 
 ```pycon
 >>> w = walk("bob", distance=160, steps=2, step_s=0.5)
@@ -21298,7 +22585,7 @@ Layout (from spec §11):
 
 | [`init`](_autosummary/an.project.html.md#an.project.init)(project_dir, \*[, name, force])   | Create a fresh an project at `project_dir`.                 |
 |-----------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| [`load`](_autosummary/an.project.html.md#an.project.load)(project_dir)                      | Load an existing project.                                   |
+| [`load`](_autosummary/an.project.html.md#an.project.load)(project_dir, \*[, check_kinds])   | Load an existing project.                                   |
 | [`save`](_autosummary/an.project.html.md#an.project.save)(project)                          | Persist a Project's current scene back to disk (md + json). |
 
 ### Classes
@@ -21322,9 +22609,21 @@ pass `force=True` to overwrite. Returns the absolute project root.
 * **Return type:**
   [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
-### an.project.load(project_dir)
+### an.project.load(project_dir, , check_kinds=True)
 
 Load an existing project. Reconciles scene.md / ir/scene.json first.
+
+Registers the installed genres first ([`an.genres.load()`](_autosummary/an.genres.html.md#an.genres.load), ADR 0001
+decision 3: discovery is explicit, and loading a project is one of the
+places it happens), so the scene’s genre kinds — the cut-out genre’s
+`play`, `expression` and `character` — read as their own models.
+
+Then refuses a scene that names an action kind, entity kind or renderer
+nothing registered ([`an.ir.validate.require_registered_kinds()`](_autosummary/an.ir.validate.html.md#an.ir.validate.require_registered_kinds)): the
+schema holds those as `str` (ADR 0001 decision 2), so without this a
+typo’d `kind: enviroment` would load and render silently without its
+backdrop. `check_kinds=False` is for `an validate`, which reports them
+as findings instead.
 
 * **Return type:**
   [`Project`](_autosummary/an.project.html.md#an.project.Project)
@@ -22868,12 +24167,13 @@ never reach the frame path and the determinism perimeter is unchanged.
 **Units are addressable, so text animates with ordinary tweens.** A block of
 `unit="word"` builds `<id>/word_0`, `<id>/word_1`, …; `"glyph"` and
 `"line"` likewise. `index` counts DRAWN units in reading order (spaces are
-not units). [`stagger()`](_autosummary/an.text.html.md#an.text.stagger) is a Python-side generator of ordinary actions for
-a staggered reveal — a preset, not a new IR node:
+not units). [`reveal_units()`](_autosummary/an.text.html.md#an.text.reveal_units) is a Python-side generator of ordinary actions
+for a staggered reveal — a preset, not a new IR node (the general combinator is
+[`an.ir.compose.stagger()`](_autosummary/an.ir.compose.html.md#an.ir.compose.stagger)):
 
 ```pycon
 >>> from an.ir.compose import flatten
->>> reveal = stagger("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.1)
+>>> reveal = reveal_units("title", 3, "alpha", to=1.0, from_=0.0, duration=0.3, step=0.1)
 >>> [(f.action.target, round(f.start, 3)) for a in reveal for f in flatten(a)
 ...  if f.action.kind == "tween"]
 [('title/word_0', 0.0), ('title/word_1', 0.1), ('title/word_2', 0.2)]
@@ -22907,13 +24207,13 @@ recorded in the compiled document.
 
 ### Functions
 
-| [`resolve_text`](_autosummary/an.text.html.md#an.text.resolve_text)(document[, overrides])              | The text block an entity draws: its stored document with `overrides` on top.                                                                                                                                                                                                              |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`font_base_dir`](_autosummary/an.text.html.md#an.text.font_base_dir)(props_store, ref)                  | What a relative `font` path resolves against: the text document's own directory in an on-disk props store — `None` for an in-memory one, where a relative path then RAISES rather than resolving against the working directory (which would make the picture depend on where you ran it). |
-| [`text_entity_problem`](_autosummary/an.text.html.md#an.text.text_entity_problem)(entity, desc)                | What is wrong with WHERE this entity puts its block, or `None`.                                                                                                                                                                                                                           |
-| [`layout_text`](_autosummary/an.text.html.md#an.text.layout_text)(desc, \*, width, height[, base_dir]) | Set `desc` on a `width` x `height` frame and take each unit's contours.                                                                                                                                                                                                                   |
-| [`unit_names`](_autosummary/an.text.html.md#an.text.unit_names)(desc, \*, width, height[, base_dir])  | The node names a block builds — what `<id>/<name>` targets may address.                                                                                                                                                                                                                   |
-| [`stagger`](_autosummary/an.text.html.md#an.text.stagger)(entity_id, count, property, \*, to, ...) | Tween `property` from `from_` to `to` on units `0..count-1` of a text block, each `step` seconds after the last — a word-by-word (or letter-by-letter) reveal.                                                                                                                            |
+| [`resolve_text`](_autosummary/an.text.html.md#an.text.resolve_text)(document[, overrides])               | The text block an entity draws: its stored document with `overrides` on top.                                                                                                                                                                                                              |
+|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`font_base_dir`](_autosummary/an.text.html.md#an.text.font_base_dir)(props_store, ref)                   | What a relative `font` path resolves against: the text document's own directory in an on-disk props store — `None` for an in-memory one, where a relative path then RAISES rather than resolving against the working directory (which would make the picture depend on where you ran it). |
+| [`text_entity_problem`](_autosummary/an.text.html.md#an.text.text_entity_problem)(entity, desc)                 | What is wrong with WHERE this entity puts its block, or `None`.                                                                                                                                                                                                                           |
+| [`layout_text`](_autosummary/an.text.html.md#an.text.layout_text)(desc, \*, width, height[, base_dir])  | Set `desc` on a `width` x `height` frame and take each unit's contours.                                                                                                                                                                                                                   |
+| [`unit_names`](_autosummary/an.text.html.md#an.text.unit_names)(desc, \*, width, height[, base_dir])   | The node names a block builds — what `<id>/<name>` targets may address.                                                                                                                                                                                                                   |
+| [`reveal_units`](_autosummary/an.text.html.md#an.text.reveal_units)(entity_id, count, property, \*, ...) | Tween `property` from `from_` to `to` on units `0..count-1` of a text block, each `step` seconds after the last — a word-by-word (or letter-by-letter) reveal.                                                                                                                            |
 
 ### Classes
 
@@ -23135,7 +24435,7 @@ style with no `text` of its own, and each entity supplies the words:
 'Paris'
 ```
 
-### an.text.stagger(entity_id, count, property, , to, from_, duration, step, start=0.0, unit='word', easing='ease_out')
+### an.text.reveal_units(entity_id, count, property, , to, from_, duration, step, start=0.0, unit='word', easing='ease_out')
 
 Tween `property` from `from_` to `to` on units `0..count-1` of a
 text block, each `step` seconds after the last — a word-by-word (or
@@ -23149,14 +24449,18 @@ That is also why `from_` is required.
 Returns a LIST of top-level actions — `set`, a bare `tween`, or the
 `sequence(delay(start), tween)` wrapper the `scene.md` parser itself
 produces for a `start:` key — so `shot.actions.extend(stagger(...))`
-round-trips through `scene.md`. (A `parallel` would not: the markdown
-writer only knows leaf shapes and that one wrapper.)
+round-trips through `scene.md` in its short form, one entry per unit.
+
+Named `stagger` until an#241 gave the core a general combinator of that
+name ([`an.ir.compose.stagger()`](_autosummary/an.ir.compose.html.md#an.ir.compose.stagger), any actions, one `parallel`);
+`an.text.stagger` stays as an alias of this function so old imports
+keep working.
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)
 
 ```pycon
->>> [a.kind for a in stagger("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
+>>> [a.kind for a in reveal_units("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]
 ['tween', 'set', 'sequence']
 ```
 
@@ -23562,14 +24866,14 @@ is a deliberate act: a change to a committed sample is a change of the contract.
 
 ### Module Attributes
 
-| [`CONTRACT_DIR`](_autosummary/an.timing.contract.html.md#an.timing.contract.CONTRACT_DIR)           | Where the committed contract files live (inside the package, so they ship).                                                                                                                                  |
-|-------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`REL_TOL`](_autosummary/an.timing.contract.html.md#an.timing.contract.REL_TOL)                | ```<br/>|x - y|<br/>```<br/><br/> <= REL_TOL \* max(1, <br/><br/>```<br/>|x|<br/>```<br/><br/>, <br/><br/>```<br/>|y|<br/>```<br/><br/>).                                                                    |
-| [`VALUE_TYPED_CASE_SPACE`](_autosummary/an.timing.contract.html.md#an.timing.contract.VALUE_TYPED_CASE_SPACE) | The cases whose space is the value-typed rule's write-group space are ALSO evaluated with `space=None` — the path compile, truth projections and the bench use — so both rules are held to the same numbers. |
-| [`SOLVER_PROBE_U`](_autosummary/an.timing.contract.html.md#an.timing.contract.SOLVER_PROBE_U)         | a uniform grid, plus points that reach the solvers' fallbacks (near the ends, and around the middle of a curve whose slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).                                   |
-| [`PARAMETRIC_EXAMPLES`](_autosummary/an.timing.contract.html.md#an.timing.contract.PARAMETRIC_EXAMPLES)    | Parametrised specs the easing file samples, beside the named entries.                                                                                                                                        |
-| [`CSS_IMPORT_ALIASES`](_autosummary/an.timing.contract.html.md#an.timing.contract.CSS_IMPORT_ALIASES)     | How a CSS-named document's names map onto this registry where the name means something else here.                                                                                                            |
-| [`ADDRESS_PATTERN`](_autosummary/an.timing.contract.html.md#an.timing.contract.ADDRESS_PATTERN)        | The address grammar as a regular expression (the parser is `an.timing.address`).                                                                                                                             |
+| [`CONTRACT_DIR`](_autosummary/an.timing.contract.html.md#an.timing.contract.CONTRACT_DIR)           | Where the committed contract files live (inside the package, so they ship).                                                                                                                                                                                          |
+|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`REL_TOL`](_autosummary/an.timing.contract.html.md#an.timing.contract.REL_TOL)                | ```<br/>|x - y|<br/>```<br/><br/> <= REL_TOL \* max(1, <br/><br/>```<br/>|x|<br/>```<br/><br/>, <br/><br/>```<br/>|y|<br/>```<br/><br/>).                                                                                                                            |
+| [`VALUE_TYPED_CASE_SPACE`](_autosummary/an.timing.contract.html.md#an.timing.contract.VALUE_TYPED_CASE_SPACE) | The cases whose space is the value-typed rule's write-group space are ALSO evaluated with `space=VALUE_TYPED` — the rule `runtime.js` implements — so both rules are held to the same numbers (the default, `space=None`, is the declared rule since an#239 item 2). |
+| [`SOLVER_PROBE_U`](_autosummary/an.timing.contract.html.md#an.timing.contract.SOLVER_PROBE_U)         | a uniform grid, plus points that reach the solvers' fallbacks (near the ends, and around the middle of a curve whose slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).                                                                                           |
+| [`PARAMETRIC_EXAMPLES`](_autosummary/an.timing.contract.html.md#an.timing.contract.PARAMETRIC_EXAMPLES)    | Parametrised specs the easing file samples, beside the named entries.                                                                                                                                                                                                |
+| [`CSS_IMPORT_ALIASES`](_autosummary/an.timing.contract.html.md#an.timing.contract.CSS_IMPORT_ALIASES)     | How a CSS-named document's names map onto this registry where the name means something else here.                                                                                                                                                                    |
+| [`ADDRESS_PATTERN`](_autosummary/an.timing.contract.html.md#an.timing.contract.ADDRESS_PATTERN)        | The address grammar as a regular expression (the parser is `an.timing.address`).                                                                                                                                                                                     |
 
 ### Functions
 
@@ -23643,8 +24947,9 @@ slope vanishes there, e.g. cubic-bezier(1, 0, 0, 1)).
 ### an.timing.contract.VALUE_TYPED_CASE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
 
 The cases whose space is the value-typed rule’s write-group space are ALSO
-evaluated with `space=None` — the path compile, truth projections and the
-bench use — so both rules are held to the same numbers.
+evaluated with `space=VALUE_TYPED` — the rule `runtime.js` implements —
+so both rules are held to the same numbers (the default, `space=None`, is
+the declared rule since an#239 item 2).
 
 ### an.timing.contract.build_contract()
 
@@ -23659,7 +24964,7 @@ Every sample of `vectors` (default: the committed file) that `an.timing`
 does not reproduce, as one line each. Empty means the kernel meets the contract.
 
 Both evaluation rules are held: every case under its declared space, and every
-`stage.node` case also under the value-typed default (`space=None`).
+`stage.node` case also under the value-typed rule (`space=VALUE_TYPED`).
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]
@@ -24686,9 +25991,12 @@ track that took the mouth back.
 
 `space` says what each property is ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)): one space, a
 registered space’s name, or a `target -> space` resolver. Its field kinds
-interpolate and its write groups resolve. `None` is the stage runtime’s
-rule, which `runtime.js` implements: interpolation by value type, the
-`stage.node` write groups.
+interpolate and its write groups resolve. `None` is the default space,
+[`an.timing.spaces.DFLT_TIMELINE_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE) (the stage node’s declared
+kinds, by name at call time). `space=VALUE_TYPED` is the rule
+`runtime.js` implements — interpolation by value type, the `stage.node`
+write groups — which gives the same pose on every timeline the compiler
+emits (it refuses a value that fails its field kind).
 
 Forward-order rendering used to show the value at the clip’s last SAMPLED
 frame instead (the runtime kept whatever it last applied). The two agree
@@ -25319,15 +26627,17 @@ DiscreteKind(switch_at=0.5)
 
 ### Module Attributes
 
-| [`SWAP_WRITE_GROUP`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SWAP_WRITE_GROUP)       | they all replace the one drawing the node carries (`viseme` and `viseme@happy` both set the mouth's texture, an#88).                                                                                                          |
-|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`SWAP_KIND`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SWAP_KIND)              | A replacement drawing never appears before its own key (an#86).                                                                                                                                                               |
-| [`STAGE_NODE_UNITS`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.STAGE_NODE_UNITS)       | What the stage node's transform properties are measured in.                                                                                                                                                                   |
-| [`STAGE_NODE_ALIASES`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.STAGE_NODE_ALIASES)     | Properties that write another property's value on the same node.                                                                                                                                                              |
-| [`CORE_OWNER`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.CORE_OWNER)             | Who registered the seeded spaces (only these reach the contract files).                                                                                                                                                       |
-| [`DFLT_VALUE_TYPED_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_VALUE_TYPED_SPACE) | The space whose write groups the value-typed rule (`space=None`) uses: the stage engine's node, resolved BY NAME at call time, so moving the stage's registration (P3: into `an.stage`) or replacing it needs no kernel edit. |
-| [`SpaceLike`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SpaceLike)              | one space for every target, a registered space's name, or a per-target resolver (P2: target -> its entity kind's space).                                                                                                      |
-| [`STAGE_NODE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.STAGE_NODE)             | P3 moves their registration into `an.stage`.                                                                                                                                                                                  |
+| [`SWAP_WRITE_GROUP`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SWAP_WRITE_GROUP)       | they all replace the one drawing the node carries (`viseme` and `viseme@happy` both set the mouth's texture, an#88).                                                                                                                                                          |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`SWAP_KIND`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SWAP_KIND)              | A replacement drawing never appears before its own key (an#86).                                                                                                                                                                                                               |
+| [`STAGE_NODE_UNITS`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.STAGE_NODE_UNITS)       | What the stage node's transform properties are measured in.                                                                                                                                                                                                                   |
+| [`STAGE_NODE_ALIASES`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.STAGE_NODE_ALIASES)     | Properties that write another property's value on the same node.                                                                                                                                                                                                              |
+| [`CORE_OWNER`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.CORE_OWNER)             | Who registered the seeded spaces (only these reach the contract files).                                                                                                                                                                                                       |
+| [`DFLT_VALUE_TYPED_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_VALUE_TYPED_SPACE) | The space whose write groups the value-typed rule ([`VALUE_TYPED`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.VALUE_TYPED)) uses: the stage engine's node, resolved BY NAME at call time, so moving the stage's registration (P3: into `an.stage`) or replacing it needs no kernel edit. |
+| [`DFLT_TIMELINE_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE)    | DECLARED field kinds from this registered space, resolved by name at call time (ADR 0001 decision 11: field kinds are declared, never inferred).                                                                                                                              |
+| [`VALUE_TYPED`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.VALUE_TYPED)            | Pass as `space=` to ask for the value-typed rule `runtime.js` implements (interpolate by the value's runtime type, the [`DFLT_VALUE_TYPED_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_VALUE_TYPED_SPACE) write groups) — what the contract's parity lane holds the stage runtime to.    |
+| [`SpaceLike`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.SpaceLike)              | one space for every target, a registered space's name, or a per-target resolver (P2: target -> its entity kind's space).                                                                                                                                                      |
+| [`STAGE_NODE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.STAGE_NODE)             | P3 moves their registration into `an.stage`.                                                                                                                                                                                                                                  |
 
 ### Functions
 
@@ -25353,9 +26663,31 @@ DiscreteKind(switch_at=0.5)
 
 Who registered the seeded spaces (only these reach the contract files).
 
+### an.timing.spaces.DFLT_TIMELINE_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)* *= 'stage.node'*
+
+DECLARED field
+kinds from this registered space, resolved by name at call time (ADR 0001
+decision 11: field kinds are declared, never inferred). The flip from the
+value-typed rule happened in P2 (an#239 item 2), once the compiler refused
+every keyframe value that fails its field kind — so the two rules agree on
+everything the compiler emits (the corpus-frame test and the golden vectors,
+which hold both). Every caller — compile’s from-less start, `impacts`’
+truth projections, the bench — inherits it. `None` here would restore the
+value-typed rule as the default.
+
+ONE space for every target, by design for now: a compiled stage document’s
+nodes are all stage nodes and it does not carry its entities’ kinds. The
+per-entity policy ([`an.genres.entity_space_resolver()`](_autosummary/an.genres.html.md#an.genres.entity_space_resolver)) is what
+`an validate` and the compiler’s keyframe check use; making it the
+evaluator’s default too belongs to the `Engine` seam (P3, an#245), where
+an engine knows its document’s entities (review-244 S7).
+
+* **Type:**
+  What `evaluate_timeline(..., space=None)` evaluates with
+
 ### an.timing.spaces.DFLT_VALUE_TYPED_SPACE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'stage.node'*
 
-The space whose write groups the value-typed rule (`space=None`) uses:
+The space whose write groups the value-typed rule ([`VALUE_TYPED`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.VALUE_TYPED)) uses:
 the stage engine’s node, resolved BY NAME at call time, so moving the stage’s
 registration (P3: into `an.stage`) or replacing it needs no kernel edit.
 
@@ -25431,6 +26763,12 @@ kind’s space).
   What an evaluator accepts as “the space”
 
 alias of [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace) | [`str`](https://docs.python.org/3/builtins/stdtypes.html#str) | `Callable`[[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str)], [`PropertySpace`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.PropertySpace)]
+
+### an.timing.spaces.VALUE_TYPED *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'value-typed'*
+
+Pass as `space=` to ask for the value-typed rule `runtime.js` implements
+(interpolate by the value’s runtime type, the [`DFLT_VALUE_TYPED_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_VALUE_TYPED_SPACE)
+write groups) — what the contract’s parity lane holds the stage runtime to.
 
 ### an.timing.spaces.register_space(space, , replace=False, owner=None)
 
@@ -25572,9 +26910,12 @@ track that took the mouth back.
 
 `space` says what each property is ([`an.timing.spaces`](_autosummary/an.timing.spaces.html.md#module-an.timing.spaces)): one space, a
 registered space’s name, or a `target -> space` resolver. Its field kinds
-interpolate and its write groups resolve. `None` is the stage runtime’s
-rule, which `runtime.js` implements: interpolation by value type, the
-`stage.node` write groups.
+interpolate and its write groups resolve. `None` is the default space,
+[`an.timing.spaces.DFLT_TIMELINE_SPACE`](_autosummary/an.timing.spaces.html.md#an.timing.spaces.DFLT_TIMELINE_SPACE) (the stage node’s declared
+kinds, by name at call time). `space=VALUE_TYPED` is the rule
+`runtime.js` implements — interpolation by value type, the `stage.node`
+write groups — which gives the same pose on every timeline the compiler
+emits (it refuses a value that fails its field kind).
 
 Forward-order rendering used to show the value at the clip’s last SAMPLED
 frame instead (the runtime kept whatever it last applied). The two agree
@@ -26691,20 +28032,20 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 12:05 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/8816a487140ca180269a926ef553b1cfb9c8d8fd"><code>8816a48</code></a> on branch <code>main</code>, for **an 0.1.131** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 13:39 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/b9b87c0db09d6d10709c38c6a41e06d6afbe5b2e"><code>b9b87c0</code></a> on branch <code>main</code>, for **an 0.1.132** (from <code>pyproject.toml</code>).
 
 #### WARNING
 The documentation and the package may be misaligned:
 
-- The documented version (0.1.131) is ahead of the latest release on PyPI (0.1.130): these docs describe unreleased code.
+- The documented version (0.1.132) is ahead of the latest release on PyPI (0.1.131): these docs describe unreleased code.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/8816a487140ca180269a926ef553b1cfb9c8d8fd"><code>8816a487140ca180269a926ef553b1cfb9c8d8fd</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/b9b87c0db09d6d10709c38c6a41e06d6afbe5b2e"><code>b9b87c0db09d6d10709c38c6a41e06d6afbe5b2e</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.131</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.132</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -26713,9 +28054,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36858700984">36858700984</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36869650058">36869650058</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>3153410da6f60d9cefef14c15a4e8fb1c7712fd1</code> (in the history of the built commit) |
+| Event commit | <code>6059bcefe140dc528ea5d0f119fcc20054666b6e</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -26740,13 +28081,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.130/">0.1.130</a>, older than the documented version (0.1.131).
+Latest release: <a href="https://pypi.org/project/an/0.1.131/">0.1.131</a>, older than the documented version (0.1.132).
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 8816a487140ca180269a926ef553b1cfb9c8d8fd
+git checkout b9b87c0db09d6d10709c38c6a41e06d6afbe5b2e
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```
