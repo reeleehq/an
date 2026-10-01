@@ -25,7 +25,7 @@ live:
     default: {kind: cut}     # hard-cut snap timing
 
 targets:
-  one_frame_interval_share: [0.70, 0.85]   # measured 0.77
+  one_frame_interval_share: [0.70, 0.85]   # measured 0.77 (unchanged by the local-change rule, an#255)
   mean_shot_s: [12, 30]                    # measured 20 (two long shots)
 
 guidance:

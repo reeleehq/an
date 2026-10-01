@@ -62,6 +62,86 @@ def test_a_uniformly_moving_clip_is_not_measured_as_a_still():
     assert m.identical_frame_share == 0.0
 
 
+# -----------------------------------------------------------------------------
+# The local change (an#255): motion measured on the moving part's area
+# -----------------------------------------------------------------------------
+
+#: The decode size the lint measures at (its thresholds are in its pixels).
+DH, DW = 180, 320
+
+
+def _thin_limb_shrug(n=30, *, moves=(10, 11, 20, 21), width=2, length=12):
+    """A held 320x180 frame where a two-pixel-wide dark limb swings at ``moves``:
+    a stick figure's shrug, a few dozen pixels out of 57,600."""
+    frames = np.full((n, DH, DW, 3), 200, np.uint8)
+    angle = 0
+    for i in range(n):
+        if i in moves:
+            angle = 1 - angle
+        x0 = 150 + 6 * angle
+        frames[i, 90 : 90 + length, x0 : x0 + width] = 30
+    return frames
+
+
+def test_a_thin_limb_gesture_is_seen_although_the_frame_mean_barely_moves():
+    """The end-user finding: a stick build's shrug changed no metric. The
+    frame-wide mean of this step is ~0.04 grey levels, far below the 0.25
+    threshold; the local rule sees each swing."""
+    frames = _thin_limb_shrug()
+    blind = measure_style(frames, fps=30.0, shot_durations=[1.0], min_changed_pixels=0)
+    seen = measure_style(frames, fps=30.0, shot_durations=[1.0])
+    assert blind.identical_frame_share == 1.0 and blind.pose_changes_per_s == 0.0
+    assert seen.pose_changes_per_s == pytest.approx(4 / 1.0, abs=0.01)
+    assert seen.identical_frame_share == pytest.approx(1 - 4 / 29, abs=0.001)
+
+
+def test_scattered_noise_below_the_part_size_is_still_a_hold():
+    """Grain or transcoding noise: a few isolated pixels jumping on every step
+    (fewer than MIN_CHANGED_PIXELS per step — a speck that appears in one frame
+    and leaves in the next counts twice) is not motion."""
+    from an.verify.style import MIN_CHANGED_PIXELS, PIXEL_CHANGE_DELTA
+
+    rng = np.random.default_rng(0)
+    frames = np.full((30, DH, DW, 3), 128, np.uint8)
+    specks = (MIN_CHANGED_PIXELS - 1) // 2
+    for i in range(30):
+        ys, xs = rng.integers(0, DH, specks), rng.integers(0, DW, specks)
+        frames[i, ys, xs] = 128 + int(PIXEL_CHANGE_DELTA) + 20
+    assert measure_style(frames, fps=30.0, shot_durations=[1.0]).identical_frame_share == 1.0
+    # A faint change everywhere (a slow fade) is the frame-wide rule's to see.
+    fade = np.stack([np.full((DH, DW, 3), 100 + i // 10, np.uint8) for i in range(30)])
+    assert measure_style(fade, fps=30.0, shot_durations=[1.0]).pose_changes_per_s == 2.0
+
+
+def test_min_changed_pixels_zero_is_the_research_estimator():
+    """``min_changed_pixels=0`` reproduces the estimator the targets were first
+    measured with, unchanged — the seam the re-measurement used."""
+    for frames in (_moving(48, every=2), _moving(40, every=1, hold_after=10)):
+        a = measure_style(frames, fps=24.0, shot_durations=[2.0], min_changed_pixels=0)
+        b = measure_style(frames, fps=24.0, shot_durations=[2.0])
+        assert a == b  # large moves: both rules agree
+
+
+def test_the_flatness_fix_points_at_what_the_statistic_responds_to():
+    """an#255 (second end-user run): "more texture" made a clip measure
+    flatter; spreading colour over large areas is what lowers the coverage."""
+    from an.verify.style import _palette_stats
+
+    rng = np.random.default_rng(0)
+    flat = np.zeros((15, DH, DW, 3), np.uint8)
+    for i, c in enumerate([(20, 20, 30), (200, 180, 150), (120, 60, 40), (240, 230, 220)]):
+        flat[:, :, i * 80 : (i + 1) * 80] = c
+    grain = np.clip(flat + rng.normal(0, 3, flat.shape[:3] + (1,)), 0, 255).astype(np.uint8)
+    ramp = flat.copy()
+    ramp[:, :, :80] = (np.array([20, 20, 30]) + np.linspace(0, 1, DH)[:, None, None] * 140).astype(np.uint8)
+    top = lambda f: _palette_stats(f)[2]
+    assert top(grain) == pytest.approx(top(flat), abs=0.01)  # fine grain: no effect
+    assert top(ramp) < top(flat) - 0.03  # a gradient plate: less flat
+    m = measure_style(flat, fps=15.0, shot_durations=[1.0])
+    (miss,) = check_targets(m, {"top16_colour_coverage": [0.5, 0.8]})
+    assert "gradient" in miss.suggested_fix and "grain` does not" in miss.suggested_fix
+
+
 def test_the_longest_hold_is_counted_in_frames():
     m = measure_style(_moving(40, every=1, hold_after=10), fps=20.0, shot_durations=[2.0])
     assert m.max_hold_frames == 31  # frames 9..39 show one picture

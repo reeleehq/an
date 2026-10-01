@@ -7,13 +7,17 @@ ported, so an agent can render, measure the same statistics on its own output,
 and adjust. The style specs that carry the ``targets`` live with the downstream
 skill (``.claude/skills/an-style/styles/*.yaml``).
 
-**The estimators are the research's estimators, on purpose.** Every threshold
-below is the one the six styles were measured with, including the ones that are
-crude (a noise floor at the 10th percentile of frame differences, a cut as a
-colour-histogram jump). A better estimator would measure a different quantity
-from the one the targets were calibrated on, and a render would then pass or
-miss for a reason nobody measured. Change an estimator only together with
-re-measuring the targets.
+**The estimators are the research's estimators, on purpose — with one
+measured exception.** Every threshold below is the one the six styles were
+measured with, including the ones that are crude (a noise floor at the 10th
+percentile of frame differences, a cut as a colour-histogram jump). A better
+estimator measures a different quantity from the one the targets were
+calibrated on, and a render would then pass or miss for a reason nobody
+measured. Change an estimator only together with re-measuring the targets: the
+local-change rule (an#255) did, and the cadence targets of every style spec
+were re-measured on the six study clips with it (the table in
+``misc/docs/cutout_styles_research.md`` §3). ``min_changed_pixels=0`` is the
+research's original estimator, unchanged.
 
 What is measured (see :data:`METRICS` for the vocabulary a spec's ``targets``
 may use):
@@ -21,7 +25,12 @@ may use):
 - **Holds and cadence.** A frame "changes" when its mean absolute grey
   difference from the previous frame exceeds ``max(0.25, 2.5 × p10)``, where
   p10 is the clip's own 10th-percentile difference (compression noise, capped
-  at 1.0 — see :data:`NOISE_FLOOR_CAP`). From
+  at 1.0 — see :data:`NOISE_FLOOR_CAP`), **or** when at least
+  :data:`MIN_CHANGED_PIXELS` of its pixels moved by more than
+  :data:`PIXEL_CHANGE_DELTA` grey levels — a change measured on the area of
+  the moving part, not the whole frame (an#255): a frame-wide mean cannot see
+  a stick figure's shrug or a blink in a close-up, whose few changed pixels
+  average to nothing. From
   that: the share of frames identical to the previous one, pose changes per
   second, and the histogram of gaps between successive changes (one frame = on
   ones, two = on twos, three or more = threes and holds, gaps above 12 frames
@@ -123,6 +132,15 @@ NOISE_FLOOR_MULTIPLIER: float = 2.5
 #: study clips the uncapped floor was at most 0.16 grey levels, so this cap
 #: moves none of the measured targets.
 NOISE_FLOOR_CAP: float = 1.0
+#: The local change (an#255): a step also counts as a change when at least
+#: ``MIN_CHANGED_PIXELS`` pixels (at the decode size) differ by more than
+#: ``PIXEL_CHANGE_DELTA`` grey levels. Chosen on the six study clips: at 32
+#: levels, film grain and transcoding noise stay below 8 pixels in 99% of the
+#: steps the frame-wide mean calls holds (Gilliam 4, Norstein 2, Reiniger 0 at
+#: the 99th percentile), while a stick figure's shrug, a blink in a close-up or
+#: a small prop moving changes tens of pixels. ``0`` pixels disables the rule.
+PIXEL_CHANGE_DELTA: float = 32.0
+MIN_CHANGED_PIXELS: int = 8
 #: Pixel cut detector (used only when no shot list is given).
 CUT_HISTOGRAM_L1: float = 0.6
 CUT_MEAN_DIFF: float = 8.0
@@ -203,7 +221,13 @@ _FIXES: dict[str, tuple[str, str]] = {
     ),
     "top16_colour_coverage": (
         "fewer, flatter colours: flat fills, no gradients",
-        "more colour variety or textured art",
+        # What the statistic responds to (an#255): it counts pixels in the 16
+        # commonest 4-bit colours, so only colour spread over LARGE areas
+        # lowers it. Fine grain stays inside one 4-bit bin (a Reiniger run
+        # measured flatter with the pack's grain at 0.20 than at 0.06).
+        "spread the colour over large areas: a gradient or painted backdrop as "
+        "an `image` plane (an SVG plate with a gradient), or more distinct flat "
+        "fills across the sets; the pack's `grain` does not lower it",
     ),
 }
 
@@ -359,17 +383,32 @@ def _r3(x: float) -> float:
     return round(float(x), 3)
 
 
-def _step_changes(frames: np.ndarray) -> tuple[np.ndarray, np.ndarray, float]:
+def _step_changes(
+    frames: np.ndarray, *, min_changed_pixels: int = MIN_CHANGED_PIXELS
+) -> tuple[np.ndarray, np.ndarray, float]:
     """``(step_diff, changed, threshold)`` over the frame-to-frame steps: the
-    mean absolute grey difference of each step, whether it counts as a change,
-    and the clip's change threshold (see the module docstring)."""
+    mean absolute grey difference of each step, whether it counts as a change
+    (the frame-wide mean above the clip's threshold, or a local change of at
+    least ``min_changed_pixels`` pixels — see the module docstring), and the
+    clip's mean threshold.
+
+    >>> f = np.zeros((3, 180, 320, 3), np.uint8)
+    >>> f[2, 90:92, 100:105] = 255          # ten pixels move: a thin limb
+    >>> _step_changes(f)[1].tolist(), _step_changes(f, min_changed_pixels=0)[1].tolist()
+    ([False, True], [False, False])
+    """
     grey = frames.astype(np.float32).mean(axis=3)
-    step_diff = np.abs(grey[1:] - grey[:-1]).mean(axis=(1, 2))
+    delta = np.abs(grey[1:] - grey[:-1])
+    step_diff = delta.mean(axis=(1, 2))
     noise_floor = min(
         NOISE_FLOOR_CAP, float(np.percentile(step_diff, NOISE_FLOOR_PERCENTILE))
     )
     threshold = max(MIN_CHANGE_THRESHOLD, NOISE_FLOOR_MULTIPLIER * noise_floor)
-    return step_diff, step_diff > threshold, threshold
+    changed = step_diff > threshold
+    if min_changed_pixels > 0:
+        moved = (delta > PIXEL_CHANGE_DELTA).reshape(len(delta), -1).sum(axis=1)
+        changed |= moved >= min_changed_pixels
+    return step_diff, changed, threshold
 
 
 def _cadence(changed: np.ndarray, *, cut_steps: set[int], fps: float) -> dict:
@@ -406,11 +445,14 @@ def measure_style(
     *,
     fps: float,
     shot_durations: Sequence[float] | None = None,
+    min_changed_pixels: int = MIN_CHANGED_PIXELS,
 ) -> StyleMetrics:
     """Measure the :data:`METRICS` on ``frames``, an ``(n, h, w, 3)`` uint8 RGB array.
 
     ``shot_durations`` (seconds, in order) gives the cuts exactly; without it the
     pixel cut detector is used. Ratios are rounded to three decimals.
+    ``min_changed_pixels`` is the local-change rule's size (``0``: the research's
+    frame-wide estimator alone, which the targets were first measured with).
 
     >>> import numpy as np
     >>> f = np.zeros((6, 4, 4, 3), np.uint8)
@@ -430,7 +472,9 @@ def measure_style(
     if fps <= 0:
         raise ValueError(f"fps must be positive; got {fps}")
 
-    step_diff, changed, threshold = _step_changes(frames)
+    step_diff, changed, threshold = _step_changes(
+        frames, min_changed_pixels=min_changed_pixels
+    )
 
     if shot_durations:
         cuts = _cut_frames_from_shots(shot_durations, fps, n)
@@ -499,6 +543,7 @@ def measure_shots(
     fps: float,
     shot_durations: Sequence[float] | None = None,
     shot_ids: Sequence[str] | None = None,
+    min_changed_pixels: int = MIN_CHANGED_PIXELS,
 ) -> list[ShotMetrics]:
     """Per-shot cadence (:data:`SHOT_METRICS`) of ``frames``, one row per shot.
 
@@ -517,11 +562,11 @@ def measure_shots(
     """
     frames = np.asarray(frames)
     n = len(frames)
-    _, changed, _ = _step_changes(frames)
+    step_diff, changed, _ = _step_changes(frames, min_changed_pixels=min_changed_pixels)
     if shot_durations:
         cuts = _cut_frames_from_shots(shot_durations, fps, n)
     else:
-        cuts = _cut_frames_from_pixels(frames, _step_changes(frames)[0])
+        cuts = _cut_frames_from_pixels(frames, step_diff)
     bounds = [0, *cuts, n]
     ids = list(shot_ids or [])
     rows = []
