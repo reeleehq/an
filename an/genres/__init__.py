@@ -218,6 +218,8 @@ def _install(genre: Genre, *, check_capabilities: bool = True) -> None:
         register_check(check, owner=owner)
     for sugar in genre.dialogue_sugar:
         register_dialogue_sugar(sugar, owner=owner)
+    for compile_pass in genre.compile_passes:
+        register_compile_pass(compile_pass, owner=owner)
     if genre.capabilities or genre.analysers or genre.vocabulary or genre.aspects:
         _install_semantics(genre, check_capabilities=check_capabilities)
 
@@ -245,8 +247,6 @@ def _install_semantics(genre: Genre, *, check_capabilities: bool = True) -> None
             f"genre {genre.name!r} registers an unsound vocabulary:\n  - "
             + "\n  - ".join(problems)
         )
-    for compile_pass in genre.compile_passes:
-        register_compile_pass(compile_pass, owner=owner)
 
 
 def _uninstall(name: str) -> None:

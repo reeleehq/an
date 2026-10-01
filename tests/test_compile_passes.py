@@ -30,7 +30,7 @@ def _quiet_compile(shot, **kw):
 
 def test_the_passes_run_in_the_order_the_document_was_always_built_in():
     assert [p.name for p in compile_passes_for_stage()] == [
-        "scene", "actions", "swap_pose", "view_spans", "visemes", "face",
+        "scene", "speech", "actions", "swap_pose", "view_spans", "visemes", "face",
         "camera", "parallax", "checks",
     ]
 
