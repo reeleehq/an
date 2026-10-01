@@ -566,7 +566,7 @@ def _easing_problems(animation: str, tree) -> list[str]:
     """An ``easing`` passed through ``args`` reaches the compiled keyframes
     verbatim, and the runtime throws on an unknown one mid-render — so check
     every tween's easing the way the evaluators will read it."""
-    from an.adapters.cutout.easing import apply_easing
+    from an.stage.easing import apply_easing
     from an.ir.compose import flatten
     from an.ir.schema import TweenAction
 

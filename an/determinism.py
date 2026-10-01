@@ -6,7 +6,7 @@ treatment:
 
 **Pinned inputs** — the rasteriser, the browser build, the encoder. Those are
 *settings*, and they are pinned unconditionally in
-:mod:`an.adapters.cutout.render` (an#31, an#34). Nothing here.
+:mod:`an.stage.render` (an#31, an#34). Nothing here.
 
 **Latent randomness** — machinery that is deterministic today by accident.
 The vendored PixiJS carries `Math.random`, `Date.now`, `performance.now` and

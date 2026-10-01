@@ -29,7 +29,7 @@ knob with **no lever**, on measurement — a per-frame instrument cannot judge a
 temporal choice (the `an-dev-bench` skill's table has the numbers). Each lever
 reaches an existing seam from the outside:
 
-- ``high_crf`` rebinds ``an.adapters.cutout.render.DETERMINISTIC_X264_ARGS``.
+- ``high_crf`` rebinds ``an.stage.render.DETERMINISTIC_X264_ARGS``.
   ``_ffmpeg_mux`` reads that name as a module global at call time, so the
   rebinding reaches the delivered encode. It does **not** reach
   ``an.bench.imageio.lossless_encode_command``, which bound the tuple at import
@@ -37,7 +37,7 @@ reaches an existing seam from the outside:
   every encode-side metric would be measured against a moving target and the
   lever would produce beautiful numbers about nothing.
 - ``disabled_aa`` copies the staged runtime, flips PixiJS's ``antialias`` in the
-  copy, and rebinds ``an.adapters.cutout.render.runtime_dir``. The shipped
+  copy, and rebinds ``an.stage.render.runtime_dir``. The shipped
   ``runtime.js`` is never written to.
 - ``supersample`` reaches the SAME runtime seam — ``resolution: k,
   autoDensity: false`` in the Pixi application options — and then a second one
@@ -153,7 +153,7 @@ class Lever:
 @contextmanager
 def _high_crf() -> Iterator[None]:
     """Raise the delivered encode's CRF, leaving the lossless reference alone."""
-    from an.adapters.cutout import render
+    from an.stage import render
 
     original = render.DETERMINISTIC_X264_ARGS
     args = list(original)
@@ -216,7 +216,7 @@ def _expected_runtime_sha256(patch: Callable[[str], str]) -> str:
     """
     import hashlib
 
-    from an.adapters.cutout.runtime_files import runtime_dir
+    from an.stage.runtime_files import runtime_dir
     from an.bench.environment import RUNTIME_DIGEST_SUFFIXES
 
     root = runtime_dir()
@@ -310,8 +310,8 @@ def _patched_runtime(patch: Callable[[str], str], *, prefix: str) -> Iterator[Pa
     for the duration, and ``an.bench.environment.runtime_sha256`` re-imports it
     at call time, so the staged digest is what lands in the row.
     """
-    from an.adapters.cutout import render
-    from an.adapters.cutout.runtime_files import runtime_dir
+    from an.stage import render
+    from an.stage.runtime_files import runtime_dir
 
     staged = Path(tempfile.mkdtemp(prefix=prefix)) / "runtime"
     shutil.copytree(

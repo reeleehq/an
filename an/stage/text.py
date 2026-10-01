@@ -2,7 +2,7 @@
 
 Epic #9 Wave 8, first slice; the design question was an#155. A text block is a
 **prop** whose document ``kind`` is ``TextDescriptor`` — the shape stroked paths
-took (:mod:`an.paths`) — so a scene names it with an ordinary
+took (:mod:`an.stage.paths`) — so a scene names it with an ordinary
 ``AssetRef(kind="prop", ...)``, its ``overrides`` supply the per-shot string,
 and nothing in the scene IR changed (no field, no migration).
 
@@ -547,7 +547,7 @@ def reveal_units(
 
     Named ``stagger`` until an#241 gave the core a general combinator of that
     name (:func:`an.ir.compose.stagger`, any actions, one ``parallel``);
-    ``an.text.stagger`` stays as an alias of this function so old imports
+    ``an.stage.text.stagger`` stays as an alias of this function so old imports
     keep working.
 
     >>> [a.kind for a in reveal_units("t", 2, "alpha", to=1, from_=0, duration=0.2, step=0.1)]

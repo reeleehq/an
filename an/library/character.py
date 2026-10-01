@@ -154,7 +154,7 @@ def _parts_rig_affordances(
     ``--strict-assets``), not this asset's rig — so it affords nothing but the
     rest view: a stand-in must never answer a search for arms or a mouth.
     """
-    from an.adapters.cutout.compile import PROCEDURAL_MOUTH_KEYS
+    from an.stage.compile import PROCEDURAL_MOUTH_KEYS
     from an.characters.schema import DEFAULT_VISEME_MAP, DFLT_VIEW
 
     out: dict[str, dict[str, Any]] = {

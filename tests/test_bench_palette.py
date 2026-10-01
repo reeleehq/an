@@ -27,7 +27,7 @@ from an.bench.palette import (
     svg_colours,
 )
 
-RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/data/cutout_runtime/runtime.js"
+RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/stage/runtime/runtime.js"
 
 
 def _scene(*nodes, background="#ffffff", textures=None) -> dict:

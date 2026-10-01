@@ -38,8 +38,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator
 
-from an.raster import art_size as raster_size
-from an.raster import strip_version
+from an.stage.raster import art_size as raster_size
+from an.stage.raster import strip_version
 from an.verify._base import Finding
 
 #: Ratios within this of 1.0 count as uniform. Guards float noise only — it is

@@ -1,6 +1,6 @@
 """A text block, compiled: one node per unit, each an SVG sprite (an#155).
 
-:func:`an.text.layout_text` asks tituli where every unit goes and what its
+:func:`an.stage.text.layout_text` asks tituli where every unit goes and what its
 glyphs look like; this module turns that into the wire. The block is one
 node (the entity), each unit a child named ``word_<i>`` / ``glyph_<i>`` /
 ``line_<i>`` whose visual is an ``svg_sprite`` — the kind the runtime already
@@ -29,14 +29,14 @@ import hashlib
 from pathlib import Path
 from typing import Any, Mapping
 
-from an.adapters.cutout.serialize import (
+from an.stage.serialize import (
     AssetJSON,
     AssetResolutionJSON,
     NodeJSON,
     TransformJSON,
     VisualJSON,
 )
-from an.text import TextDescriptor, TextLayout, layout_text, resolve_text
+from an.stage.text import TextDescriptor, TextLayout, layout_text, resolve_text
 
 #: Texels per scene pixel in a unit's texture. See the module docstring.
 TEXT_TEXTURE_OVERSAMPLE: int = 2

@@ -794,7 +794,7 @@ def apply_easing(
 
     ``names`` restricts the string specs accepted to that collection — what an
     engine that implements only part of the registry passes (the stage runtime
-    implements the legacy names; see ``an.adapters.cutout.easing``). Sequences
+    implements the legacy names; see ``an.stage.easing``). Sequences
     always take the legacy Bézier solver.
 
     >>> apply_easing(None, 0.25)

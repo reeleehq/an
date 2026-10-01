@@ -17,7 +17,7 @@ optional **arrowhead** that rides the moving tip, oriented along the path.
 
 **Where it lives, and why there.** A path is a prop — a drawable that is not a
 person — so its document sits in the ``props`` store beside
-:class:`an.props.PropDescriptor` and a scene names it with an ordinary
+:class:`an.stage.props.PropDescriptor` and a scene names it with an ordinary
 ``AssetRef(kind="prop", ...)``. The compiler dispatches on the document's
 ``kind``. That keeps the scene IR unchanged (no field, no migration) and gives
 a path stage placement (``at``, ``scale``) and entity ordering for free.

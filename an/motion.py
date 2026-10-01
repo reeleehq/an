@@ -172,7 +172,7 @@ def _identity_pose() -> dict[str, float]:
     Derived from ``TransformJSON`` — the compiler's own SSOT for rest values —
     rather than restated.
     """
-    from an.adapters.cutout.serialize import TransformJSON
+    from an.stage.serialize import TransformJSON
 
     fields = TransformJSON.model_fields
     return {p: float(fields[p].default) for p in POSE_PROPERTIES}
@@ -1085,7 +1085,7 @@ def stage_poses(
     >>> "c/right_arm" in poses, poses["c/head"]["y"]
     (True, -55.0)
     """
-    from an.adapters.cutout.compile import compile_shot
+    from an.stage.compile import compile_shot
 
     stage = shot.model_copy(
         update={"actions": [], "dialogue": [], "narration": [], "camera": None}

@@ -18,7 +18,6 @@ from an.orchestrate import render_project as _render_project
 from an.orchestrate import validate_project
 from an.project import init as _init
 from an.iterate import iterate as _iterate
-from an.preview import preview_project as _preview_project
 from an.characters.cli import (
     _dispatch_funcs as _character_dispatch_funcs,
 )
@@ -263,6 +262,8 @@ def preview(
     shot: shot id to preview (default: first shot in the timeline)
     no_browser: don't auto-open the default browser
     """
+    from an.stage.preview import preview_project as _preview_project  # the stage, lazily
+
     base_url = _preview_project(
         project_dir,
         shot_id=shot or None,

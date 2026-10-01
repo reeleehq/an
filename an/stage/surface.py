@@ -5,7 +5,7 @@ content. None is a runtime filter, and none draws anything random at render
 time. ``runtime.js`` keeps its rule against per-frame randomness, and its
 determinism probe still sees zero filters.
 
-- **Outline and paper-gap shadow**: :class:`~an.adapters.cutout.serialize.UnderlayJSON`
+- **Outline and paper-gap shadow**: :class:`~an.stage.serialize.UnderlayJSON`
   entries on a part's visual. The runtime draws each one as a copy of the
   part's own visual, BEHIND it, in the part's own container. So the copy takes
   every transform the part takes (tweens, ``play``, the camera, a stage scale)
@@ -35,7 +35,7 @@ import struct
 import zlib
 from typing import TYPE_CHECKING
 
-from an.adapters.cutout.serialize import (
+from an.stage.serialize import (
     AssetJSON,
     NodeJSON,
     TransformJSON,
@@ -449,7 +449,7 @@ def _fades(channel) -> bool:
     them with the part, exactly (an#203 — a view's pose hiding the far arm
     was reported as a fade).
 
-    >>> from an.adapters.cutout.serialize import ChannelJSON, KeyframeJSON as K
+    >>> from an.stage.serialize import ChannelJSON, KeyframeJSON as K
     >>> hide = ChannelJSON(target="a", property="alpha", keyframes=[
     ...     K(time=0, value=1.0, easing="step"), K(time=1, value=0.0, easing="step")])
     >>> fade = ChannelJSON(target="a", property="alpha", keyframes=[

@@ -75,7 +75,7 @@ __all__ = [
 #: The same 4000 the preset backdrop uses, and for the same reason — the runtime
 #: centres `root` and applies camera scale, so a huge rect always covers. Lives
 #: here (the schema) so the IR layer's framing check and the compiler read one
-#: number; `an.adapters.cutout.compile` re-exports it.
+#: number; `an.stage.compile` re-exports it.
 PLANE_FILL_SPAN: float = 4000.0
 
 #: ``(left, top, right, bottom)`` in scene pixels, `y` down (the stage's axes).

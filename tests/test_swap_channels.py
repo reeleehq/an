@@ -41,7 +41,7 @@ from an.stores.characters import CharactersStore
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "characters"
 RUNTIME_JS = (
-    Path(__file__).resolve().parents[1] / "an" / "data" / "cutout_runtime" / "runtime.js"
+    Path(__file__).resolve().parents[1] / "an" / "stage" / "runtime" / "runtime.js"
 )
 
 

@@ -9,7 +9,7 @@ an#96) for lip-sync; this module turns them into captions, opt-in through
 of what is captioned and on which frames. Both outputs are derived from it:
 
 - the picture — :func:`captioned_shot` adds each page as an OVERLAY text
-  block (:mod:`an.text`; camera-immune, placed at a title-safe anchor) plus
+  block (:mod:`an.stage.text`; camera-immune, placed at a title-safe anchor) plus
   ordinary ``set`` actions that show it for exactly its frames, and
   optionally tint the word being spoken;
 - the sidecar — :func:`caption_cues` places the same pages in FILM time and
@@ -34,7 +34,7 @@ function the assembler lays the picture out with) plus its shot-local frame,
 so a dissolve, which overlaps two shots and shortens the film, moves every
 later cue earlier by exactly its overlap.
 
-**Timing is materialised into ordinary actions**, the way :func:`an.text.reveal_units`
+**Timing is materialised into ordinary actions**, the way :func:`an.stage.text.reveal_units`
 works: nothing in the compiler or the runtime knows what a caption is. The
 caption blocks are added to the shot at RENDER time, never written back to
 the scene — the word timings are the audio pipeline's output, and a caption
@@ -679,7 +679,7 @@ def _check_typesettable(
     and (for a highlight) build exactly one unit per word."""
     from tituli import safe_area
 
-    from an.text import layout_text, resolve_text
+    from an.stage.text import layout_text, resolve_text
 
     width, height = resolution
     try:

@@ -35,7 +35,7 @@ from an.characters.schema import (
     CharacterDescriptor,
 )
 from an.characters.svg_utils import SVG_NS, extract_pivots
-from an.raster import RASTER_SUFFIXES, has_alpha, image_size, is_raster
+from an.stage.raster import RASTER_SUFFIXES, has_alpha, image_size, is_raster
 from an.verify._base import Finding, VerificationReport
 
 #: Elements an art package may not contain.
@@ -54,7 +54,7 @@ PROHIBITED_ELEMENTS: dict[str, str] = {
 }
 
 #: The part file formats an art package may ship: SVG, or raster with the
-#: suffixes `an.raster` reads (an#211). Order is the lookup order for a
+#: suffixes `an.stage.raster` reads (an#211). Order is the lookup order for a
 #: required part, so an SVG wins when both exist.
 PART_SUFFIXES: tuple[str, ...] = (".svg", *RASTER_SUFFIXES)
 
@@ -472,7 +472,7 @@ def _check_declared_boxes(
     if descriptor is None:
         return
     from an.characters.schema import attachment_box
-    from an.raster import art_size
+    from an.stage.raster import art_size
 
     seen: set[str] = set()
     for skin in descriptor.skins.values():

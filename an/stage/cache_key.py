@@ -69,8 +69,8 @@ from an.build.keys import (
 #: Keys in the compiled document whose string value names an easing.
 EASING_KEYS: frozenset[str] = frozenset({"easing"})
 
-#: The cut-out renderer's historical module (the stage engine and
-#: ``CutoutRenderer`` live there until an#247 PR B moves them to ``an.stage``).
+#: The cut-out renderer's historical module -- since an#247 a live alias of
+#: ``an.stage.render``, followed through its ``alias_module`` target.
 #: The walk is no longer rooted HERE alone: :func:`render_path_roots` derives
 #: the roots from the registered renderer, and this module is one of them.
 RENDER_PATH_ROOT: str = "an.adapters.cutout.render"
@@ -78,9 +78,9 @@ RENDER_PATH_ROOT: str = "an.adapters.cutout.render"
 #: Modules the walk does NOT enter, each with the reason its change is already
 #: in the key some other way. Everything else it reaches is hashed.
 RENDER_PATH_EXCLUDED: dict[str, str] = {
-    "an.adapters.cutout.compile": "its output is the `compiled` part",
-    "an.adapters.cutout.serialize": "its output is the `compiled` part",
-    "an.adapters.cutout.text": "compile-side; only INLINE_SRC_PREFIX is read at render",
+    "an.stage.compile": "its output is the `compiled` part",
+    "an.stage.serialize": "its output is the `compiled` part",
+    "an.stage.text_layout": "compile-side; only INLINE_SRC_PREFIX is read at render",
     "an.ir.schema": "the IR model; what it means for a render reaches `compiled`/`knobs`",
     "an.adapters._base": "the RenderContext/RenderResult types; their values are `knobs`",
 }
@@ -94,7 +94,7 @@ def _render_module():
     # module globals of the render module (`DETERMINISTIC_X264_ARGS`,
     # `DEFAULT_PIX_FMT`, `runtime_dir`), and a key that bound them at import
     # would not see a lever pulled.
-    from an.adapters.cutout import render
+    from an.stage import render
 
     return render
 
@@ -106,7 +106,7 @@ def compiled_document(shot: Any, ctx: Any) -> Any:
     two against each other, so a knob added to one and not the other fails
     there rather than in a stale render.
     """
-    from an.adapters.cutout.compile import compile_shot
+    from an.stage.compile import compile_shot
 
     r = _render_module()
     return compile_shot(
@@ -131,8 +131,8 @@ def texture_digests(scene_json: Any, mall: Mapping[str, Any]) -> dict[str, str]:
     are skipped; anything unresolvable is :data:`ABSENT` with its ``src``, so
     it still moves the key the day it appears.
     """
-    from an.adapters.cutout.text import INLINE_SRC_PREFIX
-    from an.raster import strip_version
+    from an.stage.text_layout import INLINE_SRC_PREFIX
+    from an.stage.raster import strip_version
 
     r = _render_module()
     textures = getattr(scene_json.assets, "textures", {}) if scene_json.assets else {}
@@ -163,9 +163,9 @@ def _draws_system_text(path: Path) -> bool:
     return any(m in data for m in SVG_TEXT_MARKERS)
 
 
-#: The call that makes an old module's names LIVE aliases of another module's
-#: (:mod:`an._shims`). Its target is a STRING, invisible to an import walk.
-FORWARDING_CALL: str = "forward_module_attributes"
+#: The calls that make an old module's names LIVE aliases of another module's
+#: (:mod:`an._shims`). Their target is a STRING, invisible to an import walk.
+FORWARDING_CALLS: frozenset[str] = frozenset({"forward_module_attributes", "alias_module"})
 
 
 def _forwarding_target(node: ast.AST) -> str | None:
@@ -176,7 +176,7 @@ def _forwarding_target(node: ast.AST) -> str | None:
     name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
     target = node.args[1]
     if (
-        name == FORWARDING_CALL
+        name in FORWARDING_CALLS
         and isinstance(target, ast.Constant)
         and isinstance(target.value, str)
     ):
@@ -226,7 +226,7 @@ def render_path_roots(renderer_type: type | None = None) -> tuple[str, ...]:
     True
     """
     if renderer_type is None:
-        from an.adapters.cutout.render import CutoutRenderer
+        from an.stage.render import CutoutRenderer
 
         renderer_type = CutoutRenderer
     roots = [renderer_type.__module__, renderer_type.render.__module__]
@@ -248,7 +248,7 @@ def render_path_modules(
     ``root`` is one module name or several; ``None`` is :func:`render_path_roots`.
 
     >>> mods = render_path_modules()
-    >>> "an.adapters.cutout.canvas_capture" in mods and "an.adapters.cutout.compile" not in mods
+    >>> "an.stage.canvas_capture" in mods and "an.stage.compile" not in mods
     True
     >>> {"an.engines.capture", "an.media.mp4"} <= set(mods)
     True
@@ -260,6 +260,7 @@ def render_path_modules(
     else:
         roots = list(root)
     found: dict[str, Path] = {}
+    aliases = _alias_index()
     todo = roots
     while todo:
         name = todo.pop()
@@ -274,7 +275,36 @@ def render_path_modules(
         path = Path(spec.origin)
         found[name] = path
         todo.extend(_source_facts(path, name)[1] - set(found))
+        # Every old path that is a live alias of this module (an#247) is part
+        # of what serves it: an edit to the shim changes what that name runs.
+        todo.extend(set(aliases.get(name, ())) - set(found))
     return dict(sorted(found.items()))
+
+
+def _alias_index() -> dict[str, list[str]]:
+    """``{module: [old module names that are whole-module aliases of it]}``.
+
+    Read off the source of every ``an`` module that calls ``alias_module`` --
+    by content, like the walk (the parse is memoised per digest).
+    """
+    import an
+
+    root = Path(an.__file__).parent
+    index: dict[str, list[str]] = {}
+    for path in sorted(root.rglob("*.py")):
+        data = path.read_bytes()
+        if b"alias_module(" not in data:
+            continue
+        parts = list(path.relative_to(root.parent).with_suffix("").parts)
+        if parts[-1] == "__init__":
+            parts = parts[:-1]
+        module = ".".join(parts)
+        if module == "an._shims":
+            continue
+        for target in _source_facts(path, module)[1]:
+            if target != "an._shims":
+                index.setdefault(target, []).append(module)
+    return index
 
 
 #: ``{sha256 of a source file: the an.* modules it imports}``. Keyed on the
@@ -466,7 +496,7 @@ def cutout_shot_inputs(shot: Any, ctx: Any) -> ShotKeyInputs:
     engine collects them here (``details["warnings"]``) and replays them only
     for a shot it reuses, where they would otherwise never be seen.
     """
-    from an.adapters.cutout.serialize import to_dict
+    from an.stage.serialize import to_dict
     from an.bench.contract import scene_contract_sha256
     from an.bench.environment import runtime_sha256
 

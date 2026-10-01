@@ -1,6 +1,6 @@
 """Locate the bundled cutout JS runtime files.
 
-The runtime ships under ``an/data/cutout_runtime/`` and is consumed by the
+The runtime ships under ``an/stage/runtime/`` and is consumed by the
 headless renderer in Phase 2C. This module exposes paths so callers don't
 hard-code the layout.
 
@@ -24,7 +24,7 @@ def runtime_dir() -> Path:
     """
     # Use the files() API (Python 3.9+) which works for both source trees
     # and wheels.
-    res = importlib.resources.files("an.data.cutout_runtime")
+    res = importlib.resources.files("an.stage.runtime")
     # MultiplexedPath etc. — coerce to a real Path for FS operations.
     # In practice for an editable install this is a normal directory.
     return Path(str(res))

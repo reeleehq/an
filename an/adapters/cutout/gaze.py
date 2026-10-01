@@ -76,7 +76,7 @@ def gaze_seed(entity_id: str) -> int:
     >>> gaze_seed("gale") == gaze_seed("gale") and gaze_seed("gale") != gaze_seed("nora")
     True
     """
-    from an.adapters.cutout.compile import (
+    from an.stage.compile import (
         _js_string_hash,
     )  # the blink's hash; lazy: compile imports this module
 

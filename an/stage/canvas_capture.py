@@ -56,7 +56,7 @@ import io
 from collections.abc import Sequence
 from typing import Any
 
-from an.adapters.cutout.supersample import NO_SUPERSAMPLE, block_mean_resolve
+from an.media.supersample import NO_SUPERSAMPLE, block_mean_resolve
 
 __all__ = [
     "CanvasCaptureError",
@@ -93,7 +93,7 @@ def decode_data_url(url: Any, *, frame: int) -> bytes:
     >>> decode_data_url("data:,", frame=3)
     Traceback (most recent call last):
       ...
-    an.adapters.cutout.canvas_capture.CanvasCaptureError: frame 3: the canvas returned 'data:,' rather than a PNG data URL — a zero-size canvas does this
+    an.stage.canvas_capture.CanvasCaptureError: frame 3: the canvas returned 'data:,' rather than a PNG data URL — a zero-size canvas does this
     """
     if not isinstance(url, str) or not url.startswith(DATA_URL_PREFIX):
         shown = url[:40] if isinstance(url, str) else type(url).__name__
@@ -130,7 +130,7 @@ def opaque_rgb(png: bytes, *, frame: int) -> Any:
     >>> opaque_rgb(png(rgba), frame=5)
     Traceback (most recent call last):
       ...
-    an.adapters.cutout.canvas_capture.CanvasCaptureError: frame 5: 1 of 6 canvas pixels are not opaque (min alpha 128); the screenshot path would composite them over the page's white and this path will not guess at that blend
+    an.stage.canvas_capture.CanvasCaptureError: frame 5: 1 of 6 canvas pixels are not opaque (min alpha 128); the screenshot path would composite them over the page's white and this path will not guess at that blend
     """
     from PIL import Image
 
@@ -199,11 +199,11 @@ def canvas_frame_png(
     >>> canvas_frame_png([png(big)], frame=9, factor=1, size=(3, 2))
     Traceback (most recent call last):
       ...
-    an.adapters.cutout.canvas_capture.CanvasCaptureError: frame 9: resolved to 6x4, declared 3x2 (supersample 1)
+    an.stage.canvas_capture.CanvasCaptureError: frame 9: resolved to 6x4, declared 3x2 (supersample 1)
     """
     from PIL import Image
 
-    from an.adapters.cutout.shutter import temporal_mean
+    from an.media.shutter import temporal_mean
 
     if not samples:
         raise CanvasCaptureError(f"frame {frame}: no samples were captured")

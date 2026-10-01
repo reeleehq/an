@@ -72,7 +72,7 @@ def test_no_gap_line_survives_its_gap_loop_mode():
     """
     from an.adapters.cutout import serialize
 
-    runtime = (ROOT / "an/data/cutout_runtime/runtime.js").read_text(encoding="utf-8")
+    runtime = (ROOT / "an/stage/runtime/runtime.js").read_text(encoding="utf-8")
     assert "function wrapTime" in runtime, (
         "the runtime no longer honours loop_mode — the docs' original claim has "
         "become true again and these assertions need rewriting, not deleting"
@@ -89,7 +89,7 @@ def test_no_gap_line_survives_its_gap_loop_mode():
             assert phrase not in text, f"{rel} still states a closed loop_mode gap: {phrase!r}"
 
     # The emitter exists: a compiler path writes a non-default loop_mode.
-    compile_src = (ROOT / "an/adapters/cutout/compile.py").read_text(encoding="utf-8")
+    compile_src = (ROOT / "an/stage/compile.py").read_text(encoding="utf-8")
     assert 'loop_mode="loop" if loop else "once"' in compile_src, (
         "the compiler no longer emits loop_mode — the gap line would be true again"
     )
@@ -98,7 +98,7 @@ def test_no_gap_line_survives_its_gap_loop_mode():
 
 def test_no_doc_claims_the_engine_is_fetched_from_a_network():
     """It was vendored in #12; three docs listed it as a live gap afterwards."""
-    for rel in PROSE + ("an/data/cutout_runtime/README.md",):
+    for rel in PROSE + ("an/stage/runtime/README.md",):
         text = (ROOT / rel).read_text(encoding="utf-8").lower()
         for phrase in ("loads pixijs from a cdn", "fetches pixijs from a cdn",
                        "cold render needs network"):

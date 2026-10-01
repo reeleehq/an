@@ -414,7 +414,7 @@ def write_impact_clip(
     browser is needed: the keypoints and the truth come from the compiled
     document, not from the pixels.
     """
-    from an.adapters.cutout.compile import compile_shot
+    from an.stage.compile import compile_shot
     from an.stores import build_project_mall
 
     plan = plan_impact_clip(spec)
@@ -495,8 +495,8 @@ def _render(plan: ImpactPlan, mall: dict, tmp: Path, compiled: Any) -> Path:
     renderer STAGED is compared with the truth's, and a difference raises.
     """
     from an.adapters._base import RenderContext
-    from an.adapters.cutout.render import CutoutRenderer
-    from an.adapters.cutout.serialize import to_dict
+    from an.stage.render import CutoutRenderer
+    from an.stage.serialize import to_dict
 
     spec = plan.spec
     # An integral rate goes in as an int, so the mux argv is the ordinary one.

@@ -34,7 +34,7 @@ from an.determinism import (
     determinism_enforced,
 )
 
-RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/data/cutout_runtime/runtime.js"
+RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/stage/runtime/runtime.js"
 
 
 def _clean_report(**overrides) -> dict:

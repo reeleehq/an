@@ -9,7 +9,7 @@ re-calls ``window.anLoadScene`` whenever the file changes.
 Lossy by design: shows the runtime canvas only — no audio mux, no final
 mp4. Use ``an render`` once you're happy with the look.
 
->>> from an.preview import _stage_preview
+>>> from an.stage.preview import _stage_preview
 >>> callable(_stage_preview)
 True
 """
@@ -24,11 +24,11 @@ import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 
-from an.adapters.cutout.compile import compile_shot, style_pack_for
+from an.stage.compile import compile_shot, style_pack_for
 from an.ir.schema import resolve_step_hz
-from an.adapters.cutout.render import _serve_dir, _stage_scene_assets
-from an.adapters.cutout.runtime_files import runtime_dir
-from an.adapters.cutout.serialize import to_dict
+from an.stage.render import _serve_dir, _stage_scene_assets
+from an.stage.runtime_files import runtime_dir
+from an.stage.serialize import to_dict
 from an.base import DEFAULT_FPS, DEFAULT_RESOLUTION
 from an.project import load
 
@@ -172,10 +172,13 @@ def _compile_scene_to(
     else:
         shot = scene.timeline[0]
 
-    if shot.renderer != "cutout":
+    from an.stage import STAGE_RENDERER_NAMES
+
+    if shot.renderer not in STAGE_RENDERER_NAMES:
         raise PreviewError(
             f"shot {shot.id!r} has renderer={shot.renderer!r}; live preview supports "
-            f"'cutout' only. Render this shot via `an render` instead."
+            f"the stage renderers {STAGE_RENDERER_NAMES} only. Render this shot via "
+            "`an render` instead."
         )
 
     fps = scene.meta.fps or DEFAULT_FPS

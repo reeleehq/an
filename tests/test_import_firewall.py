@@ -55,7 +55,7 @@ STAGE: tuple[str, ...] = (
     "an.bench.contract",  # hashes the stage's compiled document
     "an.bench.stage",
     "an.bench.palette",
-    "an.data.cutout_runtime",
+    "an.data.cutout_runtime",  # old path of the runtime, now an alias
 )
 
 #: A genre: the ``cutan`` distribution, and the in-repo cut-out genre until it
@@ -82,19 +82,6 @@ FIREWALLED: tuple[str, ...] = STAGE + GENRE + ENGINES
 #: Today's violations, ``(core module, firewalled prefix) -> what removes it``.
 #: ONLY SHRINKS: see the module docstring.
 ALLOWED_TODAY: dict[tuple[str, str], str] = {
-    ("an.adapters", "an.adapters.cutout"): (
-        "an#247 PR B: the stage registers its own renderer; the package no "
-        "longer imports a backend to register it"
-    ),
-    ("an.render", "an.adapters.cutout"): (
-        "an#247 PR B: `style_pack_for` and the cut-out caption branch route "
-        "through the engine seam"
-    ),
-    ("an.bench.imageio", "an.adapters.cutout"): (
-        "an#247 PR B: the lossless leg reads the argv and the pixel-format check "
-        "from an.media"
-    ),
-    ("an.tools", "an.preview"): "an#247 PR B: `an preview` imports the stage lazily",
     ("an.tools", "an.characters"): "an#225 (P8): the `an character` namespace registers from cutan",
     ("an.tools", "an.impacts"): "an#225 (P8): the `an impacts` namespace registers from cutan",
     ("an.ir", "an.characters"): (
@@ -216,8 +203,23 @@ for module in core:
         importlib.import_module(module)
     except ImportError as e:  # an optional dependency of that module is absent
         failed[module] = f"{type(e).__name__}: {e}"
-print(json.dumps({"seen": seen, "failed": failed}))
+import an
+print(json.dumps({"seen": seen, "failed": failed, "root": an.__file__}))
 """
+
+
+def _this_tree_first() -> dict[str, str]:
+    """The environment for a probe subprocess: THIS checkout's `an` first.
+
+    A developer machine has `an` installed editable from some checkout, and its
+    import hook outranks the working directory; a probe run from a worktree
+    would otherwise judge the other checkout's code.
+    """
+    import os
+
+    env = dict(os.environ)
+    env["PYTHONPATH"] = os.pathsep.join([str(ROOT), env.get("PYTHONPATH", "")]).rstrip(os.pathsep)
+    return env
 
 
 @pytest.fixture(scope="module")
@@ -228,10 +230,18 @@ def dynamic_violations() -> dict[tuple[str, str], str]:
         capture_output=True,
         text=True,
         cwd=ROOT,
+        env=_this_tree_first(),
         check=False,
     )
     assert result.returncode == 0, result.stderr[-2000:]
     report = json.loads(result.stdout.strip().splitlines()[-1])
+    # The probe must have imported THIS tree's `an`: a module that cannot be
+    # found at all means another installed `an` answered (an editable install
+    # of a different checkout outranks the working directory), and every
+    # verdict above would be about that one.
+    unknown = {m: e for m, e in report["failed"].items() if "No module named 'an." in e}
+    assert not unknown, f"the probe imported another tree's `an`: {unknown}"
+    assert report.get("root") == str(PACKAGE / "__init__.py"), report.get("root")
     return {
         tuple(key.split("|", 1)): f"loaded {name} at import"
         for key, name in report["seen"].items()

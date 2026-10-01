@@ -141,7 +141,7 @@ def _ffmpeg_webm_to_mp4(webm: Path, mp4: Path, *, fps: int, crf: int) -> None:
         str(fps),
         "-c:v",
         "libx264",
-        # NOT `an.adapters.cutout.render`'s flags, and not its `-pix_fmt` knob
+        # NOT `an.stage.render`'s flags, and not its `-pix_fmt` knob
         # either — deliberately, and this is the "third x264 site" an#59 names.
         # What this encodes is a CHARACTER PREVIEW: a documentation artifact of
         # a webm screen recording, not a rendered shot. Unifying it would put

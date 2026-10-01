@@ -82,11 +82,11 @@ class PathJSON(_JSONModel):
     """A stroked path's drawing instruction (an#160), carried on a ``path`` visual.
 
     ``points`` is always a POLYLINE — the compiler flattens cubic Béziers
-    (`an.adapters.cutout.path.flatten_curve`), so the runtime knows one geometry.
+    (`an.stage.path_geometry.flatten_curve`), so the runtime knows one geometry.
     ``trim_start`` / ``trim_end`` are the values shown before any channel
     touches the node; channels on those two properties move them.
     ``head_length == 0`` means no arrowhead. What the runtime draws from this
-    is specified by `an.adapters.cutout.path.path_geometry`.
+    is specified by `an.stage.path_geometry.path_geometry`.
     """
 
     points: list[tuple[float, float]]
@@ -118,7 +118,7 @@ class UnderlayJSON(_JSONModel):
     geometry grown, an SVG sprite is scaled about its art's centre so its box
     grows by ``grow`` on every side. ``color`` is the fill of a redrawn shape
     and the `tint` (a multiply) of a sprite copy. Compiled by
-    `an.adapters.cutout.surface`; never authored.
+    `an.stage.surface`; never authored.
     """
 
     color: str

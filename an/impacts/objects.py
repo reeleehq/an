@@ -34,9 +34,9 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 import math
 
-from an.adapters.cutout.compile import SCENE_PX_PER_VIEW_BOX
+from an.stage.compile import SCENE_PX_PER_VIEW_BOX
 from an.characters.schema import Attachment, Skin, Slot
-from an.props import DFLT_PROP_BONE, DFLT_PROP_SLOT, PropDescriptor
+from an.stage.props import DFLT_PROP_BONE, DFLT_PROP_SLOT, PropDescriptor
 
 __all__ = [
     "DEFAULT_OBJECT_COLOR",

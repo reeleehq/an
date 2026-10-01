@@ -35,7 +35,7 @@ from an.adapters.cutout.compile import (
 from an.adapters.cutout.serialize import TransformJSON, to_dict
 from an.ir.schema import AssetRef, Meta, Resolution, SceneIR, Shot, TweenAction
 
-RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/data/cutout_runtime/runtime.js"
+RUNTIME_JS = Path(__file__).resolve().parents[1] / "an/stage/runtime/runtime.js"
 
 #: Properties the runtime handles that are *discrete* — a code or an enum, with
 #: no meaningful numeric identity, so no rest value and no interpolation.

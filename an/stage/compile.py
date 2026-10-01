@@ -22,7 +22,7 @@ The compiler is deterministic and side-effect-free (it doesn't write to the
 mall). It reads only.
 
 >>> from an.ir.schema import Meta, SceneIR, Shot
->>> from an.adapters.cutout.compile import compile_shot
+>>> from an.stage.compile import compile_shot
 >>> shot = Shot(id="s1", renderer="cutout", duration=2.0)
 >>> j = compile_shot(shot, mall={"characters": {}})
 >>> j.timeline.duration
@@ -42,9 +42,9 @@ from pathlib import Path
 from typing import Any, Callable
 
 from an.base import TRANSFORM_PROPERTIES, TRIM_PROPERTIES, swap_set_name_problem
-from an.adapters.cutout.easing import apply_easing
+from an.stage.easing import apply_easing
 from an.genres import entity_space_resolver
-from an.adapters.cutout.path import flatten_curve
+from an.stage.path_geometry import flatten_curve
 from an.adapters.cutout.coarticulate import coarticulate
 from an.expression.axes import LID_KEY_CLOSED, LID_KEY_OPEN, lid_key
 from an.expression.binding import (
@@ -92,7 +92,7 @@ from an.ir.schema import (
     TweenAction,
 )
 
-from an.adapters.cutout.serialize import (
+from an.stage.serialize import (
     AnimationClipJSON,
     AssetJSON,
     AssetResolutionJSON,
@@ -126,23 +126,23 @@ from an.characters.schema import (
     Skin,
     Slot,
 )
-from an.raster import art_size, is_raster, short_digest, versioned_src
+from an.stage.raster import art_size, is_raster, short_digest, versioned_src
 from an.ir.camera import CAMERA_MOVES, PAN_FRACTION, CameraError
 from an.ir.camera import camera_keys as _camera_keys
 from an.ir.migrate import DocumentKind, migrate
-from an.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
-from an.environments import (
+from an.stage.environments import PLANE_FILL_SPAN as _PLANE_FILL_SPAN
+from an.stage.environments import (
     ENVIRONMENT_DOCUMENT_KIND,
     EnvironmentDescriptor,
     Plane,
 )
-from an.props import PROP_DOCUMENT_KIND, PropDescriptor
-from an.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
-from an.adapters.cutout.text import build_text_subtree, svg_data_uri, text_document
+from an.stage.props import PROP_DOCUMENT_KIND, PropDescriptor
+from an.stage.paths import PATH_DOCUMENT_KIND, PathDescriptor, resolve_path
+from an.stage.text_layout import build_text_subtree, svg_data_uri, text_document
 from an.characters.colour_roles import recolour_svg, role_recolouring
-from an.text import font_base_dir, text_entity_problem
+from an.stage.text import font_base_dir, text_entity_problem
 from an.styles import STYLE_DOCUMENT_KIND, StylePack, resolve_palette, surface_for
-from an.adapters.cutout.surface import (
+from an.stage.surface import (
     apply_surface,
     faded_treated_targets,
     grain_node,
@@ -1038,9 +1038,12 @@ def compile_shot(
     measures pixels, where a stand-in is a wrong answer wearing a right one's
     clothes (an#33).
     """
-    if shot.renderer != "cutout":
+    from an.stage import STAGE_RENDERER_NAMES
+
+    if shot.renderer not in STAGE_RENDERER_NAMES:
         raise ValueError(
-            f"compile_shot expects renderer='cutout'; got {shot.renderer!r}"
+            f"compile_shot expects a stage renderer {STAGE_RENDERER_NAMES}; "
+            f"got {shot.renderer!r}"
         )
     if step_hz is not None and not (math.isfinite(step_hz) and 0 < step_hz <= fps):
         raise CutoutCompileError(
@@ -1548,7 +1551,7 @@ def _build_plane_subtree(
 ENVIRONMENT_ART_PREFIX: str = "environments/"
 
 #: A `fill` plane with no declared size covers the canvas at any camera scale
-#: — defined beside the schema (`an.environments.PLANE_FILL_SPAN`) so the IR
+#: — defined beside the schema (`an.stage.environments.PLANE_FILL_SPAN`) so the IR
 #: layer's framing check reads the same number, re-exported here.
 PLANE_FILL_SPAN: float = _PLANE_FILL_SPAN
 
@@ -1583,7 +1586,7 @@ def plane_parents(env: "EnvironmentDescriptor", entity_id: str) -> dict[str, str
     the alternative is two places deciding which container a plane ended up in,
     which is the class of drift this wave keeps closing.
 
-    >>> from an.environments import EnvironmentDescriptor, Plane
+    >>> from an.stage.environments import EnvironmentDescriptor, Plane
     >>> env = EnvironmentDescriptor(name="e", planes=[Plane(name="a"), Plane(name="b")],
     ...                             characters_after="a")
     >>> plane_parents(env, "street")
@@ -1697,7 +1700,7 @@ def _split_planes_around_characters(
     but says so: silently drawing a foreground plane at the back is a wrong
     picture that renders happily.
 
-    >>> from an.environments import EnvironmentDescriptor, Plane
+    >>> from an.stage.environments import EnvironmentDescriptor, Plane
     >>> env = EnvironmentDescriptor(name="e", planes=[Plane(name="a"), Plane(name="b")])
     >>> behind, front = _split_planes_around_characters(env, [NodeJSON(name="a"), NodeJSON(name="b")])
     >>> [n.name for n in behind], [n.name for n in front]
@@ -2011,10 +2014,10 @@ def _build_path_subtree(
     """One node whose visual is a stroked path (an#160).
 
     The entity's ``overrides`` are merged over the stored document and the
-    result validated strictly (:func:`an.paths.resolve_path` — the same call
+    result validated strictly (:func:`an.stage.paths.resolve_path` — the same call
     `an validate` makes). Cubic Béziers are flattened HERE, so the runtime
     draws one geometry kind; what it draws from the result is specified by
-    :func:`an.adapters.cutout.path.path_geometry`.
+    :func:`an.stage.path_geometry.path_geometry`.
 
     The node is the entity itself, so ``route:trim_end`` and ``route:x``
     address the same thing an author thinks of as "the arrow".
@@ -3754,7 +3757,7 @@ def _stepped_keyframes(
     then holds. Non-numeric (swap) values are left alone: they are stepped by
     format already, and easing never applied to them.
     """
-    from an.adapters.cutout.channel import Channel, Keyframe, evaluate
+    from an.timing.channel import Channel, Keyframe, evaluate
 
     if not all(isinstance(k.value, (int, float)) for k in keyframes):
         return keyframes
@@ -3841,7 +3844,7 @@ def _expand_preset_plays(
     timeline before it left the entity facing (:func:`an.characters.play.
     resolve_turns`, an#203) — the resolver ``an validate`` checks with.
     """
-    from an.adapters.cutout.timeline import write_group
+    from an.stage.timeline import write_group
     from an.motion import HOME_PRESETS, IDENTITY_POSE, POSE_PROPERTIES
 
     def built_rest(path: str) -> dict[str, float] | None:
@@ -4076,7 +4079,7 @@ def _with_view_and_posed_parts(
     (:func:`an.characters.play.facing_at`); none leaves ``view`` unset (the
     preset's default). A part the author has animated keeps its timeline pose.
     """
-    from an.adapters.cutout.timeline import SWAP_WRITE_GROUP, write_group
+    from an.stage.timeline import SWAP_WRITE_GROUP, write_group
     from an.motion import DFLT_TURN_SET
 
     entity = action.target
@@ -4161,7 +4164,7 @@ def _value_at(
     :func:`_compile_actions` compiles them (sets as step holds cut by
     :func:`_set_runs`, placed first; tweens after, in authoring order) and
     evaluated by the executable spec of the runtime,
-    :func:`~an.adapters.cutout.timeline.evaluate_timeline`, so the answer is
+    :func:`~an.stage.timeline.evaluate_timeline`, so the answer is
     the runtime's by construction: an active tween governs, otherwise the
     latest write holds. ``base`` when nothing has written it yet (an#212).
 
@@ -4171,7 +4174,7 @@ def _value_at(
     the latest-ending finished tween — so a long chain on one property costs
     one short evaluation per tween, not the whole history each time.
     """
-    from an.adapters.cutout.timeline import (
+    from an.stage.timeline import (
         PlacedClip,
         Timeline,
         Track,

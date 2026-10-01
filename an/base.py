@@ -250,6 +250,9 @@ EasingSpec: TypeAlias = str | tuple[float, float, float, float] | list[float]
 #: Which renderer draws a shot. The orchestrator uses this to pick an adapter.
 RendererName: TypeAlias = Literal[
     "cutout",
+    # The 2D stage engine's own name (an#247). `cutout` is the persisted name
+    # of the same renderer and keeps working: the stage claims both.
+    "stage",
     "manim",
     "motion_graphics",
     "whiteboard",
@@ -276,7 +279,7 @@ DEFAULT_TRANSITION_DURATION: float = 0.5
 DEFAULT_TRANSITION_COLOR: str = "#000000"
 
 #: The film mix's sample rate and channel count. The SAME values the per-shot
-#: audio mux (`an.adapters.cutout.render._ffmpeg_add_audio`) writes, so a film
+#: audio mux (`an.stage.render._ffmpeg_add_audio`) writes, so a film
 #: assembled from sources and one concatenated from shot mp4s carry the same
 #: audio format.
 FILM_AUDIO_SAMPLE_RATE: int = 44100

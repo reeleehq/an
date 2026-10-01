@@ -51,15 +51,15 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from an.adapters._base import RenderContext
-from an.adapters.cutout.canvas_capture import (
+from an.stage.canvas_capture import (
     CanvasCaptureError,
     canvas_frame_png,
     decode_data_url,
 )
-from an.adapters.cutout.compile import compile_shot
-from an.adapters.cutout.runtime_files import runtime_dir
-from an.adapters.cutout.serialize import to_dict
-from an.adapters.cutout.text import INLINE_SRC_PREFIX
+from an.stage.compile import compile_shot
+from an.stage.runtime_files import runtime_dir
+from an.stage.serialize import to_dict
+from an.stage.text_layout import INLINE_SRC_PREFIX
 from an.determinism import capture_violations, determinism_enforced
 from an.engines import capture as _capture
 from an.engines.capture import FrameStageError
@@ -68,7 +68,8 @@ from an.engines.protocol import Engine, FrameJob, FrameRequest, requests_as_dict
 from an.ir.schema import Shot, resolve_step_hz
 from an.media import mp4 as _mp4
 from an.media.supersample import NO_SUPERSAMPLE
-from an.raster import strip_version
+from an.stage import STAGE_RENDERER_NAMES
+from an.stage.raster import strip_version
 
 #: The engine's name: what it is, independent of the renderer names it is
 #: registered under (``cutout``, a persisted identifier, and ``stage``).
@@ -124,7 +125,7 @@ DETERMINISTIC_CHROMIUM_ARGS: tuple[str, ...] = (
 
 #: How frames leave the browser. ``"canvas"`` (the default since an#192): the
 #: runtime's ``anCaptureFrames`` reads the canvas in-page and hands back PNG data
-#: URLs in batches (`an.adapters.cutout.canvas_capture`), which writes frames
+#: URLs in batches (`an.stage.canvas_capture`), which writes frames
 #: whose DECODED pixels equal the screenshot path's — ~7.8x faster in the frame
 #: stage on the golden corpus, ~2.3x at 1080p. ``"screenshot"``: a Playwright
 #: element screenshot of ``#stage`` per instant, the path every render took
@@ -646,7 +647,7 @@ class _CanvasStageSession(_StageSession):
     ``app.view.toDataURL('image/png')``; the reply is checked against the
     request (:func:`_checked_capture_reply`) before anything is written, and
     :meth:`resolve` turns each frame's RGBA PNGs into the frame the screenshot
-    path writes (:mod:`an.adapters.cutout.canvas_capture`), refusing any
+    path writes (:mod:`an.stage.canvas_capture`), refusing any
     non-opaque pixel rather than guessing at a blend.
     """
 
@@ -820,18 +821,23 @@ class StageEngine:
 
 @dataclass
 class CutoutRenderer(FrameStageRenderer):
-    """Headless cutout renderer: the stage engine through the core frame stage.
+    """The stage renderer: the stage engine through the core frame stage.
+
+    It claims both renderer names (ADR 0001 decision 9): ``stage``, the
+    engine's own, and ``cutout``, the persisted name every existing scene
+    carries. Its registry name stays ``cutout`` -- persisted too (the shot
+    cache keys on it) -- and :data:`StageRenderer` is the same class.
 
     >>> r = CutoutRenderer()
     >>> r.name
     'cutout'
     >>> r.supported_renderers
-    ('cutout',)
+    ('cutout', 'stage')
     """
 
     engine: Engine = field(default_factory=StageEngine)
     name: str = "cutout"
-    supported_renderers: tuple[str, ...] = ("cutout",)
+    supported_renderers: tuple[str, ...] = STAGE_RENDERER_NAMES
     error: type[Exception] = CutoutRenderError
 
 
@@ -960,3 +966,37 @@ forward_module_attributes(
         "DEFAULT_CANVAS_MAX_INFLIGHT": "DEFAULT_MAX_INFLIGHT",
     },
 )
+
+
+#: The renderer under the engine's own name (the class is one: see
+#: :class:`CutoutRenderer`), and its error under the same.
+StageRenderer = CutoutRenderer
+StageRenderError = CutoutRenderError
+
+
+# -----------------------------------------------------------------------------
+# Registration, on import of this module -- which the renderer registry does
+# lazily (`an.adapters.register_lazy_renderer`), so the core never imports it.
+# -----------------------------------------------------------------------------
+
+from an.adapters._base import register_renderer as _register_renderer  # noqa: E402
+
+_register_renderer(CutoutRenderer())
+
+# ...and how its shots are keyed in the shot cache (ADR 0004): beside the
+# renderer, so the core `an.build` never names a backend.
+from an.build.keys import register_shot_keyer as _register_shot_keyer  # noqa: E402
+from an.stage.cache_key import cutout_environment, cutout_shot_inputs  # noqa: E402
+
+_register_shot_keyer(
+    "cutout",
+    cutout_shot_inputs,
+    environment=cutout_environment,
+    renderer_type=CutoutRenderer,
+)
+
+# The versions of the vocabulary entries a shot names (ADR 0003 decision 2,
+# an#248): a preset whose meaning changes re-renders the shots that play it.
+from an.semantic.digest import register_vocabulary_key_part as _register_vocabulary_part  # noqa: E402
+
+_register_vocabulary_part("cutout")

@@ -9,7 +9,7 @@ hashes it.
 **In the shot key.** The content-keyed shot cache (P6, an#242) adds key parts
 through ``an.build.keys.register_shot_key_part(renderer, name, fn)``; this
 digest is the cut-out keyer's ``vocabulary`` part
-(:func:`register_vocabulary_key_part`, called by ``an.adapters.cutout``), so
+(:func:`register_vocabulary_key_part`, called by ``an.stage.render``), so
 bumping an entry's version re-renders the shots that use it.
 
 Over-inclusion is deliberate and safe: a ``play`` of a name that is a motion
@@ -129,9 +129,9 @@ def register_vocabulary_key_part(renderer: str = "cutout") -> bool:
     Idempotent, and tolerant of order: returns ``False`` (registering nothing)
     when ``renderer`` has no shot keyer yet, ``True`` once the part is in —
     called again, it leaves the registered part alone. The cut-out adapter
-    calls it right after registering its keyer.
+    calls it right after registering its keyer (``an.stage.render``, loaded
+    lazily by the renderer registry, which ``shot_keyer_for`` consults first).
 
-    >>> import an.adapters  # registers the cut-out keyer, and this part with it
     >>> register_vocabulary_key_part(), register_vocabulary_key_part("no-such-renderer")
     (True, False)
     """

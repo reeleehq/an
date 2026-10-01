@@ -44,7 +44,7 @@ from an.paths import PathDescriptor
 from tests._node import node_json, requires_node
 
 RUNTIME_JS = (
-    Path(__file__).resolve().parents[1] / "an" / "data" / "cutout_runtime" / "runtime.js"
+    Path(__file__).resolve().parents[1] / "an" / "stage" / "runtime" / "runtime.js"
 )
 
 L_POINTS = [(-120.0, -60.0), (0.0, -60.0), (0.0, 60.0)]

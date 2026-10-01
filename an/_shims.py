@@ -41,39 +41,49 @@ import sys
 import types
 from collections.abc import Iterable, Mapping
 
-__all__ = ["forward_module_attributes", "forwarded_names"]
+__all__ = ["alias_module", "aliased_to", "forward_module_attributes", "forwarded_names"]
 
 #: Attribute on a shimmed module holding ``{old name: (target module, new name)}``.
 _FORWARDS_ATTR: str = "__an_forwards__"
+#: Attribute on a WHOLE-module alias holding its target module's name.
+_ALIAS_ATTR: str = "__an_alias_of__"
 
 
 class _ForwardingModule(types.ModuleType):
     """A module whose forwarded names live in another module."""
 
+    def _route(self, name: str) -> tuple[str, str] | None:
+        """Where ``name`` lives, if not here: a named forward, or the whole-module alias."""
+        own = types.ModuleType.__getattribute__(self, "__dict__")
+        forwards = own.get(_FORWARDS_ATTR, {})
+        if name in forwards:
+            return forwards[name]
+        alias = own.get(_ALIAS_ATTR)
+        if alias is not None and not (name.startswith("__") and name.endswith("__")):
+            return alias, name
+        if alias is not None and name == "__all__":
+            return alias, name
+        return None
+
     def __getattr__(self, name: str):
         # Only reached for names NOT in the module's own namespace, which is
         # why `forward_module_attributes` deletes each forwarded name first.
-        forwards = types.ModuleType.__getattribute__(self, "__dict__").get(
-            _FORWARDS_ATTR, {}
-        )
-        if name in forwards:
-            target, new_name = forwards[name]
-            return getattr(importlib.import_module(target), new_name)
+        route = self._route(name)
+        if route is not None:
+            return getattr(importlib.import_module(route[0]), route[1])
         raise AttributeError(f"module {self.__name__!r} has no attribute {name!r}")
 
     def __setattr__(self, name: str, value) -> None:
-        forwards = self.__dict__.get(_FORWARDS_ATTR, {})
-        if name in forwards:
-            target, new_name = forwards[name]
-            setattr(importlib.import_module(target), new_name, value)
+        route = self._route(name)
+        if route is not None and name not in self.__dict__:
+            setattr(importlib.import_module(route[0]), route[1], value)
             return
         super().__setattr__(name, value)
 
     def __delattr__(self, name: str) -> None:
-        forwards = self.__dict__.get(_FORWARDS_ATTR, {})
-        if name in forwards:
-            target, new_name = forwards[name]
-            delattr(importlib.import_module(target), new_name)
+        route = self._route(name)
+        if route is not None and name not in self.__dict__:
+            delattr(importlib.import_module(route[0]), route[1])
             return
         super().__delattr__(name)
 
@@ -118,3 +128,39 @@ def forwarded_names(module: types.ModuleType) -> dict[str, tuple[str, str]]:
     {}
     """
     return dict(module.__dict__.get(_FORWARDS_ATTR, {}))
+
+
+def alias_module(module_name: str, target: str) -> None:
+    """Make the WHOLE module ``module_name`` a live alias of ``target``.
+
+    For a module that moved as a whole (an#247: ``an/adapters/cutout/render.py``
+    -> ``an/stage/render.py``). Every name the old module does not define itself
+    is read from, and rebound on, ``target`` -- a lever, a ``monkeypatch``, a
+    ``from old import name`` all reach the module the code now runs in. The
+    old module keeps its own ``__file__`` and ``__name__``, so tools that
+    import it by path (pytest's doctest collection) see the file they asked for,
+    and it re-runs no doctest of the target's.
+
+    Call it as the old module's last statement, with ``__name__``.
+
+    >>> import sys, types
+    >>> new = types.ModuleType("_alias_demo_new"); new.KNOB = 1
+    >>> old = types.ModuleType("_alias_demo_old")
+    >>> sys.modules["_alias_demo_new"], sys.modules["_alias_demo_old"] = new, old
+    >>> alias_module("_alias_demo_old", "_alias_demo_new")
+    >>> old.KNOB, aliased_to(old)
+    (1, '_alias_demo_new')
+    >>> old.KNOB = 3; new.KNOB
+    3
+    >>> del sys.modules["_alias_demo_new"], sys.modules["_alias_demo_old"]
+    """
+    module = sys.modules[module_name]
+    importlib.import_module(target)  # fail now, not at first access
+    if not isinstance(module, _ForwardingModule):
+        module.__class__ = _ForwardingModule
+    types.ModuleType.__setattr__(module, _ALIAS_ATTR, target)
+
+
+def aliased_to(module: types.ModuleType) -> str | None:
+    """The module a whole-module alias forwards to, else ``None``."""
+    return module.__dict__.get(_ALIAS_ATTR)

@@ -205,44 +205,87 @@ class ClockOwningRenderer(Renderer, Protocol):
 # -----------------------------------------------------------------------------
 
 
+#: The entry-point group a package declares a renderer module under, e.g.
+#: ``[project.entry-points."an.renderers"] burns = "burns.an_engine"``. The
+#: module registers its renderer(s) when imported (``register_renderer``).
+RENDERER_ENTRY_POINT_GROUP: str = "an.renderers"
+
+
 class RendererRegistry:
     """Name-keyed registry of renderers.
 
     A module-level instance is exposed via ``register_renderer`` /
     ``get_renderer`` / ``list_renderers``; callers needing isolation (tests,
     multi-tenant servers) can construct their own.
+
+    **Backends outside the core register LAZILY** (an#247): a renderer that
+    lives behind the import firewall -- the stage, a genre's, a third-party
+    engine -- is named here by the MODULE that registers it
+    (:meth:`register_lazy`, or the ``an.renderers`` entry point group), and
+    that module is imported the first time the registry is asked anything. So
+    importing the core loads no backend, and every lookup still finds it.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, *, entry_point_group: str | None = None) -> None:
         self._by_name: dict[str, Renderer] = {}
+        self._lazy: dict[str, str] = {}
+        self._entry_point_group = entry_point_group
+        self._loaded = False
 
     def register(self, renderer: Renderer) -> None:
         if not getattr(renderer, "name", None):
             raise ValueError("renderer must have a non-empty 'name' attribute")
         self._by_name[renderer.name] = renderer
 
+    def register_lazy(self, name: str, module: str) -> None:
+        """Declare that importing ``module`` registers the renderer ``name``."""
+        self._lazy[name] = module
+        self._loaded = False
+
+    def _load(self) -> None:
+        if self._loaded:
+            return
+        self._loaded = True
+        from importlib import import_module
+
+        modules = [m for n, m in self._lazy.items() if n not in self._by_name]
+        if self._entry_point_group:
+            from importlib.metadata import entry_points
+
+            modules += [ep.value.partition(":")[0] for ep in entry_points(group=self._entry_point_group)]
+        for module in dict.fromkeys(modules):
+            import_module(module)
+
     def get(self, name: str) -> Renderer:
+        self._load()
         if name not in self._by_name:
             raise KeyError(f"no renderer registered with name {name!r}")
         return self._by_name[name]
 
     def find_for(self, shot: Shot) -> Renderer | None:
         """Return the first registered renderer that ``can_render(shot)``."""
+        self._load()
         for r in self._by_name.values():
             if r.can_render(shot):
                 return r
         return None
 
     def names(self) -> Iterable[str]:
+        self._load()
         return list(self._by_name.keys())
 
 
-_DEFAULT_REGISTRY = RendererRegistry()
+_DEFAULT_REGISTRY = RendererRegistry(entry_point_group=RENDERER_ENTRY_POINT_GROUP)
 
 
 def register_renderer(renderer: Renderer) -> None:
     """Register a renderer in the default registry."""
     _DEFAULT_REGISTRY.register(renderer)
+
+
+def register_lazy_renderer(name: str, module: str) -> None:
+    """Name the module whose import registers renderer ``name`` (default registry)."""
+    _DEFAULT_REGISTRY.register_lazy(name, module)
 
 
 def get_renderer(name: str) -> Renderer:
