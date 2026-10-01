@@ -222,7 +222,9 @@ def test_a_same_named_twin_version_is_not_taken_for_the_walks_own(tmp_path):
     default = open_library("cutan")
     publish(default, "prop.x", {"name": "x", "draft": True}, head)
     mine = publish(default, "prop.x", {"name": "x"}, head)  # unknown through its v001
-    assert mine.manifest_sha256 == twin.manifest_sha256
+    # Lineage pins now make the twins' manifests differ (review-269 B1); the
+    # walk must not mistake one for the other either way.
+    assert mine.manifest_sha256 != twin.manifest_sha256
     labelled = publish(default, "prop.x", {"name": "x"}, head, source=CC0, relabel=LABEL)
     assert labelled.rights.license_class == "private", labelled.rights.reasons
 
@@ -450,7 +452,7 @@ def test_a_fresh_factory_character_is_free_beside_an_older_unlabelled_copy(tmp_p
     assert r.rights.license_class == "free", r.rights.reasons
 
 
-def test_the_factory_record_is_written_by_its_stamping_code_only(tmp_path):
+def test_the_factory_record_is_written_by_new_character_only(tmp_path):
     char = new_character(tmp_path, name="amy", use_dicebear=False).parent
     drawing = library_api.content_hash((char / "amy.svg").read_bytes())
     head = library_api.content_hash((char / "parts" / "head.svg").read_bytes())
@@ -459,6 +461,7 @@ def test_the_factory_record_is_written_by_its_stamping_code_only(tmp_path):
     assert FACTORY_PROVIDER in registry.generated_by(drawing)
     assert FACTORY_PROVIDER in registry.generated_by(head)
     assert registry.generated_by(library_api.content_hash(CARVED)) == frozenset()
+    assert "record_generated" not in registry.__all__
 
 
 @pytest.mark.parametrize("claim", ["a person's cc0", "a forged factory stamp"])
@@ -541,3 +544,120 @@ def test_only_the_factorys_own_stamp_is_verified_by_its_record(tmp_path):
     r = publish(lib, "character.x", doc, {"parts/head.svg": head}, source=CC0)
     assert r.rights.license_class == "unknown"
     assert any("same bytes as cutan:prop.old" in reason for reason in r.rights.reasons)
+
+
+# ============================================================ review-269 B2: stamping is not drawing
+
+
+def _set_part_source(char: Path, path: str, source: dict) -> None:
+    doc_path = char / "character.json"
+    doc = json.loads(doc_path.read_text(encoding="utf-8"))
+    for skin in doc["skins"].values():
+        for slot in skin["slots"].values():
+            for att in slot.values():
+                if att["path"] == path:
+                    att["source"] = source
+    doc_path.write_text(json.dumps(doc), encoding="utf-8")
+
+
+def test_stamping_carved_bytes_does_not_make_them_the_factorys(tmp_path):
+    """X3 / X3b / X4: the public stamping functions stamp, but record nothing;
+    carved bytes another asset holds unlabelled stay `unknown`, then and later."""
+    from an.characters.factory import (
+        FACTORY_LICENSE, FACTORY_PROVIDER, stamp_factory_descriptor, stamp_factory_parts,
+    )
+
+    lib = open_library("cutan")
+    publish(lib, "prop.old-carve", {"name": "old"}, {"parts/head.svg": CARVED})  # unlabelled
+    x3 = new_character(tmp_path / "x3", name="c3", use_dicebear=False).parent
+    (x3 / "parts" / "head.svg").write_bytes(CARVED)
+    stamp_factory_parts(x3, {"parts/head.svg"})
+    assert publish_dir(lib, x3, "character.c3").rights.license_class == "unknown"
+    assert registry.generated_by(library_api.content_hash(CARVED)) == frozenset()
+    # X3b: a hand-forged stamp afterwards finds nothing recorded either
+    x3b = new_character(tmp_path / "x3b", name="c3b", use_dicebear=False).parent
+    (x3b / "parts" / "head.svg").write_bytes(CARVED)
+    _set_part_source(x3b, "parts/head.svg", {
+        "provider": FACTORY_PROVIDER, "license": FACTORY_LICENSE,
+        "sha256": library_api.content_hash(CARVED),
+    })
+    assert publish_dir(lib, x3b, "character.c3b").rights.license_class == "unknown"
+    # X4: the descriptor stamp on a carved source drawing
+    drawing = b"<svg>carved drawing</svg>"
+    publish(lib, "prop.old-drawing", {"name": "old2"}, {"d.svg": drawing})  # unlabelled
+    x4 = new_character(tmp_path / "x4", name="c4", use_dicebear=False).parent
+    doc = json.loads((x4 / "character.json").read_text(encoding="utf-8"))
+    doc.pop("source")
+    doc["source_svg"] = "d.svg"
+    (x4 / "character.json").write_text(json.dumps(doc), encoding="utf-8")
+    (x4 / "d.svg").write_bytes(drawing)
+    (x4 / "c4.svg").unlink()
+    stamp_factory_descriptor(x4)
+    assert publish_dir(lib, x4, "character.c4").rights.license_class == "unknown"
+
+
+# ============================================================ review-269 B1: lineage is pinned
+
+
+@pytest.mark.parametrize("relabel", [False, True])
+def test_a_same_named_library_cannot_stand_in_for_a_private_parent(tmp_path, relabel):
+    """B1: a recolour derived from a private study parent; later a default-root
+    library of the same name gets an unrelated parent under the same reference.
+    The next version, on the genre's normal search path, stays private."""
+    from an.library import promote
+
+    study_an = open_library("an", root=tmp_path / "study-an")
+    publish(study_an, "prop.p", {"name": "p"}, {"parts/p.png": b"FILM-ORIGINAL"}, source=PRIVATE)
+    cut = open_library("cutan")
+    v1 = publish(cut, "prop.c", {"name": "c"}, {"parts/c.png": b"RECOLOUR"}, source=CC0,
+                 derived_from=["an:prop.p@v001"], search=[study_an])
+    assert v1.rights.license_class == "private"
+    core = open_library("an")
+    publish(core, "prop.p", {"name": "other p"}, {"parts/p.png": b"UNRELATED"}, source=CC0)
+    v2 = publish(cut, "prop.c", {"name": "c", "v": 2}, {"parts/c.png": b"RECOLOUR"},
+                 source=CC0, search=[core], **({"relabel": LABEL} if relabel else {}))
+    assert v2.rights.license_class == "private", v2.rights.reasons
+    with pytest.raises(library_api.RightsRefusal):
+        promote([cut, core], "cutan:prop.c@v002", to=open_library("an", root=tmp_path / "share"))
+
+
+def test_a_pinned_parent_two_levels_down_is_not_replaced_either(tmp_path):
+    """B1 through a `previous` ancestor's `derived_from`, two levels down."""
+    study_an = open_library("an", root=tmp_path / "study-an")
+    publish(study_an, "prop.p", {"name": "p"}, {"parts/p.png": b"FILM-ORIGINAL"}, source=PRIVATE)
+    cut = open_library("cutan")
+    publish(cut, "prop.c", {"name": "c"}, {"parts/c.png": b"RECOLOUR"}, source=CC0,
+            derived_from=["an:prop.p@v001"], search=[study_an])
+    publish(cut, "prop.c", {"name": "c", "v": 2}, {"parts/c.png": b"RECOLOUR 2"}, source=CC0,
+            search=[study_an])
+    core = open_library("an")
+    publish(core, "prop.p", {"name": "other p"}, {"parts/p.png": b"UNRELATED"}, source=CC0)
+    v3 = publish(cut, "prop.c", {"name": "c", "v": 3}, {"parts/c.png": b"RECOLOUR 3"},
+                 source=CC0, search=[core], relabel=LABEL)
+    assert v3.rights.license_class == "private", v3.rights.reasons
+
+
+def test_a_version_records_the_manifest_of_each_parent(tmp_path):
+    lib = _memory()
+    publish(lib, "prop.p", {"name": "p"}, source=CC0)
+    publish(lib, "prop.c", {"name": "c"}, source=CC0, derived_from=["prop.p@v001"])
+    v2 = publish(lib, "prop.c", {"name": "c2"}, source=CC0)
+    stored = library_api.read_version(lib, "prop.c", v2.ref.version)
+    parent = library_api.read_version(lib, "prop.c", "v001")
+    assert stored["lineage"] == {"cutan:prop.c@v001": parent["manifest_sha256"]}
+    assert library_api.version_manifest({**stored, "lineage": {}}) != stored["manifest_sha256"]
+
+
+def test_an_edited_digest_list_makes_credits_stricter_not_cleaner(checked_out):
+    """review-269 S1: forging the block's digests unseals it; it then covers no file."""
+    _, project, copy = checked_out
+    (copy / "parts" / "head.svg").write_bytes(CARVED)
+    path = copy / "character.json"
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    doc["metadata"]["library_origin"]["checked_out"]["files"]["parts/head.svg"] = (
+        library_api.content_hash(CARVED)
+    )
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    unverified = _unverified(project)
+    assert "characters/h/parts/head.svg" in unverified
+    assert len(unverified) > 1  # every file, not only the carved one

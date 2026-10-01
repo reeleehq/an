@@ -176,6 +176,12 @@ UNLABELLED_FIELD: str = "unlabelled"
 #: nothing anyone stated (a private or any other licence, a per-part source, a
 #: version it derives from, another asset's statement about the same bytes).
 RELABEL_FIELD: str = "relabel"
+#: The version field pinning its lineage: ``{parent_ref: manifest_sha256}`` for
+#: ``previous`` and every ``derived_from`` parent, as resolved at publish
+#: (review-269 B1). A walk reads a parent only if it is still THAT version;
+#: references alone are re-resolved by name, and a same-named library's other
+#: ``x@v001`` would stand in for it.
+LINEAGE_FIELD: str = "lineage"
 #: How many labels a publish tries when another publisher takes the one it chose.
 MAX_PUBLISH_ATTEMPTS: int = 8
 #: How many close capability names a typo's error suggests.
@@ -364,6 +370,7 @@ def _manifest(
     relicense: Mapping[str, Any] | None = None,
     relabel: Mapping[str, Any] | None = None,
     unlabelled: Iterable[str] = (),
+    lineage: Mapping[str, str] | None = None,
 ) -> str:
     payload: dict[str, Any] = {
         "doc": doc,
@@ -377,6 +384,8 @@ def _manifest(
         payload[RELICENSE_FIELD] = dict(relicense)
     if relabel:
         payload[RELABEL_FIELD] = dict(relabel)
+    if lineage:
+        payload[LINEAGE_FIELD] = dict(lineage)
     if unlabelled:
         payload[UNLABELLED_FIELD] = sorted(unlabelled)
     return hashlib.sha256(canonical_json(payload).encode("utf-8")).hexdigest()
@@ -397,6 +406,7 @@ def version_manifest(version: Mapping[str, Any]) -> str:
         relicense=version.get(RELICENSE_FIELD),
         relabel=version.get(RELABEL_FIELD),
         unlabelled=version.get(UNLABELLED_FIELD) or (),
+        lineage=version.get(LINEAGE_FIELD),
     )
 
 
@@ -530,36 +540,75 @@ def factory_drew(version: Mapping[str, Any], path: str, digest: str) -> bool:
 _MACHINE: Any = object()
 
 
+def _stricter_statement(a: Mapping[str, Any], b: Mapping[str, Any]) -> bool:
+    """Whether statement ``a`` is more restrictive than ``b``."""
+    order = LICENSE_CLASS_ORDER.index
+    return order(a.get("class", "unknown")) < order(b.get("class", "unknown"))
+
+
+def _resolve_lineage(
+    libraries: Libraries, ref: str, pin: str | None
+) -> tuple[Library, LibraryRef, Mapping[str, Any]]:
+    """``(holder, pinned_ref, version)`` for a lineage reference.
+
+    With ``pin`` (the manifest the child recorded for this parent at publish,
+    :data:`LINEAGE_FIELD`), only that very version answers — in whichever
+    library on the path holds it. A same-named library's other ``x@v001`` is
+    another version, so it raises :class:`AssetNotFoundError` instead of being
+    read in its place (review-269 B1).
+    """
+    if not pin:
+        return resolve(libraries, ref)
+    wanted = parse_ref(ref)
+    for library in as_libraries(libraries):
+        if wanted.namespace and library.name != wanted.namespace:
+            continue
+        if wanted.version is None or wanted.asset_id not in library.records:
+            continue
+        key = version_key(wanted.asset_id, wanted.version)
+        if key not in library.versions:
+            continue
+        version = library.versions[key]
+        if version.get("manifest_sha256") == pin:
+            return library, LibraryRef(wanted.asset_id, wanted.version, library.name), version
+    raise AssetNotFoundError(
+        f"{ref} as pinned (manifest {pin[:12]}…) is in no library on the path"
+    )
+
+
 def version_sources(
     libraries: Libraries,
     version: Mapping[str, Any],
     *,
     floor: BlobFloor | None = _MACHINE,
     owner: Library | None = None,
-    _prefix: str = "",
-    _seen: set[str] | None = None,
-    _walked: set[tuple[str, str]] | None = None,
-    _answer: tuple[str, AssetSource | None] | None = None,
 ) -> list[tuple[str, AssetSource | None]]:
     """Every labelled source a version's rights depend on — its own, its lineage, its bytes.
 
     - its own (:func:`an.library.rights.sources_in`: asset-level, descriptor, parts);
     - the version it follows (``previous``) and each ``derived_from`` version,
-      recursively, labelled ``<ref> > <label>``;
-    - the **floor** of every file: what any OTHER asset in any library on this
-      machine says about the same bytes (:mod:`an.library.floor`), labelled
-      ``<path>: same bytes as <asset>@<version>``. A blob is as restricted as the
-      strictest statement made about it anywhere. A statement made by a version
-      this walk reads in full (itself, its lineage — each in the library it is
-      read from) is not read twice from the floor: the walk already holds
-      everything it said.
+      recursively, labelled ``<ref> > <label>``. A version records the
+      manifest of each parent it resolved at publish (:data:`LINEAGE_FIELD`);
+      a parent that no longer resolves to that manifest is "not on the search
+      path", and the rights the child recorded stand in for it;
+    - the **floor** of every file of every version walked: what any library on
+      this machine says about the same bytes (:mod:`an.library.floor`),
+      labelled ``<path>: same bytes as <asset>@<version>``. A blob is as
+      restricted as the strictest statement made about it anywhere.
+
+    One exception to reading the floor, so a ``relabel`` can answer an earlier
+    version's gap: the ``unknown`` statements of a version this walk read in
+    full AND could verify (each lineage link resolved to its pinned manifest,
+    or a ``previous`` link inside the same library root) are not read twice. A
+    ``private`` or ``attribution`` statement is always read, and so is anything
+    said by a version the walk could not verify (review-269 B1).
 
     floor: a :class:`~an.library.floor.BlobFloor` to read (default: every
         library on the machine); ``None`` leaves the floor out — what the
         version itself says (its "asset label"), which is what the floor stores
-    owner: the library holding ``version``, so its own statements are known as
-        its own (default: unknown — they are then read from the floor too,
-        which repeats a reason and relaxes nothing)
+    owner: the library holding ``version`` (default: unknown — its own
+        statements are then read from the floor too, which repeats a reason and
+        relaxes nothing)
 
     A version carrying an explicit ``relicense`` (who, why) contributes its
     asset-level source alone: that recorded statement replaces everything it
@@ -570,114 +619,151 @@ def version_sources(
     (:data:`RELABEL_FIELD`). A parent no library on the path holds falls back to
     the rights recorded at publish, or ``unknown`` — never silence.
     """
-    seen = set() if _seen is None else _seen
-    walked = set() if _walked is None else _walked
-    if owner is not None and version.get("manifest_sha256"):
-        walked.add((library_origin(owner), version["manifest_sha256"]))
     if floor is _MACHINE:
         floor = BlobFloor(libraries)
-    relicense = version.get(RELICENSE_FIELD)
-    if relicense:
-        return [
-            (
-                f"{_prefix}asset ({_relicense_note(relicense)})",
-                _source_model(version.get("source")),
-            )
-        ]
+    out: list[tuple[str, AssetSource | None]] = []
+    seen: set[str] = set()
+    trusted: set[tuple[str, str]] = set()  # (library origin, manifest)
+    visits: list[tuple[str, Mapping[str, Any]]] = []
 
-    def gap(label: str, unanswered: str) -> tuple[str, AssetSource | None]:
-        # Nobody ever said anything here: answered by a later version's
-        # explicit, recorded label of this chain, else unknown.
-        if _answer is None:
-            return (f"{label}{unanswered}", None)
-        note, answer = _answer
-        return (f"{label} ({note})", answer)
-
-    kind = ASSET_KINDS.get(version.get("doc_kind") or "")
-    out = [
-        gap(f"{_prefix}{label}", "")
-        if src is None and label == ASSET_SOURCE_LABEL
-        else (f"{_prefix}{label}", src)
-        for label, src in sources_in(
-            version.get("doc") or {},
-            store=kind.credits_store if kind else None,
-            source=_source_model(version.get("source")),
-            files=_file_hashes(version.get("files") or {}),
-        )
-    ]
-    out += [
-        gap(
-            f"{_prefix}{path}",
-            " (changed since the carried source was declared; not labelled: "
-            f"{LABEL_HINT})",
-        )
-        for path in version.get(UNLABELLED_FIELD) or []
-    ]
-    relabel = version.get(RELABEL_FIELD)
-    own_answer = (
-        (_relabel_note(relabel), _source_model(version.get("source")))
-        if relabel and version.get("source")
-        else None
-    )
-    lineage = [
-        (ref, f"previous version {ref}", own_answer or _answer)
-        for ref in [version.get(PREVIOUS_FIELD)]
-        if ref
-    ] + [(ref, ref, None) for ref in version.get("derived_from") or []]
-    for parent, label, answer in lineage:
-        try:
-            holder, pinned, parent_version = resolve(libraries, parent)
-        except (AssetNotFoundError, AssetIdError):
-            # Not on this search path: fall back to the rights this version
-            # recorded when it was published (which did resolve the parent).
-            recorded = version.get("rights")
+    def walk(
+        version: Mapping[str, Any],
+        holder: Library | None,
+        prefix: str,
+        answer_from_later: tuple[str, AssetSource | None] | None,
+    ) -> bool:
+        """Add one version's contributions and its lineage's; return whether it is verified."""
+        relicense = version.get(RELICENSE_FIELD)
+        if not relicense:  # a relicence replaces everything, its bytes' floor included
+            visits.append((prefix, version))
+        if relicense:
             out.append(
                 (
-                    f"{_prefix}{label} (not on the search path; as recorded)",
-                    _recorded_source(Rights.from_dict(recorded), parent)
-                    if recorded
-                    else None,
+                    f"{prefix}asset ({_relicense_note(relicense)})",
+                    _source_model(version.get("source")),
                 )
             )
-            continue
-        if str(pinned) in seen:
-            continue
-        seen.add(str(pinned))
-        out += version_sources(
-            libraries,
-            parent_version,
-            floor=floor,
-            owner=holder,
-            _prefix=f"{_prefix}{label} > ",
-            _seen=seen,
-            _walked=walked,
-            _answer=answer,
+            return _verify(version, holder, True)
+
+        def gap(label: str, unanswered: str) -> tuple[str, AssetSource | None]:
+            # Nobody ever said anything here: answered by a later version's
+            # explicit, recorded label of this chain, else unknown.
+            if answer_from_later is None:
+                return (f"{label}{unanswered}", None)
+            note, answer = answer_from_later
+            return (f"{label} ({note})", answer)
+
+        kind = ASSET_KINDS.get(version.get("doc_kind") or "")
+        out.extend(
+            gap(f"{prefix}{label}", "")
+            if src is None and label == ASSET_SOURCE_LABEL
+            else (f"{prefix}{label}", src)
+            for label, src in sources_in(
+                version.get("doc") or {},
+                store=kind.credits_store if kind else None,
+                source=_source_model(version.get("source")),
+                files=_file_hashes(version.get("files") or {}),
+            )
         )
-    if floor is not None:
-        for path, raw in sorted((version.get("files") or {}).items()):
+        out.extend(
+            gap(
+                f"{prefix}{path}",
+                " (changed since the carried source was declared; not labelled: "
+                f"{LABEL_HINT})",
+            )
+            for path in version.get(UNLABELLED_FIELD) or []
+        )
+        relabel = version.get(RELABEL_FIELD)
+        own_answer = (
+            (_relabel_note(relabel), _source_model(version.get("source")))
+            if relabel and version.get("source")
+            else None
+        )
+        pins = version.get(LINEAGE_FIELD) or {}
+        lineage = [
+            (ref, f"previous version {ref}", own_answer or answer_from_later, True)
+            for ref in [version.get(PREVIOUS_FIELD)]
+            if ref
+        ] + [(ref, ref, None, False) for ref in version.get("derived_from") or []]
+        links_ok = True
+        for parent, label, answer, is_previous in lineage:
+            pin = pins.get(parent)
+            try:
+                parent_holder, pinned, parent_version = _resolve_lineage(
+                    libraries, parent, pin
+                )
+            except (AssetNotFoundError, AssetIdError):
+                # Not on this search path (or not the version pinned): fall
+                # back to the rights this version recorded when it was
+                # published (which did resolve the parent).
+                links_ok = False
+                recorded = version.get("rights")
+                out.append(
+                    (
+                        f"{prefix}{label} (not on the search path; as recorded)",
+                        _recorded_source(Rights.from_dict(recorded), parent)
+                        if recorded
+                        else None,
+                    )
+                )
+                continue
+            # A link is verified by its pin, or — a `previous` link, which never
+            # leaves its asset — by resolving inside the child's own library.
+            link_ok = bool(pin) or (
+                is_previous
+                and holder is not None
+                and library_origin(parent_holder) == library_origin(holder)
+            )
+            if str(pinned) in seen:
+                links_ok = links_ok and link_ok
+                continue
+            seen.add(str(pinned))
+            parent_ok = walk(parent_version, parent_holder, f"{prefix}{label} > ", answer)
+            links_ok = links_ok and link_ok and parent_ok
+        return _verify(version, holder, links_ok)
+
+    def _verify(version: Mapping[str, Any], holder: Library | None, ok: bool) -> bool:
+        if ok and holder is not None and version.get("manifest_sha256"):
+            trusted.add((library_origin(holder), version["manifest_sha256"]))
+        return ok
+
+    root_ok = walk(version, owner, "", None)
+    if floor is None:
+        return out
+    # The root's own statements, when its walk is verified, are this walk.
+    own = (
+        {(library_origin(owner), version["manifest_sha256"])}
+        if root_ok and owner is not None and version.get("manifest_sha256")
+        else set()
+    )
+    for prefix, walked in visits:
+        for path, raw in sorted((walked.get("files") or {}).items()):
             digest = ContentRef.from_json(raw).item_id
-            # A statement made by a version this walk reads in full (this
-            # one, its lineage — the same manifest IN THE SAME library) adds
-            # nothing the walk does not hold; read here, an earlier version's
-            # gap would bind past the label that answers it. Every other
-            # statement binds, a same-named library's twin version included.
-            said = {
-                key: st
-                for key, st in floor.statements(digest, exclude=walked).items()
-                if st.get("class") != "free"
-            }
+            bound: dict[str, dict[str, Any]] = {}
+            for origin, key, statement in floor.each(digest):
+                cls = statement.get("class", "unknown")
+                made_by = (origin, statement.get("manifest"))
+                if cls == "free" or made_by in own:
+                    continue
+                if cls == "unknown" and made_by in trusted:
+                    # A verified version this walk read in full: its silence
+                    # is already here, and may be a gap a later label answers.
+                    # (Its `private` or `attribution` is always read.)
+                    continue
+                held = bound.get(key)
+                if held is None or _stricter_statement(statement, held):
+                    bound[key] = statement
             # Another asset's silence (`unknown`) about bytes the factory
             # provably drew is no statement against them (an#269).
-            silent_ok = any(
-                st.get("class") == "unknown" for st in said.values()
-            ) and factory_drew(version, path, digest)
-            for asset_key, statement in sorted(said.items()):
-                if silent_ok and statement.get("class") == "unknown":
-                    continue
+            if any(st.get("class") == "unknown" for st in bound.values()) and (
+                factory_drew(walked, path, digest)
+            ):
+                bound = {k: st for k, st in bound.items() if st.get("class") != "unknown"}
+            for asset_key, statement in sorted(bound.items()):
                 ref = f"{asset_key}@{statement.get('version')}"
                 out.append(
                     (
-                        f"{_prefix}{path}: same bytes as {ref} ({statement.get('label')})",
+                        f"{prefix}{path}: same bytes as {ref} ({statement.get('label')})",
                         _recorded_source(
                             Rights(statement.get("class", "unknown"), []), ref
                         ),
@@ -1068,15 +1154,17 @@ def publish(
         if lib.name != library.name
     ]
     pinned_parents: list[str] = []
+    lineage: dict[str, str] = {}
     for parent in derived:
         try:
-            _, pinned, _ = resolve(readers, parent)
+            _, pinned, parent_version = resolve(readers, parent)
         except (AssetNotFoundError, AssetIdError) as e:
             raise LibraryError(
                 f"derived_from {parent!r} does not resolve: {e}. "
                 "Pass search=… (CLI: --extra) with the library it is in."
             ) from e
         pinned_parents.append(str(pinned))
+        lineage[str(pinned)] = parent_version["manifest_sha256"]
 
     existing = _read_record(library, asset_id) if asset_id in library.records else None
     head = (existing or {}).get("head")
@@ -1136,6 +1224,9 @@ def publish(
     }
     if head:
         pending[PREVIOUS_FIELD] = str(LibraryRef(asset_id, head, library.name))
+        lineage[pending[PREVIOUS_FIELD]] = head_version["manifest_sha256"]
+    if lineage:
+        pending[LINEAGE_FIELD] = dict(sorted(lineage.items()))
     if relicense:
         pending[RELICENSE_FIELD] = relicense
     if relabel:
@@ -1153,6 +1244,7 @@ def publish(
         relicense=relicense,
         relabel=relabel,
         unlabelled=unlabelled,
+        lineage=pending.get(LINEAGE_FIELD),
     )
     _load_genres()  # the analysers are the genres' (P7): never an empty facet by accident
     affordances, analysers = analyse(kind.name, doc, file_refs)

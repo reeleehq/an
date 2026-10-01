@@ -263,6 +263,14 @@ class BlobFloor:
             self._memo[digest] = found
         return self._memo[digest]
 
+    def each(self, digest: str) -> list[tuple[str | None, str, dict[str, Any]]]:
+        """Every ``(origin, asset_key, statement)`` about ``digest``, unmerged.
+
+        ``origin`` is the library that made it (:func:`library_origin`), so a
+        caller can tell a version it read itself from a same-named library's.
+        """
+        return [(o, k, dict(s)) for o, k, s in self._all(digest)]
+
     def statements(
         self, digest: str, *, exclude: Collection[tuple[str, str]] = ()
     ) -> dict[str, dict[str, Any]]:

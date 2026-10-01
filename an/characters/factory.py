@@ -905,6 +905,8 @@ def new_character(
         # DiceBear's source speaks only for DiceBear's bytes (review-259 S1):
         # pinned on the head it drew and on the drawing wrapping it.
         stamp_generated_head(out, source)
+    # `out` was created empty above, so every stamped file is this call's work.
+    _record_drawn(out)
     return desc_path
 
 
@@ -952,21 +954,41 @@ def factory_descriptor_source(source_svg: bytes) -> AssetSource:
     )
 
 
-def _record_drawn(digests: "list[str]") -> None:
-    """Record on this machine that the factory drew these bytes (an#269).
+def _record_drawn(char_dir: Path) -> None:
+    """Record on this machine that the factory drew the stamped bytes at ``char_dir`` (an#269).
 
-    What verifies the factory's stamps in the asset library: a stamp written
-    by hand, or copied onto other bytes, has no such record. It is written
-    only here, by the code that has just drawn the bytes. If it cannot be
-    written, the stamps stand unverified — the stricter reading — and a
-    warning says so.
+    Called ONLY by :func:`new_character`, at its end, on the folder it created
+    empty in the same call: every file there is bytes this call drew. It
+    records the digests the factory's own stamps pin there — per part, and the
+    descriptor's on the drawing — whose files still hold those bytes. What
+    verifies a factory stamp in the asset library
+    (:func:`an.library.api.factory_drew`): the public stamping functions never
+    record, so stamping bytes the factory did not draw (a carved head)
+    verifies nothing (review-269 B2). If the record cannot be written, the
+    stamps stand unverified — the stricter reading — and a warning says so.
     """
     import warnings
 
+    from an.credits import is_factory_stamp
     from an.library.registry import RegistryError, record_generated
 
+    raw = json.loads((char_dir / "character.json").read_text(encoding="utf-8"))
+    stamps = [(raw.get("source_svg"), raw.get("source"))] + [
+        (att.get("path"), att.get("source"))
+        for skin in (raw.get("skins") or {}).values()
+        for slot in (skin.get("slots") or {}).values()
+        for att in slot.values()
+        if isinstance(att, dict)
+    ]
+    digests = set()
+    for rel, stamp in stamps:
+        if not rel or not is_factory_stamp(stamp) or not stamp.get("sha256"):
+            continue
+        file = char_dir / rel
+        if file.is_file() and hashlib.sha256(file.read_bytes()).hexdigest() == stamp["sha256"]:
+            digests.add(stamp["sha256"])
     try:
-        record_generated(sorted(set(digests)), generator=FACTORY_PROVIDER)
+        record_generated(sorted(digests), generator=FACTORY_PROVIDER)
     except RegistryError as e:
         warnings.warn(
             f"{e}; the character is stamped, but its bytes are not recorded as the "
@@ -996,7 +1018,6 @@ def stamp_factory_descriptor(char_dir: str | Path) -> Path:
         return desc_path
     desc.source = factory_descriptor_source(drawing.read_bytes())
     desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
-    _record_drawn([desc.source.sha256])
     return desc_path
 
 
@@ -1081,7 +1102,6 @@ def stamp_factory_parts(
     desc_path = char_dir / "character.json"
     raw = json.loads(desc_path.read_text(encoding="utf-8"))
     desc = CharacterDescriptor.model_validate(migrate(raw, kind="CharacterDescriptor"))
-    drawn: list[str] = []
     for skin in desc.skins.values():
         for attachments in skin.slots.values():
             for att in attachments.values():
@@ -1097,9 +1117,7 @@ def stamp_factory_parts(
                 ):
                     continue
                 att.source = factory_source(file.read_bytes())
-                drawn.append(att.source.sha256)
     desc_path.write_text(desc.model_dump_json(indent=2), encoding="utf-8")
-    _record_drawn(drawn)
     return desc_path
 
 

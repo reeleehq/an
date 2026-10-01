@@ -71,7 +71,7 @@ from an.library.rights import (
     roll_up,
     sources_in,
 )
-from an.credits import CHECKED_OUT_KEY, is_factory_stamp
+from an.credits import CHECKED_OUT_KEY, checked_out_seal, is_factory_stamp
 from an.stores._common import is_os_junk
 from an.library.root import LibraryLocationWarning, git_worktree_of
 
@@ -351,12 +351,14 @@ def checkout(
             # The version's asset-level label was declared on these bytes, and
             # a publish of the copy carries it for them only: `an credits` in
             # the project reads it the same way (an#264).
+            digests = {
+                path: ContentRef.from_json(raw).item_id
+                for path, raw in sorted((version.get("files") or {}).items())
+            }
             origin[CHECKED_OUT_KEY] = {
                 "source": copy.deepcopy(doc.get("source")),
-                "files": {
-                    path: ContentRef.from_json(raw).item_id
-                    for path, raw in sorted((version.get("files") or {}).items())
-                },
+                "files": digests,
+                "seal": checked_out_seal(doc.get("source"), digests),
             }
         if not isinstance(doc.get("metadata"), dict):
             doc["metadata"] = {}

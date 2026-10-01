@@ -30,6 +30,7 @@ parts carved out of several clips credits each clip, part by part.
 from __future__ import annotations
 
 import hashlib
+import json
 import warnings
 
 from collections.abc import Callable, Mapping
@@ -377,12 +378,31 @@ def _origin_of(raw: Mapping[str, Any]) -> Mapping[str, Any] | None:
     return origin if isinstance(origin, Mapping) else None
 
 
+def checked_out_seal(source: Any, files: Mapping[str, str]) -> str:
+    """The digest binding a ``checked_out`` block's source to its file digests.
+
+    >>> len(checked_out_seal({"provider": "me"}, {"a.svg": "00"}))
+    64
+    """
+    payload = json.dumps(
+        {"source": source, "files": dict(files)}, sort_keys=True, separators=(",", ":")
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def _checked_out(raw: Mapping[str, Any]) -> Mapping[str, Any] | None:
-    """The ``checked_out`` block of a library check-out, if this copy has one."""
+    """The ``checked_out`` block of a library check-out, if this copy has one.
+
+    A block whose seal does not match what it says (an edited digest list) is
+    read as covering NO file: an origin block may make credits stricter, never
+    cleaner (review-269 S1).
+    """
     block = (_origin_of(raw) or {}).get(CHECKED_OUT_KEY)
-    if isinstance(block, Mapping) and isinstance(block.get("files"), Mapping):
-        return block
-    return None
+    if not isinstance(block, Mapping) or not isinstance(block.get("files"), Mapping):
+        return None
+    if block.get("seal") != checked_out_seal(block.get("source"), block["files"]):
+        return {**block, "files": {}}
+    return block
 
 
 def _library_origin_credits(
