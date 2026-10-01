@@ -118,6 +118,16 @@ def test_an_edited_original_is_not_linked_the_copy_lands_beside_it(project):
     assert result.key == "alice-reiniger"
 
 
+def test_a_copy_pinned_to_another_version_is_never_taken_over(project):
+    folder = new_character(project / "assets" / "characters", name="alice", use_dicebear=False).parent
+    lib = open_library("cutan")
+    publish_dir(lib, folder, "character.alice-a")
+    assert checkout(lib, project, "cutan:character.alice-a@v001").key == "alice"
+    publish_dir(lib, folder, "character.alice-b")  # the same bytes, another asset
+    assert checkout(lib, project, "cutan:character.alice-b@v001").key == "alice-b"
+    assert ProjectLock(project)["characters/alice"]["library"] == "cutan:character.alice-a@v001"
+
+
 # ============================================================ finding 15
 
 
