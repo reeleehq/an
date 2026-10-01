@@ -22,24 +22,14 @@ mp4s, and this module’s whole promise is that nothing of a previous render
 crosses. It is gitignored, so it does not reproduce on a clean checkout: a
 per-developer landmine, in the module whose docstring says the opposite.
 
-### Module Attributes
-
-| [`IGNORED_ON_COPY`](#an.bench.capture.IGNORED_ON_COPY)          | they are the previous render's output, and one of them silently extends this one's frame sequence.   |
-|---------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| [`IGNORED_RELPATHS_ON_COPY`](#an.bench.capture.IGNORED_RELPATHS_ON_COPY) | Excluded by their path **relative to the project root**, POSIX-spelled.                              |
-| [`RENDER_WORK_RELPATH`](#an.bench.capture.RENDER_WORK_RELPATH)      | Where the renderer leaves its per-shot working tree inside the project.                              |
-| [`FRAME_PNG_GLOB`](#an.bench.capture.FRAME_PNG_GLOB)           | How a shot's frames are named on disk.                                                               |
-
 ### Functions
 
-| [`capture_fixture`](#an.bench.capture.capture_fixture)(name, fixture, \*, repo_root)    | Render `fixture` in a throwaway copy and return its artifacts.               |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`cleanup`](#an.bench.capture.cleanup)(capture)                                 | Remove a capture's throwaway tree.                                           |
-| [`compiled_contract_sha256`](#an.bench.capture.compiled_contract_sha256)(fixture, \*, repo_root) | The `scene_contract_sha256` a render of `fixture` would record — no browser. |
-| [`dirty_paths`](#an.bench.capture.dirty_paths)(repo_root)                           | `git status --porcelain` lines, so a capture can prove it touched nothing.   |
-| [`distinct_png_sizes`](#an.bench.capture.distinct_png_sizes)(frames_dir)                   | Every distinct `(width, height)` among a shot's frame PNGs, sorted.          |
-| [`expected_frame_count`](#an.bench.capture.expected_frame_count)(duration, fps)              | The renderer's own frame-count expression, reused rather than restated.      |
-| [`stage_copy`](#an.bench.capture.stage_copy)(fixture_dir, base)                    | Copy a fixture into `base`, leaving the previous render behind.              |
+| [`capture_fixture`](#an.bench.capture.capture_fixture)(name, fixture, \*, repo_root)   | Render `fixture` in a throwaway copy and return its artifacts.             |
+|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [`cleanup`](#an.bench.capture.cleanup)(capture)                                | Remove a capture's throwaway tree.                                         |
+| [`dirty_paths`](#an.bench.capture.dirty_paths)(repo_root)                          | `git status --porcelain` lines, so a capture can prove it touched nothing. |
+| [`distinct_png_sizes`](#an.bench.capture.distinct_png_sizes)(frames_dir)                  | Every distinct `(width, height)` among a shot's frame PNGs, sorted.        |
+| [`expected_frame_count`](#an.bench.capture.expected_frame_count)(duration, fps)             | The renderer's own frame-count expression, reused rather than restated.    |
 
 ### Classes
 
@@ -49,20 +39,8 @@ per-developer landmine, in the module whose docstring says the opposite.
 
 ### Exceptions
 
-| [`CaptureError`](#an.bench.capture.CaptureError)         | A capture could not produce something the metrics need.           |
-|-----------------------------------------------------------------------|-------------------------------------------------------------------|
-| [`GitStatusUnavailable`](#an.bench.capture.GitStatusUnavailable) | `git status` did not answer, so "the tree is clean" is not known. |
-
-### *exception* an.bench.capture.CaptureError
-
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
-
-A capture could not produce something the metrics need.
-
-### an.bench.capture.FRAME_PNG_GLOB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'frame_\*.png'*
-
-How a shot’s frames are named on disk. One constant rather than the literal
-repeated at each glob site.
+| [`GitStatusUnavailable`](#an.bench.capture.GitStatusUnavailable)   | `git status` did not answer, so "the tree is clean" is not known.   |
+|-------------------------------------------------------------------------|---------------------------------------------------------------------|
 
 ### *exception* an.bench.capture.GitStatusUnavailable
 
@@ -80,36 +58,7 @@ a concurrent `git` in a linked worktree of this repo takes `index.lock`,
 been green fifty times. A check that could not run is not evidence that
 nothing is wrong.
 
-### an.bench.capture.IGNORED_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.an', 'output', '.anima')*
-
-they are the previous render’s
-output, and one of them silently extends this one’s frame sequence.
-Matched on the **basename**, at any depth — that is exactly what
-`shutil.ignore_patterns` does, and it is why `artifacts/shots` cannot be
-spelled here. See [`IGNORED_RELPATHS_ON_COPY`](#an.bench.capture.IGNORED_RELPATHS_ON_COPY).
-
-* **Type:**
-  Copied for the render, but never these
-
-### an.bench.capture.IGNORED_RELPATHS_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/shots',)*
-
-Excluded by their path **relative to the project root**, POSIX-spelled.
-`mall["shots"]` is `<project>/artifacts/shots`, and `artifacts/`
-itself is kept on purpose — it holds the audio cache, whose warm/cold state
-this module records rather than destroys.
-
-Neither spelling belongs in [`IGNORED_ON_COPY`](#an.bench.capture.IGNORED_ON_COPY), and \*\*both fail
-silently\*\*. `shutil.ignore_patterns` returns a closure handed the NAMES
-inside one directory, which it `fnmatch.filter``s — so ``"artifacts/shots"`
-can never match anything (no name contains a separator) and a bare
-`"shots"` would delete every directory of that name **anywhere** in the
-tree, a character rig’s included.
-
-### an.bench.capture.RENDER_WORK_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.an/render_work'*
-
-Where the renderer leaves its per-shot working tree inside the project.
-
-### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>, capture='')
+### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>, capture='', film=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -122,6 +71,19 @@ resolved the way the render resolves it. The decoded pixels are the same
 either way, so no metric moves — but `wall_seconds` does, several-fold,
 and a timing row is only readable beside the path that produced it
 (an#192 flipped the default).
+
+#### film *: [ShotCapture](#an.bench.capture.ShotCapture) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+An ASSEMBLED scene’s composed frames (transitions, a sound layer —
+`an.assemble`), as one segment: what the delivered mp4 shows. `None`
+for a scene that is the concatenation of its shots, which is every scene
+before an#279’s core corpus. When set, every metric, the golden frames
+and the frame count read IT — pairing the shots’ frames against a film
+whose dissolves overlap them would measure the overlap, not the encoder.
+
+#### *property* frame_segments *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[ShotCapture](#an.bench.capture.ShotCapture)]*
+
+The frame sequence(s) the delivered mp4 shows, in order.
 
 ### *class* an.bench.capture.ShotCapture(shot_id, frames_dir, scene_json, runtime_dir, frame_count, duration=0.0, frame_sizes=())
 
@@ -159,24 +121,6 @@ Remove a capture’s throwaway tree.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.bench.capture.compiled_contract_sha256(fixture, , repo_root)
-
-The `scene_contract_sha256` a render of `fixture` would record — no browser.
-
-Compiles every timeline shot the way the cutout renderer does (the scene’s
-size, fps, style pack, default easing and stepped-timing policy, with
-`strict_assets` as the bench sets it) in a throwaway copy, and hashes the
-documents. It is the default-leg twin of [`capture_fixture()`](#an.bench.capture.capture_fixture): the
-contract hash is a function of the compiled JSON alone, so the guards that
-check it — against the newest ledger row and against each golden’s bless
-record — run on every PR, not only in the labelled browser lane.
-
-It is the contract of a bench render, which passes no overrides: a render
-given its own `step_hz`, fps or resolution compiles something else.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.capture.dirty_paths(repo_root)
 
@@ -224,21 +168,3 @@ on every half-frame duration.
 >>> expected_frame_count(0.0, 24)
 1
 ```
-
-### an.bench.capture.stage_copy(fixture_dir, base)
-
-Copy a fixture into `base`, leaving the previous render behind.
-
-Split out of [`capture_fixture()`](#an.bench.capture.capture_fixture) so the exclusion is testable without
-rendering anything — which matters, because the failure it prevents is
-silent. `frames/` is never cleared and ffmpeg’s image2 demuxer reads the
-contiguous `frame_%06d.png` run from 0, so a longer previous render is
-appended to this one’s source leg and to nothing else.
-
-Two kinds of exclusion, because one kind cannot say both things:
-[`IGNORED_ON_COPY`](#an.bench.capture.IGNORED_ON_COPY) by basename at any depth, and
-[`IGNORED_RELPATHS_ON_COPY`](#an.bench.capture.IGNORED_RELPATHS_ON_COPY) by path from the project root — which is
-the only way to drop `artifacts/shots` while keeping `artifacts/audio`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)

@@ -367,6 +367,7 @@ screenshot pixels, so a bug in `an`’s own encoder cannot hide”.
 |------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
 | [`compare`](an.bench.compare.md#module-an.bench.compare)         | `an bench --compare`: read two ledger rows, and **refuse when they are not comparable**.      |
 | [`contract`](an.bench.contract.md#module-an.bench.contract)       | `scene_contract_sha256`: the fact that decides whether two rows are comparable.               |
+| [`core_corpus`](an.bench.core_corpus.md#module-an.bench.core_corpus) | The core corpus: what `an` renders with no character and no genre (ADR 0001 decision 7).      |
 | [`corpus`](an.bench.corpus.md#module-an.bench.corpus)           | The bench corpus: which projects are measured, and what each must actually render.            |
 | [`environment`](an.bench.environment.md#module-an.bench.environment) | The environment tuple — the fields that decide whether two rows may be compared.              |
 | [`golden`](an.bench.golden.md#module-an.bench.golden)           | The golden gate: committed frames, compared on **decoded pixels**.                            |

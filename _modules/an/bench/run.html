@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=71dc153a"></script>
+    <script src="../../../_static/documentation_options.js?v=d5a49123"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.150" />
+  <meta name="docsearch:version" content="0.1.151" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -936,7 +936,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    runs above the ``_ffmpeg_available()`` fork so it covers both branches, and</span>
 <span class="sd">    above the first decode so nothing is computed on a wrong shape.</span>
 <span class="sd">    """</span>
-    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">frame_segments</span><span class="p">:</span>
         <span class="n">sizes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">frame_sizes</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">sizes</span> <span class="o">!=</span> <span class="p">{</span><span class="n">capture</span><span class="o">.</span><span class="n">resolution</span><span class="p">}:</span>
             <span class="k">raise</span> <span class="n">BenchError</span><span class="p">(</span>
@@ -970,13 +970,14 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">yield</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">frames_dir</span>
+    <span class="n">segments</span> <span class="o">=</span> <span class="n">capture</span><span class="o">.</span><span class="n">frame_segments</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">segments</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">segments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">frames_dir</span>
         <span class="k">return</span>
     <span class="n">staged</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="sa">f</span><span class="s2">"an-bench-timeline-</span><span class="si">{</span><span class="n">capture</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-"</span><span class="p">))</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">segments</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">shot</span><span class="o">.</span><span class="n">frames_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"frame_*.png"</span><span class="p">)):</span>
                 <span class="p">(</span><span class="n">staged</span> <span class="o">/</span> <span class="p">(</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span> <span class="o">%</span> <span class="n">index</span><span class="p">))</span><span class="o">.</span><span class="n">symlink_to</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
                 <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -1077,7 +1078,7 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">loader</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">frames_dir</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span> <span class="n">frames</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">frame_count</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">frame_segments</span>
     <span class="p">]</span>
     <span class="k">return</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
 
@@ -1133,7 +1134,7 @@ window.runMermaid = runMermaid;</script>
     <span class="c1"># branches: everything below reshapes a byte stream to the DECLARED size.</span>
     <span class="n">_assert_declared_resolution</span><span class="p">(</span><span class="n">capture</span><span class="p">)</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">capture</span><span class="o">.</span><span class="n">resolution</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">capture</span><span class="o">.</span><span class="n">resolution</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">n_source</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">frame_count</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">)</span>
+    <span class="n">n_source</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">frame_count</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">frame_segments</span><span class="p">)</span>
     <span class="n">values</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Value</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">_ffmpeg_available</span><span class="p">():</span>
@@ -1158,7 +1159,7 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"decoder"</span><span class="p">:</span> <span class="s2">"an.bench.png (ffmpeg absent)"</span><span class="p">,</span>
             <span class="s2">"masks"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"render_edge"</span><span class="p">:</span> <span class="n">_render_edge_record</span><span class="p">(</span><span class="n">render_edge</span><span class="p">)},</span>
             <span class="s2">"source_pixels_sha256"</span><span class="p">:</span> <span class="n">contract</span><span class="o">.</span><span class="n">frames_sha256</span><span class="p">(</span><span class="n">src_rgb</span><span class="p">),</span>
-            <span class="s2">"frames_on_disk"</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">frame_count</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">),</span>
+            <span class="s2">"frames_on_disk"</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">frame_count</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">frame_segments</span><span class="p">),</span>
             <span class="s2">"decoded_source_frames"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">src_rgb</span><span class="p">)),</span>
         <span class="p">}</span>
 
@@ -1189,7 +1190,7 @@ window.runMermaid = runMermaid;</script>
         <span class="p">),</span>
         <span class="s2">"decoder"</span><span class="p">:</span> <span class="s2">"ffmpeg"</span><span class="p">,</span>
         <span class="s2">"source_pixels_sha256"</span><span class="p">:</span> <span class="n">contract</span><span class="o">.</span><span class="n">frames_sha256</span><span class="p">(</span><span class="n">src_rgb</span><span class="p">),</span>
-        <span class="s2">"frames_on_disk"</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">frame_count</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">),</span>
+        <span class="s2">"frames_on_disk"</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">frame_count</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">frame_segments</span><span class="p">),</span>
         <span class="s2">"decoded_source_frames"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">src_rgb</span><span class="p">)),</span>
         <span class="s2">"tolerances"</span><span class="p">:</span> <span class="p">{</span>
             <span class="s2">"edge_flat_tol"</span><span class="p">:</span> <span class="n">M</span><span class="o">.</span><span class="n">EDGE_FLAT_TOL</span><span class="p">,</span>
@@ -1760,7 +1761,8 @@ window.runMermaid = runMermaid;</script>
                 <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">scene_json</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span><span class="p">]</span>
             <span class="p">)</span>
             <span class="n">expected</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
-                <span class="n">expected_frame_count</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">capture</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">shots</span>
+                <span class="n">expected_frame_count</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span> <span class="n">capture</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">capture</span><span class="o">.</span><span class="n">frame_segments</span>
             <span class="p">)</span>
 
             <span class="k">if</span> <span class="n">bless</span><span class="p">:</span>

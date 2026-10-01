@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=71dc153a"></script>
+    <script src="../../../_static/documentation_options.js?v=d5a49123"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.150" />
+  <meta name="docsearch:version" content="0.1.151" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -728,9 +728,17 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Sequence</span>
+
+<span class="c1"># Moved to the core (an#279, ADR 0001 decision 7) and re-exported: the fixture</span>
+<span class="c1"># type, the pinned render knobs and the corpus folder serve the CORE corpus too.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.core_corpus</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>  <span class="c1"># noqa: F401 — re-exported</span>
+    <span class="n">BENCH_RENDER_KWARGS</span><span class="p">,</span>
+    <span class="n">CORE_FIXTURES</span><span class="p">,</span>
+    <span class="n">CORPUS_DIRNAME</span><span class="p">,</span>
+    <span class="n">Fixture</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="c1">#: Per-shot subdirectory naming inside `.an/render_work`, and the staged scene</span>
 <span class="c1">#: filename. Mirrored from the renderer rather than restated as literals at</span>
@@ -739,21 +747,6 @@ window.runMermaid = runMermaid;</script>
 <span class="n">FRAMES_DIRNAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"frames"</span>
 <span class="n">RUNTIME_DIRNAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"runtime"</span>
 <span class="n">STAGED_SCENE_NAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"scene.json"</span>
-
-<span class="c1">#: Rendering knobs pinned for every bench capture, recorded verbatim into the</span>
-<span class="c1">#: ledger. NOT flags: a bench whose render knobs vary per invocation produces</span>
-<span class="c1">#: incomparable rows.</span>
-<span class="c1">#:</span>
-<span class="c1">#: ``auto_audio=False`` because audio cannot move a pixel and would otherwise</span>
-<span class="c1">#: make the frames depend on the audio cache's warm/cold state; ``parallel=1``</span>
-<span class="c1">#: because a timing-sensitive pool is one more thing to explain if the pixels</span>
-<span class="c1">#: ever do differ; ``strict_assets=True`` because a stand-in asset renders</span>
-<span class="c1">#: happily as a DIFFERENT picture (an#33).</span>
-<span class="n">BENCH_RENDER_KWARGS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">"auto_audio"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="s2">"parallel"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">"strict_assets"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-<span class="p">}</span>
 
 
 <div class="viewcode-block" id="CorpusError">
@@ -820,44 +813,6 @@ window.runMermaid = runMermaid;</script>
     <span class="n">ir</span> <span class="o">=</span> <span class="n">project_dir</span> <span class="o">/</span> <span class="s2">"ir"</span> <span class="o">/</span> <span class="s2">"scene.json"</span>
     <span class="k">if</span> <span class="n">ir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">ir</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
-
-
-<div class="viewcode-block" id="Fixture">
-<a class="viewcode-back" href="../../../_autosummary/an.bench.corpus.html#an.bench.corpus.Fixture">[docs]</a>
-<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">Fixture</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""A corpus scene: where it lives, how to build it, what it must render."""</span>
-
-    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="c1">#: Run against the throwaway copy before loading, to regenerate build</span>
-    <span class="c1">#: products the repo does not track.</span>
-    <span class="n">prepare</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Path</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="c1">#: Visual kinds the staged scene MUST contain — see the module docstring.</span>
-    <span class="n">expect_visual_kinds</span><span class="p">:</span> <span class="nb">frozenset</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>
-    <span class="c1">#: Times (seconds, into the scene's CONCATENATED timeline) at which a</span>
-    <span class="c1">#: golden frame is blessed. Two per scene, the second chosen so something</span>
-    <span class="c1">#: has actually moved — `--bless` refuses a pair whose two frames are</span>
-    <span class="c1">#: pixel-identical, which is not hypothetical: `promote_demo`'s frame 0 and</span>
-    <span class="c1">#: its `duration/2` frame differ by exactly **zero** pixels.</span>
-    <span class="n">golden_frames</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">tuple</span><span class="p">)</span>
-    <span class="c1">#: One line saying what moves between the two golden times. Carried as data</span>
-    <span class="c1">#: because "pick a time where something moved" is a rule that decays into a</span>
-    <span class="c1">#: habit, and the reason is what a reviewer needs when a golden goes red.</span>
-    <span class="n">golden_note</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span></div>
-
-
-
-<span class="c1">#: Where the bench-owned fixtures live. NOT under `examples/`, and the reason</span>
-<span class="c1">#: is mechanical rather than tidiness: `.gitignore` excludes every</span>
-<span class="c1">#: `examples/*/assets/`, so a corpus scene that needs committed art cannot live</span>
-<span class="c1">#: there without a carve-out per scene. `misc/` is not ignored at all.</span>
-<span class="c1">#:</span>
-<span class="c1">#: The second reason is that a metrics fixture must **hold still**. These four</span>
-<span class="c1">#: carry their whole rig as committed files and have no ``prepare`` step, so</span>
-<span class="c1">#: their pixels are a function of the repo alone — where `promote_demo`'s are a</span>
-<span class="c1">#: function of `an.characters.promote`, and would need re-blessing whenever that</span>
-<span class="c1">#: changes.</span>
-<span class="n">CORPUS_DIRNAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"misc/bench/corpus"</span>
 
 
 <span class="c1">#: The corpus. One fixture per render path, deliberately both: the descriptor</span>
@@ -968,44 +923,8 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"not depend on how the frame containing t=0.25 rounds."</span>
         <span class="p">),</span>
     <span class="p">),</span>
-    <span class="s2">"stage_pan"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
-        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/stage_pan"</span><span class="p">,</span>
-        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rect"</span><span class="p">}),</span>
-        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
-        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
-            <span class="s2">"three coloured blocks at depths 0.25 / 1.0 / 2.0 under a "</span>
-            <span class="s2">"zoom-free pan (an#111). What moves between the goldens is the "</span>
-            <span class="s2">"SEPARATION: the blocks start aligned and end 10 / 40 / 80 px "</span>
-            <span class="s2">"apart, which is the parallax and nothing else. Frame 8, not the "</span>
-            <span class="s2">"mid-frame: the camera travels 5 px per frame and the far plane "</span>
-            <span class="s2">"moves a quarter of that, so only every fourth frame lands every "</span>
-            <span class="s2">"block on an exact pixel boundary — at any other frame the "</span>
-            <span class="s2">"anti-aliased edge changes the exact-colour mask's SIZE, and a "</span>
-            <span class="s2">"centroid measured against a different shape is not a "</span>
-            <span class="s2">"displacement (the measurement refuses it outright). "</span>
-            <span class="s2">"Zoom is held constant on purpose: the x = 0 probe that cancels "</span>
-            <span class="s2">"it in the JSON half does not reach a centroid, which sits at the "</span>
-            <span class="s2">"plane's own offset."</span>
-        <span class="p">),</span>
-    <span class="p">),</span>
-    <span class="s2">"path_draw"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
-        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/path_draw"</span><span class="p">,</span>
-        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"path"</span><span class="p">}),</span>
-        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
-        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
-            <span class="s2">"two stroked paths (an#160, an#161), both dashed and both coloured "</span>
-            <span class="s2">"by a StylePack's `stroke` role: a marching-ants frame whose "</span>
-            <span class="s2">"`dash_offset` runs 0 -&gt; 20 px, and a cubic arrow that draws itself "</span>
-            <span class="s2">"on (`trim_end` 0 -&gt; 1) with its head on the moving tip. What "</span>
-            <span class="s2">"moves between the goldens is the ROUTE growing (frame 0 shows "</span>
-            <span class="s2">"none of it) and the frame's dashes sliding 6.7 px along their "</span>
-            <span class="s2">"path; a regression in trim, in the dash phase, in the "</span>
-            <span class="s2">"anchored-at-the-path-start rule that keeps a dash from crawling "</span>
-            <span class="s2">"as the tip advances, or in the pack reaching a path, moves a "</span>
-            <span class="s2">"golden. Butt caps, so a dash's ends are exact rather than "</span>
-            <span class="s2">"rounded past their length."</span>
-        <span class="p">),</span>
-    <span class="p">),</span>
+    <span class="s2">"stage_pan"</span><span class="p">:</span> <span class="n">CORE_FIXTURES</span><span class="p">[</span><span class="s2">"stage_pan"</span><span class="p">],</span>
+    <span class="s2">"path_draw"</span><span class="p">:</span> <span class="n">CORE_FIXTURES</span><span class="p">[</span><span class="s2">"path_draw"</span><span class="p">],</span>
     <span class="s2">"expressions"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
         <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/expressions"</span><span class="p">,</span>
         <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"svg_sprite"</span><span class="p">}),</span>
@@ -1071,6 +990,9 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"inside one shot would not notice a shot rendered in the wrong order."</span>
         <span class="p">),</span>
     <span class="p">),</span>
+    <span class="c1"># The core corpus's own scenes (an#279), after every existing one so the</span>
+    <span class="c1"># ledger's scene order for the cut-out corpus is unchanged.</span>
+    <span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">CORE_FIXTURES</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"stage_pan"</span><span class="p">,</span> <span class="s2">"path_draw"</span><span class="p">)},</span>
 <span class="p">}</span>
 
 

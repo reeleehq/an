@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=71dc153a"></script>
+    <script src="../../../_static/documentation_options.js?v=d5a49123"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.150" />
+  <meta name="docsearch:version" content="0.1.151" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -742,6 +742,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">xml.etree.ElementTree</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ET</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -826,9 +828,38 @@ window.runMermaid = runMermaid;</script>
     <span class="p">}</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_data_uri_bytes</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The payload of a ``data:`` URI (base64 or percent-encoded), or ``None``.</span>
+
+<span class="sd">    Text units travel INSIDE the compiled document as ``data:image/svg+xml``</span>
+<span class="sd">    srcs (an#155): their glyph outlines are typeset in Python, so there is no</span>
+<span class="sd">    staged file to open — and a data URI read as a path is an ``OSError``</span>
+<span class="sd">    (file name too long), which is how the first text fixture found this.</span>
+
+<span class="sd">    &gt;&gt;&gt; _data_uri_bytes("data:image/svg+xml;base64,PHN2Zy8+")</span>
+<span class="sd">    b'&lt;svg/&gt;'</span>
+<span class="sd">    &gt;&gt;&gt; _data_uri_bytes("data:image/svg+xml,%3Csvg%2F%3E")</span>
+<span class="sd">    b'&lt;svg/&gt;'</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">base64</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">urllib.parse</span><span class="w"> </span><span class="kn">import</span> <span class="n">unquote_to_bytes</span>
+
+    <span class="n">head</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">payload</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">sep</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">head</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"data:"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">head</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">";base64"</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">unquote_to_bytes</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
 <div class="viewcode-block" id="svg_colours">
 <a class="viewcode-back" href="../../../_autosummary/an.bench.palette.html#an.bench.palette.svg_colours">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">svg_colours</span><span class="p">(</span><span class="n">svg_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">svg_colours</span><span class="p">(</span><span class="n">svg_path</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">"""Every colour literal an SVG paints, plus the tokens that could not be resolved.</span>
 
 <span class="sd">    Parsed as XML rather than scraped with a regex, so ``style="fill:#abc"``</span>
@@ -845,7 +876,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">root</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">svg_path</span><span class="p">)</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
     <span class="k">except</span> <span class="p">(</span><span class="n">ET</span><span class="o">.</span><span class="n">ParseError</span><span class="p">,</span> <span class="ne">OSError</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">colours</span><span class="p">,</span> <span class="p">{</span><span class="sa">f</span><span class="s2">"unparseable:</span><span class="si">{</span><span class="n">svg_path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">colours</span><span class="p">,</span> <span class="p">{</span><span class="sa">f</span><span class="s2">"unparseable:</span><span class="si">{</span><span class="nb">getattr</span><span class="p">(</span><span class="n">svg_path</span><span class="p">,</span><span class="w"> </span><span class="s1">'name'</span><span class="p">,</span><span class="w"> </span><span class="s1">'&lt;data&gt;'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">walk</span><span class="p">(</span><span class="n">el</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">hidden</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">style</span> <span class="o">=</span> <span class="n">_style_values</span><span class="p">(</span><span class="n">el</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"style"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
@@ -946,11 +977,18 @@ window.runMermaid = runMermaid;</script>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">src</span><span class="p">:</span>
             <span class="n">unresolved</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"alias-without-src:</span><span class="si">{</span><span class="n">alias</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">continue</span>
-        <span class="n">staged</span> <span class="o">=</span> <span class="n">runtime_dir</span> <span class="o">/</span> <span class="n">src</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">staged</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-            <span class="n">unresolved</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unstaged:</span><span class="si">{</span><span class="n">src</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-            <span class="k">continue</span>
-        <span class="n">found</span><span class="p">,</span> <span class="n">bad</span> <span class="o">=</span> <span class="n">svg_colours</span><span class="p">(</span><span class="n">staged</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"data:"</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">_data_uri_bytes</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">unresolved</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"undecodable-data-uri:</span><span class="si">{</span><span class="n">alias</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">found</span><span class="p">,</span> <span class="n">bad</span> <span class="o">=</span> <span class="n">svg_colours</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">staged</span> <span class="o">=</span> <span class="n">runtime_dir</span> <span class="o">/</span> <span class="n">src</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">staged</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="n">unresolved</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unstaged:</span><span class="si">{</span><span class="n">src</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">found</span><span class="p">,</span> <span class="n">bad</span> <span class="o">=</span> <span class="n">svg_colours</span><span class="p">(</span><span class="n">staged</span><span class="p">)</span>
         <span class="n">colours</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
         <span class="n">sources</span><span class="p">[</span><span class="s2">"svg"</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
         <span class="n">unresolved</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">bad</span><span class="p">)</span>

@@ -51,6 +51,7 @@ an.bench
    capture
    compare
    contract
+   core_corpus
    corpus
    environment
    golden

@@ -4,26 +4,15 @@ an.bench.capture
 .. automodule:: an.bench.capture
 
    
-   .. rubric:: Module Attributes
-
-   .. autosummary::
-   
-      IGNORED_ON_COPY
-      IGNORED_RELPATHS_ON_COPY
-      RENDER_WORK_RELPATH
-      FRAME_PNG_GLOB
-   
    .. rubric:: Functions
 
    .. autosummary::
    
       capture_fixture
       cleanup
-      compiled_contract_sha256
       dirty_paths
       distinct_png_sizes
       expected_frame_count
-      stage_copy
    
    .. rubric:: Classes
 
@@ -36,6 +25,5 @@ an.bench.capture
 
    .. autosummary::
    
-      CaptureError
       GitStatusUnavailable
    

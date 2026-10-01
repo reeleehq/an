@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="alternate" type="text/markdown" href="core_corpus.html.md">
+<link rel="describedby" href="../../../llms.txt" type="text/markdown">
+    <title>an.bench.core_corpus &#8212; an</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/epythet.css?v=c64280fc" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../../../_static/documentation_options.js?v=d5a49123"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=fd10adb8"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (false) {
+                                        addZoomToSvgs(d3.selectAll("").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (false) {
+        const mermaids_to_add_zoom = 0 === -1 ? mermaids_active.length : 0;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll("").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (false) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/an/bench/core_corpus';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.1.151" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">an</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../ai-agents.html">
+    For AI agents
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/thorwhalen/an" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">an.bench.core_corpus</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for an.bench.core_corpus</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""The core corpus: what ``an`` renders with no character and no genre (ADR 0001 decision 7).</span>
+
+<span class="sd">Before any module leaves ``an`` for ``cutan`` (P8), the core keeps a pixel gate</span>
+<span class="sd">of its own: **paths, text, planes, camera and transitions**, rendered by the</span>
+<span class="sd">stage engine (``an.stage``) with no character, with goldens and contract hashes</span>
+<span class="sd">of their own. These scenes are :data:`CORE_FIXTURES`:</span>
+
+<span class="sd">========== ===================================================================</span>
+<span class="sd">scene      what it is the gate for</span>
+<span class="sd">========== ===================================================================</span>
+<span class="sd">path_draw  paths — dash phase, trim, arrowheads, a StylePack's stroke role</span>
+<span class="sd">stage_pan  planes and the camera's TRANSLATION — parallax at three depths</span>
+<span class="sd">text_card  text — overlay words revealed one by one, a world label — under</span>
+<span class="sd">           the camera's ZOOM and ROLL (the overlay holds still, the world does not)</span>
+<span class="sd">transitions a fade in from black and a DISSOLVE between two stage shots: the</span>
+<span class="sd">           film's composed frames, which is what is delivered, are the goldens</span>
+<span class="sd">========== ===================================================================</span>
+
+<span class="sd">They live beside the cut-out corpus in ``misc/bench/corpus/`` and run in the</span>
+<span class="sd">same ``an bench`` (the cut-out corpus imports them, in</span>
+<span class="sd">:mod:`an.bench.corpus`), so they are blessed by the same protocol and their</span>
+<span class="sd">contract hashes are checked by the same default-leg guard. What makes them the</span>
+<span class="sd">CORE corpus is what they need: ``tests/test_core_corpus.py`` renders every one</span>
+<span class="sd">of them with NO GENRE REGISTERED and checks each pinned frame against its bless</span>
+<span class="sd">record. That they render with no cut-out CODE is not proven yet — the stage</span>
+<span class="sd">compiler still imports and runs ``an.characters`` — and is the strict-xfail</span>
+<span class="sd">proof P8's B0c (an#225) flips. When the cut-out corpus moves to ``cutan``, this</span>
+<span class="sd">module, the scenes and their goldens stay.</span>
+
+<span class="sd">This module is CORE (behind no firewall): the fixture type, the pinned render</span>
+<span class="sd">knobs, the throwaway copy and the browser-free contract hash moved here from</span>
+<span class="sd">:mod:`an.bench.corpus` and :mod:`an.bench.capture` (genre), which re-export</span>
+<span class="sd">them. Nothing here imports the stage at module level.</span>
+
+<span class="sd">&gt;&gt;&gt; sorted(CORE_FIXTURES)</span>
+<span class="sd">['path_draw', 'stage_pan', 'text_card', 'transitions']</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+
+<span class="c1">#: Rendering knobs pinned for every bench capture, recorded verbatim into the</span>
+<span class="c1">#: ledger. NOT flags: a bench whose render knobs vary per invocation produces</span>
+<span class="c1">#: incomparable rows.</span>
+<span class="c1">#:</span>
+<span class="c1">#: ``auto_audio=False`` because audio cannot move a pixel and would otherwise</span>
+<span class="c1">#: make the frames depend on the audio cache's warm/cold state; ``parallel=1``</span>
+<span class="c1">#: because a timing-sensitive pool is one more thing to explain if the pixels</span>
+<span class="c1">#: ever do differ; ``strict_assets=True`` because a stand-in asset renders</span>
+<span class="c1">#: happily as a DIFFERENT picture (an#33).</span>
+<span class="n">BENCH_RENDER_KWARGS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"auto_audio"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">"parallel"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"strict_assets"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="Fixture">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.core_corpus.html#an.bench.core_corpus.Fixture">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Fixture</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A corpus scene: where it lives, how to build it, what it must render."""</span>
+
+    <span class="n">path</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="c1">#: Run against the throwaway copy before loading, to regenerate build</span>
+    <span class="c1">#: products the repo does not track.</span>
+    <span class="n">prepare</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Path</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#: Visual kinds the staged scene MUST contain — see the module docstring.</span>
+    <span class="n">expect_visual_kinds</span><span class="p">:</span> <span class="nb">frozenset</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span>
+    <span class="c1">#: Times (seconds, into the scene's CONCATENATED timeline) at which a</span>
+    <span class="c1">#: golden frame is blessed. Two per scene, the second chosen so something</span>
+    <span class="c1">#: has actually moved — `--bless` refuses a pair whose two frames are</span>
+    <span class="c1">#: pixel-identical, which is not hypothetical: `promote_demo`'s frame 0 and</span>
+    <span class="c1">#: its `duration/2` frame differ by exactly **zero** pixels.</span>
+    <span class="n">golden_frames</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">tuple</span><span class="p">)</span>
+    <span class="c1">#: One line saying what moves between the two golden times. Carried as data</span>
+    <span class="c1">#: because "pick a time where something moved" is a rule that decays into a</span>
+    <span class="c1">#: habit, and the reason is what a reviewer needs when a golden goes red.</span>
+    <span class="n">golden_note</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span></div>
+
+
+
+<span class="c1">#: Where the bench-owned fixtures live. NOT under `examples/`, and the reason</span>
+<span class="c1">#: is mechanical rather than tidiness: `.gitignore` excludes every</span>
+<span class="c1">#: `examples/*/assets/`, so a corpus scene that needs committed art cannot live</span>
+<span class="c1">#: there without a carve-out per scene. `misc/` is not ignored at all.</span>
+<span class="c1">#:</span>
+<span class="c1">#: The second reason is that a metrics fixture must **hold still**. These four</span>
+<span class="c1">#: carry their whole rig as committed files and have no ``prepare`` step, so</span>
+<span class="c1">#: their pixels are a function of the repo alone — where `promote_demo`'s are a</span>
+<span class="c1">#: function of `an.characters.promote`, and would need re-blessing whenever that</span>
+<span class="c1">#: changes.</span>
+<span class="n">CORPUS_DIRNAME</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"misc/bench/corpus"</span>
+
+
+<span class="c1">#: The core corpus (see the module docstring).</span>
+<span class="n">CORE_FIXTURES</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Fixture</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"path_draw"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/path_draw"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"path"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"two stroked paths (an#160, an#161), both dashed and both coloured "</span>
+            <span class="s2">"by a StylePack's `stroke` role: a marching-ants frame whose "</span>
+            <span class="s2">"`dash_offset` runs 0 -&gt; 20 px, and a cubic arrow that draws itself "</span>
+            <span class="s2">"on (`trim_end` 0 -&gt; 1) with its head on the moving tip. What "</span>
+            <span class="s2">"moves between the goldens is the ROUTE growing (frame 0 shows "</span>
+            <span class="s2">"none of it) and the frame's dashes sliding 6.7 px along their "</span>
+            <span class="s2">"path; a regression in trim, in the dash phase, in the "</span>
+            <span class="s2">"anchored-at-the-path-start rule that keeps a dash from crawling "</span>
+            <span class="s2">"as the tip advances, or in the pack reaching a path, moves a "</span>
+            <span class="s2">"golden. Butt caps, so a dash's ends are exact rather than "</span>
+            <span class="s2">"rounded past their length."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"stage_pan"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/stage_pan"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rect"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"three coloured blocks at depths 0.25 / 1.0 / 2.0 under a "</span>
+            <span class="s2">"zoom-free pan (an#111). What moves between the goldens is the "</span>
+            <span class="s2">"SEPARATION: the blocks start aligned and end 10 / 40 / 80 px "</span>
+            <span class="s2">"apart, which is the parallax and nothing else. Frame 8, not the "</span>
+            <span class="s2">"mid-frame: the camera travels 5 px per frame and the far plane "</span>
+            <span class="s2">"moves a quarter of that, so only every fourth frame lands every "</span>
+            <span class="s2">"block on an exact pixel boundary — at any other frame the "</span>
+            <span class="s2">"anti-aliased edge changes the exact-colour mask's SIZE, and a "</span>
+            <span class="s2">"centroid measured against a different shape is not a "</span>
+            <span class="s2">"displacement (the measurement refuses it outright). "</span>
+            <span class="s2">"Zoom is held constant on purpose: the x = 0 probe that cancels "</span>
+            <span class="s2">"it in the JSON half does not reach a centroid, which sits at the "</span>
+            <span class="s2">"plane's own offset."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"text_card"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/text_card"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rect"</span><span class="p">,</span> <span class="s2">"svg_sprite"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"text under a camera push-in and roll (an#279, the core corpus): "</span>
+            <span class="s2">"two OVERLAY words fading in one after the other (`word_1` starts "</span>
+            <span class="s2">"0.125 s after `word_0`) and a WORLD label on a plane block, while "</span>
+            <span class="s2">"the camera zooms 1.0 -&gt; 1.3 and rolls 0.12 rad. What moves between "</span>
+            <span class="s2">"the goldens: the words' alpha (frame 0 shows neither), the label "</span>
+            <span class="s2">"and block growing and turning with the camera, and the overlay "</span>
+            <span class="s2">"title NOT turning — a regression that put overlay text in the "</span>
+            <span class="s2">"world, broke per-word addressing or the camera's zoom/roll moves "</span>
+            <span class="s2">"a golden. The face is Pillow's embedded Aileron, so the glyphs "</span>
+            <span class="s2">"do not depend on the machine's fonts."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+    <span class="s2">"transitions"</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">CORPUS_DIRNAME</span><span class="si">}</span><span class="s2">/transitions"</span><span class="p">,</span>
+        <span class="n">expect_visual_kinds</span><span class="o">=</span><span class="nb">frozenset</span><span class="p">({</span><span class="s2">"rect"</span><span class="p">,</span> <span class="s2">"path"</span><span class="p">}),</span>
+        <span class="n">golden_frames</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">9</span> <span class="o">/</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">15</span> <span class="o">/</span> <span class="mi">24</span><span class="p">),</span>
+        <span class="n">golden_note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"the delivered film's COMPOSED frames (an#279, the core corpus): "</span>
+            <span class="s2">"`dusk` fades in from black over 0.25 s, then `dawn` dissolves in "</span>
+            <span class="s2">"over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = "</span>
+            <span class="s2">"18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both "</span>
+            <span class="s2">"pictures at once), frame 15 `dawn` alone with its arrow. A "</span>
+            <span class="s2">"regression in the fade colour, the dissolve weights, the overlap "</span>
+            <span class="s2">"arithmetic or the order of the shots moves a golden. The only "</span>
+            <span class="s2">"fixture measured on the film's frames rather than the shots' — "</span>
+            <span class="s2">"what the delivered mp4 shows (an.bench.capture's film segment)."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+
+<span class="c1">#: Copied for the render, but never these: they are the previous render's</span>
+<span class="c1">#: output, and one of them silently extends this one's frame sequence.</span>
+<span class="c1">#: Matched on the **basename**, at any depth — that is exactly what</span>
+<span class="c1">#: ``shutil.ignore_patterns`` does, and it is why ``artifacts/shots`` cannot be</span>
+<span class="c1">#: spelled here. See :data:`IGNORED_RELPATHS_ON_COPY`.</span>
+<span class="n">IGNORED_ON_COPY</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">".an"</span><span class="p">,</span> <span class="s2">"output"</span><span class="p">,</span> <span class="s2">".anima"</span><span class="p">)</span>
+
+<span class="c1">#: Excluded by their path **relative to the project root**, POSIX-spelled.</span>
+<span class="c1">#: ``mall["shots"]`` is ``&lt;project&gt;/artifacts/shots``, and ``artifacts/``</span>
+<span class="c1">#: itself is kept on purpose — it holds the audio cache, whose warm/cold state</span>
+<span class="c1">#: this module records rather than destroys.</span>
+<span class="c1">#:</span>
+<span class="c1">#: Neither spelling belongs in :data:`IGNORED_ON_COPY`, and **both fail</span>
+<span class="c1">#: silently**. ``shutil.ignore_patterns`` returns a closure handed the NAMES</span>
+<span class="c1">#: inside one directory, which it ``fnmatch.filter``s — so ``"artifacts/shots"``</span>
+<span class="c1">#: can never match anything (no name contains a separator) and a bare</span>
+<span class="c1">#: ``"shots"`` would delete every directory of that name **anywhere** in the</span>
+<span class="c1">#: tree, a character rig's included.</span>
+<span class="n">IGNORED_RELPATHS_ON_COPY</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"artifacts/shots"</span><span class="p">,)</span>
+
+<span class="c1">#: Where the renderer leaves its per-shot working tree inside the project.</span>
+<span class="n">RENDER_WORK_RELPATH</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">".an/render_work"</span>
+
+<span class="c1">#: How a shot's frames are named on disk. One constant rather than the literal</span>
+<span class="c1">#: repeated at each glob site.</span>
+<span class="n">FRAME_PNG_GLOB</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"frame_*.png"</span>
+
+
+<div class="viewcode-block" id="CaptureError">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.core_corpus.html#an.bench.core_corpus.CaptureError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">CaptureError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A capture could not produce something the metrics need."""</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ignore_for</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``copytree``'s ``ignore``, for basenames **and** project-relative paths.</span>
+
+<span class="sd">    ``copytree`` calls this once per directory with ``(that directory, the</span>
+<span class="sd">    names in it)``, so a path-shaped exclusion has to be reconstructed from the</span>
+<span class="sd">    directory it is handed — which is precisely why ``shutil.ignore_patterns``</span>
+<span class="sd">    cannot express one, and why asking it to do so is a silent no-op rather</span>
+<span class="sd">    than an error.</span>
+<span class="sd">    """</span>
+    <span class="n">by_name</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">ignore_patterns</span><span class="p">(</span><span class="o">*</span><span class="n">IGNORED_ON_COPY</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">ignore</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">here</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Never seen: `copytree` builds every path it passes here by</span>
+            <span class="c1"># joining onto the one it was given. Raised rather than quietly</span>
+            <span class="c1"># degrading to basenames-only, because under-excluding is the</span>
+            <span class="c1"># defect this function exists to fix and it leaves no trace.</span>
+            <span class="k">raise</span> <span class="n">CaptureError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"stage_copy was asked about </span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2">, which is not under the "</span>
+                <span class="sa">f</span><span class="s2">"fixture root </span><span class="si">{</span><span class="n">fixture_dir</span><span class="si">}</span><span class="s2">, so the path-relative exclusions "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">IGNORED_RELPATHS_ON_COPY</span><span class="si">}</span><span class="s2"> could not be applied to it"</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">here</span> <span class="o">==</span> <span class="s2">"."</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">here</span><span class="si">}</span><span class="s2">/"</span>
+        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">by_name</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">names</span><span class="p">))</span> <span class="o">|</span> <span class="p">{</span>
+            <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">IGNORED_RELPATHS_ON_COPY</span>
+        <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">ignore</span>
+
+
+<div class="viewcode-block" id="stage_copy">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.core_corpus.html#an.bench.core_corpus.stage_copy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stage_copy</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Copy a fixture into ``base``, leaving the previous render behind.</span>
+
+<span class="sd">    Split out of :func:`capture_fixture` so the exclusion is testable without</span>
+<span class="sd">    rendering anything — which matters, because the failure it prevents is</span>
+<span class="sd">    silent. ``frames/`` is never cleared and ffmpeg's image2 demuxer reads the</span>
+<span class="sd">    contiguous ``frame_%06d.png`` run from 0, so a longer previous render is</span>
+<span class="sd">    appended to this one's source leg and to nothing else.</span>
+
+<span class="sd">    Two kinds of exclusion, because one kind cannot say both things:</span>
+<span class="sd">    :data:`IGNORED_ON_COPY` by basename at any depth, and</span>
+<span class="sd">    :data:`IGNORED_RELPATHS_ON_COPY` by path from the project root — which is</span>
+<span class="sd">    the only way to drop ``artifacts/shots`` while keeping ``artifacts/audio``.</span>
+<span class="sd">    """</span>
+    <span class="n">base</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">work_copy</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="n">fixture_dir</span><span class="o">.</span><span class="n">name</span>
+    <span class="k">if</span> <span class="n">work_copy</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">work_copy</span><span class="p">)</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">,</span> <span class="n">work_copy</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="n">_ignore_for</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">work_copy</span></div>
+
+
+
+<div class="viewcode-block" id="compiled_contract_sha256">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.core_corpus.html#an.bench.core_corpus.compiled_contract_sha256">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compiled_contract_sha256</span><span class="p">(</span><span class="n">fixture</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">repo_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The ``scene_contract_sha256`` a render of ``fixture`` would record — no browser.</span>
+
+<span class="sd">    Compiles every timeline shot the way the cutout renderer does (the scene's</span>
+<span class="sd">    size, fps, style pack, default easing and stepped-timing policy, with</span>
+<span class="sd">    ``strict_assets`` as the bench sets it) in a throwaway copy, and hashes the</span>
+<span class="sd">    documents. It is the default-leg twin of :func:`capture_fixture`: the</span>
+<span class="sd">    contract hash is a function of the compiled JSON alone, so the guards that</span>
+<span class="sd">    check it — against the newest ledger row and against each golden's bless</span>
+<span class="sd">    record — run on every PR, not only in the labelled browser lane.</span>
+
+<span class="sd">    It is the contract of a bench render, which passes no overrides: a render</span>
+<span class="sd">    given its own ``step_hz``, fps or resolution compiles something else.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_shot</span><span class="p">,</span> <span class="n">style_pack_for</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_dict</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.contract</span><span class="w"> </span><span class="kn">import</span> <span class="n">scenes_contract_sha256</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_step_hz</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"an-contract-"</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
+        <span class="n">work</span> <span class="o">=</span> <span class="n">stage_copy</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">repo_root</span><span class="p">)</span> <span class="o">/</span> <span class="n">fixture</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">fixture</span><span class="o">.</span><span class="n">prepare</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fixture</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span>
+        <span class="n">style_pack</span> <span class="o">=</span> <span class="n">style_pack_for</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">docs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">to_dict</span><span class="p">(</span>
+                <span class="n">compile_shot</span><span class="p">(</span>
+                    <span class="n">shot</span><span class="p">,</span>
+                    <span class="n">mall</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
+                    <span class="n">fps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">)),</span>
+                    <span class="n">width</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
+                    <span class="n">height</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
+                    <span class="n">strict_assets</span><span class="o">=</span><span class="n">BENCH_RENDER_KWARGS</span><span class="p">[</span><span class="s2">"strict_assets"</span><span class="p">],</span>
+                    <span class="n">step_hz</span><span class="o">=</span><span class="n">resolve_step_hz</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">),</span>
+                    <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack</span><span class="p">,</span>
+                    <span class="n">default_easing</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span>
+        <span class="p">]</span>
+    <span class="k">return</span> <span class="n">scenes_contract_sha256</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#: The id the bench gives an ASSEMBLED film's frames (transitions, a sound</span>
+<span class="c1">#: layer) when it measures them as one segment — what the delivered mp4 shows.</span>
+<span class="n">FILM_SEGMENT_ID</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"film"</span>
+
+<span class="c1">#: Where an assembled scene's composed frames are written, under the render's</span>
+<span class="c1">#: work directory, by :func:`compose_film_frames` (the film itself is a concat</span>
+<span class="c1">#: of segments and never holds them, an#260).</span>
+<span class="n">FILM_FRAMES_RELPATH</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"film_frames"</span>
+
+
+<div class="viewcode-block" id="frames_dir_for">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.core_corpus.html#an.bench.core_corpus.frames_dir_for">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">frames_dir_for</span><span class="p">(</span><span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">shot_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where a render left the frames of ``shot_id`` (or of the composed film).</span>
+
+<span class="sd">    &gt;&gt;&gt; frames_dir_for(Path("w"), "film").as_posix(), frames_dir_for(Path("w"), "a").as_posix()</span>
+<span class="sd">    ('w/film_frames', 'w/shot_a/frames')</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">shot_id</span> <span class="o">==</span> <span class="n">FILM_SEGMENT_ID</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">FILM_FRAMES_RELPATH</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.engines.frame_stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">SHOT_WORKSPACE_PATTERN</span>
+
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">SHOT_WORKSPACE_PATTERN</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">shot_id</span><span class="o">=</span><span class="n">shot_id</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"frames"</span></div>
+
+
+
+<div class="viewcode-block" id="compose_film_frames">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.core_corpus.html#an.bench.core_corpus.compose_film_frames">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compose_film_frames</span><span class="p">(</span><span class="n">scene</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""An assembled scene's composed frames, written under ``work_dir`` from its</span>
+<span class="sd">    shots' frames (:func:`an.assemble.write_film_frames`); ``None`` for a scene</span>
+<span class="sd">    that is a plain concatenation of its shots."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">film_timeline</span><span class="p">,</span> <span class="n">needs_assembly</span><span class="p">,</span> <span class="n">write_film_frames</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
+
+    <span class="n">fps</span> <span class="o">=</span> <span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">frames_dir_for</span><span class="p">(</span><span class="n">work_dir</span><span class="p">,</span> <span class="n">shot</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">]</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span> <span class="o">/</span> <span class="n">FILM_FRAMES_RELPATH</span>
+    <span class="n">write_film_frames</span><span class="p">(</span>
+        <span class="n">film_timeline</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">),</span> <span class="n">fps</span><span class="o">=</span><span class="n">fps</span><span class="p">),</span>
+        <span class="k">lambda</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="n">dirs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">DEFAULT_FRAME_PNG_PATTERN</span> <span class="o">%</span> <span class="n">j</span><span class="p">),</span>
+        <span class="n">out</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<div class="viewcode-block" id="render_fixture">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.core_corpus.html#an.bench.core_corpus.render_fixture">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">render_fixture</span><span class="p">(</span><span class="n">fixture</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">repo_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Render ``fixture`` cold, the way the bench does, in a copy under ``base``.</span>
+
+<span class="sd">    Through the core API only (``an.project.load`` + ``an.render.render``) —</span>
+<span class="sd">    no bench capture code — so it runs with the cut-out genre absent. Returns</span>
+<span class="sd">    the render's work directory.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.render</span><span class="w"> </span><span class="kn">import</span> <span class="n">render</span>
+
+    <span class="n">work</span> <span class="o">=</span> <span class="n">stage_copy</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">repo_root</span><span class="p">)</span> <span class="o">/</span> <span class="n">fixture</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="n">base</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">fixture</span><span class="o">.</span><span class="n">prepare</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fixture</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
+    <span class="n">render</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="o">**</span><span class="n">BENCH_RENDER_KWARGS</span><span class="p">,</span> <span class="n">incremental</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">compose_film_frames</span><span class="p">(</span><span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="p">,</span> <span class="n">work</span> <span class="o">/</span> <span class="n">RENDER_WORK_RELPATH</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">work</span> <span class="o">/</span> <span class="n">RENDER_WORK_RELPATH</span></div>
+
+
+
+<div class="viewcode-block" id="golden_agreement">
+<a class="viewcode-back" href="../../../_autosummary/an.bench.core_corpus.html#an.bench.core_corpus.golden_agreement">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">golden_agreement</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">work_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">chromium_build</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">root</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""``{frame key: (blessed sha256, today's sha256)}`` for every frame the</span>
+<span class="sd">    committed bless record of ``name`` pins, read from a render's work dir.</span>
+
+<span class="sd">    Decoded pixels, never file bytes (``an.bench.golden``'s criterion).</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.golden</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_manifest</span><span class="p">,</span> <span class="n">pixels_sha256</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.png</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_png</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.media.frames</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_FRAME_PNG_PATTERN</span>
+
+    <span class="n">record</span> <span class="o">=</span> <span class="n">load_manifest</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">chromium_build</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="n">root</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">CaptureError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"no bless record for </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> at Chromium </span><span class="si">{</span><span class="n">chromium_build</span><span class="si">}</span><span class="s2">: bless it "</span>
+            <span class="sa">f</span><span class="s1">'(`an bench --scenes </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> --bless "&lt;why&gt;"`)'</span>
+        <span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">record</span><span class="p">[</span><span class="s2">"frames"</span><span class="p">]:</span>
+        <span class="n">png</span> <span class="o">=</span> <span class="n">frames_dir_for</span><span class="p">(</span><span class="n">work_dir</span><span class="p">,</span> <span class="n">frame</span><span class="p">[</span><span class="s2">"shot_id"</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">DEFAULT_FRAME_PNG_PATTERN</span> <span class="o">%</span> <span class="n">frame</span><span class="p">[</span><span class="s2">"local_index"</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">out</span><span class="p">[</span><span class="n">frame</span><span class="p">[</span><span class="s2">"frame_key"</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="s2">"sha256"</span><span class="p">],</span> <span class="n">pixels_sha256</span><span class="p">(</span><span class="n">read_png</span><span class="p">(</span><span class="n">png</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

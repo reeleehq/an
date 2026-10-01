@@ -23,6 +23,7 @@ an.assemble
       shot_parts
       shot_windows
       transition_problems
+      write_film_frames
    
    .. rubric:: Classes
 

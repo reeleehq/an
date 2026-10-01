@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=71dc153a"></script>
+    <script src="../_static/documentation_options.js?v=d5a49123"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.base" href="an.base.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.150" />
+  <meta name="docsearch:version" content="0.1.151" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -349,6 +349,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.core_corpus.html">an.bench.core_corpus</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
@@ -1106,49 +1107,52 @@ screenshot pixels, so a bug in <code class="code docutils literal notranslate"><
 <tr class="row-odd"><td><p><a class="reference internal" href="an.bench.contract.html#module-an.bench.contract" title="an.bench.contract"><code class="xref py py-obj docutils literal notranslate"><span class="pre">contract</span></code></a></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">scene_contract_sha256</span></code>: the fact that decides whether two rows are comparable.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.bench.corpus.html#module-an.bench.corpus" title="an.bench.corpus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">corpus</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.core_corpus.html#module-an.bench.core_corpus" title="an.bench.core_corpus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">core_corpus</span></code></a></p></td>
+<td><p>The core corpus: what <code class="docutils literal notranslate"><span class="pre">an</span></code> renders with no character and no genre (ADR 0001 decision 7).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.corpus.html#module-an.bench.corpus" title="an.bench.corpus"><code class="xref py py-obj docutils literal notranslate"><span class="pre">corpus</span></code></a></p></td>
 <td><p>The bench corpus: which projects are measured, and what each must actually render.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.environment.html#module-an.bench.environment" title="an.bench.environment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environment</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.environment.html#module-an.bench.environment" title="an.bench.environment"><code class="xref py py-obj docutils literal notranslate"><span class="pre">environment</span></code></a></p></td>
 <td><p>The environment tuple — the fields that decide whether two rows may be compared.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.bench.golden.html#module-an.bench.golden" title="an.bench.golden"><code class="xref py py-obj docutils literal notranslate"><span class="pre">golden</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.golden.html#module-an.bench.golden" title="an.bench.golden"><code class="xref py py-obj docutils literal notranslate"><span class="pre">golden</span></code></a></p></td>
 <td><p>The golden gate: committed frames, compared on <strong>decoded pixels</strong>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.imageio.html#module-an.bench.imageio" title="an.bench.imageio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imageio</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.imageio.html#module-an.bench.imageio" title="an.bench.imageio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">imageio</span></code></a></p></td>
 <td><p>The pinned ffmpeg decodes, and the lossless leg every encode-side metric is measured against.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.bench.ledger.html#module-an.bench.ledger" title="an.bench.ledger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ledger</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.ledger.html#module-an.bench.ledger" title="an.bench.ledger"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ledger</span></code></a></p></td>
 <td><p>The ledger: three blocks that must never be mixed, and the guards that keep them apart.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.masks.html#module-an.bench.masks" title="an.bench.masks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">masks</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.masks.html#module-an.bench.masks" title="an.bench.masks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">masks</span></code></a></p></td>
 <td><p>Every mask the panel is computed over, and the recorded operator for each.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.bench.metrics.html#module-an.bench.metrics" title="an.bench.metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.metrics.html#module-an.bench.metrics" title="an.bench.metrics"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics</span></code></a></p></td>
 <td><p>The metric panel: pure numpy, no I/O, no subprocess.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.mutants.html#module-an.bench.mutants" title="an.bench.mutants"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mutants</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.mutants.html#module-an.bench.mutants" title="an.bench.mutants"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mutants</span></code></a></p></td>
 <td><p>The guard mutants: &quot;I mutation-tested it&quot; as a runnable artifact, not a claim.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.bench.mutations.html#module-an.bench.mutations" title="an.bench.mutations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mutations</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.mutations.html#module-an.bench.mutations" title="an.bench.mutations"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mutations</span></code></a></p></td>
 <td><p>The levers: deliberate, declared changes through seams the shipped code already has.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.palette.html#module-an.bench.palette" title="an.bench.palette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">palette</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.palette.html#module-an.bench.palette" title="an.bench.palette"><code class="xref py py-obj docutils literal notranslate"><span class="pre">palette</span></code></a></p></td>
 <td><p>Derive the set of colours a compiled shot declared — never hand-pin it.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.bench.paths.html#module-an.bench.paths" title="an.bench.paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.paths.html#module-an.bench.paths" title="an.bench.paths"><code class="xref py py-obj docutils literal notranslate"><span class="pre">paths</span></code></a></p></td>
 <td><p>Where the bench reads its corpus from and writes its ledger to.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.png.html#module-an.bench.png" title="an.bench.png"><code class="xref py py-obj docutils literal notranslate"><span class="pre">png</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.png.html#module-an.bench.png" title="an.bench.png"><code class="xref py py-obj docutils literal notranslate"><span class="pre">png</span></code></a></p></td>
 <td><p>A filter-0 PNG writer and a full-filter reader — numpy and stdlib only.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.bench.registry.html#module-an.bench.registry" title="an.bench.registry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registry</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.registry.html#module-an.bench.registry" title="an.bench.registry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">registry</span></code></a></p></td>
 <td><p>The metric declaration table — what each number is, and which way it should move.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.run.html#module-an.bench.run" title="an.bench.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="an.bench.run.html#module-an.bench.run" title="an.bench.run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run</span></code></a></p></td>
 <td><p><code class="code docutils literal notranslate"><span class="pre">run_bench</span></code>: render the corpus, compute the panel, write one ledger row.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.bench.stage.html#module-an.bench.stage" title="an.bench.stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.bench.stage.html#module-an.bench.stage" title="an.bench.stage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">stage</span></code></a></p></td>
 <td><p>Measuring a pan: does the stage move as planes, or as one rigid image?</p></td>
 </tr>
 </tbody>

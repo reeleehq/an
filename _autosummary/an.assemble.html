@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=71dc153a"></script>
+    <script src="../_static/documentation_options.js?v=d5a49123"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.adapters.whiteboard" href="an.adapters.whiteboard.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.150" />
+  <meta name="docsearch:version" content="0.1.151" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -349,6 +349,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.bench.capture.html">an.bench.capture</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.compare.html">an.bench.compare</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.contract.html">an.bench.contract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.bench.core_corpus.html">an.bench.core_corpus</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.corpus.html">an.bench.corpus</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.environment.html">an.bench.environment</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.bench.golden.html">an.bench.golden</a></li>
@@ -711,6 +712,9 @@ whatever the transitions do.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.assemble.transition_problems" title="an.assemble.transition_problems"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transition_problems</span></code></a>(shots, fps)</p></td>
 <td><p>Every reason these shots' transitions cannot be assembled, as <code class="docutils literal notranslate"><span class="pre">(shot</span> <span class="pre">index,</span> <span class="pre">message)</span></code>.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.assemble.write_film_frames" title="an.assemble.write_film_frames"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_film_frames</span></code></a>(timeline, frame_of, out_dir, *)</p></td>
+<td><p>Every frame of the film as a PNG, in <code class="docutils literal notranslate"><span class="pre">out_dir</span></code> — what the delivered picture shows, frame for frame, BEFORE it is encoded.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1027,6 +1031,23 @@ picture of one segment has no minimum (there is nothing to concatenate).</p>
 </div>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="an.assemble.write_film_frames">
+<span class="sig-prename descclassname"><span class="pre">an.assemble.</span></span><span class="sig-name descname"><span class="pre">write_film_frames</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_of</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_dir</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/assemble.html#write_film_frames"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.assemble.write_film_frames" title="Link to this definition">#</a></dt>
+<dd><p>Every frame of the film as a PNG, in <code class="docutils literal notranslate"><span class="pre">out_dir</span></code> — what the delivered
+picture shows, frame for frame, BEFORE it is encoded.</p>
+<p>The film itself is a concat of segments (an#260) and never holds this
+sequence on disk; a measurement that needs the composed picture — the
+bench’s reference for an assembled scene (an#279) — builds it here, with
+the same per-frame composition (<code class="xref py py-func docutils literal notranslate"><span class="pre">_compose_frame()</span></code>) the segments use.
+<code class="docutils literal notranslate"><span class="pre">frame_of(i,</span> <span class="pre">j)</span></code> is the PNG of frame <code class="docutils literal notranslate"><span class="pre">j</span></code> of shot <code class="docutils literal notranslate"><span class="pre">i</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -1099,6 +1120,7 @@ picture of one segment has no minimum (there is nothing to concatenate).</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.shot_parts"><code class="docutils literal notranslate"><span class="pre">shot_parts()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.shot_windows"><code class="docutils literal notranslate"><span class="pre">shot_windows()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.transition_problems"><code class="docutils literal notranslate"><span class="pre">transition_problems()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.assemble.write_film_frames"><code class="docutils literal notranslate"><span class="pre">write_film_frames()</span></code></a></li>
 </ul>
   </nav></div>
 

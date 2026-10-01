@@ -9,8 +9,6 @@ an.bench.corpus
    .. autosummary::
    
       SHOT_DIR_GLOB
-      BENCH_RENDER_KWARGS
-      CORPUS_DIRNAME
       DFLT_FIXTURES
    
    .. rubric:: Functions
@@ -21,12 +19,6 @@ an.bench.corpus
       iter_shot_dirs
       staged_scene
       visual_kinds
-   
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      Fixture
    
    .. rubric:: Exceptions
 

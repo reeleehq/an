@@ -54,16 +54,17 @@ whatever the transitions do.
 
 ### Functions
 
-| [`assemble_film`](#an.assemble.assemble_film)(scene, shot_results, output, ...)   | Assemble rendered shots into `output`: the picture as a concat of segments (transitions composed in), then the mix.                                                             |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`duck_gain`](#an.assemble.duck_gain)(t, spans, \*, duck_db, attack, release) | The linear gain a ducked cue plays at, at film time `t` — the spec the ffmpeg expressions (`_duck_expressions()`) are written from.                                             |
-| [`film_duration`](#an.assemble.film_duration)(scene, \*[, fps])                   | Seconds the delivered film runs: the shots' durations, minus each dissolve's overlap.                                                                                           |
-| [`film_timeline`](#an.assemble.film_timeline)(shots, \*, fps)                     | Lay `shots` end to end, overlapping each dissolve.                                                                                                                              |
-| [`needs_assembly`](#an.assemble.needs_assembly)(scene, \*[, fps])                  | True when the scene asks for anything beyond hard cuts and shot audio.                                                                                                          |
-| [`picture_segments`](#an.assemble.picture_segments)(timeline, windows)               | The film's picture as segments, in film order.                                                                                                                                  |
-| [`shot_parts`](#an.assemble.shot_parts)(frames, window, \*, fps, work_dir)     | A rendered shot's [`ShotParts`](#an.assemble.ShotParts) for `window`, from its frames.                                                                     |
-| [`shot_windows`](#an.assemble.shot_windows)(timeline, \*[, min_segment_frames])  | Each shot's [`ShotWindow`](#an.assemble.ShotWindow): the frames its transitions touch, widened until every segment of the picture has `min_segment_frames`. |
-| [`transition_problems`](#an.assemble.transition_problems)(shots, fps)                   | Every reason these shots' transitions cannot be assembled, as `(shot index, message)`.                                                                                          |
+| [`assemble_film`](#an.assemble.assemble_film)(scene, shot_results, output, ...)    | Assemble rendered shots into `output`: the picture as a concat of segments (transitions composed in), then the mix.                                                             |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`duck_gain`](#an.assemble.duck_gain)(t, spans, \*, duck_db, attack, release)  | The linear gain a ducked cue plays at, at film time `t` — the spec the ffmpeg expressions (`_duck_expressions()`) are written from.                                             |
+| [`film_duration`](#an.assemble.film_duration)(scene, \*[, fps])                    | Seconds the delivered film runs: the shots' durations, minus each dissolve's overlap.                                                                                           |
+| [`film_timeline`](#an.assemble.film_timeline)(shots, \*, fps)                      | Lay `shots` end to end, overlapping each dissolve.                                                                                                                              |
+| [`needs_assembly`](#an.assemble.needs_assembly)(scene, \*[, fps])                   | True when the scene asks for anything beyond hard cuts and shot audio.                                                                                                          |
+| [`picture_segments`](#an.assemble.picture_segments)(timeline, windows)                | The film's picture as segments, in film order.                                                                                                                                  |
+| [`shot_parts`](#an.assemble.shot_parts)(frames, window, \*, fps, work_dir)      | A rendered shot's [`ShotParts`](#an.assemble.ShotParts) for `window`, from its frames.                                                                     |
+| [`shot_windows`](#an.assemble.shot_windows)(timeline, \*[, min_segment_frames])   | Each shot's [`ShotWindow`](#an.assemble.ShotWindow): the frames its transitions touch, widened until every segment of the picture has `min_segment_frames`. |
+| [`transition_problems`](#an.assemble.transition_problems)(shots, fps)                    | Every reason these shots' transitions cannot be assembled, as `(shot index, message)`.                                                                                          |
+| [`write_film_frames`](#an.assemble.write_film_frames)(timeline, frame_of, out_dir, \*) | Every frame of the film as a PNG, in `out_dir` — what the delivered picture shows, frame for frame, BEFORE it is encoded.                                                       |
 
 ### Classes
 
@@ -314,3 +315,17 @@ Every reason these shots’ transitions cannot be assembled, as
 >>> transition_problems([Shot(id="a", transition=Transition(kind="dissolve"))], fps=30)
 [(0, "shot 'a' is the first shot, so a dissolve has nothing to dissolve from; use a fade (from a colour) or a cut")]
 ```
+
+### an.assemble.write_film_frames(timeline, frame_of, out_dir, , pattern=None)
+
+Every frame of the film as a PNG, in `out_dir` — what the delivered
+picture shows, frame for frame, BEFORE it is encoded.
+
+The film itself is a concat of segments (an#260) and never holds this
+sequence on disk; a measurement that needs the composed picture — the
+bench’s reference for an assembled scene (an#279) — builds it here, with
+the same per-frame composition (`_compose_frame()`) the segments use.
+`frame_of(i, j)` is the PNG of frame `j` of shot `i`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]

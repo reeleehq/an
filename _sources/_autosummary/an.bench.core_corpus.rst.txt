@@ -1,0 +1,43 @@
+an.bench.core\_corpus
+=====================
+
+.. automodule:: an.bench.core_corpus
+
+   
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      BENCH_RENDER_KWARGS
+      CORPUS_DIRNAME
+      CORE_FIXTURES
+      IGNORED_ON_COPY
+      IGNORED_RELPATHS_ON_COPY
+      RENDER_WORK_RELPATH
+      FRAME_PNG_GLOB
+      FILM_SEGMENT_ID
+      FILM_FRAMES_RELPATH
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compiled_contract_sha256
+      compose_film_frames
+      frames_dir_for
+      golden_agreement
+      render_fixture
+      stage_copy
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      Fixture
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      CaptureError
+   

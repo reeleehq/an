@@ -1,4 +1,4 @@
-> built 2026-10-01 21:11 UTC from bf7b139 (main) · an 0.1.150. Details: build_info.json
+> built 2026-10-01 21:58 UTC from 8c7d847 (main) · an 0.1.151. Details: build_info.json
 
 # index.html.md
 
@@ -2059,16 +2059,17 @@ whatever the transitions do.
 
 ### Functions
 
-| [`assemble_film`](_autosummary/an.assemble.html.md#an.assemble.assemble_film)(scene, shot_results, output, ...)   | Assemble rendered shots into `output`: the picture as a concat of segments (transitions composed in), then the mix.                                                             |
-|----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`duck_gain`](_autosummary/an.assemble.html.md#an.assemble.duck_gain)(t, spans, \*, duck_db, attack, release) | The linear gain a ducked cue plays at, at film time `t` — the spec the ffmpeg expressions (`_duck_expressions()`) are written from.                                             |
-| [`film_duration`](_autosummary/an.assemble.html.md#an.assemble.film_duration)(scene, \*[, fps])                   | Seconds the delivered film runs: the shots' durations, minus each dissolve's overlap.                                                                                           |
-| [`film_timeline`](_autosummary/an.assemble.html.md#an.assemble.film_timeline)(shots, \*, fps)                     | Lay `shots` end to end, overlapping each dissolve.                                                                                                                              |
-| [`needs_assembly`](_autosummary/an.assemble.html.md#an.assemble.needs_assembly)(scene, \*[, fps])                  | True when the scene asks for anything beyond hard cuts and shot audio.                                                                                                          |
-| [`picture_segments`](_autosummary/an.assemble.html.md#an.assemble.picture_segments)(timeline, windows)               | The film's picture as segments, in film order.                                                                                                                                  |
-| [`shot_parts`](_autosummary/an.assemble.html.md#an.assemble.shot_parts)(frames, window, \*, fps, work_dir)     | A rendered shot's [`ShotParts`](_autosummary/an.assemble.html.md#an.assemble.ShotParts) for `window`, from its frames.                                                                     |
-| [`shot_windows`](_autosummary/an.assemble.html.md#an.assemble.shot_windows)(timeline, \*[, min_segment_frames])  | Each shot's [`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow): the frames its transitions touch, widened until every segment of the picture has `min_segment_frames`. |
-| [`transition_problems`](_autosummary/an.assemble.html.md#an.assemble.transition_problems)(shots, fps)                   | Every reason these shots' transitions cannot be assembled, as `(shot index, message)`.                                                                                          |
+| [`assemble_film`](_autosummary/an.assemble.html.md#an.assemble.assemble_film)(scene, shot_results, output, ...)    | Assemble rendered shots into `output`: the picture as a concat of segments (transitions composed in), then the mix.                                                             |
+|-----------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`duck_gain`](_autosummary/an.assemble.html.md#an.assemble.duck_gain)(t, spans, \*, duck_db, attack, release)  | The linear gain a ducked cue plays at, at film time `t` — the spec the ffmpeg expressions (`_duck_expressions()`) are written from.                                             |
+| [`film_duration`](_autosummary/an.assemble.html.md#an.assemble.film_duration)(scene, \*[, fps])                    | Seconds the delivered film runs: the shots' durations, minus each dissolve's overlap.                                                                                           |
+| [`film_timeline`](_autosummary/an.assemble.html.md#an.assemble.film_timeline)(shots, \*, fps)                      | Lay `shots` end to end, overlapping each dissolve.                                                                                                                              |
+| [`needs_assembly`](_autosummary/an.assemble.html.md#an.assemble.needs_assembly)(scene, \*[, fps])                   | True when the scene asks for anything beyond hard cuts and shot audio.                                                                                                          |
+| [`picture_segments`](_autosummary/an.assemble.html.md#an.assemble.picture_segments)(timeline, windows)                | The film's picture as segments, in film order.                                                                                                                                  |
+| [`shot_parts`](_autosummary/an.assemble.html.md#an.assemble.shot_parts)(frames, window, \*, fps, work_dir)      | A rendered shot's [`ShotParts`](_autosummary/an.assemble.html.md#an.assemble.ShotParts) for `window`, from its frames.                                                                     |
+| [`shot_windows`](_autosummary/an.assemble.html.md#an.assemble.shot_windows)(timeline, \*[, min_segment_frames])   | Each shot's [`ShotWindow`](_autosummary/an.assemble.html.md#an.assemble.ShotWindow): the frames its transitions touch, widened until every segment of the picture has `min_segment_frames`. |
+| [`transition_problems`](_autosummary/an.assemble.html.md#an.assemble.transition_problems)(shots, fps)                    | Every reason these shots' transitions cannot be assembled, as `(shot index, message)`.                                                                                          |
+| [`write_film_frames`](_autosummary/an.assemble.html.md#an.assemble.write_film_frames)(timeline, frame_of, out_dir, \*) | Every frame of the film as a PNG, in `out_dir` — what the delivered picture shows, frame for frame, BEFORE it is encoded.                                                       |
 
 ### Classes
 
@@ -2319,6 +2320,20 @@ Every reason these shots’ transitions cannot be assembled, as
 >>> transition_problems([Shot(id="a", transition=Transition(kind="dissolve"))], fps=30)
 [(0, "shot 'a' is the first shot, so a dissolve has nothing to dissolve from; use a fade (from a colour) or a cut")]
 ```
+
+### an.assemble.write_film_frames(timeline, frame_of, out_dir, , pattern=None)
+
+Every frame of the film as a PNG, in `out_dir` — what the delivered
+picture shows, frame for frame, BEFORE it is encoded.
+
+The film itself is a concat of segments (an#260) and never holds this
+sequence on disk; a measurement that needs the composed picture — the
+bench’s reference for an assembled scene (an#279) — builds it here, with
+the same per-frame composition (`_compose_frame()`) the segments use.
+`frame_of(i, j)` is the PNG of frame `j` of shot `i`.
+
+* **Return type:**
+  [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)]
 
 
 # _autosummary/an.audio.cli.html.md
@@ -4948,24 +4963,14 @@ mp4s, and this module’s whole promise is that nothing of a previous render
 crosses. It is gitignored, so it does not reproduce on a clean checkout: a
 per-developer landmine, in the module whose docstring says the opposite.
 
-### Module Attributes
-
-| [`IGNORED_ON_COPY`](_autosummary/an.bench.capture.html.md#an.bench.capture.IGNORED_ON_COPY)          | they are the previous render's output, and one of them silently extends this one's frame sequence.   |
-|---------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| [`IGNORED_RELPATHS_ON_COPY`](_autosummary/an.bench.capture.html.md#an.bench.capture.IGNORED_RELPATHS_ON_COPY) | Excluded by their path **relative to the project root**, POSIX-spelled.                              |
-| [`RENDER_WORK_RELPATH`](_autosummary/an.bench.capture.html.md#an.bench.capture.RENDER_WORK_RELPATH)      | Where the renderer leaves its per-shot working tree inside the project.                              |
-| [`FRAME_PNG_GLOB`](_autosummary/an.bench.capture.html.md#an.bench.capture.FRAME_PNG_GLOB)           | How a shot's frames are named on disk.                                                               |
-
 ### Functions
 
-| [`capture_fixture`](_autosummary/an.bench.capture.html.md#an.bench.capture.capture_fixture)(name, fixture, \*, repo_root)    | Render `fixture` in a throwaway copy and return its artifacts.               |
-|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| [`cleanup`](_autosummary/an.bench.capture.html.md#an.bench.capture.cleanup)(capture)                                 | Remove a capture's throwaway tree.                                           |
-| [`compiled_contract_sha256`](_autosummary/an.bench.capture.html.md#an.bench.capture.compiled_contract_sha256)(fixture, \*, repo_root) | The `scene_contract_sha256` a render of `fixture` would record — no browser. |
-| [`dirty_paths`](_autosummary/an.bench.capture.html.md#an.bench.capture.dirty_paths)(repo_root)                           | `git status --porcelain` lines, so a capture can prove it touched nothing.   |
-| [`distinct_png_sizes`](_autosummary/an.bench.capture.html.md#an.bench.capture.distinct_png_sizes)(frames_dir)                   | Every distinct `(width, height)` among a shot's frame PNGs, sorted.          |
-| [`expected_frame_count`](_autosummary/an.bench.capture.html.md#an.bench.capture.expected_frame_count)(duration, fps)              | The renderer's own frame-count expression, reused rather than restated.      |
-| [`stage_copy`](_autosummary/an.bench.capture.html.md#an.bench.capture.stage_copy)(fixture_dir, base)                    | Copy a fixture into `base`, leaving the previous render behind.              |
+| [`capture_fixture`](_autosummary/an.bench.capture.html.md#an.bench.capture.capture_fixture)(name, fixture, \*, repo_root)   | Render `fixture` in a throwaway copy and return its artifacts.             |
+|--------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| [`cleanup`](_autosummary/an.bench.capture.html.md#an.bench.capture.cleanup)(capture)                                | Remove a capture's throwaway tree.                                         |
+| [`dirty_paths`](_autosummary/an.bench.capture.html.md#an.bench.capture.dirty_paths)(repo_root)                          | `git status --porcelain` lines, so a capture can prove it touched nothing. |
+| [`distinct_png_sizes`](_autosummary/an.bench.capture.html.md#an.bench.capture.distinct_png_sizes)(frames_dir)                  | Every distinct `(width, height)` among a shot's frame PNGs, sorted.        |
+| [`expected_frame_count`](_autosummary/an.bench.capture.html.md#an.bench.capture.expected_frame_count)(duration, fps)             | The renderer's own frame-count expression, reused rather than restated.    |
 
 ### Classes
 
@@ -4975,20 +4980,8 @@ per-developer landmine, in the module whose docstring says the opposite.
 
 ### Exceptions
 
-| [`CaptureError`](_autosummary/an.bench.capture.html.md#an.bench.capture.CaptureError)         | A capture could not produce something the metrics need.           |
-|-----------------------------------------------------------------------|-------------------------------------------------------------------|
-| [`GitStatusUnavailable`](_autosummary/an.bench.capture.html.md#an.bench.capture.GitStatusUnavailable) | `git status` did not answer, so "the tree is clean" is not known. |
-
-### *exception* an.bench.capture.CaptureError
-
-Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
-
-A capture could not produce something the metrics need.
-
-### an.bench.capture.FRAME_PNG_GLOB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'frame_\*.png'*
-
-How a shot’s frames are named on disk. One constant rather than the literal
-repeated at each glob site.
+| [`GitStatusUnavailable`](_autosummary/an.bench.capture.html.md#an.bench.capture.GitStatusUnavailable)   | `git status` did not answer, so "the tree is clean" is not known.   |
+|-------------------------------------------------------------------------|---------------------------------------------------------------------|
 
 ### *exception* an.bench.capture.GitStatusUnavailable
 
@@ -5006,36 +4999,7 @@ a concurrent `git` in a linked worktree of this repo takes `index.lock`,
 been green fifty times. A check that could not run is not evidence that
 nothing is wrong.
 
-### an.bench.capture.IGNORED_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.an', 'output', '.anima')*
-
-they are the previous render’s
-output, and one of them silently extends this one’s frame sequence.
-Matched on the **basename**, at any depth — that is exactly what
-`shutil.ignore_patterns` does, and it is why `artifacts/shots` cannot be
-spelled here. See [`IGNORED_RELPATHS_ON_COPY`](_autosummary/an.bench.capture.html.md#an.bench.capture.IGNORED_RELPATHS_ON_COPY).
-
-* **Type:**
-  Copied for the render, but never these
-
-### an.bench.capture.IGNORED_RELPATHS_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/shots',)*
-
-Excluded by their path **relative to the project root**, POSIX-spelled.
-`mall["shots"]` is `<project>/artifacts/shots`, and `artifacts/`
-itself is kept on purpose — it holds the audio cache, whose warm/cold state
-this module records rather than destroys.
-
-Neither spelling belongs in [`IGNORED_ON_COPY`](_autosummary/an.bench.capture.html.md#an.bench.capture.IGNORED_ON_COPY), and \*\*both fail
-silently\*\*. `shutil.ignore_patterns` returns a closure handed the NAMES
-inside one directory, which it `fnmatch.filter``s — so ``"artifacts/shots"`
-can never match anything (no name contains a separator) and a bare
-`"shots"` would delete every directory of that name **anywhere** in the
-tree, a character rig’s included.
-
-### an.bench.capture.RENDER_WORK_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.an/render_work'*
-
-Where the renderer leaves its per-shot working tree inside the project.
-
-### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>, capture='')
+### *class* an.bench.capture.SceneCapture(name, source, prepared, project_dir, mp4, shots, resolution, fps, duration, n_declared_entity_refs, visual_kinds, asset_resolution, audio_cache, wall_seconds, determinism=<factory>, capture='', film=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
@@ -5048,6 +5012,19 @@ resolved the way the render resolves it. The decoded pixels are the same
 either way, so no metric moves — but `wall_seconds` does, several-fold,
 and a timing row is only readable beside the path that produced it
 (an#192 flipped the default).
+
+#### film *: [ShotCapture](_autosummary/an.bench.capture.html.md#an.bench.capture.ShotCapture) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+An ASSEMBLED scene’s composed frames (transitions, a sound layer —
+`an.assemble`), as one segment: what the delivered mp4 shows. `None`
+for a scene that is the concatenation of its shots, which is every scene
+before an#279’s core corpus. When set, every metric, the golden frames
+and the frame count read IT — pairing the shots’ frames against a film
+whose dissolves overlap them would measure the overlap, not the encoder.
+
+#### *property* frame_segments *: [list](https://docs.python.org/3/builtins/stdtypes.html#list)[[ShotCapture](_autosummary/an.bench.capture.html.md#an.bench.capture.ShotCapture)]*
+
+The frame sequence(s) the delivered mp4 shows, in order.
 
 ### *class* an.bench.capture.ShotCapture(shot_id, frames_dir, scene_json, runtime_dir, frame_count, duration=0.0, frame_sizes=())
 
@@ -5085,24 +5062,6 @@ Remove a capture’s throwaway tree.
 
 * **Return type:**
   [`None`](https://docs.python.org/3/builtins/constants.html#None)
-
-### an.bench.capture.compiled_contract_sha256(fixture, , repo_root)
-
-The `scene_contract_sha256` a render of `fixture` would record — no browser.
-
-Compiles every timeline shot the way the cutout renderer does (the scene’s
-size, fps, style pack, default easing and stepped-timing policy, with
-`strict_assets` as the bench sets it) in a throwaway copy, and hashes the
-documents. It is the default-leg twin of [`capture_fixture()`](_autosummary/an.bench.capture.html.md#an.bench.capture.capture_fixture): the
-contract hash is a function of the compiled JSON alone, so the guards that
-check it — against the newest ledger row and against each golden’s bless
-record — run on every PR, not only in the labelled browser lane.
-
-It is the contract of a bench render, which passes no overrides: a render
-given its own `step_hz`, fps or resolution compiles something else.
-
-* **Return type:**
-  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
 ### an.bench.capture.dirty_paths(repo_root)
 
@@ -5150,24 +5109,6 @@ on every half-frame duration.
 >>> expected_frame_count(0.0, 24)
 1
 ```
-
-### an.bench.capture.stage_copy(fixture_dir, base)
-
-Copy a fixture into `base`, leaving the previous render behind.
-
-Split out of [`capture_fixture()`](_autosummary/an.bench.capture.html.md#an.bench.capture.capture_fixture) so the exclusion is testable without
-rendering anything — which matters, because the failure it prevents is
-silent. `frames/` is never cleared and ffmpeg’s image2 demuxer reads the
-contiguous `frame_%06d.png` run from 0, so a longer previous render is
-appended to this one’s source leg and to nothing else.
-
-Two kinds of exclusion, because one kind cannot say both things:
-[`IGNORED_ON_COPY`](_autosummary/an.bench.capture.html.md#an.bench.capture.IGNORED_ON_COPY) by basename at any depth, and
-[`IGNORED_RELPATHS_ON_COPY`](_autosummary/an.bench.capture.html.md#an.bench.capture.IGNORED_RELPATHS_ON_COPY) by path from the project root — which is
-the only way to drop `artifacts/shots` while keeping `artifacts/audio`.
-
-* **Return type:**
-  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
 
 
 # _autosummary/an.bench.compare.html.md
@@ -5588,6 +5529,259 @@ False
 ```
 
 
+# _autosummary/an.bench.core_corpus.html.md
+
+# an.bench.core_corpus
+
+The core corpus: what `an` renders with no character and no genre (ADR 0001 decision 7).
+
+Before any module leaves `an` for `cutan` (P8), the core keeps a pixel gate
+of its own: **paths, text, planes, camera and transitions**, rendered by the
+stage engine (`an.stage`) with no character, with goldens and contract hashes
+of their own. These scenes are [`CORE_FIXTURES`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.CORE_FIXTURES):
+
+They live beside the cut-out corpus in `misc/bench/corpus/` and run in the
+same `an bench` (the cut-out corpus imports them, in
+[`an.bench.corpus`](_autosummary/an.bench.corpus.html.md#module-an.bench.corpus)), so they are blessed by the same protocol and their
+contract hashes are checked by the same default-leg guard. What makes them the
+CORE corpus is what they need: `tests/test_core_corpus.py` renders every one
+of them with NO GENRE REGISTERED and checks each pinned frame against its bless
+record. That they render with no cut-out CODE is not proven yet — the stage
+compiler still imports and runs `an.characters` — and is the strict-xfail
+proof P8’s B0c (an#225) flips. When the cut-out corpus moves to `cutan`, this
+module, the scenes and their goldens stay.
+
+This module is CORE (behind no firewall): the fixture type, the pinned render
+knobs, the throwaway copy and the browser-free contract hash moved here from
+[`an.bench.corpus`](_autosummary/an.bench.corpus.html.md#module-an.bench.corpus) and [`an.bench.capture`](_autosummary/an.bench.capture.html.md#module-an.bench.capture) (genre), which re-export
+them. Nothing here imports the stage at module level.
+
+```pycon
+>>> sorted(CORE_FIXTURES)
+['path_draw', 'stage_pan', 'text_card', 'transitions']
+```
+
+### Module Attributes
+
+| [`BENCH_RENDER_KWARGS`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.BENCH_RENDER_KWARGS)      | Rendering knobs pinned for every bench capture, recorded verbatim into the ledger.                                                                                                                                                           |
+|---------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CORPUS_DIRNAME`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.CORPUS_DIRNAME)           | Where the bench-owned fixtures live.                                                                                                                                                                                                         |
+| [`CORE_FIXTURES`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.CORE_FIXTURES)            | The core corpus (see the module docstring).                                                                                                                                                                                                  |
+| [`IGNORED_ON_COPY`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.IGNORED_ON_COPY)          | they are the previous render's output, and one of them silently extends this one's frame sequence.                                                                                                                                           |
+| [`IGNORED_RELPATHS_ON_COPY`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.IGNORED_RELPATHS_ON_COPY) | Excluded by their path **relative to the project root**, POSIX-spelled.                                                                                                                                                                      |
+| [`RENDER_WORK_RELPATH`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.RENDER_WORK_RELPATH)      | Where the renderer leaves its per-shot working tree inside the project.                                                                                                                                                                      |
+| [`FRAME_PNG_GLOB`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.FRAME_PNG_GLOB)           | How a shot's frames are named on disk.                                                                                                                                                                                                       |
+| [`FILM_SEGMENT_ID`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.FILM_SEGMENT_ID)          | The id the bench gives an ASSEMBLED film's frames (transitions, a sound layer) when it measures them as one segment — what the delivered mp4 shows.                                                                                          |
+| [`FILM_FRAMES_RELPATH`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.FILM_FRAMES_RELPATH)      | Where an assembled scene's composed frames are written, under the render's work directory, by [`compose_film_frames()`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.compose_film_frames) (the film itself is a concat of segments and never holds them, an#260). |
+
+### Functions
+
+| [`compiled_contract_sha256`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.compiled_contract_sha256)(fixture, \*, repo_root)   | The `scene_contract_sha256` a render of `fixture` would record — no browser.                                                                                                                                                                                           |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`compose_film_frames`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.compose_film_frames)(scene, work_dir)               | An assembled scene's composed frames, written under `work_dir` from its shots' frames ([`an.assemble.write_film_frames()`](_autosummary/an.assemble.html.md#an.assemble.write_film_frames)); `None` for a scene that is a plain concatenation of its shots. |
+| [`frames_dir_for`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.frames_dir_for)(work_dir, shot_id)                  | Where a render left the frames of `shot_id` (or of the composed film).                                                                                                                                                                                                 |
+| [`golden_agreement`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.golden_agreement)(name, work_dir, \*, ...[, root])  | `{frame key: (blessed sha256, today's sha256)}` for every frame the committed bless record of `name` pins, read from a render's work dir.                                                                                                                              |
+| [`render_fixture`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.render_fixture)(fixture, \*, repo_root, base)       | Render `fixture` cold, the way the bench does, in a copy under `base`.                                                                                                                                                                                                 |
+| [`stage_copy`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.stage_copy)(fixture_dir, base)                      | Copy a fixture into `base`, leaving the previous render behind.                                                                                                                                                                                                        |
+
+### Classes
+
+| [`Fixture`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)(path[, prepare, ...])   | A corpus scene: where it lives, how to build it, what it must render.   |
+|----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+
+### Exceptions
+
+| [`CaptureError`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.CaptureError)   | A capture could not produce something the metrics need.   |
+|-----------------------------------------------------------------|-----------------------------------------------------------|
+
+### an.bench.core_corpus.BENCH_RENDER_KWARGS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'auto_audio': False, 'parallel': 1, 'strict_assets': True}*
+
+Rendering knobs pinned for every bench capture, recorded verbatim into the
+ledger. NOT flags: a bench whose render knobs vary per invocation produces
+incomparable rows.
+
+`auto_audio=False` because audio cannot move a pixel and would otherwise
+make the frames depend on the audio cache’s warm/cold state; `parallel=1`
+because a timing-sensitive pool is one more thing to explain if the pixels
+ever do differ; `strict_assets=True` because a stand-in asset renders
+happily as a DIFFERENT picture (an#33).
+
+### an.bench.core_corpus.CORE_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
+
+The core corpus (see the module docstring).
+
+### an.bench.core_corpus.CORPUS_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'misc/bench/corpus'*
+
+Where the bench-owned fixtures live. NOT under `examples/`, and the reason
+is mechanical rather than tidiness: `.gitignore` excludes every
+`examples/*/assets/`, so a corpus scene that needs committed art cannot live
+there without a carve-out per scene. `misc/` is not ignored at all.
+
+The second reason is that a metrics fixture must **hold still**. These four
+carry their whole rig as committed files and have no `prepare` step, so
+their pixels are a function of the repo alone — where `promote_demo`’s are a
+function of `an.characters.promote`, and would need re-blessing whenever that
+changes.
+
+### *exception* an.bench.core_corpus.CaptureError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+A capture could not produce something the metrics need.
+
+### an.bench.core_corpus.FILM_FRAMES_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'film_frames'*
+
+Where an assembled scene’s composed frames are written, under the render’s
+work directory, by [`compose_film_frames()`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.compose_film_frames) (the film itself is a concat
+of segments and never holds them, an#260).
+
+### an.bench.core_corpus.FILM_SEGMENT_ID *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'film'*
+
+The id the bench gives an ASSEMBLED film’s frames (transitions, a sound
+layer) when it measures them as one segment — what the delivered mp4 shows.
+
+### an.bench.core_corpus.FRAME_PNG_GLOB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'frame_\*.png'*
+
+How a shot’s frames are named on disk. One constant rather than the literal
+repeated at each glob site.
+
+### *class* an.bench.core_corpus.Fixture(path, prepare=None, expect_visual_kinds=frozenset({}), golden_frames=<factory>, golden_note='')
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A corpus scene: where it lives, how to build it, what it must render.
+
+#### expect_visual_kinds *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)*
+
+Visual kinds the staged scene MUST contain — see the module docstring.
+
+#### golden_frames *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), ...]*
+
+Times (seconds, into the scene’s CONCATENATED timeline) at which a
+golden frame is blessed. Two per scene, the second chosen so something
+has actually moved — `--bless` refuses a pair whose two frames are
+pixel-identical, which is not hypothetical: `promote_demo`’s frame 0 and
+its `duration/2` frame differ by exactly **zero** pixels.
+
+#### golden_note *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
+
+One line saying what moves between the two golden times. Carried as data
+because “pick a time where something moved” is a rule that decays into a
+habit, and the reason is what a reviewer needs when a golden goes red.
+
+#### prepare *: [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path)], [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+Run against the throwaway copy before loading, to regenerate build
+products the repo does not track.
+
+### an.bench.core_corpus.IGNORED_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('.an', 'output', '.anima')*
+
+they are the previous render’s
+output, and one of them silently extends this one’s frame sequence.
+Matched on the **basename**, at any depth — that is exactly what
+`shutil.ignore_patterns` does, and it is why `artifacts/shots` cannot be
+spelled here. See [`IGNORED_RELPATHS_ON_COPY`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.IGNORED_RELPATHS_ON_COPY).
+
+* **Type:**
+  Copied for the render, but never these
+
+### an.bench.core_corpus.IGNORED_RELPATHS_ON_COPY *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('artifacts/shots',)*
+
+Excluded by their path **relative to the project root**, POSIX-spelled.
+`mall["shots"]` is `<project>/artifacts/shots`, and `artifacts/`
+itself is kept on purpose — it holds the audio cache, whose warm/cold state
+this module records rather than destroys.
+
+Neither spelling belongs in [`IGNORED_ON_COPY`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.IGNORED_ON_COPY), and \*\*both fail
+silently\*\*. `shutil.ignore_patterns` returns a closure handed the NAMES
+inside one directory, which it `fnmatch.filter``s — so ``"artifacts/shots"`
+can never match anything (no name contains a separator) and a bare
+`"shots"` would delete every directory of that name **anywhere** in the
+tree, a character rig’s included.
+
+### an.bench.core_corpus.RENDER_WORK_RELPATH *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '.an/render_work'*
+
+Where the renderer leaves its per-shot working tree inside the project.
+
+### an.bench.core_corpus.compiled_contract_sha256(fixture, , repo_root)
+
+The `scene_contract_sha256` a render of `fixture` would record — no browser.
+
+Compiles every timeline shot the way the cutout renderer does (the scene’s
+size, fps, style pack, default easing and stepped-timing policy, with
+`strict_assets` as the bench sets it) in a throwaway copy, and hashes the
+documents. It is the default-leg twin of `capture_fixture()`: the
+contract hash is a function of the compiled JSON alone, so the guards that
+check it — against the newest ledger row and against each golden’s bless
+record — run on every PR, not only in the labelled browser lane.
+
+It is the contract of a bench render, which passes no overrides: a render
+given its own `step_hz`, fps or resolution compiles something else.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+### an.bench.core_corpus.compose_film_frames(scene, work_dir)
+
+An assembled scene’s composed frames, written under `work_dir` from its
+shots’ frames ([`an.assemble.write_film_frames()`](_autosummary/an.assemble.html.md#an.assemble.write_film_frames)); `None` for a scene
+that is a plain concatenation of its shots.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.bench.core_corpus.frames_dir_for(work_dir, shot_id)
+
+Where a render left the frames of `shot_id` (or of the composed film).
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+```pycon
+>>> frames_dir_for(Path("w"), "film").as_posix(), frames_dir_for(Path("w"), "a").as_posix()
+('w/film_frames', 'w/shot_a/frames')
+```
+
+### an.bench.core_corpus.golden_agreement(name, work_dir, , chromium_build, root=None)
+
+`{frame key: (blessed sha256, today's sha256)}` for every frame the
+committed bless record of `name` pins, read from a render’s work dir.
+
+Decoded pixels, never file bytes (`an.bench.golden`’s criterion).
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+### an.bench.core_corpus.render_fixture(fixture, , repo_root, base)
+
+Render `fixture` cold, the way the bench does, in a copy under `base`.
+
+Through the core API only (`an.project.load` + `an.render.render`) —
+no bench capture code — so it runs with the cut-out genre absent. Returns
+the render’s work directory.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+### an.bench.core_corpus.stage_copy(fixture_dir, base)
+
+Copy a fixture into `base`, leaving the previous render behind.
+
+Split out of `capture_fixture()` so the exclusion is testable without
+rendering anything — which matters, because the failure it prevents is
+silent. `frames/` is never cleared and ffmpeg’s image2 demuxer reads the
+contiguous `frame_%06d.png` run from 0, so a longer previous render is
+appended to this one’s source leg and to nothing else.
+
+Two kinds of exclusion, because one kind cannot say both things:
+[`IGNORED_ON_COPY`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.IGNORED_ON_COPY) by basename at any depth, and
+[`IGNORED_RELPATHS_ON_COPY`](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.IGNORED_RELPATHS_ON_COPY) by path from the project root — which is
+the only way to drop `artifacts/shots` while keeping `artifacts/audio`.
+
+* **Return type:**
+  [`Path`](https://docs.python.org/3/library/pathlib.html#pathlib.Path)
+
+
 # _autosummary/an.bench.corpus.html.md
 
 # an.bench.corpus
@@ -5608,11 +5802,9 @@ scene JSON **the browser actually loaded** — an independent second opinion to
 
 ### Module Attributes
 
-| [`SHOT_DIR_GLOB`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.SHOT_DIR_GLOB)       | Per-shot subdirectory naming inside `.an/render_work`, and the staged scene filename.                                                                                                                                  |
-|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`BENCH_RENDER_KWARGS`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.BENCH_RENDER_KWARGS) | Rendering knobs pinned for every bench capture, recorded verbatim into the ledger.                                                                                                                                     |
-| [`CORPUS_DIRNAME`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.CORPUS_DIRNAME)      | Where the bench-owned fixtures live.                                                                                                                                                                                   |
-| [`DFLT_FIXTURES`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.DFLT_FIXTURES)       | the descriptor (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the procedural one (2.94% vs 0.24% of pixels under GPU-vs-software), so a procedural-only corpus under-reports the case that matters. |
+| [`SHOT_DIR_GLOB`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.SHOT_DIR_GLOB)   | Per-shot subdirectory naming inside `.an/render_work`, and the staged scene filename.                                                                                                                                  |
+|------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`DFLT_FIXTURES`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.DFLT_FIXTURES)   | the descriptor (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the procedural one (2.94% vs 0.24% of pixels under GPU-vs-software), so a procedural-only corpus under-reports the case that matters. |
 
 ### Functions
 
@@ -5622,40 +5814,10 @@ scene JSON **the browser actually loaded** — an independent second opinion to
 | [`staged_scene`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.staged_scene)(shot_dir)                     | The compiled scene JSON the browser actually loaded, for one shot.      |
 | [`visual_kinds`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.visual_kinds)(scene_json)                   | Every `visual.kind` in a staged scene's node tree.                      |
 
-### Classes
-
-| [`Fixture`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)(path[, prepare, ...])   | A corpus scene: where it lives, how to build it, what it must render.   |
-|----------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-
 ### Exceptions
 
 | [`CorpusError`](_autosummary/an.bench.corpus.html.md#an.bench.corpus.CorpusError)   | A fixture did not render what it declared.   |
 |----------------------------------------------------------------|----------------------------------------------|
-
-### an.bench.corpus.BENCH_RENDER_KWARGS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Any](https://docs.python.org/3/library/typing.html#typing.Any)]* *= {'auto_audio': False, 'parallel': 1, 'strict_assets': True}*
-
-Rendering knobs pinned for every bench capture, recorded verbatim into the
-ledger. NOT flags: a bench whose render knobs vary per invocation produces
-incomparable rows.
-
-`auto_audio=False` because audio cannot move a pixel and would otherwise
-make the frames depend on the audio cache’s warm/cold state; `parallel=1`
-because a timing-sensitive pool is one more thing to explain if the pixels
-ever do differ; `strict_assets=True` because a stand-in asset renders
-happily as a DIFFERENT picture (an#33).
-
-### an.bench.corpus.CORPUS_DIRNAME *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'misc/bench/corpus'*
-
-Where the bench-owned fixtures live. NOT under `examples/`, and the reason
-is mechanical rather than tidiness: `.gitignore` excludes every
-`examples/*/assets/`, so a corpus scene that needs committed art cannot live
-there without a carve-out per scene. `misc/` is not ignored at all.
-
-The second reason is that a metrics fixture must **hold still**. These four
-carry their whole rig as committed files and have no `prepare` step, so
-their pixels are a function of the repo alone — where `promote_demo`’s are a
-function of `an.characters.promote`, and would need re-blessing whenever that
-changes.
 
 ### *exception* an.bench.corpus.CorpusError
 
@@ -5663,7 +5825,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse', 'mouth', 'eye'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.core_corpus.html.md#an.bench.core_corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'mouth', 'eye', 'rect', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset."), 'text_card': Fixture(path='misc/bench/corpus/text_card', prepare=None, expect_visual_kinds=frozenset({'rect', 'svg_sprite'}), golden_frames=(0.0, 0.3333333333333333), golden_note="text under a camera push-in and roll (an#279, the core corpus): two OVERLAY words fading in one after the other (\`word_1\` starts 0.125 s after \`word_0\`) and a WORLD label on a plane block, while the camera zooms 1.0 -> 1.3 and rolls 0.12 rad. What moves between the goldens: the words' alpha (frame 0 shows neither), the label and block growing and turning with the camera, and the overlay title NOT turning — a regression that put overlay text in the world, broke per-word addressing or the camera's zoom/roll moves a golden. The face is Pillow's embedded Aileron, so the glyphs do not depend on the machine's fonts."), 'transitions': Fixture(path='misc/bench/corpus/transitions', prepare=None, expect_visual_kinds=frozenset({'rect', 'path'}), golden_frames=(0.08333333333333333, 0.375, 0.625), golden_note="the delivered film's COMPOSED frames (an#279, the core corpus): \`dusk\` fades in from black over 0.25 s, then \`dawn\` dissolves in over 0.25 s (frames 6-11 are the blend; the film is 12 + 12 - 6 = 18 frames). Frame 2 is mid-fade, frame 9 mid-dissolve (both pictures at once), frame 15 \`dawn\` alone with its arrow. A regression in the fade colour, the dissolve weights, the overlap arithmetic or the order of the shots moves a golden. The only fixture measured on the film's frames rather than the shots' — what the delivered mp4 shows (an.bench.capture's film segment).")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -5710,35 +5872,6 @@ sensitivity the cross-arch work measured, not as AA witnesses.
 
 * **Type:**
   The corpus. One fixture per render path, deliberately both
-
-### *class* an.bench.corpus.Fixture(path, prepare=None, expect_visual_kinds=frozenset({}), golden_frames=<factory>, golden_note='')
-
-Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
-
-A corpus scene: where it lives, how to build it, what it must render.
-
-#### expect_visual_kinds *: [frozenset](https://docs.python.org/3/builtins/stdtypes.html#frozenset)*
-
-Visual kinds the staged scene MUST contain — see the module docstring.
-
-#### golden_frames *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[float](https://docs.python.org/3/builtins/functions.html#float), ...]*
-
-Times (seconds, into the scene’s CONCATENATED timeline) at which a
-golden frame is blessed. Two per scene, the second chosen so something
-has actually moved — `--bless` refuses a pair whose two frames are
-pixel-identical, which is not hypothetical: `promote_demo`’s frame 0 and
-its `duration/2` frame differ by exactly **zero** pixels.
-
-#### golden_note *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)*
-
-One line saying what moves between the two golden times. Carried as data
-because “pick a time where something moved” is a rule that decays into a
-habit, and the reason is what a reviewer needs when a golden goes red.
-
-#### prepare *: [Callable](https://docs.python.org/3/library/typing.html#typing.Callable)[[[Path](https://docs.python.org/3/library/pathlib.html#pathlib.Path)], [None](https://docs.python.org/3/builtins/constants.html#None)] | [None](https://docs.python.org/3/builtins/constants.html#None)*
-
-Run against the throwaway copy before loading, to regenerate build
-products the repo does not track.
 
 ### an.bench.corpus.SHOT_DIR_GLOB *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'shot_\*'*
 
@@ -6600,6 +6733,7 @@ screenshot pixels, so a bug in `an`’s own encoder cannot hide”.
 |------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
 | [`compare`](_autosummary/an.bench.compare.html.md#module-an.bench.compare)         | `an bench --compare`: read two ledger rows, and **refuse when they are not comparable**.      |
 | [`contract`](_autosummary/an.bench.contract.html.md#module-an.bench.contract)       | `scene_contract_sha256`: the fact that decides whether two rows are comparable.               |
+| [`core_corpus`](_autosummary/an.bench.core_corpus.html.md#module-an.bench.core_corpus) | The core corpus: what `an` renders with no character and no genre (ADR 0001 decision 7).      |
 | [`corpus`](_autosummary/an.bench.corpus.html.md#module-an.bench.corpus)           | The bench corpus: which projects are measured, and what each must actually render.            |
 | [`environment`](_autosummary/an.bench.environment.html.md#module-an.bench.environment) | The environment tuple — the fields that decide whether two rows may be compared.              |
 | [`golden`](_autosummary/an.bench.golden.html.md#module-an.bench.golden)           | The golden gate: committed frames, compared on **decoded pixels**.                            |
@@ -7892,7 +8026,7 @@ gives — “you stopped it” and “a guard is decoration” are different ans
 * **Type:**
   What the CLI exits with after an interrupted sweep
 
-### an.bench.mutants.MUTANTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mutant](_autosummary/an.bench.mutants.html.md#an.bench.mutants.Mutant), ...]* *= (Mutant(name='png_paeth_tiebreak', file='an/bench/png.py', old='if (pa <= pb and pa <= pc) else (b if pb <= pc else c)', new='if (pa <= pb and pa <= pc) else (b if pb < pc else c)', caught_by='tests/test_bench_png.py', why="the Paeth predictor's tie-break. Wrong, it still decodes this module's own filter-0 output perfectly and corrupts every real Chromium frame — the exact asymmetry that makes an encoder validating its own decoder worthless."), Mutant(name='png_first_idat_only', file='an/bench/png.py', old='            idat.append(payload)', new='            idat = [payload]', caught_by='tests/test_bench_png.py', why='Chromium splits the stream: a real frame has 2-9 IDAT chunks and our own output has one, so a first-chunk-only reader passes its own tests and fails on everything else.'), Mutant(name='png_no_write_verification', file='an/bench/png.py', old='    if not np.array_equal(decode_png(out.read_bytes()), np.asarray(rgb)):', new='    if False:', caught_by='tests/test_bench_png.py', why="the only thing between a bug in this module's own encoder and a committed golden that silently disagrees with the frame it was blessed from."), Mutant(name='golden_criterion_becomes_file_bytes', file='an/bench/golden.py', old='    digest.update(f"{arr.dtype.str}:{arr.shape}|".encode("ascii"))', new='    pass', caught_by='tests/test_bench_golden.py', why='\`ndarray.tobytes()\` carries no shape, so a transposed frame hashes identically and satisfies the criterion an#38 literally states.'), Mutant(name='golden_blesses_a_blank_reason', file='an/bench/golden.py', old='    if not reason.strip():', new='    if reason is None:', caught_by='tests/test_bench_golden.py', why='a re-bless with no recorded reason is the same failure as a silently widened threshold — the named failure mode this wave exists to end.'), Mutant(name='golden_blesses_an_identical_pair', file='an/bench/golden.py', old='            if np.array_equal(decoded[i], decoded[j]):', new='            if False:', caught_by='tests/test_bench_golden.py', why='measured on \`promote_demo\`: frame 0 and the duration/2 frame differ by ZERO pixels, so the obvious second time blesses one picture twice and the second golden tests nothing forever after.'), Mutant(name='compare_gains_a_tolerance_band', file='an/bench/compare.py', old='    if before == after:\\n        return "no_change"', new='    if abs(float(before) - float(after)) < 1e-9:\\n        return "no_change"', caught_by='tests/test_bench_compare.py', why='two consecutive runs on one machine are bit-identical, so a band can only ever hide a true movement.'), Mutant(name='compare_refuses_on_an_absent_key', file='an/bench/compare.py', old='        elif b is \_ABSENT or a is \_ABSENT:', new='        elif False:', caught_by='tests/test_bench_compare.py', why='the ledger grows additively, so treating absence as difference makes every future field retroactively destroy comparability with every row already written.'), Mutant(name='compare_counts_metrics_not_families', file='an/bench/compare.py', old='        block["family_count"] = len(families)', new='        block["family_count"] = sum(len(v) for v in families.values())', caught_by='tests/test_bench_compare.py', why="counting bare metrics is satisfiable by shipping one signal under three names, which is exactly what family A's three edge metrics would do."), Mutant(name='compare_exempts_the_whole_environment', file='an/bench/compare.py', old='        touched = {t.label for t in MUTATION_TOUCHES.get(mutation, ())}', new='        touched = {i["key"] for i in common + render + encode}', caught_by='tests/test_bench_compare.py', why='the knob the lever pulls is the independent variable; the ISA is not. A blanket exemption lets a row from another machine in through the same door.'), Mutant(name='compare_exempts_by_path_not_by_value', file='an/bench/registry.py', old='        if self.differs_only_in is None:\\n            return True', new='        if True:\\n            return True', caught_by='tests/test_bench_compare.py', why="\`x264_argv\` is the WHOLE encode command, so exempting the path exempts every flag in it. A \`-preset medium\` -> \`-preset veryslow\` change moves every encode-side number and rode in as 'the lever moved it — expected'. The exemption must match the change the lever actually makes."), Mutant(name='compare_trusts_an_edited_prediction', file='an/bench/compare.py', old='    if not isinstance(inline, dict) or not isinstance(declared, dict):\\n        return []', new='    if True:\\n        return []', caught_by='tests/test_bench_compare.py', why="the prediction IS the criterion, and it is read from the after row's inline block alone. Flipping one \`expect\` turns \`contrary\` into \`as_declared\` with nothing else in the report moving — the cheapest possible way to fake a caught mutation."), Mutant(name='compare_lets_a_row_forge_its_own_scope', file='an/bench/compare.py', old='    "comparison_scope",\\n    "reference",', new='    "reference",', caught_by='tests/test_bench_compare.py', why="\`comparison_scope\` decides whether a metric may be compared ACROSS MACHINES, and \`compare\` reads the row's INLINE copy. Editing that one word compared an encode-side metric across a different ISA with no refusal — the single invariant this module exists to hold, defeated from inside the row."), Mutant(name='ledger_substitutes_zero_for_unknown', file='an/bench/ledger.py', old='        if self.state == "measured":\\n            if self.value is None:', new='        if self.state == "measured":\\n            if False:', caught_by='tests/test_bench_ledger_schema.py', why='a substituted number — 0.0 especially — is read downstream as a measurement, which is the unknown-is-not-zero failure the whole schema exists to prevent.'), Mutant(name='ledger_lets_a_tripwire_vanish', file='an/bench/ledger.py', old='    absent_tw = sorted(set(TRIPWIRES) - set(tripwires))', new='    absent_tw = []', caught_by='tests/test_bench_ledger_schema.py', why='a change detector that quietly stopped being computed reads exactly like one that fired and found nothing.'), Mutant(name='registry_counts_a_tautology', file='an/bench/registry.py', old='        if self.expect in ("no_change", "not_applicable") and self.counts:', new='        if False:', caught_by='tests/test_bench_ledger_schema.py', why="'no change by construction' is a tautology; counting it lets any pre-encode statistic pad the witness count for free."), Mutant(name='golden_fabricates_a_zero_pixel_count', file='an/bench/golden.py', old='"changed_px": max((int(f["changed_px"]) for f in compared), default=None),', new='"changed_px": max((int(f["changed_px"] or 0) for f in frames), default=0),', caught_by='tests/test_bench_golden.py', why="a shape mismatch has no per-pixel comparison to count, and turning that into 0 printed 'GOLDEN MISMATCH: 0 px changed' — a fabricated number in the one schema whose whole premise is that unknown is not zero."), Mutant(name='compare_scope_absence_fails_open', file='an/bench/compare.py', old='        if scope not in env_refusals:', new='        if False:', caught_by='tests/test_bench_compare.py', why="an absent \`comparison_scope\` read as 'no refusals apply', so an encode-side metric from another ISA and another x264 build compared cleanly and reported a regression."), Mutant(name='strict_passes_a_comparison_that_compared_nothing', file='an/tools.py', old='            not report.get("answered")', new='            False', caught_by='tests/test_bench_compare.py', why="the documented CI gate exited 0 on a run in which every scene was refused, while printing '0 regression(s)' — a zero the compare module's own docstring calls worse than no number at all."), Mutant(name='cli_returns_nothing_to_the_terminal', file='an/_\_main_\_.py', old='        if result is not None:\\n            typer.echo(result)', new='        pass', caught_by='tests/test_cli_dispatch.py', why='typer discards return values and every \`an.tools\` function returns its report as a string, so the CLI would run correctly and print NOTHING — the worst possible failure for a diagnostic tool.'), Mutant(name='cli_loses_the_signature_that_is_the_command_line', file='an/_\_main_\_.py', old='    @functools.wraps(func)\\n    def run(', new='    def run(', caught_by='tests/test_cli_dispatch.py', why='\`inspect.signature\` follows \`_\_wrapped_\_\`, and that signature IS the command line. Without it typer sees \`(\*args, \*\*kwargs)\` and every flag on all 17 commands disappears at once, while \`--help\` still renders.'), Mutant(name='corpus_reads_shot_order_from_the_directory', file='an/bench/corpus.py', old='    for shot_id in order:\\n        shot_dir = root / f"shot_{shot_id}"', new='    for shot_dir in sorted(root.glob(SHOT_DIR_GLOB)):\\n        shot_id = shot_dir.name[len("shot_") :]', caught_by='tests/test_bench_corpus.py', why="\`an/render.py\` concatenates in timeline order; a directory sort agrees only by luck, and when it does not every encode-side metric pairs one shot's source frames against another's decode."), Mutant(name='reshape_checks_divisibility_not_shape', file='an/bench/imageio.py', old='    if frames is not None and len(buf) != per_frame \* frames:', new='    if False:', caught_by='tests/test_bench_shape_guard.py', why='a k-times supersample makes the decoded buffer exactly k\*\*2 larger, so a divisibility check ALWAYS passes and family A is computed over k\*\*2 as many scrambled frames — plausibly, because at k=2 most horizontal runs survive the wrong reshape.'), Mutant(name='bench_measures_a_supersampled_render', file='an/bench/run.py', old='        if sizes != {capture.resolution}:', new='        if False:', caught_by='tests/test_bench_shape_guard.py', why="\`capture.resolution\` comes from the staged scene's meta and never from a file, so without an independent read of the PNGs' own IHDRs nothing in the pipeline ever compares the declared size to the size on disk."), Mutant(name='png_dimensions_trusts_a_non_ihdr_first_chunk', file='an/bench/png.py', old='    if data[_IHDR_TAG] != b"IHDR":', new='    if False:', caught_by='tests/test_bench_png.py', why='without the tag check the four bytes that happen to sit at offset 16 are returned as a resolution — a plausible number fed straight into the shape guard, which is the failure class an#54 closes.'), Mutant(name='read_png_dimensions_reads_the_whole_file', file='an/bench/png.py', old='        return png_dimensions(handle.read(PNG_HEADER_BYTES))', new='        return png_dimensions(handle.read())', caught_by='tests/test_bench_png.py', why='the answer stays right and the cost stops being free: the bench reads one of these per frame of every shot, and a 1080p frame is megabytes against a 24-byte header.'), Mutant(name='strict_exits_zero_on_a_row_it_cannot_read', file='an/tools.py', old='        if strict:\\n            print(refusal)', new='        if False:\\n            print(refusal)', caught_by='tests/test_bench_compare.py', why='the documented CI gate exited 0 on an unreadable schema_version or an undeclared --mutation — precisely the state a \`--strict --mutation supersample\` run is in before the lever is registered. Same class an#51 closed for the refusal path.'), Mutant(name='latest_rows_orders_by_filename', file='an/bench/compare.py', old='    return sorted(rows, key=key)[-count:]', new='    return sorted(rows, key=lambda p: p.name)[-count:]', caught_by='tests/test_bench_compare.py', why="filenames are <date>-<sha7>.json, so within one date the order is sha HEX order. A re-baseline and its after-run on the same day swap silently when the after-commit's sha sorts lower, and every improvement is then reported as a regression."), Mutant(name='compare_hides_that_a_row_was_blessed', file='an/bench/compare.py', old='            "blessed_scenes": sorted(after["provenance"].get("blessed") or ()),', new='            "blessed_scenes": [],', caught_by='tests/test_bench_compare.py', why="a bless run gates family B \`blessed_this_run\`, and \`format_comparison\` skips \`unchanged\` entries — so family B vanishes from the table entirely. 'Family B agreed' and 'family B was never asked' are the same blank space."), Mutant(name='capture_inherits_the_previous_renders_shots', file='an/bench/capture.py', old='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ("artifacts/shots",)', new='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ()', caught_by='tests/test_bench_corpus.py', why="\`mall['shots']\` is \`<project>/artifacts/shots\`, and it is gitignored — so a previous render's per-shot mp4s cross into every bench run on a developer machine and on no clean checkout, in the module whose docstring is 'do not inherit a stale render'."), Mutant(name='capture_excludes_shots_by_basename_at_any_depth', file='an/bench/capture.py', old='            n for n in names if prefix + n in IGNORED_RELPATHS_ON_COPY', new='            n\\n            for n in names\\n            if n in {p.rsplit("/", 1)[-1] for p in IGNORED_RELPATHS_ON_COPY}', caught_by='tests/test_bench_corpus.py', why="the obvious \`shutil.ignore_patterns('shots')\` spelling, restated. It fnmatches BASENAMES against the names in every directory, so it also deletes a character rig's \`assets/.../shots\` — and the other obvious spelling, \`'artifacts/shots'\` as a pattern, matches NOTHING, because no name contains a separator. Both fail silently."), Mutant(name='bless_names_its_row_after_the_tree_it_did_not_leave', file='an/bench/run.py', old='    return git_state(root) if blessed else git', new='    return git', caught_by='tests/test_bench_bless_protocol.py', why='\`git_state\` is read before the corpus loop and a \`--bless\` run writes inside it, so a bless on a clean tree filed itself as \`<date>-<sha>.json\` — a filename naming a commit whose tree that very run then modified, which is what the \`-dirty\` suffix exists to prevent.'), Mutant(name='golden_trusts_a_frame_its_own_record_disowns', file='an/bench/golden.py', old='        if expected is not None and expected != record["golden_sha256"]:', new='        if False:', caught_by='tests/test_bench_golden.py', why='the bless record and the committed PNG carry the same digest of the same file, written by two different calls. A disagreement means the golden is not the picture a human blessed — an edited file, a half-finished re-bless — and every one of those read as a clean PASS.'), Mutant(name='bench_asks_a_mutated_run_the_unmutated_question', file='an/tools.py', old='            compare_rows(load_row(compare), ledger, mutation=mutation or None)', new='            compare_rows(load_row(compare), ledger)', caught_by='tests/test_bench_mutation_cli.py', why="without the mutation, \`compare\` answers 'is the second row worse' of a run degraded on purpose — so the declared per-mutation predictions are never scored and the an#41 criterion cannot appear in the mandated \`--compare\` artifact at all."), Mutant(name='bench_blesses_a_deliberately_degraded_picture', file='an/tools.py', old='        if bless:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', new='        if False:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', caught_by='tests/test_bench_mutation_cli.py', why='blessing under a lever commits the degraded picture as the reference every future run is measured against — a permanent, silent re-baseline, and the one bless refusal that cannot be recovered by reading the recorded reason.'), Mutant(name='pix_fmt_knob_cannot_reach_the_encode', file='an/media/mp4.py', old='    resolved = pix_fmt or DEFAULT_PIX_FMT', new='    resolved = pix_fmt or "yuv420p"', caught_by='tests/test_encode_pins.py', why='reading the literal instead of the module global severs the seam any outside caller pulls — the same shape hoisting \`DETERMINISTIC_X264_ARGS\` into a default argument would sever for \`high_crf\`. That is why the seam is kept even though an#59 ships no lever — see the note there. (Until an#72 the row would ALSO have said 4:4:4 while the file stayed 4:2:0, because \`environment_record\` re-derived the format from the same global; it is measured off the delivered files now, so the row no longer lies about its own file — only the knob is broken.)'), Mutant(name='mux_argv_is_checked_by_subset_not_equality', file='an/media/mp4.py', old='        "-c:v",\\n        "libx264",\\n        "-pix_fmt",', new='        "-c:v",\\n        "libx264",\\n        "-tune",\\n        "animation",\\n        "-pix_fmt",', caught_by='tests/test_encode_pins.py', why='\`-tune animation\` is a measured-and-rejected flag (0.8%) and this is what adding it looks like. A SUBSET check passes — every pin is still present — and the encode moves and every encode-side metric is silently refused against every committed row. Only argv equality notices.'), Mutant(name='canvas_capture_flips_rows', file='an/stage/canvas_capture.py', old='rgb = image.convert("RGB")', new='rgb = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")', caught_by='tests/test_canvas_capture.py', why='the \`readPixels\` trap in reverse: WebGL readback is bottom-up and a PNG is top-down, so a capture path is one flip away from writing every frame upside down at exactly the declared size — past every shape check. The offline catcher is named here because a sweep runs the whole file per mutant; the browser equivalence gate (tests/test_canvas_capture_equivalence.py) catches the same flip in its own test.'), Mutant(name='capture_page_stops_compositing_the_canvas', file='an/stage/runtime/index.html', old='#stage { display: block; }', new='#stage { display: none; }', caught_by='tests/test_cutout_runtime_files.py', why="an#57's proposal. The element screenshot (the \`--capture screenshot\` path, which shares this page with the canvas default) is a PAGE capture clipped to the element, so hiding the canvas does not make it cheaper — it makes \`Locator.screenshot\` time out after 30 s per frame. The two spellings Playwright does accept return an all-white frame."), Mutant(name='supersample_autodensity_true', file='an/stage/runtime/runtime.js', old='            autoDensity: false,', new='            autoDensity: true,', caught_by='tests/test_bench_supersample_lever.py', why="\`autoDensity: true\` makes Chromium composite the k-times backbuffer down before the screenshot — a blind downscale with no filter choice and no record. The PNGs come out the DECLARED size, so every shape check passes and the whole knob silently measures nothing. It is the option whose name most suggests it is the right one. Lives on the PRODUCT's file since an#58, because the product owns the key."), Mutant(name='supersample_skips_the_frame_stage', file='an/bench/mutations.py', old='        capture.capture_frames = \_capture_then_resolve', new='        capture.capture_frames = original', caught_by='tests/test_bench_supersample_lever.py', why='drops the resolve, leaving k-times PNGs on disk. Before an#54 that was silent — \`_reshape\` checked byte-count divisibility and k\*\*2 always divides — and family A was computed on k\*\*2 scrambled frames that still produced a believable \`edge_transition_width\`. It is a loud refusal now, which is what makes this lever safe to run.'), Mutant(name='supersample_verify_is_merely_not_shipped', file='an/bench/mutations.py', old='    if recorded != expected:', new='    if False:', caught_by='tests/test_bench_supersample_lever.py', why="reduces the supersample fingerprint to \`disabled_aa\`'s inequality, which ANY render lever satisfies — both stage through one seam and both move \`render_side.runtime_sha256\`. A row rendered with \`antialias: false\` then verifies as a supersample row and the whole lever table is written from the wrong lever's numbers."), Mutant(name='edge_masked_colour_count_is_not_masked', file='an/bench/metrics.py', old='    per_frame = [len(np.unique(f[m])) for f, m in zip(packed, edge) if m.any()]', new='    per_frame = [len(np.unique(f)) for f, m in zip(packed, edge) if m.any()]', caught_by='tests/test_bench_metrics.py', why='unmasked it is \`frame_distinct_colours\` under a second name, and the one property the mask does buy — that an interior-only change cannot reach the number — is gone with no other symptom.'), Mutant(name='empty_edge_mask_reads_as_zero_colours', file='an/bench/metrics.py', old='        return float("nan"), 0', new='        return 0.0, 0', caught_by='tests/test_bench_metrics.py', why='a substituted zero is the largest possible DOWNWARD move in the one metric that exists to notice a downward move, on exactly the scenes where the number means nothing at all.'), Mutant(name='lossless_leg_pinned_to_420', file='an/bench/imageio.py', old='        "-pix_fmt",\\n        resolved,\\n        "-qp",', new='        "-pix_fmt",\\n        "yuv420p",\\n        "-qp",', caught_by='tests/test_bench_lossless_leg.py', why='a reference PINNED in the one dimension it has to track. The leg exists to be the plane libx264 received; \`-pix_fmt\` names what libx264 receives, so pinning it does not keep the reference lossless — it makes the reference a different colour pipeline from the delivered file, and every encode-side metric silently acquires the whole 4:2:0 conversion the reference exists to cancel. Distinct from every other entry here because the mutated code stays correct on the default path and is wrong only under a knob: measured on the corpus at 4:4:4, it changes the SIGN of family E on three of ten scenes (an#72).'), Mutant(name='sweep_never_finds_a_reversal', file='an/bench/compare.py', old='    unstable = tally["increase"] > 0 and tally["decrease"] > 0', new='    unstable = tally["increase"] > 0 and tally["decrease"] < 0', caught_by='tests/test_bench_compare.py', why="the robustness gate that stops being able to fire. Every row still carries its sweep and every report still prints a \`sweep\` block reading \`stable\`, so the instrument looks exactly like one that checked and found nothing — while \`graded_field\`'s +84.2% at tol 6, which is -81.6% at tol 8, counts toward family D again (an#140)."), Mutant(name='sweep_counts_a_different_statistic', file='an/bench/metrics.py', old='int((dev > t).sum())', new='int((dev >= t).sum())', caught_by='tests/test_bench_metrics.py', why="a sweep of a statistic the row does not report. Off by one code value, every cell stays a plausible, monotone survival count, and the comparer then certifies the robustness of \`>=\` while the ledger's number is \`>\` (an#140)."), Mutant(name='sweep_deletion_is_excused', file='an/bench/compare.py', old='    spec = declared.get("threshold_sweep")\\n', new='    spec = None\\n', caught_by='tests/test_bench_compare.py', why="a row that declares a threshold sweep and carries none reads as 'written before an#140' — so deleting one field from a row turns an \`unstable\` verdict back into a counted witness, the cheapest possible way to fake a caught mutation."), Mutant(name='strict_passes_an_unstable_movement', file='an/tools.py', old='else bool(report.get("has_regressions") or report.get("unstable"))', new='else bool(report.get("has_regressions"))', caught_by='tests/test_bench_compare.py', why="\`unstable\` is neither a regression nor a pass; with no mutation it means some cell of the metric's own grid got worse. A CI gate that exits 0 on it reads 'cannot tell' as 'fine' (an#140)."))*
+### an.bench.mutants.MUTANTS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[Mutant](_autosummary/an.bench.mutants.html.md#an.bench.mutants.Mutant), ...]* *= (Mutant(name='png_paeth_tiebreak', file='an/bench/png.py', old='if (pa <= pb and pa <= pc) else (b if pb <= pc else c)', new='if (pa <= pb and pa <= pc) else (b if pb < pc else c)', caught_by='tests/test_bench_png.py', why="the Paeth predictor's tie-break. Wrong, it still decodes this module's own filter-0 output perfectly and corrupts every real Chromium frame — the exact asymmetry that makes an encoder validating its own decoder worthless."), Mutant(name='png_first_idat_only', file='an/bench/png.py', old='            idat.append(payload)', new='            idat = [payload]', caught_by='tests/test_bench_png.py', why='Chromium splits the stream: a real frame has 2-9 IDAT chunks and our own output has one, so a first-chunk-only reader passes its own tests and fails on everything else.'), Mutant(name='png_no_write_verification', file='an/bench/png.py', old='    if not np.array_equal(decode_png(out.read_bytes()), np.asarray(rgb)):', new='    if False:', caught_by='tests/test_bench_png.py', why="the only thing between a bug in this module's own encoder and a committed golden that silently disagrees with the frame it was blessed from."), Mutant(name='golden_criterion_becomes_file_bytes', file='an/bench/golden.py', old='    digest.update(f"{arr.dtype.str}:{arr.shape}|".encode("ascii"))', new='    pass', caught_by='tests/test_bench_golden.py', why='\`ndarray.tobytes()\` carries no shape, so a transposed frame hashes identically and satisfies the criterion an#38 literally states.'), Mutant(name='golden_blesses_a_blank_reason', file='an/bench/golden.py', old='    if not reason.strip():', new='    if reason is None:', caught_by='tests/test_bench_golden.py', why='a re-bless with no recorded reason is the same failure as a silently widened threshold — the named failure mode this wave exists to end.'), Mutant(name='golden_blesses_an_identical_pair', file='an/bench/golden.py', old='            if np.array_equal(decoded[i], decoded[j]):', new='            if False:', caught_by='tests/test_bench_golden.py', why='measured on \`promote_demo\`: frame 0 and the duration/2 frame differ by ZERO pixels, so the obvious second time blesses one picture twice and the second golden tests nothing forever after.'), Mutant(name='compare_gains_a_tolerance_band', file='an/bench/compare.py', old='    if before == after:\\n        return "no_change"', new='    if abs(float(before) - float(after)) < 1e-9:\\n        return "no_change"', caught_by='tests/test_bench_compare.py', why='two consecutive runs on one machine are bit-identical, so a band can only ever hide a true movement.'), Mutant(name='compare_refuses_on_an_absent_key', file='an/bench/compare.py', old='        elif b is \_ABSENT or a is \_ABSENT:', new='        elif False:', caught_by='tests/test_bench_compare.py', why='the ledger grows additively, so treating absence as difference makes every future field retroactively destroy comparability with every row already written.'), Mutant(name='compare_counts_metrics_not_families', file='an/bench/compare.py', old='        block["family_count"] = len(families)', new='        block["family_count"] = sum(len(v) for v in families.values())', caught_by='tests/test_bench_compare.py', why="counting bare metrics is satisfiable by shipping one signal under three names, which is exactly what family A's three edge metrics would do."), Mutant(name='compare_exempts_the_whole_environment', file='an/bench/compare.py', old='        touched = {t.label for t in MUTATION_TOUCHES.get(mutation, ())}', new='        touched = {i["key"] for i in common + render + encode}', caught_by='tests/test_bench_compare.py', why='the knob the lever pulls is the independent variable; the ISA is not. A blanket exemption lets a row from another machine in through the same door.'), Mutant(name='compare_exempts_by_path_not_by_value', file='an/bench/registry.py', old='        if self.differs_only_in is None:\\n            return True', new='        if True:\\n            return True', caught_by='tests/test_bench_compare.py', why="\`x264_argv\` is the WHOLE encode command, so exempting the path exempts every flag in it. A \`-preset medium\` -> \`-preset veryslow\` change moves every encode-side number and rode in as 'the lever moved it — expected'. The exemption must match the change the lever actually makes."), Mutant(name='compare_trusts_an_edited_prediction', file='an/bench/compare.py', old='    if not isinstance(inline, dict) or not isinstance(declared, dict):\\n        return []', new='    if True:\\n        return []', caught_by='tests/test_bench_compare.py', why="the prediction IS the criterion, and it is read from the after row's inline block alone. Flipping one \`expect\` turns \`contrary\` into \`as_declared\` with nothing else in the report moving — the cheapest possible way to fake a caught mutation."), Mutant(name='compare_lets_a_row_forge_its_own_scope', file='an/bench/compare.py', old='    "comparison_scope",\\n    "reference",', new='    "reference",', caught_by='tests/test_bench_compare.py', why="\`comparison_scope\` decides whether a metric may be compared ACROSS MACHINES, and \`compare\` reads the row's INLINE copy. Editing that one word compared an encode-side metric across a different ISA with no refusal — the single invariant this module exists to hold, defeated from inside the row."), Mutant(name='ledger_substitutes_zero_for_unknown', file='an/bench/ledger.py', old='        if self.state == "measured":\\n            if self.value is None:', new='        if self.state == "measured":\\n            if False:', caught_by='tests/test_bench_ledger_schema.py', why='a substituted number — 0.0 especially — is read downstream as a measurement, which is the unknown-is-not-zero failure the whole schema exists to prevent.'), Mutant(name='ledger_lets_a_tripwire_vanish', file='an/bench/ledger.py', old='    absent_tw = sorted(set(TRIPWIRES) - set(tripwires))', new='    absent_tw = []', caught_by='tests/test_bench_ledger_schema.py', why='a change detector that quietly stopped being computed reads exactly like one that fired and found nothing.'), Mutant(name='registry_counts_a_tautology', file='an/bench/registry.py', old='        if self.expect in ("no_change", "not_applicable") and self.counts:', new='        if False:', caught_by='tests/test_bench_ledger_schema.py', why="'no change by construction' is a tautology; counting it lets any pre-encode statistic pad the witness count for free."), Mutant(name='golden_fabricates_a_zero_pixel_count', file='an/bench/golden.py', old='"changed_px": max((int(f["changed_px"]) for f in compared), default=None),', new='"changed_px": max((int(f["changed_px"] or 0) for f in frames), default=0),', caught_by='tests/test_bench_golden.py', why="a shape mismatch has no per-pixel comparison to count, and turning that into 0 printed 'GOLDEN MISMATCH: 0 px changed' — a fabricated number in the one schema whose whole premise is that unknown is not zero."), Mutant(name='compare_scope_absence_fails_open', file='an/bench/compare.py', old='        if scope not in env_refusals:', new='        if False:', caught_by='tests/test_bench_compare.py', why="an absent \`comparison_scope\` read as 'no refusals apply', so an encode-side metric from another ISA and another x264 build compared cleanly and reported a regression."), Mutant(name='strict_passes_a_comparison_that_compared_nothing', file='an/tools.py', old='            not report.get("answered")', new='            False', caught_by='tests/test_bench_compare.py', why="the documented CI gate exited 0 on a run in which every scene was refused, while printing '0 regression(s)' — a zero the compare module's own docstring calls worse than no number at all."), Mutant(name='cli_returns_nothing_to_the_terminal', file='an/_\_main_\_.py', old='        if result is not None:\\n            typer.echo(result)', new='        pass', caught_by='tests/test_cli_dispatch.py', why='typer discards return values and every \`an.tools\` function returns its report as a string, so the CLI would run correctly and print NOTHING — the worst possible failure for a diagnostic tool.'), Mutant(name='cli_loses_the_signature_that_is_the_command_line', file='an/_\_main_\_.py', old='    @functools.wraps(func)\\n    def run(', new='    def run(', caught_by='tests/test_cli_dispatch.py', why='\`inspect.signature\` follows \`_\_wrapped_\_\`, and that signature IS the command line. Without it typer sees \`(\*args, \*\*kwargs)\` and every flag on all 17 commands disappears at once, while \`--help\` still renders.'), Mutant(name='corpus_reads_shot_order_from_the_directory', file='an/bench/corpus.py', old='    for shot_id in order:\\n        shot_dir = root / f"shot_{shot_id}"', new='    for shot_dir in sorted(root.glob(SHOT_DIR_GLOB)):\\n        shot_id = shot_dir.name[len("shot_") :]', caught_by='tests/test_bench_corpus.py', why="\`an/render.py\` concatenates in timeline order; a directory sort agrees only by luck, and when it does not every encode-side metric pairs one shot's source frames against another's decode."), Mutant(name='reshape_checks_divisibility_not_shape', file='an/bench/imageio.py', old='    if frames is not None and len(buf) != per_frame \* frames:', new='    if False:', caught_by='tests/test_bench_shape_guard.py', why='a k-times supersample makes the decoded buffer exactly k\*\*2 larger, so a divisibility check ALWAYS passes and family A is computed over k\*\*2 as many scrambled frames — plausibly, because at k=2 most horizontal runs survive the wrong reshape.'), Mutant(name='bench_measures_a_supersampled_render', file='an/bench/run.py', old='        if sizes != {capture.resolution}:', new='        if False:', caught_by='tests/test_bench_shape_guard.py', why="\`capture.resolution\` comes from the staged scene's meta and never from a file, so without an independent read of the PNGs' own IHDRs nothing in the pipeline ever compares the declared size to the size on disk."), Mutant(name='png_dimensions_trusts_a_non_ihdr_first_chunk', file='an/bench/png.py', old='    if data[_IHDR_TAG] != b"IHDR":', new='    if False:', caught_by='tests/test_bench_png.py', why='without the tag check the four bytes that happen to sit at offset 16 are returned as a resolution — a plausible number fed straight into the shape guard, which is the failure class an#54 closes.'), Mutant(name='read_png_dimensions_reads_the_whole_file', file='an/bench/png.py', old='        return png_dimensions(handle.read(PNG_HEADER_BYTES))', new='        return png_dimensions(handle.read())', caught_by='tests/test_bench_png.py', why='the answer stays right and the cost stops being free: the bench reads one of these per frame of every shot, and a 1080p frame is megabytes against a 24-byte header.'), Mutant(name='strict_exits_zero_on_a_row_it_cannot_read', file='an/tools.py', old='        if strict:\\n            print(refusal)', new='        if False:\\n            print(refusal)', caught_by='tests/test_bench_compare.py', why='the documented CI gate exited 0 on an unreadable schema_version or an undeclared --mutation — precisely the state a \`--strict --mutation supersample\` run is in before the lever is registered. Same class an#51 closed for the refusal path.'), Mutant(name='latest_rows_orders_by_filename', file='an/bench/compare.py', old='    return sorted(rows, key=key)[-count:]', new='    return sorted(rows, key=lambda p: p.name)[-count:]', caught_by='tests/test_bench_compare.py', why="filenames are <date>-<sha7>.json, so within one date the order is sha HEX order. A re-baseline and its after-run on the same day swap silently when the after-commit's sha sorts lower, and every improvement is then reported as a regression."), Mutant(name='compare_hides_that_a_row_was_blessed', file='an/bench/compare.py', old='            "blessed_scenes": sorted(after["provenance"].get("blessed") or ()),', new='            "blessed_scenes": [],', caught_by='tests/test_bench_compare.py', why="a bless run gates family B \`blessed_this_run\`, and \`format_comparison\` skips \`unchanged\` entries — so family B vanishes from the table entirely. 'Family B agreed' and 'family B was never asked' are the same blank space."), Mutant(name='capture_inherits_the_previous_renders_shots', file='an/bench/core_corpus.py', old='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ("artifacts/shots",)', new='IGNORED_RELPATHS_ON_COPY: tuple[str, ...] = ()', caught_by='tests/test_bench_corpus.py', why="\`mall['shots']\` is \`<project>/artifacts/shots\`, and it is gitignored — so a previous render's per-shot mp4s cross into every bench run on a developer machine and on no clean checkout, in the module whose docstring is 'do not inherit a stale render'."), Mutant(name='capture_excludes_shots_by_basename_at_any_depth', file='an/bench/core_corpus.py', old='            n for n in names if prefix + n in IGNORED_RELPATHS_ON_COPY', new='            n\\n            for n in names\\n            if n in {p.rsplit("/", 1)[-1] for p in IGNORED_RELPATHS_ON_COPY}', caught_by='tests/test_bench_corpus.py', why="the obvious \`shutil.ignore_patterns('shots')\` spelling, restated. It fnmatches BASENAMES against the names in every directory, so it also deletes a character rig's \`assets/.../shots\` — and the other obvious spelling, \`'artifacts/shots'\` as a pattern, matches NOTHING, because no name contains a separator. Both fail silently."), Mutant(name='bless_names_its_row_after_the_tree_it_did_not_leave', file='an/bench/run.py', old='    return git_state(root) if blessed else git', new='    return git', caught_by='tests/test_bench_bless_protocol.py', why='\`git_state\` is read before the corpus loop and a \`--bless\` run writes inside it, so a bless on a clean tree filed itself as \`<date>-<sha>.json\` — a filename naming a commit whose tree that very run then modified, which is what the \`-dirty\` suffix exists to prevent.'), Mutant(name='golden_trusts_a_frame_its_own_record_disowns', file='an/bench/golden.py', old='        if expected is not None and expected != record["golden_sha256"]:', new='        if False:', caught_by='tests/test_bench_golden.py', why='the bless record and the committed PNG carry the same digest of the same file, written by two different calls. A disagreement means the golden is not the picture a human blessed — an edited file, a half-finished re-bless — and every one of those read as a clean PASS.'), Mutant(name='bench_asks_a_mutated_run_the_unmutated_question', file='an/tools.py', old='            compare_rows(load_row(compare), ledger, mutation=mutation or None)', new='            compare_rows(load_row(compare), ledger)', caught_by='tests/test_bench_mutation_cli.py', why="without the mutation, \`compare\` answers 'is the second row worse' of a run degraded on purpose — so the declared per-mutation predictions are never scored and the an#41 criterion cannot appear in the mandated \`--compare\` artifact at all."), Mutant(name='bench_blesses_a_deliberately_degraded_picture', file='an/tools.py', old='        if bless:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', new='        if False:\\n            return (\\n                "refusing --bless with --mutation: a lever renders a"', caught_by='tests/test_bench_mutation_cli.py', why='blessing under a lever commits the degraded picture as the reference every future run is measured against — a permanent, silent re-baseline, and the one bless refusal that cannot be recovered by reading the recorded reason.'), Mutant(name='pix_fmt_knob_cannot_reach_the_encode', file='an/media/mp4.py', old='    resolved = pix_fmt or DEFAULT_PIX_FMT', new='    resolved = pix_fmt or "yuv420p"', caught_by='tests/test_encode_pins.py', why='reading the literal instead of the module global severs the seam any outside caller pulls — the same shape hoisting \`DETERMINISTIC_X264_ARGS\` into a default argument would sever for \`high_crf\`. That is why the seam is kept even though an#59 ships no lever — see the note there. (Until an#72 the row would ALSO have said 4:4:4 while the file stayed 4:2:0, because \`environment_record\` re-derived the format from the same global; it is measured off the delivered files now, so the row no longer lies about its own file — only the knob is broken.)'), Mutant(name='mux_argv_is_checked_by_subset_not_equality', file='an/media/mp4.py', old='        "-c:v",\\n        "libx264",\\n        "-pix_fmt",', new='        "-c:v",\\n        "libx264",\\n        "-tune",\\n        "animation",\\n        "-pix_fmt",', caught_by='tests/test_encode_pins.py', why='\`-tune animation\` is a measured-and-rejected flag (0.8%) and this is what adding it looks like. A SUBSET check passes — every pin is still present — and the encode moves and every encode-side metric is silently refused against every committed row. Only argv equality notices.'), Mutant(name='canvas_capture_flips_rows', file='an/stage/canvas_capture.py', old='rgb = image.convert("RGB")', new='rgb = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM).convert("RGB")', caught_by='tests/test_canvas_capture.py', why='the \`readPixels\` trap in reverse: WebGL readback is bottom-up and a PNG is top-down, so a capture path is one flip away from writing every frame upside down at exactly the declared size — past every shape check. The offline catcher is named here because a sweep runs the whole file per mutant; the browser equivalence gate (tests/test_canvas_capture_equivalence.py) catches the same flip in its own test.'), Mutant(name='capture_page_stops_compositing_the_canvas', file='an/stage/runtime/index.html', old='#stage { display: block; }', new='#stage { display: none; }', caught_by='tests/test_cutout_runtime_files.py', why="an#57's proposal. The element screenshot (the \`--capture screenshot\` path, which shares this page with the canvas default) is a PAGE capture clipped to the element, so hiding the canvas does not make it cheaper — it makes \`Locator.screenshot\` time out after 30 s per frame. The two spellings Playwright does accept return an all-white frame."), Mutant(name='supersample_autodensity_true', file='an/stage/runtime/runtime.js', old='            autoDensity: false,', new='            autoDensity: true,', caught_by='tests/test_bench_supersample_lever.py', why="\`autoDensity: true\` makes Chromium composite the k-times backbuffer down before the screenshot — a blind downscale with no filter choice and no record. The PNGs come out the DECLARED size, so every shape check passes and the whole knob silently measures nothing. It is the option whose name most suggests it is the right one. Lives on the PRODUCT's file since an#58, because the product owns the key."), Mutant(name='supersample_skips_the_frame_stage', file='an/bench/mutations.py', old='        capture.capture_frames = \_capture_then_resolve', new='        capture.capture_frames = original', caught_by='tests/test_bench_supersample_lever.py', why='drops the resolve, leaving k-times PNGs on disk. Before an#54 that was silent — \`_reshape\` checked byte-count divisibility and k\*\*2 always divides — and family A was computed on k\*\*2 scrambled frames that still produced a believable \`edge_transition_width\`. It is a loud refusal now, which is what makes this lever safe to run.'), Mutant(name='supersample_verify_is_merely_not_shipped', file='an/bench/mutations.py', old='    if recorded != expected:', new='    if False:', caught_by='tests/test_bench_supersample_lever.py', why="reduces the supersample fingerprint to \`disabled_aa\`'s inequality, which ANY render lever satisfies — both stage through one seam and both move \`render_side.runtime_sha256\`. A row rendered with \`antialias: false\` then verifies as a supersample row and the whole lever table is written from the wrong lever's numbers."), Mutant(name='edge_masked_colour_count_is_not_masked', file='an/bench/metrics.py', old='    per_frame = [len(np.unique(f[m])) for f, m in zip(packed, edge) if m.any()]', new='    per_frame = [len(np.unique(f)) for f, m in zip(packed, edge) if m.any()]', caught_by='tests/test_bench_metrics.py', why='unmasked it is \`frame_distinct_colours\` under a second name, and the one property the mask does buy — that an interior-only change cannot reach the number — is gone with no other symptom.'), Mutant(name='empty_edge_mask_reads_as_zero_colours', file='an/bench/metrics.py', old='        return float("nan"), 0', new='        return 0.0, 0', caught_by='tests/test_bench_metrics.py', why='a substituted zero is the largest possible DOWNWARD move in the one metric that exists to notice a downward move, on exactly the scenes where the number means nothing at all.'), Mutant(name='lossless_leg_pinned_to_420', file='an/bench/imageio.py', old='        "-pix_fmt",\\n        resolved,\\n        "-qp",', new='        "-pix_fmt",\\n        "yuv420p",\\n        "-qp",', caught_by='tests/test_bench_lossless_leg.py', why='a reference PINNED in the one dimension it has to track. The leg exists to be the plane libx264 received; \`-pix_fmt\` names what libx264 receives, so pinning it does not keep the reference lossless — it makes the reference a different colour pipeline from the delivered file, and every encode-side metric silently acquires the whole 4:2:0 conversion the reference exists to cancel. Distinct from every other entry here because the mutated code stays correct on the default path and is wrong only under a knob: measured on the corpus at 4:4:4, it changes the SIGN of family E on three of ten scenes (an#72).'), Mutant(name='sweep_never_finds_a_reversal', file='an/bench/compare.py', old='    unstable = tally["increase"] > 0 and tally["decrease"] > 0', new='    unstable = tally["increase"] > 0 and tally["decrease"] < 0', caught_by='tests/test_bench_compare.py', why="the robustness gate that stops being able to fire. Every row still carries its sweep and every report still prints a \`sweep\` block reading \`stable\`, so the instrument looks exactly like one that checked and found nothing — while \`graded_field\`'s +84.2% at tol 6, which is -81.6% at tol 8, counts toward family D again (an#140)."), Mutant(name='sweep_counts_a_different_statistic', file='an/bench/metrics.py', old='int((dev > t).sum())', new='int((dev >= t).sum())', caught_by='tests/test_bench_metrics.py', why="a sweep of a statistic the row does not report. Off by one code value, every cell stays a plausible, monotone survival count, and the comparer then certifies the robustness of \`>=\` while the ledger's number is \`>\` (an#140)."), Mutant(name='sweep_deletion_is_excused', file='an/bench/compare.py', old='    spec = declared.get("threshold_sweep")\\n', new='    spec = None\\n', caught_by='tests/test_bench_compare.py', why="a row that declares a threshold sweep and carries none reads as 'written before an#140' — so deleting one field from a row turns an \`unstable\` verdict back into a counted witness, the cheapest possible way to fake a caught mutation."), Mutant(name='strict_passes_an_unstable_movement', file='an/tools.py', old='else bool(report.get("has_regressions") or report.get("unstable"))', new='else bool(report.get("has_regressions"))', caught_by='tests/test_bench_compare.py', why="\`unstable\` is neither a regression nor a pass; with no mutation it means some cell of the metric's own grid got worse. A CI gate that exits 0 on it reads 'cannot tell' as 'fine' (an#140)."))*
 
 A representative sweep rather than an exhaustive one, chosen so each entry
 pins a *different* class of failure: a silently widened comparison, a guard
@@ -40042,20 +40176,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 21:11 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/bf7b13991b30f034431bd69eff5393fdea53ebba"><code>bf7b139</code></a> on branch <code>main</code>, for **an 0.1.150** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 21:58 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/8c7d84737d5f540e64aa58331b8c6d9ede459995"><code>8c7d847</code></a> on branch <code>main</code>, for **an 0.1.151** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.150) is ahead of the latest release on PyPI (0.1.148): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/bf7b13991b30f034431bd69eff5393fdea53ebba"><code>bf7b13991b30f034431bd69eff5393fdea53ebba</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/8c7d84737d5f540e64aa58331b8c6d9ede459995"><code>8c7d84737d5f540e64aa58331b8c6d9ede459995</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.150</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.151</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -40064,9 +40196,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36925888669">36925888669</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36931138109">36931138109</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>416270172cd4ba540cbbbe4a8c53d9f6b63943ce</code> (in the history of the built commit) |
+| Event commit | <code>448af9e44aa9b5b45f22bfc6f48d6b2272c63296</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -40091,13 +40223,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.148/">0.1.148</a>, older than the documented version (0.1.150).
+Latest release: <a href="https://pypi.org/project/an/0.1.151/">0.1.151</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout bf7b13991b30f034431bd69eff5393fdea53ebba
+git checkout 8c7d84737d5f540e64aa58331b8c6d9ede459995
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

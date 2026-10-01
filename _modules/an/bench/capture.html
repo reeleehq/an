@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=71dc153a"></script>
+    <script src="../../../_static/documentation_options.js?v=d5a49123"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.150" />
+  <meta name="docsearch:version" content="0.1.151" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -741,6 +741,16 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.core_corpus</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>  <span class="c1"># noqa: F401 — moved to the core, re-exported</span>
+    <span class="n">FRAME_PNG_GLOB</span><span class="p">,</span>
+    <span class="n">IGNORED_ON_COPY</span><span class="p">,</span>
+    <span class="n">IGNORED_RELPATHS_ON_COPY</span><span class="p">,</span>
+    <span class="n">RENDER_WORK_RELPATH</span><span class="p">,</span>
+    <span class="n">CaptureError</span><span class="p">,</span>
+    <span class="n">_ignore_for</span><span class="p">,</span>
+    <span class="n">compiled_contract_sha256</span><span class="p">,</span>
+    <span class="n">stage_copy</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.corpus</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">BENCH_RENDER_KWARGS</span><span class="p">,</span>
     <span class="n">Fixture</span><span class="p">,</span>
@@ -750,33 +760,6 @@ window.runMermaid = runMermaid;</script>
     <span class="n">visual_kinds</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.png</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_png_dimensions</span>
-
-<span class="c1">#: Copied for the render, but never these: they are the previous render's</span>
-<span class="c1">#: output, and one of them silently extends this one's frame sequence.</span>
-<span class="c1">#: Matched on the **basename**, at any depth — that is exactly what</span>
-<span class="c1">#: ``shutil.ignore_patterns`` does, and it is why ``artifacts/shots`` cannot be</span>
-<span class="c1">#: spelled here. See :data:`IGNORED_RELPATHS_ON_COPY`.</span>
-<span class="n">IGNORED_ON_COPY</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">".an"</span><span class="p">,</span> <span class="s2">"output"</span><span class="p">,</span> <span class="s2">".anima"</span><span class="p">)</span>
-
-<span class="c1">#: Excluded by their path **relative to the project root**, POSIX-spelled.</span>
-<span class="c1">#: ``mall["shots"]`` is ``&lt;project&gt;/artifacts/shots``, and ``artifacts/``</span>
-<span class="c1">#: itself is kept on purpose — it holds the audio cache, whose warm/cold state</span>
-<span class="c1">#: this module records rather than destroys.</span>
-<span class="c1">#:</span>
-<span class="c1">#: Neither spelling belongs in :data:`IGNORED_ON_COPY`, and **both fail</span>
-<span class="c1">#: silently**. ``shutil.ignore_patterns`` returns a closure handed the NAMES</span>
-<span class="c1">#: inside one directory, which it ``fnmatch.filter``s — so ``"artifacts/shots"``</span>
-<span class="c1">#: can never match anything (no name contains a separator) and a bare</span>
-<span class="c1">#: ``"shots"`` would delete every directory of that name **anywhere** in the</span>
-<span class="c1">#: tree, a character rig's included.</span>
-<span class="n">IGNORED_RELPATHS_ON_COPY</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"artifacts/shots"</span><span class="p">,)</span>
-
-<span class="c1">#: Where the renderer leaves its per-shot working tree inside the project.</span>
-<span class="n">RENDER_WORK_RELPATH</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">".an/render_work"</span>
-
-<span class="c1">#: How a shot's frames are named on disk. One constant rather than the literal</span>
-<span class="c1">#: repeated at each glob site.</span>
-<span class="n">FRAME_PNG_GLOB</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"frame_*.png"</span>
 
 
 <div class="viewcode-block" id="distinct_png_sizes">
@@ -851,126 +834,25 @@ window.runMermaid = runMermaid;</script>
     <span class="c1">#: either way, so no metric moves — but ``wall_seconds`` does, several-fold,</span>
     <span class="c1">#: and a timing row is only readable beside the path that produced it</span>
     <span class="c1">#: (an#192 flipped the default).</span>
-    <span class="n">capture</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span></div>
+    <span class="n">capture</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="c1">#: An ASSEMBLED scene's composed frames (transitions, a sound layer —</span>
+    <span class="c1">#: ``an.assemble``), as one segment: what the delivered mp4 shows. ``None``</span>
+    <span class="c1">#: for a scene that is the concatenation of its shots, which is every scene</span>
+    <span class="c1">#: before an#279's core corpus. When set, every metric, the golden frames</span>
+    <span class="c1">#: and the frame count read IT — pairing the shots' frames against a film</span>
+    <span class="c1">#: whose dissolves overlap them would measure the overlap, not the encoder.</span>
+    <span class="n">film</span><span class="p">:</span> <span class="n">ShotCapture</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 
-
-
-<div class="viewcode-block" id="CaptureError">
-<a class="viewcode-back" href="../../../_autosummary/an.bench.capture.html#an.bench.capture.CaptureError">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">CaptureError</span><span class="p">(</span><span class="ne">RuntimeError</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A capture could not produce something the metrics need."""</span></div>
-
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_ignore_for</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""``copytree``'s ``ignore``, for basenames **and** project-relative paths.</span>
-
-<span class="sd">    ``copytree`` calls this once per directory with ``(that directory, the</span>
-<span class="sd">    names in it)``, so a path-shaped exclusion has to be reconstructed from the</span>
-<span class="sd">    directory it is handed — which is precisely why ``shutil.ignore_patterns``</span>
-<span class="sd">    cannot express one, and why asking it to do so is a silent no-op rather</span>
-<span class="sd">    than an error.</span>
-<span class="sd">    """</span>
-    <span class="n">by_name</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">ignore_patterns</span><span class="p">(</span><span class="o">*</span><span class="n">IGNORED_ON_COPY</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">ignore</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">here</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">)</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="c1"># Never seen: `copytree` builds every path it passes here by</span>
-            <span class="c1"># joining onto the one it was given. Raised rather than quietly</span>
-            <span class="c1"># degrading to basenames-only, because under-excluding is the</span>
-            <span class="c1"># defect this function exists to fix and it leaves no trace.</span>
-            <span class="k">raise</span> <span class="n">CaptureError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"stage_copy was asked about </span><span class="si">{</span><span class="n">path</span><span class="si">!r}</span><span class="s2">, which is not under the "</span>
-                <span class="sa">f</span><span class="s2">"fixture root </span><span class="si">{</span><span class="n">fixture_dir</span><span class="si">}</span><span class="s2">, so the path-relative exclusions "</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">IGNORED_RELPATHS_ON_COPY</span><span class="si">}</span><span class="s2"> could not be applied to it"</span>
-            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
-        <span class="n">prefix</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">here</span> <span class="o">==</span> <span class="s2">"."</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">here</span><span class="si">}</span><span class="s2">/"</span>
-        <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">by_name</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">names</span><span class="p">))</span> <span class="o">|</span> <span class="p">{</span>
-            <span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">IGNORED_RELPATHS_ON_COPY</span>
-        <span class="p">}</span>
-
-    <span class="k">return</span> <span class="n">ignore</span>
-
-
-<div class="viewcode-block" id="stage_copy">
-<a class="viewcode-back" href="../../../_autosummary/an.bench.capture.html#an.bench.capture.stage_copy">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">stage_copy</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Copy a fixture into ``base``, leaving the previous render behind.</span>
-
-<span class="sd">    Split out of :func:`capture_fixture` so the exclusion is testable without</span>
-<span class="sd">    rendering anything — which matters, because the failure it prevents is</span>
-<span class="sd">    silent. ``frames/`` is never cleared and ffmpeg's image2 demuxer reads the</span>
-<span class="sd">    contiguous ``frame_%06d.png`` run from 0, so a longer previous render is</span>
-<span class="sd">    appended to this one's source leg and to nothing else.</span>
-
-<span class="sd">    Two kinds of exclusion, because one kind cannot say both things:</span>
-<span class="sd">    :data:`IGNORED_ON_COPY` by basename at any depth, and</span>
-<span class="sd">    :data:`IGNORED_RELPATHS_ON_COPY` by path from the project root — which is</span>
-<span class="sd">    the only way to drop ``artifacts/shots`` while keeping ``artifacts/audio``.</span>
-<span class="sd">    """</span>
-    <span class="n">base</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">work_copy</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="n">fixture_dir</span><span class="o">.</span><span class="n">name</span>
-    <span class="k">if</span> <span class="n">work_copy</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">work_copy</span><span class="p">)</span>
-    <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">,</span> <span class="n">work_copy</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="n">_ignore_for</span><span class="p">(</span><span class="n">fixture_dir</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">work_copy</span></div>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">frame_segments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ShotCapture</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The frame sequence(s) the delivered mp4 shows, in order."""</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">film</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">film</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shots</span><span class="p">)</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_audio_cache_state</span><span class="p">(</span><span class="n">project_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="n">audio</span> <span class="o">=</span> <span class="n">project_dir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"audio"</span>
     <span class="k">return</span> <span class="s2">"warm"</span> <span class="k">if</span> <span class="n">audio</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">audio</span><span class="o">.</span><span class="n">iterdir</span><span class="p">())</span> <span class="k">else</span> <span class="s2">"cold"</span>
-
-
-<div class="viewcode-block" id="compiled_contract_sha256">
-<a class="viewcode-back" href="../../../_autosummary/an.bench.capture.html#an.bench.capture.compiled_contract_sha256">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">compiled_contract_sha256</span><span class="p">(</span><span class="n">fixture</span><span class="p">:</span> <span class="n">Fixture</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">repo_root</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The ``scene_contract_sha256`` a render of ``fixture`` would record — no browser.</span>
-
-<span class="sd">    Compiles every timeline shot the way the cutout renderer does (the scene's</span>
-<span class="sd">    size, fps, style pack, default easing and stepped-timing policy, with</span>
-<span class="sd">    ``strict_assets`` as the bench sets it) in a throwaway copy, and hashes the</span>
-<span class="sd">    documents. It is the default-leg twin of :func:`capture_fixture`: the</span>
-<span class="sd">    contract hash is a function of the compiled JSON alone, so the guards that</span>
-<span class="sd">    check it — against the newest ledger row and against each golden's bless</span>
-<span class="sd">    record — run on every PR, not only in the labelled browser lane.</span>
-
-<span class="sd">    It is the contract of a bench render, which passes no overrides: a render</span>
-<span class="sd">    given its own ``step_hz``, fps or resolution compiles something else.</span>
-<span class="sd">    """</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.compile</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_shot</span><span class="p">,</span> <span class="n">style_pack_for</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.stage.serialize</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_dict</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.contract</span><span class="w"> </span><span class="kn">import</span> <span class="n">scenes_contract_sha256</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.ir.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_step_hz</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">an.project</span><span class="w"> </span><span class="kn">import</span> <span class="n">load</span>
-
-    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s2">"an-contract-"</span><span class="p">)</span> <span class="k">as</span> <span class="n">tmp</span><span class="p">:</span>
-        <span class="n">work</span> <span class="o">=</span> <span class="n">stage_copy</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">repo_root</span><span class="p">)</span> <span class="o">/</span> <span class="n">fixture</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">fixture</span><span class="o">.</span><span class="n">prepare</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fixture</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
-        <span class="n">project</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">work</span><span class="p">)</span>
-        <span class="n">meta</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span>
-        <span class="n">style_pack</span> <span class="o">=</span> <span class="n">style_pack_for</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span>
-        <span class="n">docs</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">to_dict</span><span class="p">(</span>
-                <span class="n">compile_shot</span><span class="p">(</span>
-                    <span class="n">shot</span><span class="p">,</span>
-                    <span class="n">mall</span><span class="o">=</span><span class="n">project</span><span class="o">.</span><span class="n">mall</span><span class="p">,</span>
-                    <span class="n">fps</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">)),</span>
-                    <span class="n">width</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">width</span><span class="p">,</span>
-                    <span class="n">height</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">resolution</span><span class="o">.</span><span class="n">height</span><span class="p">,</span>
-                    <span class="n">strict_assets</span><span class="o">=</span><span class="n">BENCH_RENDER_KWARGS</span><span class="p">[</span><span class="s2">"strict_assets"</span><span class="p">],</span>
-                    <span class="n">step_hz</span><span class="o">=</span><span class="n">resolve_step_hz</span><span class="p">(</span><span class="n">shot</span><span class="p">,</span> <span class="n">meta</span><span class="o">.</span><span class="n">step_hz</span><span class="p">),</span>
-                    <span class="n">style_pack</span><span class="o">=</span><span class="n">style_pack</span><span class="p">,</span>
-                    <span class="n">default_easing</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">default_easing</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="p">)</span>
-            <span class="k">for</span> <span class="n">shot</span> <span class="ow">in</span> <span class="n">project</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span>
-        <span class="p">]</span>
-    <span class="k">return</span> <span class="n">scenes_contract_sha256</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span></div>
-
 
 
 <div class="viewcode-block" id="capture_fixture">
@@ -1059,7 +941,27 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"scene's row would pool two incompatible measurements"</span>
         <span class="p">)</span>
 
+    <span class="n">film</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">an.assemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">film_timeline</span><span class="p">,</span> <span class="n">needs_assembly</span>
+
+    <span class="k">if</span> <span class="n">needs_assembly</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">an.bench.core_corpus</span><span class="w"> </span><span class="kn">import</span> <span class="n">FILM_SEGMENT_ID</span><span class="p">,</span> <span class="n">compose_film_frames</span>
+
+        <span class="n">film_dir</span> <span class="o">=</span> <span class="n">compose_film_frames</span><span class="p">(</span><span class="n">scene</span><span class="p">,</span> <span class="n">work_dir</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">film_timeline</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">timeline</span><span class="p">),</span> <span class="n">fps</span><span class="o">=</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">)</span><span class="o">.</span><span class="n">total_frames</span>
+        <span class="n">film</span> <span class="o">=</span> <span class="n">ShotCapture</span><span class="p">(</span>
+            <span class="n">shot_id</span><span class="o">=</span><span class="n">FILM_SEGMENT_ID</span><span class="p">,</span>
+            <span class="n">frames_dir</span><span class="o">=</span><span class="n">film_dir</span><span class="p">,</span>
+            <span class="n">scene_json</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">runtime_dir</span><span class="o">=</span><span class="n">film_dir</span><span class="o">.</span><span class="n">parent</span><span class="p">,</span>
+            <span class="n">frame_count</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">film_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">FRAME_PNG_GLOB</span><span class="p">))),</span>
+            <span class="c1"># So `expected_frame_count(duration, fps)` is the timeline's own count.</span>
+            <span class="n">duration</span><span class="o">=</span><span class="n">total</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">scene</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">fps</span><span class="p">),</span>
+            <span class="n">frame_sizes</span><span class="o">=</span><span class="n">distinct_png_sizes</span><span class="p">(</span><span class="n">film_dir</span><span class="p">),</span>
+        <span class="p">)</span>
+
     <span class="k">return</span> <span class="n">SceneCapture</span><span class="p">(</span>
+        <span class="n">film</span><span class="o">=</span><span class="n">film</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
         <span class="n">source</span><span class="o">=</span><span class="n">fixture</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
         <span class="n">prepared</span><span class="o">=</span><span class="n">fixture</span><span class="o">.</span><span class="n">prepare</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>

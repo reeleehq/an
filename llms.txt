@@ -53,6 +53,7 @@
 - [an.bench.capture](_autosummary/an.bench.capture.html.md): Render one corpus fixture into a throwaway copy, and hand back its artifacts.
 - [an.bench.compare](_autosummary/an.bench.compare.html.md): &#96;an bench --compare&#96;: read two ledger rows, and &#42;&#42;refuse when they are not comparable&#42;&#42;.
 - [an.bench.contract](_autosummary/an.bench.contract.html.md): &#96;scene_contract_sha256&#96;: the fact that decides whether two rows are comparable.
+- [an.bench.core_corpus](_autosummary/an.bench.core_corpus.html.md): The core corpus: what &#96;an&#96; renders with no character and no genre (ADR 0001 decision 7).
 - [an.bench.corpus](_autosummary/an.bench.corpus.html.md): The bench corpus: which projects are measured, and what each must actually render.
 - [an.bench.environment](_autosummary/an.bench.environment.html.md): The environment tuple — the fields that decide whether two rows may be compared.
 - [an.bench.golden](_autosummary/an.bench.golden.html.md): The golden gate: committed frames, compared on &#42;&#42;decoded pixels&#42;&#42;.
@@ -231,7 +232,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 21:11 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 21:58 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 
