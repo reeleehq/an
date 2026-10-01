@@ -58,6 +58,7 @@ from an.genres.registry import (
     CORE_OWNER,
     ActionKind,
     CompilePass,
+    RuntimeScript,
     DialogueSugar,
     EntityKind,
     RegistryError,
@@ -70,6 +71,7 @@ from an.genres.registry import (
     register_action_kind,
     register_check,
     register_compile_pass,
+    register_runtime_script,
     register_dialogue_sugar,
     register_entity_kind,
     restore,
@@ -132,6 +134,9 @@ class Genre:
     #: Steps the genre adds to an engine's compiler, and builders for its
     #: entity kinds (:class:`CompilePass`; an#247).
     compile_passes: tuple[CompilePass, ...] = ()
+    #: Code the genre adds to an engine's runtime: its visual kinds
+    #: (:class:`RuntimeScript`; an#247).
+    runtime_scripts: tuple[RuntimeScript, ...] = ()
 
     def provides(self) -> dict[str, tuple[str, ...]]:
         """What this genre registers, by registry, as names — without registering it.
@@ -151,6 +156,7 @@ class Genre:
             "vocabulary": tuple(e.id for e in self.vocabulary),
             "aspects": tuple(a.name for a in self.aspects),
             "compile passes": tuple(p.name for p in self.compile_passes),
+            "runtime scripts": tuple(s.name for s in self.runtime_scripts),
         }
 
 
@@ -220,6 +226,8 @@ def _install(genre: Genre, *, check_capabilities: bool = True) -> None:
         register_dialogue_sugar(sugar, owner=owner)
     for compile_pass in genre.compile_passes:
         register_compile_pass(compile_pass, owner=owner)
+    for script in genre.runtime_scripts:
+        register_runtime_script(script, owner=owner)
     if genre.capabilities or genre.analysers or genre.vocabulary or genre.aspects:
         _install_semantics(genre, check_capabilities=check_capabilities)
 
@@ -567,6 +575,7 @@ __all__ = [
     "ENTRY_POINT_GROUP",
     "ActionKind",
     "CompilePass",
+    "RuntimeScript",
     "DialogueSugar",
     "EntityKind",
     "Genre",

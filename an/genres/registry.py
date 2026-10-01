@@ -242,12 +242,14 @@ _ENTITY_KINDS = _Table("entity kind")
 _CHECKS = _Table("semantic check")
 _DIALOGUE_SUGAR = _Table("dialogue sugar")
 _COMPILE_PASSES = _Table("compile pass")
+_RUNTIME_SCRIPTS = _Table("runtime script")
 _TABLES: tuple[_Table, ...] = (
     _ACTION_KINDS,
     _ENTITY_KINDS,
     _CHECKS,
     _DIALOGUE_SUGAR,
     _COMPILE_PASSES,
+    _RUNTIME_SCRIPTS,
 )
 
 
@@ -377,6 +379,11 @@ class CompilePass:
     compiler: str = "stage"
     builds: str | None = None
     description: str = ""
+    #: Explicitly take the place of the ENGINE's own pass of this name (or its
+    #: builder for ``builds``). Without it a name or kind the engine already
+    #: has is refused when the compiler runs; with it the replacement is
+    #: recorded in the compiled document (review of an#270, S3).
+    replace: bool = False
 
     def resolve(self) -> Callable[..., Any]:
         """The callable ``run`` names.
@@ -422,6 +429,62 @@ def entity_builders(compiler: str) -> dict[str, CompilePass]:
         for p in _COMPILE_PASSES.entries.values()
         if p.compiler == compiler and p.builds is not None
     }
+
+
+@dataclass(frozen=True)
+class RuntimeScript:
+    """JavaScript a genre adds to an engine's RUNTIME (an#247; ADR 0001 decision 4,
+    second batch): for the stage, code that registers visual kinds with
+    ``window.anRegisterVisual(kind, make)`` -- how the cut-out mouth and eye
+    leave ``runtime.js`` for ``cutan`` (P8).
+
+    ``source`` is ``"package:relative/path.js"``, read with
+    :mod:`importlib.resources` when the engine stages its runtime, so it ships
+    in the genre's wheel. The staged code is part of the shot cache's key.
+    """
+
+    name: str
+    source: str
+    engine: str = "stage"
+    description: str = ""
+
+    def read_text(self) -> str:
+        """The script's code.
+
+        >>> RuntimeScript("x", "an.stage.runtime:extensions.js").read_text().startswith("//")
+        True
+        """
+        from importlib.resources import files
+
+        package, _, path = self.source.partition(":")
+        if not package or not path:
+            raise RegistryError(
+                f"runtime script {self.name!r}: source={self.source!r} is not "
+                "'package:relative/path.js'"
+            )
+        return files(package).joinpath(path).read_text(encoding="utf-8")
+
+
+def register_runtime_script(
+    script: RuntimeScript, *, owner: str = CORE_OWNER, replace: bool = False
+) -> RuntimeScript:
+    """Register runtime code for an engine (a genre's visual kinds)."""
+    return _RUNTIME_SCRIPTS.register(script.name, script, owner=owner, replace=replace)
+
+
+def runtime_scripts(engine: str) -> tuple[RuntimeScript, ...]:
+    """The scripts registered for ``engine``, by name (a stable order)."""
+    return tuple(
+        sorted(
+            (s for s in _RUNTIME_SCRIPTS.entries.values() if s.engine == engine),
+            key=lambda s: s.name,
+        )
+    )
+
+
+def compile_pass_owner(name: str) -> str | None:
+    """Who registered the compile pass ``name`` (a genre's name), or ``None``."""
+    return _COMPILE_PASSES.owners.get(name)
 
 
 def compile_pass_names(*, owner: str | None = None) -> tuple[str, ...]:

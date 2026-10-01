@@ -160,7 +160,19 @@
         return container;
     }
 
+    // Visual kinds a genre's runtime script registers (an#247): checked FIRST,
+    // so a genre may also take over a built-in kind (cutan's mouth and eye,
+    // P8). `make(visualSpec, PIXI)` returns the display object.
+    const VISUAL_KINDS = {};
+    NS.anRegisterVisual = function (kind, make) {
+        VISUAL_KINDS[kind] = make;
+    };
+
     function makeVisual(visualSpec) {
+        const registered = VISUAL_KINDS[visualSpec.kind];
+        if (registered) {
+            return registered(visualSpec, PIXI);
+        }
         if (visualSpec.kind === 'ellipse') {
             return makeEllipse(visualSpec);
         }

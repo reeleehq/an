@@ -309,6 +309,44 @@ def _serve_dir(directory: Path) -> Iterator[str]:
         server.server_close()
 
 
+#: The staged file genres' runtime scripts are written to (`index.html` loads
+#: it after `runtime.js`).
+EXTENSIONS_FILE: str = "extensions.js"
+
+
+def runtime_extensions() -> str:
+    """The registered genres' runtime code for the stage, as one file's text --
+    ``""`` when none is registered (the shipped file stays as it is).
+
+    Part of the shot cache's key when non-empty: it can change pixels.
+    """
+    from an.genres.registry import runtime_scripts
+
+    parts = [
+        f"// --- {script.name} ({script.source})\n{script.read_text()}\n"
+        for script in runtime_scripts("stage")
+    ]
+    return "".join(parts)
+
+
+def _copy_runtime(runtime_target: Path) -> Path:
+    """A fresh copy of the runtime at ``runtime_target``, with the registered
+    genres' runtime scripts written into its ``extensions.js`` (an#247).
+
+    ``runtime_dir`` is read as a module global at call time: the bench's render
+    levers rebind it.
+    """
+    runtime_target = Path(runtime_target)
+    runtime_target.parent.mkdir(parents=True, exist_ok=True)
+    if runtime_target.exists():
+        shutil.rmtree(runtime_target)
+    shutil.copytree(runtime_dir(), runtime_target)
+    extensions = runtime_extensions()
+    if extensions:
+        (runtime_target / EXTENSIONS_FILE).write_text(extensions, encoding="utf-8")
+    return runtime_target
+
+
 def _stage_runtime(
     workspace: Path,
     scene_json: Any,
@@ -320,11 +358,7 @@ def _stage_runtime(
     Returns ``(runtime directory, scene.json path)``. ``runtime_dir`` is read as
     a module global at call time: the bench's render levers rebind it.
     """
-    runtime_target = Path(workspace) / "runtime"
-    Path(workspace).mkdir(parents=True, exist_ok=True)
-    if runtime_target.exists():
-        shutil.rmtree(runtime_target)
-    shutil.copytree(runtime_dir(), runtime_target)
+    runtime_target = _copy_runtime(Path(workspace) / "runtime")
 
     # Phase 11b: stage SVG character textures into the runtime dir at the
     # paths declared in scene.assets.textures, so Pixi can load them by
@@ -814,10 +848,7 @@ class StageEngine:
             "assets": {"textures": {}},
             **dict(document),
         }
-        runtime_target = Path(workspace) / "runtime"
-        if runtime_target.exists():
-            shutil.rmtree(runtime_target)
-        shutil.copytree(runtime_dir(), runtime_target)
+        runtime_target = _copy_runtime(Path(workspace) / "runtime")
         with _loaded_page(
             runtime_target, doc, size=size, supersample=NO_SUPERSAMPLE, doing="loading a document"
         ) as page:

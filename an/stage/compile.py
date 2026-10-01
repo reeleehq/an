@@ -1065,6 +1065,9 @@ def compile_shot(
         style_pack=style_pack,
         expression_provider=expression_provider,
     )
+    replaced = stage_replacements()
+    if replaced:
+        state.meta_extensions["replaced_compile_passes"] = replaced
     for compile_pass in compile_passes_for_stage():
         compile_pass.resolve()(state)
     return _assemble_document(state, background=background)
@@ -1110,6 +1113,12 @@ class CompileState:
     view_spans: Any = None
     blink_phases: dict[str, float] = field(default_factory=dict)
     gaze_seeds: dict[str, int] = field(default_factory=dict)
+    #: The generic slots (an#247): what a genre's pass produces for a later
+    #: pass (``products``, by key), and what it adds to the document's meta
+    #: (``meta_extensions`` -> ``meta.extensions``, omitted when empty). A new
+    #: genre needs no new field here.
+    products: dict[str, Any] = field(default_factory=dict)
+    meta_extensions: dict[str, Any] = field(default_factory=dict)
 
     @property
     def provider(self) -> ExpressionProvider:
@@ -1288,12 +1297,53 @@ STAGE_COMPILE_PASSES: tuple[CompilePass, ...] = (
     CompilePass("checks", _checks_pass, order=900, description="targets, easings, stand-ins"),
 )
 
+class CompilePassCollision(CutoutCompileError):
+    """A genre registered a pass (or a builder) the stage already has, without ``replace=True``."""
+
+
+def _merge_over_stage(own: Mapping[str, CompilePass], registered: Iterable[CompilePass], key) -> dict[str, CompilePass]:
+    """The stage's own entries, with registered ones added; a registered entry
+    that names one of the stage's REPLACES it only when it says ``replace=True``."""
+    from an.genres.registry import compile_pass_owner
+
+    merged = dict(own)
+    for p in registered:
+        k = key(p)
+        if k in own and not p.replace:
+            raise CompilePassCollision(
+                f"genre {compile_pass_owner(p.name)!r} registers compile pass "
+                f"{p.name!r}, which would collide with the stage's own "
+                f"{'builder for ' + repr(k) if p.builds else 'pass ' + repr(k)}. "
+                "Pass `replace=True` on the CompilePass to replace it on purpose "
+                "(the compiled document then records it), or rename it."
+            )
+        merged[k] = p
+    return merged
+
+
 def compile_passes_for_stage() -> tuple[CompilePass, ...]:
     """The stage's passes and every registered one, in run order (stable by name)."""
     from an.genres.registry import compile_passes
 
-    found = list(STAGE_COMPILE_PASSES) + list(compile_passes("stage"))
-    return tuple(sorted(found, key=lambda p: (p.order, p.name)))
+    merged = _merge_over_stage(
+        {p.name: p for p in STAGE_COMPILE_PASSES}, compile_passes("stage"), key=lambda p: p.name
+    )
+    return tuple(sorted(merged.values(), key=lambda p: (p.order, p.name)))
+
+
+def stage_replacements() -> dict[str, str]:
+    """``{stage pass or builder: the genre replacing it}`` -- recorded in the
+    compiled document's ``meta.extensions`` when non-empty."""
+    from an.genres.registry import compile_pass_owner, compile_passes, entity_builders
+
+    own = {p.name for p in STAGE_COMPILE_PASSES}
+    out = {p.name: compile_pass_owner(p.name) for p in compile_passes("stage") if p.replace and p.name in own}
+    out.update(
+        {f"builder:{kind}": compile_pass_owner(p.name)
+         for kind, p in entity_builders("stage").items()
+         if p.replace and kind in STAGE_SCENE_BUILDERS}
+    )
+    return out
 
 
 def _assemble_document(state: CompileState, *, background: str) -> CutoutSceneJSON:
@@ -1314,6 +1364,7 @@ def _assemble_document(state: CompileState, *, background: str) -> CutoutSceneJS
             style_pack=style_pack.name if style_pack is not None else None,
             fonts=state.fonts,
             entity_spaces=entity_spaces_of(shot),
+            extensions=state.meta_extensions,
         ),
         scene=state.scene_root,
         overlay=(
@@ -1542,7 +1593,9 @@ def scene_builders() -> dict[str, CompilePass]:
     """``{entity kind: builder}``: the stage's, and every registered one."""
     from an.genres.registry import entity_builders
 
-    return {**STAGE_SCENE_BUILDERS, **entity_builders("stage")}
+    return _merge_over_stage(
+        STAGE_SCENE_BUILDERS, entity_builders("stage").values(), key=lambda p: p.builds
+    )
 
 
 # Environment presets — built-in named backdrops. A user-supplied environment

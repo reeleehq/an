@@ -385,7 +385,13 @@ def register_shot_key_part(renderer_name: str, part_name: str, part: ShotKeyPart
     early cutoff for free): a genre package's side file, a vocabulary entry's
     version (P7). Refuses a duplicate ``part_name``; a name that collides with
     one of the keyer's own parts is refused when the key is computed.
+
+    A renderer registered LAZILY (the stage, an#247) brings its keyer when the
+    renderer registry first loads, so this loads it first -- a genre adding a
+    key part at install (``cutan``, P8) needs no prior lookup.
     """
+    if renderer_name not in _KEYERS:
+        registered_shot_keyers()  # a lazily registered backend brings its keyer
     entry = _KEYERS.get(renderer_name)
     if entry is None:
         raise ShotKeyerRegistrationError(

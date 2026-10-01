@@ -518,6 +518,13 @@ def cutout_shot_inputs(shot: Any, ctx: Any) -> ShotKeyInputs:
     }
     if any(d.endswith(":text") for d in textures.values()):
         parts["fonts"] = system_fonts_digest()
+    # Genres' runtime code staged beside runtime.js (an#247): it draws their
+    # visual kinds, so it is an input; absent (no part) when none is registered.
+    from an.stage.render import runtime_extensions
+
+    extensions = runtime_extensions()
+    if extensions:
+        parts["runtime_extensions"] = bytes_digest(extensions.encode("utf-8"))
     return ShotKeyInputs(
         parts=parts,
         compile_s=compile_s,

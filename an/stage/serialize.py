@@ -127,6 +127,13 @@ class UnderlayJSON(_JSONModel):
     grow: float = 0.0
 
 
+#: The visual kinds ``runtime.js`` draws itself. Any other kind must be
+#: registered by a genre's runtime script (an#247), or it draws as a rect.
+BUILTIN_VISUAL_KINDS: tuple[str, ...] = (
+    "sprite", "rect", "ellipse", "mouth", "eye", "svg_sprite", "path",
+)
+
+
 class VisualJSON(_JSONModel):
     """Drawable content attached to a node.
 
@@ -147,9 +154,10 @@ class VisualJSON(_JSONModel):
     may leave slack on one axis; that slack is the correct rendering, not a bug.
     """
 
-    kind: Literal["sprite", "rect", "ellipse", "mouth", "eye", "svg_sprite", "path"] = (
-        "rect"
-    )
+    #: One of :data:`BUILTIN_VISUAL_KINDS`, or a kind a genre's runtime script
+    #: registers (``window.anRegisterVisual``, an#247). A string on the wire, as
+    #: it always was; the open set is what lets ``cutan`` ship the mouth and eye.
+    kind: str = "rect"
     #: How the art is fitted to ``width``/``height``.
     #:
     #: ``"contain"`` scales uniformly so the art keeps the shape it was drawn
@@ -385,6 +393,12 @@ class CutoutSceneMetaJSON(_JSONModel):
     #: non-empty**: no shipped kind declares another space, so no document and
     #: no contract hash moves until a genre registers one.
     entity_spaces: dict[str, str] = Field(default_factory=dict)
+    #: What genre compile passes add to the document's meta, by key (an#247):
+    #: the generic slot a pass writes through ``CompileState.meta_extensions``
+    #: rather than a field the stage would have to know by name. Also where a
+    #: genre's explicit replacement of a stage pass is recorded
+    #: (``replaced_compile_passes``). **Serialized only when non-empty.**
+    extensions: dict[str, Any] = Field(default_factory=dict)
 
     @model_serializer(mode="wrap")
     def _omit_unset_step_hz(self, handler):
@@ -406,6 +420,8 @@ class CutoutSceneMetaJSON(_JSONModel):
         # an#245, in the same commit as the field (the an#112 rule).
         if isinstance(data, dict) and not data.get("entity_spaces"):
             data.pop("entity_spaces", None)
+        if isinstance(data, dict) and not data.get("extensions"):
+            data.pop("extensions", None)
         return data
 
 

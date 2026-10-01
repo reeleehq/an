@@ -92,6 +92,7 @@ packages = ["an"]
 "an/stage/runtime/index.html" = "an/stage/runtime/index.html"
 "an/stage/runtime/preview.html" = "an/stage/runtime/preview.html"
 "an/stage/runtime/runtime.js" = "an/stage/runtime/runtime.js"
+"an/stage/runtime/extensions.js" = "an/stage/runtime/extensions.js"
 "an/stage/runtime/README.md" = "an/stage/runtime/README.md"
 "an/stage/runtime/vendor/pixi.min.js" = "an/stage/runtime/vendor/pixi.min.js"
 "an/stage/runtime/vendor/pixi.LICENSE.txt" = "an/stage/runtime/vendor/pixi.LICENSE.txt"

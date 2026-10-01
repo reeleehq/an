@@ -72,3 +72,55 @@ def test_a_wrong_readback_is_reported_not_absorbed(tmp_path):
     with StageEngine().open_document(dict(case["document"]), workspace=tmp_path) as session:
         late = lambda t: session.state(t + 0.05)  # noqa: E731
         assert readback_mismatches(late, case)
+
+
+# --------------------------------- a genre's runtime visuals (P8's mouth and eye)
+
+def _demo_genre():
+    from an.genres import Genre, RuntimeScript
+
+    return Genre(
+        "demo_runtime_visual",
+        runtime_scripts=(RuntimeScript("demo_disc", "tests:fixtures/runtime_visual_demo.js"),),
+    )
+
+
+def test_a_genres_runtime_script_is_staged_and_keyed():
+    from an.genres import register_genre, without_genres
+    from an.stage.render import runtime_extensions
+
+    assert runtime_extensions() == "", "nothing registered: the shipped file stays"
+    with without_genres():
+        register_genre(_demo_genre())
+        code = runtime_extensions()
+    assert "anRegisterVisual('demo_disc'" in code
+
+
+@pytest.mark.browser
+def test_a_genre_draws_its_own_visual_kind_on_the_stage(tmp_path):
+    """The hook `cutan` takes the mouth and eye through: a kind the stage does
+    not know, drawn by the genre's script, with no edit to runtime.js."""
+    import base64
+    import io
+
+    from PIL import Image
+
+    from an.genres import register_genre, without_genres
+    from an.stage.render import StageEngine
+
+    doc = {
+        "scene": {"name": "root", "children": [
+            {"name": "disc", "transform": {"x": 0.0, "y": 0.0},
+             "visual": {"kind": "demo_disc", "width": 400, "height": 400}},
+        ]},
+        "timeline": {"duration": 1.0, "tracks": []},
+        "animations": {},
+    }
+    with without_genres():
+        register_genre(_demo_genre())
+        with StageEngine().open_document(doc, workspace=tmp_path) as session:
+            png = session.frame(0.0)
+    with Image.open(io.BytesIO(png)) as im:
+        rgb = im.convert("RGB")
+        w, h = rgb.size
+        assert rgb.getpixel((w // 2, h // 2)) == (255, 0, 0)
