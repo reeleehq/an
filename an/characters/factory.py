@@ -238,10 +238,33 @@ _HAIR_VOLUME: dict[str, dict[str, tuple[tuple[float, float, float], ...]]] = {
         "three_quarter": ((30, 10, 8),),
     },
     "curly": {
-        "front": ((14, 34, 7), (18, 23, 8), (27, 15, 8), (40, 12, 8), (53, 15, 8), (62, 23, 8), (66, 34, 7)),
-        "back": ((14, 34, 7), (18, 23, 8), (27, 15, 8), (40, 12, 8), (53, 15, 8), (62, 23, 8), (66, 34, 7)),
+        "front": (
+            (14, 34, 7),
+            (18, 23, 8),
+            (27, 15, 8),
+            (40, 12, 8),
+            (53, 15, 8),
+            (62, 23, 8),
+            (66, 34, 7),
+        ),
+        "back": (
+            (14, 34, 7),
+            (18, 23, 8),
+            (27, 15, 8),
+            (40, 12, 8),
+            (53, 15, 8),
+            (62, 23, 8),
+            (66, 34, 7),
+        ),
         "side": ((13, 40, 7), (15, 28, 8), (23, 18, 8), (35, 13, 8), (48, 13, 7)),
-        "three_quarter": ((13, 38, 7), (16, 26, 8), (25, 17, 8), (37, 12, 8), (50, 13, 7), (60, 19, 6)),
+        "three_quarter": (
+            (13, 38, 7),
+            (16, 26, 8),
+            (25, 17, 8),
+            (37, 12, 8),
+            (50, 13, 7),
+            (60, 19, 6),
+        ),
     },
 }
 #: Hair below the crown, ``{length: {view: (path, where)}}``: ``behind`` the
@@ -305,6 +328,7 @@ def _hair_layers(
         d = " ".join(_disc_d(*c) for c in discs)
         behind.append(f'<path d="{d}" fill="{hair}"/>')
     return "".join(behind), "".join(over)
+
 
 #: The largest head scale accepted — past it the head no longer fits the
 #: 1024-unit view box above a regular body.
@@ -1905,7 +1929,9 @@ def _profile_legs(body: BodyBuild) -> tuple["SlotPose", "SlotPose"]:
     from an.characters.schema import SlotPose
 
     hip = SIDE_LEG_OFFSET * body.leg_width
-    spread = max(SIDE_FOOT_SPREAD * body.leg_width, SIDE_FOOT_MIN_SHOES * body.shoe_size[0])
+    spread = max(
+        SIDE_FOOT_SPREAD * body.leg_width, SIDE_FOOT_MIN_SHOES * body.shoe_size[0]
+    )
     reach = (spread / 2 - hip) / body.leg_length
     angle = math.asin(max(-1.0, min(1.0, reach)))
     far = SlotPose(x=body.hip_x - hip, rotation=angle)

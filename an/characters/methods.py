@@ -465,10 +465,14 @@ def brow_acting_problem(doc: Any, *, entity: str) -> str | None:
 
     if not isinstance(doc, Mapping) or doc.get("kind") != "CharacterDescriptor":
         return None
-    desc = CharacterDescriptor.model_validate(migrate(dict(doc), kind="CharacterDescriptor"))
+    desc = CharacterDescriptor.model_validate(
+        migrate(dict(doc), kind="CharacterDescriptor")
+    )
     if not desc.face_overlay or not brow_slots(desc):
         return None  # a face whose binding moves no brow has nothing to lose
-    r = resolve(EXPRESSION, compile_profile(desc), entity=entity, entity_kind=CHARACTER_KIND)
+    r = resolve(
+        EXPRESSION, compile_profile(desc), entity=entity, entity_kind=CHARACTER_KIND
+    )
     if r.substitution is None:
         return None
     from an.characters.brows import BROWS_FEATURE
@@ -493,7 +497,9 @@ def check_brow_acting(ctx) -> None:
     if store is None:
         return
     refs = {
-        e.id: e.ref for e in ctx.shot.entities if e.kind == CHARACTER_KIND and e.ref in store
+        e.id: e.ref
+        for e in ctx.shot.entities
+        if e.kind == CHARACTER_KIND and e.ref in store
     }
     problems: dict[str, str | None] = {}
 

@@ -123,7 +123,10 @@ def brow_path_d(side: str) -> str:
 #: REFERENCE_HEAD_HEIGHT tall).
 _UNIT: float = REFERENCE_HEAD_HEIGHT / HEAD_ART_SIZE
 #: Where the neck (the head bone) sits in the head's drawing.
-_NECK: tuple[float, float] = (HEAD_ANCHOR[0] * HEAD_ART_SIZE, HEAD_ANCHOR[1] * HEAD_ART_SIZE)
+_NECK: tuple[float, float] = (
+    HEAD_ANCHOR[0] * HEAD_ART_SIZE,
+    HEAD_ANCHOR[1] * HEAD_ART_SIZE,
+)
 
 
 def _brow_centre(slot: str) -> tuple[float, float]:
@@ -199,10 +202,15 @@ def _path_points(d: str) -> list[tuple[float, float]]:
     return out
 
 
-def _ellipse_points(cx: float, cy: float, rx: float, ry: float) -> list[tuple[float, float]]:
+def _ellipse_points(
+    cx: float, cy: float, rx: float, ry: float
+) -> list[tuple[float, float]]:
     n = max(_MIN_SAMPLES * 4, int(2 * math.pi * max(rx, ry) * _SAMPLES_PER_UNIT))
     return [
-        (cx + rx * math.cos(2 * math.pi * i / n), cy + ry * math.sin(2 * math.pi * i / n))
+        (
+            cx + rx * math.cos(2 * math.pi * i / n),
+            cy + ry * math.sin(2 * math.pi * i / n),
+        )
         for i in range(n)
     ]
 
@@ -235,12 +243,16 @@ def ink_discs(fragment: str) -> list[Disc]:
         if tag == "path":
             pts = _path_points(el.get("d", ""))
         elif tag == "ellipse":
-            pts = _ellipse_points(_f(el, "cx"), _f(el, "cy"), _f(el, "rx"), _f(el, "ry"))
+            pts = _ellipse_points(
+                _f(el, "cx"), _f(el, "cy"), _f(el, "rx"), _f(el, "ry")
+            )
         elif tag == "circle":
             r = _f(el, "r")
             pts = _ellipse_points(_f(el, "cx"), _f(el, "cy"), r, r)
         elif tag == "rect":
-            pts = _rect_points(_f(el, "x"), _f(el, "y"), _f(el, "width"), _f(el, "height"))
+            pts = _rect_points(
+                _f(el, "x"), _f(el, "y"), _f(el, "width"), _f(el, "height")
+            )
         else:
             continue
         stroked = el.get("stroke") not in (None, "none")
@@ -423,15 +435,14 @@ def seat_above_brows(
             mid = (lo + hi) / 2
             lo, hi = (mid, hi) if overlap(to_top, mid) <= 0 else (lo, mid)
         k = math.floor(lo * 1000) / 1000
-    transform = (
-        f"translate(0 {to_top:.3f}) scale(1 {k:g}) translate(0 {-top:.3f})"
-    )
+    transform = f"translate(0 {to_top:.3f}) scale(1 {k:g}) translate(0 {-top:.3f})"
     return Seat(transform, covers=overlap(to_top, k, margin=0.0) > 0)
 
 
 # -----------------------------------------------------------------------------
 # The capability
 # -----------------------------------------------------------------------------
+
 
 def brow_slots(desc: Any) -> list[str]:
     """The slots the character's own expression binding moves on a brow axis.
@@ -458,7 +469,11 @@ def brow_slots(desc: Any) -> list[str]:
     except (ExpressionResolutionError, ValueError, TypeError):
         return []
     return sorted(
-        {b.slot for b in bindings if isinstance(b, ChannelBinding) and b.axis in BROW_AXES}
+        {
+            b.slot
+            for b in bindings
+            if isinstance(b, ChannelBinding) and b.axis in BROW_AXES
+        }
     )
 
 
