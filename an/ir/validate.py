@@ -68,6 +68,9 @@ class ValidationFinding:
     severity: Severity
     ir_path: str
     description: str
+    #: ``"<file>:<line>"`` when the thing to fix is an opaque source a shot runs
+    #: (a Manim scene file, an#279) rather than the IR; ``None`` otherwise.
+    location: str | None = None
 
 
 @dataclass(slots=True)
@@ -80,10 +83,20 @@ class ValidationReport:
     passed: bool = True
     findings: list[ValidationFinding] = field(default_factory=list)
 
-    def add(self, severity: Severity, ir_path: str, description: str) -> None:
+    def add(
+        self,
+        severity: Severity,
+        ir_path: str,
+        description: str,
+        *,
+        location: str | None = None,
+    ) -> None:
         self.findings.append(
             ValidationFinding(
-                severity=severity, ir_path=ir_path, description=description
+                severity=severity,
+                ir_path=ir_path,
+                description=description,
+                location=location,
             )
         )
         if severity == "error":

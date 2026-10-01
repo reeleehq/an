@@ -144,7 +144,12 @@ cutout = [
     "pillow",
 ]
 manim = [
+    # Manim opaque-source shots (an#279): `an.adapters.manim_adapter` renders
+    # through manimkit's `render_check` (child-process render, layout probe,
+    # contact sheet). Both imported only at render time, never by `import an`
+    # (tests/test_import_firewall.py).
     "manim",
+    "manimkit",
 ]
 remotion = []
 # The curated MCP surface (ADR 0003 decision 6): `python -m an.mcp`. py2mcp

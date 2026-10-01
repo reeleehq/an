@@ -1,4 +1,5 @@
-"""Manim / Remotion / Whiteboard adapter skeletons.
+"""Manim / Remotion / Whiteboard adapters (the Manim one is real since an#279:
+`tests/test_manim_renderer.py`).
 
 Tests the registry wiring, can_render dispatch, and the error messages
 they produce when their backends aren't available.
@@ -6,6 +7,7 @@ they produce when their backends aren't available.
 
 from __future__ import annotations
 
+import importlib.util
 import shutil
 import tempfile
 from pathlib import Path
@@ -63,23 +65,26 @@ def test_remotion_render_raises_clear_stub_error_when_npx_present():
             RemotionRenderer().render(shot, ctx)
 
 
-@pytest.mark.skipif(shutil.which("manim") is not None, reason="manim is installed")
-def test_manim_render_errors_when_binary_missing():
+def test_manim_shot_without_a_source_is_refused_naming_the_option():
+    """The title-card skeleton is gone (an#279): a Manim shot names its file."""
     with tempfile.TemporaryDirectory() as d:
         mall = build_project_mall(d, ensure=True)
         ctx = RenderContext(mall=mall, work_dir=Path(d))
         shot = Shot(id="x", renderer="manim", duration=0.5)
-        with pytest.raises(ManimRenderError, match="manim CLI"):
+        with pytest.raises(ManimRenderError, match="options.source"):
             ManimRenderer().render(shot, ctx)
 
 
-@pytest.mark.skipif(shutil.which("manim") is None, reason="manim not installed")
-def test_manim_render_produces_mp4_when_installed():
-    """Smoke: when manim is installed, the placeholder script renders."""
+@pytest.mark.skipif(
+    importlib.util.find_spec("manim") is not None, reason="manim is installed"
+)
+def test_manim_render_hints_the_install_when_manim_is_missing():
+    from an.adapters.manim_adapter import ManimNotInstalledError
+
     with tempfile.TemporaryDirectory() as d:
         mall = build_project_mall(d, ensure=True)
+        mall["sources"]["s"] = b"from manim import *\n"
         ctx = RenderContext(mall=mall, work_dir=Path(d))
-        shot = Shot(id="m1", renderer="manim", duration=0.25)
-        result = ManimRenderer().render(shot, ctx)
-        assert result.mp4_path.exists()
-        assert result.mp4_path.stat().st_size > 0
+        shot = Shot(id="x", renderer="manim", options={"source": "s"})
+        with pytest.raises(ManimNotInstalledError, match=r"an\[manim\]"):
+            ManimRenderer().render(shot, ctx)

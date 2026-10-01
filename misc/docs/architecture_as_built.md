@@ -67,7 +67,7 @@ What exists, and where, moved here from `CLAUDE.md` (an#156) so there is one map
 | **Canvas capture, the default** (epic #9 throughput track; default since an#192): `RenderContext.capture` / `an render --capture canvas` reads the canvas IN-PAGE (`window.anCaptureFrames`: seek, `app.view.toDataURL('image/png')`) in batches of `DEFAULT_CANVAS_BATCH` instead of a Playwright element screenshot per instant. Python decodes each PNG, **refuses any pixel below alpha 255** (not reachable today — `backgroundAlpha` is 1 — but where the premultiplied buffer, the PNG and the screenshot's composite over white would disagree), runs the SAME block mean and temporal mean as the screenshot path, and writes RGB PNGs — designed so the DECODED frames, and therefore the delivered mp4, are identical, and gated on exactly that (file bytes are not: a different PNG encoder). Held on the whole corpus on a developer machine (macOS arm64) and on the labelled Linux lane (an#189, re-run on the flip, an#192). Ordering and back-pressure are explicit: the page echoes each frame number and a reply that is not exactly the request writes nothing; at most `DEFAULT_CANVAS_MAX_INFLIGHT` frames wait on the encode pool. Seeks go out in the screenshot path's order; since an#185 the pose is a pure function of t, so that order no longer decides the picture. **Default `"canvas"`** since an#192, after the equivalence gate (`tests/test_canvas_capture_equivalence.py`, the whole golden corpus plus a long parallel render) held on both rendering lanes; `--capture screenshot` still selects the element-screenshot loop, and the bench records the resolved path per scene (`provenance.capture`) so timings across the flip are not compared | `an/adapters/cutout/canvas_capture.py`, `render._CanvasStageSession` over the core loop `an.engines.capture` (batching, back-pressure; tunables `DEFAULT_BATCH*` there, old `DEFAULT_CANVAS_*` names alias them), `runtime.js` `anCaptureFrames` | shipped, default |
 | **Engine seam** (an#247, ADR 0001 decision 12): `Engine` — a factory whose `open(job)` yields a session; TIME-driven (`frame(t)`; the read-back `state(t)` is declared, and the stage engine's conformance against `an/data/timing/timing_vectors.json` lands in an#247 PR B) or STATE-driven (`timeline` + `render(state)`, the core evaluates `at(t)`); optional `frames` (batch), `resolve`, `bounds`, `project`, `frame_with_alpha`, `provenance`; tier/drive/features read off members by `describe()`, never a flag; the live tier declared, not built. `frame_stage_renderer(engine)` → a `Renderer` owning knob validation, the frame clock, the capture loop, the resolves, the MP4 sink and provenance. The stage is its first engine (`StageEngine`, `CutoutRenderer`). Sinks: `mp4` (pinned argv), `gif` (the one palette recipe), `png` sequence, `register_sink`. Import firewall: `tests/test_import_firewall.py`, shrinking allow-list | `an/engines/`, `an/media/`, `an/_shims.py` (old paths stay live aliases), `an/adapters/cutout/render.py` | shipped (PR A; `an.stage` follows) |
 | **Impact harness** (`an.impacts`): a stick or ball striking a surface or the air on a tempo grid (tempo changes, accents, AR(1) humanisation), rendered through the cutout backend with a `FrameClock`. The sidecar keeps `t_grid` (intended), `t_impact` (executed, continuous seconds — a segment boundary at its exact float) and the frames apart; keypoints come from the COMPILED document via `screen_position` at every sample instant, cross-checked against the analytic stroke, and the renderer's staged document is compared with the truth's — a disagreement raises `TruthMismatch`. **A blurred frame's keypoint is the AVERAGE over its samples** — at a surface contact (a V) mid-exposure is up to 6 px off, exactly where estimators are scored. Objects move through `StrokeChannel`s, each affine in stroke height `h` (the exactness contract). `render=False` needs no browser. Pixels verified within 0.46 px of the keypoints in the browser lane | `an/impacts/`, `an impacts clip / clip-set` | shipped |
-| Manim backend | `an/adapters/manim_adapter.py` | **title card only** — see gaps |
+| **Manim opaque-source shots** (an#279, ADR 0001 decision 13, core study §4.2 step 1): `Shot(renderer="manim", options={"source": <key in `mall["sources"]` = `assets/sources/<key>.py`>, "scene": <Scene class>})` runs the file as it is through `manimkit.render_check` (soft dependency, `an[manim]`; seams `ManimRenderer(render_check=, source_resolver=)`), in a staged copy of the whole `assets/sources/` folder, so sibling modules and relatively-named data files work and are keyed; a literal path outside it is a finding at its line. **Manim owns its clock** and the length is DERIVED data: the renderer implements `measure_duration` (`ClockOwningRenderer`; capability `engine.measure_duration`, derived from the member), stored in the `measurements` store under the **picture key** (the sources folder's bytes, entry, scene, Manim + manimkit versions, quality preset, and LaTeX mode only for a file that uses LaTeX — never the film's fps/size, the encode or code digests). `an.measurements.settle_durations` applies it to an in-memory COPY of the scene in `render()` (before the film timeline, captions, sound and keys) and in `validate`/`orchestrate` (stored only; an unmeasured shot is "length unknown until rendered"). **A render never rewrites `scene.md` or `scene.json`**; `an sync --accept-measured` writes the measured lengths in, patching each `duration:` line in place (`ScenesStore.patch_shot_durations`) so prose survives. Dialogue longer than the picture HOLDS the last frame with a warning (refused under `--strict-assets`). Manim's raw video is cached under the picture key (`pictures` store), so a narration, fps or pad change re-conforms and re-muxes without running Manim; `render(incremental=False)` re-runs Manim (cold is cold). The picture is conformed to exactly the film's frame count (ffmpeg `fps` + scale/pad, last frame held) and encoded by `an.media.mp4.mux_shot`, so it muxes narration and takes part in a dissolve. Findings (layout, lint, errors, unkeyable reads, preset judder, a declared length that disagrees, a held frame) are `Finding`s located by `file:line` (`Finding.location` / `ValidationFinding.location`), stored with the measurement so a reused shot still reports them, warned as `ShotFindingWarning`, persisted to `render_reports/<output>.json` and routed to `orchestrate`, `an validate` and MCP `validate_scene`. Contact sheets: content-addressed `contact_sheets` store. Requirements: `env.manim` (manim + manimkit; absent → `ManimNotInstalledError`), `env.latex` only for a LaTeX-using file (absent → manimkit's `no_latex`, failing at the line) | `an/adapters/manim_adapter.py`, `an/measurements.py`, `an/render.py`, `an/orchestrate.py`, `an/stores/{sources,scenes,artifacts}.py`, `an/capabilities/subjects.py` | shipped; real renders verified on a developer machine (CI does not install Manim; everything around it runs in the `ffmpeg` lane with a fake `render_check`) |
 | Remotion backend | `an/adapters/remotion_adapter.py` | stub — raises `RemotionRenderError` documenting what a real impl needs |
 | Whiteboard backend | `an/adapters/whiteboard.py` | stub — raises `WhiteboardRenderError` |
 
@@ -315,7 +315,8 @@ an/
 │   │   │                    Before an#247: Playwright headless capture + ffmpeg mux + audio overlay
 │   │   │                    (rasteriser PINNED — `DETERMINISTIC_CHROMIUM_ARGS`, an#31)
 │   │   └── runtime_files.py importlib.resources locator for the bundled JS runtime
-│   ├── manim_adapter.py     real (when manim installed) — generates a title-card scene
+│   ├── manim_adapter.py     opaque-source shots: a scene file from mall["sources"] rendered by
+│   │                        manimkit; length measured (derived store), picture cached by content
 │   ├── remotion_adapter.py  skeleton — clear NotImplementedError pending Phase 6+
 │   └── whiteboard.py        stub
 │
@@ -355,7 +356,7 @@ an/
 
 | Protocol | Purpose | Implementations |
 |---|---|---|
-| `Renderer` | per-shot mp4 production | `CutoutRenderer` (real; a `FrameStageRenderer` over the stage engine since an#247), `ManimRenderer` (real when manim installed), `RemotionRenderer` (skeleton), `WhiteboardRenderer` (stub) |
+| `Renderer` | per-shot mp4 production | `CutoutRenderer` (real; a `FrameStageRenderer` over the stage engine since an#247), `ManimRenderer` (opaque-source shots via manimkit; owns its clock — `measure_duration`), `RemotionRenderer` (skeleton), `WhiteboardRenderer` (stub) |
 | `Engine` (an#247) | a seekable engine the core drives frame by frame (`frame_stage_renderer(engine)` → `Renderer`); time-driven or state-driven, capabilities read from members | `StageEngine` (`an/adapters/cutout/render.py`; `an.stage` next); the live tier is declared only |
 | `TTSProvider` | text → audio | `OfflineTTS` (silent placeholder), `ElevenLabsTTS` (real, needs `ELEVEN_API_KEY`) |
 | `LipSyncProvider` | audio → viseme track (+ `words` when the provider has them, an#96) | `OfflineLipSync` (char-distribution), `WhisperLipSync` (word-aligned, needs `faster-whisper`), `RhubarbLipSync` (phoneme-aligned, needs `rhubarb` binary; recognizer follows the language). The compiler runs `an/adapters/cutout/coarticulate.py` over the raw track before emission (an#97): merge, suppress sub-frame tongue shapes, two-frame lead, decay before rest, and a minimum hold that votes |
@@ -384,6 +385,12 @@ Project.load(dir)
    │     ↳ a voice's effects (pitch, tempo) run before alignment; best-of-N takes are scored on the heard audio, the kept one recorded in mall["takes"]
    │     ↳ persists wav bytes to mall["audio"][hash], visemes JSON to mall["visemes"][hash]
    │     ↳ writes scene back to mall["scenes"]["main"] (mtime equalized)
+   │
+   ├─ settle_durations (an.measurements): every shot whose renderer owns its clock
+   │     (measure_duration — Manim) gets its measured length, from the derived
+   │     `measurements` store or measured now, applied to an in-memory COPY of the
+   │     scene before anything reads shot.duration; held for longer dialogue.
+   │     Never written into scene.md / scene.json (an#279)
    │
    ├─ shot cache (render_project's default; render() alone is cold):
    │     engine.begin(mall)                                ← project asset digest, once
@@ -459,6 +466,7 @@ The system caches at every boundary that's expensive to recompute. Cache keys ar
 | Best-of-N take record | the line's choice key: its request (text, voice, provider, effects, options) + `n` + the scorer's name and config, never its version — the resolution every render reads, not a cache | `pipeline._line_request` / `_load_or_choose_take` → `mall["takes"]` |
 | Viseme tracks | `_stable_hash({audio_key, lipsync.name, transcript})` | `pipeline._load_or_align` |
 | Shot cache (an#242, ADR 0004) | `compose_shot_key` over named parts: `renderer`, the keyer's (`compiled` = `scene_contract_sha256`, `textures`, `easings`, `audio`, `runtime`, `knobs`), `environment`, `project` — never `shot.id` | `an.build.ShotCache` via `render.render(incremental=…)`; cut-out keyer `an.adapters.cutout.cache_key` |
+| Manim shot (an#279) | shot key: `source` (every file of the staged sources folder), `manim` (entry, scene, Manim + manimkit versions, quality, LaTeX mode), `knobs` (fps, size, background, encode argv), `audio` (muxed lines + frame count), `code` (adapter + `an.media` sinks); environment = Manim's package stack, full ffmpeg banner, LaTeX/dvisvgm, font set, ISA. **Picture key** (the `measurements` + `pictures` stores) = `source` + `manim` only | `an.adapters.manim_adapter.manim_shot_inputs` / `picture_inputs` / `manim_environment` |
 | Per-shot mp4 ARCHIVE | `shot.id` — an archive of the latest render, not a cache | `render._archive_shot` — written, never read |
 | Final mp4 | `output_name` | `render.render` |
 | Anthropic prompt cache | scene JSON + schema hint (`cache_control: ephemeral`) | `iterate._call_claude` |
@@ -622,11 +630,13 @@ are described in their own sections above.
 
 What genuinely remains, in rough priority order (each item re-checked against the code on 2026-09-29; the full gap and sharp-edge list is `misc/docs/sharp_edges.md`):
 
-1. **A real shot-to-Manim compiler.** `_render_script` in
-   `an/adapters/manim_adapter.py` emits a single `Text(title)` title card of the
-   right duration. No entity, action, dialogue or camera information from the
-   Shot reaches the generated script. Translating the flat timeline into Manim
-   constructs is unstarted design work, not a wiring job.
+1. **A shot-to-Manim compiler (Manim step 2).** Since an#279 a Manim shot is
+   an opaque scene file (step 1); no entity, action or camera of the IR reaches
+   Manim. Step 2 — a math-viz genre whose entity and action kinds compile to
+   Manim (core study §4.2) — is unstarted design work. Also open on step 1: a
+   source from the asset LIBRARY (only the project's `sources` store today), a
+   multi-file scene (one file per key), Manim's own per-`play` cache across runs
+   (its media dir is per render), and replaying a reused shot's findings.
 2. **`ping_pong` has no emitter, and placements cannot override a clip's
    loop.** Both evaluators honour all three `loop_mode`s (`runtime.js`
    `wrapTime`, `clip.py` `_wrap_time`), and since an#7 a `play` of a looping

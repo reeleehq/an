@@ -22,13 +22,21 @@ class Finding:
     """A single verification issue.
 
     ``ir_path`` lets the orchestrator route the fix to the correct layer of
-    the IR — e.g. ``"timeline/0/dialogue/1"``.
+    the IR — e.g. ``"timeline/0/dialogue/1"``. ``location`` is set when the
+    thing to fix is not IR at all but an OPAQUE SOURCE the shot runs — a Manim
+    scene file — as ``"<file>:<line>"`` (core study §2.10): the fix then goes
+    to that line, and ``ir_path`` still names the shot that runs it.
+
+    >>> Finding("warning", "timeline/0/options/source", "text cut off",
+    ...         location="assets/sources/chart.py:14").location
+    'assets/sources/chart.py:14'
     """
 
     severity: Severity
     ir_path: str
     description: str
     suggested_fix: str | None = None
+    location: str | None = None
 
 
 @dataclass(slots=True)
@@ -44,6 +52,8 @@ class VerificationReport:
         ir_path: str,
         description: str,
         suggested_fix: str | None = None,
+        *,
+        location: str | None = None,
     ) -> None:
         self.findings.append(
             Finding(
@@ -51,6 +61,7 @@ class VerificationReport:
                 ir_path=ir_path,
                 description=description,
                 suggested_fix=suggested_fix,
+                location=location,
             )
         )
         if severity == "error":

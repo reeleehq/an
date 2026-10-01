@@ -677,6 +677,7 @@ def test_the_report_order_is_pinned():
     assert [c.name for c in checks("shot")] == [
         "renderer",
         "shot_basics",
+        "manim.shot",  # an#279: a Manim shot's options, before anything reads them
         "renderable",
         "framing",
         "cutout.play",

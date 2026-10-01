@@ -168,9 +168,15 @@ def _check_elevenlabs() -> ToolStatus:
 
 
 def _check_manim() -> ToolStatus:
-    return _check_python_pkg(
-        "manim", "pip install manim  # plus cairo/pango system deps"
+    """Manim AND manimkit: a Manim shot renders through manimkit (an#279), so
+    either one missing is a render that raises — reported as missing here."""
+    status = _check_python_pkg(
+        "manim", "pip install 'an[manim]'  # Manim + manimkit; plus cairo/pango system deps"
     )
+    if status.installed and importlib.util.find_spec("manimkit") is None:
+        status.installed = False
+        status.detail = "manim is installed but manimkit is not (pip install manimkit)"
+    return status
 
 
 def check_requirements() -> dict[str, dict]:

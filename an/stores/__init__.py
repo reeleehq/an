@@ -14,10 +14,11 @@ sites work against filesystem, SQLite, S3, etc.
 >>> with tempfile.TemporaryDirectory() as d:
 ...     mall = build_project_mall(d, ensure=True)
 ...     sorted(mall.keys()) == [
-...         'audio', 'captions', 'characters', 'decisions', 'environments',
-...         'library_lock', 'output', 'previews', 'props', 'scenes', 'shot_cache',
-...         'shots',
-...         'sounds', 'styles', 'takes', 'visemes', 'voices',
+...         'audio', 'captions', 'characters', 'contact_sheets', 'decisions',
+...         'environments', 'library_lock', 'measurements', 'output',
+...         'pictures', 'previews', 'props', 'render_reports', 'scenes',
+...         'shot_cache', 'shots', 'sounds', 'sources', 'styles', 'takes',
+...         'visemes', 'voices',
 ...     ]
 True
 """
@@ -33,6 +34,7 @@ from an.stores.environments import EnvironmentsStore
 from an.stores.library_lock import ProjectLock
 from an.stores.props import PropsStore
 from an.stores.scenes import ScenesStore
+from an.stores.sources import SourcesStore
 from an.stores.sounds import SoundsStore
 from an.stores.styles import StylesStore
 from an.stores.voices import VoicesStore
@@ -40,8 +42,12 @@ from an.build.shot_cache import shot_cache_store
 from an.stores.artifacts import (
     AudioArtifactStore,
     CaptionsStore,
+    ContactSheetStore,
+    MeasurementStore,
     OutputStore,
+    PictureStore,
     PreviewArtifactStore,
+    RenderReportStore,
     ShotArtifactStore,
     TakesArtifactStore,
     VisemeArtifactStore,
@@ -60,6 +66,11 @@ __all__ = [
     "TakesArtifactStore",
     "ShotArtifactStore",
     "PreviewArtifactStore",
+    "ContactSheetStore",
+    "MeasurementStore",
+    "PictureStore",
+    "RenderReportStore",
+    "SourcesStore",
     "OutputStore",
     "DecisionLogStore",
     "ProjectLock",
@@ -85,12 +96,17 @@ def build_project_mall(
             "assets/voices",
             "assets/styles",
             "assets/sounds",
+            "assets/sources",
             "ir",
             "artifacts/audio",
             "artifacts/visemes",
             "artifacts/takes",
             "artifacts/shots",
             "artifacts/previews",
+            "artifacts/contact_sheets",
+            "artifacts/measurements",
+            "artifacts/pictures",
+            "artifacts/render_reports",
             "output",
             ".an",
         ):
@@ -103,6 +119,9 @@ def build_project_mall(
         "voices": VoicesStore(pdir / "assets" / "voices"),
         "styles": StylesStore(pdir / "assets" / "styles"),
         "sounds": SoundsStore(pdir / "assets" / "sounds"),
+        # Opaque scene sources a whole-shot renderer runs as they are: a Manim
+        # shot's `options.source` is a key here (`assets/sources/<key>.py`).
+        "sources": SourcesStore(pdir / "assets" / "sources"),
         "scenes": ScenesStore(pdir),
         "audio": AudioArtifactStore(pdir / "artifacts" / "audio"),
         "visemes": VisemeArtifactStore(pdir / "artifacts" / "visemes"),
@@ -116,6 +135,16 @@ def build_project_mall(
         # `catalog/<key>.json` + `blobs/<sha256>`. `render_project` reads it.
         "shot_cache": shot_cache_store(pdir / "artifacts" / "shot_cache"),
         "previews": PreviewArtifactStore(pdir / "artifacts" / "previews"),
+        # Contact sheets of opaque renders (a Manim shot's settled beats), keyed
+        # by the PNG's sha256 so cached provenance keeps pointing at them.
+        "contact_sheets": ContactSheetStore(pdir / "artifacts" / "contact_sheets"),
+        # Derived, content-keyed: what a clock-owning renderer measured of its
+        # content (a Manim shot's length) and its raw picture. Never authored
+        # data — the scene keeps what its author wrote (an#279).
+        "measurements": MeasurementStore(pdir / "artifacts" / "measurements"),
+        "pictures": PictureStore(pdir / "artifacts" / "pictures"),
+        # What each render found, keyed like its output (`render_reports/main.json`).
+        "render_reports": RenderReportStore(pdir / "artifacts" / "render_reports"),
         "output": OutputStore(pdir / "output"),
         # The SubRip sidecar of each delivered film (an#175), in the SAME
         # directory as the mp4 so `output/main.srt` sits beside

@@ -116,6 +116,7 @@ def validate_scene(project_dir: str) -> dict[str, Any]:
                 "ir_path": f.ir_path,
                 "description": f.description,
                 "suggested_fix": getattr(f, "suggested_fix", None),
+                "location": getattr(f, "location", None),
             }
             for f in report.findings
         ],

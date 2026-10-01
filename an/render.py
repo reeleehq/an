@@ -371,6 +371,22 @@ def render(
         default_easing=scene.meta.default_easing,
     )
 
+    # A renderer that owns its clock (Manim) says how long its shots run. The
+    # measurement is derived data: applied to an in-memory COPY of the scene
+    # before anything reads `shot.duration` (the film timeline, captions, the
+    # sound layer, every cache key) and never written into the author's scene
+    # (an#279). A render with no cache engine is cold, so it measures afresh.
+    from an.measurements import settle_durations, warn_findings
+
+    scene, shot_findings = settle_durations(
+        scene,
+        ctx,
+        render=True,
+        force=force_render or engine is None,
+        strict=strict_assets,
+    )
+    warn_findings(shot_findings)
+
     shots = list(scene.timeline)
     if needs_assembly(scene, fps=effective_fps):
         # Before any browser launches: a transition the shots are too short
@@ -487,6 +503,7 @@ def render(
     _write_caption_sidecar(
         project.mall, output_name, scene, captions, pages, fps=effective_fps
     )
+    _write_render_report(project.mall, output_name, shot_findings)
     if engine is not None:
         _finish_run(work_dir)
     # Last, so it is the last word about the file (an#211): a render that used
@@ -507,6 +524,22 @@ def render(
     else:
         warn_if_private_study(report, output=output_path)
     return output_path
+
+
+def _write_render_report(mall, output_name: str, findings) -> None:
+    """``render_reports/<output_name>.json``: what this render found, for
+    ``orchestrate`` and MCP to read (an#279). Always written — an empty report
+    replaces a stale one — when the mall has the store."""
+    import json
+
+    from an.measurements import findings_record
+
+    store = mall.get("render_reports")
+    if store is None:
+        return
+    store[output_name] = json.dumps(
+        {"findings": findings_record(findings)}, indent=2, sort_keys=True
+    ).encode("utf-8")
 
 
 def _write_caption_sidecar(mall, output_name, scene, captions, pages, *, fps):

@@ -2270,6 +2270,81 @@ def _copy_example(rel: str) -> Callable[[Path], Path]:
     return build
 
 
+#: The Manim scene of the `manim-shot` demo: four bars grow, the tallest is
+#: pointed at. Text only — no LaTeX — so it renders on a machine without TeX.
+MANIM_DEMO_SOURCE: str = """from manim import *
+
+
+class Bars(Scene):
+    def construct(self):
+        heights = (1.0, 2.2, 3.0, 1.6)
+        bars = VGroup(
+            *[Rectangle(width=0.9, height=h, fill_opacity=0.85, color=BLUE) for h in heights]
+        ).arrange(RIGHT, buff=0.35, aligned_edge=DOWN).shift(DOWN * 0.8)
+        title = Text("Quarterly sales", font_size=40).to_edge(UP)
+        self.play(Write(title), run_time=0.8)
+        self.play(LaggedStart(*[GrowFromEdge(b, DOWN) for b in bars], lag_ratio=0.25), run_time=1.6)
+        self.play(bars[2].animate.set_color(ORANGE), Indicate(bars[2]), run_time=0.8)
+        self.wait(0.6)
+"""
+
+
+def _build_manim_shot(work: Path) -> Path:
+    """A Manim shot inside an `an` film (an#279): a bar chart drawn by Manim
+    from a scene file, narrated, dissolving into a stage title card.
+
+    Needs `pip install 'an[manim]'`; refuses with that command otherwise.
+    """
+    import importlib.util
+
+    from an.adapters.manim_adapter import INSTALL_HINT, ManimNotInstalledError
+    from an.environments import EnvironmentDescriptor, Plane, PlaneArt
+    from an.stores import build_project_mall
+    from an.text import TextDescriptor
+
+    if any(importlib.util.find_spec(m) is None for m in ("manim", "manimkit")):
+        raise ManimNotInstalledError(f"the manim-shot demo needs Manim: {INSTALL_HINT}")
+    mall = build_project_mall(work, ensure=True)
+    mall["sources"]["bars"] = MANIM_DEMO_SOURCE.encode("utf-8")
+    mall["environments"]["card"] = EnvironmentDescriptor(
+        name="card",
+        planes=[Plane(name="bg", art=PlaneArt(kind="fill", color="#14142a"), depth=0.0)],
+    ).model_dump(mode="json")
+    mall["props"]["title"] = TextDescriptor(
+        name="title", text="Q3 was the best", layer="overlay", unit="line",
+        size=0.12, color="#f2a541",
+    ).model_dump(mode="json")  # fmt: skip
+    md = (
+        _meta("A Manim shot in an an film", 5.0)
+        + _scene(
+            """
+            ## Shot chart (manim)
+
+            ```yaml shot
+            options: {source: bars, scene: Bars}
+            ```
+
+            ```dialogue
+            narrator: Four quarters, and the third one stands out.
+            ```
+
+            ## Shot card (cutout)
+
+            ```yaml shot
+            duration: 2.0
+            transition: {kind: dissolve, duration: 0.5}
+            ```
+
+            ```yaml entities
+            - {kind: environment, id: bg, store: environments, ref: card}
+            - {kind: prop, id: title, store: props, ref: title}
+            ```
+            """
+        )
+    )
+    return _render(_project(work, scene_md=md, characters=()), strict_assets=True)
+
+
 DEMOS: tuple[Demo, ...] = (
     Demo(
         slug="text-to-video",
@@ -2982,6 +3057,28 @@ DEMOS: tuple[Demo, ...] = (
             "mid-air instead."
         ),
         build=_build_impacts,
+    ),
+    Demo(
+        slug="manim-shot",
+        title="A Manim shot in the film",
+        shows=(
+            "A bar chart drawn by Manim from a scene file, under a narration line, "
+            "dissolving into a title card drawn by the stage. `an` measured the "
+            "Manim shot's length (its play/wait calls decide it; the scene writes "
+            "no duration) and laid the film out on it. Narrower than it looks: the "
+            "Manim shot is OPAQUE — none of `an`'s actions, camera or characters "
+            "reach inside it — and its captions go to the sidecar only. The "
+            "offline voice is silent, so the narration is heard only with a real "
+            "TTS (`--tts mac_say` / `elevenlabs`)."
+        ),
+        how=(
+            "`## Shot chart (manim)` with `options: {source: bars, scene: Bars}`, "
+            "the file at `assets/sources/bars.py` — `an.adapters.manim_adapter."
+            "ManimRenderer` (manimkit's `render_check`; `pip install 'an[manim]'`). "
+            "Layout problems are warned at their `file:line`; the contact sheet is "
+            "in `artifacts/contact_sheets/`."
+        ),
+        build=_build_manim_shot,
     ),
 )
 
