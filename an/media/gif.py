@@ -82,7 +82,12 @@ def to_gif(
                 "a frame directory has no rate of its own; pass source_fps= "
                 "(the rate the frames were rendered at)"
             )
-        inputs = ["-framerate", str(source_fps), "-i", str(source / DEFAULT_FRAME_PNG_PATTERN)]
+        inputs = [
+            "-framerate",
+            str(source_fps),
+            "-i",
+            str(source / DEFAULT_FRAME_PNG_PATTERN),
+        ]
     else:
         inputs = ["-i", str(source)]
     from an.media.mp4 import MediaError, ensure_ffmpeg
@@ -99,5 +104,7 @@ def to_gif(
     except OSError as e:
         raise MediaError(f"ffmpeg failed to launch for the GIF sink: {e}") from e
     if result.returncode != 0 or not gif.exists():
-        raise MediaError(f"ffmpeg GIF encode failed (rc={result.returncode}):\n{result.stderr}")
+        raise MediaError(
+            f"ffmpeg GIF encode failed (rc={result.returncode}):\n{result.stderr}"
+        )
     return gif

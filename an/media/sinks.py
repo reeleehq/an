@@ -129,7 +129,9 @@ _SINKS: dict[str, Callable[..., FrameSink]] = {
 }
 
 
-def register_sink(name: str, factory: Callable[..., FrameSink], *, replace: bool = False) -> None:
+def register_sink(
+    name: str, factory: Callable[..., FrameSink], *, replace: bool = False
+) -> None:
     """Register a sink factory under ``name``; refuse a silent replacement."""
     if name in _SINKS and not replace and _SINKS[name] is not factory:
         raise ValueError(

@@ -175,7 +175,11 @@ def _forwarding_target(node: ast.AST) -> str | None:
     func = node.func
     name = func.id if isinstance(func, ast.Name) else getattr(func, "attr", None)
     target = node.args[1]
-    if name == FORWARDING_CALL and isinstance(target, ast.Constant) and isinstance(target.value, str):
+    if (
+        name == FORWARDING_CALL
+        and isinstance(target, ast.Constant)
+        and isinstance(target.value, str)
+    ):
         return target.value
     return None
 

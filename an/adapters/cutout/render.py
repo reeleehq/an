@@ -631,7 +631,9 @@ class _ScreenshotStageSession(_StageSession):
                 _set_time(self.page, t, frame=req.frame)
                 # Located AFTER the time is set: a runtime throw must surface as
                 # the typed frame error, not as whatever the locator raises first.
-                shots.append(self.page.locator("#stage").screenshot(omit_background=False))
+                shots.append(
+                    self.page.locator("#stage").screenshot(omit_background=False)
+                )
             out.append(shots)
         return out
 
@@ -679,7 +681,9 @@ class _CanvasStageSession(_StageSession):
 def _session_for(capture: str | None) -> type[_StageSession]:
     """The session class a capture path names; ``None`` is the module default."""
     return (
-        _CanvasStageSession if _check_capture(capture) == "canvas" else _ScreenshotStageSession
+        _CanvasStageSession
+        if _check_capture(capture) == "canvas"
+        else _ScreenshotStageSession
     )
 
 
@@ -945,9 +949,7 @@ forward_module_attributes(
         "_mux_shot": "mux_shot",
     },
 )
-forward_module_attributes(
-    __name__, "an.media.frames", ["DEFAULT_FRAME_PNG_PATTERN"]
-)
+forward_module_attributes(__name__, "an.media.frames", ["DEFAULT_FRAME_PNG_PATTERN"])
 forward_module_attributes(
     __name__,
     "an.engines.capture",

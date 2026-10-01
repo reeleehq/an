@@ -254,7 +254,9 @@ def describe(session: Any) -> EngineProfile:
     drive = drive_mode(session)
     if drive is not None:
         tier = TIER_SEEKABLE
-    elif all(callable(getattr(session, m, None)) for m in ("apply", "settle", "capture")):
+    elif all(
+        callable(getattr(session, m, None)) for m in ("apply", "settle", "capture")
+    ):
         tier = TIER_LIVE
     else:
         tier = None

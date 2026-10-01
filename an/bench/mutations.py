@@ -411,7 +411,9 @@ def _supersample() -> Iterator[None]:
             # and whatever the capture stage grows next) so the lever keeps
             # running the product's path rather than a frozen copy of its
             # signature.
-            original(session, requests, frames_dir, **{**kwargs, "factor": SUPERSAMPLE_K})
+            original(
+                session, requests, frames_dir, **{**kwargs, "factor": SUPERSAMPLE_K}
+            )
 
         capture.capture_frames = _capture_then_resolve
         try:

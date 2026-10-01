@@ -235,7 +235,9 @@ class FrameStageRenderer:
                 **self.capture_options,
             )
             session_provenance = dict(
-                session.provenance() if callable(getattr(session, "provenance", None)) else {}
+                session.provenance()
+                if callable(getattr(session, "provenance", None))
+                else {}
             )
         clash = sorted(CORE_PROVENANCE_KEYS & set(session_provenance))
         if clash:

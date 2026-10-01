@@ -78,7 +78,9 @@ class _ForwardingModule(types.ModuleType):
         super().__delattr__(name)
 
     def __dir__(self) -> list[str]:
-        return sorted(set(super().__dir__()) | set(self.__dict__.get(_FORWARDS_ATTR, {})))
+        return sorted(
+            set(super().__dir__()) | set(self.__dict__.get(_FORWARDS_ATTR, {}))
+        )
 
 
 def forward_module_attributes(

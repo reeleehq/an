@@ -137,7 +137,9 @@ def capture_frames(
             budget=batch_pixels or DEFAULT_BATCH_PIXELS,
         )
     else:
-        _capture_sequential(session, requests, frames_dir, resolve, factor=factor, size=size)
+        _capture_sequential(
+            session, requests, frames_dir, resolve, factor=factor, size=size
+        )
     if frames_dir is not None:
         missing = missing_frames(frames_dir, len(requests))
         if missing:
@@ -220,7 +222,9 @@ def _capture_batched(
     inflight: deque = deque()  # (future, pixels)
     inflight_pixels = 0
     pending: list[bytes] = []  # the samples of a frame split across round trips
-    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="an-frames") as pool:
+    with ThreadPoolExecutor(
+        max_workers=workers, thread_name_prefix="an-frames"
+    ) as pool:
         try:
             for trip in _round_trips():
                 asked = [req for req, _ in trip]
