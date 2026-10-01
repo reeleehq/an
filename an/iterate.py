@@ -258,8 +258,10 @@ def iterate(
       5. If valid and ``apply=True``, persist to mall["scenes"]["main"] and
          append to mall["decisions"].
 
-    The caller is responsible for re-rendering. ``IterateResult.affected_shots``
-    enumerates which shots changed so the orchestrator can render only those.
+    The caller is responsible for re-rendering: `an render` then re-renders
+    exactly the shots whose content changed, found by digest (the shot cache,
+    ADR 0004) — ``IterateResult.affected_shots`` is the model's account of
+    which those are, for the reader, not the mechanism.
     """
     if not os.environ.get("ANTHROPIC_API_KEY"):
         raise IterateError(
@@ -315,13 +317,12 @@ def iterate(
         return result
 
     if apply:
-        # Invalidate any cached per-shot artifacts for affected shots so the
-        # next render regenerates them.
-        for shot_id in response.affected_shots:
-            try:
-                del project.mall["shots"][shot_id]
-            except KeyError:
-                pass
+        # No invalidation step, by design (ADR 0004 decision 6): a shot the
+        # patches changed compiles to a different document, so its shot-cache
+        # key moves and the next render renders it; the shots it did not change
+        # keep their keys and are reused. `affected_shots` is the model's
+        # CLAIM about that, recorded below — it is never what decides a
+        # re-render, so a wrong claim cannot leave a stale shot in the film.
         project.mall["scenes"]["main"] = new_scene
         project.mall["decisions"].append(
             kind="iterate",

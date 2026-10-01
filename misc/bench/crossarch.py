@@ -341,7 +341,8 @@ def capture_scene(
             fixture.prepare(work_copy)
         project = load(work_copy)
         scene = project.scene
-        output_mp4 = render(project, **CAPTURE_RENDER_KWARGS)
+        # Cold, explicitly: a capture is a measurement (see an/bench/capture.py).
+        output_mp4 = render(project, **CAPTURE_RENDER_KWARGS, incremental=False)
 
         render_work_dir = work_copy / ".an" / "render_work"
         staged_kinds = _staged_visual_kinds(render_work_dir)

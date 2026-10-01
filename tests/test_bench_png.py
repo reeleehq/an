@@ -409,7 +409,9 @@ def test_our_decoder_agrees_with_ffmpeg_on_a_real_rendered_frame(tmp_path):
     from pathlib import Path
 
     frames = sorted(
-        Path("examples").glob("*/.an/render_work/*/frames/frame_000000.png")
+        # `**`: a cached `render_project` works under `render_work/runs/<run>/`
+        # (an#242); a cold render directly under `render_work/`.
+        Path("examples").glob("*/.an/render_work/**/frames/frame_000000.png")
     )
     if not frames:
         pytest.skip("no rendered example frames in this checkout")

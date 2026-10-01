@@ -10,9 +10,11 @@ adapters and the same flow handles them.
 
 from __future__ import annotations
 
+import logging
 import os
 import shutil
 import subprocess
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Iterable
@@ -21,6 +23,7 @@ from an.adapters._base import RenderContext, RenderResult
 from an.assemble import assemble_film, film_timeline, needs_assembly
 from an.adapters.cutout.compile import style_pack_for
 from an.adapters._base import _DEFAULT_REGISTRY
+from an.build.shot_cache import IncrementalEngine, ShotPlan, resolve_incremental
 from an.base import (
     DEFAULT_FPS,
     DEFAULT_RESOLUTION,
@@ -30,6 +33,65 @@ from an.base import (
 from an.ir.schema import Shot
 from an.project import Project, load
 
+
+logger = logging.getLogger("an.build")
+
+#: Under ``.an/render_work/``: one directory per CACHED render run.
+RENDER_RUNS_DIR: str = "runs"
+
+#: In a run directory: the pid of the process rendering it (written at start).
+RUN_LIVE_MARKER: str = ".live"
+#: In a run directory: written when the run delivered its film.
+RUN_DONE_MARKER: str = ".done"
+
+
+def _run_id() -> str:
+    import secrets
+
+    return f"{time.strftime('%Y%m%dT%H%M%S')}_{os.getpid()}_{secrets.token_hex(3)}"
+
+
+def _start_run(work_dir: Path) -> None:
+    work_dir.mkdir(parents=True, exist_ok=True)
+    (work_dir / RUN_LIVE_MARKER).write_text(str(os.getpid()), encoding="utf-8")
+
+
+def _pid_alive(pid: int) -> bool | None:
+    """Whether ``pid`` runs; ``None`` where that cannot be asked safely (Windows)."""
+    if os.name != "posix":
+        return None
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True
+    return True
+
+
+def _run_finished(d: Path) -> bool:
+    """A run is finished when it says so, or when the process that ran it is gone."""
+    if (d / RUN_DONE_MARKER).exists():
+        return True
+    try:
+        pid = int((d / RUN_LIVE_MARKER).read_text(encoding="utf-8").strip())
+    except (OSError, ValueError):
+        return False  # no marker we can read: not ours to judge
+    return pid != os.getpid() and _pid_alive(pid) is False
+
+
+def _finish_run(work_dir: Path) -> None:
+    """Mark this run done and remove every OTHER finished run — promptly, not
+    after hours: each run holds a whole render's PNGs (an#243 review, R2-2).
+    This run is kept, as the latest, for inspection; a run still in progress
+    (its process alive, no done marker) is never touched."""
+    (work_dir / RUN_DONE_MARKER).write_text("", encoding="utf-8")
+    runs = work_dir.parent
+    for d in runs.iterdir() if runs.is_dir() else ():
+        if d == work_dir or not d.is_dir():
+            continue
+        if _run_finished(d):
+            shutil.rmtree(d, ignore_errors=True)
 
 # Default cap so a 20-shot scene doesn't try to spawn 20 Chromiums; the user
 # can always pass a higher number explicitly.
@@ -77,8 +139,20 @@ def render_project(
     capture: str | None = None,
     step_hz: float | None = None,
     language: str = "en",
+    incremental: bool | IncrementalEngine = True,
+    force_render: bool = False,
 ) -> Path:
     """Render every shot in ``project_dir``'s scene and concatenate to one mp4.
+
+    **Incremental by default** (ADR 0004): a shot whose key — a digest of
+    everything its render reads, never its id — already has an entry in the
+    project's shot cache is not rendered again; its cached mp4 is reused. So
+    editing one shot re-renders that shot, and an unchanged project re-renders
+    nothing. ``force_render=True`` renders every shot anyway (and refreshes
+    their entries); ``incremental=False`` neither reads nor writes the cache.
+    Pass your own engine (e.g. ``ShotCache()``) to read what happened to each
+    shot afterwards from its ``report`` — the same summary is logged on the
+    ``an.build`` logger. See :func:`render`.
 
     ``tts`` and ``lipsync`` may be provider name strings (``"offline"``,
     ``"elevenlabs"``, ``"rhubarb"``) or provider instances. Defaults are
@@ -133,6 +207,8 @@ def render_project(
         capture=capture,
         step_hz=step_hz,
         language=language,
+        incremental=incremental,
+        force_render=force_render,
     )
 
 
@@ -152,8 +228,19 @@ def render(
     capture: str | None = None,
     step_hz: float | None = None,
     language: str = "en",
+    incremental: bool | IncrementalEngine = False,
+    force_render: bool = False,
 ) -> Path:
     """Lower-level: render a loaded ``Project`` to mp4.
+
+    ``incremental`` is the build-cache seam (ADR 0004 decision 5): ``True`` is
+    the built-in :class:`~an.build.ShotCache` over ``mall["shot_cache"]``, an
+    :class:`~an.build.IncrementalEngine` is used as given, and ``False`` — the
+    default HERE, unlike :func:`render_project` — renders every shot cold, as
+    this function always has. Cold is this layer's default because its other
+    callers are measurements (the bench, the golden corpus, the demo builds),
+    whose wall times and lever rebinds a reused shot would silently void.
+    ``force_render=True`` with an engine renders every shot and re-records it.
 
     ``supersample`` renders at N times the declared resolution and resolves back
     with an exact N x N block mean, in the frame stage, before anything else
@@ -231,7 +318,16 @@ def render(
 
         retime_dialogue(scene, timed_shots_only=True)
 
+    engine = resolve_incremental(incremental)
     work_dir = project.root / ".an" / "render_work"
+    if engine is not None:
+        # A cached render works in a directory of its OWN: two renders of one
+        # project at once (a 4:4:4 master and a 4:2:0 delivery, a person and an
+        # agent) would otherwise write the same `shot_<id>/<id>.mp4` and each
+        # record whatever bytes were there under its own key — poisoning the
+        # cache durably, where before it spoiled one run (an#243 review, S1).
+        work_dir = work_dir / RENDER_RUNS_DIR / _run_id()
+        _start_run(work_dir)
     work_dir.mkdir(parents=True, exist_ok=True)
 
     effective_fps = fps if fps is not None else scene.meta.fps or DEFAULT_FPS
@@ -296,23 +392,55 @@ def render(
             )
         shot_renderers.append((shot, r, shot_ctx))
 
-    if pool_size <= 1:
-        shot_results = [
-            _render_one(shot, renderer, shot_ctx, project)
+    # The shot cache (ADR 0004): every key is computed HERE, in this thread and
+    # before any browser launches — a key compiles its shot, so a shot that
+    # cannot compile fails now, and only the misses reach the pool.
+    plans: list[ShotPlan | None] = [None] * len(shot_renderers)
+    if engine is not None:
+        engine.begin(project.mall, project_root=project.root)
+        needs_frames = needs_assembly(scene, fps=effective_fps)
+        plans = [
+            engine.plan(
+                shot, renderer, shot_ctx, needs_frames=needs_frames, force=force_render
+            )
             for shot, renderer, shot_ctx in shot_renderers
         ]
+
+    shot_results: list[RenderResult | None] = [None] * len(shot_renderers)
+    todo = []
+    for i, ((shot, renderer, shot_ctx), plan) in enumerate(zip(shot_renderers, plans)):
+        if plan is not None and plan.cached is not None:
+            shot_results[i] = plan.cached
+            _archive_shot(project, shot, plan.cached)
+        else:
+            todo.append((i, shot, renderer, shot_ctx, plan))
+
+    if pool_size <= 1:
+        for i, shot, renderer, shot_ctx, plan in todo:
+            shot_results[i] = _render_one(
+                shot, renderer, shot_ctx, project, engine=engine, plan=plan
+            )
     else:
-        results_by_id: dict[str, RenderResult] = {}
         with ThreadPoolExecutor(max_workers=pool_size) as ex:
             futures = {
-                ex.submit(_render_one, shot, renderer, shot_ctx, project): shot.id
-                for shot, renderer, shot_ctx in shot_renderers
+                ex.submit(
+                    _render_one,
+                    shot,
+                    renderer,
+                    shot_ctx,
+                    project,
+                    engine=engine,
+                    plan=plan,
+                ): i
+                for i, shot, renderer, shot_ctx, plan in todo
             }
             for fut in as_completed(futures):
-                shot_id = futures[fut]
-                results_by_id[shot_id] = fut.result()
-        # Preserve scene-timeline order for ffmpeg concat.
-        shot_results = [results_by_id[s.id] for s in shots]
+                shot_results[futures[fut]] = fut.result()
+    # Scene-timeline order is kept by index, for the concat.
+
+    if engine is not None:
+        report = engine.finish()
+        logger.info("%s", report.summary())
 
     # Concatenate per-shot mp4s.
     output_path = (project.root / "output" / f"{output_name}.mp4").resolve()
@@ -345,6 +473,8 @@ def render(
     _write_caption_sidecar(
         project.mall, output_name, scene, captions, pages, fps=effective_fps
     )
+    if engine is not None:
+        _finish_run(work_dir)
     # Last, so it is the last word about the file (an#211): a render that used
     # all-rights-reserved, private-study material must not read as shippable.
     import warnings
@@ -442,17 +572,34 @@ def _render_one(
     renderer,
     ctx: RenderContext,
     project: Project,
+    *,
+    engine: IncrementalEngine | None = None,
+    plan: ShotPlan | None = None,
 ) -> RenderResult:
-    """Render one shot and persist its mp4 into ``project.mall["shots"]``.
+    """Render one shot, record it with ``engine``, and archive its mp4.
 
     Each call is self-contained: the cutout renderer creates a per-shot
     work directory, its own Chromium instance, its own http server. This
     is what makes the call thread-safe.
     """
+    t0 = time.perf_counter()
     result = renderer.render(shot, ctx)
+    render_s = time.perf_counter() - t0
+    if engine is not None and plan is not None:
+        engine.record(plan, result, render_s=render_s)
+    _archive_shot(project, shot, result)
+    return result
+
+
+def _archive_shot(project: Project, shot: Shot, result: RenderResult) -> None:
+    """Write the shot's mp4 to ``mall["shots"][shot.id]`` — an ARCHIVE, not a cache.
+
+    Keyed by the author's id, so it holds the latest render of each shot for a
+    person to look at; nothing reads it back (pillar 11). The cache is
+    ``mall["shot_cache"]``, keyed by content.
+    """
     with open(result.mp4_path, "rb") as f:
         project.mall["shots"][shot.id] = f.read()
-    return result
 
 
 def _resolve_parallel(parallel: int | str | None, *, n_shots: int) -> int:

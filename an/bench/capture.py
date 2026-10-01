@@ -280,7 +280,11 @@ def capture_fixture(
 
     capture_path = _check_capture(BENCH_RENDER_KWARGS.get("capture"))
     started = time.perf_counter()
-    output_mp4 = Path(render(project, **BENCH_RENDER_KWARGS))
+    # Cold, and SAID so (an#243 review): a measurement answered from the shot
+    # cache times nothing, and a lever that rebinds code outside the key would
+    # "apply" with no effect. Passed here, not added to BENCH_RENDER_KWARGS,
+    # because that dict is recorded into every ledger row and compared.
+    output_mp4 = Path(render(project, **BENCH_RENDER_KWARGS, incremental=False))
     wall = time.perf_counter() - started
 
     work_dir = work_copy / RENDER_WORK_RELPATH

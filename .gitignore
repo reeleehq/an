@@ -17,6 +17,9 @@ certs/
 # Distribution / packaging
 .Python
 build/
+# ...but not the package `an.build` (ADR 0004's build graph): a source
+# directory, which hatch would otherwise also leave out of the wheel.
+!an/build/
 develop-eggs/
 dist/
 downloads/

@@ -129,6 +129,9 @@ def _render(project: Path, **kwargs) -> Path:
     from an.project import load
     from an.render import render
 
+    # Cold, explicitly: a gallery build is a full render of every demo, and the
+    # demos are where a change to the render path is LOOKED at.
+    kwargs.setdefault("incremental", False)
     return Path(render(load(project), tts="offline", lipsync="offline", **kwargs))
 
 
@@ -2208,7 +2211,12 @@ def _build_captions(work: Path) -> Path:
     from an.render import render
 
     out = Path(
-        render(load(project), tts="offline", lipsync=WordTimingsLipSync(_PacedWords()))
+        render(
+            load(project),
+            tts="offline",
+            lipsync=WordTimingsLipSync(_PacedWords()),
+            incremental=False,
+        )
     )
     # Beside the gallery's mp4 (`build_one` deletes `work`), as a player expects.
     shutil.copy(out.with_suffix(".srt"), work.parents[1] / "captions.srt")
@@ -2256,7 +2264,12 @@ def _build_dialogue_pause(work: Path) -> Path:
     from an.render import render
 
     return Path(
-        render(load(project), tts="offline", lipsync=WordTimingsLipSync(_PacedWords()))
+        render(
+            load(project),
+            tts="offline",
+            lipsync=WordTimingsLipSync(_PacedWords()),
+            incremental=False,
+        )
     )
 
 

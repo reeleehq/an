@@ -51,3 +51,15 @@ __all__ = [
 from an.adapters._base import register_renderer as _register_renderer
 
 _register_renderer(CutoutRenderer())
+
+# ...and how its shots are keyed in the shot cache (ADR 0004). Registered here,
+# beside the renderer, so the core `an.build` never names a backend.
+from an.adapters.cutout.cache_key import cutout_environment, cutout_shot_inputs
+from an.build.keys import register_shot_keyer as _register_shot_keyer
+
+_register_shot_keyer(
+    "cutout",
+    cutout_shot_inputs,
+    environment=cutout_environment,
+    renderer_type=CutoutRenderer,
+)

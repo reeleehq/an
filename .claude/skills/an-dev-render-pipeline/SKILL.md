@@ -378,27 +378,42 @@ reflowing the line, and keep the count at one.
 
 ---
 
-## 5. There is no shot cache — `mall["shots"]` is write-only
+## 5. The shot cache — `mall["shot_cache"]`, keyed by content (an#242)
 
-`CLAUDE.md` says "Content-hash caching; invalidation by deletion … `shot.id` for
-per-shot mp4s". The store exists (`an/stores/__init__.py` →
-`<project>/artifacts/shots`) and `an/render.py::_render_one` writes every shot
-into it, and `an/iterate.py` deletes from it to invalidate. **Nothing reads it.**
-`_render_one` renders unconditionally; there is no cache-hit branch anywhere on
-the render path.
+`render_project` reuses a shot whose key has an entry (ADR 0004 first slice;
+`an/build/`, the cut-out keyer in `an/adapters/cutout/cache_key.py`). Rules for
+anyone touching the frame path:
 
-Two consequences, and neither is theoretical:
-
-- **There is no cache key to design.** A proposal to "add the supersample factor
-  to the shot cache key" (epic #9's struck item (e)) is a false premise — there is
-  no key, because there is no lookup.
-- **`artifacts/shots` is the bench's stale-render landmine.** `an/bench/capture.py`
-  copies the fixture with `IGNORED_ON_COPY = (".an", "output", ".anima")`, which
-  keeps `artifacts/` on purpose (it is the audio cache, whose warm/cold state is
-  *recorded* rather than destroyed) — and therefore carries the previous render's
-  shot mp4s into a module whose docstring is "Do not inherit a stale render". It
-  is gitignored, so it is a per-developer landmine that does not reproduce on a
-  clean checkout.
+- **A new per-render knob must reach the key.** `cache_key.render_knobs` lists
+  every `RenderContext` field the render reads, RESOLVED as the render resolves
+  it (`_check_pix_fmt(None)` is the module default at call time). A knob that
+  changes pixels and is missing there is a stale-render bug: the old mp4 is
+  reused. `tests/test_shot_cache.py` pins `compiled_document` against what
+  `CutoutRenderer.render` passes `compile_shot`; extend `render_knobs` in the
+  same PR as the knob.
+- **Python-side render code is in the key automatically**: the `code` part
+  digests every module `an.adapters.cutout.render` reaches (walked from its
+  imports; compile-side modules are excluded in `RENDER_PATH_EXCLUDED`, each
+  with its reason). A new module the render path imports is covered; a new
+  EXCLUSION needs a reason that its change reaches another part. The runtime
+  is `runtime_sha256`, the argv the knobs part, the machine (incl. the x264
+  build) the environment digest. `SHOT_KEY_IMPL_VERSION` is only for changes to
+  the key's own composition.
+- **`render()` is cold by default; only `render_project` caches.** The bench,
+  the golden corpus, the cross-arch capture and the demo builds call `render()`,
+  so their wall times are real and a lever that rebinds something outside the
+  key (the supersample lever's `_capture_frames`) is never answered from cache.
+  Do not flip that default, and keep every measuring call site saying
+  `incremental=False` itself (`an/bench/capture.py`, `misc/bench/crossarch.py`,
+  `misc/demos/build_demos.py`; pinned by `tests/test_shot_cache.py`) — never
+  inside `BENCH_RENDER_KWARGS`, which is recorded into ledger rows and compared.
+- `mall["shots"]` (`artifacts/shots/<shot.id>.mp4`) is still written on every
+  render, reused shots included, and still read by nothing: an archive of the
+  latest render per shot id, not a cache. `an iterate` no longer deletes from
+  it — invalidation is by digest.
+- `artifacts/` is kept by the bench's copy (`IGNORED_ON_COPY`), so a fixture
+  carries its `shot_cache/` into a capture; harmless, because `render()` neither
+  reads nor writes it.
 
 ---
 

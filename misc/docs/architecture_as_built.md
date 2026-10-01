@@ -29,11 +29,12 @@ What exists, and where, moved here from `CLAUDE.md` (an#156) so there is one map
 | Verifiers: layout lint, media quality, vision-LM, human-in-the-loop (+ ffmpeg/SSIM helpers) | `an/verify/{layout,media_quality,vision,human}.py`, `an/verify/media.py` | shipped |
 | **Style lint + style specs**: `an.verify.style.StyleLintVerifier` measures a render the way the cut-out styles research measured six real styles — held-frame share, the one/two/three-plus change-interval histogram, longest hold, cuts per minute and mean shot (cuts taken from the IR), saturation, dark-pixel share, top-16 colour coverage — and warns per missed `[low, high]` target with the knob that moves it — a knob the spec's own `live` settings allow (never "drop `step_hz`" to a stepped style); a per-shot cadence table (`measure_shots`); cuts from the authored shot list with dissolve overlaps (`film_shots`), found automatically for a `<project>/output/*.mp4` by `python -m an.verify.style`, with a warning when it falls back to pixel cut detection; numpy + ffmpeg only; a failure to measure reports at `FAILURE_SEVERITY`. The specs are skill files (`.claude/skills/an-style/styles/*.yaml`: `live` settings checked against the code by `tests/test_style_specs.py`, measured `targets`, `guidance` for what `an` cannot do), NOT a document the compiler reads — that is gap 1 of an#163 | `an/verify/style.py`, `.claude/skills/an-style/`, `misc/docs/cutout_styles_research.md` | shipped |
 | Project render: per-shot dispatch through the registry, shot archive, ffmpeg concat (or `an.assemble` when a scene has transitions or sounds) | `an/render.py` — `render_project()` / `render()` | shipped (no stub, no `NotImplementedError`) |
+| **Shot cache** (ADR 0004 first slice, an#242): `render_project` skips any shot whose content key has an entry and reuses its mp4 (an assembled film re-renders unless `cache_frames=True`); the key is a digest of named parts — the renderer's registered identity (class + keyer), the compiled document (`scene_contract_sha256`), the bytes of every texture it stages (SVG included; key only, the document does not move), the versions of the easings it names, the dialogue audio it muxes, `runtime_sha256`, the render path's Python source, every resolved render knob and the pinned argv, the machine's fonts when an SVG part draws `<text>`, a separate environment digest (Chromium build, Playwright, the full ffmpeg build and the x264 build, ISA), and every asset in the project plus the library lockfile (decision 3's fallback) — never `shot.id`. Entries are `lacing.Artifact`s in a `lacing.ArtifactStore` (`mall["shot_cache"]`); the engine is the `incremental=` seam (`ShotCache` default; `render()` defaults to cold for the bench). `--force-render`, `--no-cache`, `--cache-frames`. Not built: read recording per shot, garbage collection, an `nw` backend | `an/build/` — `keys.py`, `shot_cache.py`; `an/adapters/cutout/cache_key.py` | shipped (an#242) |
 | Orchestration `validate → pre-verify → audio → render → post-verify` | `an/orchestrate.py` — `orchestrate()` → `OrchestratorReport` | shipped |
 | Per-shot parallel rendering, `an render --parallel auto\|N` | `an/render.py` — `_resolve_parallel`, `_render_one` | shipped |
 | **Shot transitions** (an#163): `Shot.transition` = how a shot is ENTERED — `cut` (the default; `None` means it), `fade` through a colour (half out of the previous shot, half in; on the first shot a fade up; **holds** the film length), `dissolve` (the two shots overlap by its duration, so the film is that much **shorter**; both play in full and each shot's dialogue stays on its own frames). Composed in the **frame stage** on the per-shot PNGs with exact integer blends (half-to-even, the supersample/shutter rule), untouched frames copied byte for byte, and the film muxed ONCE by the same `_ffmpeg_mux` — never `xfade` over encoded shots, which would be a second x264 generation on every frame and would retire "ffmpeg never touches a frame". `film_timeline` is the one frame-exact statement of where each shot lands; `transition_problems` is the one list validate reports and the assembler raises on (a first-shot dissolve; a shot too short for its head + tail transitions), checked before any browser launches | `an/assemble.py` — `film_timeline`, `compose_frames`, `blend`; `an/ir/schema.py` `Transition` | shipped |
 | **Sound layer v1** (an#163): `SoundCue`s — `Shot.sounds` in shot-local time, `Meta.sounds` in film time (a bed) — with `loop`, `duration`, `gain_db`, fades and `duck_db` (a linear-ramp envelope over every dialogue span, lines closer than attack+release merged; the ffmpeg `volume` expression is written from `duck_gain`, the Python spec a test measures it against). The film's audio is rebuilt from SOURCES (cached dialogue WAVs + cue assets, placed in samples) and muxed with `-c:v copy`. When assembling, the picture is ALWAYS muxed once from the shots' frames, even with no transition: a concat of shot mp4s starts its picture after the AAC priming delay (23 ms) and advances by container length rather than frame count, so a frame-grid mix would lead it and drift (measured in review). Ducking is chained `volume` expressions of at most 40 spans each — exact, since merged spans' ramps never overlap — because one nested expression fails in ffmpeg 9.0.1 at about 95 spans. `film_duration` (sum minus dissolve overlaps) is what the layout lint and the post-render verifiers read. Assets live in the new **`sounds` store** (`assets/sounds/<key>/{sound.json,audio.wav}`, WAV only) with an `AssetSource` and the sha256 its licence is attached to (checked on every read); `an credits` walks it. `an.sounds.synth_*` are deterministic stand-ins; no third-party audio ships. **Neither feature set = byte-identical**: `needs_assembly` is false and `render` calls the unchanged `_ffmpeg_concat`; the new fields are omitted when unset. Not built: wipes/morphs, a closing fade, stereo, voice effects | `an/assemble.py` — `mix_plan`, `mix_command`, `duck_gain`; `an/sounds.py`; `an/stores/sounds.py` | shipped |
-| Free-text edit loop: instruction → Claude → JSON patches → validated IR → selective cache invalidation | `an/iterate.py` — `iterate()` | shipped (needs `ANTHROPIC_API_KEY`) |
+| Free-text edit loop: instruction → Claude → JSON patches → validated IR; the next render re-renders the changed shots by digest (no invalidation step) | `an/iterate.py` — `iterate()` | shipped (needs `ANTHROPIC_API_KEY`) |
 | Character authoring: descriptor schema, SVG utils, 9-shape mouth set **plus `viseme@<form>` variant sets** (`happy`/`sad` by default, `an character new --mouth-variants`, `an character mouths --variants`), DiceBear client, idle/blink, silhouette test, factory, promote, preview recording; `an character validate` checks the variants. **Factory variety knobs**: `palette` (StylePack role names), `build` (`regular`/`squat`/`tall`/`stick` — one `BodyBuild` record drives both the bones and the art, so legs still hang hip-to-ground), `head_scale` (head, face parts, face offsets and pupil travel scaled by one factor; the neck rises so the collar overlap is constant), `hat`, `sash`; every default reproduces the pre-knob character's art and descriptor fields byte for byte (golden digests, taken with `views=False`; only `colour_roles` is added). **Turnaround views** (an#197): an offline character also gets `back`, `side` (a profile facing the viewer's right) and `three_quarter` head and torso art on the front's canvas, a `view` swap set (`front` = the default art) and a pose per view in `swap_poses` (the profile keeps BOTH legs — near forward, far back, overlapping at the hip, splayed so the feet part, an#203); `add_views` / `an character add-views` redraws them for an older factory character from its recorded knobs and refuses a head it did not draw; views only ADD files and descriptor entries | `an/characters/` — `factory.py` (`BUILDS`, `HATS`, `PALETTE_ROLES`, `add_views`, `view_poses`) | shipped |
 | SVG-texture character rendering (descriptors drive real sprites, not procedural rects) | `an/adapters/cutout/compile.py` (`svg_sprite` visuals) + `runtime.js` `makeSvgSprite` | shipped |
 | Live preview with file-watch reload, `an preview <dir>` | `an/preview.py` — `preview_project()`, `preview.html` | shipped (visuals only, no audio) |
@@ -105,6 +106,10 @@ an/
 ├── tools.py                 user-facing CLI funcs + _dispatch_funcs
 ├── project.py               init / load / save Project + on-disk layout
 ├── render.py                project-level render orchestration + ffmpeg concat
+├── build/                   incremental re-processing (ADR 0004): `keys.py` (canonical
+│                            digests, the project fallback, `register_shot_keyer`),
+│                            `shot_cache.py` (the `incremental=` seam, `ShotCache`,
+│                            lacing-shaped entries); names no renderer
 ├── orchestrate.py           validate → audio → render → verify; thin re-export of iterate
 ├── iterate.py               free-text → Claude (Opus 4.7) → JSON patches → IR mutation
 ├── check_requirements.py    diagnose ffmpeg/node/playwright/elevenlabs/manim/rhubarb/etc.
@@ -324,7 +329,13 @@ Project.load(dir)
    │     ↳ persists wav bytes to mall["audio"][hash], visemes JSON to mall["visemes"][hash]
    │     ↳ writes scene back to mall["scenes"]["main"] (mtime equalized)
    │
-   ├─ for each shot in scene.timeline:
+   ├─ shot cache (render_project's default; render() alone is cold):
+   │     engine.begin(mall)                                ← project asset digest, once
+   │     for each shot: engine.plan(shot, renderer, ctx)   ← in this thread, before any browser:
+   │       the renderer's keyer compiles the shot and digests what the render reads;
+   │       key = digest(parts + environment + project); a present entry → reuse its mp4
+   │
+   ├─ for each shot NOT reused (thread pool when --parallel):
    │     renderer = RendererRegistry.find_for(shot)        ← matches on shot.renderer
    │     result = renderer.render(shot, ctx)
    │     ↳ cutout: compile_shot(shot, mall) → CutoutSceneJSON
@@ -342,7 +353,9 @@ Project.load(dir)
    │                cut to the PICTURE's length (frames / fps), so the concat
    │                advances by whole frames (an#195)
    │              → shot.mp4
-   │     mall["shots"][shot.id] = mp4 bytes
+   │     engine.record(plan, result)                       ← mall["shot_cache"][key] (+ frames
+   │                                                          when the film is assembled)
+   │     mall["shots"][shot.id] = mp4 bytes                ← the archive, reused shots too
    │
    ├─ ffmpeg concat per-shot mp4s → output/<name>.mp4
    └─ mall["output"][name] = mp4 bytes
@@ -366,13 +379,12 @@ Project.load(dir)
    ├─ apply patches to deep-copy of ir.json (set / append / delete by JSON-pointer path)
    ├─ SceneIR.model_validate(new_dict) + validate_schema + validate_semantic
    ├─ if valid:
-   │     for shot_id in affected_shots: del mall["shots"][shot_id]   ← cache invalidation
-   │     mall["scenes"]["main"] = new_scene
+   │     mall["scenes"]["main"] = new_scene               ← no invalidation step (ADR 0004 d.6)
    │     mall["decisions"].append({kind: "iterate", instruction, summary, patches})
    └─ return IterateResult(success, summary, patches, affected_shots, new_scene, validation)
 ```
 
-The deletion is **inert**: `an render` re-renders every shot, because nothing reads `mall["shots"]` (§6). Incremental re-rendering is proposed in `misc/docs/adr/0004-incremental-reprocessing.md`.
+There is no invalidation step (an#242). The next `an render` re-renders exactly the shots whose compiled document — or any other part of their key — changed, and reuses the rest from the shot cache (§6). `affected_shots` is the model's account of which shots those are, recorded in the decision log; nothing acts on it, so a wrong claim cannot leave a stale shot in the film. (Before an#242 this step deleted `mall["shots"][shot_id]`, which nothing read: the deletion was inert and every render re-rendered every shot.)
 
 ### 5.3 `an validate <dir>` (cheap pre-flight)
 
@@ -380,7 +392,7 @@ The deletion is **inert**: `an render` re-renders every shot, because nothing re
 
 ---
 
-## 6. Caching: content-hash everywhere, cache invalidation by deletion
+## 6. Caching: content-hash everywhere, invalidation by digest
 
 The system caches at every boundary that's expensive to recompute. Cache keys are content hashes — never timestamps, never counters.
 
@@ -388,15 +400,32 @@ The system caches at every boundary that's expensive to recompute. Cache keys ar
 |---|---|---|
 | TTS audio | `_stable_hash({text, voice_id, tts.name})`, plus — only when declared — `effects`, `provider_voice` (an#194) and the provider's synthesis `options` (model, settings, seed, audio tags — an#209) | `pipeline.audio_key`, `pipeline._load_or_synthesize` |
 | Viseme tracks | `_stable_hash({audio_key, lipsync.name, transcript})` | `pipeline._load_or_align` |
-| Per-shot mp4s | `shot.id` (the IR slice IS the input) | `render.render` — **write-only, see below** |
+| Shot cache (an#242, ADR 0004) | `compose_shot_key` over named parts: `renderer`, the keyer's (`compiled` = `scene_contract_sha256`, `textures`, `easings`, `audio`, `runtime`, `knobs`), `environment`, `project` — never `shot.id` | `an.build.ShotCache` via `render.render(incremental=…)`; cut-out keyer `an.adapters.cutout.cache_key` |
+| Per-shot mp4 ARCHIVE | `shot.id` — an archive of the latest render, not a cache | `render._archive_shot` — written, never read |
 | Final mp4 | `output_name` | `render.render` |
 | Anthropic prompt cache | scene JSON + schema hint (`cache_control: ephemeral`) | `iterate._call_claude` |
 
 The hash is stamped onto the IR (`Dialogue.audio_ref`, `Dialogue.viseme_ref`) so the orchestrator can detect provider changes — when you swap `--tts elevenlabs` for the offline default, the new expected hash mismatches the stored one, triggering re-synthesis without an explicit force flag.
 
-Cache invalidation is by **deletion** (`del mall["shots"][shot_id]`). There is no cache versioning; the keys are deterministic so collisions across versions are impossible.
+Invalidation is **by digest, never by deletion** (ADR 0004 decision 6): a changed input is a different key, and an entry nobody asks for again simply stays until a garbage-collection command (not built) removes it. The audio keys have no version field; the shot key carries `SHOT_KEY_IMPL_VERSION`, bumped when the key's composition changes or a renderer changes its output in a way none of its parts records.
 
-**Correction (an#31): the per-shot mp4 cache has no read path.** `mall["shots"]` is written at `an/render.py:222` and deleted at `an/iterate.py:268`, and nothing in the package reads it — so "re-render misses the cache and recomputes" describes a miss that every render already takes. This paragraph previously said otherwise, and the consequence is load-bearing for Wave 2: a benchmark harness needs **no cache-busting machinery for pixel metrics**, because every render is already cold. Either wire the read or drop the store — but do not build against the cache described here until one of those happens. (The *audio* caches two rows above are real, are read, and do warm between runs, so they affect wall-time measurements.)
+**The shot cache (an#242).** `render_project` (and so `an render`, `orchestrate`) computes each shot's key before any browser launches and renders only the misses. What the key is built from, and why each part:
+
+- **The compiled document**, digested exactly as the bench's `scene_contract_sha256` — the early cutoff: an edit that compiles to the same document re-renders nothing. The keyer calls `compile_shot` with the same arguments `CutoutRenderer.render` does (pinned against it by a test), so a miss compiles twice (milliseconds; measured in the PR).
+- **Texture bytes, SVG included**, resolved the way `_stage_scene_assets` stages them. SVG art keeps a plain alias in the document (raster art carries its digest since an#211), so an SVG edited in place moves only this part. Key only: the wire shape and `scene_contract_sha256` do not move, so bench comparability is untouched — the contract hash and the cache key are distinct and must not be conflated.
+- **Easing versions** for every registered name the document's keyframes carry (an#239 item 1): a replacement curve must raise its version, and the key sees it.
+- **Muxed audio**: each muxed line's `audio_ref`, `viseme_ref`, start and the sha256 of the bytes the store returns, plus the picture length the mux cuts to.
+- **`runtime_sha256`** and **every render knob, resolved** (`pix_fmt=None` → the module default *at call time*, which is what the bench's levers rebind), plus the pinned Chromium/x264 argv, the scale filter and the faststart flags.
+- **The render path's Python source** (`code`): a digest of every module `CutoutRenderer.render` reaches — capture, canvas readback, supersample and shutter resolves, the audio mux — found by walking imports from `an.adapters.cutout.render` (compile-side modules excluded, with the reason, because their output is the `compiled` part). The Python twin of `runtime_sha256`: an `an` upgrade that changes how a shot is encoded (an#195 did) re-renders every shot. No hand-bumped constant decides it.
+- **The renderer's registered identity**: its class and its keyer by qualified name. A keyer is bound to one renderer class; a subclass or a test double that borrows the name `"cutout"` is never cached. Registrations refuse a silent replacement; an input read outside the document joins additively (`register_shot_key_part`).
+- **A separate environment digest** — Chromium build and WebGL identity (one browser launch), Playwright, the FULL `ffmpeg -version` (every library and the configure line — the first line does not change when a dynamically linked x264 is upgraded) and the x264 build that actually encodes (one 16x16 encode, its SEI read back, the bench's own key), the ISA and OS family, Pillow and numpy; once per process per renderer, so a long-lived host does not see a mid-process upgrade. A machine change invalidates renders without pretending the content changed.
+- **Fonts, when SVG art draws text.** Text units are outlined in Python and travel inline in the document, but an SVG part may carry its own `<text>`, which Chromium draws with the machine's fonts: a shot that stages such a part gets a `fonts` part (`fc-list`, else the platform font folders' listing).
+- **No stat memo decides a key.** Asset bytes and the render path's source are read and hashed on every render (under 10 ms for a whole corpus project); only the import parse of a source file is memoised, keyed on its content hash.
+- **Every asset in the project** (decision 3's fallback): the files under each asset store (`PROJECT_ASSET_STORES`), plus the project-root files in `PROJECT_ROOT_FILES` read by path — today the asset library's lockfile `assets.lock.json` (P5), hashed whether or not the mall has a store for it yet (an#240) — so an art edit or a re-pin re-renders every shot. Read recording, once art is read through the stores (ADR 0005), narrows this to what each shot read; `ShotCache(dependencies=None)` already keys on the document and its textures alone (and then drops the lockfile too).
+
+Entries are `lacing.Artifact`s (subclass `ShotArtifact`: `asset_id` = sha256 of the mp4, PROV provenance whose `was_derived_from` lists the part digests, plus the named `inputs` and the `timings`) in a `lacing.ArtifactStore` at `artifacts/shot_cache/{catalog,blobs}/`. A film that is assembled from frames (transitions, a sound layer) also needs each shot's PNGs, which an mp4 cannot give back losslessly. Those are a second entry (`<key>.frames`, a stored zip) only with `ShotCache(cache_frames=True)`: off by default, because a 1080p shot's frames are hundreds of MB and nothing collects unreachable entries yet, so by default an assembled film re-renders its shots, and the render's summary line says so (`not reused: frames not cached: film has transitions/sound; pass --cache-frames`). `an render --cache-frames` opts in. Each blob is checked against its id (its sha256) when read; a mismatch is a miss. A cached render works in its own `.an/render_work/runs/<run>/` (when a run delivers its film it marks itself done and removes every other finished run — done, or whose process is gone — keeping itself as the latest; a run in progress is never touched), so two renders of one project at once never record each other's bytes; a reused shot is materialised in a directory of its own plan (`shot_cache/<index>_<id>/`), so two shots with one key never share files. The pre-cache `artifacts/shots/<shot.id>.mp4` files are never read.
+
+**For measurement: `render()` is cold by default.** The bench, the golden corpus, the cross-arch capture and the demo builds call `an.render.render`, whose `incremental` defaults to `False`, so their wall times stay real and a lever that rebinds something outside the key (the supersample lever's `_capture_frames`) can never be answered from cache. Only `render_project` defaults to the cache. (an#31's correction — "the per-shot store has no read path, so every render is cold" — still describes `mall["shots"]`, and now describes `render()`; it no longer describes `render_project`.)
 
 ---
 

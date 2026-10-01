@@ -54,7 +54,7 @@ For deeper subsystem design history, the research reports next to it cover the d
 8. All persistence via dol-backed `MutableMapping`s organized into the project mall.
 9. Dispatch to interface: business logic is plain Python; CLI (argh) is dispatch only.
 10. Verification is a swappable Protocol; same interface for human, lint, vision-LM, MoVer.
-11. Caches are content-hash keyed (audio_ref, viseme_ref). Cache invalidation is by deletion (`del mall["shots"][shot_id]`). No cache versioning — keys are deterministic so collisions across versions are impossible.
+11. Caches are content-hash keyed: audio (`audio_ref`, `viseme_ref`) and shots (`mall["shot_cache"]`, an#242: compiled document, texture bytes, easing versions, muxed audio, runtime, resolved knobs, environment, project assets — never `shot.id`; `an/build/`). Invalidation is by digest, never deletion; `mall["shots"]` is an archive nothing reads. The shot key is salted with `SHOT_KEY_IMPL_VERSION`. `render()` is cold by default (measurement); `render_project` caches.
 12. **Equalize mtimes after writing both `scene.md` and `ir/scene.json`** in `ScenesStore.__setitem__`. Sync's "newer wins" tolerance band depends on this. Without it, sync flip-flops on every load and pipeline-injected state (viseme tracks, audio_refs) gets stripped.
 13. The synthetic root container in the JS runtime is **not indexed** in `nodeIndex`. `compile_shot` emits target paths starting with the entity name (`charlie/head/mouth`); the runtime's `anLoadScene` skips the root when populating `nodeIndex`.
 
