@@ -1454,7 +1454,10 @@ def _check_tween_easings(scene: SceneIR, *, report: "ValidationReport") -> None:
         for k, action in enumerate(shot.actions):
             for flat in flatten(action):
                 tw = flat.action
-                if not isinstance(tw, TweenAction) or "easing" not in tw.model_fields_set:
+                if (
+                    not isinstance(tw, TweenAction)
+                    or "easing" not in tw.model_fields_set
+                ):
                     continue
                 try:
                     apply_easing(tw.easing, 0.5)
