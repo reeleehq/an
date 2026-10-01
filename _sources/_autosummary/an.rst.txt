@@ -72,6 +72,7 @@
    library
    live_api
    mcp
+   measurements
    media
    motion
    orchestrate

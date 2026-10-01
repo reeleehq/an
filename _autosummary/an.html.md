@@ -695,6 +695,7 @@ skip that shot rather than crash.
 | [`library`](an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).                           |
 | [`live_api`](an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                                          |
 | [`mcp`](an.mcp.html.md#module-an.mcp)                   | The `an` MCP server: a curated, generated surface over the vocabulary and the capability registry. |
+| [`measurements`](an.measurements.html.md#module-an.measurements) | Measured durations: shots whose renderer, not their author, decides their length.                  |
 | [`media`](an.media.html.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.              |
 | [`motion`](an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                          |
 | [`orchestrate`](an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                                  |

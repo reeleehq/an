@@ -4,6 +4,12 @@ an.stores.scenes
 .. automodule:: an.stores.scenes
 
    
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      patch_shot_duration_md
+   
    .. rubric:: Classes
 
    .. autosummary::

@@ -1,0 +1,23 @@
+an.measurements
+===============
+
+.. automodule:: an.measurements
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      accept_measured
+      clock_owner_for
+      declared_duration
+      settle_durations
+      warn_findings
+   
+   .. rubric:: Exceptions
+
+   .. autosummary::
+   
+      MeasurementError
+      ShotFindingWarning
+   

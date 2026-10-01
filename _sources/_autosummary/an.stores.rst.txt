@@ -26,6 +26,11 @@ an.stores
       TakesArtifactStore
       ShotArtifactStore
       PreviewArtifactStore
+      ContactSheetStore
+      MeasurementStore
+      PictureStore
+      RenderReportStore
+      SourcesStore
       OutputStore
       DecisionLogStore
       ProjectLock
@@ -44,5 +49,6 @@ an.stores
    props
    scenes
    sounds
+   sources
    styles
    voices

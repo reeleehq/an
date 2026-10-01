@@ -26,7 +26,7 @@
 - [an.adapters.cutout.surface](an.adapters.cutout.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
 - [an.adapters.cutout.text](an.adapters.cutout.text.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
 - [an.adapters.cutout.timeline](an.adapters.cutout.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
-- [an.adapters.manim_adapter](an.adapters.manim_adapter.html.md): ManimRenderer — generate a minimal Manim scene + invoke &#96;manim&#96; as subprocess.
+- [an.adapters.manim_adapter](an.adapters.manim_adapter.html.md): ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).
 - [an.adapters.remotion_adapter](an.adapters.remotion_adapter.html.md): RemotionRenderer — invoke &#96;npx remotion render&#96; against a generated TSX project.
 - [an.adapters.whiteboard](an.adapters.whiteboard.html.md): WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.
 - [an.assemble](an.assemble.html.md): Film assembly: rendered shots → one film, with transitions and a sound layer.
@@ -144,6 +144,7 @@
 - [an.mcp](an.mcp.html.md): The &#96;an&#96; MCP server: a curated, generated surface over the vocabulary and the capability registry.
 - [an.mcp.server](an.mcp.server.html.md): Build and serve the &#96;an&#96; MCP server with &#96;py2mcp&#96; (the &#96;an&#91;mcp&#93;&#96; extra).
 - [an.mcp.tools](an.mcp.tools.html.md): The curated MCP tools: plain functions over the vocabulary, the capability registry and a project.
+- [an.measurements](an.measurements.html.md): Measured durations: shots whose renderer, not their author, decides their length.
 - [an.media](an.media.html.md): Frames to deliverables, engine-independent: the frame stage’s resolves and the sinks.
 - [an.media.frames](an.media.frames.html.md): The frame directory every engine writes and every sink reads.
 - [an.media.gif](an.media.gif.html.md): The GIF sink: ONE palette recipe, for flat 2D art.
@@ -179,6 +180,7 @@
 - [an.stores.props](an.stores.props.html.md): Props store — descriptor + sidecar folder per prop.
 - [an.stores.scenes](an.stores.scenes.html.md): Scenes store — wraps the project’s &#96;scene.md&#96; + &#96;ir/scene.json&#96; pair.
 - [an.stores.sounds](an.stores.sounds.html.md): Sounds store — one directory per sound: &#96;sound.json&#96; beside &#96;audio.wav&#96;.
+- [an.stores.sources](an.stores.sources.html.md): The project’s opaque scene sources: files a whole-shot renderer runs as they are.
 - [an.stores.styles](an.stores.styles.html.md): Styles store — visual style presets (color palette, line weight, fonts).
 - [an.stores.voices](an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
 - [an.styles](an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.

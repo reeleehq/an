@@ -1,4 +1,4 @@
-> built 2026-10-01 19:15 UTC from 92db6be (main) · an 0.1.145. Details: build_info.json
+> built 2026-10-01 19:49 UTC from cd7158d (main) · an 0.1.146. Details: build_info.json
 
 # index.html.md
 
@@ -4008,23 +4008,44 @@ system deps still register but their `render()` raises a clear error;
 
 ### Classes
 
-| [`Renderer`](_autosummary/an.adapters.html.md#an.adapters.Renderer)(\*args, \*\*kwargs)              | Backend renderer interface.                                |
-|--------------------------------------------------------------------------------------------|------------------------------------------------------------|
-| [`RendererRegistry`](_autosummary/an.adapters.html.md#an.adapters.RendererRegistry)()                        | Name-keyed registry of renderers.                          |
-| [`RenderContext`](_autosummary/an.adapters.html.md#an.adapters.RenderContext)(mall, work_dir[, fps, ...]) | Everything a renderer needs that isn't on the Shot itself. |
-| [`RenderResult`](_autosummary/an.adapters.html.md#an.adapters.RenderResult)(mp4_path, duration[, ...])   | Outcome of a single shot render.                           |
-| [`ManimRenderer`](_autosummary/an.adapters.html.md#an.adapters.ManimRenderer)()                           | Manim Community Edition renderer (skeleton).               |
-| [`RemotionRenderer`](_autosummary/an.adapters.html.md#an.adapters.RemotionRenderer)()                        | Remotion-based renderer (skeleton).                        |
-| [`WhiteboardRenderer`](_autosummary/an.adapters.html.md#an.adapters.WhiteboardRenderer)()                      | Whiteboard-style renderer (stub).                          |
+| [`Renderer`](_autosummary/an.adapters.html.md#an.adapters.Renderer)(\*args, \*\*kwargs)                       | Backend renderer interface.                                                  |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`RendererRegistry`](_autosummary/an.adapters.html.md#an.adapters.RendererRegistry)()                                 | Name-keyed registry of renderers.                                            |
+| [`RenderContext`](_autosummary/an.adapters.html.md#an.adapters.RenderContext)(mall, work_dir[, fps, ...])          | Everything a renderer needs that isn't on the Shot itself.                   |
+| [`RenderResult`](_autosummary/an.adapters.html.md#an.adapters.RenderResult)(mp4_path, duration[, ...])            | Outcome of a single shot render.                                             |
+| [`ManimRenderer`](_autosummary/an.adapters.html.md#an.adapters.ManimRenderer)(\*[, render_check, source_resolver]) | Manim Community Edition, through `manimkit`: an opaque-source shot renderer. |
+| [`RemotionRenderer`](_autosummary/an.adapters.html.md#an.adapters.RemotionRenderer)()                                 | Remotion-based renderer (skeleton).                                          |
+| [`WhiteboardRenderer`](_autosummary/an.adapters.html.md#an.adapters.WhiteboardRenderer)()                               | Whiteboard-style renderer (stub).                                            |
 
-### *class* an.adapters.ManimRenderer
+### *class* an.adapters.ManimRenderer(, render_check=None, source_resolver=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-Manim Community Edition renderer (skeleton).
+Manim Community Edition, through `manimkit`: an opaque-source shot renderer.
 
-Implements the `Renderer` Protocol. `can_render` is True for shots
-whose `renderer` is `"manim"`.
+Implements [`Renderer`](_autosummary/an.adapters.html.md#an.adapters.Renderer) and
+`ClockOwningRenderer`. Seams: `render_check`
+(default `manimkit.render_check()`, imported on first use) and
+`source_resolver` (default: the project’s `sources` store,
+`store_source_resolver()`). The shot cache keys a shot through the
+REGISTERED instance’s resolver; a subclass registers its own keyer
+(`register_shot_keyer(name, manim_shot_inputs, renderer_type=Sub)`).
+
+#### measure_duration(shot, ctx, , render=True, force=False)
+
+Manim’s length of this shot’s scene, from the `measurements` store,
+or rendered now (and stored) when there is none — or when `force`.
+
+* **Return type:**
+  `DurationMeasurement` | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### render(shot, ctx)
+
+Render `shot` for exactly `shot.duration` (`an.render` settles it
+to the measured length, or longer to hold for its narration).
+
+* **Return type:**
+  [`RenderResult`](_autosummary/an.adapters.html.md#an.adapters.RenderResult)
 
 ### *class* an.adapters.RemotionRenderer
 
@@ -4233,7 +4254,7 @@ Register a renderer in the default registry.
 
 | [`cutout`](_autosummary/an.adapters.cutout.html.md#module-an.adapters.cutout)                     | Cutout-style 2D animation backend.                                               |
 |-------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`manim_adapter`](_autosummary/an.adapters.manim_adapter.html.md#module-an.adapters.manim_adapter)       | ManimRenderer — generate a minimal Manim scene + invoke `manim` as subprocess.   |
+| [`manim_adapter`](_autosummary/an.adapters.manim_adapter.html.md#module-an.adapters.manim_adapter)       | ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).     |
 | [`remotion_adapter`](_autosummary/an.adapters.remotion_adapter.html.md#module-an.adapters.remotion_adapter) | RemotionRenderer — invoke `npx remotion render` against a generated TSX project. |
 | [`whiteboard`](_autosummary/an.adapters.whiteboard.html.md#module-an.adapters.whiteboard)             | WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.           |
 
@@ -4242,40 +4263,243 @@ Register a renderer in the default registry.
 
 # an.adapters.manim_adapter
 
-ManimRenderer — generate a minimal Manim scene + invoke `manim` as subprocess.
+ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).
 
-Phase 6 ships the wiring + a placeholder scene. Real shot-to-Manim translation
-is a Phase 7+ effort: it needs careful mapping from anima’s renderer-agnostic
-IR onto Manim’s mobject grammar (Text / VGroup / Animation / etc).
+A Manim shot names a Python scene file and a `Scene` class in it; `an` runs
+that file as it is and treats the result like any other rendered shot:
 
-For now: every cutout-style shot rendered through this adapter produces a
-minimal “title card” Manim scene of the right duration. Useful as a pipeline
-sanity check; not a real animation.
+```yaml
+## Shot chart (manim)
+```yaml shot
+options: {source: bar_chart, scene: BarChartStory}
+```
+```
+
+`options.source` is a key of the project’s `sources` store
+(`assets/sources/bar_chart.py`); `options.scene` the class (optional when the
+file defines exactly one). The shot has NO IR inside it — it is (a)-level opaque
+source on the structured ↔ semantic spectrum — and gets everything around it
+from the core: narration (a dialogue line with an off-screen speaker, muxed under
+the picture), captions in the sidecar, sound cues, transitions, film assembly,
+the shot cache.
+
+**The files a scene reads.** The render runs in a staged copy of the WHOLE
+`sources` folder (`assets/sources/` and everything under it), so a scene
+imports a sibling module or loads `ImageMobject("bars/logo.png")` by a path
+relative to its own file, and every one of those bytes is in both keys below. A
+string literal that names a file OUTSIDE that folder (an absolute path) is a
+finding located at its line: the cache cannot see that file change.
+
+**Manim owns its clock** (core study §4.2): only the file’s own `play` and
+`wait` calls decide how long it runs. The renderer implements
+`measure_duration` (`ClockOwningRenderer`); the
+measurement is derived data, kept in the `measurements` store under the
+**picture key** — what decides Manim’s own output and length: the bytes of the
+sources folder, the entry file, the scene, the Manim and manimkit versions, the
+quality preset and, only for a file that uses LaTeX, whether TeX is available.
+Never the film’s fps or size, the encode, or this module’s code: those change
+how the picture is CONFORMED, not what Manim draws. The core applies it in memory
+([`an.measurements`](_autosummary/an.measurements.html.md#module-an.measurements)); the author’s scene is never rewritten.
+
+**The picture is cached apart from the shot.** Manim’s raw video is stored under
+the picture key (`pictures` store), so a change that is not to the picture —
+narration, the film’s fps, the background pad, an `an` upgrade — re-conforms
+and re-muxes without running Manim. The shot key ([`manim_shot_inputs()`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.manim_shot_inputs))
+is the picture key’s inputs plus the conform and encode knobs, the muxed audio
+and the render path’s code; the machine is the separate environment part
+([`manim_environment()`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.manim_environment)).
+
+**Findings** — manimkit’s layout warnings, lint and errors, a file read the
+cache cannot see, a preset whose frame rate the film’s does not divide — are
+[`Finding`](_autosummary/an.verify.html.md#an.verify.Finding) s located by `file:line` (`Finding.location`),
+stored with the measurement (so a reused shot still reports them) and routed by
+the core to `an render`’s warnings, `render_reports/<output>.json`,
+`orchestrate` and `an validate`.
+
+**Capabilities** (ADR 0002, environment subject): `env.manim` (`manim` and
+`manimkit` importable) is required — absent, [`ManimNotInstalledError`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimNotInstalledError)
+with the install command. `env.latex` is required only by a file that uses
+LaTeX; absent, the scene renders in manimkit’s `no_latex` mode, so a LaTeX use
+fails AT ITS LINE with the remedy instead of deep inside a TeX run.
+
+```pycon
+>>> spec = ManimShotSpec.from_options({"source": "chart", "scene": "Chart"})
+>>> spec.source, spec.scene, spec.quality
+('chart', 'Chart', None)
+>>> choose_quality(fps=30, resolution=(1280, 720))
+'m'
+```
+
+### Module Attributes
+
+| [`DEFAULT_SOURCE_STORE`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.DEFAULT_SOURCE_STORE)   | The project store a shot's `options.source` is a key of.           |
+|-------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`CONTACT_SHEET_STORE`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.CONTACT_SHEET_STORE)    | Derived, content-keyed stores (see the module docstring).          |
+| [`QUALITY_PRESETS`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.QUALITY_PRESETS)        | Manim Community Edition's presets (`-ql` … `-qk`), smallest first. |
+
+### Functions
+
+| [`choose_quality`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.choose_quality)(\*, fps, resolution)   | The smallest Manim preset that is at least as tall and as fast as the film.                              |
+|----------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| [`manim_environment`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.manim_environment)()                   | The Manim render's machine: Manim's stack, ffmpeg, LaTeX, fonts, the ISA.                                |
+| [`manim_shot_inputs`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.manim_shot_inputs)(shot, ctx)          | The Manim renderer's [`ShotKeyer`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyer). |
+| [`store_source_resolver`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.store_source_resolver)([store])        | The default resolver: `options.source` is a key of the mall's `store`.                                   |
 
 ### Classes
 
-| [`ManimRenderer`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimRenderer)()   | Manim Community Edition renderer (skeleton).   |
-|--------------------------------------------------------------------|------------------------------------------------|
+| [`ManimQuality`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimQuality)(letter, width, height, fps)           | One of Manim's quality presets: its letter, pixel size and frame rate.       |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`ManimRenderer`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimRenderer)(\*[, render_check, source_resolver]) | Manim Community Edition, through `manimkit`: an opaque-source shot renderer. |
+| [`ManimShotSpec`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimShotSpec)(source[, scene, quality, ...])       | What a Manim shot's `options` say, checked.                                  |
+| [`SourceFile`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.SourceFile)(key, entry, closure, display)           | A scene file and its closure, as a resolver read them.                       |
 
 ### Exceptions
 
-| [`ManimRenderError`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimRenderError)   | Raised when a Manim render fails.   |
-|---------------------------------------------------------------------|-------------------------------------|
+| [`ManimNotInstalledError`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimNotInstalledError)   | `manim` / `manimkit` are not importable (`env.manim` is absent).   |
+|---------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [`ManimRenderError`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimRenderError)         | A Manim shot could not be rendered.                                |
+
+### an.adapters.manim_adapter.CONTACT_SHEET_STORE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'contact_sheets'*
+
+Derived, content-keyed stores (see the module docstring).
+
+### an.adapters.manim_adapter.DEFAULT_SOURCE_STORE *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= 'sources'*
+
+The project store a shot’s `options.source` is a key of.
+
+### *exception* an.adapters.manim_adapter.ManimNotInstalledError
+
+Bases: [`ManimRenderError`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimRenderError), [`ImportError`](https://docs.python.org/3/builtins/exceptions.html#ImportError)
+
+`manim` / `manimkit` are not importable (`env.manim` is absent).
+
+### *class* an.adapters.manim_adapter.ManimQuality(letter, width, height, fps)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+One of Manim’s quality presets: its letter, pixel size and frame rate.
 
 ### *exception* an.adapters.manim_adapter.ManimRenderError
 
 Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
 
-Raised when a Manim render fails. Carries actionable detail.
+A Manim shot could not be rendered. Carries the [file:line](file:line) and the fix.
 
-### *class* an.adapters.manim_adapter.ManimRenderer
+### *class* an.adapters.manim_adapter.ManimRenderer(, render_check=None, source_resolver=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-Manim Community Edition renderer (skeleton).
+Manim Community Edition, through `manimkit`: an opaque-source shot renderer.
 
-Implements the `Renderer` Protocol. `can_render` is True for shots
-whose `renderer` is `"manim"`.
+Implements [`Renderer`](_autosummary/an.adapters.html.md#an.adapters.Renderer) and
+`ClockOwningRenderer`. Seams: `render_check`
+(default `manimkit.render_check()`, imported on first use) and
+`source_resolver` (default: the project’s `sources` store,
+[`store_source_resolver()`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.store_source_resolver)). The shot cache keys a shot through the
+REGISTERED instance’s resolver; a subclass registers its own keyer
+(`register_shot_keyer(name, manim_shot_inputs, renderer_type=Sub)`).
+
+#### measure_duration(shot, ctx, , render=True, force=False)
+
+Manim’s length of this shot’s scene, from the `measurements` store,
+or rendered now (and stored) when there is none — or when `force`.
+
+* **Return type:**
+  `DurationMeasurement` | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### render(shot, ctx)
+
+Render `shot` for exactly `shot.duration` (`an.render` settles it
+to the measured length, or longer to hold for its narration).
+
+* **Return type:**
+  [`RenderResult`](_autosummary/an.adapters.html.md#an.adapters.RenderResult)
+
+### *class* an.adapters.manim_adapter.ManimShotSpec(source, scene=None, quality=None, background='#000000', timeout=600.0)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+What a Manim shot’s `options` say, checked.
+
+```pycon
+>>> ManimShotSpec.from_options({"source": "s", "quality": "z"})
+Traceback (most recent call last):
+...
+an.adapters.manim_adapter.ManimRenderError: options.quality must be one of ['l', 'm', 'h', 'p', 'k'] (Manim's presets), got 'z'
+```
+
+### an.adapters.manim_adapter.QUALITY_PRESETS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [ManimQuality](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimQuality)]* *= {'h': ManimQuality(letter='h', width=1920, height=1080, fps=60), 'k': ManimQuality(letter='k', width=3840, height=2160, fps=60), 'l': ManimQuality(letter='l', width=854, height=480, fps=15), 'm': ManimQuality(letter='m', width=1280, height=720, fps=30), 'p': ManimQuality(letter='p', width=2560, height=1440, fps=60)}*
+
+Manim Community Edition’s presets (`-ql` … `-qk`), smallest first.
+
+### *class* an.adapters.manim_adapter.SourceFile(key, entry, closure, display)
+
+Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
+
+A scene file and its closure, as a resolver read them.
+
+`closure` is every file the render stages into its working directory —
+`{relative path: bytes}`, the entry file included as `entry` — and
+`digest` covers all of it, so a sibling module or an image the scene
+loads relatively is in the keys. `display` is how a finding names the
+entry (`assets/sources/chart.py`; never an absolute path).
+
+### an.adapters.manim_adapter.choose_quality(, fps, resolution)
+
+The smallest Manim preset that is at least as tall and as fast as the film.
+
+The picture is then resampled and scaled to exactly the film’s rate and size,
+so a smaller preset would be upscaled (blur) or frame-doubled (judder).
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> choose_quality(fps=15, resolution=(640, 360)), choose_quality(fps=30, resolution=(1920, 1080))
+('l', 'h')
+>>> choose_quality(fps=120, resolution=(8000, 4000))  # nothing is enough: the largest
+'k'
+```
+
+### an.adapters.manim_adapter.manim_environment()
+
+The Manim render’s machine: Manim’s stack, ffmpeg, LaTeX, fonts, the ISA.
+
+Python package versions (Manim draws with Cairo and Pango through pycairo
+and ManimPango, and writes with PyAV), the full `ffmpeg -version` banner
+(the conform and the encode), the LaTeX and dvisvgm builds (a formula’s
+glyphs), the installed font set, and the ISA and OS family. Never a path.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]
+
+### an.adapters.manim_adapter.manim_shot_inputs(shot, ctx)
+
+The Manim renderer’s [`ShotKeyer`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyer).
+
+Named parts: `source` (every file of the sources folder the render
+stages), `manim` (the picture’s other inputs: entry, scene, Manim and
+manimkit versions, quality, LaTeX mode — `picture_inputs()`), `knobs`
+(fps, size, background and the encode: pixel format, x264 argv, scale
+filter, faststart), `audio` (the dialogue muxed under it and the frame
+count it is cut to — a held narration moves it) and `code`
+(`render_code_digest()`). Raises what the render would for a bad shot.
+
+* **Return type:**
+  [`ShotKeyInputs`](_autosummary/an.build.keys.html.md#an.build.keys.ShotKeyInputs)
+
+### an.adapters.manim_adapter.store_source_resolver(store='sources')
+
+The default resolver: `options.source` is a key of the mall’s `store`.
+
+* **Return type:**
+  [`Callable`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable)[[[`ManimShotSpec`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.ManimShotSpec), [`Mapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`Any`](https://docs.python.org/3/library/typing.html#typing.Any)]], [`SourceFile`](_autosummary/an.adapters.manim_adapter.html.md#an.adapters.manim_adapter.SourceFile)]
+
+```pycon
+>>> resolve = store_source_resolver()
+>>> resolve(ManimShotSpec("chart"), {"sources": {"chart": b"x = 1"}}).data
+b'x = 1'
+```
 
 
 # _autosummary/an.adapters.remotion_adapter.html.md
@@ -7843,7 +8067,7 @@ Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#Runti
 
 A fixture did not render what it declared.
 
-### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'eye', 'mouth', 'rect'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'ellipse', 'rect'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
+### an.bench.corpus.DFLT_FIXTURES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Fixture](_autosummary/an.bench.corpus.html.md#an.bench.corpus.Fixture)]* *= {'aa_probe': Fixture(path='misc/bench/corpus/aa_probe', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.25), golden_note='the fourth bar sweeping horizontally (4,200 px). The three angled bars are pinned and do not move — they are the AA subject.'), 'dialogue': Fixture(path='misc/bench/corpus/dialogue', prepare=None, expect_visual_kinds=frozenset({'rect', 'eye', 'mouth', 'ellipse'}), golden_frames=(0.0, 0.6), golden_note="the mouth mid-line: frame 14 sits on the \`h\`/\`a\` of 'shape' and shows \`A\`, the winner of its 0.14 s window under the an#97 vote; the old drop-not-hold condenser showed \`C\` there, having dropped the \`D\` and \`A\` that followed inside the window. Frame 0 shows \`E\` — the winner of the first window, after the lead pulled the line's opening cues to 0 — where the old path showed the rest. The head is lifted 34 px above its rest by an absolute \`set\` so the placeholder rig's mouth clears the torso. The second golden sits INSIDE the spoken interval; \`single_character\`'s second golden samples after its line ends (its first, at t=0, is on the led first shape) and \`promote_demo\` renders mute in the bench (no visemes in its IR, by design). The visemes are the offline provider's, stamped into the committed ir/scene.json; the bench renders with auto_audio=False and reads them from there."), 'expressions': Fixture(path='misc/bench/corpus/expressions', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.125, 0.375, 0.625, 0.875, 1.125, 1.375, 1.625, 1.875), golden_note="eight 0.25 s shots of one silent synthesized character holding one expression preset each (neutral, happy, sad, angry, surprised, afraid, thinking, skeptical — the two presets whose faces differ only by a mouth form the silent rest does not show, disgusted and amused, are left out), sampled at each shot's mid-frame (an#98). What moves between goldens is the FACE SOLVER's output alone: brow height and angle, the eyelid key, and the mouth form's rest. The character is named \`face\` because its seeded blink phase puts no blink window inside any 0.25 s shot (the blink clock restarts per shot), so no golden straddles a blink; it is lowered by an absolute \`set face y\` so the head clears the frame's top edge at 320x240. Its rig is committed whole (parts and descriptor, \`viseme@happy\`/\`viseme@sad\` variants included) and, since an#99, the eye stack (sclera/pupil/lid slots, a filled closed lid, \`gaze_travel\`), so the pupils also make their seeded ambient saccades — sub-pixel at 320x240 and inside the face crop. The pairwise distinguishability test in tests/test_expression_goldens.py reads these same PNGs."), 'graded_field': Fixture(path='misc/bench/corpus/graded_field', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.1667), golden_note='the white marker sweeping across the gradient (6,270 px). Frame 4, not the obvious mid-scene frame 6: the marker advances by a sub-pixel step, so on frames 0, 1, 6, 8 and 11 it lands on an exact pixel boundary and AA-off changes ZERO pixels there. A blessed pair that no available mutation can move is a gate that cannot go red.'), 'multi_shot': Fixture(path='misc/bench/corpus/multi_shot', prepare=None, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 0.25), golden_note='the whole picture: 0.25s is the FIRST frame of the second shot, so the pair spans the concat boundary (75,050 px). A golden pair inside one shot would not notice a shot rendered in the wrong order.'), 'path_draw': Fixture(path='misc/bench/corpus/path_draw', prepare=None, expect_visual_kinds=frozenset({'path'}), golden_frames=(0.0, 0.3333333333333333), golden_note="two stroked paths (an#160, an#161), both dashed and both coloured by a StylePack's \`stroke\` role: a marching-ants frame whose \`dash_offset\` runs 0 -> 20 px, and a cubic arrow that draws itself on (\`trim_end\` 0 -> 1) with its head on the moving tip. What moves between the goldens is the ROUTE growing (frame 0 shows none of it) and the frame's dashes sliding 6.7 px along their path; a regression in trim, in the dash phase, in the anchored-at-the-path-start rule that keeps a dash from crawling as the tip advances, or in the pack reaching a path, moves a golden. Butt caps, so a dash's ends are exact rather than rounded past their length."), 'promote_demo': Fixture(path='examples/promote_demo', prepare=<function \_prepare_promote_demo>, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 2.9167), golden_note="a blink — the compiled eyelid swap shows the closed-eye art at t=2.9167 (an earlier note blamed 'the idle animation', which nothing on the render path consumes). Measured: frame 0 against duration/2 differs by exactly ZERO pixels here, so the obvious second time would have blessed one image twice."), 'prop_swap': Fixture(path='misc/bench/corpus/prop_swap', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.375), golden_note="a two-state prop swapping mid-shot (an#108): a desk lamp whose \`lamp\` asset-set goes \`off\` -> \`on\` at t=0.25. What moves between the goldens is a texture SWAP and nothing else — no transform, no easing, no interpolation — which is why this scene is worth a row the other seven cannot provide: every one of them measures a pose changing continuously, so a regression that broke swap resolution alone (the runtime resolves two swap properties on one node by NAME order, and an#87's failure mode was keeping the PREVIOUS texture in silence) would move no golden anywhere in the corpus. Frame 9 rather than the mid-frame: at 24 fps the swap lands on frame 6, so frame 9 is clear of the boundary in a way that does not depend on how the frame containing t=0.25 rounds."), 'saturated_outline': Fixture(path='misc/bench/corpus/saturated_outline', prepare=None, expect_visual_kinds=frozenset({'svg_sprite'}), golden_frames=(0.0, 0.25), golden_note='the head plate rotating through 0.3 rad (1,187 px).'), 'single_character': Fixture(path='examples/single_character', prepare=<function \_declare_procedural_rig.<locals>.prepare>, expect_visual_kinds=frozenset({'rect', 'ellipse'}), golden_frames=(0.0, 1.0), golden_note='a blink (the compiled scale_y squash on the procedural eyes) plus, since an#97, the mouth: 253 pixels differ, 172 from the blink and 81 from the mouth (frame 0 shows the led first shape of the 0.71 s line, frame 24 the closed rest after it, which the frame-ceiled window now samples). Blinks occupy 3.5% of frames, so before the lead frame 0 against duration/2 was a pixel-identical pair on this scene; the mouth now separates them by 81 px.'), 'stage_pan': Fixture(path='misc/bench/corpus/stage_pan', prepare=None, expect_visual_kinds=frozenset({'rect'}), golden_frames=(0.0, 0.3333333333333333), golden_note="three coloured blocks at depths 0.25 / 1.0 / 2.0 under a zoom-free pan (an#111). What moves between the goldens is the SEPARATION: the blocks start aligned and end 10 / 40 / 80 px apart, which is the parallax and nothing else. Frame 8, not the mid-frame: the camera travels 5 px per frame and the far plane moves a quarter of that, so only every fourth frame lands every block on an exact pixel boundary — at any other frame the anti-aliased edge changes the exact-colour mask's SIZE, and a centroid measured against a different shape is not a displacement (the measurement refuses it outright). Zoom is held constant on purpose: the x = 0 probe that cancels it in the JSON half does not reach a centroid, which sits at the plane's own offset.")}*
 
 the descriptor
 (SVG-sprite) path is 12x more sensitive to a rasteriser flip than the
@@ -12507,7 +12731,7 @@ never the reverse, and neither imports [`an.ir`](_autosummary/an.ir.html.md#modu
 | [`CapabilityError`](_autosummary/an.capabilities.html.md#an.capabilities.CapabilityError)   | A capability, analyser or requirement is malformed, or collides with one registered.   |
 |--------------------------------------------------------------------|----------------------------------------------------------------------------------------|
 
-### an.capabilities.ANALYSERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Analyser](_autosummary/an.capabilities.html.md#an.capabilities.Analyser)]* *= {'engine': Analyser(kind='engine', version='1', subject='engine', declares=()), 'environment': Analyser(kind='environment', version='1', subject='environment', declares=())}*
+### an.capabilities.ANALYSERS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Analyser](_autosummary/an.capabilities.html.md#an.capabilities.Analyser)]* *= {'engine': Analyser(kind='engine', version='2', subject='engine', declares=()), 'environment': Analyser(kind='environment', version='2', subject='environment', declares=())}*
 
 Registered analysers, by kind.
 
@@ -12530,7 +12754,7 @@ The document’s declared facts the derivation honours instead of deriving
 (`rest_view`, `face_overlay`) or reads as a request (`gait`):
 reported by `describe_asset` (ADR 0002 decision 2).
 
-### an.capabilities.CAPABILITIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Capability](_autosummary/an.capabilities.html.md#an.capabilities.Capability)]* *= {'engine.compile': Capability(name='engine.compile', description='the engine implements the optional \`compile\` member', remedy='use an engine that implements \`compile\`', subject='engine', command=None, version='1'), 'engine.preview': Capability(name='engine.preview', description='the engine implements the optional \`preview\` member', remedy='use an engine that implements \`preview\`', subject='engine', command=None, version='1'), 'engine.render': Capability(name='engine.render', description='the engine renders shots (keys: the Shot.renderer values it claims)', remedy="register a renderer that claims the shot's \`renderer\` (an.adapters.register_renderer)", subject='engine', command=None, version='1'), 'engine.render_frames': Capability(name='engine.render_frames', description='the engine implements the optional \`render_frames\` member', remedy='use an engine that implements \`render_frames\`', subject='engine', command=None, version='1'), 'engine.seek': Capability(name='engine.seek', description='the engine implements the optional \`seek\` member', remedy='use an engine that implements \`seek\`', subject='engine', command=None, version='1'), 'env.browser': Capability(name='env.browser', description='Playwright with a Chromium build, which the stage engine renders in', remedy="pip install 'an[cutout]' && playwright install chromium", subject='environment', command=None, version='1'), 'env.ffmpeg': Capability(name='env.ffmpeg', description='\`ffmpeg\` is on PATH', remedy='install ffmpeg (\`brew install ffmpeg\` on macOS, \`apt install ffmpeg\` on Debian)', subject='environment', command=None, version='1'), 'env.key.anthropic': Capability(name='env.key.anthropic', description='the ANTHROPIC_API_KEY environment variable is set (its value is never read)', remedy='set ANTHROPIC_API_KEY (needed by \`an iterate\` and the vision verifier)', subject='environment', command=None, version='1'), 'env.key.elevenlabs': Capability(name='env.key.elevenlabs', description='the ELEVEN_API_KEY environment variable is set (its value is never read)', remedy='set ELEVEN_API_KEY (needed by the ElevenLabs voices)', subject='environment', command=None, version='1'), 'env.latex': Capability(name='env.latex', description='\`latex\` is on PATH', remedy='install a TeX distribution (MacTeX / TeX Live) so \`latex\` is on PATH', subject='environment', command=None, version='1'), 'env.node': Capability(name='env.node', description='\`node\` is on PATH', remedy='install Node.js (\`brew install node\`)', subject='environment', command=None, version='1'), 'env.rhubarb': Capability(name='env.rhubarb', description='\`rhubarb\` is on PATH', remedy='install Rhubarb Lip Sync (\`brew install rhubarb-lipsync\`)', subject='environment', command=None, version='1'), 'space.framing2d': Capability(name='space.framing2d', description='the engine lowers moves through the framing2d view space: a 2D framing of a flat picture: position, zoom (log), roll (angle)', remedy='render with an engine that lowers the framing2d view space', subject='engine', command=None, version='1'), 'space.orbit3d': Capability(name='space.orbit3d', description='the engine lowers moves through the orbit3d view space: an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', remedy='render with an engine that lowers the orbit3d view space', subject='engine', command=None, version='1')}*
+### an.capabilities.CAPABILITIES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [Capability](_autosummary/an.capabilities.html.md#an.capabilities.Capability)]* *= {'engine.compile': Capability(name='engine.compile', description='the engine implements the optional \`compile\` member', remedy='use an engine that implements \`compile\`', subject='engine', command=None, version='1'), 'engine.measure_duration': Capability(name='engine.measure_duration', description='the engine implements the optional \`measure_duration\` member', remedy='use an engine that implements \`measure_duration\`', subject='engine', command=None, version='1'), 'engine.preview': Capability(name='engine.preview', description='the engine implements the optional \`preview\` member', remedy='use an engine that implements \`preview\`', subject='engine', command=None, version='1'), 'engine.render': Capability(name='engine.render', description='the engine renders shots (keys: the Shot.renderer values it claims)', remedy="register a renderer that claims the shot's \`renderer\` (an.adapters.register_renderer)", subject='engine', command=None, version='1'), 'engine.render_frames': Capability(name='engine.render_frames', description='the engine implements the optional \`render_frames\` member', remedy='use an engine that implements \`render_frames\`', subject='engine', command=None, version='1'), 'engine.seek': Capability(name='engine.seek', description='the engine implements the optional \`seek\` member', remedy='use an engine that implements \`seek\`', subject='engine', command=None, version='1'), 'env.browser': Capability(name='env.browser', description='Playwright with a Chromium build, which the stage engine renders in', remedy="pip install 'an[cutout]' && playwright install chromium", subject='environment', command=None, version='1'), 'env.ffmpeg': Capability(name='env.ffmpeg', description='\`ffmpeg\` is on PATH', remedy='install ffmpeg (\`brew install ffmpeg\` on macOS, \`apt install ffmpeg\` on Debian)', subject='environment', command=None, version='1'), 'env.key.anthropic': Capability(name='env.key.anthropic', description='the ANTHROPIC_API_KEY environment variable is set (its value is never read)', remedy='set ANTHROPIC_API_KEY (needed by \`an iterate\` and the vision verifier)', subject='environment', command=None, version='1'), 'env.key.elevenlabs': Capability(name='env.key.elevenlabs', description='the ELEVEN_API_KEY environment variable is set (its value is never read)', remedy='set ELEVEN_API_KEY (needed by the ElevenLabs voices)', subject='environment', command=None, version='1'), 'env.latex': Capability(name='env.latex', description='\`latex\` is on PATH', remedy='install a TeX distribution (MacTeX / TeX Live) so \`latex\` is on PATH', subject='environment', command=None, version='1'), 'env.manim': Capability(name='env.manim', description='the manim, manimkit Python package(s) are importable', remedy="pip install 'an[manim]' (Manim Community Edition and manimkit; on Linux first \`apt install libcairo2-dev libpango1.0-dev\`)", subject='environment', command=None, version='1'), 'env.node': Capability(name='env.node', description='\`node\` is on PATH', remedy='install Node.js (\`brew install node\`)', subject='environment', command=None, version='1'), 'env.rhubarb': Capability(name='env.rhubarb', description='\`rhubarb\` is on PATH', remedy='install Rhubarb Lip Sync (\`brew install rhubarb-lipsync\`)', subject='environment', command=None, version='1'), 'space.framing2d': Capability(name='space.framing2d', description='the engine lowers moves through the framing2d view space: a 2D framing of a flat picture: position, zoom (log), roll (angle)', remedy='render with an engine that lowers the framing2d view space', subject='engine', command=None, version='1'), 'space.orbit3d': Capability(name='space.orbit3d', description='the engine lowers moves through the orbit3d view space: an orbit camera around a 3D target: azimuth and elevation (angles), distance (log)', remedy='render with an engine that lowers the orbit3d view space', subject='engine', command=None, version='1')}*
 
 Registered capabilities, by name.
 
@@ -12834,7 +13058,8 @@ the core and registered on import of [`an.capabilities`](_autosummary/an.capabil
   than a declared flag that could lie. `space.<name>`: the view spaces it
   lowers (an#257), from a `view_spaces` member, else
   `DFLT_ENGINE_VIEW_SPACES`.
-- `environment` — cheap probes only (`PATH` lookups, an import spec, the
+- `environment` — cheap probes only (`PATH` lookups, an import spec —
+  `env.manim` is `manim` and `manimkit` both importable —, the
   Playwright browser cache, the *presence* of API-key variables — never their
   values). No subprocess, no import of the probed package.
 
@@ -12849,10 +13074,13 @@ Both analysers take their evidence as `doc` so a test can inject it:
 
 ### Module Attributes
 
-| [`ENGINE_OPTIONAL_MEMBERS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENGINE_OPTIONAL_MEMBERS)   | Optional engine members a renderer may implement, each afforded as `engine.<member>` when it is a callable attribute of the renderer.   |
-|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| [`ENV_TOOLS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_TOOLS)                 | `capability: (executables, remedy)` — afforded when any executable is on PATH.                                                          |
-| [`ENV_KEYS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_KEYS)                  | `capability: (environment variables, remedy)` — afforded when any is set.                                                               |
+| [`ENGINE_ANALYSER_VERSION`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENGINE_ANALYSER_VERSION)      | `engine.measure_duration` joined the derivation (an#279).                                                                                          |
+|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`ENVIRONMENT_ANALYSER_VERSION`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENVIRONMENT_ANALYSER_VERSION) | `env.manim` joined the derivation (an#279).                                                                                                        |
+| [`ENGINE_OPTIONAL_MEMBERS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENGINE_OPTIONAL_MEMBERS)      | Optional engine members a renderer may implement, each afforded as `engine.<member>` when it is a callable attribute of the renderer.              |
+| [`ENV_TOOLS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_TOOLS)                    | `capability: (executables, remedy)` — afforded when any executable is on PATH.                                                                     |
+| [`ENV_KEYS`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_KEYS)                     | `capability: (environment variables, remedy)` — afforded when any is set.                                                                          |
+| [`ENV_MODULES`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.ENV_MODULES)                  | `capability: (python modules, remedy)` — afforded when EVERY module is importable (an import spec only: the module is never imported to find out). |
 
 ### Functions
 
@@ -12860,14 +13088,36 @@ Both analysers take their evidence as `doc` so a test can inject it:
 |---------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
 | [`environment_affordances`](_autosummary/an.capabilities.subjects.html.md#an.capabilities.subjects.environment_affordances)(\*[, probe]) | What this machine affords: tools on PATH, a browser, API keys set.             |
 
-### an.capabilities.subjects.ENGINE_OPTIONAL_MEMBERS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('compile', 'preview', 'render_frames', 'seek')*
+### an.capabilities.subjects.ENGINE_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
+
+`engine.measure_duration` joined the derivation (an#279).
+
+* **Type:**
+  ”2”
+
+### an.capabilities.subjects.ENGINE_OPTIONAL_MEMBERS *: [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...]* *= ('compile', 'preview', 'render_frames', 'seek', 'measure_duration')*
 
 Optional engine members a renderer may implement, each afforded as
 `engine.<member>` when it is a callable attribute of the renderer.
+`measure_duration` is how a whole-shot renderer that OWNS ITS CLOCK (Manim:
+only its own `play`/`wait` calls decide how long a shot runs) says so —
+the core asks it for the length before laying out the film (an#279).
+
+### an.capabilities.subjects.ENVIRONMENT_ANALYSER_VERSION *: [str](https://docs.python.org/3/builtins/stdtypes.html#str)* *= '2'*
+
+`env.manim` joined the derivation (an#279).
+
+* **Type:**
+  ”2”
 
 ### an.capabilities.subjects.ENV_KEYS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'env.key.anthropic': (('ANTHROPIC_API_KEY',), 'set ANTHROPIC_API_KEY (needed by \`an iterate\` and the vision verifier)'), 'env.key.elevenlabs': (('ELEVEN_API_KEY', 'ELEVENLABS_API_KEY'), 'set ELEVEN_API_KEY (needed by the ElevenLabs voices)')}*
 
 `capability: (environment variables, remedy)` — afforded when any is set.
+
+### an.capabilities.subjects.ENV_MODULES *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'env.manim': (('manim', 'manimkit'), "pip install 'an[manim]' (Manim Community Edition and manimkit; on Linux first \`apt install libcairo2-dev libpango1.0-dev\`)")}*
+
+`capability: (python modules, remedy)` — afforded when EVERY module is
+importable (an import spec only: the module is never imported to find out).
 
 ### an.capabilities.subjects.ENV_TOOLS *: [dict](https://docs.python.org/3/builtins/stdtypes.html#dict)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), [tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[tuple](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[str](https://docs.python.org/3/builtins/stdtypes.html#str), ...], [str](https://docs.python.org/3/builtins/stdtypes.html#str)]]* *= {'env.ffmpeg': (('ffmpeg',), 'install ffmpeg (\`brew install ffmpeg\` on macOS, \`apt install ffmpeg\` on Debian)'), 'env.latex': (('latex', 'pdflatex', 'xelatex'), 'install a TeX distribution (MacTeX / TeX Live) so \`latex\` is on PATH'), 'env.node': (('node',), 'install Node.js (\`brew install node\`)'), 'env.rhubarb': (('rhubarb',), 'install Rhubarb Lip Sync (\`brew install rhubarb-lipsync\`)')}*
 
@@ -21635,6 +21885,7 @@ skip that shot rather than crash.
 | [`library`](_autosummary/an.library.html.md#module-an.library)           | The asset library: reusable assets that outlive their videos (ADR 0005).                           |
 | [`live_api`](_autosummary/an.live_api.html.md#module-an.live_api)         | The one switch that says "yes, this run may spend money".                                          |
 | [`mcp`](_autosummary/an.mcp.html.md#module-an.mcp)                   | The `an` MCP server: a curated, generated surface over the vocabulary and the capability registry. |
+| [`measurements`](_autosummary/an.measurements.html.md#module-an.measurements) | Measured durations: shots whose renderer, not their author, decides their length.                  |
 | [`media`](_autosummary/an.media.html.md#module-an.media)               | Frames to deliverables, engine-independent: the frame stage's resolves and the sinks.              |
 | [`motion`](_autosummary/an.motion.html.md#module-an.motion)             | Motion presets: a named vocabulary of cut-out moves, as authoring macros.                          |
 | [`orchestrate`](_autosummary/an.orchestrate.html.md#module-an.orchestrate)   | Orchestrator: validate → audio → render → verify.                                                  |
@@ -23975,11 +24226,16 @@ Per-shot override of [`Meta.step_hz`](_autosummary/an.ir.html.md#an.ir.Meta.step
 
 How this shot is entered (`Transition`); `None` is a hard cut.
 
-### *class* an.ir.ValidationFinding(severity, ir_path, description)
+### *class* an.ir.ValidationFinding(severity, ir_path, description, location=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single validation issue with a path into the IR.
+
+#### location *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"<file>:<line>"` when the thing to fix is an opaque source a shot runs
+(a Manim scene file, an#279) rather than the IR; `None` otherwise.
 
 ### *class* an.ir.ValidationReport(passed=True, findings=<factory>)
 
@@ -25417,11 +25673,16 @@ The project’s asset-library lockfile (`mall["library_lock"]`, an#240);
 
 The IR path of the current shot (`timeline/<index>`).
 
-### *class* an.ir.validate.ValidationFinding(severity, ir_path, description)
+### *class* an.ir.validate.ValidationFinding(severity, ir_path, description, location=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single validation issue with a path into the IR.
+
+#### location *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"<file>:<line>"` when the thing to fix is an opaque source a shot runs
+(a Manim scene file, an#279) rather than the IR; `None` otherwise.
 
 ### *class* an.ir.validate.ValidationReport(passed=True, findings=<factory>)
 
@@ -29055,6 +29316,121 @@ What the character lacks for `method` to apply, each with its remedy (empty: it 
 
 * **Return type:**
   [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)]]
+
+
+# _autosummary/an.measurements.html.md
+
+# an.measurements
+
+Measured durations: shots whose renderer, not their author, decides their length.
+
+A whole-shot renderer that **owns its clock** (Manim: only the scene file’s own
+`play` and `wait` calls fix its length) implements `measure_duration`
+(`ClockOwningRenderer`). Its answer is DERIVED data:
+
+- it lives in a derived store keyed by the shot’s content (the renderer’s
+  `measurements` store), never in `scene.md` or `ir/scene.json` — a render
+  never rewrites what the author wrote (an#279 review, H1);
+- [`settle_durations()`](_autosummary/an.measurements.html.md#an.measurements.settle_durations) applies it IN MEMORY, to a copy of the scene, before
+  anything reads `shot.duration` — the film timeline, captions, the sound
+  layer, the cache keys — so the film’s layout is a pure function of the IR
+  and the measurements;
+- `an sync --accept-measured` ([`accept_measured()`](_autosummary/an.measurements.html.md#an.measurements.accept_measured)) takes it into the
+  authored scene on request, patching each shot’s `duration:` line in place.
+
+This is how core study §4.2’s “written back into the IR” is resolved: the IR the
+render LAYS OUT holds the measured length; the IR the author OWNS is untouched
+unless they accept it.
+
+**Narration longer than the picture is never cut silently.** A shot’s settled
+length is `max(measured, end of its dialogue)`: the renderer holds its last
+frame for the difference, and a warning says so — or, under `strict`
+(`--strict-assets`, which already refuses stand-ins), the render is refused.
+
+```pycon
+>>> declared_duration(Shot(id="a", renderer="manim")) is None   # the schema's placeholder
+True
+>>> declared_duration(Shot(id="a", renderer="manim", duration=3.0))
+3.0
+```
+
+### Functions
+
+| [`accept_measured`](_autosummary/an.measurements.html.md#an.measurements.accept_measured)(project_dir)                    | Write each clock-owned shot's MEASURED length into the authored scene.                                      |
+|--------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| [`clock_owner_for`](_autosummary/an.measurements.html.md#an.measurements.clock_owner_for)(shot[, registry])               | The registered renderer of `shot` if it owns its clock, else `None`.                                        |
+| [`declared_duration`](_autosummary/an.measurements.html.md#an.measurements.declared_duration)(shot)                         | The duration the AUTHOR wrote, or `None`.                                                                   |
+| [`settle_durations`](_autosummary/an.measurements.html.md#an.measurements.settle_durations)(scene, ctx, \*, render[, ...]) | A COPY of `scene` whose clock-owned shots carry their settled length, and the findings about them.          |
+| [`warn_findings`](_autosummary/an.measurements.html.md#an.measurements.warn_findings)(findings, \*[, stacklevel])       | Warn each finding as a [`ShotFindingWarning`](_autosummary/an.measurements.html.md#an.measurements.ShotFindingWarning) (`location: …`). |
+
+### Exceptions
+
+| [`MeasurementError`](_autosummary/an.measurements.html.md#an.measurements.MeasurementError)   | A measured shot cannot be laid out as asked (e.g. a hold under strict mode).                                                           |
+|---------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| [`ShotFindingWarning`](_autosummary/an.measurements.html.md#an.measurements.ShotFindingWarning) | A finding about a shot, warned by `an render` — located by `file:line` when the thing to fix is an opaque source (a Manim scene file). |
+
+### *exception* an.measurements.MeasurementError
+
+Bases: [`RuntimeError`](https://docs.python.org/3/builtins/exceptions.html#RuntimeError)
+
+A measured shot cannot be laid out as asked (e.g. a hold under strict mode).
+
+### *exception* an.measurements.ShotFindingWarning
+
+Bases: [`UserWarning`](https://docs.python.org/3/builtins/exceptions.html#UserWarning)
+
+A finding about a shot, warned by `an render` — located by `file:line`
+when the thing to fix is an opaque source (a Manim scene file).
+
+### an.measurements.accept_measured(project_dir)
+
+Write each clock-owned shot’s MEASURED length into the authored scene.
+
+Only stored measurements (render first); only shots whose scene duration
+differs. Each `duration:` line is patched in place through
+[`an.stores.scenes.ScenesStore.patch_shot_durations()`](_autosummary/an.stores.scenes.html.md#an.stores.scenes.ScenesStore.patch_shot_durations), so the prose and
+comments of `scene.md` are kept. Returns `{shot id: seconds}` written.
+
+* **Return type:**
+  [`dict`](https://docs.python.org/3/builtins/stdtypes.html#dict)[[`str`](https://docs.python.org/3/builtins/stdtypes.html#str), [`float`](https://docs.python.org/3/builtins/functions.html#float)]
+
+### an.measurements.clock_owner_for(shot, registry=None)
+
+The registered renderer of `shot` if it owns its clock, else `None`.
+
+* **Return type:**
+  [`Any`](https://docs.python.org/3/library/typing.html#typing.Any) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.measurements.declared_duration(shot)
+
+The duration the AUTHOR wrote, or `None`.
+
+`scene.md` fills the schema’s placeholder (`an.base.DEFAULT_DURATION`)
+into a shot that writes no `duration:`, so that value reads as “not
+declared” — an explicit `duration: 5` is indistinguishable from it.
+
+* **Return type:**
+  [`float`](https://docs.python.org/3/builtins/functions.html#float) | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.measurements.settle_durations(scene, ctx, , render, force=False, strict=False, registry=None)
+
+A COPY of `scene` whose clock-owned shots carry their settled length,
+and the findings about them. `scene` itself is never modified.
+
+`render=False` (`an validate`) uses stored measurements only: a shot
+never measured is reported as “length unknown until rendered” and judged
+against nothing. `render=True` (`an render`) measures what is not
+stored; `force` measures everything afresh.
+
+* **Return type:**
+  [`tuple`](https://docs.python.org/3/builtins/stdtypes.html#tuple)[[`SceneIR`](_autosummary/an.ir.schema.html.md#an.ir.schema.SceneIR), [`list`](https://docs.python.org/3/builtins/stdtypes.html#list)[[`Finding`](_autosummary/an.verify.html.md#an.verify.Finding)]]
+
+### an.measurements.warn_findings(findings, , stacklevel=3)
+
+Warn each finding as a [`ShotFindingWarning`](_autosummary/an.measurements.html.md#an.measurements.ShotFindingWarning) (`location: …`).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 
 # _autosummary/an.media.frames.html.md
@@ -32701,14 +33077,18 @@ enforced by the caller (orchestrator), not the store.
 
 ### Classes
 
-| [`AudioArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                  |
-|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`CaptionsStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.CaptionsStore)(root_dir)        | SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they caption — `captions["main"]` is `output/main.srt` (an#175).               |
-| [`OutputStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.OutputStore)(root_dir)          | Final composited renders.                                                                                                                         |
-| [`PreviewArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                                            |
-| [`ShotArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                                           |
-| [`TakesArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265). |
-| [`VisemeArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                            |
+| [`AudioArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                                                                                                            |
+|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`CaptionsStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.CaptionsStore)(root_dir)        | SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they caption — `captions["main"]` is `output/main.srt` (an#175).                                                                                                         |
+| [`ContactSheetStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.ContactSheetStore)(root_dir)    | Contact sheets (.png): frames of a render at its settled beats, labelled with their time, for a person or an agent to LOOK at (core study §2.10).                                                                                           |
+| [`MeasurementStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.MeasurementStore)(root_dir)     | Measurements a clock-owning renderer made of its content (.json bytes), keyed by that content's key — DERIVED data, never the author's (an#279): a Manim shot's length, its timeline of beats, its findings.                                |
+| [`OutputStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.OutputStore)(root_dir)          | Final composited renders.                                                                                                                                                                                                                   |
+| [`PictureStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.PictureStore)(root_dir)         | An opaque renderer's raw picture (.mp4), keyed by its content key — a Manim scene's own render, before it is conformed to a film's fps and size, so a change that is not to the picture (narration, fps) does not run Manim again (an#279). |
+| [`PreviewArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                                                                                                                                      |
+| [`RenderReportStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.RenderReportStore)(root_dir)    | What a render found (.json), keyed like the output it describes — `render_reports["main"]` — so `orchestrate` and MCP read the findings that `an render` warned (an#279).                                                                   |
+| [`ShotArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                                                                                                                                     |
+| [`TakesArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265).                                                                                           |
+| [`VisemeArtifactStore`](_autosummary/an.stores.artifacts.html.md#an.stores.artifacts.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                                                                                                                      |
 
 ### *class* an.stores.artifacts.AudioArtifactStore(root_dir)
 
@@ -32723,17 +33103,53 @@ Bases: `_BlobStore`
 SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they
 caption — `captions["main"]` is `output/main.srt` (an#175).
 
+### *class* an.stores.artifacts.ContactSheetStore(root_dir)
+
+Bases: `_BlobStore`
+
+Contact sheets (.png): frames of a render at its settled beats, labelled
+with their time, for a person or an agent to LOOK at (core study §2.10).
+
+Content-addressed — the key is the sha256 of the PNG bytes — so a shot whose
+render is reused from the shot cache still points at its sheet through the
+cached provenance, and two shots with one picture share one file.
+
+### *class* an.stores.artifacts.MeasurementStore(root_dir)
+
+Bases: `_BlobStore`
+
+Measurements a clock-owning renderer made of its content (.json bytes),
+keyed by that content’s key — DERIVED data, never the author’s (an#279):
+a Manim shot’s length, its timeline of beats, its findings.
+
 ### *class* an.stores.artifacts.OutputStore(root_dir)
 
 Bases: `_BlobStore`
 
 Final composited renders.
 
+### *class* an.stores.artifacts.PictureStore(root_dir)
+
+Bases: `_BlobStore`
+
+An opaque renderer’s raw picture (.mp4), keyed by its content key — a
+Manim scene’s own render, before it is conformed to a film’s fps and size,
+so a change that is not to the picture (narration, fps) does not run Manim
+again (an#279).
+
 ### *class* an.stores.artifacts.PreviewArtifactStore(root_dir)
 
 Bases: `_BlobStore`
 
 Low-res preview renders (mp4 or png sequence wrapper).
+
+### *class* an.stores.artifacts.RenderReportStore(root_dir)
+
+Bases: `_BlobStore`
+
+What a render found (.json), keyed like the output it describes —
+`render_reports["main"]` — so `orchestrate` and MCP read the findings
+that `an render` warned (an#279).
 
 ### *class* an.stores.artifacts.ShotArtifactStore(root_dir)
 
@@ -32870,10 +33286,11 @@ sites work against filesystem, SQLite, S3, etc.
 >>> with tempfile.TemporaryDirectory() as d:
 ...     mall = build_project_mall(d, ensure=True)
 ...     sorted(mall.keys()) == [
-...         'audio', 'captions', 'characters', 'decisions', 'environments',
-...         'library_lock', 'output', 'previews', 'props', 'scenes', 'shot_cache',
-...         'shots',
-...         'sounds', 'styles', 'takes', 'visemes', 'voices',
+...         'audio', 'captions', 'characters', 'contact_sheets', 'decisions',
+...         'environments', 'library_lock', 'measurements', 'output',
+...         'pictures', 'previews', 'props', 'render_reports', 'scenes',
+...         'shot_cache', 'shots', 'sounds', 'sources', 'styles', 'takes',
+...         'visemes', 'voices',
 ...     ]
 True
 ```
@@ -32885,22 +33302,27 @@ True
 
 ### Classes
 
-| [`CharactersStore`](_autosummary/an.stores.html.md#an.stores.CharactersStore)(root_dir)      | Per-character directory store.                                                                                                                    |
-|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
-| [`EnvironmentsStore`](_autosummary/an.stores.html.md#an.stores.EnvironmentsStore)(root_dir)    | Per-environment directory store (meta + sidecar art).                                                                                             |
-| [`VoicesStore`](_autosummary/an.stores.html.md#an.stores.VoicesStore)(root_dir)          | JSON-only voice descriptors.                                                                                                                      |
-| [`StylesStore`](_autosummary/an.stores.html.md#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                                                                                                      |
-| [`PropsStore`](_autosummary/an.stores.html.md#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                                                                                                         |
-| [`ScenesStore`](_autosummary/an.stores.html.md#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.                                                                               |
-| [`SoundsStore`](_autosummary/an.stores.html.md#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                                                                                                        |
-| [`AudioArtifactStore`](_autosummary/an.stores.html.md#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                  |
-| [`VisemeArtifactStore`](_autosummary/an.stores.html.md#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                            |
-| [`TakesArtifactStore`](_autosummary/an.stores.html.md#an.stores.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265). |
-| [`ShotArtifactStore`](_autosummary/an.stores.html.md#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                                           |
-| [`PreviewArtifactStore`](_autosummary/an.stores.html.md#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                                            |
-| [`OutputStore`](_autosummary/an.stores.html.md#an.stores.OutputStore)(root_dir)          | Final composited renders.                                                                                                                         |
-| [`DecisionLogStore`](_autosummary/an.stores.html.md#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).                                                                                         |
-| [`ProjectLock`](_autosummary/an.stores.html.md#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.                                                                                       |
+| [`CharactersStore`](_autosummary/an.stores.html.md#an.stores.CharactersStore)(root_dir)      | Per-character directory store.                                                                                                                                                                                                              |
+|---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [`EnvironmentsStore`](_autosummary/an.stores.html.md#an.stores.EnvironmentsStore)(root_dir)    | Per-environment directory store (meta + sidecar art).                                                                                                                                                                                       |
+| [`VoicesStore`](_autosummary/an.stores.html.md#an.stores.VoicesStore)(root_dir)          | JSON-only voice descriptors.                                                                                                                                                                                                                |
+| [`StylesStore`](_autosummary/an.stores.html.md#an.stores.StylesStore)(root_dir)          | Pure-JSON style descriptors.                                                                                                                                                                                                                |
+| [`PropsStore`](_autosummary/an.stores.html.md#an.stores.PropsStore)(root_dir)           | Per-prop directory store.                                                                                                                                                                                                                   |
+| [`ScenesStore`](_autosummary/an.stores.html.md#an.stores.ScenesStore)(project_dir)       | `MutableMapping` exposing the scene file pair under a project root.                                                                                                                                                                         |
+| [`SoundsStore`](_autosummary/an.stores.html.md#an.stores.SoundsStore)(root_dir)          | Per-sound directory store.                                                                                                                                                                                                                  |
+| [`AudioArtifactStore`](_autosummary/an.stores.html.md#an.stores.AudioArtifactStore)(root_dir)   | TTS-rendered audio clips (.wav).                                                                                                                                                                                                            |
+| [`VisemeArtifactStore`](_autosummary/an.stores.html.md#an.stores.VisemeArtifactStore)(root_dir)  | Lip-sync viseme tracks (.json) — stored as bytes for cache uniformity.                                                                                                                                                                      |
+| [`TakesArtifactStore`](_autosummary/an.stores.html.md#an.stores.TakesArtifactStore)(root_dir)   | Best-of-N take records (.json bytes), keyed by the line's audio key: which take was kept, its sha256, every take's score and the scorer (an#265).                                                                                           |
+| [`ShotArtifactStore`](_autosummary/an.stores.html.md#an.stores.ShotArtifactStore)(root_dir)    | Per-shot rendered mp4s.                                                                                                                                                                                                                     |
+| [`PreviewArtifactStore`](_autosummary/an.stores.html.md#an.stores.PreviewArtifactStore)(root_dir) | Low-res preview renders (mp4 or png sequence wrapper).                                                                                                                                                                                      |
+| [`ContactSheetStore`](_autosummary/an.stores.html.md#an.stores.ContactSheetStore)(root_dir)    | Contact sheets (.png): frames of a render at its settled beats, labelled with their time, for a person or an agent to LOOK at (core study §2.10).                                                                                           |
+| [`MeasurementStore`](_autosummary/an.stores.html.md#an.stores.MeasurementStore)(root_dir)     | Measurements a clock-owning renderer made of its content (.json bytes), keyed by that content's key — DERIVED data, never the author's (an#279): a Manim shot's length, its timeline of beats, its findings.                                |
+| [`PictureStore`](_autosummary/an.stores.html.md#an.stores.PictureStore)(root_dir)         | An opaque renderer's raw picture (.mp4), keyed by its content key — a Manim scene's own render, before it is conformed to a film's fps and size, so a change that is not to the picture (narration, fps) does not run Manim again (an#279). |
+| [`RenderReportStore`](_autosummary/an.stores.html.md#an.stores.RenderReportStore)(root_dir)    | What a render found (.json), keyed like the output it describes — `render_reports["main"]` — so `orchestrate` and MCP read the findings that `an render` warned (an#279).                                                                   |
+| [`SourcesStore`](_autosummary/an.stores.html.md#an.stores.SourcesStore)(root_dir)         | Python scene sources (`.py` bytes) — a Manim scene file per key.                                                                                                                                                                            |
+| [`OutputStore`](_autosummary/an.stores.html.md#an.stores.OutputStore)(root_dir)          | Final composited renders.                                                                                                                                                                                                                   |
+| [`DecisionLogStore`](_autosummary/an.stores.html.md#an.stores.DecisionLogStore)(log_path)     | Append-only JSONL log keyed by ordinal index (as string).                                                                                                                                                                                   |
+| [`ProjectLock`](_autosummary/an.stores.html.md#an.stores.ProjectLock)(project_dir)       | `<store>/<key> -> pin` over a project's `assets.lock.json`.                                                                                                                                                                                 |
 
 ### *class* an.stores.AudioArtifactStore(root_dir)
 
@@ -32922,6 +33344,17 @@ Per-character directory store.
 ...     store['maya']['name']
 'Maya'
 ```
+
+### *class* an.stores.ContactSheetStore(root_dir)
+
+Bases: `_BlobStore`
+
+Contact sheets (.png): frames of a render at its settled beats, labelled
+with their time, for a person or an agent to LOOK at (core study §2.10).
+
+Content-addressed — the key is the sha256 of the PNG bytes — so a shot whose
+render is reused from the shot cache still points at its sheet through the
+cached provenance, and two shots with one picture share one file.
 
 ### *class* an.stores.DecisionLogStore(log_path)
 
@@ -32956,11 +33389,28 @@ Bases: `JsonSidecarStore`
 
 Per-environment directory store (meta + sidecar art).
 
+### *class* an.stores.MeasurementStore(root_dir)
+
+Bases: `_BlobStore`
+
+Measurements a clock-owning renderer made of its content (.json bytes),
+keyed by that content’s key — DERIVED data, never the author’s (an#279):
+a Manim shot’s length, its timeline of beats, its findings.
+
 ### *class* an.stores.OutputStore(root_dir)
 
 Bases: `_BlobStore`
 
 Final composited renders.
+
+### *class* an.stores.PictureStore(root_dir)
+
+Bases: `_BlobStore`
+
+An opaque renderer’s raw picture (.mp4), keyed by its content key — a
+Manim scene’s own render, before it is conformed to a film’s fps and size,
+so a change that is not to the picture (narration, fps) does not run Manim
+again (an#279).
 
 ### *class* an.stores.PreviewArtifactStore(root_dir)
 
@@ -32992,6 +33442,14 @@ Per-prop directory store.
 'Desk lamp'
 ```
 
+### *class* an.stores.RenderReportStore(root_dir)
+
+Bases: `_BlobStore`
+
+What a render found (.json), keyed like the output it describes —
+`render_reports["main"]` — so `orchestrate` and MCP read the findings
+that `an render` warned (an#279).
+
 ### *class* an.stores.ScenesStore(project_dir)
 
 Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping)
@@ -33000,6 +33458,26 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 
 Keys: currently always `"main"`. The store enforces this by raising
 `KeyError` for other keys.
+
+#### patch_shot_durations(durations)
+
+Set `duration` on the named shots WITHOUT regenerating `scene.md`.
+
+`__setitem__` rewrites the markdown from the IR, which drops every word
+of prose and every comment the IR does not hold. This writes the JSON
+through the read boundary as usual, and patches only each shot’s
+`duration:` line in the markdown (inserting one into its
+
+```
+``
+```
+
+\`\` ``yaml shot ``` block, or the block itself, when there is none) —
+what `an sync --accept-measured` uses to take a measured duration into
+the authored scene (an#279).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
 
 ### *class* an.stores.ShotArtifactStore(root_dir)
 
@@ -33030,6 +33508,12 @@ its header for the duration a fade-out needs, deterministically.
 
 * **Type:**
   The sidecar holding the audio bytes. WAV only in v1
+
+### *class* an.stores.SourcesStore(root_dir)
+
+Bases: `_BlobStore`
+
+Python scene sources (`.py` bytes) — a Manim scene file per key.
 
 ### *class* an.stores.StylesStore(root_dir)
 
@@ -33078,17 +33562,18 @@ in-memory `dict` for tests).
 
 ### Modules
 
-| [`artifacts`](_autosummary/an.stores.artifacts.html.md#module-an.stores.artifacts)       | Artifact stores — derived, regeneratable products of the pipeline.            |
-|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| [`characters`](_autosummary/an.stores.characters.html.md#module-an.stores.characters)     | Characters store — descriptor + sidecar folder per character.                 |
-| [`decisions`](_autosummary/an.stores.decisions.html.md#module-an.stores.decisions)       | Decision log — append-only JSONL of agent decisions and user approvals.       |
-| [`environments`](_autosummary/an.stores.environments.html.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.               |
-| [`library_lock`](_autosummary/an.stores.library_lock.html.md#module-an.stores.library_lock) | The project lockfile: which library version each checked-out asset came from. |
-| [`props`](_autosummary/an.stores.props.html.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                           |
-| [`scenes`](_autosummary/an.stores.scenes.html.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.         |
-| [`sounds`](_autosummary/an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`.      |
-| [`styles`](_autosummary/an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts).      |
-| [`voices`](_autosummary/an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                                |
+| [`artifacts`](_autosummary/an.stores.artifacts.html.md#module-an.stores.artifacts)       | Artifact stores — derived, regeneratable products of the pipeline.                |
+|---------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| [`characters`](_autosummary/an.stores.characters.html.md#module-an.stores.characters)     | Characters store — descriptor + sidecar folder per character.                     |
+| [`decisions`](_autosummary/an.stores.decisions.html.md#module-an.stores.decisions)       | Decision log — append-only JSONL of agent decisions and user approvals.           |
+| [`environments`](_autosummary/an.stores.environments.html.md#module-an.stores.environments) | Environments store — backgrounds, set pieces, and prop bundles.                   |
+| [`library_lock`](_autosummary/an.stores.library_lock.html.md#module-an.stores.library_lock) | The project lockfile: which library version each checked-out asset came from.     |
+| [`props`](_autosummary/an.stores.props.html.md#module-an.stores.props)               | Props store — descriptor + sidecar folder per prop.                               |
+| [`scenes`](_autosummary/an.stores.scenes.html.md#module-an.stores.scenes)             | Scenes store — wraps the project's `scene.md` + `ir/scene.json` pair.             |
+| [`sounds`](_autosummary/an.stores.sounds.html.md#module-an.stores.sounds)             | Sounds store — one directory per sound: `sound.json` beside `audio.wav`.          |
+| [`sources`](_autosummary/an.stores.sources.html.md#module-an.stores.sources)           | The project's opaque scene sources: files a whole-shot renderer runs as they are. |
+| [`styles`](_autosummary/an.stores.styles.html.md#module-an.stores.styles)             | Styles store — visual style presets (color palette, line weight, fonts).          |
+| [`voices`](_autosummary/an.stores.voices.html.md#module-an.stores.voices)             | Voices store — pure JSON; one entry per voice.                                    |
 
 
 # _autosummary/an.stores.library_lock.html.md
@@ -33239,6 +33724,11 @@ projects by promoting siblings inside a `scenes/` directory.
 Reading returns a `SceneIR`. Writing accepts a `SceneIR` (or a dict that
 validates as one) and persists both the JSON and the regenerated Markdown.
 
+### Functions
+
+| [`patch_shot_duration_md`](_autosummary/an.stores.scenes.html.md#an.stores.scenes.patch_shot_duration_md)(markdown, shot_id, ...)   | `markdown` with shot `shot_id`'s `duration:` set to `seconds`, every other line — prose, comments, formatting — untouched.   |
+|---------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+
 ### Classes
 
 | [`ScenesStore`](_autosummary/an.stores.scenes.html.md#an.stores.scenes.ScenesStore)(project_dir)   | `MutableMapping` exposing the scene file pair under a project root.   |
@@ -33252,6 +33742,52 @@ Bases: [`MutableMapping`](https://docs.python.org/3/library/collections.abc.html
 
 Keys: currently always `"main"`. The store enforces this by raising
 `KeyError` for other keys.
+
+#### patch_shot_durations(durations)
+
+Set `duration` on the named shots WITHOUT regenerating `scene.md`.
+
+`__setitem__` rewrites the markdown from the IR, which drops every word
+of prose and every comment the IR does not hold. This writes the JSON
+through the read boundary as usual, and patches only each shot’s
+`duration:` line in the markdown (inserting one into its
+
+```
+``
+```
+
+\`\` ``yaml shot ``` block, or the block itself, when there is none) —
+what `an sync --accept-measured` uses to take a measured duration into
+the authored scene (an#279).
+
+* **Return type:**
+  [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+### an.stores.scenes.patch_shot_duration_md(markdown, shot_id, seconds)
+
+`markdown` with shot `shot_id`’s `duration:` set to `seconds`,
+every other line — prose, comments, formatting — untouched.
+
+* **Return type:**
+  [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
+
+```pycon
+>>> md = "# T\n\nA note.\n\n## Shot a (manim)\n\n```yaml shot\noptions: {source: a}  # the chart\n```\n"
+>>> print(patch_shot_duration_md(md, "a", 3.1))
+# T
+
+A note.
+
+## Shot a (manim)
+
+```yaml shot
+duration: 3.1
+options: {source: a}  # the chart
+```
+
+```text
+<BLANKLINE>
+```
 
 
 # _autosummary/an.stores.sounds.html.md
@@ -33295,6 +33831,38 @@ its header for the duration a fade-out needs, deterministically.
 
 * **Type:**
   The sidecar holding the audio bytes. WAV only in v1
+
+
+# _autosummary/an.stores.sources.html.md
+
+# an.stores.sources
+
+The project’s opaque scene sources: files a whole-shot renderer runs as they are.
+
+A Manim shot (`Shot(renderer="manim", options={"source": "chart"})`) names a
+key here; the file is `assets/sources/chart.py`. The store is the ONE place
+the renderer reads it from (pillar 7), and what it reads is what its shot-cache
+key digests, so an edit to the file re-renders the shot.
+
+```pycon
+>>> import tempfile
+>>> with tempfile.TemporaryDirectory() as d:
+...     store = SourcesStore(d)
+...     store["chart"] = b"from manim import *\n"
+...     list(store), store.path_of("chart").name
+(['chart'], 'chart.py')
+```
+
+### Classes
+
+| [`SourcesStore`](_autosummary/an.stores.sources.html.md#an.stores.sources.SourcesStore)(root_dir)   | Python scene sources (`.py` bytes) — a Manim scene file per key.   |
+|---------------------------------------------------------------------------|--------------------------------------------------------------------|
+
+### *class* an.stores.sources.SourcesStore(root_dir)
+
+Bases: `_BlobStore`
+
+Python scene sources (`.py` bytes) — a Manim scene file per key.
 
 
 # _autosummary/an.stores.styles.html.md
@@ -36554,7 +37122,7 @@ without touching these functions, so they stay plain Python.
 | [`iterate`](_autosummary/an.tools.html.md#an.tools.iterate)(project_dir, instruction[, ...])         | Apply a free-text instruction to the scene.                                          |
 | [`preview`](_autosummary/an.tools.html.md#an.tools.preview)(project_dir[, shot, no_browser])         | Live-preview the project's scene in a browser; reloads on edit.                      |
 | [`render`](_autosummary/an.tools.html.md#an.tools.render)(project_dir[, output_name, tts, ...])     | Render the project at `project_dir` to a single mp4.                                 |
-| [`sync`](_autosummary/an.tools.html.md#an.tools.sync)(project_dir)                                | Reconcile scene.md and ir/scene.json inside `project_dir`.                           |
+| [`sync`](_autosummary/an.tools.html.md#an.tools.sync)(project_dir[, accept_measured])             | Reconcile scene.md and ir/scene.json inside `project_dir`.                           |
 | [`validate`](_autosummary/an.tools.html.md#an.tools.validate)(project_dir)                            | Validate the scene at `project_dir`.                                                 |
 
 ### an.tools.bench(scenes='', out='', keep_render='', quiet=False, bless='', compare='', mutation='')
@@ -36772,9 +37340,15 @@ cache_frames: also cache each shot’s frames, so a film with transitions or
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.sync(project_dir)
+### an.tools.sync(project_dir, accept_measured=False)
 
 Reconcile scene.md and ir/scene.json inside `project_dir`.
+
+`--accept-measured` also writes the durations a clock-owning renderer
+(Manim) MEASURED into the scene — each such shot’s `duration:` line,
+patched in place, so the prose around it is kept. Without it, a measured
+duration lives only in the derived `measurements` store and the scene
+says what its author wrote.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
@@ -36820,14 +37394,23 @@ already in `sys.modules`.
 | [`VisionLMVerifier`](_autosummary/an.verify.html.md#an.verify.VisionLMVerifier)(\*[, model, frame_count, ...]) | Claude vision Verifier (skip-if-missing-deps). |
 | `StyleLintVerifier`(spec_or_targets, \*[, ...])                                                  | Compare a render to a style spec's `targets`.  |
 
-### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None)
+### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None, location=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single verification issue.
 
 `ir_path` lets the orchestrator route the fix to the correct layer of
-the IR — e.g. `"timeline/0/dialogue/1"`.
+the IR — e.g. `"timeline/0/dialogue/1"`. `location` is set when the
+thing to fix is not IR at all but an OPAQUE SOURCE the shot runs — a Manim
+scene file — as `"<file>:<line>"` (core study §2.10): the fix then goes
+to that line, and `ir_path` still names the shot that runs it.
+
+```pycon
+>>> Finding("warning", "timeline/0/options/source", "text cut off",
+...         location="assets/sources/chart.py:14").location
+'assets/sources/chart.py:14'
+```
 
 ### *class* an.verify.HumanInTheLoopVerifier(, prompt='Approve render? [y/N/r=reject]: ')
 
@@ -37916,20 +38499,18 @@ different line is a different recording.
 
 # About this build
 
-This documentation was built on **2026-10-01 19:15 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/92db6be6c7d38b2cd8aafa26409bcb19bc33ed02"><code>92db6be</code></a> on branch <code>main</code>, for **an 0.1.145** (from <code>pyproject.toml</code>).
+This documentation was built on **2026-10-01 19:49 UTC** from commit <a href="https://github.com/thorwhalen/an/commit/cd7158dcf7f42f71b52feb9882428b7907533f43"><code>cd7158d</code></a> on branch <code>main</code>, for **an 0.1.146** (from <code>pyproject.toml</code>).
 
-#### WARNING
-The documentation and the package may be misaligned:
-
-- The documented version (0.1.145) is ahead of the latest release on PyPI (0.1.144): these docs describe unreleased code.
+#### NOTE
+Nothing suggests a mismatch: the tree was clean at the commit above, and the documented version is the one on PyPI.
 
 ## Source
 
 |                     |                                                                                                                                                      |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Commit              | <a href="https://github.com/thorwhalen/an/commit/92db6be6c7d38b2cd8aafa26409bcb19bc33ed02"><code>92db6be6c7d38b2cd8aafa26409bcb19bc33ed02</code></a> |
+| Commit              | <a href="https://github.com/thorwhalen/an/commit/cd7158dcf7f42f71b52feb9882428b7907533f43"><code>cd7158dcf7f42f71b52feb9882428b7907533f43</code></a> |
 | Branch              | <code>main</code>                                                                                                                                    |
-| Tags at this commit | <code>0.1.145</code>                                                                                                                                 |
+| Tags at this commit | <code>0.1.146</code>                                                                                                                                 |
 | Working tree        | clean                                                                                                                                                |
 | Remote              | <code>https://github.com/thorwhalen/an</code>                                                                                                        |
 
@@ -37938,9 +38519,9 @@ The documentation and the package may be misaligned:
 |              |                                                                                            |
 |--------------|--------------------------------------------------------------------------------------------|
 | Repository   | <code>thorwhalen/an</code>                                                                 |
-| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36911901329">36911901329</a>        |
+| Run          | <a href="https://github.com/thorwhalen/an/actions/runs/36916103511">36916103511</a>        |
 | Ref          | <code>refs/heads/main</code>                                                               |
-| Event commit | <code>13ec33a913c50317a6916f5df71a1a89b75e2d2e</code> (in the history of the built commit) |
+| Event commit | <code>65967b62cb3701c486768b8c9d7298fb7d495986</code> (in the history of the built commit) |
 
 ## Tools
 
@@ -37965,13 +38546,13 @@ The documentation and the package may be misaligned:
 
 ## Package on PyPI
 
-Latest release: <a href="https://pypi.org/project/an/0.1.144/">0.1.144</a>, older than the documented version (0.1.145).
+Latest release: <a href="https://pypi.org/project/an/0.1.146/">0.1.146</a>, the same as the documented version.
 
 ## Reproduce
 
 ```bash
 git clone https://github.com/thorwhalen/an && cd an
-git checkout 92db6be6c7d38b2cd8aafa26409bcb19bc33ed02
+git checkout cd7158dcf7f42f71b52feb9882428b7907533f43
 pip install "epythet==0.2.12"
 epythet quickstart . --ignore tests/ scrap/ examples/
 ```

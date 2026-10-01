@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
+    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.sounds" href="an.sounds.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.145" />
+  <meta name="docsearch:version" content="0.1.146" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -466,6 +466,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.measurements.html">an.measurements</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
@@ -505,6 +506,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
@@ -616,10 +618,11 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">d</span><span class="p">:</span>
 <span class="gp">... </span>    <span class="n">mall</span> <span class="o">=</span> <span class="n">build_project_mall</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">ensure</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="nb">sorted</span><span class="p">(</span><span class="n">mall</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">==</span> <span class="p">[</span>
-<span class="gp">... </span>        <span class="s1">'audio'</span><span class="p">,</span> <span class="s1">'captions'</span><span class="p">,</span> <span class="s1">'characters'</span><span class="p">,</span> <span class="s1">'decisions'</span><span class="p">,</span> <span class="s1">'environments'</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s1">'library_lock'</span><span class="p">,</span> <span class="s1">'output'</span><span class="p">,</span> <span class="s1">'previews'</span><span class="p">,</span> <span class="s1">'props'</span><span class="p">,</span> <span class="s1">'scenes'</span><span class="p">,</span> <span class="s1">'shot_cache'</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s1">'shots'</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s1">'sounds'</span><span class="p">,</span> <span class="s1">'styles'</span><span class="p">,</span> <span class="s1">'takes'</span><span class="p">,</span> <span class="s1">'visemes'</span><span class="p">,</span> <span class="s1">'voices'</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">'audio'</span><span class="p">,</span> <span class="s1">'captions'</span><span class="p">,</span> <span class="s1">'characters'</span><span class="p">,</span> <span class="s1">'contact_sheets'</span><span class="p">,</span> <span class="s1">'decisions'</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">'environments'</span><span class="p">,</span> <span class="s1">'library_lock'</span><span class="p">,</span> <span class="s1">'measurements'</span><span class="p">,</span> <span class="s1">'output'</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">'pictures'</span><span class="p">,</span> <span class="s1">'previews'</span><span class="p">,</span> <span class="s1">'props'</span><span class="p">,</span> <span class="s1">'render_reports'</span><span class="p">,</span> <span class="s1">'scenes'</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">'shot_cache'</span><span class="p">,</span> <span class="s1">'shots'</span><span class="p">,</span> <span class="s1">'sounds'</span><span class="p">,</span> <span class="s1">'sources'</span><span class="p">,</span> <span class="s1">'styles'</span><span class="p">,</span> <span class="s1">'takes'</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s1">'visemes'</span><span class="p">,</span> <span class="s1">'voices'</span><span class="p">,</span>
 <span class="gp">... </span>    <span class="p">]</span>
 <span class="go">True</span>
 </pre></div>
@@ -672,13 +675,28 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.stores.PreviewArtifactStore" title="an.stores.PreviewArtifactStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PreviewArtifactStore</span></code></a>(root_dir)</p></td>
 <td><p>Low-res preview renders (mp4 or png sequence wrapper).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.OutputStore" title="an.stores.OutputStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputStore</span></code></a>(root_dir)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.ContactSheetStore" title="an.stores.ContactSheetStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ContactSheetStore</span></code></a>(root_dir)</p></td>
+<td><p>Contact sheets (.png): frames of a render at its settled beats, labelled with their time, for a person or an agent to LOOK at (core study §2.10).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.MeasurementStore" title="an.stores.MeasurementStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementStore</span></code></a>(root_dir)</p></td>
+<td><p>Measurements a clock-owning renderer made of its content (.json bytes), keyed by that content's key — DERIVED data, never the author's (an#279): a Manim shot's length, its timeline of beats, its findings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.PictureStore" title="an.stores.PictureStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PictureStore</span></code></a>(root_dir)</p></td>
+<td><p>An opaque renderer's raw picture (.mp4), keyed by its content key — a Manim scene's own render, before it is conformed to a film's fps and size, so a change that is not to the picture (narration, fps) does not run Manim again (an#279).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.RenderReportStore" title="an.stores.RenderReportStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RenderReportStore</span></code></a>(root_dir)</p></td>
+<td><p>What a render found (.json), keyed like the output it describes — <code class="docutils literal notranslate"><span class="pre">render_reports[&quot;main&quot;]</span></code> — so <code class="docutils literal notranslate"><span class="pre">orchestrate</span></code> and MCP read the findings that <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> warned (an#279).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.SourcesStore" title="an.stores.SourcesStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SourcesStore</span></code></a>(root_dir)</p></td>
+<td><p>Python scene sources (<code class="docutils literal notranslate"><span class="pre">.py</span></code> bytes) — a Manim scene file per key.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.OutputStore" title="an.stores.OutputStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputStore</span></code></a>(root_dir)</p></td>
 <td><p>Final composited renders.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.DecisionLogStore" title="an.stores.DecisionLogStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DecisionLogStore</span></code></a>(log_path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.DecisionLogStore" title="an.stores.DecisionLogStore"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DecisionLogStore</span></code></a>(log_path)</p></td>
 <td><p>Append-only JSONL log keyed by ordinal index (as string).</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.ProjectLock" title="an.stores.ProjectLock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProjectLock</span></code></a>(project_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.stores.ProjectLock" title="an.stores.ProjectLock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProjectLock</span></code></a>(project_dir)</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;store&gt;/&lt;key&gt;</span> <span class="pre">-&gt;</span> <span class="pre">pin</span></code> over a project's <code class="docutils literal notranslate"><span class="pre">assets.lock.json</span></code>.</p></td>
 </tr>
 </tbody>
@@ -706,6 +724,19 @@ sites work against filesystem, SQLite, S3, etc.</p>
 <span class="go">'Maya'</span>
 </pre></div>
 </div>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stores.ContactSheetStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">ContactSheetStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#ContactSheetStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.ContactSheetStore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
+<p>Contact sheets (.png): frames of a render at its settled beats, labelled
+with their time, for a person or an agent to LOOK at (core study §2.10).</p>
+<p>Content-addressed — the key is the sha256 of the PNG bytes — so a shot whose
+render is reused from the shot cache still points at its sheet through the
+cached provenance, and two shots with one picture share one file.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -752,10 +783,33 @@ forbidden; the log is append-only by design.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="an.stores.MeasurementStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">MeasurementStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#MeasurementStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.MeasurementStore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
+<p>Measurements a clock-owning renderer made of its content (.json bytes),
+keyed by that content’s key — DERIVED data, never the author’s (an#279):
+a Manim shot’s length, its timeline of beats, its findings.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="an.stores.OutputStore">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">OutputStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#OutputStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.OutputStore" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
 <p>Final composited renders.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stores.PictureStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">PictureStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#PictureStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.PictureStore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
+<p>An opaque renderer’s raw picture (.mp4), keyed by its content key — a
+Manim scene’s own render, before it is conformed to a film’s fps and size,
+so a change that is not to the picture (narration, fps) does not run Manim
+again (an#279).</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -798,6 +852,17 @@ cleanly under version control.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="an.stores.RenderReportStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">RenderReportStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/artifacts.html#RenderReportStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.RenderReportStore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
+<p>What a render found (.json), keyed like the output it describes —
+<code class="docutils literal notranslate"><span class="pre">render_reports[&quot;main&quot;]</span></code> — so <code class="docutils literal notranslate"><span class="pre">orchestrate</span></code> and MCP read the findings
+that <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">render</span></code> warned (an#279).</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="an.stores.ScenesStore">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">ScenesStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/scenes.html#ScenesStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.ScenesStore" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.MutableMapping" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">MutableMapping</span></code></a></p>
@@ -806,6 +871,24 @@ cleanly under version control.</p>
 <code class="docutils literal notranslate"><span class="pre">KeyError</span></code> for other keys.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.stores.ScenesStore.patch_shot_durations">
+<span class="sig-name descname"><span class="pre">patch_shot_durations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">durations</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/scenes.html#ScenesStore.patch_shot_durations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.ScenesStore.patch_shot_durations" title="Link to this definition">#</a></dt>
+<dd><p>Set <code class="docutils literal notranslate"><span class="pre">duration</span></code> on the named shots WITHOUT regenerating <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">__setitem__</span></code> rewrites the markdown from the IR, which drops every word
+of prose and every comment the IR does not hold. This writes the JSON
+through the read boundary as usual, and patches only each shot’s
+<code class="docutils literal notranslate"><span class="pre">duration:</span></code> line in the markdown (inserting one into its
+<a href="#id1"><span class="problematic" id="id2">``</span></a>`` <code class="docutils literal notranslate"><span class="pre">`yaml</span> <span class="pre">shot</span> <span class="pre">``</span></code> block, or the block itself, when there is none) —
+what <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">sync</span> <span class="pre">--accept-measured</span></code> uses to take a measured duration into
+the authored scene (an#279).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -845,6 +928,15 @@ its header for the duration a fade-out needs, deterministically.</p>
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="an.stores.SourcesStore">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.stores.</span></span><span class="sig-name descname"><span class="pre">SourcesStore</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/sources.html#SourcesStore"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.SourcesStore" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_BlobStore</span></code></p>
+<p>Python scene sources (<code class="docutils literal notranslate"><span class="pre">.py</span></code> bytes) — a Manim scene file per key.</p>
+<dl class="field-list simple">
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -933,10 +1025,13 @@ in-memory <code class="code docutils literal notranslate"><span class="pre">dict
 <tr class="row-even"><td><p><a class="reference internal" href="an.stores.sounds.html#module-an.stores.sounds" title="an.stores.sounds"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sounds</span></code></a></p></td>
 <td><p>Sounds store — one directory per sound: <code class="docutils literal notranslate"><span class="pre">sound.json</span></code> beside <code class="docutils literal notranslate"><span class="pre">audio.wav</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.styles.html#module-an.stores.styles" title="an.stores.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.sources.html#module-an.stores.sources" title="an.stores.sources"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sources</span></code></a></p></td>
+<td><p>The project's opaque scene sources: files a whole-shot renderer runs as they are.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="an.stores.styles.html#module-an.stores.styles" title="an.stores.styles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">styles</span></code></a></p></td>
 <td><p>Styles store — visual style presets (color palette, line weight, fonts).</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="an.stores.voices.html#module-an.stores.voices" title="an.stores.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="an.stores.voices.html#module-an.stores.voices" title="an.stores.voices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">voices</span></code></a></p></td>
 <td><p>Voices store — pure JSON; one entry per voice.</p></td>
 </tr>
 </tbody>
@@ -993,21 +1088,29 @@ in-memory <code class="code docutils literal notranslate"><span class="pre">dict
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.AudioArtifactStore"><code class="docutils literal notranslate"><span class="pre">AudioArtifactStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.CharactersStore"><code class="docutils literal notranslate"><span class="pre">CharactersStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ContactSheetStore"><code class="docutils literal notranslate"><span class="pre">ContactSheetStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.DecisionLogStore"><code class="docutils literal notranslate"><span class="pre">DecisionLogStore</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.DecisionLogStore.append"><code class="docutils literal notranslate"><span class="pre">DecisionLogStore.append()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.EnvironmentsStore"><code class="docutils literal notranslate"><span class="pre">EnvironmentsStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.MeasurementStore"><code class="docutils literal notranslate"><span class="pre">MeasurementStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.OutputStore"><code class="docutils literal notranslate"><span class="pre">OutputStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.PictureStore"><code class="docutils literal notranslate"><span class="pre">PictureStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.PreviewArtifactStore"><code class="docutils literal notranslate"><span class="pre">PreviewArtifactStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ProjectLock"><code class="docutils literal notranslate"><span class="pre">ProjectLock</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.PropsStore"><code class="docutils literal notranslate"><span class="pre">PropsStore</span></code></a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ScenesStore"><code class="docutils literal notranslate"><span class="pre">ScenesStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.RenderReportStore"><code class="docutils literal notranslate"><span class="pre">RenderReportStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ScenesStore"><code class="docutils literal notranslate"><span class="pre">ScenesStore</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ScenesStore.patch_shot_durations"><code class="docutils literal notranslate"><span class="pre">ScenesStore.patch_shot_durations()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.ShotArtifactStore"><code class="docutils literal notranslate"><span class="pre">ShotArtifactStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.SoundsStore"><code class="docutils literal notranslate"><span class="pre">SoundsStore</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.SoundsStore.AUDIO_NAME"><code class="docutils literal notranslate"><span class="pre">SoundsStore.AUDIO_NAME</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.SourcesStore"><code class="docutils literal notranslate"><span class="pre">SourcesStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.StylesStore"><code class="docutils literal notranslate"><span class="pre">StylesStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.TakesArtifactStore"><code class="docutils literal notranslate"><span class="pre">TakesArtifactStore</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.VisemeArtifactStore"><code class="docutils literal notranslate"><span class="pre">VisemeArtifactStore</span></code></a></li>

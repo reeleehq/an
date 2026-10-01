@@ -382,11 +382,16 @@ Per-shot override of [`Meta.step_hz`](#an.ir.Meta.step_hz) (`None` = inherit).
 
 How this shot is entered (`Transition`); `None` is a hard cut.
 
-### *class* an.ir.ValidationFinding(severity, ir_path, description)
+### *class* an.ir.ValidationFinding(severity, ir_path, description, location=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single validation issue with a path into the IR.
+
+#### location *: [str](https://docs.python.org/3/builtins/stdtypes.html#str) | [None](https://docs.python.org/3/builtins/constants.html#None)*
+
+`"<file>:<line>"` when the thing to fix is an opaque source a shot runs
+(a Manim scene file, an#279) rather than the IR; `None` otherwise.
 
 ### *class* an.ir.ValidationReport(passed=True, findings=<factory>)
 

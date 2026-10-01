@@ -19,14 +19,23 @@ already in `sys.modules`.
 | [`VisionLMVerifier`](#an.verify.VisionLMVerifier)(\*[, model, frame_count, ...]) | Claude vision Verifier (skip-if-missing-deps). |
 | `StyleLintVerifier`(spec_or_targets, \*[, ...])                                                  | Compare a render to a style spec's `targets`.  |
 
-### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None)
+### *class* an.verify.Finding(severity, ir_path, description, suggested_fix=None, location=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
 A single verification issue.
 
 `ir_path` lets the orchestrator route the fix to the correct layer of
-the IR — e.g. `"timeline/0/dialogue/1"`.
+the IR — e.g. `"timeline/0/dialogue/1"`. `location` is set when the
+thing to fix is not IR at all but an OPAQUE SOURCE the shot runs — a Manim
+scene file — as `"<file>:<line>"` (core study §2.10): the fix then goes
+to that line, and `ir_path` still names the shot that runs it.
+
+```pycon
+>>> Finding("warning", "timeline/0/options/source", "text cut off",
+...         location="assets/sources/chart.py:14").location
+'assets/sources/chart.py:14'
+```
 
 ### *class* an.verify.HumanInTheLoopVerifier(, prompt='Approve render? [y/N/r=reject]: ')
 

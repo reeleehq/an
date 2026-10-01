@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
+    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.stores.props" href="an.stores.props.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.145" />
+  <meta name="docsearch:version" content="0.1.146" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -466,6 +466,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.measurements.html">an.measurements</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
@@ -505,6 +506,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3 current active"><a aria-current="page" class="current reference internal" href="#">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
@@ -611,6 +613,15 @@ exposes only the <code class="docutils literal notranslate"><span class="pre">&q
 projects by promoting siblings inside a <code class="docutils literal notranslate"><span class="pre">scenes/</span></code> directory.</p>
 <p>Reading returns a <code class="docutils literal notranslate"><span class="pre">SceneIR</span></code>. Writing accepts a <code class="docutils literal notranslate"><span class="pre">SceneIR</span></code> (or a dict that
 validates as one) and persists both the JSON and the regenerated Markdown.</p>
+<p class="rubric">Functions</p>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.stores.scenes.patch_shot_duration_md" title="an.stores.scenes.patch_shot_duration_md"><code class="xref py py-obj docutils literal notranslate"><span class="pre">patch_shot_duration_md</span></code></a>(markdown, shot_id, ...)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">markdown</span></code> with shot <code class="docutils literal notranslate"><span class="pre">shot_id</span></code>'s <code class="docutils literal notranslate"><span class="pre">duration:</span></code> set to <code class="docutils literal notranslate"><span class="pre">seconds</span></code>, every other line — prose, comments, formatting — untouched.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <p class="rubric">Classes</p>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table">
 <tbody>
@@ -629,6 +640,52 @@ validates as one) and persists both the JSON and the regenerated Markdown.</p>
 <code class="docutils literal notranslate"><span class="pre">KeyError</span></code> for other keys.</p>
 <dl class="field-list simple">
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.stores.scenes.ScenesStore.patch_shot_durations">
+<span class="sig-name descname"><span class="pre">patch_shot_durations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">durations</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/scenes.html#ScenesStore.patch_shot_durations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.scenes.ScenesStore.patch_shot_durations" title="Link to this definition">#</a></dt>
+<dd><p>Set <code class="docutils literal notranslate"><span class="pre">duration</span></code> on the named shots WITHOUT regenerating <code class="docutils literal notranslate"><span class="pre">scene.md</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">__setitem__</span></code> rewrites the markdown from the IR, which drops every word
+of prose and every comment the IR does not hold. This writes the JSON
+through the read boundary as usual, and patches only each shot’s
+<code class="docutils literal notranslate"><span class="pre">duration:</span></code> line in the markdown (inserting one into its
+<a href="#id1"><span class="problematic" id="id2">``</span></a>`` <code class="docutils literal notranslate"><span class="pre">`yaml</span> <span class="pre">shot</span> <span class="pre">``</span></code> block, or the block itself, when there is none) —
+what <code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">sync</span> <span class="pre">--accept-measured</span></code> uses to take a measured duration into
+the authored scene (an#279).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="an.stores.scenes.patch_shot_duration_md">
+<span class="sig-prename descclassname"><span class="pre">an.stores.scenes.</span></span><span class="sig-name descname"><span class="pre">patch_shot_duration_md</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">markdown</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shot_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/stores/scenes.html#patch_shot_duration_md"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.stores.scenes.patch_shot_duration_md" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">markdown</span></code> with shot <code class="docutils literal notranslate"><span class="pre">shot_id</span></code>’s <code class="docutils literal notranslate"><span class="pre">duration:</span></code> set to <code class="docutils literal notranslate"><span class="pre">seconds</span></code>,
+every other line — prose, comments, formatting — untouched.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">md</span> <span class="o">=</span> <span class="s2">"# T</span><span class="se">\n\n</span><span class="s2">A note.</span><span class="se">\n\n</span><span class="s2">## Shot a (manim)</span><span class="se">\n\n</span><span class="s2">```yaml shot</span><span class="se">\n</span><span class="s2">options: {source: a}  # the chart</span><span class="se">\n</span><span class="s2">```</span><span class="se">\n</span><span class="s2">"</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">patch_shot_duration_md</span><span class="p">(</span><span class="n">md</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">,</span> <span class="mf">3.1</span><span class="p">))</span>
+<span class="go"># T</span>
+
+<span class="go">A note.</span>
+
+<span class="go">## Shot a (manim)</span>
+
+<span class="go">```yaml shot</span>
+<span class="go">duration: 3.1</span>
+<span class="go">options: {source: a}  # the chart</span>
+</pre></div>
+</div>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>&lt;BLANKLINE&gt;
+</pre></div>
+</div>
 </dd></dl>
 
 </section>
@@ -680,7 +737,11 @@ validates as one) and persists both the JSON and the regenerated Markdown.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.scenes.ScenesStore"><code class="docutils literal notranslate"><span class="pre">ScenesStore</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.scenes.ScenesStore"><code class="docutils literal notranslate"><span class="pre">ScenesStore</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.scenes.ScenesStore.patch_shot_durations"><code class="docutils literal notranslate"><span class="pre">ScenesStore.patch_shot_durations()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.stores.scenes.patch_shot_duration_md"><code class="docutils literal notranslate"><span class="pre">patch_shot_duration_md()</span></code></a></li>
 </ul>
   </nav></div>
 

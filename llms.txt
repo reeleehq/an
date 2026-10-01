@@ -28,7 +28,7 @@
 - [an.adapters.cutout.surface](_autosummary/an.adapters.cutout.surface.html.md): Surface treatments, compiled (an#163 gap 5): outline, paper-gap shadow, glow, grain.
 - [an.adapters.cutout.text](_autosummary/an.adapters.cutout.text.html.md): A text block, compiled: one node per unit, each an SVG sprite (an#155).
 - [an.adapters.cutout.timeline](_autosummary/an.adapters.cutout.timeline.html.md): Stage timeline helpers: the compiled scene as a &#96;Timeline&#96;, and screen space.
-- [an.adapters.manim_adapter](_autosummary/an.adapters.manim_adapter.html.md): ManimRenderer — generate a minimal Manim scene + invoke &#96;manim&#96; as subprocess.
+- [an.adapters.manim_adapter](_autosummary/an.adapters.manim_adapter.html.md): ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).
 - [an.adapters.remotion_adapter](_autosummary/an.adapters.remotion_adapter.html.md): RemotionRenderer — invoke &#96;npx remotion render&#96; against a generated TSX project.
 - [an.adapters.whiteboard](_autosummary/an.adapters.whiteboard.html.md): WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.
 - [an.assemble](_autosummary/an.assemble.html.md): Film assembly: rendered shots → one film, with transitions and a sound layer.
@@ -146,6 +146,7 @@
 - [an.mcp](_autosummary/an.mcp.html.md): The &#96;an&#96; MCP server: a curated, generated surface over the vocabulary and the capability registry.
 - [an.mcp.server](_autosummary/an.mcp.server.html.md): Build and serve the &#96;an&#96; MCP server with &#96;py2mcp&#96; (the &#96;an&#91;mcp&#93;&#96; extra).
 - [an.mcp.tools](_autosummary/an.mcp.tools.html.md): The curated MCP tools: plain functions over the vocabulary, the capability registry and a project.
+- [an.measurements](_autosummary/an.measurements.html.md): Measured durations: shots whose renderer, not their author, decides their length.
 - [an.media](_autosummary/an.media.html.md): Frames to deliverables, engine-independent: the frame stage’s resolves and the sinks.
 - [an.media.frames](_autosummary/an.media.frames.html.md): The frame directory every engine writes and every sink reads.
 - [an.media.gif](_autosummary/an.media.gif.html.md): The GIF sink: ONE palette recipe, for flat 2D art.
@@ -181,6 +182,7 @@
 - [an.stores.props](_autosummary/an.stores.props.html.md): Props store — descriptor + sidecar folder per prop.
 - [an.stores.scenes](_autosummary/an.stores.scenes.html.md): Scenes store — wraps the project’s &#96;scene.md&#96; + &#96;ir/scene.json&#96; pair.
 - [an.stores.sounds](_autosummary/an.stores.sounds.html.md): Sounds store — one directory per sound: &#96;sound.json&#96; beside &#96;audio.wav&#96;.
+- [an.stores.sources](_autosummary/an.stores.sources.html.md): The project’s opaque scene sources: files a whole-shot renderer runs as they are.
 - [an.stores.styles](_autosummary/an.stores.styles.html.md): Styles store — visual style presets (color palette, line weight, fonts).
 - [an.stores.voices](_autosummary/an.stores.voices.html.md): Voices store — pure JSON; one entry per voice.
 - [an.styles](_autosummary/an.styles.html.md): StylePack: art direction as a document, and the first reader the styles store has had.
@@ -206,7 +208,7 @@
 - [an.verify.style](_autosummary/an.verify.style.html.md): Style lint: measure a render’s cadence, cut rate and palette, and compare them to a style’s targets.
 - [an.verify.vision](_autosummary/an.verify.vision.html.md): VisionLMVerifier — Claude vision looks at sampled frames and reports issues.
 - [For AI agents](ai-agents.html.md): &#96;an&#96; ships artifacts for coding agents alongside its code. This page lists
-- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 19:15 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
+- [About this build](about-this-build.html.md): This documentation was built on &#42;&#42;2026-10-01 19:49 UTC&#42;&#42; from commit &lt;a href="https://github.com/tho...
 
 ## Optional
 

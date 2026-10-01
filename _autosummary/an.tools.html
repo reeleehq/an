@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
+    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.timing.timeline" href="an.timing.timeline.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.145" />
+  <meta name="docsearch:version" content="0.1.146" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -466,6 +466,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.measurements.html">an.measurements</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
@@ -505,6 +506,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
@@ -638,7 +640,7 @@ without touching these functions, so they stay plain Python.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.render" title="an.tools.render"><code class="xref py py-obj docutils literal notranslate"><span class="pre">render</span></code></a>(project_dir[, output_name, tts, ...])</p></td>
 <td><p>Render the project at <code class="docutils literal notranslate"><span class="pre">project_dir</span></code> to a single mp4.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#an.tools.sync" title="an.tools.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#an.tools.sync" title="an.tools.sync"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sync</span></code></a>(project_dir[, accept_measured])</p></td>
 <td><p>Reconcile scene.md and ir/scene.json inside <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#an.tools.validate" title="an.tools.validate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">validate</span></code></a>(project_dir)</p></td>
@@ -877,8 +879,13 @@ frames are hundreds of MB, and nothing collects old entries yet</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="an.tools.sync">
-<span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.sync" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">an.tools.</span></span><span class="sig-name descname"><span class="pre">sync</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accept_measured</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/tools.html#sync"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.tools.sync" title="Link to this definition">#</a></dt>
 <dd><p>Reconcile scene.md and ir/scene.json inside <code class="docutils literal notranslate"><span class="pre">project_dir</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">--accept-measured</span></code> also writes the durations a clock-owning renderer
+(Manim) MEASURED into the scene — each such shot’s <code class="docutils literal notranslate"><span class="pre">duration:</span></code> line,
+patched in place, so the prose around it is kept. Without it, a measured
+duration lives only in the derived <code class="docutils literal notranslate"><span class="pre">measurements</span></code> store and the scene
+says what its author wrote.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>

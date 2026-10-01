@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=4d1a5bc0"></script>
+    <script src="../../_static/documentation_options.js?v=7ae2d1aa"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.145" />
+  <meta name="docsearch:version" content="0.1.146" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -726,10 +726,11 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">&gt;&gt;&gt; with tempfile.TemporaryDirectory() as d:</span>
 <span class="sd">...     mall = build_project_mall(d, ensure=True)</span>
 <span class="sd">...     sorted(mall.keys()) == [</span>
-<span class="sd">...         'audio', 'captions', 'characters', 'decisions', 'environments',</span>
-<span class="sd">...         'library_lock', 'output', 'previews', 'props', 'scenes', 'shot_cache',</span>
-<span class="sd">...         'shots',</span>
-<span class="sd">...         'sounds', 'styles', 'takes', 'visemes', 'voices',</span>
+<span class="sd">...         'audio', 'captions', 'characters', 'contact_sheets', 'decisions',</span>
+<span class="sd">...         'environments', 'library_lock', 'measurements', 'output',</span>
+<span class="sd">...         'pictures', 'previews', 'props', 'render_reports', 'scenes',</span>
+<span class="sd">...         'shot_cache', 'shots', 'sounds', 'sources', 'styles', 'takes',</span>
+<span class="sd">...         'visemes', 'voices',</span>
 <span class="sd">...     ]</span>
 <span class="sd">True</span>
 <span class="sd">"""</span>
@@ -745,6 +746,7 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.library_lock</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProjectLock</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.props</span><span class="w"> </span><span class="kn">import</span> <span class="n">PropsStore</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.scenes</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScenesStore</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.sources</span><span class="w"> </span><span class="kn">import</span> <span class="n">SourcesStore</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.sounds</span><span class="w"> </span><span class="kn">import</span> <span class="n">SoundsStore</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">StylesStore</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.voices</span><span class="w"> </span><span class="kn">import</span> <span class="n">VoicesStore</span>
@@ -752,8 +754,12 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">an.stores.artifacts</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">AudioArtifactStore</span><span class="p">,</span>
     <span class="n">CaptionsStore</span><span class="p">,</span>
+    <span class="n">ContactSheetStore</span><span class="p">,</span>
+    <span class="n">MeasurementStore</span><span class="p">,</span>
     <span class="n">OutputStore</span><span class="p">,</span>
+    <span class="n">PictureStore</span><span class="p">,</span>
     <span class="n">PreviewArtifactStore</span><span class="p">,</span>
+    <span class="n">RenderReportStore</span><span class="p">,</span>
     <span class="n">ShotArtifactStore</span><span class="p">,</span>
     <span class="n">TakesArtifactStore</span><span class="p">,</span>
     <span class="n">VisemeArtifactStore</span><span class="p">,</span>
@@ -772,6 +778,11 @@ window.runMermaid = runMermaid;</script>
     <span class="s2">"TakesArtifactStore"</span><span class="p">,</span>
     <span class="s2">"ShotArtifactStore"</span><span class="p">,</span>
     <span class="s2">"PreviewArtifactStore"</span><span class="p">,</span>
+    <span class="s2">"ContactSheetStore"</span><span class="p">,</span>
+    <span class="s2">"MeasurementStore"</span><span class="p">,</span>
+    <span class="s2">"PictureStore"</span><span class="p">,</span>
+    <span class="s2">"RenderReportStore"</span><span class="p">,</span>
+    <span class="s2">"SourcesStore"</span><span class="p">,</span>
     <span class="s2">"OutputStore"</span><span class="p">,</span>
     <span class="s2">"DecisionLogStore"</span><span class="p">,</span>
     <span class="s2">"ProjectLock"</span><span class="p">,</span>
@@ -799,12 +810,17 @@ window.runMermaid = runMermaid;</script>
             <span class="s2">"assets/voices"</span><span class="p">,</span>
             <span class="s2">"assets/styles"</span><span class="p">,</span>
             <span class="s2">"assets/sounds"</span><span class="p">,</span>
+            <span class="s2">"assets/sources"</span><span class="p">,</span>
             <span class="s2">"ir"</span><span class="p">,</span>
             <span class="s2">"artifacts/audio"</span><span class="p">,</span>
             <span class="s2">"artifacts/visemes"</span><span class="p">,</span>
             <span class="s2">"artifacts/takes"</span><span class="p">,</span>
             <span class="s2">"artifacts/shots"</span><span class="p">,</span>
             <span class="s2">"artifacts/previews"</span><span class="p">,</span>
+            <span class="s2">"artifacts/contact_sheets"</span><span class="p">,</span>
+            <span class="s2">"artifacts/measurements"</span><span class="p">,</span>
+            <span class="s2">"artifacts/pictures"</span><span class="p">,</span>
+            <span class="s2">"artifacts/render_reports"</span><span class="p">,</span>
             <span class="s2">"output"</span><span class="p">,</span>
             <span class="s2">".an"</span><span class="p">,</span>
         <span class="p">):</span>
@@ -817,6 +833,9 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"voices"</span><span class="p">:</span> <span class="n">VoicesStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"voices"</span><span class="p">),</span>
         <span class="s2">"styles"</span><span class="p">:</span> <span class="n">StylesStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"styles"</span><span class="p">),</span>
         <span class="s2">"sounds"</span><span class="p">:</span> <span class="n">SoundsStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"sounds"</span><span class="p">),</span>
+        <span class="c1"># Opaque scene sources a whole-shot renderer runs as they are: a Manim</span>
+        <span class="c1"># shot's `options.source` is a key here (`assets/sources/&lt;key&gt;.py`).</span>
+        <span class="s2">"sources"</span><span class="p">:</span> <span class="n">SourcesStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"assets"</span> <span class="o">/</span> <span class="s2">"sources"</span><span class="p">),</span>
         <span class="s2">"scenes"</span><span class="p">:</span> <span class="n">ScenesStore</span><span class="p">(</span><span class="n">pdir</span><span class="p">),</span>
         <span class="s2">"audio"</span><span class="p">:</span> <span class="n">AudioArtifactStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"audio"</span><span class="p">),</span>
         <span class="s2">"visemes"</span><span class="p">:</span> <span class="n">VisemeArtifactStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"visemes"</span><span class="p">),</span>
@@ -830,6 +849,16 @@ window.runMermaid = runMermaid;</script>
         <span class="c1"># `catalog/&lt;key&gt;.json` + `blobs/&lt;sha256&gt;`. `render_project` reads it.</span>
         <span class="s2">"shot_cache"</span><span class="p">:</span> <span class="n">shot_cache_store</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"shot_cache"</span><span class="p">),</span>
         <span class="s2">"previews"</span><span class="p">:</span> <span class="n">PreviewArtifactStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"previews"</span><span class="p">),</span>
+        <span class="c1"># Contact sheets of opaque renders (a Manim shot's settled beats), keyed</span>
+        <span class="c1"># by the PNG's sha256 so cached provenance keeps pointing at them.</span>
+        <span class="s2">"contact_sheets"</span><span class="p">:</span> <span class="n">ContactSheetStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"contact_sheets"</span><span class="p">),</span>
+        <span class="c1"># Derived, content-keyed: what a clock-owning renderer measured of its</span>
+        <span class="c1"># content (a Manim shot's length) and its raw picture. Never authored</span>
+        <span class="c1"># data — the scene keeps what its author wrote (an#279).</span>
+        <span class="s2">"measurements"</span><span class="p">:</span> <span class="n">MeasurementStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"measurements"</span><span class="p">),</span>
+        <span class="s2">"pictures"</span><span class="p">:</span> <span class="n">PictureStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"pictures"</span><span class="p">),</span>
+        <span class="c1"># What each render found, keyed like its output (`render_reports/main.json`).</span>
+        <span class="s2">"render_reports"</span><span class="p">:</span> <span class="n">RenderReportStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"artifacts"</span> <span class="o">/</span> <span class="s2">"render_reports"</span><span class="p">),</span>
         <span class="s2">"output"</span><span class="p">:</span> <span class="n">OutputStore</span><span class="p">(</span><span class="n">pdir</span> <span class="o">/</span> <span class="s2">"output"</span><span class="p">),</span>
         <span class="c1"># The SubRip sidecar of each delivered film (an#175), in the SAME</span>
         <span class="c1"># directory as the mp4 so `output/main.srt` sits beside</span>

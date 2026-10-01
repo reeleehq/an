@@ -16,23 +16,44 @@ system deps still register but their `render()` raises a clear error;
 
 ### Classes
 
-| [`Renderer`](#an.adapters.Renderer)(\*args, \*\*kwargs)              | Backend renderer interface.                                |
-|--------------------------------------------------------------------------------------------|------------------------------------------------------------|
-| [`RendererRegistry`](#an.adapters.RendererRegistry)()                        | Name-keyed registry of renderers.                          |
-| [`RenderContext`](#an.adapters.RenderContext)(mall, work_dir[, fps, ...]) | Everything a renderer needs that isn't on the Shot itself. |
-| [`RenderResult`](#an.adapters.RenderResult)(mp4_path, duration[, ...])   | Outcome of a single shot render.                           |
-| [`ManimRenderer`](#an.adapters.ManimRenderer)()                           | Manim Community Edition renderer (skeleton).               |
-| [`RemotionRenderer`](#an.adapters.RemotionRenderer)()                        | Remotion-based renderer (skeleton).                        |
-| [`WhiteboardRenderer`](#an.adapters.WhiteboardRenderer)()                      | Whiteboard-style renderer (stub).                          |
+| [`Renderer`](#an.adapters.Renderer)(\*args, \*\*kwargs)                       | Backend renderer interface.                                                  |
+|-----------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [`RendererRegistry`](#an.adapters.RendererRegistry)()                                 | Name-keyed registry of renderers.                                            |
+| [`RenderContext`](#an.adapters.RenderContext)(mall, work_dir[, fps, ...])          | Everything a renderer needs that isn't on the Shot itself.                   |
+| [`RenderResult`](#an.adapters.RenderResult)(mp4_path, duration[, ...])            | Outcome of a single shot render.                                             |
+| [`ManimRenderer`](#an.adapters.ManimRenderer)(\*[, render_check, source_resolver]) | Manim Community Edition, through `manimkit`: an opaque-source shot renderer. |
+| [`RemotionRenderer`](#an.adapters.RemotionRenderer)()                                 | Remotion-based renderer (skeleton).                                          |
+| [`WhiteboardRenderer`](#an.adapters.WhiteboardRenderer)()                               | Whiteboard-style renderer (stub).                                            |
 
-### *class* an.adapters.ManimRenderer
+### *class* an.adapters.ManimRenderer(, render_check=None, source_resolver=None)
 
 Bases: [`object`](https://docs.python.org/3/builtins/functions.html#object)
 
-Manim Community Edition renderer (skeleton).
+Manim Community Edition, through `manimkit`: an opaque-source shot renderer.
 
-Implements the `Renderer` Protocol. `can_render` is True for shots
-whose `renderer` is `"manim"`.
+Implements [`Renderer`](#an.adapters.Renderer) and
+`ClockOwningRenderer`. Seams: `render_check`
+(default `manimkit.render_check()`, imported on first use) and
+`source_resolver` (default: the project’s `sources` store,
+`store_source_resolver()`). The shot cache keys a shot through the
+REGISTERED instance’s resolver; a subclass registers its own keyer
+(`register_shot_keyer(name, manim_shot_inputs, renderer_type=Sub)`).
+
+#### measure_duration(shot, ctx, , render=True, force=False)
+
+Manim’s length of this shot’s scene, from the `measurements` store,
+or rendered now (and stored) when there is none — or when `force`.
+
+* **Return type:**
+  `DurationMeasurement` | [`None`](https://docs.python.org/3/builtins/constants.html#None)
+
+#### render(shot, ctx)
+
+Render `shot` for exactly `shot.duration` (`an.render` settles it
+to the measured length, or longer to hold for its narration).
+
+* **Return type:**
+  [`RenderResult`](#an.adapters.RenderResult)
 
 ### *class* an.adapters.RemotionRenderer
 
@@ -241,6 +262,6 @@ Register a renderer in the default registry.
 
 | [`cutout`](an.adapters.cutout.md#module-an.adapters.cutout)                     | Cutout-style 2D animation backend.                                               |
 |-------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| [`manim_adapter`](an.adapters.manim_adapter.md#module-an.adapters.manim_adapter)       | ManimRenderer — generate a minimal Manim scene + invoke `manim` as subprocess.   |
+| [`manim_adapter`](an.adapters.manim_adapter.md#module-an.adapters.manim_adapter)       | ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).     |
 | [`remotion_adapter`](an.adapters.remotion_adapter.md#module-an.adapters.remotion_adapter) | RemotionRenderer — invoke `npx remotion render` against a generated TSX project. |
 | [`whiteboard`](an.adapters.whiteboard.md#module-an.adapters.whiteboard)             | WhiteboardRenderer — stub for hand-drawn / chalkboard-style animation.           |

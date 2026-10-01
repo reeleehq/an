@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
+    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an" href="an.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.145" />
+  <meta name="docsearch:version" content="0.1.146" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -466,6 +466,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.measurements.html">an.measurements</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
@@ -505,6 +506,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
@@ -637,8 +639,8 @@ system deps still register but their <code class="docutils literal notranslate">
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.RenderResult" title="an.adapters.RenderResult"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RenderResult</span></code></a>(mp4_path, duration[, ...])</p></td>
 <td><p>Outcome of a single shot render.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.ManimRenderer" title="an.adapters.ManimRenderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ManimRenderer</span></code></a>()</p></td>
-<td><p>Manim Community Edition renderer (skeleton).</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#an.adapters.ManimRenderer" title="an.adapters.ManimRenderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ManimRenderer</span></code></a>(*[, render_check, source_resolver])</p></td>
+<td><p>Manim Community Edition, through <code class="docutils literal notranslate"><span class="pre">manimkit</span></code>: an opaque-source shot renderer.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#an.adapters.RemotionRenderer" title="an.adapters.RemotionRenderer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RemotionRenderer</span></code></a>()</p></td>
 <td><p>Remotion-based renderer (skeleton).</p></td>
@@ -651,11 +653,42 @@ system deps still register but their <code class="docutils literal notranslate">
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.adapters.ManimRenderer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">ManimRenderer</span></span><a class="reference internal" href="../_modules/an/adapters/manim_adapter.html#ManimRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.ManimRenderer" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.adapters.</span></span><span class="sig-name descname"><span class="pre">ManimRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">render_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_resolver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/manim_adapter.html#ManimRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.ManimRenderer" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Manim Community Edition renderer (skeleton).</p>
-<p>Implements the <code class="docutils literal notranslate"><span class="pre">Renderer</span></code> Protocol. <code class="docutils literal notranslate"><span class="pre">can_render</span></code> is True for shots
-whose <code class="docutils literal notranslate"><span class="pre">renderer</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;manim&quot;</span></code>.</p>
+<p>Manim Community Edition, through <code class="docutils literal notranslate"><span class="pre">manimkit</span></code>: an opaque-source shot renderer.</p>
+<p>Implements <a class="reference internal" href="#an.adapters.Renderer" title="an.adapters._base.Renderer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Renderer</span></code></a> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ClockOwningRenderer</span></code>. Seams: <code class="docutils literal notranslate"><span class="pre">render_check</span></code>
+(default <code class="xref py py-func docutils literal notranslate"><span class="pre">manimkit.render_check()</span></code>, imported on first use) and
+<code class="docutils literal notranslate"><span class="pre">source_resolver</span></code> (default: the project’s <code class="docutils literal notranslate"><span class="pre">sources</span></code> store,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">store_source_resolver()</span></code>). The shot cache keys a shot through the
+REGISTERED instance’s resolver; a subclass registers its own keyer
+(<code class="docutils literal notranslate"><span class="pre">register_shot_keyer(name,</span> <span class="pre">manim_shot_inputs,</span> <span class="pre">renderer_type=Sub)</span></code>).</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="an.adapters.ManimRenderer.measure_duration">
+<span class="sig-name descname"><span class="pre">measure_duration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">render</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/manim_adapter.html#ManimRenderer.measure_duration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.ManimRenderer.measure_duration" title="Link to this definition">#</a></dt>
+<dd><p>Manim’s length of this shot’s scene, from the <code class="docutils literal notranslate"><span class="pre">measurements</span></code> store,
+or rendered now (and stored) when there is none — or when <code class="docutils literal notranslate"><span class="pre">force</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">DurationMeasurement</span></code> | <a class="reference external" href="https://docs.python.org/3/builtins/constants.html#None" title="(in Python v3.14)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="an.adapters.ManimRenderer.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shot</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/adapters/manim_adapter.html#ManimRenderer.render"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.adapters.ManimRenderer.render" title="Link to this definition">#</a></dt>
+<dd><p>Render <code class="docutils literal notranslate"><span class="pre">shot</span></code> for exactly <code class="docutils literal notranslate"><span class="pre">shot.duration</span></code> (<code class="docutils literal notranslate"><span class="pre">an.render</span></code> settles it
+to the measured length, or longer to hold for its narration).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#an.adapters.RenderResult" title="an.adapters._base.RenderResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">RenderResult</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -921,7 +954,7 @@ multi-tenant servers) can construct their own.</p>
 <td><p>Cutout-style 2D animation backend.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="an.adapters.manim_adapter.html#module-an.adapters.manim_adapter" title="an.adapters.manim_adapter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">manim_adapter</span></code></a></p></td>
-<td><p>ManimRenderer — generate a minimal Manim scene + invoke <code class="code docutils literal notranslate"><span class="pre">manim</span></code> as subprocess.</p></td>
+<td><p>ManimRenderer — a whole-shot renderer for opaque Manim scene files (an#279).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="an.adapters.remotion_adapter.html#module-an.adapters.remotion_adapter" title="an.adapters.remotion_adapter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remotion_adapter</span></code></a></p></td>
 <td><p>RemotionRenderer — invoke <code class="code docutils literal notranslate"><span class="pre">npx</span> <span class="pre">remotion</span> <span class="pre">render</span></code> against a generated TSX project.</p></td>
@@ -981,7 +1014,11 @@ multi-tenant servers) can construct their own.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.ManimRenderer"><code class="docutils literal notranslate"><span class="pre">ManimRenderer</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.ManimRenderer"><code class="docutils literal notranslate"><span class="pre">ManimRenderer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.ManimRenderer.measure_duration"><code class="docutils literal notranslate"><span class="pre">ManimRenderer.measure_duration()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.ManimRenderer.render"><code class="docutils literal notranslate"><span class="pre">ManimRenderer.render()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.RemotionRenderer"><code class="docutils literal notranslate"><span class="pre">RemotionRenderer</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.RenderContext"><code class="docutils literal notranslate"><span class="pre">RenderContext</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#an.adapters.RenderContext.capture"><code class="docutils literal notranslate"><span class="pre">RenderContext.capture</span></code></a></li>

@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
+    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.145" />
+  <meta name="docsearch:version" content="0.1.146" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -832,6 +832,54 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""Final composited renders."""</span>
 
     <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"mp4"</span></div>
+
+
+
+<div class="viewcode-block" id="ContactSheetStore">
+<a class="viewcode-back" href="../../../_autosummary/an.stores.artifacts.html#an.stores.ContactSheetStore">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ContactSheetStore</span><span class="p">(</span><span class="n">_BlobStore</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Contact sheets (.png): frames of a render at its settled beats, labelled</span>
+<span class="sd">    with their time, for a person or an agent to LOOK at (core study §2.10).</span>
+
+<span class="sd">    Content-addressed — the key is the sha256 of the PNG bytes — so a shot whose</span>
+<span class="sd">    render is reused from the shot cache still points at its sheet through the</span>
+<span class="sd">    cached provenance, and two shots with one picture share one file."""</span>
+
+    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"png"</span></div>
+
+
+
+<div class="viewcode-block" id="MeasurementStore">
+<a class="viewcode-back" href="../../../_autosummary/an.stores.artifacts.html#an.stores.MeasurementStore">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MeasurementStore</span><span class="p">(</span><span class="n">_BlobStore</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Measurements a clock-owning renderer made of its content (.json bytes),</span>
+<span class="sd">    keyed by that content's key — DERIVED data, never the author's (an#279):</span>
+<span class="sd">    a Manim shot's length, its timeline of beats, its findings."""</span>
+
+    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"json"</span></div>
+
+
+
+<div class="viewcode-block" id="PictureStore">
+<a class="viewcode-back" href="../../../_autosummary/an.stores.artifacts.html#an.stores.PictureStore">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PictureStore</span><span class="p">(</span><span class="n">_BlobStore</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""An opaque renderer's raw picture (.mp4), keyed by its content key — a</span>
+<span class="sd">    Manim scene's own render, before it is conformed to a film's fps and size,</span>
+<span class="sd">    so a change that is not to the picture (narration, fps) does not run Manim</span>
+<span class="sd">    again (an#279)."""</span>
+
+    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"mp4"</span></div>
+
+
+
+<div class="viewcode-block" id="RenderReportStore">
+<a class="viewcode-back" href="../../../_autosummary/an.stores.artifacts.html#an.stores.RenderReportStore">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RenderReportStore</span><span class="p">(</span><span class="n">_BlobStore</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""What a render found (.json), keyed like the output it describes —</span>
+<span class="sd">    ``render_reports["main"]`` — so ``orchestrate`` and MCP read the findings</span>
+<span class="sd">    that ``an render`` warned (an#279)."""</span>
+
+    <span class="n">EXT</span> <span class="o">=</span> <span class="s2">"json"</span></div>
 
 
 

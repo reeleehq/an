@@ -43,7 +43,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=4d1a5bc0"></script>
+    <script src="../_static/documentation_options.js?v=7ae2d1aa"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -56,7 +56,7 @@
     <link rel="prev" title="an.util" href="an.util.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.145" />
+  <meta name="docsearch:version" content="0.1.146" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -466,6 +466,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.mcp.tools.html">an.mcp.tools</a></li>
 </ul>
 </details></li>
+<li class="toctree-l2"><a class="reference internal" href="an.measurements.html">an.measurements</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="an.media.html">an.media</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l3"><a class="reference internal" href="an.media.frames.html">an.media.frames</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.media.gif.html">an.media.gif</a></li>
@@ -505,6 +506,7 @@
 <li class="toctree-l3"><a class="reference internal" href="an.stores.props.html">an.stores.props</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.scenes.html">an.stores.scenes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.sounds.html">an.stores.sounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="an.stores.sources.html">an.stores.sources</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.styles.html">an.stores.styles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="an.stores.voices.html">an.stores.voices</a></li>
 </ul>
@@ -639,11 +641,19 @@ already in <code class="docutils literal notranslate"><span class="pre">sys.modu
 </div>
 <dl class="py class">
 <dt class="sig sig-object py" id="an.verify.Finding">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.verify.</span></span><span class="sig-name descname"><span class="pre">Finding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">severity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suggested_fix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/_base.html#Finding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.Finding" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">an.verify.</span></span><span class="sig-name descname"><span class="pre">Finding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">severity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suggested_fix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/an/verify/_base.html#Finding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#an.verify.Finding" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>A single verification issue.</p>
 <p><code class="docutils literal notranslate"><span class="pre">ir_path</span></code> lets the orchestrator route the fix to the correct layer of
-the IR — e.g. <code class="docutils literal notranslate"><span class="pre">&quot;timeline/0/dialogue/1&quot;</span></code>.</p>
+the IR — e.g. <code class="docutils literal notranslate"><span class="pre">&quot;timeline/0/dialogue/1&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">location</span></code> is set when the
+thing to fix is not IR at all but an OPAQUE SOURCE the shot runs — a Manim
+scene file — as <code class="docutils literal notranslate"><span class="pre">&quot;&lt;file&gt;:&lt;line&gt;&quot;</span></code> (core study §2.10): the fix then goes
+to that line, and <code class="docutils literal notranslate"><span class="pre">ir_path</span></code> still names the shot that runs it.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Finding</span><span class="p">(</span><span class="s2">"warning"</span><span class="p">,</span> <span class="s2">"timeline/0/options/source"</span><span class="p">,</span> <span class="s2">"text cut off"</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="n">location</span><span class="o">=</span><span class="s2">"assets/sources/chart.py:14"</span><span class="p">)</span><span class="o">.</span><span class="n">location</span>
+<span class="go">'assets/sources/chart.py:14'</span>
+</pre></div>
+</div>
 <dl class="field-list simple">
 </dl>
 </dd></dl>

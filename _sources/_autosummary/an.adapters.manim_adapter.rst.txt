@@ -4,15 +4,36 @@ an.adapters.manim\_adapter
 .. automodule:: an.adapters.manim_adapter
 
    
+   .. rubric:: Module Attributes
+
+   .. autosummary::
+   
+      DEFAULT_SOURCE_STORE
+      CONTACT_SHEET_STORE
+      QUALITY_PRESETS
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      choose_quality
+      manim_environment
+      manim_shot_inputs
+      store_source_resolver
+   
    .. rubric:: Classes
 
    .. autosummary::
    
+      ManimQuality
       ManimRenderer
+      ManimShotSpec
+      SourceFile
    
    .. rubric:: Exceptions
 
    .. autosummary::
    
+      ManimNotInstalledError
       ManimRenderError
    

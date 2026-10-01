@@ -20,7 +20,7 @@ without touching these functions, so they stay plain Python.
 | [`iterate`](#an.tools.iterate)(project_dir, instruction[, ...])         | Apply a free-text instruction to the scene.                                          |
 | [`preview`](#an.tools.preview)(project_dir[, shot, no_browser])         | Live-preview the project's scene in a browser; reloads on edit.                      |
 | [`render`](#an.tools.render)(project_dir[, output_name, tts, ...])     | Render the project at `project_dir` to a single mp4.                                 |
-| [`sync`](#an.tools.sync)(project_dir)                                | Reconcile scene.md and ir/scene.json inside `project_dir`.                           |
+| [`sync`](#an.tools.sync)(project_dir[, accept_measured])             | Reconcile scene.md and ir/scene.json inside `project_dir`.                           |
 | [`validate`](#an.tools.validate)(project_dir)                            | Validate the scene at `project_dir`.                                                 |
 
 ### an.tools.bench(scenes='', out='', keep_render='', quiet=False, bless='', compare='', mutation='')
@@ -238,9 +238,15 @@ cache_frames: also cache each shot’s frames, so a film with transitions or
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)
 
-### an.tools.sync(project_dir)
+### an.tools.sync(project_dir, accept_measured=False)
 
 Reconcile scene.md and ir/scene.json inside `project_dir`.
+
+`--accept-measured` also writes the durations a clock-owning renderer
+(Manim) MEASURED into the scene — each such shot’s `duration:` line,
+patched in place, so the prose around it is kept. Without it, a measured
+duration lives only in the derived `measurements` store and the scene
+says what its author wrote.
 
 * **Return type:**
   [`str`](https://docs.python.org/3/builtins/stdtypes.html#str)

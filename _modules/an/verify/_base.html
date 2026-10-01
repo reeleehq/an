@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../../_static/documentation_options.js?v=4d1a5bc0"></script>
+    <script src="../../../_static/documentation_options.js?v=7ae2d1aa"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -409,7 +409,7 @@ window.runMermaid = runMermaid;</script>
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.1.145" />
+  <meta name="docsearch:version" content="0.1.146" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -736,13 +736,21 @@ window.runMermaid = runMermaid;</script>
 <span class="w">    </span><span class="sd">"""A single verification issue.</span>
 
 <span class="sd">    ``ir_path`` lets the orchestrator route the fix to the correct layer of</span>
-<span class="sd">    the IR — e.g. ``"timeline/0/dialogue/1"``.</span>
+<span class="sd">    the IR — e.g. ``"timeline/0/dialogue/1"``. ``location`` is set when the</span>
+<span class="sd">    thing to fix is not IR at all but an OPAQUE SOURCE the shot runs — a Manim</span>
+<span class="sd">    scene file — as ``"&lt;file&gt;:&lt;line&gt;"`` (core study §2.10): the fix then goes</span>
+<span class="sd">    to that line, and ``ir_path`` still names the shot that runs it.</span>
+
+<span class="sd">    &gt;&gt;&gt; Finding("warning", "timeline/0/options/source", "text cut off",</span>
+<span class="sd">    ...         location="assets/sources/chart.py:14").location</span>
+<span class="sd">    'assets/sources/chart.py:14'</span>
 <span class="sd">    """</span>
 
     <span class="n">severity</span><span class="p">:</span> <span class="n">Severity</span>
     <span class="n">ir_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">description</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">suggested_fix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="n">suggested_fix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
@@ -761,6 +769,8 @@ window.runMermaid = runMermaid;</script>
         <span class="n">ir_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">suggested_fix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">location</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">findings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
             <span class="n">Finding</span><span class="p">(</span>
@@ -768,6 +778,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="n">ir_path</span><span class="o">=</span><span class="n">ir_path</span><span class="p">,</span>
                 <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
                 <span class="n">suggested_fix</span><span class="o">=</span><span class="n">suggested_fix</span><span class="p">,</span>
+                <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">severity</span> <span class="o">==</span> <span class="s2">"error"</span><span class="p">:</span>

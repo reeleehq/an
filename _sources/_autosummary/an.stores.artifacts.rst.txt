@@ -10,8 +10,12 @@ an.stores.artifacts
    
       AudioArtifactStore
       CaptionsStore
+      ContactSheetStore
+      MeasurementStore
       OutputStore
+      PictureStore
       PreviewArtifactStore
+      RenderReportStore
       ShotArtifactStore
       TakesArtifactStore
       VisemeArtifactStore
