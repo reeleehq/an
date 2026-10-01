@@ -24,7 +24,6 @@ import json
 import shutil
 import textwrap
 from dataclasses import dataclass, field
-from functools import lru_cache
 from pathlib import Path
 from typing import Mapping, Optional
 from xml.etree import ElementTree as ET
@@ -175,12 +174,16 @@ def _hat_fragment(
     return f'<g transform="{seat}">{svg}</g>' if seat else svg
 
 
-@lru_cache(maxsize=None)
 def _hat_seat(hat: str, head_scale: float) -> Seat:
     """Where ``hat`` is worn on a head drawn at ``head_scale``: above the
     brows' acting range in every view that shows a brow
     (:func:`~an.characters.brows.seat_above_brows`), or as near as it gets —
-    ``covers`` then says the brows are hidden, and the factory records it."""
+    ``covers`` then says the brows are hidden, and the factory records it.
+
+    Computed from the live expression vocabulary and view poses, so it is
+    recorded on the character (``metadata.hat_seat``) and every redraw reads
+    the recorded seat, never a recomputed one (a new preset must not change
+    where an existing character's hat sits)."""
     if hat == DFLT_HAT:
         return Seat()
     return seat_above_brows(
@@ -870,6 +873,9 @@ def new_character(
     for key, value, default in (
         ("build", build, DFLT_BUILD),
         ("hat", hat, DFLT_HAT),
+        # Where the hat was worn, as drawn: a redraw reads this, never a
+        # recomputation that a later preset or pose could move (review-278 M2).
+        ("hat_seat", seat.transform, None),
         ("hair_style", hair_style, DFLT_HAIR_STYLE),
         ("hair_length", hair_length, DFLT_HAIR_LENGTH),
         ("sash", sash, False),
@@ -2013,7 +2019,11 @@ def add_views(char_dir: str | Path) -> Path:
     # hats were seated above the brows (an#252): a character made then keeps
     # its hat where its front has it, in every view.
     looks = None
-    for hat_seat in dict.fromkeys((_hat_seat(hat, head_scale).transform, None)):
+    # The seat recorded when the character was made; a character made before
+    # seats were recorded (an#252) is tried at the current seat and unseated.
+    recorded = meta.get("hat_seat")
+    seats = (recorded,) if recorded else (_hat_seat(hat, head_scale).transform, None)
+    for hat_seat in dict.fromkeys(seats):
         candidate = _resolve_looks(
             str(meta.get("seed") or desc.name),
             _check_palette(meta.get("palette")),

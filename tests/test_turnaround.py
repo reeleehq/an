@@ -548,7 +548,10 @@ def test_a_profile_shows_both_legs_overlapped_and_offset(builds, build):
     # (a stick build's shoes overlapped: a one-legged stand, an#252).
     spread = max(SIDE_FOOT_SPREAD * body.leg_width, SIDE_FOOT_MIN_SHOES * body.shoe_size[0])
     assert foot[near] - foot[far] == pytest.approx(spread * k)
-    assert foot[near] - foot[far] > max(width, body.shoe_size[0] * k)  # the feet part: two legs
+    assert foot[near] - foot[far] > width  # a gap between the feet: two legs
+    # ...and between the SHOES: at least half a shoe of floor shows between
+    # them on every build (a stick build's shoes overlapped: one leg, an#252).
+    assert foot[near] - foot[far] >= 1.5 * body.shoe_size[0] * k
     kids = [n.name for n in next(n for n in doc.scene.children if n.name == build).children]
     assert kids.index("leg_r") > kids.index("leg_l")  # the near leg draws over the far one
 

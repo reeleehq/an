@@ -282,6 +282,124 @@ def test_views_of_a_character_made_before_the_seat_keep_its_hat_where_it_was(tmp
     (char / "parts" / "head.svg").write_text(
         _head_part_text(legacy.head_svg, height=REFERENCE_HEAD_HEIGHT * 1.7), encoding="utf-8"
     )
+    del doc["metadata"]["hat_seat"]  # recorded only since the seat existed
+    (char / "character.json").write_text(json.dumps(doc), encoding="utf-8")
     add_views(char)
     side = (char / "parts" / "head_side.svg").read_text(encoding="utf-8")
     assert "transform" not in side and "M 12 22 C 12 3 68 3 68 22 Z" in side
+
+
+# ------------------------------------------------------------ review-278 fixes
+
+
+def test_face_brows_follows_the_characters_own_binding(tmp_path):
+    """M1: a rig whose brows live on slots of its own naming, driven by a
+    declared `expression_binding`, affords `face.brows` (the solver moves them);
+    a declared binding that moves no brow does not, whatever is drawn."""
+    from an.capabilities import art_in_dir
+    from an.genres import load
+    from an.semantic.describe import describe_asset
+
+    load()
+    char = _make(tmp_path)
+    path = char / "character.json"
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    renames = {"left_brow": "brow_a", "right_brow": "brow_b"}
+    for slot in doc["slots"]:
+        slot["name"] = renames.get(slot["name"], slot["name"])
+    for skin in doc["skins"].values():
+        for old, new in renames.items():
+            skin["slots"][new] = skin["slots"].pop(old)
+    doc["expression_binding"] = [
+        {"axis": "brow_height_l", "slot": "brow_a", "property": "y", "gain": -10.0, "rig_scaled": True},
+        {"axis": "brow_height_r", "slot": "brow_b", "property": "y", "gain": -10.0, "rig_scaled": True},
+    ]
+    art = art_in_dir(char, exclude=("character.json",))
+    d = describe_asset(doc, art)
+    assert d["affordances"]["face.brows"] == {"slots": ["brow_a", "brow_b"]}
+    assert d["aspects"]["expression"]["default"] == "expr.full_face"
+
+    no_brows = json.loads(path.read_text(encoding="utf-8"))
+    no_brows["expression_binding"] = [{"axis": "lid_open_l", "slot": "left_eye", "set_family": "eyelid"}]
+    assert "face.brows" not in describe_asset(no_brows, art)["affordances"]
+
+
+def test_the_hat_seat_is_recorded_and_redraws_read_it(tmp_path, monkeypatch):
+    """M2: a redraw uses the seat the character was made with, so a later
+    change to the presets or poses (which moves the computed seat) cannot make
+    `add_views` refuse it."""
+    from an.characters import factory
+    from an.characters.brows import Seat
+
+    char = _make(tmp_path, hat="cap", head_scale=1.7, views=False)
+    meta = json.loads((char / "character.json").read_text(encoding="utf-8"))["metadata"]
+    assert meta["hat_seat"] == _hat_seat("cap", 1.7).transform
+    # No hat, no seat: the default descriptor carries nothing new.
+    assert "hat_seat" not in json.loads((_make(tmp_path / "p") / "character.json").read_text("utf-8"))["metadata"]
+    monkeypatch.setattr(factory, "_hat_seat", lambda hat, s: Seat("translate(0 -1)"))
+    add_views(char)
+    side = (char / "parts" / "head_side.svg").read_text(encoding="utf-8")
+    assert meta["hat_seat"] in side
+
+
+def test_validate_warns_about_a_hat_drawn_before_seating(tmp_path):
+    from an.characters.validate import validate_character
+
+    char = _make(tmp_path, hat="bowler", head_scale=1.7)
+    hit = lambda: [f for f in validate_character(char, name="c").findings if "seated above" in f.description]
+    assert not hit()
+    path = char / "character.json"
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    del doc["metadata"]["hat_seat"]  # as a character made before an#252 reads
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    (finding,) = hit()
+    assert finding.severity == "warning" and "occluded" in finding.suggested_fix
+
+
+def test_covers_means_ink_overlap_not_the_clearance_margin():
+    """A hat that stays within the clearance margin of the brows but does not
+    touch them does not cover them; one whose ink dips into their range does."""
+    from an.characters.brows import HAT_BROW_CLEARANCE, seat_above_brows
+
+    reach = brow_range(head_scale=1.0)["front"]
+    top_of_brows = min(reach.values())
+
+    def seat(bottom):
+        rect = f'<rect x="{min(reach)}" y="{bottom - 4}" width="{max(reach) - min(reach)}" height="4"/>'
+        # No room to lift or flatten: what is measured is where it is drawn.
+        return seat_above_brows({"front": rect}, head_scale=1.0, crown_min_y=1e9, min_flatten=1.0)
+
+    near = seat(top_of_brows - HAT_BROW_CLEARANCE / 2)
+    into = seat(top_of_brows + HAT_BROW_CLEARANCE / 2)
+    assert (near.covers, into.covers) == (False, True)
+
+
+def test_long_hair_falls_over_the_back_of_the_skull(tmp_path):
+    """The back and profile falls are drawn OVER the head (after the skin), or
+    the back of the skull would hide them."""
+    char = _make(tmp_path, hair_length="long")
+    for f, view in (("head_back.svg", "back"), ("head_side.svg", "side")):
+        svg = (char / "parts" / f).read_text(encoding="utf-8")
+        _, over = _hair_layers(view, hair="#000000", hair_style="peak", hair_length="long")
+        d = re.search(r'd="([^"]+)"', over).group(1)
+        assert svg.index(d) > svg.index('<circle cx="40" cy="44" r="28"'), f
+
+
+def test_a_narrowed_brow_in_a_view_narrows_its_acting_range(monkeypatch):
+    """A view pose's `scale_x` (the three-quarter far brow) is applied to the brow."""
+    from an.characters import factory
+
+    real = factory.view_poses
+
+    def squashed(*a, factor, **k):
+        poses = real(*a, **k)
+        poses["three_quarter"]["left_brow"] = poses["three_quarter"]["left_brow"].model_copy(
+            update={"scale_x": factor}
+        )
+        return poses
+
+    lows = {}
+    for factor in (1.0, 0.5):
+        monkeypatch.setattr(factory, "view_poses", lambda *a, f=factor, **k: squashed(*a, factor=f, **k))
+        lows[factor] = min(brow_range(views=["three_quarter"], presets=["neutral"])["three_quarter"])
+    assert lows[0.5] >= lows[1.0] + 4  # half a brow's half-width, about 4.9 head units

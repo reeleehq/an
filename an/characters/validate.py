@@ -320,6 +320,7 @@ def validate_character(
     _check_gaze_stack(descriptor, report, who=who)
     _check_face_overlay_declaration(descriptor, report, who=who)
     _check_declared_speech(descriptor, report, who=who)
+    _check_unseated_hat(descriptor, report, who=who)
     _check_joint_names(directory, descriptor, report)
 
     if descriptor is not None and descriptor.source is None:
@@ -680,6 +681,34 @@ def _check_mouth_variants(
 #: longer reads them (the declared `face_overlay` field does the job, an#87);
 #: this check is what keeps a hand-authored current-schema descriptor honest.
 _BAKED_FACE_PROVENANCES: tuple[str, ...] = ("dicebear", "external_avatar")
+
+
+def _check_unseated_hat(
+    descriptor: CharacterDescriptor | None, report: VerificationReport, *, who: str
+) -> None:
+    """A factory character made before hats were worn above the brows (an#252)
+    may wear its brim over them, and nothing records it (``occluded`` is
+    written only by the seating factory). Until brow cover is derived from the
+    art (ADR 0002), say so: a recorded ``hat_seat`` marks a seated hat."""
+    if descriptor is None:
+        return
+    meta = descriptor.metadata
+    if (
+        meta.get("art_provenance") == "fallback_geometric"
+        and meta.get("hat") not in (None, "none")
+        and "hat_seat" not in meta
+        and "brows" not in descriptor.occluded
+    ):
+        report.add(
+            ADVISORY,
+            "character.json#metadata.hat",
+            f"{who} wears a {meta['hat']!r} hat drawn before hats were seated above "
+            "the brows (an#252): its brim may cover them, so brow expressions may "
+            "not read, and `an character capabilities` cannot tell",
+            "Re-make it with `an character new --offline` and the same knobs (the "
+            "hat is then worn above the brows), or declare "
+            '`"occluded": {"brows": "the hat"}` in character.json if they are covered.',
+        )
 
 
 def _check_declared_speech(

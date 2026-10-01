@@ -458,17 +458,16 @@ def brow_acting_problem(doc: Any, *, entity: str) -> str | None:
     ``doc`` is the character's stored document; a procedural rig (no
     descriptor) has no brows to lose.
     """
+    from an.characters.brows import brow_slots
     from an.characters.schema import CharacterDescriptor
-    from an.expression.binding import LEFT_BROW_SLOT, RIGHT_BROW_SLOT
     from an.ir.migrate import migrate
     from an.semantic import resolve
 
     if not isinstance(doc, Mapping) or doc.get("kind") != "CharacterDescriptor":
         return None
     desc = CharacterDescriptor.model_validate(migrate(dict(doc), kind="CharacterDescriptor"))
-    slots = {s.name for s in desc.slots}
-    if not desc.face_overlay or not {LEFT_BROW_SLOT, RIGHT_BROW_SLOT} <= slots:
-        return None
+    if not desc.face_overlay or not brow_slots(desc):
+        return None  # a face whose binding moves no brow has nothing to lose
     r = resolve(EXPRESSION, compile_profile(desc), entity=entity, entity_kind=CHARACTER_KIND)
     if r.substitution is None:
         return None

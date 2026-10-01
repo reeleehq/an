@@ -67,6 +67,7 @@ __all__ = [
     "OCCLUDABLE_FEATURES",
     "Seat",
     "brow_affordance",
+    "brow_slots",
     "brow_path_d",
     "brow_range",
     "ink_columns",
@@ -304,6 +305,9 @@ def brow_range(
     through the default binding on each brow the view shows (its turnaround
     pose: shifted, narrowed, or hidden) — the region a cover must stay above
     for the presets to read.
+    The range is bounded by the PRESETS, not by the axes' full box: an
+    ``axes:`` override at the corner (height 1, a full tilt) or two summed
+    spans can reach past it (review-278 L1).
     """
     from an.characters.factory import view_poses
     from an.expression.presets import PRESETS
@@ -429,13 +433,43 @@ def seat_above_brows(
 # The capability
 # -----------------------------------------------------------------------------
 
+def brow_slots(desc: Any) -> list[str]:
+    """The slots the character's own expression binding moves on a brow axis.
+
+    The binding the solver uses (:func:`~an.expression.binding.binding_for`:
+    the declared ``expression_binding``, else the default one), so a rig whose
+    brows live on slots of its own naming is read as having brows, and one
+    whose declared binding moves no brow is read as having none. A binding
+    that does not resolve moves nothing (``an validate`` reports it).
+
+    >>> from an.characters.schema import CharacterDescriptor
+    >>> brow_slots(CharacterDescriptor(name="c"))
+    ['left_brow', 'right_brow']
+    """
+    from an.expression.axes import BROW_AXES
+    from an.expression.binding import (
+        ChannelBinding,
+        ExpressionResolutionError,
+        binding_for,
+    )
+
+    try:
+        bindings = binding_for(desc)
+    except (ExpressionResolutionError, ValueError, TypeError):
+        return []
+    return sorted(
+        {b.slot for b in bindings if isinstance(b, ChannelBinding) and b.axis in BROW_AXES}
+    )
+
+
 def brow_affordance(desc: Any, drawn: Mapping[str, Any]) -> dict[str, Any] | None:
     """``face.brows``'s params for a descriptor whose drawn slots are ``drawn``, or ``None``.
 
-    Afforded when the face is an overlay (``face_overlay``), both slots the
-    expression binding moves have art, and the descriptor records nothing
-    over the brows (``occluded``). The brow slots' names are the binding's,
-    so the capability and the solver cannot disagree about which slots act.
+    Afforded when the face is an overlay (``face_overlay``), the binding moves
+    a brow (:func:`brow_slots`) and every slot it moves on a brow axis has
+    art, and the descriptor records nothing over the brows (``occluded``).
+    The slots are the solver's own binding's, so the capability and the solver
+    cannot disagree about which slots act.
 
     >>> from an.characters.schema import CharacterDescriptor
     >>> d = CharacterDescriptor(name="c")
@@ -445,10 +479,10 @@ def brow_affordance(desc: Any, drawn: Mapping[str, Any]) -> dict[str, Any] | Non
     >>> brow_affordance(d, {"left_brow": {"brow_l"}, "right_brow": {"brow_r"}}) is None
     True
     """
-    from an.expression.binding import LEFT_BROW_SLOT, RIGHT_BROW_SLOT
-
-    slots = [LEFT_BROW_SLOT, RIGHT_BROW_SLOT]
-    if not getattr(desc, "face_overlay", True) or not all(s in drawn for s in slots):
+    if not getattr(desc, "face_overlay", True):
+        return None
+    slots = brow_slots(desc)
+    if not slots or not all(s in drawn for s in slots):
         return None
     if BROWS_FEATURE in (getattr(desc, "occluded", None) or {}):
         return None
