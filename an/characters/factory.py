@@ -753,7 +753,11 @@ def stamp_generated_head(char_dir: str | Path, source: AssetSource) -> Path:
         for attachments in skin.slots.values():
             for att in attachments.values():
                 file = char_dir / att.path
-                if att.path == "parts/head.svg" and att.source is None and file.is_file():
+                if (
+                    att.path == "parts/head.svg"
+                    and att.source is None
+                    and file.is_file()
+                ):
                     att.source = pinned(file)
     drawing = char_dir / (desc.source_svg or "")
     if desc.source_svg and drawing.is_file():

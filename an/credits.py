@@ -540,22 +540,20 @@ def _part_credits(
             if asset in out and out[asset].license_class == "private":
                 continue  # a stale claim stricter than unknown still binds
             # Otherwise it replaces a stale claim's entry: that speaks for other bytes.
-            out[asset] = (
-                CreditEntry(
-                    asset=asset,
-                    source=AssetSource(
-                        provider="unknown",
-                        extra={
-                            "reason": (
-                                "the stamp on this part no longer matches its bytes "
-                                "(re-drawn or re-carved)"
-                                if path in stale
-                                else "no stamp pins these bytes, and the descriptor's "
-                                "source was written by a generator, not a person"
-                            )
-                        },
-                    ),
-                )
+            out[asset] = CreditEntry(
+                asset=asset,
+                source=AssetSource(
+                    provider="unknown",
+                    extra={
+                        "reason": (
+                            "the stamp on this part no longer matches its bytes "
+                            "(re-drawn or re-carved)"
+                            if path in stale
+                            else "no stamp pins these bytes, and the descriptor's "
+                            "source was written by a generator, not a person"
+                        )
+                    },
+                ),
             )
     return [out[a] for a in sorted(out)]
 

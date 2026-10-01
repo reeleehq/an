@@ -391,9 +391,7 @@ class _Unverifiable(Exception):
     """The pinned version cannot be found where this machine looks for it."""
 
 
-def _pinned_version(
-    libraries: Libraries, pin: Mapping[str, Any]
-) -> Mapping[str, Any]:
+def _pinned_version(libraries: Libraries, pin: Mapping[str, Any]) -> Mapping[str, Any]:
     """The version a lockfile pin names — the SAME version, or :class:`_Unverifiable`.
 
     The lockfile records no root (it is committed; a path would leak), so a
@@ -497,7 +495,7 @@ def drift_findings(
                     "info",
                     where,
                     f"{entry_key} (pinned to {pinned}): "
-                    f"{differences[0][len(CANNOT_VERIFY):]}; whether the copy is "
+                    f"{differences[0][len(CANNOT_VERIFY) :]}; whether the copy is "
                     "still that version was not checked",
                     "nothing to do if the library lives at a custom root; otherwise "
                     "make the library that holds the pinned version available",
@@ -607,7 +605,9 @@ def check_pins_before_render(
     scene says it is, is as fatal as an asset that is missing.
     """
     if lock is None or not any(
-        e.library for shot in getattr(scene, "timeline", None) or [] for e in shot.entities
+        e.library
+        for shot in getattr(scene, "timeline", None) or []
+        for e in shot.entities
     ):
         return []
     findings = check_pins(scene, {k: lock[k] for k in lock})

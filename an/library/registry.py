@@ -111,7 +111,11 @@ def _account_home() -> Path:
         import pwd
 
         return Path(pwd.getpwuid(os.getuid()).pw_dir)
-    except (ImportError, KeyError, AttributeError):  # pragma: no cover — no passwd entry
+    except (
+        ImportError,
+        KeyError,
+        AttributeError,
+    ):  # pragma: no cover — no passwd entry
         return Path.home()
 
 
@@ -296,10 +300,13 @@ def remembered_statements(digest: str) -> list[tuple[str, dict[str, Any]]]:
             asset_key = str(held.pop("asset"))
             held.pop("root", None)
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
-            asset_key, held = f"unreadable statement {path.stem}", {
-                "class": "unknown",
-                "label": "a remembered statement that can no longer be read",
-                "number": 0,
-            }
+            asset_key, held = (
+                f"unreadable statement {path.stem}",
+                {
+                    "class": "unknown",
+                    "label": "a remembered statement that can no longer be read",
+                    "number": 0,
+                },
+            )
         out.append((asset_key, held))
     return out
