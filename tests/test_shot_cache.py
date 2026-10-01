@@ -200,6 +200,28 @@ def test_without_the_project_fallback_only_the_drawing_shot_rerenders(tmp_path, 
     assert outcome.status == "rendered"
 
 
+def test_the_library_lockfile_is_a_dependency_of_every_shot_before_it_is_in_the_mall(
+    tmp_path, fake_render
+):
+    """A re-pin in `assets.lock.json` (the asset library's lockfile, P5) changes
+    what is checked out, so it moves every key — read by its PATH, because its
+    store registration in the mall (an#240) lands separately."""
+    root = _project(tmp_path, _shot("a", 10.0), _shot("b", 20.0))
+    assert "assets.lock.json" not in str(sorted(load(root).mall))
+    _render(root, fake_render)
+    (root / "assets.lock.json").write_text('{"pins": {}}', encoding="utf-8")
+    _, rendered = _render(root, fake_render)
+    assert rendered == ["a", "b"]
+    _, rendered = _render(root, fake_render)
+    assert rendered == []
+    lock = root / "assets.lock.json"
+    st = lock.stat()
+    lock.write_text('{"pins": {"characters/amy": "v002"}}', encoding="utf-8")
+    os.utime(lock, ns=(st.st_atime_ns, st.st_mtime_ns + 10**9))
+    _, rendered = _render(root, fake_render)
+    assert rendered == ["a", "b"]
+
+
 def test_a_changed_environment_renders_every_shot(tmp_path, fake_render):
     root = _project(tmp_path, _shot("a", 10.0), _shot("b", 20.0))
     _render(root, fake_render)

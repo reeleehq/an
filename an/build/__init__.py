@@ -22,6 +22,7 @@ True
 
 from an.build.keys import (
     PROJECT_ASSET_STORES,
+    PROJECT_ROOT_FILES,
     SHOT_KEY_IMPL_VERSION,
     ShotKeyInputs,
     canonical_digest,
@@ -48,6 +49,7 @@ from an.build.shot_cache import (
 
 __all__ = [
     "PROJECT_ASSET_STORES",
+    "PROJECT_ROOT_FILES",
     "SHOT_CACHE_STORE",
     "SHOT_KEY_IMPL_VERSION",
     "BuildReport",

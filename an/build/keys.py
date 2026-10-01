@@ -63,6 +63,14 @@ PROJECT_ASSET_STORES: tuple[str, ...] = (
     "sounds",
 )
 
+#: Files at the project ROOT that every shot depends on, whether or not a mall
+#: store exposes them. ``assets.lock.json`` is the asset library's lockfile of
+#: pinned library versions (ADR 0005, P5): a re-pin changes what is checked out,
+#: so it must move every key — and it must do so before (and independently of)
+#: its registration in the mall (an#240). Read by path, through
+#: :func:`project_root_files_digest`; an absent file is recorded as absent.
+PROJECT_ROOT_FILES: tuple[str, ...] = ("assets.lock.json",)
+
 #: File names under an asset root that are never assets: an OS's folder
 #: metadata must not re-render a film.
 IGNORED_ASSET_NAME_PREFIXES: tuple[str, ...] = (".",)
@@ -183,8 +191,29 @@ def store_digest(store: Any) -> str:
     return canonical_digest(items)
 
 
+def project_root_files_digest(
+    project_root: str | Path, *, files: Iterable[str] = PROJECT_ROOT_FILES
+) -> dict[str, str]:
+    """``{name: sha256 or ABSENT}`` for the project-root files every shot depends on.
+
+    >>> import tempfile
+    >>> with tempfile.TemporaryDirectory() as d:
+    ...     project_root_files_digest(d, files=["assets.lock.json"])
+    {'assets.lock.json': 'absent'}
+    """
+    root = Path(project_root)
+    return {
+        name: (file_digest(root / name) if (root / name).is_file() else ABSENT)
+        for name in files
+    }
+
+
 def project_assets_digest(
-    mall: Mapping[str, Any], *, stores: Iterable[str] = PROJECT_ASSET_STORES
+    mall: Mapping[str, Any],
+    *,
+    stores: Iterable[str] = PROJECT_ASSET_STORES,
+    project_root: str | Path | None = None,
+    root_files: Iterable[str] = PROJECT_ROOT_FILES,
 ) -> str:
     """One digest over every asset store of the project (ADR 0004 decision 3).
 
@@ -193,17 +222,22 @@ def project_assets_digest(
     which read recording buys back. A store the mall does not have is recorded
     as absent rather than skipped, so adding one later moves the digest.
 
+    With ``project_root``, the files in ``root_files`` (the library lockfile)
+    are hashed by PATH as well — so a re-pin moves every key whether or not
+    the mall has a store for the file yet.
+
     >>> a = project_assets_digest({"characters": {"c": {"v": 1}}}, stores=["characters"])
     >>> b = project_assets_digest({"characters": {"c": {"v": 2}}}, stores=["characters"])
     >>> a == b
     False
     """
-    return canonical_digest(
-        {
-            name: (store_digest(mall[name]) if mall.get(name) is not None else ABSENT)
-            for name in stores
-        }
-    )
+    digest: dict[str, Any] = {
+        name: (store_digest(mall[name]) if mall.get(name) is not None else ABSENT)
+        for name in stores
+    }
+    if project_root is not None:
+        digest["root_files"] = project_root_files_digest(project_root, files=root_files)
+    return canonical_digest(digest)
 
 
 # -----------------------------------------------------------------------------

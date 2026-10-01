@@ -332,7 +332,7 @@ def render(
     engine = resolve_incremental(incremental)
     plans: list[ShotPlan | None] = [None] * len(shot_renderers)
     if engine is not None:
-        engine.begin(project.mall)
+        engine.begin(project.mall, project_root=project.root)
         needs_frames = needs_assembly(scene, fps=effective_fps)
         plans = [
             engine.plan(

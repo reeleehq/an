@@ -227,13 +227,16 @@ class ShotPlan:
 class IncrementalEngine(Protocol):
     """The ``incremental=`` seam of `an.render.render` (ADR 0004 decision 5).
 
-    ``begin`` once per render with the project mall; ``plan`` once per shot,
+    ``begin`` once per render with the project mall (and its root, for the
+    root files every shot depends on); ``plan`` once per shot,
     BEFORE any shot renders (in the calling thread); ``record`` once per shot
     that was rendered (possibly from a worker thread); ``finish`` returns the
     report.
     """
 
-    def begin(self, mall: Mapping[str, Any]) -> None: ...
+    def begin(
+        self, mall: Mapping[str, Any], *, project_root: Path | None = None
+    ) -> None: ...
 
     def plan(
         self,
@@ -300,9 +303,15 @@ class ShotCache:
 
     # -- the protocol ------------------------------------------------------
 
-    def begin(self, mall: Mapping[str, Any]) -> None:
+    def begin(
+        self, mall: Mapping[str, Any], *, project_root: Path | None = None
+    ) -> None:
         self._store = self.store if self.store is not None else mall.get(SHOT_CACHE_STORE)
-        self._project = project_assets_digest(mall) if self.project_digest else None
+        self._project = (
+            project_assets_digest(mall, project_root=project_root)
+            if self.project_digest
+            else None
+        )
         self._outcomes = {}
         self._order = []
         self.report = BuildReport()
