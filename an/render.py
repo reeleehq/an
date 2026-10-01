@@ -643,7 +643,9 @@ def portable_text(text: str, *, root=None, home=None) -> str:
             except OSError:
                 pass
         # macOS spells its temp and var folders both ways (/private/var = /var).
-        roots += [r[len("/private") :] for r in list(roots) if r.startswith("/private/")]
+        roots += [
+            r[len("/private") :] for r in list(roots) if r.startswith("/private/")
+        ]
     for r in sorted({r.rstrip("/\\") for r in roots if r}, key=len, reverse=True):
         for sep in ("/", "\\"):
             text = text.replace(r + sep, "")
@@ -743,9 +745,7 @@ def format_render_findings(
         for n, word in ((errors, "error"), (warns, "warning"))
         if n
     )
-    lines = [
-        f"findings: {counts} (all in artifacts/render_reports/{output_name}.json)"
-    ]
+    lines = [f"findings: {counts} (all in artifacts/render_reports/{output_name}.json)"]
     for kind in kinds:
         group = [r for r in records if (r.get("kind") or "") == kind]
         lines.append(f"  {FINDING_GROUPS.get(kind, kind or 'other')} ({len(group)}):")
@@ -765,7 +765,9 @@ def _pin_findings(project: Project) -> list[tuple[str, object]]:
     warns (and, strict, refuses) with — for the report."""
     lock = project.mall.get("library_lock")
     scene = project.scene
-    if lock is None or not any(e.library for shot in scene.timeline for e in shot.entities):
+    if lock is None or not any(
+        e.library for shot in scene.timeline for e in shot.entities
+    ):
         return []
     from an.library.checkout import check_pins
 

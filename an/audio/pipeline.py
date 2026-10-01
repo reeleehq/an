@@ -696,7 +696,10 @@ class _LineRequest:
         whose kept audio is not the audio its record names, or one carried over
         from other effects whose record is still to write."""
         return (
-            self.restore or self.hand_edit or self.replaced or self.carried_from is not None
+            self.restore
+            or self.hand_edit
+            or self.replaced
+            or self.carried_from is not None
         )
 
     def take_key(self, take: int, *, heard: bool) -> str:
@@ -1066,7 +1069,11 @@ def _carried_record(
         audio_key=req.take_key(chosen, heard=True),
         carried_from=key,
         takes=[
-            {**t, "heard_key": req.take_key(int(t["take"]), heard=True), "heard_digest": None}
+            {
+                **t,
+                "heard_key": req.take_key(int(t["take"]), heard=True),
+                "heard_digest": None,
+            }
             for t in old["takes"]
         ],
         history=[

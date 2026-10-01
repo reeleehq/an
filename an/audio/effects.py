@@ -204,7 +204,9 @@ def _normalize_trim(raw: Any) -> dict[str, Any]:
     }
     for name, value in params.items():
         if isinstance(value, bool) or not isinstance(value, (int, float)):
-            raise VoiceEffectError(f"trim_silence {name} must be a number, got {value!r}")
+            raise VoiceEffectError(
+                f"trim_silence {name} must be a number, got {value!r}"
+            )
         lo, hi = TRIM_THRESHOLD_LIMITS if name == "threshold_db" else TRIM_KEEP_LIMITS
         if not lo <= value <= hi:
             raise VoiceEffectError(
@@ -423,7 +425,9 @@ def trim_silence(
         channels, width, rate = r.getnchannels(), r.getsampwidth(), r.getframerate()
         frames = r.readframes(r.getnframes())
     if width != 2:
-        raise VoiceEffectError(f"trim_silence reads 16-bit PCM; this WAV is {8 * width}-bit")
+        raise VoiceEffectError(
+            f"trim_silence reads 16-bit PCM; this WAV is {8 * width}-bit"
+        )
     samples = np.frombuffer(frames, dtype="<i2").reshape(-1, channels)
     n = len(samples)
     source_s = n / rate if rate else 0.0
@@ -488,7 +492,11 @@ def trim_record(wav: bytes) -> dict[str, float] | None:
             while sub + 8 <= len(data):
                 sid = data[sub : sub + 4]
                 ssize = struct.unpack("<I", data[sub + 4 : sub + 8])[0]
-                text = data[sub + 8 : sub + 8 + ssize].rstrip(b"\x00").decode("utf-8", "replace")
+                text = (
+                    data[sub + 8 : sub + 8 + ssize]
+                    .rstrip(b"\x00")
+                    .decode("utf-8", "replace")
+                )
                 if sid == b"ICMT" and text.startswith(TRIM_RECORD_TAG):
                     try:
                         return json.loads(text[len(TRIM_RECORD_TAG) :])

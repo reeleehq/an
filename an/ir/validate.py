@@ -2213,7 +2213,9 @@ def _core_dialogue_in_dissolve(ctx: ValidationContext) -> None:
         ctx.scene,
         ctx.report,
         fps=ctx.memo.get(_RENDER_FPS),
-        effects_of_shot=lambda shot: _voice_effects_of(shot, ctx.voices, ctx.characters),
+        effects_of_shot=lambda shot: _voice_effects_of(
+            shot, ctx.voices, ctx.characters
+        ),
     )
 
 
