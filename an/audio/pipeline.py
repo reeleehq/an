@@ -812,7 +812,10 @@ def _line_request(
     audio_store = mall.get("audio") if mall is not None else None
     if audio_store is not None and req.cache_key in audio_store:
         recorded_digest = entry.get("heard_digest")
-        if recorded_digest and audio_digest(audio_store[req.cache_key]) != recorded_digest:
+        if (
+            recorded_digest
+            and audio_digest(audio_store[req.cache_key]) != recorded_digest
+        ):
             # Replaced under its key (a sync, a backup): warned about when it is
             # read back, and its visemes are re-aligned on what is there now.
             req.replaced = req.fresh_audio = True
@@ -1338,7 +1341,10 @@ def _stamps_match_store(
     track = _track_from_payload(payload, lipsync.convention)
     if _emits_word_timings(lipsync) and track.words is None:
         return False
-    stamped_track, stamped_words = _to_ir_viseme_track(track), _to_ir_word_timings(track)
+    stamped_track, stamped_words = (
+        _to_ir_viseme_track(track),
+        _to_ir_word_timings(track),
+    )
     if line.viseme_track != stamped_track or line.word_timings != stamped_words:
         line.viseme_track, line.word_timings = stamped_track, stamped_words
         line.duration = _wav_duration(audio)
