@@ -1,0 +1,6313 @@
+{
+ "format": "an.timing.vectors",
+ "version": 1,
+ "description": "For each case, the sparse state an implementation of the timing kernel must return at each listed time, for a compiled document (compiled.schema.json) under a property space (a registered name from kinds.json, or inline). States are keyed by address (target:property); an address no clip has started is absent. Numbers agree within 1e-09 * max(1, |x|, |y|); everything else exactly. 'stage.node' cases use only the stage's easings and are also what runtime.js evaluates. Sample times include every clip and keyframe boundary and every midpoint between them.",
+ "tolerance": {
+  "relative": 1e-09,
+  "floor": 1.0
+ },
+ "cases": [
+  {
+   "name": "number-linear-and-log",
+   "description": "A linear number and a log-space number, with a dwell and a CSS ease-in-out.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "x",
+      "spec": {
+       "kind": "number"
+      }
+     },
+     {
+      "pattern": "zoom",
+      "spec": {
+       "kind": "number",
+       "space": "log"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 3.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 3.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 3.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": -2,
+          "easing": null
+         },
+         {
+          "time": 0.5,
+          "value": -2,
+          "easing": "ease-in-out"
+         },
+         {
+          "time": 2.0,
+          "value": 3,
+          "easing": null
+         },
+         {
+          "time": 3.0,
+          "value": 0,
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "zoom",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 1,
+          "easing": null
+         },
+         {
+          "time": 0.5,
+          "value": 1,
+          "easing": "ease-in-out"
+         },
+         {
+          "time": 2.0,
+          "value": 4,
+          "easing": null
+         },
+         {
+          "time": 3.0,
+          "value": 0.25,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:x": -2,
+      "view:zoom": 1
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:x": -2.0,
+      "view:zoom": 1.0
+     }
+    },
+    {
+     "t": 0.375,
+     "state": {
+      "view:x": -2.0,
+      "view:zoom": 1.0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:x": -2,
+      "view:zoom": 1
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:x": -1.7193459031026488,
+      "view:zoom": 1.0809214138688104
+     }
+    },
+    {
+     "t": 1.125,
+     "state": {
+      "view:x": -0.20586801702927393,
+      "view:zoom": 1.6445043144705676
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "view:x": 0.5,
+      "view:zoom": 2.0
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "view:x": 1.8411259184862558,
+      "view:zoom": 2.9007990694564096
+     }
+    },
+    {
+     "t": 1.875,
+     "state": {
+      "view:x": 2.931976246165749,
+      "view:zoom": 3.9252662049329854
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "view:x": 3,
+      "view:zoom": 4
+     }
+    },
+    {
+     "t": 2.25,
+     "state": {
+      "view:x": 2.25,
+      "view:zoom": 2.0
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "view:x": 1.5,
+      "view:zoom": 1.0
+     }
+    },
+    {
+     "t": 2.625,
+     "state": {
+      "view:x": 1.125,
+      "view:zoom": 0.7071067811865476
+     }
+    },
+    {
+     "t": 3.0,
+     "state": {
+      "view:x": 0,
+      "view:zoom": 0.25
+     }
+    }
+   ]
+  },
+  {
+   "name": "angle",
+   "description": "Shortest arc in degrees both ways across 0, radians, and wrap off.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "yaw",
+      "spec": {
+       "kind": "angle"
+      }
+     },
+     {
+      "pattern": "roll",
+      "spec": {
+       "kind": "angle",
+       "unit": "rad"
+      }
+     },
+     {
+      "pattern": "spin",
+      "spec": {
+       "kind": "angle",
+       "wrap": false
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 2.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 2.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 2.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "yaw",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 350,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 10,
+          "easing": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+         },
+         {
+          "time": 2.0,
+          "value": 300,
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "roll",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.1,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 6.1,
+          "easing": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+         },
+         {
+          "time": 2.0,
+          "value": 3,
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "spin",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 720,
+          "easing": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+         },
+         {
+          "time": 2.0,
+          "value": -90,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:yaw": 350,
+      "view:roll": 0.1,
+      "view:spin": 0
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:yaw": 355.0,
+      "view:roll": 0.029203673205103448,
+      "view:spin": 180.0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:yaw": 360.0,
+      "view:roll": -0.04159265358979311,
+      "view:spin": 360.0
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:yaw": 365.0,
+      "view:roll": -0.11238898038468967,
+      "view:spin": 540.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:yaw": 10,
+      "view:roll": 6.1,
+      "view:spin": 720
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "view:yaw": -18.595741394877706,
+      "view:roll": 4.833617166798273,
+      "view:spin": 389.1064210021294
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "view:yaw": -46.168237130939985,
+      "view:roll": 3.6125494984869433,
+      "view:spin": 70.05325605626581
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "view:yaw": -57.232128484429325,
+      "view:roll": 3.12257716711813,
+      "view:spin": -57.97177246268211
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "view:yaw": 300,
+      "view:roll": 3,
+      "view:spin": -90
+     }
+    }
+   ]
+  },
+  {
+   "name": "vector-and-quaternion",
+   "description": "A componentwise vector, and slerp including a target whose sign makes the dot product negative.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "pos",
+      "spec": {
+       "kind": "vector"
+      }
+     },
+     {
+      "pattern": "rot",
+      "spec": {
+       "kind": "quaternion"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 2.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 2.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 2.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "pos",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": [
+           0,
+           0,
+           0
+          ],
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": [
+           1,
+           -2,
+           4
+          ],
+          "easing": "ease-out"
+         },
+         {
+          "time": 2.0,
+          "value": [
+           2,
+           2,
+           2
+          ],
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "rot",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": [
+           0,
+           0,
+           0,
+           1
+          ],
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": [
+           0,
+           0,
+           0.7071067811865476,
+           0.7071067811865476
+          ],
+          "easing": "ease-out"
+         },
+         {
+          "time": 2.0,
+          "value": [
+           -0.5,
+           -0.5,
+           -0.5,
+           -0.5
+          ],
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:pos": [
+       0,
+       0,
+       0
+      ],
+      "view:rot": [
+       0,
+       0,
+       0,
+       1
+      ]
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:pos": [
+       0.25,
+       -0.5,
+       1.0
+      ],
+      "view:rot": [
+       0.0,
+       0.0,
+       0.19509032201612828,
+       0.9807852804032305
+      ]
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:pos": [
+       0.5,
+       -1.0,
+       2.0
+      ],
+      "view:rot": [
+       0.0,
+       0.0,
+       0.38268343236508984,
+       0.9238795325112868
+      ]
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:pos": [
+       0.75,
+       -1.5,
+       3.0
+      ],
+      "view:rot": [
+       0.0,
+       0.0,
+       0.5555702330196023,
+       0.8314696123025453
+      ]
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:pos": [
+       1,
+       -2,
+       4
+      ],
+      "view:rot": [
+       0,
+       0,
+       0.7071067811865476,
+       0.7071067811865476
+      ]
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "view:pos": [
+       1.378138130826099,
+       -0.48744747669560407,
+       3.243723738347802
+      ],
+      "view:rot": [
+       0.20692938800957436,
+       0.20692938800957436,
+       0.6761510396190952,
+       0.6761510396190952
+      ]
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "view:pos": [
+       1.6846431874274608,
+       0.7385727497098431,
+       2.6307136251450784
+      ],
+      "view:rot": [
+       0.36216378441599206,
+       0.36216378441599206,
+       0.6073198442809907,
+       0.6073198442809907
+      ]
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "view:pos": [
+       1.9065353492811752,
+       1.6261413971247007,
+       2.1869293014376496
+      ],
+      "view:rot": [
+       0.4619829310988397,
+       0.4619829310988397,
+       0.5353239872949135,
+       0.5353239872949135
+      ]
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "view:pos": [
+       2,
+       2,
+       2
+      ],
+      "view:rot": [
+       -0.5,
+       -0.5,
+       -0.5,
+       -0.5
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "color",
+   "description": "OKLab mixing with premultiplied alpha, in hex and array forms.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "fg",
+      "spec": {
+       "kind": "color"
+      }
+     },
+     {
+      "pattern": "bg",
+      "spec": {
+       "kind": "color"
+      }
+     },
+     {
+      "pattern": "tint",
+      "spec": {
+       "kind": "color"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 2.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 2.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 2.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "fg",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "#ff0000",
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": "#00ff00",
+          "easing": null
+         },
+         {
+          "time": 2.0,
+          "value": "#08f",
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "bg",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "#ffffff",
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": "#0000ff00",
+          "easing": null
+         },
+         {
+          "time": 2.0,
+          "value": "#123",
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "tint",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": [
+           0.2,
+           0.4,
+           0.6
+          ],
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": [
+           1,
+           0.5,
+           0,
+           0.5
+          ],
+          "easing": null
+         },
+         {
+          "time": 2.0,
+          "value": [
+           0,
+           0,
+           0
+          ],
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:fg": "#ff0000",
+      "view:bg": "#ffffff",
+      "view:tint": [
+       0.2,
+       0.4,
+       0.6
+      ]
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:fg": "#ed7300",
+      "view:bg": "#ffffffbf",
+      "view:tint": [
+       0.3412632301504058,
+       0.42994823822200007,
+       0.5621107355953756,
+       0.875
+      ]
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:fg": "#d0a800",
+      "view:bg": "#ffffff80",
+      "view:tint": [
+       0.4977577530337531,
+       0.4613242666851633,
+       0.5044929140048586,
+       0.75
+      ]
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:fg": "#a0d500",
+      "view:bg": "#ffffff40",
+      "view:tint": [
+       0.7011785406415162,
+       0.4902019923185253,
+       0.40190839898144026,
+       0.625
+      ]
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:fg": "#00ff00",
+      "view:bg": "#0000ff00",
+      "view:tint": [
+       1,
+       0.5,
+       0,
+       0.5
+      ]
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "view:fg": "#00e683",
+      "view:bg": "#11223340",
+      "view:tint": [
+       0.5021107340359829,
+       0.23807720105951025,
+       0.0,
+       0.625
+      ]
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "view:fg": "#00cbb6",
+      "view:bg": "#11223380",
+      "view:tint": [
+       0.21220888501574053,
+       0.08556959834772745,
+       0.0,
+       0.75
+      ]
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "view:fg": "#00acdd",
+      "view:bg": "#112233bf",
+      "view:tint": [
+       0.03766763923783309,
+       0.008062423818895532,
+       0.0,
+       0.875
+      ]
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "view:fg": "#08f",
+      "view:bg": "#123",
+      "view:tint": [
+       0,
+       0,
+       0
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "color-srgb",
+   "description": "Componentwise sRGB mixing (the stage tint's and Manim's rule), hex and array forms.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "fg",
+      "spec": {
+       "kind": "color",
+       "space": "srgb"
+      }
+     },
+     {
+      "pattern": "tint",
+      "spec": {
+       "kind": "color",
+       "space": "srgb"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 1.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 1.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "fg",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "#ff0000",
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": "#0000ff80",
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "tint",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": [
+           0.2,
+           0.4,
+           0.6
+          ],
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": [
+           1,
+           0.5,
+           0,
+           0.5
+          ],
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:fg": "#ff0000",
+      "view:tint": [
+       0.2,
+       0.4,
+       0.6
+      ]
+     }
+    },
+    {
+     "t": 0.125,
+     "state": {
+      "view:fg": "#df0020ef",
+      "view:tint": [
+       0.30000000000000004,
+       0.41250000000000003,
+       0.525,
+       0.9375
+      ]
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:fg": "#bf0040df",
+      "view:tint": [
+       0.4,
+       0.42500000000000004,
+       0.44999999999999996,
+       0.875
+      ]
+     }
+    },
+    {
+     "t": 0.375,
+     "state": {
+      "view:fg": "#9f0060cf",
+      "view:tint": [
+       0.5,
+       0.4375,
+       0.375,
+       0.8125
+      ]
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:fg": "#800080c0",
+      "view:tint": [
+       0.6000000000000001,
+       0.45,
+       0.3,
+       0.75
+      ]
+     }
+    },
+    {
+     "t": 0.625,
+     "state": {
+      "view:fg": "#60009fb0",
+      "view:tint": [
+       0.7,
+       0.4625,
+       0.22499999999999998,
+       0.6875
+      ]
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:fg": "#4000bfa0",
+      "view:tint": [
+       0.8,
+       0.475,
+       0.15000000000000002,
+       0.625
+      ]
+     }
+    },
+    {
+     "t": 0.875,
+     "state": {
+      "view:fg": "#2000df90",
+      "view:tint": [
+       0.9000000000000001,
+       0.4875,
+       0.07499999999999996,
+       0.5625
+      ]
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:fg": "#0000ff80",
+      "view:tint": [
+       1,
+       0.5,
+       0,
+       0.5
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "name": "orbit",
+   "description": "Azimuth across 0, elevation lerp, log distance, target lerp, and an extra member that switches at the middle.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "camera",
+      "spec": {
+       "kind": "orbit"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 2.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 2.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 2.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "camera",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": {
+           "azimuth": 340,
+           "elevation": 10,
+           "distance": 2,
+           "target": [
+            0,
+            0,
+            0
+           ],
+           "projection": "perspective"
+          },
+          "easing": null
+         },
+         {
+          "time": 2.0,
+          "value": {
+           "azimuth": 30,
+           "elevation": 60,
+           "distance": 8,
+           "target": [
+            1,
+            2,
+            3
+           ],
+           "projection": "orthographic"
+          },
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:camera": {
+       "azimuth": 340,
+       "elevation": 10,
+       "distance": 2,
+       "target": [
+        0,
+        0,
+        0
+       ],
+       "projection": "perspective"
+      }
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:camera": {
+       "azimuth": 346.25,
+       "elevation": 16.25,
+       "distance": 2.378414230005442,
+       "target": [
+        0.125,
+        0.25,
+        0.375
+       ],
+       "projection": "perspective"
+      }
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:camera": {
+       "azimuth": 352.5,
+       "elevation": 22.5,
+       "distance": 2.8284271247461903,
+       "target": [
+        0.25,
+        0.5,
+        0.75
+       ],
+       "projection": "perspective"
+      }
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:camera": {
+       "azimuth": 358.75,
+       "elevation": 28.75,
+       "distance": 3.363585661014858,
+       "target": [
+        0.375,
+        0.75,
+        1.125
+       ],
+       "projection": "perspective"
+      }
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:camera": {
+       "azimuth": 365.0,
+       "elevation": 35.0,
+       "distance": 4.0,
+       "target": [
+        0.5,
+        1.0,
+        1.5
+       ],
+       "projection": "orthographic"
+      }
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "view:camera": {
+       "azimuth": 371.25,
+       "elevation": 41.25,
+       "distance": 4.756828460010884,
+       "target": [
+        0.625,
+        1.25,
+        1.875
+       ],
+       "projection": "orthographic"
+      }
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "view:camera": {
+       "azimuth": 377.5,
+       "elevation": 47.5,
+       "distance": 5.656854249492381,
+       "target": [
+        0.75,
+        1.5,
+        2.25
+       ],
+       "projection": "orthographic"
+      }
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "view:camera": {
+       "azimuth": 383.75,
+       "elevation": 53.75,
+       "distance": 6.727171322029716,
+       "target": [
+        0.875,
+        1.75,
+        2.625
+       ],
+       "projection": "orthographic"
+      }
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "view:camera": {
+       "azimuth": 30,
+       "elevation": 60,
+       "distance": 8,
+       "target": [
+        1,
+        2,
+        3
+       ],
+       "projection": "orthographic"
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "discrete-and-undeclared",
+   "description": "Discrete fields switch on time under a timing whose progress crosses 0.5 three times; a declared and an overridden switch point; undeclared nested fields.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "mode",
+      "spec": {
+       "kind": "discrete",
+       "switch_at": 0.25
+      }
+     },
+     {
+      "pattern": "x",
+      "spec": {
+       "kind": "number"
+      }
+     },
+     {
+      "pattern": "ui.visible",
+      "spec": {
+       "kind": "discrete",
+       "switch_at": 0.8
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 1.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 1.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "mode",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "one",
+          "easing": "cubic-bezier(0.3, 1.8, 0.7, -0.8)"
+         },
+         {
+          "time": 1.0,
+          "value": "two",
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": "cubic-bezier(0.3, 1.8, 0.7, -0.8)"
+         },
+         {
+          "time": 1.0,
+          "value": 1,
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "ui.panel",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "left",
+          "easing": "cubic-bezier(0.3, 1.8, 0.7, -0.8)"
+         },
+         {
+          "time": 1.0,
+          "value": "right",
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "ui.visible",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": true,
+          "easing": "cubic-bezier(0.3, 1.8, 0.7, -0.8)"
+         },
+         {
+          "time": 1.0,
+          "value": false,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:mode": "one",
+      "view:x": 0,
+      "view:ui.panel": "left",
+      "view:ui.visible": true
+     }
+    },
+    {
+     "t": 0.125,
+     "state": {
+      "view:mode": "one",
+      "view:x": 0.5065334848745094,
+      "view:ui.panel": "left",
+      "view:ui.visible": true
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:mode": "two",
+      "view:x": 0.6661036786807792,
+      "view:ui.panel": "left",
+      "view:ui.visible": true
+     }
+    },
+    {
+     "t": 0.375,
+     "state": {
+      "view:mode": "two",
+      "view:x": 0.6282771787611254,
+      "view:ui.panel": "left",
+      "view:ui.visible": true
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:mode": "two",
+      "view:x": 0.5,
+      "view:ui.panel": "right",
+      "view:ui.visible": true
+     }
+    },
+    {
+     "t": 0.625,
+     "state": {
+      "view:mode": "two",
+      "view:x": 0.37172282123887485,
+      "view:ui.panel": "right",
+      "view:ui.visible": true
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:mode": "two",
+      "view:x": 0.3338963213192206,
+      "view:ui.panel": "right",
+      "view:ui.visible": true
+     }
+    },
+    {
+     "t": 0.875,
+     "state": {
+      "view:mode": "two",
+      "view:x": 0.493466515125491,
+      "view:ui.panel": "right",
+      "view:ui.visible": false
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:mode": "two",
+      "view:x": 1,
+      "view:ui.panel": "right",
+      "view:ui.visible": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "timings",
+   "description": "cubic-bezier with overshoot, and steps with jump-end and jump-none.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "x",
+      "spec": {
+       "kind": "number"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 3.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 3.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 3.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": "cubic-bezier(0.5, -0.8, 0.5, 1.8)"
+         },
+         {
+          "time": 1.0,
+          "value": 10,
+          "easing": "steps(4)"
+         },
+         {
+          "time": 2.0,
+          "value": 20,
+          "easing": "steps(3, jump-none)"
+         },
+         {
+          "time": 3.0,
+          "value": 30,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:x": 0
+     }
+    },
+    {
+     "t": 0.375,
+     "state": {
+      "view:x": 0.9347711695817785
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:x": 5.0
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:x": 11.246793881349538
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:x": 10
+     }
+    },
+    {
+     "t": 1.125,
+     "state": {
+      "view:x": 10.0
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "view:x": 15.0
+     }
+    },
+    {
+     "t": 1.875,
+     "state": {
+      "view:x": 17.5
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "view:x": 20
+     }
+    },
+    {
+     "t": 2.25,
+     "state": {
+      "view:x": 20.0
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "view:x": 25.0
+     }
+    },
+    {
+     "t": 2.625,
+     "state": {
+      "view:x": 25.0
+     }
+    },
+    {
+     "t": 3.0,
+     "state": {
+      "view:x": 30
+     }
+    }
+   ]
+  },
+  {
+   "name": "cuts-dwells-carry-forward",
+   "description": "Sequence defaults, a cut in the middle, dwells, carry-forward of omitted fields and back-fill of a field that appears late.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "x",
+      "spec": {
+       "kind": "number"
+      }
+     },
+     {
+      "pattern": "y",
+      "spec": {
+       "kind": "number"
+      }
+     },
+     {
+      "pattern": "late",
+      "spec": {
+       "kind": "number"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 3.75,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 3.75
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 3.75,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": null
+         },
+         {
+          "time": 0.25,
+          "value": 0,
+          "easing": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+         },
+         {
+          "time": 1.0,
+          "value": 4,
+          "easing": null
+         },
+         {
+          "time": 1.25,
+          "value": 4,
+          "easing": null
+         },
+         {
+          "time": 1.25,
+          "value": 4,
+          "easing": null
+         },
+         {
+          "time": 2.25,
+          "value": 4,
+          "easing": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+         },
+         {
+          "time": 3.5,
+          "value": 1,
+          "easing": null
+         },
+         {
+          "time": 3.75,
+          "value": 1,
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "y",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": null
+         },
+         {
+          "time": 0.25,
+          "value": 0,
+          "easing": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+         },
+         {
+          "time": 1.0,
+          "value": 0,
+          "easing": null
+         },
+         {
+          "time": 1.25,
+          "value": 0,
+          "easing": null
+         },
+         {
+          "time": 1.25,
+          "value": 9,
+          "easing": null
+         },
+         {
+          "time": 2.25,
+          "value": 9,
+          "easing": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+         },
+         {
+          "time": 3.5,
+          "value": 9,
+          "easing": null
+         },
+         {
+          "time": 3.75,
+          "value": 9,
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "late",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 5,
+          "easing": null
+         },
+         {
+          "time": 0.25,
+          "value": 5,
+          "easing": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+         },
+         {
+          "time": 1.0,
+          "value": 5,
+          "easing": null
+         },
+         {
+          "time": 1.25,
+          "value": 5,
+          "easing": null
+         },
+         {
+          "time": 1.25,
+          "value": 5,
+          "easing": null
+         },
+         {
+          "time": 2.25,
+          "value": 5,
+          "easing": "cubic-bezier(0.25, 0.1, 0.25, 1)"
+         },
+         {
+          "time": 3.5,
+          "value": 5,
+          "easing": null
+         },
+         {
+          "time": 3.75,
+          "value": 5,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:x": 0,
+      "view:y": 0,
+      "view:late": 5
+     }
+    },
+    {
+     "t": 0.125,
+     "state": {
+      "view:x": 0.0,
+      "view:y": 0.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:x": 0,
+      "view:y": 0,
+      "view:late": 5
+     }
+    },
+    {
+     "t": 0.46875,
+     "state": {
+      "view:x": 1.986862559956719,
+      "view:y": 0.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 0.625,
+     "state": {
+      "view:x": 3.209613550339428,
+      "view:y": 0.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 0.9375,
+     "state": {
+      "view:x": 3.98438501650297,
+      "view:y": 0.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:x": 4,
+      "view:y": 0,
+      "view:late": 5
+     }
+    },
+    {
+     "t": 1.125,
+     "state": {
+      "view:x": 4.0,
+      "view:y": 0.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "view:x": 4,
+      "view:y": 9,
+      "view:late": 5
+     }
+    },
+    {
+     "t": 1.40625,
+     "state": {
+      "view:x": 4.0,
+      "view:y": 9.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "view:x": 4.0,
+      "view:y": 9.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 1.875,
+     "state": {
+      "view:x": 4.0,
+      "view:y": 9.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 2.25,
+     "state": {
+      "view:x": 4,
+      "view:y": 9,
+      "view:late": 5
+     }
+    },
+    {
+     "t": 2.34375,
+     "state": {
+      "view:x": 3.8197641858047096,
+      "view:y": 9.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 2.8125,
+     "state": {
+      "view:x": 1.756439688495492,
+      "view:y": 9.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 2.875,
+     "state": {
+      "view:x": 1.5927898372454292,
+      "view:y": 9.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 3.28125,
+     "state": {
+      "view:x": 1.0549837997827165,
+      "view:y": 9.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 3.5,
+     "state": {
+      "view:x": 1,
+      "view:y": 9,
+      "view:late": 5
+     }
+    },
+    {
+     "t": 3.625,
+     "state": {
+      "view:x": 1.0,
+      "view:y": 9.0,
+      "view:late": 5.0
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "view:x": 1,
+      "view:y": 9,
+      "view:late": 5
+     }
+    }
+   ]
+  },
+  {
+   "name": "per-field-timing",
+   "description": "A segment-wide timing with per-field overrides on a number and an angle.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "x",
+      "spec": {
+       "kind": "number"
+      }
+     },
+     {
+      "pattern": "y",
+      "spec": {
+       "kind": "number"
+      }
+     },
+     {
+      "pattern": "a",
+      "spec": {
+       "kind": "angle"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 2.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 2.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 2.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": "ease-in"
+         },
+         {
+          "time": 2.0,
+          "value": 1,
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "y",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": "linear"
+         },
+         {
+          "time": 2.0,
+          "value": 1,
+          "easing": null
+         }
+        ]
+       },
+       {
+        "target": "view",
+        "property": "a",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": "steps(3)"
+         },
+         {
+          "time": 2.0,
+          "value": 90,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:x": 0,
+      "view:y": 0,
+      "view:a": 0
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:x": 0.025984596545081142,
+      "view:y": 0.125,
+      "view:a": 0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:x": 0.09346465071882484,
+      "view:y": 0.25,
+      "view:a": 0
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:x": 0.1920219485867129,
+      "view:y": 0.375,
+      "view:a": 30.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:x": 0.31535681257253934,
+      "view:y": 0.5,
+      "view:a": 30.0
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "view:x": 0.45946529280912174,
+      "view:y": 0.625,
+      "view:a": 30.0
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "view:x": 0.621861869173901,
+      "view:y": 0.75,
+      "view:a": 60.0
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "view:x": 0.8014199930223449,
+      "view:y": 0.875,
+      "view:a": 60.0
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "view:x": 1,
+      "view:y": 1,
+      "view:a": 90
+     }
+    }
+   ]
+  },
+  {
+   "name": "loop",
+   "description": "A seamless loop: the last keyframe equals the first.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "spin",
+      "spec": {
+       "kind": "angle"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 3.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 3.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 3.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "spin",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 120,
+          "easing": null
+         },
+         {
+          "time": 2.0,
+          "value": 240,
+          "easing": null
+         },
+         {
+          "time": 3.0,
+          "value": 0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:spin": 0
+     }
+    },
+    {
+     "t": 0.375,
+     "state": {
+      "view:spin": 45.0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:spin": 60.0
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:spin": 90.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:spin": 120
+     }
+    },
+    {
+     "t": 1.125,
+     "state": {
+      "view:spin": 135.0
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "view:spin": 180.0
+     }
+    },
+    {
+     "t": 1.875,
+     "state": {
+      "view:spin": 225.0
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "view:spin": 240
+     }
+    },
+    {
+     "t": 2.25,
+     "state": {
+      "view:spin": 270.0
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "view:spin": 300.0
+     }
+    },
+    {
+     "t": 2.625,
+     "state": {
+      "view:spin": 315.0
+     }
+    },
+    {
+     "t": 3.0,
+     "state": {
+      "view:spin": 0
+     }
+    }
+   ]
+  },
+  {
+   "name": "orbit-overshoot",
+   "description": "An orbit under an overshooting timing: elevation is clamped at the pole, azimuth and distance extrapolate.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "camera",
+      "spec": {
+       "kind": "orbit"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 1.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 1.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "camera",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": {
+           "azimuth": 0,
+           "elevation": 0,
+           "distance": 1
+          },
+          "easing": "cubic-bezier(0.3, 2.2, 0.6, 1.2)"
+         },
+         {
+          "time": 1.0,
+          "value": {
+           "azimuth": 90,
+           "elevation": 80,
+           "distance": 4
+          },
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:camera": {
+       "azimuth": 0,
+       "elevation": 0,
+       "distance": 1
+      }
+     }
+    },
+    {
+     "t": 0.125,
+     "state": {
+      "view:camera": {
+       "azimuth": 66.68690537581874,
+       "elevation": 59.27724922294999,
+       "distance": 2.793223916224287
+      }
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "view:camera": {
+       "azimuth": 105.58807618593487,
+       "elevation": 90.0,
+       "distance": 5.085542539851028
+      }
+     }
+    },
+    {
+     "t": 0.375,
+     "state": {
+      "view:camera": {
+       "azimuth": 123.04982899473292,
+       "elevation": 90.0,
+       "distance": 6.655009125189067
+      }
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:camera": {
+       "azimuth": 125.54655620633116,
+       "elevation": 90.0,
+       "distance": 6.915930980429081
+      }
+     }
+    },
+    {
+     "t": 0.625,
+     "state": {
+      "view:camera": {
+       "azimuth": 119.01350393403642,
+       "elevation": 90.0,
+       "distance": 6.253849633943936
+      }
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "view:camera": {
+       "azimuth": 108.45241942858273,
+       "elevation": 90.0,
+       "distance": 5.314941325216104
+      }
+     }
+    },
+    {
+     "t": 0.875,
+     "state": {
+      "view:camera": {
+       "azimuth": 97.80319767170569,
+       "elevation": 86.93617570818283,
+       "distance": 4.510865883619088
+      }
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:camera": {
+       "azimuth": 90,
+       "elevation": 80,
+       "distance": 4
+      }
+     }
+    }
+   ]
+  },
+  {
+   "name": "manim-rate-functions",
+   "description": "Manim rate functions as segment easings, including two that end where they began.",
+   "origin": "keyframe-sequence",
+   "space": {
+    "name": "inline",
+    "fields": [
+     {
+      "pattern": "x",
+      "spec": {
+       "kind": "number"
+      }
+     }
+    ]
+   },
+   "document": {
+    "timeline": {
+     "duration": 4.0,
+     "tracks": [
+      {
+       "target_root": "view",
+       "clips": [
+        {
+         "animation_id": "sequence",
+         "start_time": 0.0,
+         "duration": 4.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "sequence": {
+      "name": "sequence",
+      "duration": 4.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "view",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0,
+          "easing": "smooth"
+         },
+         {
+          "time": 1.0,
+          "value": 10,
+          "easing": "there_and_back"
+         },
+         {
+          "time": 2.0,
+          "value": 20,
+          "easing": "rush_into"
+         },
+         {
+          "time": 3.0,
+          "value": 30,
+          "easing": "wiggle"
+         },
+         {
+          "time": 4.0,
+          "value": 40,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "view:x": 0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "view:x": 5.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "view:x": 10
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "view:x": 20
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "view:x": 20
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "view:x": 21.402074330902163
+     }
+    },
+    {
+     "t": 3.0,
+     "state": {
+      "view:x": 30
+     }
+    },
+    {
+     "t": 3.5,
+     "state": {
+      "view:x": 30.0
+     }
+    },
+    {
+     "t": 4.0,
+     "state": {
+      "view:x": 40
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-numeric-easings",
+   "description": "Every stage easing and legacy-solver Béziers (one overshooting; three that reach the solver's slope guard and clamps) on a 0 to 10 ramp.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 1.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row0",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row1",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row2",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row3",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row4",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row5",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row6",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row7",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row8",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row9",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row10",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "row0": {
+      "name": "row0",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e0",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": "linear"
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row1": {
+      "name": "row1",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e1",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": "ease"
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row2": {
+      "name": "row2",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e2",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": "ease_in"
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row3": {
+      "name": "row3",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e3",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": "ease_out"
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row4": {
+      "name": "row4",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e4",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": "ease_in_out"
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row5": {
+      "name": "row5",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e5",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": "step"
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row6": {
+      "name": "row6",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e6",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": [
+           0.42,
+           0.0,
+           0.58,
+           1.0
+          ]
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row7": {
+      "name": "row7",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e7",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": [
+           0.5,
+           2.0,
+           0.5,
+           2.0
+          ]
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row8": {
+      "name": "row8",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e8",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": [
+           1.0,
+           0.0,
+           0.0,
+           1.0
+          ]
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row9": {
+      "name": "row9",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e9",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": [
+           0.42,
+           0.0,
+           1.0,
+           1.0
+          ]
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row10": {
+      "name": "row10",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "e10",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": [
+           0.0,
+           0.0,
+           0.58,
+           1.0
+          ]
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "e0:x": 0.0,
+      "e1:x": 0.0,
+      "e2:x": 0.0,
+      "e3:x": 0.0,
+      "e4:x": 0.0,
+      "e5:x": 0.0,
+      "e6:x": 0.0,
+      "e7:x": 0.0,
+      "e8:x": 0.0,
+      "e9:x": 0.0,
+      "e10:x": 0.0
+     }
+    },
+    {
+     "t": 1e-06,
+     "state": {
+      "e0:x": 9.999999999999999e-06,
+      "e1:x": 2e-11,
+      "e2:x": 1e-11,
+      "e3:x": 1.999999000079633e-05,
+      "e4:x": 2e-11,
+      "e5:x": 0.0,
+      "e6:x": 1.8896456037691732e-11,
+      "e7:x": 3.999999999999111e-05,
+      "e8:x": 3.333337037041975e-12,
+      "e9:x": 1.889642604336411e-11,
+      "e10:x": 0.00012661342365742007
+     }
+    },
+    {
+     "t": 0.125,
+     "state": {
+      "e0:x": 1.25,
+      "e1:x": 0.3125,
+      "e2:x": 0.15625,
+      "e3:x": 2.34375,
+      "e4:x": 0.3125,
+      "e5:x": 0.0,
+      "e6:x": 0.3111405008548435,
+      "e7:x": 4.977292732125355,
+      "e8:x": 0.060797776879476274,
+      "e9:x": 0.2598459654508113,
+      "e10:x": 1.9858000697765514
+     }
+    },
+    {
+     "t": 0.146,
+     "state": {
+      "e0:x": 1.46,
+      "e1:x": 0.42632,
+      "e2:x": 0.21316,
+      "e3:x": 2.7068400000000006,
+      "e4:x": 0.42632,
+      "e5:x": 0.0,
+      "e6:x": 0.4277132042606934,
+      "e7:x": 5.8020034022484115,
+      "e8:x": 0.08544733481120718,
+      "e9:x": 0.3477695708690661,
+      "e10:x": 2.299504187469511
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "e0:x": 2.5,
+      "e1:x": 1.25,
+      "e2:x": 0.625,
+      "e3:x": 4.375,
+      "e4:x": 1.25,
+      "e5:x": 0.0,
+      "e6:x": 1.2916193104731981,
+      "e7:x": 9.752859276908652,
+      "e8:x": 0.2972460551192519,
+      "e9:x": 0.9346465071882484,
+      "e10:x": 3.7813813082510976
+     }
+    },
+    {
+     "t": 0.375,
+     "state": {
+      "e0:x": 3.75,
+      "e1:x": 2.8125,
+      "e2:x": 1.40625,
+      "e3:x": 6.09375,
+      "e4:x": 2.8125,
+      "e5:x": 0.0,
+      "e6:x": 2.9277080237678508,
+      "e7:x": 13.832211719225214,
+      "e8:x": 0.9002960628942256,
+      "e9:x": 1.920219485867317,
+      "e10:x": 5.40534707190878
+     }
+    },
+    {
+     "t": 0.4,
+     "state": {
+      "e0:x": 4.0,
+      "e1:x": 3.2000000000000006,
+      "e2:x": 1.6000000000000003,
+      "e3:x": 6.4,
+      "e4:x": 3.2000000000000006,
+      "e5:x": 0.0,
+      "e6:x": 3.3188387009764626,
+      "e7:x": 14.48506687395993,
+      "e8:x": 1.113973392680701,
+      "e9:x": 2.1486093875289334,
+      "e10:x": 5.708802307036828
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "e0:x": 5.0,
+      "e1:x": 5.0,
+      "e2:x": 2.5,
+      "e3:x": 7.5,
+      "e4:x": 5.0,
+      "e5:x": 0.0,
+      "e6:x": 5.0,
+      "e7:x": 16.25,
+      "e8:x": 5.0,
+      "e9:x": 3.1535681257253945,
+      "e10:x": 6.846431874274607
+     }
+    },
+    {
+     "t": 0.501,
+     "state": {
+      "e0:x": 5.01,
+      "e1:x": 5.019979999999999,
+      "e2:x": 2.51001,
+      "e3:x": 7.50999,
+      "e4:x": 5.019979999999999,
+      "e5:x": 0.0,
+      "e6:x": 5.017241335323531,
+      "e7:x": 16.259920000379257,
+      "e8:x": 5.941228009955102,
+      "e9:x": 3.164314519755083,
+      "e10:x": 6.857165050496104
+     }
+    },
+    {
+     "t": 0.625,
+     "state": {
+      "e0:x": 6.25,
+      "e1:x": 7.1875,
+      "e2:x": 3.90625,
+      "e3:x": 8.59375,
+      "e4:x": 7.1875,
+      "e5:x": 0.0,
+      "e6:x": 7.072291976232149,
+      "e7:x": 16.332211719225214,
+      "e8:x": 9.099703937105774,
+      "e9:x": 4.59465292809122,
+      "e10:x": 8.079780514132684
+     }
+    },
+    {
+     "t": 0.66,
+     "state": {
+      "e0:x": 6.6000000000000005,
+      "e1:x": 7.688000000000001,
+      "e2:x": 4.356000000000001,
+      "e3:x": 8.844000000000001,
+      "e4:x": 7.688000000000001,
+      "e5:x": 0.0,
+      "e6:x": 7.588567881358291,
+      "e7:x": 16.008449276994085,
+      "e8:x": 9.329927840030091,
+      "e9:x": 5.031681043633139,
+      "e10:x": 8.382902790317408
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "e0:x": 7.5,
+      "e1:x": 8.75,
+      "e2:x": 5.625,
+      "e3:x": 9.375,
+      "e4:x": 8.75,
+      "e5:x": 0.0,
+      "e6:x": 8.708380689526802,
+      "e7:x": 14.75285927690865,
+      "e8:x": 9.702753944880747,
+      "e9:x": 6.218618691748901,
+      "e10:x": 9.065353492811752
+     }
+    },
+    {
+     "t": 0.875,
+     "state": {
+      "e0:x": 8.75,
+      "e1:x": 9.6875,
+      "e2:x": 7.65625,
+      "e3:x": 9.84375,
+      "e4:x": 9.6875,
+      "e5:x": 0.0,
+      "e6:x": 9.688859499145156,
+      "e7:x": 12.477292732125356,
+      "e8:x": 9.939202223120523,
+      "e9:x": 8.014199930223448,
+      "e10:x": 9.740154034549189
+     }
+    },
+    {
+     "t": 0.999,
+     "state": {
+      "e0:x": 9.99,
+      "e1:x": 9.99998,
+      "e2:x": 9.98001,
+      "e3:x": 9.99999,
+      "e4:x": 9.99998,
+      "e5:x": 0.0,
+      "e6:x": 9.99998109498448,
+      "e7:x": 10.019999991093304,
+      "e8:x": 9.999996662958017,
+      "e9:x": 9.982859943662156,
+      "e10:x": 9.999981124945442
+     }
+    },
+    {
+     "t": 0.999999,
+     "state": {
+      "e0:x": 9.99999,
+      "e1:x": 9.99999999998,
+      "e2:x": 9.99998000001,
+      "e3:x": 9.99999999999,
+      "e4:x": 9.99999999998,
+      "e5:x": 0.0,
+      "e6:x": 9.999999999981103,
+      "e7:x": 10.000020000000003,
+      "e8:x": 9.999999999996666,
+      "e9:x": 9.999873386576336,
+      "e10:x": 9.999999999981103
+     }
+    },
+    {
+     "t": 0.9999999,
+     "state": {
+      "e0:x": 9.999999,
+      "e1:x": 9.999999999999801,
+      "e2:x": 9.999998000000101,
+      "e3:x": 9.9999999999999,
+      "e4:x": 9.999999999999801,
+      "e5:x": 0.0,
+      "e6:x": 9.999999999999812,
+      "e7:x": 10.000001999999999,
+      "e8:x": 9.999999999999966,
+      "e9:x": 9.999883890164105,
+      "e10:x": 9.999999999999812
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "e0:x": 10.0,
+      "e1:x": 10.0,
+      "e2:x": 10.0,
+      "e3:x": 10.0,
+      "e4:x": 10.0,
+      "e5:x": 10.0,
+      "e6:x": 10.0,
+      "e7:x": 10.0,
+      "e8:x": 10.0,
+      "e9:x": 10.0,
+      "e10:x": 10.0
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-large-magnitude-bezier",
+   "description": "Legacy-solver Béziers from 1e9 to 0: a ULP of easing is amplified by the span, so the solver's loop must match exactly.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 2.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row0",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row1",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row2",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "row0": {
+      "name": "row0",
+      "duration": 2.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "b0",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 1.1,
+          "value": 1000000000.0,
+          "easing": [
+           0.42,
+           0.0,
+           0.58,
+           1.0
+          ]
+         },
+         {
+          "time": 1.71,
+          "value": 0.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row1": {
+      "name": "row1",
+      "duration": 2.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "b1",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 1.1,
+          "value": 1000000000.0,
+          "easing": [
+           0.5,
+           2.0,
+           0.5,
+           2.0
+          ]
+         },
+         {
+          "time": 1.71,
+          "value": 0.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row2": {
+      "name": "row2",
+      "duration": 2.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "b2",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 1.1,
+          "value": 1000000000.0,
+          "easing": [
+           0.3,
+           3.0,
+           0.7,
+           0.0
+          ]
+         },
+         {
+          "time": 1.71,
+          "value": 0.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "b0:x": 1000000000.0,
+      "b1:x": 1000000000.0,
+      "b2:x": 1000000000.0
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "b0:x": 1000000000.0,
+      "b1:x": 1000000000.0,
+      "b2:x": 1000000000.0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "b0:x": 1000000000.0,
+      "b1:x": 1000000000.0,
+      "b2:x": 1000000000.0
+     }
+    },
+    {
+     "t": 0.55,
+     "state": {
+      "b0:x": 1000000000.0,
+      "b1:x": 1000000000.0,
+      "b2:x": 1000000000.0
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "b0:x": 1000000000.0,
+      "b1:x": 1000000000.0,
+      "b2:x": 1000000000.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "b0:x": 1000000000.0,
+      "b1:x": 1000000000.0,
+      "b2:x": 1000000000.0
+     }
+    },
+    {
+     "t": 1.1,
+     "state": {
+      "b0:x": 1000000000.0,
+      "b1:x": 1000000000.0,
+      "b2:x": 1000000000.0
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "b0:x": 875143047.0945851,
+      "b1:x": 39661751.53711045,
+      "b2:x": -290730745.75928736
+     }
+    },
+    {
+     "t": 1.405,
+     "state": {
+      "b0:x": 500000000.0,
+      "b1:x": -625000000.0,
+      "b2:x": -250000000.0
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "b0:x": 247214478.63677192,
+      "b1:x": -605396165.7958999,
+      "b2:x": 6938989.673849702
+     }
+    },
+    {
+     "t": 1.7099999989999999,
+     "state": {
+      "b0:x": 0.0,
+      "b1:x": -3.278688669204712,
+      "b2:x": 5.464481592178345
+     }
+    },
+    {
+     "t": 1.71,
+     "state": {
+      "b0:x": 0.0,
+      "b1:x": 0.0,
+      "b2:x": 0.0
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "b0:x": 0.0,
+      "b1:x": 0.0,
+      "b2:x": 0.0
+     }
+    },
+    {
+     "t": 1.855,
+     "state": {
+      "b0:x": 0.0,
+      "b1:x": 0.0,
+      "b2:x": 0.0
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "b0:x": 0.0,
+      "b1:x": 0.0,
+      "b2:x": 0.0
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-86-boundary",
+   "description": "A swap held on time: at the float just below the second key, (t - a) / span rounds to 1.0, and the first key still shows.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row0",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "row0": {
+      "name": "row0",
+      "duration": 10.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "hand",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.1524221856720187,
+          "value": "A",
+          "easing": "step"
+         },
+         {
+          "time": 9.767899248713501,
+          "value": "B",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 0.07621109283600935,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 0.1524221856720187,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 4.96016071719276,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 9.7678992487135,
+     "state": {
+      "hand:hands": "A"
+     }
+    },
+    {
+     "t": 9.767899248713501,
+     "state": {
+      "hand:hands": "B"
+     }
+    },
+    {
+     "t": 9.88394962435675,
+     "state": {
+      "hand:hands": "B"
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "hand:hands": "B"
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-swap-holds-under-any-easing",
+   "description": "A swap set holds its first key for the whole segment under every easing, overshooting Béziers included, and switches exactly at the second key.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 1.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row0",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row1",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row2",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row3",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row4",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row5",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row6",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row7",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "row0": {
+      "name": "row0",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "s0",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": "linear"
+         },
+         {
+          "time": 1.0,
+          "value": "B",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row1": {
+      "name": "row1",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "s1",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": "ease"
+         },
+         {
+          "time": 1.0,
+          "value": "B",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row2": {
+      "name": "row2",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "s2",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": "ease_in"
+         },
+         {
+          "time": 1.0,
+          "value": "B",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row3": {
+      "name": "row3",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "s3",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": "ease_out"
+         },
+         {
+          "time": 1.0,
+          "value": "B",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row4": {
+      "name": "row4",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "s4",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": "ease_in_out"
+         },
+         {
+          "time": 1.0,
+          "value": "B",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row5": {
+      "name": "row5",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "s5",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": "step"
+         },
+         {
+          "time": 1.0,
+          "value": "B",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row6": {
+      "name": "row6",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "s6",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": [
+           0.5,
+           2.0,
+           0.5,
+           2.0
+          ]
+         },
+         {
+          "time": 1.0,
+          "value": "B",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row7": {
+      "name": "row7",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "s7",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": [
+           0.3,
+           3.0,
+           0.7,
+           0.0
+          ]
+         },
+         {
+          "time": 1.0,
+          "value": "B",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.125,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.146,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.257,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.375,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.625,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.652,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.875,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.999,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.9999999,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 0.9999999999999999,
+     "state": {
+      "s0:hands": "A",
+      "s1:hands": "A",
+      "s2:hands": "A",
+      "s3:hands": "A",
+      "s4:hands": "A",
+      "s5:hands": "A",
+      "s6:hands": "A",
+      "s7:hands": "A"
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "s0:hands": "B",
+      "s1:hands": "B",
+      "s2:hands": "B",
+      "s3:hands": "B",
+      "s4:hands": "B",
+      "s5:hands": "B",
+      "s6:hands": "B",
+      "s7:hands": "B"
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-swap-shapes",
+   "description": "A three-key viseme track, duplicate-time keys (the later wins), a single-key channel, and booleans held like any swap value.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 1.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row0",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row1",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row2",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "row3",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "row0": {
+      "name": "row0",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "mouth",
+        "property": "viseme",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "X",
+          "easing": "step"
+         },
+         {
+          "time": 0.4,
+          "value": "C",
+          "easing": "step"
+         },
+         {
+          "time": 1.0,
+          "value": "X",
+          "easing": "step"
+         }
+        ]
+       }
+      ]
+     },
+     "row1": {
+      "name": "row1",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "hand",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": "step"
+         },
+         {
+          "time": 0.5,
+          "value": "B",
+          "easing": "step"
+         },
+         {
+          "time": 0.5,
+          "value": "C",
+          "easing": "step"
+         },
+         {
+          "time": 1.0,
+          "value": "D",
+          "easing": "step"
+         }
+        ]
+       }
+      ]
+     },
+     "row2": {
+      "name": "row2",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "lone",
+        "property": "hands",
+        "keyframes": [
+         {
+          "time": 0.25,
+          "value": "only",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "row3": {
+      "name": "row3",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "flag",
+        "property": "visible",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": true,
+          "easing": "linear"
+         },
+         {
+          "time": 1.0,
+          "value": false,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "mouth:viseme": "X",
+      "hand:hands": "A",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.125,
+     "state": {
+      "mouth:viseme": "X",
+      "hand:hands": "A",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "mouth:viseme": "X",
+      "hand:hands": "A",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.325,
+     "state": {
+      "mouth:viseme": "X",
+      "hand:hands": "A",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.375,
+     "state": {
+      "mouth:viseme": "X",
+      "hand:hands": "A",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.399,
+     "state": {
+      "mouth:viseme": "X",
+      "hand:hands": "A",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.4,
+     "state": {
+      "mouth:viseme": "C",
+      "hand:hands": "A",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.45,
+     "state": {
+      "mouth:viseme": "C",
+      "hand:hands": "A",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.499,
+     "state": {
+      "mouth:viseme": "C",
+      "hand:hands": "A",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "mouth:viseme": "C",
+      "hand:hands": "C",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.625,
+     "state": {
+      "mouth:viseme": "C",
+      "hand:hands": "C",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "mouth:viseme": "C",
+      "hand:hands": "C",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 0.875,
+     "state": {
+      "mouth:viseme": "C",
+      "hand:hands": "C",
+      "lone:hands": "only",
+      "flag:visible": true
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "mouth:viseme": "X",
+      "hand:hands": "D",
+      "lone:hands": "only",
+      "flag:visible": false
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-held-end-value",
+   "description": "A clip placed at 0.5: at rest before, active during, its end value held after.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "ramp",
+         "start_time": 0.5,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "ramp": {
+      "name": "ramp",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {}
+    },
+    {
+     "t": 0.25,
+     "state": {}
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "a:x": 7.5
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 5.75,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "a:x": 10.0
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-swap-write-group",
+   "description": "viseme and viseme@happy share one write group: only the most recently written shows.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "plain",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        },
+        {
+         "animation_id": "happy",
+         "start_time": 1.5,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        },
+        {
+         "animation_id": "plain",
+         "start_time": 2.5,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "plain": {
+      "name": "plain",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "m",
+        "property": "viseme",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "A",
+          "easing": "step"
+         },
+         {
+          "time": 0.5,
+          "value": "X",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "happy": {
+      "name": "happy",
+      "duration": 0.5,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "m",
+        "property": "viseme@happy",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "D",
+          "easing": "step"
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "m:viseme": "A"
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "m:viseme": "A"
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "m:viseme@happy": "D"
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "m:viseme@happy": "D"
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "m:viseme@happy": "D"
+     }
+    },
+    {
+     "t": 2.25,
+     "state": {
+      "m:viseme@happy": "D"
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "m:viseme": "A"
+     }
+    },
+    {
+     "t": 2.75,
+     "state": {
+      "m:viseme": "A"
+     }
+    },
+    {
+     "t": 3.0,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 3.25,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 3.5,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 6.75,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "m:viseme": "X"
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "m:viseme": "X"
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-alias-write-group",
+   "description": "rotation_rad writes rotation: the later write of the two shows.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "r",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        },
+        {
+         "animation_id": "rot",
+         "start_time": 1.25,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "r": {
+      "name": "r",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "rotation",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 3.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "rot": {
+      "name": "rot",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "rotation_rad",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 1.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "a:rotation": 0.0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "a:rotation": 1.5
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "a:rotation": 3.0
+     }
+    },
+    {
+     "t": 1.125,
+     "state": {
+      "a:rotation": 3.0
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "a:rotation_rad": 0.0
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "a:rotation_rad": 0.5
+     }
+    },
+    {
+     "t": 2.25,
+     "state": {
+      "a:rotation_rad": 1.0
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "a:rotation_rad": 1.0
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "a:rotation_rad": 1.0
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "a:rotation_rad": 1.0
+     }
+    },
+    {
+     "t": 6.125,
+     "state": {
+      "a:rotation_rad": 1.0
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "a:rotation_rad": 1.0
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "a:rotation_rad": 1.0
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "a:rotation_rad": 1.0
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "a:rotation_rad": 1.0
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-speed",
+   "description": "A clip at double speed occupies half its duration.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "ramp",
+         "start_time": 0.5,
+         "duration": null,
+         "speed": 2.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "ramp": {
+      "name": "ramp",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {}
+    },
+    {
+     "t": 0.25,
+     "state": {}
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 5.5,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "a:x": 10.0
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-loop",
+   "description": "A looping clip whose window ends mid-cycle holds the value at the window's end.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "loop",
+         "start_time": 0.0,
+         "duration": 2.5,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "loop": {
+      "name": "loop",
+      "duration": 1.0,
+      "loop_mode": "loop",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "a:x": 2.5
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 2.25,
+     "state": {
+      "a:x": 2.5
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "a:x": 5.0
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-ping-pong",
+   "description": "A ping-pong clip bounces over its duration.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "pp",
+         "start_time": 0.25,
+         "duration": 1.6,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "pp": {
+      "name": "pp",
+      "duration": 1.0,
+      "loop_mode": "ping_pong",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {}
+    },
+    {
+     "t": 0.125,
+     "state": {}
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 0.75,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "a:x": 10.0
+     }
+    },
+    {
+     "t": 1.55,
+     "state": {
+      "a:x": 7.0
+     }
+    },
+    {
+     "t": 1.85,
+     "state": {
+      "a:x": 3.999999999999999
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "a:x": 3.999999999999999
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "a:x": 3.999999999999999
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "a:x": 3.999999999999999
+     }
+    },
+    {
+     "t": 5.925,
+     "state": {
+      "a:x": 3.999999999999999
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "a:x": 3.999999999999999
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "a:x": 3.999999999999999
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "a:x": 3.999999999999999
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "a:x": 3.999999999999999
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-step-swap-clip",
+   "description": "A step swap clip placed at 1.0.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "swap",
+         "start_time": 1.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "swap": {
+      "name": "swap",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "view",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": "FRONT",
+          "easing": "step"
+         },
+         {
+          "time": 0.5,
+          "value": "SIDE",
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {}
+    },
+    {
+     "t": 0.5,
+     "state": {}
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "a:view": "FRONT"
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "a:view": "FRONT"
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 1.75,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 6.0,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "a:view": "SIDE"
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "a:view": "SIDE"
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-playing-beats-held",
+   "description": "A clip still playing on an earlier track beats one that ended on a later track.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "long",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "short",
+         "start_time": 0.5,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "long": {
+      "name": "long",
+      "duration": 4.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 4.0,
+          "value": 100.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "short": {
+      "name": "short",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": -1.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 0.25,
+     "state": {
+      "a:x": 6.25
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "a:x": -0.5
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "a:x": -0.75
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "a:x": -1.0
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "a:x": 62.5
+     }
+    },
+    {
+     "t": 2.75,
+     "state": {
+      "a:x": 68.75
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "a:x": 93.75
+     }
+    },
+    {
+     "t": 4.0,
+     "state": {
+      "a:x": 100.0
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "a:x": 100.0
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "a:x": 100.0
+     }
+    },
+    {
+     "t": 7.0,
+     "state": {
+      "a:x": 100.0
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "a:x": 100.0
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "a:x": 100.0
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "a:x": 100.0
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-latest-end-and-tie",
+   "description": "The latest end holds; a tie goes to the later clip; another property is independent.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 10.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "late",
+         "start_time": 1.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        },
+        {
+         "animation_id": "early",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        },
+        {
+         "animation_id": "tie",
+         "start_time": 1.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        },
+        {
+         "animation_id": "y",
+         "start_time": 2.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "late": {
+      "name": "late",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 2.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "early": {
+      "name": "early",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 1.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "tie": {
+      "name": "tie",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 3.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "y": {
+      "name": "y",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "y",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 7.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "a:x": 0.5
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 1.25,
+     "state": {
+      "a:x": 0.75
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "a:x": 1.5
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "a:x": 3.0,
+      "a:y": 0.0
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "a:y": 3.5,
+      "a:x": 3.0
+     }
+    },
+    {
+     "t": 3.0,
+     "state": {
+      "a:y": 7.0,
+      "a:x": 3.0
+     }
+    },
+    {
+     "t": 3.75,
+     "state": {
+      "a:x": 3.0,
+      "a:y": 7.0
+     }
+    },
+    {
+     "t": 5.0,
+     "state": {
+      "a:x": 3.0,
+      "a:y": 7.0
+     }
+    },
+    {
+     "t": 6.25,
+     "state": {
+      "a:x": 3.0,
+      "a:y": 7.0
+     }
+    },
+    {
+     "t": 6.5,
+     "state": {
+      "a:x": 3.0,
+      "a:y": 7.0
+     }
+    },
+    {
+     "t": 7.5,
+     "state": {
+      "a:x": 3.0,
+      "a:y": 7.0
+     }
+    },
+    {
+     "t": 8.75,
+     "state": {
+      "a:x": 3.0,
+      "a:y": 7.0
+     }
+    },
+    {
+     "t": 10.0,
+     "state": {
+      "a:x": 3.0,
+      "a:y": 7.0
+     }
+    }
+   ]
+  },
+  {
+   "name": "an-cross-track-inclusive-end",
+   "description": "A clip is active on [start, end] inclusive: at a shared instant the later track wins, whether its clip starts or ends there.",
+   "origin": "an",
+   "space": "stage.node",
+   "document": {
+    "timeline": {
+     "duration": 4.0,
+     "tracks": [
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "up",
+         "start_time": 0.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "down",
+         "start_time": 1.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "late_start",
+         "start_time": 3.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      },
+      {
+       "target_root": "",
+       "clips": [
+        {
+         "animation_id": "ends",
+         "start_time": 2.0,
+         "duration": null,
+         "speed": 1.0,
+         "blend_in": 0.0,
+         "blend_out": 0.0
+        }
+       ]
+      }
+     ]
+    },
+    "animations": {
+     "up": {
+      "name": "up",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "down": {
+      "name": "down",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "a",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 20.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 30.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "late_start": {
+      "name": "late_start",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "b",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 20.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 30.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     },
+     "ends": {
+      "name": "ends",
+      "duration": 1.0,
+      "loop_mode": "once",
+      "channels": [
+       {
+        "target": "b",
+        "property": "x",
+        "keyframes": [
+         {
+          "time": 0.0,
+          "value": 0.0,
+          "easing": null
+         },
+         {
+          "time": 1.0,
+          "value": 10.0,
+          "easing": null
+         }
+        ]
+       }
+      ]
+     }
+    }
+   },
+   "samples": [
+    {
+     "t": 0.0,
+     "state": {
+      "a:x": 0.0
+     }
+    },
+    {
+     "t": 0.5,
+     "state": {
+      "a:x": 5.0
+     }
+    },
+    {
+     "t": 1.0,
+     "state": {
+      "a:x": 20.0
+     }
+    },
+    {
+     "t": 1.0000000000000002,
+     "state": {
+      "a:x": 20.000000000000004
+     }
+    },
+    {
+     "t": 1.5,
+     "state": {
+      "a:x": 25.0
+     }
+    },
+    {
+     "t": 2.0,
+     "state": {
+      "a:x": 30.0,
+      "b:x": 0.0
+     }
+    },
+    {
+     "t": 2.5,
+     "state": {
+      "b:x": 5.0,
+      "a:x": 30.0
+     }
+    },
+    {
+     "t": 3.0,
+     "state": {
+      "b:x": 10.0,
+      "a:x": 30.0
+     }
+    },
+    {
+     "t": 3.0000000000000004,
+     "state": {
+      "b:x": 20.000000000000004,
+      "a:x": 30.0
+     }
+    },
+    {
+     "t": 3.5,
+     "state": {
+      "b:x": 25.0,
+      "a:x": 30.0
+     }
+    },
+    {
+     "t": 4.0,
+     "state": {
+      "b:x": 30.0,
+      "a:x": 30.0
+     }
+    }
+   ]
+  }
+ ]
+}

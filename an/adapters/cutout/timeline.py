@@ -1,20 +1,10 @@
-"""Timeline: tracks of placed clips with absolute times and blend ramps.
+"""Stage timeline helpers: the compiled scene as a `Timeline`, and screen space.
 
-A `Timeline` is a flat description of *what plays when*. It's the canonical
-form passed downstream to the JS runtime in Phase 2B. Authoring composition
-trees from `an.ir.compose` (sequence/parallel/etc.) get *flattened into* a
-Timeline by `compile_shot` (see `compile.py`).
-
-Evaluation semantics in Phase 2A:
-
-- For each track, identify all clips active at time ``t``.
-- Each active clip produces a `Pose`.
-- Clips on **the same track** override each other in start-order (later wins).
-- Clips on **different tracks** merge with later-track override semantics
-  (track order in the list determines priority — last track wins on conflict).
-- ``blend_in`` and ``blend_out`` ramps are recorded but **not yet applied** to
-  pose values in 2A — the timeline produces the raw Pose and the renderer
-  decides what to do with the ramps. Additive blending lands in 2B.
+The evaluation itself — tracks of placed clips, write groups, the pure pose —
+moved to :mod:`an.timing.timeline` (the timing kernel). This module re-exports
+it so every existing caller keeps its import path, and keeps what is the STAGE's
+own: reading a compiled ``CutoutSceneJSON`` (:func:`timeline_from_scene`) and
+composing node transforms into canvas positions (:func:`screen_position`).
 
 >>> from an.adapters.cutout.channel import Channel, Keyframe
 >>> from an.adapters.cutout.clip import Clip
@@ -28,216 +18,57 @@ Evaluation semantics in Phase 2A:
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from an.adapters.cutout.channel import Channel, Keyframe
-from an.adapters.cutout.clip import Clip, LoopMode, Pose, merge_poses
-from an.adapters.cutout.clip import evaluate as _evaluate_clip
-
 from an.adapters.cutout.serialize import TransformJSON
-from an.base import TRANSFORM_PROPERTIES
+from an.timing.channel import Channel, Keyframe
+from an.timing.clip import Clip, LoopMode, Pose, merge_poses
+from an.timing.timeline import (
+    SWAP_WRITE_GROUP,
+    PlacedClip,
+    Timeline,
+    Track,
+    clip_from_json,
+    evaluate_timeline,
+    timeline_from_compiled,
+    write_group,
+)
 
 if TYPE_CHECKING:  # pragma: no cover - types only
-    from an.adapters.cutout.serialize import (
-        AnimationClipJSON,
-        CutoutSceneJSON,
-        NodeJSON,
-    )
+    from an.adapters.cutout.serialize import CutoutSceneJSON, NodeJSON
 
-
-@dataclass(slots=True)
-class PlacedClip:
-    """A clip placed at an absolute time on a track."""
-
-    clip: Clip
-    start_time: float = 0.0
-    duration: float | None = None  # override; None = clip's natural duration
-    speed: float = 1.0
-    blend_in: float = 0.0
-    blend_out: float = 0.0
-
-    def __post_init__(self) -> None:
-        if self.speed <= 0:
-            raise ValueError(f"PlacedClip speed must be > 0; got {self.speed}")
-        if self.blend_in < 0 or self.blend_out < 0:
-            raise ValueError("blend_in/out must be non-negative")
-
-    @property
-    def effective_duration(self) -> float:
-        """Duration this clip occupies on the timeline (after speed scaling)."""
-        natural = self.duration if self.duration is not None else self.clip.duration
-        return natural / self.speed
-
-    @property
-    def end_time(self) -> float:
-        return self.start_time + self.effective_duration
-
-
-@dataclass(slots=True)
-class Track:
-    """A sequence of placed clips that share a common purpose / target prefix.
-
-    ``target_root`` is informational metadata for downstream tools (the JS
-    runtime can use it to scope rendering); evaluation does not filter by it.
-    """
-
-    target_root: str = ""
-    clips: list[PlacedClip] = field(default_factory=list)
-
-
-@dataclass(slots=True)
-class Timeline:
-    """A duration + ordered list of tracks. The canonical playback structure."""
-
-    duration: float
-    tracks: list[Track] = field(default_factory=list)
-
-
-#: The group a property WRITES, on its node: two keys in one group set the same
-#: thing, so only the more recently written can be showing. Every swap set on a
-#: node swaps the one visual it carries (``viseme`` and ``viseme@happy`` both set
-#: the mouth's texture, an#88), and ``rotation_rad`` is ``rotation``. Every other
-#: runtime property (:data:`an.base.TRANSFORM_PROPERTIES`, the runtime's own
-#: switch) writes only itself.
-SWAP_WRITE_GROUP: str = "<swap>"
-_SHARED_WRITES: dict[str, str] = {"rotation_rad": "rotation"}
-
-
-def write_group(prop: str) -> str:
-    """What ``prop`` writes on its node — see :data:`SWAP_WRITE_GROUP`.
-
-    >>> write_group("x"), write_group("rotation_rad"), write_group("viseme@happy")
-    ('x', 'rotation', '<swap>')
-    """
-    if prop in TRANSFORM_PROPERTIES:
-        return _SHARED_WRITES.get(prop, prop)
-    return SWAP_WRITE_GROUP
-
-
-def evaluate_timeline(timeline: Timeline, t: float) -> Pose:
-    """Evaluate ``timeline`` at time ``t``, merging poses across tracks/clips.
-
-    The result is a PURE function of ``t`` (an#185): what a node shows at ``t``
-    never depends on which instants were evaluated before it. Per
-    ``(target, property)``:
-
-    - **Active** — some clip writing it is playing at ``t`` (inclusive end:
-      a clip at ``[s, e]`` is active at ``t == e`` too, so the final frame of
-      "play this from 0 to 1 s" is visible at 1.0). Later wins: track order,
-      then clip order within a track. Written at ``t``.
-    - **Held** — no clip writing it is playing, but one has ended: the value
-      the clip reached AT ITS END holds. The latest end wins; a tie goes to
-      the later clip, the same "later wins" as above. Written at that end.
-    - **At rest** — nothing writing it has started yet. The key is ABSENT from
-      the pose, and its value is the node's own (``transform_of`` reads it
-      from the document; ``runtime.js`` restores what it built).
-
-    Keys that write the same thing on one node (:func:`write_group`: the swap
-    sets of one visual, ``rotation``/``rotation_rad``) keep only the most
-    recently WRITTEN — an ended ``viseme@happy`` span does not outlive the
-    ``viseme`` track that took the mouth back.
-
-    Forward-order rendering used to show the value at the clip's last SAMPLED
-    frame instead (the runtime kept whatever it last applied). The two agree
-    whenever a clip ends on the frame grid — true of every golden-corpus clip
-    — and differ when it ends between frames: a 0.37 s tween to 10 at 24 fps
-    used to stop at 9.80 and now lands on 10, as authored. That landing is
-    deliberate (it is the bug the motion presets' settling ``set`` patched one
-    preset at a time), and it is what makes the pose independent of the grid.
-    Also deliberate: a clip shorter than a frame that no frame lands in now
-    leaves its end value, and a held descendant tint stays on top of an
-    ancestor's later tint (the more specific target wins, as it always did
-    while both played).
-
-    ``runtime.js::evaluateTimeline`` is a port of this function and
-    ``tests/test_pure_pose.py`` holds the two to it.
-
-    >>> from an.adapters.cutout.channel import Channel, Keyframe
-    >>> from an.adapters.cutout.clip import Clip
-    >>> ch = Channel("a", "x", [Keyframe(0.0, 0.0), Keyframe(1.0, 10.0)])
-    >>> tl = Timeline(2.0, [Track("a", [PlacedClip(Clip("m", 1.0, [ch]), 0.5)])])
-    >>> evaluate_timeline(tl, 0.0)  # not started: at rest, so absent
-    {}
-    >>> evaluate_timeline(tl, 1.0)[("a", "x")]  # active
-    5.0
-    >>> evaluate_timeline(tl, 1.75)[("a", "x")]  # ended: its end value holds
-    10.0
-    """
-    written: dict[tuple[str, str], tuple[float, Any]] = {}  # key -> (when, value)
-    held: dict[tuple[str, str], tuple[float, Any]] = {}
-    for track in timeline.tracks:
-        for placed in track.clips:
-            end = placed.end_time
-            if placed.start_time <= t <= end:
-                local_t = (t - placed.start_time) * placed.speed
-                for key, value in _evaluate_clip(placed.clip, local_t).items():
-                    written[key] = (t, value)
-            elif t > end:
-                end_pose = _evaluate_clip(
-                    placed.clip, (end - placed.start_time) * placed.speed
-                )
-                for key, value in end_pose.items():
-                    if key not in held or end >= held[key][0]:
-                        held[key] = (end, value)
-    for key, entry in held.items():
-        written.setdefault(key, entry)
-    latest: dict[tuple[str, str], float] = {}
-    for (target, prop), (when, _) in written.items():
-        group = (target, write_group(prop))
-        latest[group] = max(latest.get(group, when), when)
-    return {
-        key: value
-        for key, (when, value) in written.items()
-        if when >= latest[(key[0], write_group(key[1]))]
-    }
-
-
-def clip_from_json(anim: AnimationClipJSON, *, name: str | None = None) -> Clip:
-    """One compiled animation (``AnimationClipJSON``) as an evaluable :class:`Clip`.
-
-    Two fields are carried rather than defaulted, and both have cost a bug:
-    ``loop_mode`` (without it every loop evaluated as ``once`` — an#7) and a
-    list-valued ``easing``, which is a cubic-bezier control quadruple and must
-    stay a tuple for ``Keyframe``. The compiler reads a from-less tween's
-    start through this too (an#212), so it evaluates exactly what the
-    runtime will.
-    """
-    return Clip(
-        anim.name if name is None else name,
-        duration=anim.duration,
-        loop_mode=LoopMode(anim.loop_mode),
-        channels=[
-            Channel(
-                ch.target,
-                ch.property,
-                [
-                    Keyframe(
-                        k.time,
-                        k.value,
-                        tuple(k.easing) if isinstance(k.easing, list) else k.easing,
-                    )
-                    for k in ch.keyframes
-                ],
-            )
-            for ch in anim.channels
-        ],
-    )
+__all__ = [
+    "Channel",
+    "Keyframe",
+    "Clip",
+    "LoopMode",
+    "Pose",
+    "merge_poses",
+    "PlacedClip",
+    "Track",
+    "Timeline",
+    "SWAP_WRITE_GROUP",
+    "write_group",
+    "evaluate_timeline",
+    "clip_from_json",
+    "timeline_from_scene",
+    "Transform2D",
+    "transform_of",
+    "screen_position",
+]
 
 
 def timeline_from_scene(scene: CutoutSceneJSON) -> Timeline:
-    """The compiled scene's `timeline`/`animations` as this module's `Timeline`.
+    """The compiled scene's `timeline`/`animations` as an evaluable `Timeline`.
 
     `compile_shot` produces a serialisable document (`an.adapters.cutout.serialize`)
     for the JS runtime; this rebuilds the *evaluable* form, so a caller can ask
     what a compiled scene's pose is at time `t` without a browser. It is the
     Python side of the parity contract: `evaluate_timeline` over this object is
-    the executable spec `runtime.js` is tested against.
-
-    Two fields are carried rather than defaulted, and both have cost a bug:
-    `loop_mode` (without it every loop evaluated as `once` — an#7) and a
-    list-valued `easing`, which is a cubic-bezier control quadruple and must
-    stay a tuple for `Keyframe`.
+    the executable spec `runtime.js` is tested against. The reading itself is the
+    kernel's (:func:`an.timing.timeline.timeline_from_compiled`), which carries
+    `loop_mode` and keeps a list-valued `easing` a tuple.
 
     >>> from an.adapters.cutout.compile import compile_shot
     >>> from an.ir.compose import tween
@@ -248,32 +79,7 @@ def timeline_from_scene(scene: CutoutSceneJSON) -> Timeline:
     >>> evaluate_timeline(timeline_from_scene(scene), 0.5)[("root", "x")]
     5.0
     """
-    clips = {aid: clip_from_json(a, name=aid) for aid, a in scene.animations.items()}
-    return Timeline(
-        duration=scene.timeline.duration,
-        tracks=[
-            Track(
-                t.target_root,
-                [
-                    PlacedClip(
-                        clips[p.animation_id],
-                        p.start_time,
-                        p.duration,
-                        p.speed,
-                        # Carried for the same reason as `target_root`: nothing
-                        # reads them YET (`evaluate_timeline` records the ramps
-                        # and does not apply them — additive blending is 2B),
-                        # and a reader that quietly drops a field it was handed
-                        # is a lossy "rebuilds the evaluable form".
-                        p.blend_in,
-                        p.blend_out,
-                    )
-                    for p in t.clips
-                ],
-            )
-            for t in scene.timeline.tracks
-        ],
-    )
+    return timeline_from_compiled(scene)
 
 
 # --- screen space -------------------------------------------------------------

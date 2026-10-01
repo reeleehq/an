@@ -1,0 +1,188 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "https://raw.githubusercontent.com/thorwhalen/an/main/an/data/timing/compiled.schema.json",
+ "title": "an compiled timeline",
+ "description": "The compiled evaluation form, as runtime.js consumes it: tracks of placed clips (a clip is active on [start, end] inclusive; later wins by track then clip order; an ended clip's final value holds; an unstarted property is at rest and absent), clips with a loop mode, channels of keyframes (half-open segments, easing on the leaving key). Other top-level members (an engine's scene tree) are allowed.",
+ "type": "object",
+ "required": [
+  "timeline",
+  "animations"
+ ],
+ "properties": {
+  "timeline": {
+   "$ref": "#/$defs/timeline"
+  },
+  "animations": {
+   "type": "object",
+   "additionalProperties": {
+    "$ref": "#/$defs/animation"
+   }
+  }
+ },
+ "$defs": {
+  "easing": {
+   "description": "null (linear), a name or parametrised spec from easing.json, or a 4-number cubic-Bezier control list solved by an's legacy solver. The schema does NOT check names (the registry is open); an evaluator refuses an unknown one",
+   "anyOf": [
+    {
+     "type": "null"
+    },
+    {
+     "type": "string",
+     "minLength": 1
+    },
+    {
+     "type": "array",
+     "items": {
+      "type": "number"
+     },
+     "minItems": 4,
+     "maxItems": 4
+    }
+   ]
+  },
+  "timeline": {
+   "type": "object",
+   "required": [
+    "duration"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "duration": {
+     "type": "number",
+     "minimum": 0
+    },
+    "tracks": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/track"
+     }
+    }
+   }
+  },
+  "track": {
+   "type": "object",
+   "additionalProperties": false,
+   "properties": {
+    "target_root": {
+     "type": "string"
+    },
+    "clips": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/placed_clip"
+     }
+    }
+   }
+  },
+  "placed_clip": {
+   "type": "object",
+   "required": [
+    "animation_id"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "animation_id": {
+     "type": "string"
+    },
+    "start_time": {
+     "type": "number"
+    },
+    "duration": {
+     "anyOf": [
+      {
+       "type": "null"
+      },
+      {
+       "type": "number",
+       "exclusiveMinimum": 0
+      }
+     ]
+    },
+    "speed": {
+     "type": "number",
+     "exclusiveMinimum": 0
+    },
+    "blend_in": {
+     "type": "number",
+     "minimum": 0
+    },
+    "blend_out": {
+     "type": "number",
+     "minimum": 0
+    }
+   }
+  },
+  "animation": {
+   "type": "object",
+   "required": [
+    "duration"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "name": {
+     "type": "string"
+    },
+    "duration": {
+     "type": "number",
+     "exclusiveMinimum": 0
+    },
+    "loop_mode": {
+     "enum": [
+      "once",
+      "loop",
+      "ping_pong"
+     ]
+    },
+    "channels": {
+     "type": "array",
+     "items": {
+      "$ref": "#/$defs/channel"
+     }
+    }
+   }
+  },
+  "channel": {
+   "type": "object",
+   "required": [
+    "target",
+    "property",
+    "keyframes"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "target": {
+     "type": "string",
+     "minLength": 1
+    },
+    "property": {
+     "type": "string",
+     "minLength": 1
+    },
+    "keyframes": {
+     "type": "array",
+     "minItems": 1,
+     "items": {
+      "$ref": "#/$defs/keyframe"
+     }
+    }
+   }
+  },
+  "keyframe": {
+   "type": "object",
+   "required": [
+    "time",
+    "value"
+   ],
+   "additionalProperties": false,
+   "properties": {
+    "time": {
+     "type": "number"
+    },
+    "value": {},
+    "easing": {
+     "$ref": "#/$defs/easing"
+    }
+   }
+  }
+ }
+}

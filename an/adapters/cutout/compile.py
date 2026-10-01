@@ -1137,6 +1137,7 @@ def compile_shot(
     # After EVERY emission pass, so no channel reaches the runtime's frame loop
     # naming a node it will not find (an#193).
     _check_channel_targets(animations, vocab.paths, shot_id=shot.id)
+    _check_keyframe_easings(animations, shot_id=shot.id)
     # AFTER action + viseme compilation, deliberately: a swap key the timeline
     # actually USES whose art is missing is recorded as a fallback during
     # those passes (usage-aware escalation, an#87), and this is the one place
@@ -3697,6 +3698,24 @@ def _check_default_easing(spec: Any) -> None:
         apply_easing(spec, 0.5)
     except (ValueError, TypeError) as e:
         raise CutoutCompileError(f"meta.default_easing {spec!r}: {e}") from e
+
+
+def _check_keyframe_easings(
+    animations: dict[str, AnimationClipJSON], *, shot_id: str
+) -> None:
+    """Refuse any keyframe easing the stage runtime cannot draw (an#233 review,
+    S1): what compiles is what ``runtime.js`` can evaluate, instead of a throw
+    in the browser."""
+    for anim_id, anim in animations.items():
+        for ch in anim.channels:
+            for k in ch.keyframes:
+                try:
+                    apply_easing(k.easing, 0.5)
+                except (ValueError, TypeError) as e:
+                    raise CutoutCompileError(
+                        f"shot {shot_id!r}: {ch.target}:{ch.property} keyframe at "
+                        f"t={k.time} in {anim_id!r}: {e}"
+                    ) from e
 
 
 def _expand_preset_plays(

@@ -105,6 +105,7 @@ One extension point already has the right shape: the per-kind migration registry
     - The gate for a kernel change is not the contract hash alone, which covers the compiled document and not its evaluation: hashes, the Python/JS parity tests, the pure-pose tests and the decoded-pixel goldens.
     - Two implementations assert the vectors: Python in `an.timing`, TypeScript in `previz`. `runtime.js` stays a bit-exact mirror of `an.timing` through its existing parity tests. `shaping` validates its tracks against `timeline.schema.json`; `burns` takes its easing from the shared table.
     - Easing names: CSS names mean exactly the CSS curves; `an`'s underscore names stay as their own versioned curves (never silently aliased); Manim's rate functions are entries too.
+    - *Amendment, 2026-10-01 (clarification, not a reopening; an#233 review):* one CSS name collides with an `an` name already in use — **`ease` keeps `an`'s quadratic ease-in-out**, because persisted scenes were drawn and blessed with it and re-pointing it would move pixels under an unchanged contract hash. CSS `ease` is spelled `cubic-bezier(0.25, 0.1, 0.25, 1)`; `easing.json` publishes that translation under `css_import_aliases`, and any front-end reading CSS-named documents applies it. Every other CSS name means exactly the CSS curve.
 
 11. **Entity kinds declare property spaces; field kinds are declared, never inferred.** *(Added.)*
     - An address is `<entity>[/<node>…]:<field>[@<qualifier>]`, the field possibly a dotted path; a `previz` view state is the property space of one entity.

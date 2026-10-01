@@ -487,3 +487,9 @@ Also still unmeasured, from `wave3_research.md` §7 — do not assume any of the
    is its own one-line PR.
 4. A knob that affects output and is not recorded in provenance is a
    cache-poisoning vector, not merely an imprecision.
+5. **`runtime.js`'s evaluator is held to the timing contract** (an#233). A change
+   to `evaluateChannel`, `evaluateTimeline`, `applyEasing`/`EASINGS` or `wrapTime`
+   must still reproduce every `stage.node` case of `an/data/timing/timing_vectors.json`
+   (`tests/test_timing_contract.py::test_the_stage_runtime_reproduces_every_stage_vector`),
+   and the Python side must pass `python -m an.timing.contract check`. A kernel
+   change is gated on four checks: contract hashes, parity, pure-pose, pixel goldens.

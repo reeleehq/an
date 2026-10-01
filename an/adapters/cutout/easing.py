@@ -1,12 +1,13 @@
-"""Easing functions for keyframe interpolation.
+"""The stage engine's easing vocabulary — a view of :mod:`an.timing.easing`.
 
-Two forms are supported (matching `an.base.EasingSpec`):
-
-- A **named preset** string from ``an.base.EASING_PRESETS``.
-- A **cubic-Bézier control 4-tuple** `[cx1, cy1, cx2, cy2]` over the unit square.
-
-``apply_easing(spec, t)`` is the dispatcher; named presets are resolved via
-``EASING_FUNCS``. Step easing returns 0 until t==1.
+The curves, their solvers and the full registry live in the timing kernel
+(:mod:`an.timing.easing`). This module keeps the path every stage caller already
+imports, and it states what the STAGE implements: ``runtime.js`` evaluates the
+legacy names in :data:`an.base.EASING_PRESETS` and a cubic-Bézier control
+4-tuple, nothing else, so :func:`apply_easing` here refuses any other name. That
+refusal is what ``an validate`` and the compiler use to say "the evaluators know
+this easing" — a curve the kernel knows but the stage runtime does not would
+otherwise surface as a throw in the browser.
 
 >>> apply_easing("linear", 0.5)
 0.5
@@ -14,138 +15,35 @@ Two forms are supported (matching `an.base.EasingSpec`):
 0.5
 >>> round(apply_easing([0.0, 0.0, 1.0, 1.0], 0.5), 6)
 0.5
+>>> apply_easing("ease-in", 0.5)
+Traceback (most recent call last):
+ ...
+an.timing.easing.UnknownEasingError: unknown easing preset 'ease-in'; known: ['ease', 'ease_in', 'ease_in_out', 'ease_out', 'linear', 'step']
 """
 
 from __future__ import annotations
 
-from typing import Callable, Sequence
+from typing import Callable
 
-from an.base import EasingSpec
+from an.base import EASING_PRESETS, EasingSpec
+from an.timing import easing as _kernel
+from an.timing.easing import legacy_cubic_bezier as cubic_bezier
 
+__all__ = ["EASING_FUNCS", "apply_easing", "cubic_bezier"]
 
-# -----------------------------------------------------------------------------
-# Named presets
-# -----------------------------------------------------------------------------
-
-
-def _linear(t: float) -> float:
-    return t
-
-
-def _ease_in(t: float) -> float:
-    return t * t
-
-
-def _ease_out(t: float) -> float:
-    return 1.0 - (1.0 - t) ** 2
-
-
-def _ease_in_out(t: float) -> float:
-    if t < 0.5:
-        return 2.0 * t * t
-    return 1.0 - 2.0 * (1.0 - t) ** 2
-
-
-def _ease(t: float) -> float:
-    """Default smoothstep — matches CSS `ease` (slight ease in, longer ease out)."""
-    return _ease_in_out(t)
-
-
-def _step(t: float) -> float:
-    return 0.0 if t < 1.0 else 1.0
-
-
+#: The easings the stage runtime implements (``runtime.js`` ``EASINGS``), each
+#: the kernel registry's own curve.
 EASING_FUNCS: dict[str, Callable[[float], float]] = {
-    "linear": _linear,
-    "ease": _ease,
-    "ease_in": _ease_in,
-    "ease_out": _ease_out,
-    "ease_in_out": _ease_in_out,
-    "step": _step,
+    name: _kernel.easing_entry(name).curve for name in EASING_PRESETS
 }
 
 
-# -----------------------------------------------------------------------------
-# Cubic-Bézier
-# -----------------------------------------------------------------------------
-
-
-def cubic_bezier(cx1: float, cy1: float, cx2: float, cy2: float, t: float) -> float:
-    """Evaluate a 1D cubic-Bézier easing curve at parameter ``t`` ∈ [0, 1].
-
-    The curve is defined by P0=(0,0), P1=(cx1,cy1), P2=(cx2,cy2), P3=(1,1).
-    Given a desired x=t we solve for the matching curve parameter u, then
-    return the y coordinate. Newton's-method approximation; 8 iterations is
-    visually indistinguishable from analytic.
-
-    >>> round(cubic_bezier(0.0, 0.0, 1.0, 1.0, 0.5), 6)  # linear
-    0.5
-    >>> round(cubic_bezier(0.42, 0.0, 0.58, 1.0, 0.0), 6)  # endpoints exact
-    0.0
-    >>> round(cubic_bezier(0.42, 0.0, 0.58, 1.0, 1.0), 6)
-    1.0
-    """
-    if t <= 0.0:
-        return 0.0
-    if t >= 1.0:
-        return 1.0
-
-    def bx(u: float) -> float:
-        # x coordinate of the curve at parameter u (note P0.x=0, P3.x=1)
-        return 3 * (1 - u) ** 2 * u * cx1 + 3 * (1 - u) * u * u * cx2 + u**3
-
-    def dbx(u: float) -> float:
-        return (
-            3 * (1 - u) ** 2 * cx1
-            - 6 * (1 - u) * u * cx1
-            + 6 * (1 - u) * u * cx2
-            - 3 * u * u * cx2
-            + 3 * u * u
-        )
-
-    def by(u: float) -> float:
-        return 3 * (1 - u) ** 2 * u * cy1 + 3 * (1 - u) * u * u * cy2 + u**3
-
-    # Newton's method to find u such that bx(u) = t.
-    #
-    # Structurally IDENTICAL to runtime.js::cubicBezier on purpose: always 8
-    # iterations, break only on a degenerate derivative, clamp each step. This
-    # function is the spec of that port, and the two are compared bit-for-bit
-    # by the parity battery — an earlier version had an extra
-    # |u_new - u| < 1e-9 early-convergence break the JS side lacked, which
-    # left the two a ULP apart in `eased`; harmless for the snap rule, but a
-    # numeric channel lerping large magnitudes amplifies a ULP of easing by
-    # (b - a), so "behaviourally identical" was false at the 1e9 scale (found
-    # by the an#86 adversarial review; the loops now match).
-    u = t
-    for _ in range(8):
-        f = bx(u) - t
-        fp = dbx(u)
-        if abs(fp) < 1e-12:
-            break
-        u_new = u - f / fp
-        # Clamp into the valid range so we don't escape during iteration.
-        if u_new < 0.0:
-            u_new = 0.0
-        elif u_new > 1.0:
-            u_new = 1.0
-        u = u_new
-    return by(u)
-
-
-# -----------------------------------------------------------------------------
-# Dispatcher
-# -----------------------------------------------------------------------------
-
-
 def apply_easing(spec: EasingSpec | None, t: float) -> float:
-    """Apply an easing spec to a normalized parameter ``t`` ∈ [0, 1].
-
-    Accepts:
+    """Apply an easing the STAGE implements to ``t`` in ``[0, 1]``.
 
     - ``None`` → linear (passthrough)
     - a string preset name (must be a key of ``EASING_FUNCS``)
-    - a 4-element sequence of cubic-Bézier control points
+    - a 4-element sequence of cubic-Bézier control points (the legacy solver)
 
     Raises ``ValueError`` for unknown preset names or malformed sequences.
 
@@ -156,20 +54,4 @@ def apply_easing(spec: EasingSpec | None, t: float) -> float:
     >>> apply_easing("step", 1.0)
     1.0
     """
-    if spec is None:
-        return t
-    if isinstance(spec, str):
-        try:
-            return EASING_FUNCS[spec](t)
-        except KeyError as e:
-            raise ValueError(
-                f"unknown easing preset {spec!r}; known: {sorted(EASING_FUNCS)}"
-            ) from e
-    if isinstance(spec, Sequence) and not isinstance(spec, (str, bytes)):
-        if len(spec) != 4:
-            raise ValueError(
-                f"cubic-bezier easing requires exactly 4 control values, got {len(spec)}"
-            )
-        cx1, cy1, cx2, cy2 = (float(v) for v in spec)
-        return cubic_bezier(cx1, cy1, cx2, cy2, t)
-    raise TypeError(f"unsupported easing spec type: {type(spec).__name__}")
+    return _kernel.apply_easing(spec, t, names=EASING_FUNCS)
