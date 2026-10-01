@@ -4,7 +4,7 @@ This file orients an AI agent doing engineering work *on* an itself. If you're u
 
 **The canonical current-state map is `misc/docs/architecture_as_built.md`** — the capability table (§0, the only one), module map, the three control flows, load-bearing invariants, caching strategy. Read it before any non-trivial change. This file is only the orientation layer above it; when the two disagree, the code is authoritative and both get fixed. Gaps, the full never-do list and the CI perimeter are in `misc/docs/sharp_edges.md`.
 
-**Design principles — check every change against them:** `misc/docs/design_principles.md` (structured ↔ semantic spectrum; capability-based applicability with defaults; reuse over re-definition, core vs genre; domain terminology). Proposed decisions behind them: `misc/docs/adr/`.
+**Design principles — check every change against them:** `misc/docs/design_principles.md` (structured ↔ semantic spectrum; capability-based applicability with defaults; reuse over re-definition, core vs genre; domain terminology). Decisions behind them (accepted 2026-10-01): `misc/docs/adr/`; the plan executing them: `misc/docs/plan_core_and_cutan_2026-10.md`.
 
 ## Where things live
 
