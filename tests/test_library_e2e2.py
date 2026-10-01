@@ -258,3 +258,88 @@ def test_parts_a_generator_restamps_under_a_carried_label_are_labelled(tmp_path,
         "characters/amy/parts/torso.svg"
     ]
     assert publish_dir(lib, char, "character.amy").rights.license_class == "unknown"
+
+
+# ============================================================ review-288
+
+
+def _set_part(char: Path, path: str, *, source=None, new_path: str | None = None) -> None:
+    doc_path = char / "character.json"
+    doc = json.loads(doc_path.read_text(encoding="utf-8"))
+    for skin in doc["skins"].values():
+        for slot in skin["slots"].values():
+            for att in slot.values():
+                if att["path"] == path:
+                    if new_path is not None:
+                        att["path"] = new_path
+                    if source is None:
+                        att.pop("source", None)
+                    else:
+                        att["source"] = source
+    doc_path.write_text(json.dumps(doc), encoding="utf-8")
+
+
+@pytest.mark.parametrize("how", ["hand-forged", "stamp_factory_parts"])
+def test_a_factory_stamp_the_record_does_not_confirm_labels_nothing(tmp_path, project, how):
+    """B1 (A1d / A1e): under a carried label, a carved head under a factory
+    stamp — typed by hand, or written by the public stamping function — is
+    `unknown`, and UNVERIFIED in a check-out's credits."""
+    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER, stamp_factory_parts
+    from an.library import api as library_api
+
+    lib = open_library("cutan")
+    char = new_character(project / "assets" / "characters", name="amy", use_dicebear=False).parent
+    publish_dir(lib, char, "character.amy", source=CC0)
+    checkout(lib, project, "cutan:character.amy@v001")
+    carved = b"<svg>a head nobody has seen</svg>"
+    (char / "parts" / "head.svg").write_bytes(carved)
+    if how == "hand-forged":
+        _set_part(char, "parts/head.svg", source={
+            "provider": FACTORY_PROVIDER, "license": FACTORY_LICENSE,
+            "sha256": library_api.content_hash(carved),
+        })
+    else:
+        stamp_factory_parts(char, {"parts/head.svg"})
+    unverified = [e.asset for e in collect_credits(build_project_mall(project)).unverified]
+    assert unverified == ["characters/amy/parts/head.svg"]
+    assert publish_dir(lib, char, "character.amy").rights.license_class == "unknown"
+
+
+def test_a_fresh_publish_under_a_forged_factory_stamp_is_unknown(tmp_path):
+    """V1 (pre-existing on main): no carry, a carved head under a hand-forged
+    factory stamp is not the factory's work."""
+    from an.characters.factory import FACTORY_LICENSE, FACTORY_PROVIDER
+    from an.library import api as library_api
+
+    lib = open_library("cutan", records={}, versions={}, blobs={})
+    char = new_character(tmp_path, name="vee", use_dicebear=False).parent
+    carved = b"<svg>another unseen head</svg>"
+    (char / "parts" / "head.svg").write_bytes(carved)
+    _set_part(char, "parts/head.svg", source={
+        "provider": FACTORY_PROVIDER, "license": FACTORY_LICENSE,
+        "sha256": library_api.content_hash(carved),
+    })
+    r = publish_dir(lib, char, "character.vee")
+    assert r.rights.license_class == "unknown"
+    assert any("parts/head.svg" in reason for reason in r.rights.reasons)
+
+
+def test_a_part_in_a_dot_named_file_is_credited_and_published(tmp_path, project):
+    """S2: a file the descriptor names is never OS clutter, whatever its name."""
+    char = new_character(project / "assets" / "characters", name="eve", use_dicebear=False).parent
+    hidden = b"<svg>carved, hidden</svg>"
+    (char / "parts" / ".secret.svg").write_bytes(hidden)
+    _set_part(char, "parts/head.svg", new_path="parts/.secret.svg")
+    (char / "parts" / "head.svg").unlink()
+    unverified = [e.asset for e in collect_credits(build_project_mall(project)).unverified]
+    assert "characters/eve/parts/.secret.svg" in unverified
+    lib = open_library("cutan")
+    r = publish_dir(lib, char, "character.eve")
+    assert r.rights.license_class == "unknown"
+    from an.library import api as library_api
+
+    stored = library_api.read_version(lib, "character.eve", "v001")
+    assert "parts/.secret.svg" in stored["files"]
+    # OS clutter nobody names is still left out
+    (char / ".DS_Store").write_bytes(b"junk")
+    assert not publish_dir(lib, char, "character.eve").created

@@ -364,6 +364,41 @@ def _source_identity(source: AssetSource) -> str:
     return source.model_dump_json(exclude_defaults=True, exclude={"sha256"})
 
 
+def referenced_paths(descriptor: Any) -> frozenset[str]:
+    """Every file a descriptor itself names: its drawing, its parts, its plates.
+
+    Such a file is never operating-system clutter, whatever its name: a part
+    stored as ``parts/.secret.svg`` is drawn, so it is credited and published
+    (review-288 S2).
+
+    >>> sorted(referenced_paths({"source_svg": "a.svg", "skins": {"default": {"slots":
+    ...     {"head": {"head": {"path": "parts/.h.svg"}}}}}}))
+    ['a.svg', 'parts/.h.svg']
+    """
+    raw = descriptor if isinstance(descriptor, Mapping) else None
+    if raw is None and hasattr(descriptor, "model_dump"):
+        raw = descriptor.model_dump(mode="json")
+    raw = raw or {}
+    out: set[str] = set()
+    if isinstance(raw.get("source_svg"), str):
+        out.add(raw["source_svg"])
+    for skin in (raw.get("skins") or {}).values():
+        for attachments in ((skin or {}).get("slots") or {}).values() if isinstance(skin, Mapping) else ():
+            for att in (attachments or {}).values() if isinstance(attachments, Mapping) else ():
+                if isinstance(att, Mapping) and isinstance(att.get("path"), str):
+                    out.add(att["path"])
+    for plane in raw.get("planes") or []:
+        art = plane.get("art") if isinstance(plane, Mapping) else None
+        if isinstance(art, Mapping) and isinstance(art.get("src"), str):
+            out.add(art["src"])
+    return frozenset(out)
+
+
+def is_clutter(rel: str, referenced: frozenset[str] = frozenset()) -> bool:
+    """OS clutter (:func:`an.stores._common.is_os_junk`) that the descriptor does not name."""
+    return is_os_junk(rel) and rel not in referenced
+
+
 def _digests_of(store: Any, key: str) -> Callable[[], Mapping[str, str] | None]:
     """A lazy ``{relative path: sha256}`` of the files beside ``store[key]``.
 
@@ -390,9 +425,13 @@ def _digests_of(store: Any, key: str) -> Callable[[], Mapping[str, str] | None]:
             if not entry.is_dir():
                 return None
             out: dict[str, str] = {}
+            try:
+                named = referenced_paths(store[key])
+            except Exception:  # noqa: BLE001 — unreadable: clutter by name alone
+                named = frozenset()
             for path in sorted(entry.rglob("*")):
                 rel = path.relative_to(entry).as_posix()
-                if not path.is_file() or rel == meta or is_os_junk(rel):
+                if not path.is_file() or rel == meta or is_clutter(rel, named):
                     continue
                 out[rel] = hashlib.sha256(path.read_bytes()).hexdigest()
             return out
@@ -649,6 +688,7 @@ def _part_credits(
     pinned: set[str] = set()
     pinned_here: set[str] = set()  # a source pinned to the file's CURRENT bytes
     stale: set[str] = set()
+    unconfirmed: set[str] = set()  # factory stamps the factory's record does not confirm
     for skin in (raw.get("skins") or {}).values():
         if not isinstance(skin, Mapping):
             continue
@@ -672,7 +712,17 @@ def _part_credits(
                 else:
                     pinned.add(path)
                 if is_factory_stamp(source):
-                    continue  # this package drew it: nothing owed, not third-party
+                    if path in stale:
+                        continue  # a stamp about other bytes: unverified below, as stale
+                    if sha is not None and factory_recorded(sha):
+                        continue  # this package drew it: nothing owed, not third-party
+                    # A stamp in a descriptor proves nothing: unconfirmed by the
+                    # factory's own record, it labels nothing (review-288 B1).
+                    pinned.discard(path)
+                    pinned_here.discard(path)
+                    stale.discard(path)
+                    unconfirmed.add(path)
+                    continue
                 asset = f"{store_name}/{key}/{path}"
                 if asset not in out:
                     out[asset] = CreditEntry(
@@ -685,7 +735,7 @@ def _part_credits(
         else None
     )
     if not covered or since is not None:
-        unpinned = set(stale - pinned) if not covered else set()
+        unpinned = set(stale - pinned) | unconfirmed if not covered else set()
         files = known() if generated or since is not None else None
         changed: set[str] = set()
         if files is not None and since is not None:
@@ -704,7 +754,11 @@ def _part_credits(
                 path
                 for path, digest in files.items()
                 if path not in pinned
-                and not (path == svg and digest == _stamp_digest(own))
+                and not (
+                    path == svg
+                    and digest == _stamp_digest(own)
+                    and (not is_factory_stamp(own) or factory_recorded(digest))
+                )
             }
         for path in sorted(unpinned):
             asset = f"{store_name}/{key}/{path}"
@@ -721,6 +775,9 @@ def _part_credits(
                             "label it carried speaks only for the bytes it was "
                             "declared on"
                             if path in changed
+                            else "a factory stamp the factory's own record of what "
+                            "it drew does not confirm"
+                            if path in unconfirmed
                             else "the stamp on this part no longer matches its bytes "
                             "(re-drawn or re-carved)"
                             if path in stale
@@ -763,6 +820,20 @@ def gives_way_to_a_label(raw: Any) -> bool:
         return license_class(AssetSource.model_validate(dict(raw))) == "free"
     except (TypeError, ValueError):
         return False
+
+
+def factory_recorded(digest: str) -> bool:
+    """Whether this machine's record says the character factory drew the bytes ``digest``.
+
+    The record (``an.library.registry.generated_by``) is written only by the
+    factory's own drawing code, from the bytes it wrote; a factory stamp in a
+    descriptor counts as the factory's only when the record confirms it
+    (review-288 B1). Read fail-safe: unreadable is unconfirmed.
+    """
+    from an.characters.factory import FACTORY_PROVIDER
+    from an.library.registry import generated_by
+
+    return FACTORY_PROVIDER in generated_by(str(digest).removeprefix("sha256:"))
 
 
 def is_generated_source(raw: Any) -> bool:

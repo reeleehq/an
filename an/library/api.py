@@ -45,7 +45,14 @@ from typing import Any
 from dol.content import ContentRef, content_hash
 
 from an.ir.assets import PRIVATE_STUDY, PUBLIC_DOMAIN, AssetSource, license_class
-from an.credits import is_generated_source, same_source
+from an.credits import (
+    factory_recorded,
+    is_factory_stamp,
+    is_clutter,
+    is_generated_source,
+    referenced_paths,
+    same_source,
+)
 from an.ir.migrate import DocumentKind, migrate, omit_unset, register_kind
 from an.library import character as _character
 from an.library.affordances import (
@@ -98,7 +105,6 @@ from an.library.rights import (
 )
 from an.library.root import CORE_PACKAGE
 from an.library.stores import VersionExistsError, canonical_json, version_key
-from an.stores._common import is_os_junk
 
 __all__ = [
     "CheckoutError",
@@ -475,7 +481,10 @@ def itemising_source(
 
     It itemises only if it pins the same digest: a per-part source left on a
     file whose bytes have since changed (a factory stamp on a re-carved part)
-    describes other bytes and speaks for nothing. The descriptor's ``source_svg``
+    describes other bytes and speaks for nothing. A factory stamp itemises only
+    if the factory's own record confirms it drew those bytes
+    (:func:`an.credits.factory_recorded`): a stamp in a descriptor, typed or
+    written by the public stamping functions, proves nothing (review-288 B1). The descriptor's ``source_svg``
     is itemised by a generator's descriptor-level stamp pinning its digest.
     """
     doc = version.get("doc") or {}
@@ -487,7 +496,11 @@ def itemising_source(
             claim = AssetSource.model_validate(dict(own))
         except ValueError:
             claim = None
-        if claim is not None and _digest_of(claim) == digest:
+        if (
+            claim is not None
+            and _digest_of(claim) == digest
+            and (not is_factory_stamp(own) or factory_recorded(digest))
+        ):
             return claim
     for skin in (doc.get("skins") or {}).values():
         if not isinstance(skin, Mapping):
@@ -506,6 +519,10 @@ def itemising_source(
                 except ValueError:
                     continue
                 if _digest_of(source) == digest:
+                    if is_factory_stamp(raw) and not factory_recorded(digest):
+                        # A factory stamp the factory's record does not
+                        # confirm labels nothing (review-288 B1).
+                        continue
                     return source
     return None
 
@@ -1394,11 +1411,13 @@ def _write_version(library: Library, asset_id: str, version: dict[str, Any]) -> 
     )
 
 
-def _read_folder(folder: Path, *, skip: str | None) -> dict[str, bytes]:
+def _read_folder(
+    folder: Path, *, skip: str | None, named: frozenset[str] = frozenset()
+) -> dict[str, bytes]:
     out: dict[str, bytes] = {}
     for path in sorted(folder.rglob("*")):
         rel = path.relative_to(folder).as_posix()
-        if not path.is_file() or rel == skip or is_os_junk(rel):
+        if not path.is_file() or rel == skip or is_clutter(rel, named):
             continue
         out[rel] = path.read_bytes()
     return out
@@ -1412,7 +1431,9 @@ def publish_dir(
     The descriptor is the kind's descriptor file (``character.json``); every other
     file under the folder is published as one of the asset's files, so a
     check-out reproduces the folder — except operating-system clutter
-    (``.DS_Store``, hidden files, ``Thumbs.db``: :func:`an.stores._common.is_os_junk`). Keyword arguments go to :func:`publish`.
+    (``.DS_Store``, hidden files, ``Thumbs.db``: :func:`an.stores._common.is_os_junk`)
+    that the descriptor does not name — a part it names is published whatever
+    its file is called (review-288 S2). Keyword arguments go to :func:`publish`.
     """
     folder = Path(folder)
     kind = asset_kind_info(asset_kind(check_asset_id(asset_id)))
@@ -1427,7 +1448,11 @@ def publish_dir(
         )
     doc = json.loads(descriptor.read_text(encoding="utf-8"))
     return publish(
-        library, asset_id, doc, _read_folder(folder, skip=kind.descriptor), **kwargs
+        library,
+        asset_id,
+        doc,
+        _read_folder(folder, skip=kind.descriptor, named=referenced_paths(doc)),
+        **kwargs,
     )
 
 

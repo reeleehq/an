@@ -72,8 +72,13 @@ from an.library.rights import (
     roll_up,
     sources_in,
 )
-from an.credits import CHECKED_OUT_KEY, checked_out_seal, gives_way_to_a_label
-from an.stores._common import is_os_junk
+from an.credits import (
+    CHECKED_OUT_KEY,
+    checked_out_seal,
+    gives_way_to_a_label,
+    is_clutter,
+    referenced_paths,
+)
 from an.library.root import LibraryLocationWarning, git_worktree_of
 
 __all__ = [
@@ -154,12 +159,13 @@ def drift(store: Any, key: str, version: Mapping[str, Any]) -> list[str]:
     if entry is None:
         return out + (["files expected, but the store keeps none"] if files else [])
     meta = getattr(store, "META_NAME", "")
+    named = referenced_paths(doc) | referenced_paths(version.get("doc") or {})
     on_disk = {
         rel
         for p in entry.rglob("*")
         if p.is_file()
         and (rel := p.relative_to(entry).as_posix()) != meta
-        and not is_os_junk(rel)
+        and not is_clutter(rel, named)
     }
     for path, raw in sorted(files.items()):
         target = entry.joinpath(*path.split("/"))

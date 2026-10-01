@@ -33,7 +33,16 @@ _LOG: ContextVar[dict[str, str] | None] = ContextVar("an_factory_drawn", default
 
 @contextmanager
 def drawing() -> Iterator[dict[str, str]]:
-    """Log ``{resolved path: sha256}`` of every file written through this module, in this context."""
+    """Log ``{resolved path: sha256}`` of every file written through this module, in this context.
+
+    Re-entrant: inside an open drawing (``add_gaze`` called by
+    ``new_character``) the same log is shared, so the outer call sees every
+    byte the inner one wrote.
+    """
+    held = _LOG.get()
+    if held is not None:
+        yield held
+        return
     log: dict[str, str] = {}
     token = _LOG.set(log)
     try:

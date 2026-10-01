@@ -17,6 +17,7 @@ problem routes the way every other verifier's does (an#78).
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import hashlib
 import math
@@ -658,7 +659,14 @@ def _check_style_is_usable(style: str, *, acknowledge_attribution: bool) -> None
 
 
 def _records_what_it_drew(func):
-    """Run ``new_character`` with its writes logged, then record what it drew (an#269)."""
+    """Run a drawing function with its writes logged, then record what it drew (an#269).
+
+    For every function of the factory that draws into a character folder and
+    stamps what it drew — ``new_character``, ``add_gaze``, ``add_views`` (and
+    ``an character mouths``, through :func:`recording_drawn`): a factory stamp
+    counts as the factory's only when this record confirms it (review-288 B1).
+    The function returns the character's descriptor path.
+    """
 
     @functools.wraps(func)
     def run(*args, **kwargs):
@@ -668,6 +676,19 @@ def _records_what_it_drew(func):
         return desc_path
 
     return run
+
+
+@contextlib.contextmanager
+def recording_drawn(char_dir: str | Path):
+    """Log what the body writes, then record the factory-stamped bytes it wrote at ``char_dir``.
+
+    For a drawing path outside this module (``an character mouths``): only
+    bytes written through :mod:`an.characters.drawn` inside the block, and
+    stamped by the factory, are recorded.
+    """
+    with _drawn.drawing() as wrote:
+        yield
+        _record_drawn(Path(char_dir), wrote)
 
 
 @_records_what_it_drew
@@ -1383,6 +1404,7 @@ def _is_factory_eye(path: Path, *, side: str, state: str) -> bool:
     return f'id="eye_{side}_{state}"' in svg and f'viewBox="0 0 {w} {h}"' in svg
 
 
+@_records_what_it_drew
 def add_gaze(
     char_dir: str | Path, *, skin: str | None = None, overwrite_eyes: bool = False
 ) -> Path:
@@ -2055,6 +2077,7 @@ def view_poses(
     return poses
 
 
+@_records_what_it_drew
 def add_views(char_dir: str | Path) -> Path:
     """Give a factory character its turnaround (an#197): ``back``, ``side`` and
     ``three_quarter`` head and torso art beside the front, a ``view`` swap set
