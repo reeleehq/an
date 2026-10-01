@@ -3444,7 +3444,15 @@ def _compile_one(
             speed=action.speed,
         )
         return anim_id, _track_root_of(action.target), placed
-    raise TypeError(f"unsupported FlatAction.action type: {type(action).__name__}")
+    # A kind some genre registered that this renderer has no clip for: said
+    # by name rather than as a bare TypeError (the IR is open, ADR 0001
+    # decision 2, so "a kind the cutout compiler does not draw" is a real,
+    # reachable case, not a programming error).
+    raise CutoutCompileError(
+        f"the cutout renderer cannot draw a {getattr(action, 'kind', None)!r} "
+        f"action ({type(action).__name__}) on {getattr(action, 'target', '?')!r}: "
+        "it compiles set, tween and the cut-out genre's play and expression"
+    )
 
 
 def _check_keyframe_value(value: Any, *, target: str, prop: str) -> Any:
@@ -3465,7 +3473,25 @@ def _check_keyframe_value(value: Any, *, target: str, prop: str) -> Any:
             "evaluate differently in the Python spec and the JS runtime, so "
             "the compiler refuses them rather than pick a side silently."
         )
+    # The value must fit the field kind the stage node DECLARES for `prop`
+    # (an#239 item 2, the precondition of the declared-kinds default): a
+    # string on `x` used to compile, the runtime snapped it, and the declared
+    # evaluator now refuses it — so the compiler says so first, by name.
+    from an.timing.spaces import get_space
+
+    kind = get_space(STAGE_NODE_SPACE).kind_of(prop)
+    problem = kind.check(value)
+    if problem:
+        raise CutoutCompileError(
+            f"keyframe on {target!r}:{prop!r}: {problem}. `{prop}` is a "
+            f"{kind.name} field of a stage node (the {STAGE_NODE_SPACE!r} "
+            "property space), so a value of another kind cannot be keyed on it."
+        )
     return value
+
+
+#: The property space every compiled node lives in (:mod:`an.timing.spaces`).
+STAGE_NODE_SPACE: str = "stage.node"
 
 
 def parse_tint(value: object, *, where: str) -> tuple[float, float, float]:

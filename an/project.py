@@ -148,7 +148,16 @@ def init(
 
 
 def load(project_dir: str | Path) -> Project:
-    """Load an existing project. Reconciles scene.md / ir/scene.json first."""
+    """Load an existing project. Reconciles scene.md / ir/scene.json first.
+
+    Registers the installed genres first (:func:`an.genres.load`, ADR 0001
+    decision 3: discovery is explicit, and loading a project is one of the
+    places it happens), so the scene's genre kinds — the cut-out genre's
+    ``play``, ``expression`` and ``character`` — read as their own models.
+    """
+    from an.genres import load as load_genres
+
+    load_genres()
     pdir = Path(project_dir).expanduser().resolve()
     if not pdir.exists():
         raise FileNotFoundError(f"no such project directory: {pdir}")

@@ -66,7 +66,13 @@ from an.timing.kinds import (
     VectorKind,
     kind_from_spec,
 )
-from an.timing.spaces import PropertySpace, get_space, space_from_json, space_names
+from an.timing.spaces import (
+    VALUE_TYPED,
+    PropertySpace,
+    get_space,
+    space_from_json,
+    space_names,
+)
 from an.timing.timeline import evaluate_timeline, timeline_from_compiled
 
 #: Where the committed contract files live (inside the package, so they ship).
@@ -150,13 +156,14 @@ def values_close(expected: Any, actual: Any, *, rel_tol: float = REL_TOL) -> boo
 
 
 #: The cases whose space is the value-typed rule's write-group space are ALSO
-#: evaluated with ``space=None`` — the path compile, truth projections and the
-#: bench use — so both rules are held to the same numbers.
+#: evaluated with ``space=VALUE_TYPED`` — the rule ``runtime.js`` implements —
+#: so both rules are held to the same numbers (the default, ``space=None``, is
+#: the declared rule since an#239 item 2).
 VALUE_TYPED_CASE_SPACE: str = "stage.node"
 
 
 def _state_value_typed(doc: Mapping[str, Any], t: float) -> dict[str, Any]:
-    pose = evaluate_timeline(timeline_from_compiled(doc), t)
+    pose = evaluate_timeline(timeline_from_compiled(doc), t, space=VALUE_TYPED)
     return {format_address(tg, pr): _jsonable(v) for (tg, pr), v in pose.items()}
 
 
@@ -165,7 +172,7 @@ def check_vectors(vectors: Mapping[str, Any] | None = None) -> list[str]:
     does not reproduce, as one line each. Empty means the kernel meets the contract.
 
     Both evaluation rules are held: every case under its declared space, and every
-    ``stage.node`` case also under the value-typed default (``space=None``)."""
+    ``stage.node`` case also under the value-typed rule (``space=VALUE_TYPED``)."""
     if vectors is None:
         vectors = load_contract_file(VECTORS_FILE)
     problems = []

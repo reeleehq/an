@@ -33,6 +33,7 @@ from an.ir import (
     # name is the `an.expression` subpackage. Reach it as `an.ir.expression`.
     sequence,
     parallel,
+    stagger,
     delay,
     loop,
     flatten,
@@ -82,6 +83,7 @@ __all__ = [
     "play",
     "sequence",
     "parallel",
+    "stagger",
     "delay",
     "loop",
     "flatten",

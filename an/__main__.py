@@ -207,7 +207,16 @@ def build_app(
 
 
 def main() -> None:
-    """Dispatch the CLI."""
+    """Dispatch the CLI.
+
+    The installed genres register first (:func:`an.genres.load`, ADR 0001
+    decision 3): the CLI is one of the explicit entry points that load them,
+    so a project whose scene uses a genre's kinds (``play``, ``character``)
+    reads as it did before genres were open.
+    """
+    from an.genres import load as load_genres
+
+    load_genres()
     build_app()()
 
 

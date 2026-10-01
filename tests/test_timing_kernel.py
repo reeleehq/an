@@ -373,15 +373,24 @@ def _corpus_timelines(tmp_path):
 
 
 def test_the_stage_declarations_reproduce_every_corpus_frame_exactly(tmp_path):
-    """The claim that makes declared kinds safe to adopt: on every frame of every
-    golden-corpus shot, evaluating under the DECLARED stage.node space gives the
-    very same pose (==, not approx) as the value-typed rule runtime.js runs."""
+    """The claim that made declared kinds safe to adopt as the default (an#239
+    item 2): on every frame of every golden-corpus shot, the DEFAULT evaluation
+    (the declared stage.node space since P2) gives the very same pose (==, not
+    approx) as the value-typed rule runtime.js runs (``space=VALUE_TYPED``) —
+    and as naming the declared space explicitly."""
+    from an.timing.spaces import VALUE_TYPED
+
     frames = 0
     bad = []
     for label, tl, n, fps in _corpus_timelines(tmp_path):
         for i in range(n):
             t = i / float(fps)
-            if evaluate_timeline(tl, t) != evaluate_timeline(tl, t, space=STAGE_NODE):
+            default = evaluate_timeline(tl, t)
+            if not (
+                default
+                == evaluate_timeline(tl, t, space=VALUE_TYPED)
+                == evaluate_timeline(tl, t, space=STAGE_NODE)
+            ):
                 bad.append(f"{label} frame {i}")
             frames += 1
     assert frames and not bad, bad[:10]

@@ -231,10 +231,26 @@ def space_names(*, owner: str | None = None) -> tuple[str, ...]:
     return tuple(k for k in _REGISTRY if owner is None or _OWNERS[k] == owner)
 
 
-#: The space whose write groups the value-typed rule (``space=None``) uses:
+#: The space whose write groups the value-typed rule (:data:`VALUE_TYPED`) uses:
 #: the stage engine's node, resolved BY NAME at call time, so moving the stage's
 #: registration (P3: into ``an.stage``) or replacing it needs no kernel edit.
 DFLT_VALUE_TYPED_SPACE: str = "stage.node"
+
+#: What ``evaluate_timeline(..., space=None)`` evaluates with: DECLARED field
+#: kinds from this registered space, resolved by name at call time (ADR 0001
+#: decision 11: field kinds are declared, never inferred). The flip from the
+#: value-typed rule happened in P2 (an#239 item 2), once the compiler refused
+#: every keyframe value that fails its field kind — so the two rules agree on
+#: everything the compiler emits (the corpus-frame test and the golden vectors,
+#: which hold both). Every caller — compile's from-less start, ``impacts``'
+#: truth projections, the bench — inherits it. ``None`` here would restore the
+#: value-typed rule as the default.
+DFLT_TIMELINE_SPACE: str | None = "stage.node"
+
+#: Pass as ``space=`` to ask for the value-typed rule ``runtime.js`` implements
+#: (interpolate by the value's runtime type, the :data:`DFLT_VALUE_TYPED_SPACE`
+#: write groups) — what the contract's parity lane holds the stage runtime to.
+VALUE_TYPED: str = "value-typed"
 
 
 #: What an evaluator accepts as "the space": one space for every target, a

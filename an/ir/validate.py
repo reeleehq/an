@@ -45,6 +45,17 @@ from an.ir.compose import flatten
 from an.ir.migrate import DocumentMigrationError, migrate
 from an.ir.sync import SceneValidationError, scene_from_json_doc
 from an.ir.schema import SceneIR
+from an.base import SUPPORTED_RENDERERS
+from an.genres.registry import (
+    CORE_OWNER,
+    SemanticCheck,
+    UnregisteredKindError,
+    action_kind,
+    check_names,
+    checks as registered_checks,
+    entity_kind,
+    register_check,
+)
 
 
 Severity = Literal["error", "warning", "info"]
@@ -387,49 +398,37 @@ def _check_trim_targets(
                 )
 
 
-def _check_swap_references(
-    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
-) -> None:
-    """A set/tween on a non-transform property must name a declared asset set
-    and key of its target entity's descriptor, and a `play` must resolve
-    against that descriptor's animations — checked HERE, before the author
-    pays for TTS or a Chromium launch, because compile raises on both
-    (an#87, an#7). Same charter as `_check_renderable`; needs the store, so
-    it runs from `validate_semantic`'s shot loop — and ONLY then: with
-    no stores neither check runs, so a bare `validate_semantic(scene)` passes
-    a play the compiler will refuse.
+def _rig_scope(shot, stores: Mapping[str, Any]) -> tuple[dict[str, Any], set[str]]:
+    """``(rigged entities by id, ids whose rig store was not supplied)``.
 
-    ``stores`` is keyed by MALL NAME, not by entity kind, and `RIG_STORES`
-    maps between them — because an#108 gave props the same rig machinery, and
-    a check that only knows how to find a *character's* descriptor reports
-    "no descriptor declaring asset sets" for a lamp whose descriptor is right
-    there in the props store.
-
-    Descriptor-less (procedural) entities get a carve-out for `viseme` — the
-    compiler validates its codes against the drawn-mouth shapes — and an
-    error for anything else, matching the compiler's verdicts.
+    PER-KIND, not per-call. an#108's first pass changed the gate from
+    "characters store absent → skip" to "no stores at all → skip", which made
+    `validate_semantic(scene, available_characters=X)` — the signature every
+    caller outside this repo has — report EVERY prop swap as "has no
+    descriptor declaring asset sets" on a scene that compiles fine. A store
+    that was not supplied means the check did not run for that kind; it never
+    means the descriptor is missing: those entities' checks are SKIPPED, not
+    failed.
     """
-    if not stores:
-        return
-    # PER-KIND, not per-call. an#108's first pass changed the gate from
-    # "characters store absent → skip" to "no stores at all → skip", which made
-    # `validate_semantic(scene, available_characters=X)` — the signature every
-    # caller outside this repo has — report EVERY prop swap as
-    # "has no descriptor declaring asset sets" on a scene that compiles fine.
-    # A store that was not supplied means the check did not run for that kind;
-    # it never means the descriptor is missing.
     rigs = {e.id: e for e in shot.entities if e.kind in RIG_STORES}
-    #: Entities whose rig store was not supplied. Their checks are SKIPPED, not
-    #: failed: "no store" and "no descriptor" are different facts, and reporting
-    #: the first as the second is how a caller who passes only characters gets
-    #: an error on every prop swap in a scene that compiles fine.
     unchecked = {
         eid for eid, e in rigs.items() if stores.get(RIG_STORES[e.kind][0]) is None
     }
-    # The expression and dialogue-emotion checks below are CHARACTER-only:
-    # a prop has no face.
-    refs_by_entity = {e.id: e.ref for e in shot.entities if e.kind == "character"}
-    available_characters = stores.get("characters")
+    return rigs, unchecked
+
+
+def _check_play_actions(
+    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
+) -> None:
+    """A `play` must resolve against its target's descriptor animations, or a
+    motion preset — checked HERE, before the author pays for TTS or a Chromium
+    launch, because compile raises (an#7, an#166). The cut-out genre's check
+    (registered by :mod:`an.genres.cutout`); with no stores it does not run, so
+    a bare `validate_semantic(scene)` passes a play the compiler will refuse.
+    """
+    if not stores:
+        return
+    rigs, unchecked = _rig_scope(shot, stores)
     # `play` (an#7): resolved against the target entity's MIGRATED descriptor
     # by `an.characters.play` — the SAME code the compiler resolves with, so
     # validate's verdict is compile's (an unknown bone property, a bone with
@@ -549,6 +548,18 @@ def _check_swap_references(
                     f"`play` of {leaf.animation!r} on {entity_id!r} cannot "
                     f"resolve: {problem} — compiling this shot raises.",
                 )
+
+
+def _check_expression_actions(
+    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
+) -> None:
+    """An `expression` and a dialogue `[emotion]` must resolve (an#98) — the
+    cut-out genre's check (registered by :mod:`an.genres.cutout`). CHARACTER
+    entities only: a prop has no face."""
+    if not stores:
+        return
+    refs_by_entity = {e.id: e.ref for e in shot.entities if e.kind == "character"}
+    available_characters = stores.get("characters")
     # `expression` (an#98) and the dialogue `[emotion]` sugar resolve through
     # `an.expression.binding.expression_problems` — the SAME function the face
     # solver raises with. An unknown preset used to be silence.
@@ -592,6 +603,30 @@ def _check_swap_references(
                 "(face_overlay: false), so the [emotion] on this line moves "
                 "nothing; the audio still plays.",
             )
+
+
+def _check_swap_references(
+    shot, path: str, report: "ValidationReport", stores: Mapping[str, Any]
+) -> None:
+    """A set/tween on a non-transform property must name a declared asset set
+    and key of its target entity's descriptor — checked HERE, before the
+    author pays for TTS or a Chromium launch, because compile raises on it
+    (an#87). Same charter as `_check_renderable`; needs the store, so with no
+    stores it does not run.
+
+    ``stores`` is keyed by MALL NAME, not by entity kind, and `RIG_STORES`
+    maps between them — because an#108 gave props the same rig machinery, and
+    a check that only knows how to find a *character's* descriptor reports
+    "no descriptor declaring asset sets" for a lamp whose descriptor is right
+    there in the props store.
+
+    Descriptor-less (procedural) entities get a carve-out for `viseme` — the
+    compiler validates its codes against the drawn-mouth shapes — and an
+    error for anything else, matching the compiler's verdicts.
+    """
+    if not stores:
+        return
+    rigs, unchecked = _rig_scope(shot, stores)
     # Flattened, like the compiler: the documented `start:` idiom wraps every
     # leaf in a `sequence`, so walking only top-level actions would miss the
     # common case (an#87 review) — an authoring-time gate that only sees the
@@ -978,6 +1013,13 @@ def _check_view_continuity(
 #: Leaf kinds whose ``target`` is a NODE path the runtime animates. `play` and
 #: `expression` target an entity and are resolved by their own checks above.
 _NODE_TARGETING_KINDS = frozenset({"set", "tween"})
+
+#: Authorable properties that are compiler SUGAR, never a channel: ``tint`` is
+#: a ``#rrggbb`` string the compiler expands into three numbers (an#62), so it
+#: is not a field of any space.
+_AUTHORING_SUGAR_PROPERTIES: frozenset[str] = (
+    AUTHORABLE_PROPERTIES - TRANSFORM_PROPERTIES
+)
 
 
 def _check_action_targets(
@@ -1388,6 +1430,8 @@ def _check_renderable(shot, path: str, report: "ValidationReport", stores=None) 
         _check_camera(shot, f"{path}/camera", report, stores=stores)
 
     for j, entity in enumerate(shot.entities):
+        if entity_kind(entity.kind) is None:
+            continue  # unregistered: `entity_kinds` reported it, naming its genre
         if (
             entity.kind not in _DRAWABLE_ENTITY_KINDS
             and entity.kind not in _CONFIGURING_ENTITY_KINDS
@@ -1568,6 +1612,40 @@ def _check_retired_keys(scene: SceneIR, report: "ValidationReport") -> None:
                 )
 
 
+@dataclass
+class ValidationContext:
+    """What a registered semantic check (:class:`an.genres.SemanticCheck`) reads.
+
+    ``stores`` holds only the stores actually supplied, keyed by MALL name (an
+    absent one means its checks did not RUN — never that what it holds is
+    missing). ``shot`` and ``index`` are set while the ``shot`` stage runs.
+    ``memo`` is shared by every check of one ``validate_semantic`` call, so
+    two checks that need the same derived fact compute it once
+    (:meth:`cached`).
+    """
+
+    scene: SceneIR
+    report: ValidationReport
+    stores: dict[str, Any]
+    voices: Mapping[str, Any] | None = None
+    characters: Mapping[str, Any] | None = None
+    sounds: Mapping[str, Any] | None = None
+    shot: Any = None
+    index: int | None = None
+    memo: dict[Any, Any] = field(default_factory=dict)
+
+    @property
+    def path(self) -> str:
+        """The IR path of the current shot (``timeline/<index>``)."""
+        return f"timeline/{self.index}"
+
+    def cached(self, key: Any, compute: Any) -> Any:
+        """``compute()``, once per ``key`` per validation."""
+        if key not in self.memo:
+            self.memo[key] = compute()
+        return self.memo[key]
+
+
 def validate_semantic(
     scene: SceneIR,
     *,
@@ -1591,16 +1669,17 @@ def validate_semantic(
     skipping them is what it sounds like: a `play` or a swap the compiler
     will refuse passes silently without the store (the CLI, `an validate`,
     always passes it).
+
+    The checks are a REGISTRY (:func:`an.genres.registry.register_check`):
+    the core's own register below, a genre's when it is loaded (the cut-out
+    genre's `play`, `expression`, turn and view checks), and they run in
+    stages — ``scene``, then ``shot`` once per shot, then ``finish`` — each by
+    its ``order``. An action or entity kind no loaded genre registered is one
+    error naming the genre that provides it; checks that would trip over it
+    skip that shot rather than crash.
     """
     report = ValidationReport()
-    #: Only the stores actually supplied — an absent one skips its checks
-    #: rather than reporting everything it would have found as missing.
-    #: Every store that was actually supplied, keyed by MALL name. The rig
-    #: checks look up `RIG_STORES[kind][0]`, so an `environments` entry is
-    #: inert to them and available to the checks that need it (an#111's flat-pan
-    #: warning reads planes). An absent store means its checks did not RUN —
-    #: never that the thing it holds is missing.
-    rig_stores = {
+    stores = {
         name: store
         for name, store in (
             ("characters", available_characters),
@@ -1609,8 +1688,53 @@ def validate_semantic(
         )
         if store is not None
     }
+    ctx = ValidationContext(
+        scene=scene,
+        report=report,
+        stores=stores,
+        voices=available_voices,
+        characters=available_characters,
+        sounds=available_sounds,
+    )
+    for check in registered_checks("scene"):
+        _run_check(check, ctx)
+    for i, shot in enumerate(scene.timeline):
+        ctx.shot, ctx.index = shot, i
+        for check in registered_checks("shot"):
+            _run_check(check, ctx)
+    ctx.shot = ctx.index = None
+    for check in registered_checks("finish"):
+        _run_check(check, ctx)
+    return report
 
-    _check_retired_keys(scene, report)
+
+def _run_check(check: Any, ctx: ValidationContext) -> None:
+    """Run one check; an unregistered kind it trips over was already reported
+    (by ``action_kinds`` / ``entity_kinds``), so it costs that check, not the
+    whole report."""
+    try:
+        check.run(ctx)
+    except (UnregisteredKindError, ValidationError):
+        if not ctx.memo.get(_KIND_PROBLEM_REPORTED):
+            raise
+
+
+#: Set in the memo once an action or entity kind problem — unregistered, or a
+#: genre kind its own model refuses — has been reported as a finding.
+_KIND_PROBLEM_REPORTED = "kind problem reported"
+
+
+# -----------------------------------------------------------------------------
+# The core's checks, as registered entries (the order is the report's order)
+# -----------------------------------------------------------------------------
+
+
+def _core_retired_keys(ctx: ValidationContext) -> None:
+    _check_retired_keys(ctx.scene, ctx.report)
+
+
+def _core_meta(ctx: ValidationContext) -> None:
+    scene, report = ctx.scene, ctx.report
     if scene.meta.duration < 0:
         report.add("error", "meta/duration", "duration must be non-negative")
     if scene.meta.fps <= 0:
@@ -1618,164 +1742,385 @@ def validate_semantic(
     _check_step_hz(
         scene.meta.step_hz, fps=scene.meta.fps, path="meta/step_hz", report=report
     )
-    _check_default_easing(scene.meta.default_easing, report=report)
-    _check_tween_easings(scene, report=report)
-    _check_default_easing_reach(scene, report=report)
-    if not scene.timeline:
-        report.add(
+
+
+def _core_easings(ctx: ValidationContext) -> None:
+    _check_default_easing(ctx.scene.meta.default_easing, report=ctx.report)
+    _check_tween_easings(ctx.scene, report=ctx.report)
+    _check_default_easing_reach(ctx.scene, report=ctx.report)
+
+
+def _core_has_shots(ctx: ValidationContext) -> None:
+    if not ctx.scene.timeline:
+        ctx.report.add(
             "warning",
             "timeline",
             "scene has no shots — nothing to render. Add at least one "
             "`## Shot <id> (cutout)` heading to scene.md.",
         )
 
-    seen_shot_ids: set[str] = set()
-    turn_resolutions: list = []
-    for i, shot in enumerate(scene.timeline):
-        path = f"timeline/{i}"
-        _check_step_hz(
-            shot.step_hz, fps=scene.meta.fps, path=f"{path}/step_hz", report=report
-        )
-        if not shot.id:
-            report.add("error", f"{path}/id", "shot id may not be empty")
-        elif shot.id in seen_shot_ids:
-            report.add("error", f"{path}/id", f"duplicate shot id: {shot.id!r}")
-        seen_shot_ids.add(shot.id)
 
-        if shot.duration <= 0:
-            report.add("error", f"{path}/duration", "shot duration must be > 0")
+def _core_action_kinds(ctx: ValidationContext) -> None:
+    """Every action's kind is registered, and a registered genre kind read
+    before its genre loaded validates against its own model (ADR 0001
+    decision 2: the schema accepts any ``kind``; this is where it is held).
+    Runs first, over every shot, so the checks after it can skip what it
+    reported instead of crashing on it."""
+    from an.ir.compose import iter_actions
+    from an.ir.schema import ExtensionAction, unregistered_action_kind
 
-        _check_renderable(shot, path, report, stores=rig_stores)
-        _check_framing(
-            shot,
-            path,
-            report,
-            rig_stores,
-            width=scene.meta.resolution.width,
-            height=scene.meta.resolution.height,
-        )
-        _check_swap_references(shot, path, report, rig_stores)
-        turn_resolutions.append(_turn_resolution(shot, rig_stores))
-        _check_turns(shot, path, report, turn_resolutions[-1])
-        _check_hidden_mouth_while_speaking(
-            shot, path, report, turn_resolutions[-1], rig_stores
-        )
-        _check_trim_targets(shot, path, report, rig_stores)
-        text_ids = _check_text_blocks(
-            shot,
-            path,
-            report,
-            rig_stores,
-            width=scene.meta.resolution.width,
-            height=scene.meta.resolution.height,
-        )
-        _check_action_targets(
-            shot,
-            path,
-            report,
-            rig_stores,
-            resolution=(
-                scene.meta.resolution.width or None,
-                scene.meta.resolution.height or None,
-            ),
-            skip=frozenset(text_ids),
-        )
-
-        # Entity references resolve?
-        for j, entity in enumerate(shot.entities):
-            if entity.kind not in RIG_STORES or entity.id in text_ids:
-                continue
-            store_name, want_kind = RIG_STORES[entity.kind]
-            store = rig_stores.get(store_name)
-            if store is None:
-                continue  # store not supplied → this check did not run
-            if entity.kind == "character":
-                # A WARNING: the compiler falls back to the built-in placeholder
-                # rig and the scene still renders. Deliberately not escalated —
-                # an asset-less project rendering placeholders is a supported
-                # way to work.
-                if entity.ref not in store:
-                    report.add(
-                        "warning",
-                        f"{path}/entities/{j}",
-                        f"character ref {entity.ref!r} not in characters store",
-                    )
-                continue
-            # A stroked path (an#160) is a prop whose document is a
-            # `PathDescriptor`; it is checked by the same resolver the
-            # compiler builds it with, overrides merged, so the verdicts agree.
-            path_problem = _path_document_problem(entity, store)
-            if path_problem is not False:
-                if path_problem:
-                    report.add("error", f"{path}/entities/{j}", path_problem)
-                continue
-            # A prop has NO placeholder rig — the placeholder IS a humanoid, so
-            # falling back would draw a person where the prop should be — which
-            # makes an unresolvable prop a hard raise at compile. The pre-flight
-            # for a hard raise is an ERROR, and before an#108's review this arm
-            # did not exist at all: the harsher outcome had the weaker
-            # prediction, and `an validate` said "passed" about a scene that
-            # cannot render.
-            if _rig_document(entity, rig_stores) is None:
-                if entity.ref in store:
-                    why = (
-                        f"is in the {store_name!r} store but is not a "
-                        f"{want_kind} (rendering this shot raises)"
-                    )
-                else:
-                    why = (
-                        f"is not in the {store_name!r} store, and a {entity.kind} "
-                        "has no placeholder rig (rendering this shot raises)"
-                    )
-                report.add(
-                    "error",
-                    f"{path}/entities/{j}",
-                    f"{entity.kind} ref {entity.ref!r} {why}",
-                )
-
-        # Dialogue voice refs resolve?
-        # The line's own voice_ref, else the one its speaker is bound to — the
-        # resolver the audio pipeline speaks with (an#194).
-        if available_voices is not None:
-            for k, line in enumerate(shot.dialogue):
-                voice_ref = line.voice_ref or speaker_voice_ref(
-                    line.speaker, shot, {"characters": available_characters}
-                )
-                if voice_ref is None:
+    for i, shot in enumerate(ctx.scene.timeline):
+        for k, top in enumerate(shot.actions):
+            where = f"timeline/{i}/actions/{k}"
+            for action in iter_actions(top):
+                if type(action) is not ExtensionAction:
                     continue
-                if voice_ref not in available_voices:
-                    bound = (
-                        ""
-                        if line.voice_ref
-                        else f" (the voice character {line.speaker!r} is bound to)"
+                if action_kind(action.kind) is None:
+                    ctx.memo[_KIND_PROBLEM_REPORTED] = True
+                    ctx.report.add(
+                        "error", where, str(unregistered_action_kind(action.kind))
                     )
-                    report.add(
-                        "warning",
-                        f"{path}/dialogue/{k}/voice_ref",
-                        f"voice ref {voice_ref!r}{bound} not in voices store; "
-                        "the TTS provider is handed the name itself",
-                    )
-                else:
-                    _check_voice_effects(
-                        report, path, k, voice_ref, available_voices, line=line
+                    continue
+                try:
+                    action.resolved()
+                except ValidationError as e:
+                    ctx.memo[_KIND_PROBLEM_REPORTED] = True
+                    for err in e.errors():
+                        loc = "/".join(str(x) for x in err.get("loc", ()))
+                        ctx.report.add(
+                            "error",
+                            where + (f"/{loc}" if loc else ""),
+                            f"`{action.kind}` action: {err.get('msg', 'invalid')}",
+                        )
+
+
+def _core_entity_kinds(ctx: ValidationContext) -> None:
+    """Every entity's ``kind`` is a registered entity kind (ADR 0001 decision
+    2: ``AssetRef.kind`` is a ``str`` in the schema, held here)."""
+    from an.genres import providers_of
+    from an.genres.registry import entity_kind_names
+
+    for i, shot in enumerate(ctx.scene.timeline):
+        for j, entity in enumerate(shot.entities):
+            if entity_kind(entity.kind) is not None:
+                continue
+            ctx.memo[_KIND_PROBLEM_REPORTED] = True
+            error = UnregisteredKindError(
+                "entity kind",
+                entity.kind,
+                known=entity_kind_names(),
+                providers=providers_of(entity.kind, registry="entity kinds"),
+            )
+            ctx.report.add("error", f"timeline/{i}/entities/{j}", str(error))
+
+
+def _core_renderer(ctx: ValidationContext) -> None:
+    """The shot's ``renderer`` names a renderer this build has: a built-in one
+    (:data:`an.base.SUPPORTED_RENDERERS`) or one registered with
+    ``an.adapters.register_renderer``."""
+    from an.adapters._base import list_renderers
+
+    known = set(SUPPORTED_RENDERERS) | set(list_renderers())
+    if ctx.shot.renderer not in known:
+        ctx.report.add(
+            "error",
+            f"{ctx.path}/renderer",
+            f"renderer {ctx.shot.renderer!r} is not registered; known: "
+            f"{sorted(known)}. A renderer registers with "
+            "`an.adapters.register_renderer`.",
+        )
+
+
+def _core_shot_basics(ctx: ValidationContext) -> None:
+    shot, path, report = ctx.shot, ctx.path, ctx.report
+    _check_step_hz(
+        shot.step_hz, fps=ctx.scene.meta.fps, path=f"{path}/step_hz", report=report
+    )
+    seen_shot_ids = ctx.memo.setdefault("seen shot ids", set())
+    if not shot.id:
+        report.add("error", f"{path}/id", "shot id may not be empty")
+    elif shot.id in seen_shot_ids:
+        report.add("error", f"{path}/id", f"duplicate shot id: {shot.id!r}")
+    seen_shot_ids.add(shot.id)
+    if shot.duration <= 0:
+        report.add("error", f"{path}/duration", "shot duration must be > 0")
+
+
+def _core_renderable(ctx: ValidationContext) -> None:
+    _check_renderable(ctx.shot, ctx.path, ctx.report, stores=ctx.stores)
+
+
+def _core_framing(ctx: ValidationContext) -> None:
+    res = ctx.scene.meta.resolution
+    _check_framing(
+        ctx.shot, ctx.path, ctx.report, ctx.stores, width=res.width, height=res.height
+    )
+
+
+def _core_swap_references(ctx: ValidationContext) -> None:
+    _check_swap_references(ctx.shot, ctx.path, ctx.report, ctx.stores)
+
+
+def _core_trim_targets(ctx: ValidationContext) -> None:
+    _check_trim_targets(ctx.shot, ctx.path, ctx.report, ctx.stores)
+
+
+def _text_ids(ctx: ValidationContext) -> list:
+    """The current shot's text-block entity ids (checked by `_check_text_blocks`,
+    once; the target and entity-reference checks skip them)."""
+    res = ctx.scene.meta.resolution
+    return ctx.cached(
+        ("text ids", ctx.index),
+        lambda: _check_text_blocks(
+            ctx.shot,
+            ctx.path,
+            ctx.report,
+            ctx.stores,
+            width=res.width,
+            height=res.height,
+        ),
+    )
+
+
+def _core_text_blocks(ctx: ValidationContext) -> None:
+    _text_ids(ctx)
+
+
+def _core_action_targets(ctx: ValidationContext) -> None:
+    res = ctx.scene.meta.resolution
+    _check_action_targets(
+        ctx.shot,
+        ctx.path,
+        ctx.report,
+        ctx.stores,
+        resolution=(res.width or None, res.height or None),
+        skip=frozenset(_text_ids(ctx)),
+    )
+
+
+def _core_field_kinds(ctx: ValidationContext) -> None:
+    """Generic target validation against the property space (ADR 0001 decision
+    11): every value a ``set``/``tween`` writes must fit the field kind its
+    target entity's kind declares for that property — a string on a stage
+    node's ``x`` is refused here, as the compiler refuses it. Entities with no
+    registered kind, or a kind with no space, are left to their own checks."""
+    from an.timing.spaces import SpaceError, get_space
+
+    shot = ctx.shot
+    kinds = {e.id: e.kind for e in shot.entities}
+    for k, top in enumerate(shot.actions):
+        for flat in flatten(top):
+            leaf = flat.action
+            if getattr(leaf, "kind", None) not in _NODE_TARGETING_KINDS:
+                continue
+            prop = leaf.property
+            if prop in _AUTHORING_SUGAR_PROPERTIES:
+                continue  # expanded by the compiler before any channel exists
+            registered = entity_kind(kinds.get(leaf.target.split("/", 1)[0], ""))
+            if registered is None or registered.space is None:
+                continue
+            try:
+                field_kind = get_space(registered.space).kind_of(prop)
+            except SpaceError:
+                continue
+            for value in (
+                getattr(leaf, "value", None),
+                getattr(leaf, "from_value", None),
+                getattr(leaf, "to_value", None),
+            ):
+                if value is None:
+                    continue
+                problem = field_kind.check(value)
+                if problem:
+                    ctx.report.add(
+                        "error",
+                        f"{ctx.path}/actions/{k}",
+                        f"{leaf.target}:{prop} is a {field_kind.name} field of a "
+                        f"{registered.name} ({registered.space}): {problem} — "
+                        "compiling this shot raises.",
                     )
 
-        for k, line in enumerate(shot.dialogue):
-            if not line.text.strip():
-                report.add(
-                    "warning", f"{path}/dialogue/{k}/text", "empty dialogue line"
-                )
-            if not line.speaker:
-                report.add(
-                    "error",
-                    f"{path}/dialogue/{k}/speaker",
-                    "dialogue requires a speaker",
-                )
-        _check_dialogue_fits(shot, path, report)
 
-    _check_view_continuity(scene, report, turn_resolutions)
-    _check_assembly(scene, report, sounds=available_sounds)
-    return report
+def _core_entity_refs(ctx: ValidationContext) -> None:
+    """Entity references resolve?"""
+    shot, path, report, rig_stores = ctx.shot, ctx.path, ctx.report, ctx.stores
+    text_ids = _text_ids(ctx)
+    for j, entity in enumerate(shot.entities):
+        if entity.kind not in RIG_STORES or entity.id in text_ids:
+            continue
+        store_name, want_kind = RIG_STORES[entity.kind]
+        store = rig_stores.get(store_name)
+        if store is None:
+            continue  # store not supplied → this check did not run
+        if entity.kind == "character":
+            # A WARNING: the compiler falls back to the built-in placeholder
+            # rig and the scene still renders. Deliberately not escalated —
+            # an asset-less project rendering placeholders is a supported
+            # way to work.
+            if entity.ref not in store:
+                report.add(
+                    "warning",
+                    f"{path}/entities/{j}",
+                    f"character ref {entity.ref!r} not in characters store",
+                )
+            continue
+        # A stroked path (an#160) is a prop whose document is a
+        # `PathDescriptor`; it is checked by the same resolver the
+        # compiler builds it with, overrides merged, so the verdicts agree.
+        path_problem = _path_document_problem(entity, store)
+        if path_problem is not False:
+            if path_problem:
+                report.add("error", f"{path}/entities/{j}", path_problem)
+            continue
+        # A prop has NO placeholder rig — the placeholder IS a humanoid, so
+        # falling back would draw a person where the prop should be — which
+        # makes an unresolvable prop a hard raise at compile. The pre-flight
+        # for a hard raise is an ERROR, and before an#108's review this arm
+        # did not exist at all: the harsher outcome had the weaker
+        # prediction, and `an validate` said "passed" about a scene that
+        # cannot render.
+        if _rig_document(entity, rig_stores) is None:
+            if entity.ref in store:
+                why = (
+                    f"is in the {store_name!r} store but is not a "
+                    f"{want_kind} (rendering this shot raises)"
+                )
+            else:
+                why = (
+                    f"is not in the {store_name!r} store, and a {entity.kind} "
+                    "has no placeholder rig (rendering this shot raises)"
+                )
+            report.add(
+                "error",
+                f"{path}/entities/{j}",
+                f"{entity.kind} ref {entity.ref!r} {why}",
+            )
+
+
+def _core_voices(ctx: ValidationContext) -> None:
+    """Dialogue voice refs resolve? The line's own voice_ref, else the one its
+    speaker is bound to — the resolver the audio pipeline speaks with (an#194)."""
+    shot, path, report = ctx.shot, ctx.path, ctx.report
+    available_voices = ctx.voices
+    if available_voices is None:
+        return
+    for k, line in enumerate(shot.dialogue):
+        voice_ref = line.voice_ref or speaker_voice_ref(
+            line.speaker, shot, {"characters": ctx.characters}
+        )
+        if voice_ref is None:
+            continue
+        if voice_ref not in available_voices:
+            bound = (
+                ""
+                if line.voice_ref
+                else f" (the voice character {line.speaker!r} is bound to)"
+            )
+            report.add(
+                "warning",
+                f"{path}/dialogue/{k}/voice_ref",
+                f"voice ref {voice_ref!r}{bound} not in voices store; "
+                "the TTS provider is handed the name itself",
+            )
+        else:
+            _check_voice_effects(
+                report, path, k, voice_ref, available_voices, line=line
+            )
+
+
+def _core_dialogue_lines(ctx: ValidationContext) -> None:
+    shot, path, report = ctx.shot, ctx.path, ctx.report
+    for k, line in enumerate(shot.dialogue):
+        if not line.text.strip():
+            report.add("warning", f"{path}/dialogue/{k}/text", "empty dialogue line")
+        if not line.speaker:
+            report.add(
+                "error",
+                f"{path}/dialogue/{k}/speaker",
+                "dialogue requires a speaker",
+            )
+
+
+def _core_dialogue_fits(ctx: ValidationContext) -> None:
+    _check_dialogue_fits(ctx.shot, ctx.path, ctx.report)
+
+
+def _core_assembly(ctx: ValidationContext) -> None:
+    _check_assembly(ctx.scene, ctx.report, sounds=ctx.sounds)
+
+
+# -----------------------------------------------------------------------------
+# The cut-out genre's checks, as context functions. The genre object
+# (`an.genres.cutout.CUTOUT`) registers them; the core never runs them on its
+# own. They live here until the genre package exists (P8 moves them).
+# -----------------------------------------------------------------------------
+
+
+def _turns_of(ctx: ValidationContext, index: int, shot: Any):
+    return ctx.cached(("turns", index), lambda: _turn_resolution(shot, ctx.stores))
+
+
+def check_play_actions(ctx: ValidationContext) -> None:
+    """The cut-out genre's `play` check (:func:`_check_play_actions`)."""
+    _check_play_actions(ctx.shot, ctx.path, ctx.report, ctx.stores)
+
+
+def check_expression_actions(ctx: ValidationContext) -> None:
+    """The cut-out genre's `expression` / `[emotion]` check."""
+    _check_expression_actions(ctx.shot, ctx.path, ctx.report, ctx.stores)
+
+
+def check_turns(ctx: ValidationContext) -> None:
+    """The cut-out genre's contradicted-turn warning (:func:`_check_turns`)."""
+    _check_turns(ctx.shot, ctx.path, ctx.report, _turns_of(ctx, ctx.index, ctx.shot))
+
+
+def check_hidden_mouth_while_speaking(ctx: ValidationContext) -> None:
+    """The cut-out genre's mouth-hidden-by-a-view warning."""
+    _check_hidden_mouth_while_speaking(
+        ctx.shot,
+        ctx.path,
+        ctx.report,
+        _turns_of(ctx, ctx.index, ctx.shot),
+        ctx.stores,
+    )
+
+
+def check_view_continuity(ctx: ValidationContext) -> None:
+    """The cut-out genre's view-across-a-cut warning (:func:`_check_view_continuity`)."""
+    resolved = [_turns_of(ctx, i, shot) for i, shot in enumerate(ctx.scene.timeline)]
+    _check_view_continuity(ctx.scene, ctx.report, resolved)
+
+
+def _register_core_checks() -> None:
+    """The core's checks. The gaps in ``order`` are where the cut-out genre's
+    land (its `play` and `expression` checks at 40-41, turns at 60-61, view
+    continuity at 10 of ``finish``), which keeps a report's order exactly
+    what it was when all of them were one function."""
+    for check in (
+        SemanticCheck("retired_keys", _core_retired_keys, stage="scene", order=10),
+        SemanticCheck("meta", _core_meta, stage="scene", order=20),
+        SemanticCheck("easings", _core_easings, stage="scene", order=30),
+        SemanticCheck("has_shots", _core_has_shots, stage="scene", order=40),
+        SemanticCheck("action_kinds", _core_action_kinds, stage="scene", order=1),
+        SemanticCheck("entity_kinds", _core_entity_kinds, stage="scene", order=2),
+        SemanticCheck("renderer", _core_renderer, order=3),
+        SemanticCheck("shot_basics", _core_shot_basics, order=10),
+        SemanticCheck("renderable", _core_renderable, order=20),
+        SemanticCheck("framing", _core_framing, order=30),
+        SemanticCheck("swap_references", _core_swap_references, order=50),
+        SemanticCheck("trim_targets", _core_trim_targets, order=70),
+        SemanticCheck("text_blocks", _core_text_blocks, order=80),
+        SemanticCheck("action_targets", _core_action_targets, order=90),
+        SemanticCheck("field_kinds", _core_field_kinds, order=95),
+        SemanticCheck("entity_refs", _core_entity_refs, order=100),
+        SemanticCheck("voices", _core_voices, order=110),
+        SemanticCheck("dialogue_lines", _core_dialogue_lines, order=120),
+        SemanticCheck("dialogue_fits", _core_dialogue_fits, order=130),
+        SemanticCheck("assembly", _core_assembly, stage="finish", order=20),
+    ):
+        if check.name not in check_names(owner=CORE_OWNER):
+            register_check(check, owner=CORE_OWNER)
 
 
 #: Slack before a line counts as running past its shot: a frame at 60 fps.
@@ -1938,3 +2283,6 @@ def _check_assembly(
                 f"sound {cue.sound!r} has no recorded licence; `an credits` "
                 "reports it UNVERIFIED — unknown is not unencumbered",
             )
+
+
+_register_core_checks()

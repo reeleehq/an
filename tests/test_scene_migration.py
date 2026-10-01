@@ -424,12 +424,23 @@ def test_a_retired_style_entity_is_dropped_not_carried(tmp_path):
     scene = scene_from_json_doc(doc)
     kinds = [e.kind for e in scene.timeline[0].entities]
     assert kinds == ["voice"], kinds
-    from pydantic import ValidationError
+    # …and a NEW one is refused outright. Since ADR 0001 decision 2 the schema
+    # holds `AssetRef.kind` as a `str` (genres register entity kinds), so the
+    # refusal is `an validate`'s — an ERROR naming the registered kinds —
+    # rather than the schema's.
+    from an.ir.schema import AssetRef, SceneIR, Shot
+    from an.ir.validate import validate_semantic
 
-    with pytest.raises(ValidationError):  # and a NEW one is refused outright
-        from an.ir.schema import AssetRef
-
-        AssetRef(kind="style", id="s", store="styles", ref="s")
+    fresh = SceneIR(
+        timeline=[
+            Shot(id="s1", entities=[AssetRef(kind="style", id="s", store="styles", ref="s")])
+        ]
+    )
+    errors = [f for f in validate_semantic(fresh).findings if f.severity == "error"]
+    assert any(
+        f.ir_path == "timeline/0/entities/0" and "entity kind 'style' is not registered" in f.description
+        for f in errors
+    ), errors
 
 
 def test_the_migration_adds_no_key_the_document_did_not_have():
@@ -580,7 +591,12 @@ def test_the_iterate_prompt_teaches_the_schema_it_patches_against():
     )
     assert taught_renderers == renderers, taught_renderers ^ renderers
 
-    kinds = set(AssetRef.model_fields["kind"].annotation.__args__)
+    # The REGISTERED entity kinds (ADR 0001 decision 2: `AssetRef.kind` is a
+    # `str` in the schema, held by the registry) — the core's plus the cut-out
+    # genre's `character`, which the test session registers (conftest.py).
+    from an.genres import entity_kind_names
+
+    kinds = set(entity_kind_names())
     taught_kinds = {
         k.strip()
         for k in _line(_SYSTEM_PROMPT, '        "kind" MUST be one of:')

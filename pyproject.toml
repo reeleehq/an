@@ -65,6 +65,13 @@ dependencies = [
 [project.scripts]
 an = "an.__main__:main"
 
+# Genres register through this group, read by `an.genres.load()` — never at
+# import time (ADR 0001 decision 3). The cut-out genre is still inside `an`;
+# when it moves to its own distribution (`cutan`), that distribution declares
+# the same name here and `an` drops this line.
+[project.entry-points."an.genres"]
+cutout_animation = "an.genres.cutout:CUTOUT"
+
 [tool.hatch.build.targets.wheel]
 packages = ["an"]
 
