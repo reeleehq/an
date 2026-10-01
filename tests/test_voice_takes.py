@@ -728,3 +728,84 @@ def test_the_render_surfaces_an_overrun_after_synthesis(monkeypatch):
     assert len(said) == 1 and "ends at 4.00s" in said[0] and "cut off" in said[0]
     with pytest.warns(pipeline.DialogueOverrunWarning):
         _run(_scene(), _mall({"effects": {"tempo": 0.5}}), _TakesTTS((9.0,)))
+
+
+# --- a change of effects keeps the approved take (an#254 review M1) ----------
+
+
+class _PaddedTakesTTS(_TakesTTS):
+    """Take 0 is a short word padded with dead air; takes 1 and 2 are not padded."""
+
+    SHAPES = ((0.9, 2.1), (1.3, 0.0), (2.0, 0.0))  # (tone s, trailing silence s)
+
+    def synthesize(self, text, voice_id="default", **kw):
+        tone, pad = self.SHAPES[len(self.calls) % 3]
+        self.calls.append(kw)
+        silence = _wav(b"\x00\x00" * int(RATE * pad), RATE)
+        with wave.open(io.BytesIO(_tone(tone))) as w:
+            pcm = w.readframes(w.getnframes())
+        data = _wav(pcm + silence[44:], RATE)
+        return AudioClip(bytes_=data, duration=tone + pad, voice_id=voice_id, transcript=text)
+
+
+def test_turning_trim_on_keeps_the_approved_take_and_says_so():
+    """Re-choosing would pick take 0 (its 0.9 s word, trimmed, is now nearest
+    1.0 s); the approved take 1 is kept instead — re-processed, not re-scored."""
+    tts = _PaddedTakesTTS()
+    mall = _mall({"takes": _takes(n=3, target_s=1.0)})
+    _run(_scene(), mall, tts)
+    old_key, old = _record(mall)
+    assert old["chosen"] == 1
+    scored = list(SCORED)
+
+    mall["voices"]["nar"]["effects"] = {"trim_silence": True}
+    said: list[str] = []
+    line = _line(_run(_scene(), mall, tts, announce=said.append))
+    assert len(tts.calls) == 3 and SCORED == scored  # nothing billed, nothing re-scored
+    new_key = next(k for k in mall["takes"] if k != old_key)
+    new = json.loads(mall["takes"][new_key])
+    assert new["chosen"] == 1 and new["carried_from"] == old_key
+    assert new["digest"] == pipeline.audio_digest(mall["audio"][line.audio_ref])
+    assert line.audio_ref == new["takes"][1]["heard_key"]
+    assert any("keep their recorded take" in m and "an voices rescore" in m for m in said)
+    # The old record is untouched: turning trim off again restores exactly it.
+    assert json.loads(mall["takes"][old_key]) == old
+
+    # From now on it is an ordinary record: nothing more is said.
+    said.clear()
+    _run(_scene(), mall, tts, announce=said.append)
+    assert not any("keep their recorded take" in m for m in said)
+
+
+def test_a_rescore_after_a_carried_take_re_chooses_under_the_new_effects():
+    tts = _PaddedTakesTTS()
+    mall = _mall({"takes": _takes(n=3, target_s=1.0)})
+    scene = _run(_scene(), mall, tts)
+    mall["voices"]["nar"]["effects"] = {"trim_silence": True}
+    scene = _run(scene, mall, tts)
+    [message] = pipeline.retake_lines(
+        scene, mall, "one two", tts=tts, rescore=True, take_scorer=_duration_scorer
+    )
+    assert "take 1 released" in message
+    line = _line(_run(scene, mall, tts))
+    chosen = [json.loads(v) for v in mall["takes"].values() if json.loads(v).get("chosen") == 0]
+    assert chosen and line.audio_ref == chosen[0]["audio_key"] and len(tts.calls) == 3
+
+
+def test_takes_chosen_differently_under_earlier_effects_are_a_choice_to_make():
+    tts = _PaddedTakesTTS()
+    mall = _mall({"takes": _takes(n=3, target_s=1.0)})
+    _run(_scene(), mall, tts)
+    mall["voices"]["nar"]["effects"] = {"trim_silence": True}
+    _run(_scene(), mall, tts)
+    # Two records of the same request, chosen differently, equally recent.
+    for key in list(mall["takes"]):
+        record = json.loads(mall["takes"][key])
+        record["history"] = []
+        if record.get("carried_from"):
+            record["chosen"] = 2
+        mall["takes"][key] = json.dumps(record).encode()
+    mall["voices"]["nar"]["effects"] = {"trim_silence": {"keep_tail_s": 0.3}}
+    with pytest.raises(pipeline.TakesRecordError, match="an voices rescore"):
+        _run(_scene(), mall, tts)
+    assert len(tts.calls) == 3

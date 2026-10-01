@@ -141,6 +141,11 @@ def render(
     ffmpeg) are unchanged since a previous render is reused from the shot cache
     rather than rendered again, and the summary line says which were which.
 
+    Then what the render learned, grouped, each with its fix: a synthesized line
+    that runs past its shot or into a dissolve, a stand-in or a substitution,
+    a library pin out of date (artifacts/render_reports/<output_name>.json
+    holds them all).
+
     project_dir: path to an an project (must contain scene.md / ir/scene.json)
     output_name: filename stem under output/ (default: "main")
     tts: TTS provider — "offline" (silent) or "elevenlabs" (needs ELEVEN_API_KEY)
@@ -194,6 +199,8 @@ def render(
             parallel_arg = int(parallel)
         except ValueError:
             return f"invalid --parallel value: {parallel!r}; use a number or 'auto'"
+    from an.render import format_render_findings
+
     cache = ShotCache(cache_frames=cache_frames)
     output_path = _render_project(
         project_dir,
@@ -209,20 +216,23 @@ def render(
         capture=capture or None,
         incremental=False if no_cache else cache,
         force_render=force_render,
+        # Listed below, grouped, instead of as they happen (an#254).
+        echo_warnings=False,
     )
-    if no_cache:
-        return f"rendered: {output_path}"
-    lines = [f"rendered: {output_path}", f"shots: {cache.report.summary()}"]
+    lines = [f"rendered: {output_path}"]
+    if not no_cache:
+        lines.append(f"shots: {cache.report.summary()}")
     if cache_frames:
         lines.append(
             "note: --cache-frames is deprecated (an#260): it has no effect and "
             "will be removed in the next release"
         )
-    if cache.report.store_line():
+    if not no_cache and cache.report.store_line():
         lines.append(
             f"shot cache: {cache.report.store_line()} "
             f"(`an cache gc {project_dir}` removes what the scene no longer uses)"
         )
+    lines += format_render_findings(project_dir, output_name)
     return "\n".join(lines)
 
 

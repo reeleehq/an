@@ -700,6 +700,8 @@ def test_the_report_order_is_pinned():
     assert [c.name for c in checks("finish")] == [
         "cutout.view_continuity",
         "assembly",
+        # an#254: its own check, so `an render` can run it after synthesis by name
+        "dialogue_in_dissolve",
         # the asset library's pin checks (an#240), after everything that was here
         "library_pins",
         "library_checkouts",

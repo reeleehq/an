@@ -477,10 +477,14 @@ def test_render_project_ends_with_the_private_study_warning(tmp_path, monkeypatc
     import an.render as render_mod
 
     src = Path(render_mod.__file__).read_text(encoding="utf-8")
-    body = src[src.index("def render("):src.index("def _write_caption_sidecar")]
-    tail = body[body.rindex("_write_caption_sidecar("):]
-    assert "credits_for_scene(project.mall, scene)" in tail
+    # `render` makes the film (`_render_film` writes the file), then reports
+    # what it found (an#254), and only then checks the credits.
+    body = src[src.index("def render("):src.index("def _render_film(")]
+    assert body.index("_render_film(") < body.index("_write_render_report(")
+    tail = body[body.rindex("_write_render_report("):]
+    assert "credits_for_scene(project.mall, report_scene)" in tail
     assert "warn_if_private_study(report, output=output_path)" in tail
+    assert tail.rstrip().endswith("return output_path")
     # …and a credits failure only warns: a finished render never fails on it
     assert "except Exception" in tail and "CreditsWarning" in tail
 
