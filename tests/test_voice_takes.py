@@ -669,3 +669,62 @@ def test_takes_are_scored_on_the_audio_heard():
     line = _line(_run(_scene(), mall, _TakesTTS((2.0, 1.0))))
     assert _record(mall)[1]["chosen"] == 0
     assert line.duration == pytest.approx(1.0, abs=0.02)
+
+
+# --- round 2: a rescore never re-synthesizes under old keys; tempo in the estimate
+
+
+def test_rescore_after_a_lost_take_is_refused_and_reroll_keeps_the_mouth_in_step():
+    tts, mall = _TakesTTS((2.0, 1.0, 0.6)), _mall({"takes": _takes(3)})
+    scene = _run(_scene(), mall, tts)
+    mall["audio"].clear()
+    with pytest.raises(TakeLostError, match="an voices reroll"):
+        _run(scene, mall, tts)
+    msg = retake_lines(scene, mall, TEXT, tts=tts, rescore=True, take_scorer=_duration_scorer)[0]
+    assert "not rescored" in msg and "an voices reroll" in msg
+    key, original = _record(mall)
+    assert original["chosen"] == 1  # untouched
+
+    # a pending rescore written by hand cannot sneak a re-synthesis in either
+    _edit_record(mall, chosen=None, pending="rescore", takes=[])
+    with pytest.raises(TakeLostError, match="needs every take"):
+        _run(scene, mall, tts)
+    assert len(tts.calls) == 3
+
+    # reroll: new keys, so the same index winning with a NEW length re-aligns
+    mall["takes"][key] = json.dumps(original).encode()
+    tts.durations = [2.0, 1.4, 0.6]
+    retake_lines(scene, mall, TEXT, tts=tts, take_scorer=_duration_scorer)
+    line = _line(_run(scene, mall, tts))
+    assert _record(mall)[1]["chosen"] == 1
+    assert line.duration == pytest.approx(1.4)
+    assert line.word_timings[-1].end == pytest.approx(line.duration)
+
+
+def test_validate_divides_the_estimate_by_the_voice_tempo():
+    from an.audio.offline_tts import estimate_speech_duration
+    from an.ir.validate import validate_semantic
+
+    raw = estimate_speech_duration(TEXT)
+    scene = _scene()
+    scene.timeline[0].duration = round(raw + 0.2, 2)  # fits at the offline rate
+
+    def overruns(voices):
+        report = validate_semantic(scene, available_voices=voices)
+        return [f.description for f in report.findings if "cut off" in f.description]
+
+    assert overruns({"nar": {}}) == []
+    found = overruns({"nar": {"effects": {"tempo": 0.7}}})
+    assert len(found) == 1 and "tempo 0.7" in found[0]
+    assert f"{raw / 0.7:.2f}s" in found[0]
+
+
+def test_the_render_surfaces_an_overrun_after_synthesis(monkeypatch):
+    monkeypatch.setattr(pipeline, "apply_voice_effects", _fake_effects)
+    scene = _scene()
+    scene.timeline[0].duration = 2.5
+    said: list[str] = []
+    _run(scene, _mall({"effects": {"tempo": 0.5}}), _TakesTTS((2.0,)), announce=said.append)
+    assert len(said) == 1 and "ends at 4.00s" in said[0] and "cut off" in said[0]
+    with pytest.warns(pipeline.DialogueOverrunWarning):
+        _run(_scene(), _mall({"effects": {"tempo": 0.5}}), _TakesTTS((9.0,)))

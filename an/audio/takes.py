@@ -110,8 +110,8 @@ _CUE_FIELDS = _TAKES_FIELDS - {"cues"}
 #: What to run when a recorded take must be replaced (named in every error).
 REROLL_HINT: str = (
     "re-roll it explicitly with `an voices reroll <project> <words of the line>` "
-    "(new takes, billed) or re-choose from the cached takes with "
-    "`an voices rescore <project> <words of the line>`"
+    "(new takes, billed) or, while every take of its roll is still cached, "
+    "re-choose among them with `an voices rescore <project> <words of the line>`"
 )
 
 

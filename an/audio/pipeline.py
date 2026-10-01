@@ -188,7 +188,9 @@ def produce_audio_for_scene(
     recorded take whose audio is gone fails before a credit is spent; and
     ``announce`` (default: a line on stderr; ``None`` for silence) is told, before the first request, what best-of-N takes will bill (requests
     and the provider's characters) and which recorded takes were chosen by an
-    older scorer version than the current one (they are kept).
+    older scorer version than the current one (they are kept). After synthesis,
+    a line that ends past its shot's end (:func:`dialogue_overruns`) is
+    announced too — or, with ``announce=None``, a ``DialogueOverrunWarning``.
     """
     tts = tts or default_tts()
     lipsync = lipsync or default_lipsync()
@@ -264,7 +266,55 @@ def produce_audio_for_scene(
         line.word_timings = _to_ir_word_timings(track)
         line.audio_ref = req.cache_key
         line.viseme_ref = viseme_key(req.cache_key, lipsync.name, line.text)
-    return retime_dialogue(scene)
+    retime_dialogue(scene)
+    for message in dialogue_overruns(scene):
+        if announce is not None:
+            announce(message)
+        else:
+            warnings.warn(message, DialogueOverrunWarning, stacklevel=2)
+    return scene
+
+
+class DialogueOverrunWarning(UserWarning):
+    """A synthesized line runs past its shot's end, so its tail is cut."""
+
+
+#: Slack before a line counts as running past its shot: a frame at 60 fps
+#: (the same as ``an validate``'s).
+OVERRUN_TOLERANCE_S: float = 1 / 60
+
+
+def dialogue_overruns(
+    scene: SceneIR, *, tolerance_s: float = OVERRUN_TOLERANCE_S
+) -> list[str]:
+    """One message per synthesized line that ends past its shot's end.
+
+    ``an validate`` warns before synthesis from an estimate; this is the exact
+    check AFTER it — a voice's ``tempo`` (or a real voice's own pace) can make a
+    line longer than estimated, and the render cuts the shot's audio at the
+    shot's end, so the tail would otherwise be lost silently.
+
+    >>> from an.ir.schema import Dialogue, SceneIR, Shot
+    >>> shot = Shot(id="s", duration=1.0, dialogue=[
+    ...     Dialogue(speaker="a", text="hi", start=0.2, duration=1.3, audio_ref="k")])
+    >>> dialogue_overruns(SceneIR(timeline=[shot]))[0][:46]
+    "shot 's': line 0 (a) ends at 1.50s, past the s"
+    """
+    out = []
+    for shot in scene.timeline:
+        for k, line in enumerate(shot.dialogue):
+            if line.start is None or line.duration is None:
+                continue
+            end = float(line.start) + float(line.duration)
+            if end > float(shot.duration) + tolerance_s:
+                out.append(
+                    f"shot {shot.id!r}: line {k} ({line.speaker}) ends at {end:.2f}s, "
+                    f"past the shot's {float(shot.duration):g}s end, so its last "
+                    f"{end - float(shot.duration):.2f}s are cut off. Lengthen the shot "
+                    f"to at least {end:.2f}s, shorten the line, or lower the voice's "
+                    "`tempo` slowdown"
+                )
+    return out
 
 
 def retime_dialogue(scene: SceneIR, *, timed_shots_only: bool = False) -> SceneIR:
@@ -581,6 +631,16 @@ def _line_request(
     chosen = record.get("chosen") if record is not None else None
     if chosen is None:  # never chosen, or a rescore / reroll pending
         req.roll = int(record.get("roll", 0)) if record is not None else 0
+        missing = _missing_takes(req, mall)
+        if strict and record is not None and record.get("pending") == "rescore" and missing:
+            # A rescore chooses among takes ALREADY synthesized: re-synthesizing
+            # one under its old key would put new bytes under a key whose
+            # visemes are cached (the stale mouth of review H1).
+            raise TakeLostError(
+                f"a rescore of {line.text!r} needs every take of roll {req.roll} "
+                f"cached, and take(s) {missing} are gone; nothing was billed. "
+                f"{REROLL_ONLY_HINT}"
+            )
         check = getattr(req.scorer, "check_available", None)
         if strict and check is not None:
             check()
@@ -601,9 +661,24 @@ def _line_request(
                 f"the recorded take {chosen} of {line.text!r} (voice {voice_id!r}, "
                 f"sha256 {str(entry.get('heard_digest'))[:12]}) is gone from the audio "
                 f"store, raw and processed; nothing was billed. Restore the audio, or "
-                f"{REROLL_HINT}"
+                f"{REROLL_ONLY_HINT}"
             )
     return req
+
+
+#: The remedy when a recorded take is gone: only a new roll (new keys) replaces it.
+REROLL_ONLY_HINT: str = (
+    "Re-roll it with `an voices reroll <project> <words of the line>` (new takes "
+    "under new keys, billed; the render prints the cost first)"
+)
+
+
+def _missing_takes(req: _LineRequest, mall: Mapping[str, MutableMapping] | None) -> list[int]:
+    """The takes of ``req``'s current roll whose raw audio is not in the store."""
+    audio_store = mall.get("audio") if mall is not None else None
+    if audio_store is None:
+        return []
+    return [take for take, _options, key in req.take_requests() if key not in audio_store]
 
 
 def _take_options(tts: TTSProvider, options: Mapping[str, Any], take: int) -> dict[str, Any]:
@@ -812,6 +887,15 @@ def retake_lines(
                 out.append(f"{line.text!r}: no take recorded yet; the next render chooses one")
                 continue
             roll = int(record.get("roll", 0))
+            missing = _missing_takes(req, mall)
+            if rescore and missing:
+                out.append(
+                    f"{line.text!r}: not rescored — take(s) {missing} of roll {roll} are "
+                    "gone from the audio store, and re-synthesizing them under their old "
+                    "keys would desynchronize the mouth. "
+                    f"{REROLL_ONLY_HINT}"
+                )
+                continue
             write_takes_record(
                 mall.get(TAKES_STORE),
                 req.choice_key,
