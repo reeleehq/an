@@ -50,7 +50,9 @@ __all__ = [
     "CUTOUT_METHODS",
     "LOCOMOTION",
     "SPEECH",
+    "check_declared_speech",
     "compile_profile",
+    "speech_problems",
     "normalise_gait_args",
     "resolve_walk_gait",
     "SpeechPlan",
@@ -318,6 +320,47 @@ def normalise_gait_args(args: Mapping[str, Any]) -> dict[str, Any]:
     return {**extra, **rest, "gait": method.term}
 
 
+def speech_problems(declared: Any) -> list[str]:
+    """Why a character's declared ``speech`` cannot be honoured (empty: it can).
+
+    An unknown method, a method of another aspect, or a pin to a version the
+    registry no longer has; the message names the speech methods.
+
+    >>> speech_problems("pulse"), speech_problems(None)
+    ([], [])
+    >>> speech_problems("flap")[0].startswith("speech 'flap'")
+    True
+    """
+    from an.semantic import VocabularyError
+    from an.semantic.matcher import _as_choice, _method
+
+    if declared is None:
+        return []
+    try:
+        _method(_as_choice(declared, SPEECH), SPEECH)
+    except VocabularyError as e:
+        name = declared.get("method") if isinstance(declared, Mapping) else declared
+        return [f"speech {name!r} cannot be honoured: {e}"]
+    return []
+
+
+def check_declared_speech(ctx) -> None:
+    """The cut-out genre's semantic check: each character's declared ``speech`` resolves."""
+    store = ctx.stores.get("characters")
+    if store is None:
+        return
+    for j, entity in enumerate(ctx.shot.entities):
+        if entity.kind != CHARACTER_KIND or entity.ref not in store:
+            continue
+        try:
+            doc = store[entity.ref]
+        except KeyError:
+            continue
+        declared = doc.get("speech") if isinstance(doc, Mapping) else None
+        for problem in speech_problems(declared):
+            ctx.report.add("error", f"{ctx.path}/entities/{j}", f"{entity.ref}: {problem}")
+
+
 def substitution_record(sub, *, entity_ref: str | None = None) -> dict[str, Any]:
     """A :class:`~an.capabilities.Substitution` as an ``asset_resolution`` entry.
 
@@ -416,19 +459,32 @@ def speech_plan(
     and one resolved to ``speech.pose_only`` gets a ``speech_pulse`` play at each
     syllable onset of each timed line — one play per syllable, each built at the
     head's pose at that instant, so it rides an authored head-scale tween rather
-    than overwriting it. ``strength: 0`` is a mime: no pulse at all. An author who
-    plays ``speech_pulse`` on the speaker in the shot has made the request
-    explicitly: nothing is added beside it. Substitutions (a declared method the
-    rig cannot honour; the fall from the mouth chart to the pulse) go to
-    ``record``, once per speaker.
+    than overwriting it; a syllable that starts while the speaker's previous pulse
+    is still running is skipped, so the head always settles back. ``strength: 0``
+    is a mime: no pulse at all. An authored ``play: speech_pulse`` on the speaker
+    replaces the automatic pulses (nothing is added beside it), but it is not a
+    declaration: the fall from the mouth chart is still recorded, and only a
+    declared ``speech`` makes it the request. Substitutions (a declared method
+    the rig cannot honour; the fall from the mouth chart to the pulse) go to
+    ``record``, once per speaker. A declared ``speech`` naming no method of the
+    aspect, or pinned to a stale version, raises
+    :class:`~an.semantic.VocabularyError` naming the aspect's methods
+    (:func:`speech_problems` is ``an validate``'s side of it).
     """
     from an.ir.compose import delay, play, sequence
     from an.semantic import resolve
 
+    from an.motion import WALK_LANDING_S
+
     authored = _authored_pulse_speakers(shot)
     resolved: dict[str, Any] = {}
+    busy_until: dict[str, float] = {}
     actions: list = []
-    for line in shot.dialogue or ():
+    lines = sorted(
+        (ln for ln in shot.dialogue or ()),
+        key=lambda ln: float("inf") if ln.start is None else float(ln.start),
+    )
+    for line in lines:
         speaker = line.speaker
         if not is_character(speaker):
             continue
@@ -450,9 +506,16 @@ def speech_plan(
         args = {k: v for k, v in r.args.items() if k not in ("part", "beats")}
         part = r.args.get("part", "head")
         args["part"] = part if part and has_part(f"{speaker}/{part}") else ""
+        length = float(args.get("attack", 0.0)) + float(args.get("release", 0.0)) + WALK_LANDING_S
         for beat in syllable_beats(line):
-            pulse = play(speaker, PULSE_PRESET, args={**args, "beats": [0.0]})
             at = float(line.start) + beat
+            # A beat inside a pulse still running (long args, overlapping lines)
+            # is dropped: a pulse built on a mid-pulse pose would settle above
+            # rest and ratchet the head up (review-256 R2-1).
+            if at < busy_until.get(speaker, float("-inf")):
+                continue
+            busy_until[speaker] = at + length
+            pulse = play(speaker, PULSE_PRESET, args={**args, "beats": [0.0]})
             actions.append(sequence(delay(at), pulse) if at else pulse)
     return SpeechPlan(
         tuple(actions),

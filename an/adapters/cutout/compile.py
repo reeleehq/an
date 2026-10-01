@@ -3984,15 +3984,21 @@ def _speech_plan(
     does not lip-sync gets, and who those speakers are. A shot whose speakers
     all lip-sync on their mouth chart gets nothing — its document is unchanged."""
     from an.characters.methods import speech_plan
+    from an.semantic import VocabularyError
 
-    return speech_plan(
-        shot,
-        is_character=lambda e: _on_registry(e, vocab),
-        profile_of=lambda e: _character_profile(e, vocab),
-        descriptor_of=lambda e: vocab.descriptors.get(e),
-        has_part=lambda path: path in vocab.node_transforms,
-        record=lambda sub: _record_substitution(sub, resolutions),
-    )
+    try:
+        return speech_plan(
+            shot,
+            is_character=lambda e: _on_registry(e, vocab),
+            profile_of=lambda e: _character_profile(e, vocab),
+            descriptor_of=lambda e: vocab.descriptors.get(e),
+            has_part=lambda path: path in vocab.node_transforms,
+            record=lambda sub: _record_substitution(sub, resolutions),
+        )
+    except VocabularyError as e:
+        raise CutoutCompileError(
+            f"shot {shot.id!r}: a character's declared `speech` cannot be honoured: {e}"
+        ) from e
 
 
 def _on_registry(entity: str, vocab: _SwapVocabulary) -> bool:

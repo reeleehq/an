@@ -396,3 +396,41 @@ def test_capabilities_reports_the_declared_gait_and_face(tmp_path):
     assert "locomotion: default loco.hem_sway (declared: hem)" in out
     assert "face_overlay=False" in out
     assert "speech: default speech.pose_only" in out and "recorded: missing" in out
+
+
+# --------------------------------------------------------------------------- review-256 round 2
+
+
+def test_overlapping_pulses_never_ratchet_the_head(tmp_path):
+    """R2-1: long pulses and two overlapping lines still settle the head at rest."""
+    store = _variant(
+        tmp_path, "baked", face_overlay=False,
+        speech={"method": "pulse", "args": {"attack": 0.1, "release": 0.3}},
+    )
+    shot = _speaking("baked")
+    second = shot.dialogue[0].model_copy(update={"start": 0.9})  # overlaps the first
+    shot = shot.model_copy(update={"dialogue": [shot.dialogue[0], second], "duration": 4.0})
+    head = _head(compile_shot(shot, {"characters": store}))
+    samples = [head(i / 100) for i in range(400)]
+    assert max(samples) <= 1.06 + 1e-9
+    assert head(2.5) == pytest.approx(1.0) and head(3.9) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("declared", ["flap", {"method": "pulse", "version": "9"}, "loco.rock"])
+def test_an_unhonourable_speech_declaration_fails_validate_and_compile_by_name(declared, tmp_path):
+    """R2-2: `an validate` reports it; compile raises a typed error naming the methods."""
+    from an.characters.validate import validate_character
+    from an.ir.schema import Meta, SceneIR
+    from an.ir.validate import validate_semantic
+
+    store = _variant(tmp_path, "typo", speech=declared)
+    shot = _speaking("typo")
+    report = validate_semantic(
+        SceneIR(meta=Meta(title="t", duration=2.0), timeline=[shot]), available_characters=store
+    )
+    errors = [f.description for f in report.findings if f.severity == "error"]
+    assert any("speech" in e and "speech.pose_only" in e for e in errors), errors
+    with pytest.raises(CutoutCompileError, match="speech.pose_only"):
+        compile_shot(shot, {"characters": store})
+    char_report = validate_character(tmp_path / "typo", name="typo")
+    assert any("speech" in f.ir_path for f in char_report.findings), char_report.findings

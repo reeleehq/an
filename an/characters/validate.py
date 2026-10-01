@@ -319,6 +319,7 @@ def validate_character(
     _check_mouth_variants(descriptor, report, who=who)
     _check_gaze_stack(descriptor, report, who=who)
     _check_face_overlay_declaration(descriptor, report, who=who)
+    _check_declared_speech(descriptor, report, who=who)
     _check_joint_names(directory, descriptor, report)
 
     if descriptor is not None and descriptor.source is None:
@@ -679,6 +680,28 @@ def _check_mouth_variants(
 #: longer reads them (the declared `face_overlay` field does the job, an#87);
 #: this check is what keeps a hand-authored current-schema descriptor honest.
 _BAKED_FACE_PROVENANCES: tuple[str, ...] = ("dicebear", "external_avatar")
+
+
+def _check_declared_speech(
+    descriptor: CharacterDescriptor | None, report: VerificationReport, *, who: str
+) -> None:
+    """A declared ``speech`` must name a speech method at a current version
+    (an#248): it is resolved on the capability registry, so a typo or a stale
+    pin would otherwise only surface at compile."""
+    if descriptor is None or descriptor.speech is None:
+        return
+    from an.characters.methods import speech_problems
+    from an.genres import load
+
+    load()
+    for problem in speech_problems(descriptor.speech):
+        report.add(
+            BLOCKING,
+            "character.json#speech",
+            f"{who}: {problem}",
+            "Declare a speech method (`pulse`, `mouth_chart`, or "
+            "`{method: pulse, args: {strength: 0}}` for a mime), or remove `speech`.",
+        )
 
 
 def _check_face_overlay_declaration(

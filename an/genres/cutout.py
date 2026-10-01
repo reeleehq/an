@@ -33,7 +33,7 @@ Importing this module registers nothing: :func:`an.genres.load` (or
 
 from __future__ import annotations
 
-from an.characters.methods import CUTOUT_ASPECTS, CUTOUT_METHODS
+from an.characters.methods import CUTOUT_ASPECTS, CUTOUT_METHODS, check_declared_speech
 from an.characters.registration import CHARACTER, PLAY
 from an.characters.vocabulary import CUTOUT_VOCABULARY
 from an.expression.registration import EMOTION, EXPRESSION
@@ -82,6 +82,12 @@ CUTOUT = Genre(
             _validate.check_hidden_mouth_while_speaking,
             order=61,
             description="no line is spoken while the speaker's view hides its mouth",
+        ),
+        SemanticCheck(
+            "cutout.declared_speech",
+            check_declared_speech,
+            order=100.6,
+            description="a character's declared `speech` names a speech method at a current version",
         ),
         SemanticCheck(
             "cutout.character_refs",
