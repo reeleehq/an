@@ -87,6 +87,43 @@ class GenreError(RegistryError):
     """A genre declaration is malformed, or its entry point does not resolve."""
 
 
+#: The level of the genre-facing API this ``an`` provides: every hook, registry
+#: field and moved path a genre package may rely on. Bumped by each change a
+#: genre needs (the P8 seam PRs and each move to ``cutan``, an#225), never
+#: decremented. A genre states the lowest level it needs with
+#: :func:`require_api_level`, which is how "the genre declares the lowest ``an``
+#: it supports" (ADR 0001 decision 8) is said without a version pin: ``an``'s
+#: version is assigned by CI at merge, so no PR can name the release it ships in.
+#:
+#: Levels: 1 = moved-module shims (``an._shims.moved_to_package``) and this
+#: check (an#296, P8 B0a).
+API_LEVEL: int = 1
+
+
+class GenreAPILevelError(GenreError, ImportError):
+    """A genre package needs a newer ``an`` than the one installed."""
+
+
+def require_api_level(level: int, *, package: str) -> None:
+    """Refuse, with an upgrade hint, when this ``an`` is older than ``package`` needs.
+
+    A genre package calls it at import (``require_api_level(3, package="cutan")``).
+
+    >>> require_api_level(1, package="demo")
+    >>> try:
+    ...     require_api_level(API_LEVEL + 1, package="demo")
+    ... except GenreAPILevelError as e:
+    ...     print(str(e).startswith(f"demo needs an.genres API level {API_LEVEL + 1}"))
+    True
+    """
+    if API_LEVEL < level:
+        raise GenreAPILevelError(
+            f"{package} needs an.genres API level {level} or higher; this an "
+            f"provides {API_LEVEL}. Upgrade an (pip install -U an), or install "
+            f"the {package} release that matches it."
+        )
+
+
 @dataclass(frozen=True)
 class Genre:
     """A genre: one plain, declarative object listing what it registers.
@@ -572,7 +609,10 @@ def _all_owners() -> set[str]:
 
 
 __all__ = [
+    "API_LEVEL",
     "ENTRY_POINT_GROUP",
+    "GenreAPILevelError",
+    "require_api_level",
     "ActionKind",
     "CompilePass",
     "RuntimeScript",

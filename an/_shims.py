@@ -37,11 +37,23 @@ one whose attribute access forwards them to the new module, so
 from __future__ import annotations
 
 import importlib
+import importlib.abc
+import importlib.util
 import sys
 import types
+import warnings
 from collections.abc import Iterable, Mapping
 
-__all__ = ["alias_module", "aliased_to", "forward_module_attributes", "forwarded_names"]
+__all__ = [
+    "GenreNotInstalledError",
+    "MovedModuleWarning",
+    "alias_module",
+    "aliased_to",
+    "forward_module_attributes",
+    "forwarded_names",
+    "moved_to_package",
+    "moved_targets",
+]
 
 #: Attribute on a shimmed module holding ``{old name: (target module, new name)}``.
 _FORWARDS_ATTR: str = "__an_forwards__"
@@ -169,3 +181,152 @@ def alias_module(module_name: str, target: str) -> None:
 def aliased_to(module: types.ModuleType) -> str | None:
     """The module a whole-module alias forwards to, else ``None``."""
     return module.__dict__.get(_ALIAS_ATTR)
+
+
+# -----------------------------------------------------------------------------
+# Moves OUT of the distribution: a module or package that now lives in a genre
+# package (P8, an#225: `an.characters` -> `cutan.characters`).
+# -----------------------------------------------------------------------------
+
+#: The distribution a moved module goes to, by default (ADR 0001: the cut-out
+#: genre package), and the ``an`` extra that installs it.
+DFLT_MOVED_DISTRIBUTION: str = "cutan"
+DFLT_MOVED_EXTRA: str = "cutout"
+
+
+class MovedModuleWarning(DeprecationWarning):
+    """An old ``an`` import path of a module that moved to a genre package.
+
+    Its own class, so a test configuration can turn exactly this into an error
+    (``an``'s own code must never import through an old path) without touching
+    any other deprecation.
+    """
+
+
+class GenreNotInstalledError(ModuleNotFoundError):
+    """An old ``an`` path names a module that moved to a package not installed here.
+
+    A ``ModuleNotFoundError`` (so ``except ImportError`` still works), with the
+    install command in its message rather than a bare "No module named".
+    """
+
+
+class _MovedFinder(importlib.abc.MetaPathFinder):
+    """Maps every ``<old>.<sub>`` import to ``<new>.<sub>``, for each registered move."""
+
+    def __init__(self) -> None:
+        self.moves: dict[str, tuple[str, str, str]] = {}
+
+    def find_spec(self, fullname, path=None, target=None):
+        for old, (new, distribution, extra) in self.moves.items():
+            if fullname.startswith(old + "."):
+                loader = _MovedLoader(
+                    fullname,
+                    new + fullname[len(old) :],
+                    distribution=distribution,
+                    extra=extra,
+                )
+                return importlib.util.spec_from_loader(fullname, loader)
+        return None
+
+
+class _MovedLoader(importlib.abc.Loader):
+    """Loads an old name as the NEW module object itself (no second copy)."""
+
+    def __init__(self, old: str, new: str, *, distribution: str, extra: str) -> None:
+        self.old, self.new = old, new
+        self.distribution, self.extra = distribution, extra
+
+    def create_module(self, spec):
+        return _import_moved(
+            self.old, self.new, distribution=self.distribution, extra=self.extra
+        )
+
+    def exec_module(self, module) -> None:
+        """Nothing to run: the module was imported under its new name."""
+
+
+_FINDER = _MovedFinder()
+
+
+def _import_moved(
+    old: str, new: str, *, distribution: str, extra: str
+) -> types.ModuleType:
+    top = new.split(".", 1)[0]
+    try:
+        module = importlib.import_module(new)
+    except ModuleNotFoundError as e:
+        # Only the ABSENT DISTRIBUTION gets the install hint; a missing module
+        # inside an installed one is a real error and propagates as it is.
+        if e.name == top and importlib.util.find_spec(top) is None:
+            raise GenreNotInstalledError(
+                f"`{old}` moved to `{new}`, in the `{distribution}` package, "
+                f'which is not installed. Install it: pip install "an[{extra}]" '
+                f"(or pip install {distribution}).",
+                name=old,
+            ) from e
+        raise
+    warnings.warn(
+        f"`{old}` moved to `{new}` (the `{distribution}` package); import it from "
+        "there. The old path is a live alias, removed once nothing imports it.",
+        MovedModuleWarning,
+        stacklevel=3,
+    )
+    return module
+
+
+def moved_to_package(
+    module_name: str,
+    target: str,
+    *,
+    distribution: str = DFLT_MOVED_DISTRIBUTION,
+    extra: str = DFLT_MOVED_EXTRA,
+) -> None:
+    """Make ``module_name`` -- and, for a package, every submodule of it -- the
+    module ``target`` that now lives in another distribution.
+
+    Call it as the ONLY statement of the old module (or the old package's
+    ``__init__``), with ``__name__``. After it:
+
+    - ``import old`` and ``import old.sub`` return the NEW module objects
+      themselves (``old.sub is new.sub``): one copy, so no class, registry or
+      document kind is ever defined twice, and rebinding a name (a lever,
+      ``monkeypatch``) rebinds it where the code runs;
+    - each old name warns once, with :class:`MovedModuleWarning`;
+    - if ``distribution`` is not installed, the import raises
+      :class:`GenreNotInstalledError` naming ``pip install "an[<extra>]"``.
+
+    Unlike :func:`alias_module` the old file holds no code at all, which is
+    what lets the code leave this distribution.
+
+    >>> import sys, types, warnings
+    >>> new = types.ModuleType("_moved_demo_new"); new.KNOB = 1
+    >>> sys.modules["_moved_demo_new"] = new
+    >>> sys.modules["_moved_demo_old"] = types.ModuleType("_moved_demo_old")
+    >>> with warnings.catch_warnings(record=True) as seen:
+    ...     warnings.simplefilter("always")
+    ...     moved_to_package("_moved_demo_old", "_moved_demo_new", distribution="demo")
+    >>> sys.modules["_moved_demo_old"] is new, seen[0].category.__name__
+    (True, 'MovedModuleWarning')
+    >>> moved_targets()["_moved_demo_old"]
+    '_moved_demo_new'
+    >>> _forget_move("_moved_demo_old")
+    >>> del sys.modules["_moved_demo_new"], sys.modules["_moved_demo_old"]
+    """
+    module = _import_moved(module_name, target, distribution=distribution, extra=extra)
+    _FINDER.moves[module_name] = (target, distribution, extra)
+    if _FINDER not in sys.meta_path:
+        sys.meta_path.insert(0, _FINDER)
+    # The import system re-reads `sys.modules[name]` after running the old
+    # module's body, so this is what `import old` returns.
+    sys.modules[module_name] = module
+
+
+def moved_targets() -> dict[str, str]:
+    """``{old module: new module}`` for every move registered in this process."""
+    return {old: new for old, (new, _d, _e) in _FINDER.moves.items()}
+
+
+def _forget_move(module_name: str) -> None:
+    """Drop a registered move (tests and doctests only)."""
+    _FINDER.moves.pop(module_name, None)

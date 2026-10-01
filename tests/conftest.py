@@ -92,6 +92,12 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers",
+        "genre(name, ...): needs the named genre(s) installed (P8, an#225: the "
+        "cut-out genre moves to `cutan`); skipped AND COUNTED when one is absent, "
+        f"an error when {GENRE_ENV_VAR} is truthy",
+    )
+    config.addinivalue_line(
+        "markers",
         "writes_anywhere: opts out of the blast-radius guard (an#152). No test "
         "carries it today; adding it needs a stated reason in the test",
     )
@@ -506,6 +512,66 @@ def requirement_verdict(name, *, opt_in, available, ci, install_hint):
 _GATE_REPORT: dict = {}
 
 
+#: Set truthy in a lane that INSTALLS the genre packages (the genre lane of
+#: P8, an#225), so a genre test that cannot run there is an error, not a skip.
+GENRE_ENV_VAR = "AN_GENRE_TESTS"
+
+#: How to get the genres, quoted in the skip reason.
+_GENRE_INSTALL_HINT = "pip install -e '.[cutout]' (the cut-out genre, an#225)"
+
+
+def genre_verdict(names, *, available, opt_in):
+    """``(action, message)`` for a test marked ``@pytest.mark.genre(*names)``.
+
+    The P8 move (an#225) puts the cut-out genre in another distribution, so
+    `an`'s own tests that need it can only run where it is installed. Those
+    tests are marked, and SKIPPED-AND-COUNTED elsewhere (the summary line says
+    how many did not run, and why) -- never `importorskip`ped from a body,
+    which is the silent hole of an#22. Pure, so the matrix is testable.
+
+    >>> genre_verdict(["cutout_animation"], available={"cutout_animation"}, opt_in=None)
+    ('run', '')
+    >>> genre_verdict(["cutout_animation"], available=set(), opt_in=None)[0]
+    'skip'
+    >>> genre_verdict(["cutout_animation"], available=set(), opt_in=True)[0]
+    'error'
+    """
+    missing = sorted(set(names) - set(available))
+    if not missing:
+        return "run", ""
+    if opt_in:
+        return (
+            "error",
+            f"{GENRE_ENV_VAR} says the genres are installed, but {missing} is not "
+            f"discoverable (an.genres.available()). Install it ({_GENRE_INSTALL_HINT}) "
+            f"or unset {GENRE_ENV_VAR}.",
+        )
+    return "skip", f"genre {', '.join(missing)} not installed: {_GENRE_INSTALL_HINT}"
+
+
+def _genre_gate(items, env=None):
+    """Apply :func:`genre_verdict` to every ``genre``-marked item; its report row."""
+    marked = [(i, m) for i in items if (m := i.get_closest_marker("genre")) is not None]
+    report = {"total": 0, "skipped": 0, "reason": ""}
+    if not marked:
+        return report
+    from an.genres import available
+
+    env = os.environ if env is None else env
+    names = set(available())
+    opt_in = _env_flag(env, GENRE_ENV_VAR)
+    for item, marker in marked:
+        action, message = genre_verdict(marker.args, available=names, opt_in=opt_in)
+        if action == "error":
+            raise pytest.UsageError(message)
+        report["total"] += 1
+        if action == "skip":
+            report["skipped"] += 1
+            report["reason"] = report["reason"] or message
+            item.add_marker(pytest.mark.skip(reason=message))
+    return report
+
+
 def _gate_verdicts(env=None):
     """The (action, message) verdict for each gated requirement."""
     env = os.environ if env is None else env
@@ -573,6 +639,7 @@ def pytest_collection_modifyitems(config, items):
             for name in verdicts
         }
     )
+    _GATE_REPORT["genre"] = _genre_gate(items)
     _RAN_COUNTS.clear()
     # An explicit opt-in that cannot be honoured is an error — but only for a
     # requirement that gates something this invocation actually selected.

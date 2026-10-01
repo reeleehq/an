@@ -64,6 +64,11 @@ STAGE: tuple[str, ...] = (
 GENRE: tuple[str, ...] = (
     "cutan",
     "an.genres.cutout",
+    # Physically under the stage's old package (`an.adapters.cutout`), but
+    # cut-out code (module map: coarticulate, gaze -> cutan). The LONGEST
+    # matching prefix classifies a module, so these two are genre.
+    "an.adapters.cutout.coarticulate",
+    "an.adapters.cutout.gaze",
     "an.characters",
     "an.expression",
     "an.impacts",
@@ -99,6 +104,17 @@ ALLOWED_TODAY: dict[tuple[str, str], str] = {
 def _matches(name: str, prefixes: tuple[str, ...]) -> str | None:
     """The prefix ``name`` falls under, or ``None``."""
     return next((p for p in prefixes if name == p or name.startswith(p + ".")), None)
+
+
+def _side(name: str) -> str | None:
+    """``"stage"``, ``"genre"`` or ``"engine"`` by the LONGEST matching prefix; ``None`` for core."""
+    hits = [
+        (len(p), side)
+        for side, prefixes in (("stage", STAGE), ("genre", GENRE), ("engine", ENGINES))
+        for p in prefixes
+        if name == p or name.startswith(p + ".")
+    ]
+    return max(hits)[1] if hits else None
 
 
 def _module_name(path: Path) -> str:
@@ -361,3 +377,117 @@ def test_a_new_seam_imports_with_the_stage_and_the_genre_unimportable(module):
         + result.stderr[-1500:]
     )
     assert json.loads(result.stdout.strip().splitlines()[-1]) == []
+
+
+# -----------------------------------------------------------------------------
+# The second perimeter: the STAGE imports no genre (an#296, P8 B0a).
+#
+# `an.stage` ships inside the `an` distribution and a genre package (`cutan`)
+# depends on `an`, so a stage module importing genre code at module level is a
+# reverse dependency: it breaks the day the genre's code leaves the repository.
+# Same two passes as the core perimeter (static top-level imports; a dynamic
+# probe attributing every load), same rule: the allow-list only shrinks.
+# -----------------------------------------------------------------------------
+
+#: Today's stage -> genre edges, ``(stage module, genre prefix) -> what removes it``.
+#: ONLY SHRINKS.
+STAGE_ALLOWED_TODAY: dict[tuple[str, str], str] = {
+    ("an.stage.compile", "an.characters"): (
+        "an#225 B0c: action lowering and swap-vocabulary hooks; the cut-out "
+        "passes register from the genre side"
+    ),
+    ("an.stage.compile", "an.expression"): "an#225 B0c: the face passes register from the genre side",
+    ("an.stage.compile", "an.adapters.cutout.coarticulate"): "an#225 B0c: with the viseme pass",
+    ("an.stage.compile", "an.adapters.cutout.gaze"): "an#225 B0c: with the face pass",
+    ("an.stage.props", "an.characters"): "an#293 (B0c): the rig primitives move to the stage",
+}
+
+
+def _stage_modules() -> list[tuple[str, Path]]:
+    """Every module under ``an/`` that the classification puts on the stage side."""
+    return [
+        (_module_name(p), p)
+        for p in sorted(PACKAGE.rglob("*.py"))
+        if _side(_module_name(p)) == "stage" and not _module_name(p).endswith(".conftest")
+    ]
+
+
+def _genre_prefix(name: str) -> str | None:
+    """The GENRE prefix ``name`` falls under, when the longest match is a genre one."""
+    return _matches(name, tuple(sorted(GENRE, key=len, reverse=True))) if _side(name) == "genre" else None
+
+
+def _stage_static_violations() -> dict[tuple[str, str], str]:
+    out: dict[tuple[str, str], str] = {}
+    for module, path in _stage_modules():
+        for target, line in _module_level_imports(path, module):
+            prefix = _genre_prefix(target)
+            if prefix:
+                out.setdefault((module, prefix), f"{path.relative_to(ROOT)}:{line} imports {target}")
+    return out
+
+
+@pytest.fixture(scope="module")
+def stage_dynamic_violations() -> dict[tuple[str, str], str]:
+    """The core probe, run over the stage modules with only the GENRE firewalled;
+    kept: loads attributed to a STAGE module (a core module's own edges are the
+    core perimeter's business)."""
+    stage = [name for name, _ in _stage_modules()]
+    result = subprocess.run(
+        [sys.executable, "-c", _PROBE, json.dumps(list(GENRE)), json.dumps(stage)],
+        capture_output=True,
+        text=True,
+        cwd=ROOT,
+        env=_this_tree_first(),
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr[-2000:]
+    report = json.loads(result.stdout.strip().splitlines()[-1])
+    assert report.get("root") == str(PACKAGE / "__init__.py"), report.get("root")
+    out = {}
+    for key, name in report["seen"].items():
+        owner, _prefix = key.split("|", 1)
+        prefix = _genre_prefix(name)
+        if _side(owner) == "stage" and prefix:
+            out.setdefault((owner, prefix), f"loaded {name} at import")
+    return out
+
+
+def test_the_stage_classification_is_not_empty():
+    """A rename that emptied the stage side would make the next three tests vacuous."""
+    names = {n for n, _ in _stage_modules()}
+    assert {"an.stage.compile", "an.stage.props", "an.stage.render"} <= names
+
+
+def test_no_stage_module_imports_a_genre_at_module_level():
+    """Static: every top-level import of every stage module."""
+    new = {k: v for k, v in _stage_static_violations().items() if k not in STAGE_ALLOWED_TODAY}
+    assert not new, (
+        "a stage module imports genre code at module level. The stage ships in "
+        "`an` and the genre depends on `an`: register the behaviour from the "
+        "genre (a compile pass, an entity- or action-kind hook) instead:\n"
+        + "\n".join(f"  {m} -> {p}: {where}" for (m, p), where in sorted(new.items()))
+    )
+
+
+def test_importing_the_stage_loads_no_genre(stage_dynamic_violations):
+    new = {k: v for k, v in stage_dynamic_violations.items() if k not in STAGE_ALLOWED_TODAY}
+    assert not new, (
+        "importing a stage module loads genre code (attributed to the stage "
+        "module running top-level code when it loaded):\n"
+        + "\n".join(f"  {m} -> {p}: {how}" for (m, p), how in sorted(new.items()))
+    )
+
+
+def test_the_stage_allow_list_only_shrinks(stage_dynamic_violations):
+    observed = set(_stage_static_violations()) | set(stage_dynamic_violations)
+    stale = sorted(k for k in STAGE_ALLOWED_TODAY if k not in observed)
+    assert not stale, (
+        "these stage allow-list entries no longer happen; delete them so the "
+        f"next regression cannot hide under them: {stale}"
+    )
+
+
+def test_every_stage_exemption_says_what_removes_it():
+    for key, why in STAGE_ALLOWED_TODAY.items():
+        assert "an#" in why, f"{key}: cite the issue or PR that removes it"
