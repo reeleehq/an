@@ -323,7 +323,7 @@ def runtime_extensions() -> str:
     from an.genres.registry import runtime_scripts
 
     parts = [
-        f"// --- {script.name} ({script.source})\n{script.read_text()}\n"
+        f"// --- {script.name} ({script.source})\n{script.code()}\n"
         for script in runtime_scripts("stage")
     ]
     return "".join(parts)

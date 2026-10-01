@@ -165,7 +165,7 @@ def test_no_source_file_reads_text_without_pinning_the_encoding():
 
     offenders = []
     for path in sorted(list((ROOT / "tests").rglob("*.py")) + list((ROOT / "an").rglob("*.py"))):
-        if ".claude" in path.parts:
+        if ".claude" in path.relative_to(ROOT).parts:  # not the worktree it runs in
             continue
         for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             if _re.search(r"\.read_text\(\s*\)", line):
@@ -183,7 +183,7 @@ def test_no_source_file_writes_text_without_pinning_the_encoding():
 
     offenders = []
     for path in sorted(list((ROOT / "tests").rglob("*.py")) + list((ROOT / "an").rglob("*.py"))):
-        if ".claude" in path.parts:
+        if ".claude" in path.relative_to(ROOT).parts:  # not the worktree it runs in
             continue
         for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             if _re.search(r"\.write_text\([^)]*\)", line) and "encoding" not in line:

@@ -448,10 +448,10 @@ class RuntimeScript:
     engine: str = "stage"
     description: str = ""
 
-    def read_text(self) -> str:
-        """The script's code.
+    def code(self) -> str:
+        """The script's code (UTF-8).
 
-        >>> RuntimeScript("x", "an.stage.runtime:extensions.js").read_text().startswith("//")
+        >>> RuntimeScript("x", "an.stage.runtime:extensions.js").code().startswith("//")
         True
         """
         from importlib.resources import files
