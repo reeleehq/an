@@ -485,6 +485,30 @@ kyle [happy]: Then we're rich! I have a quarter!
 
 Then `an validate my_film` and `an render my_film --strict-assets`. `tests/test_skill_recipe.py` in the `an` repo runs this recipe and this scene, so they stay true.
 
+### A Manim shot: an explainer beat inside the film
+
+For a chart, an equation or a diagram that Manim draws better than cut-out art, a shot can be a **Manim scene file run as it is** (`pip install 'an[manim]'`; `manimkit check` says what else the machine needs). The file is a project asset, `assets/sources/<key>.py` (`mall["sources"]["chart"] = code_bytes`); the shot names it:
+
+````markdown
+## Shot chart (manim)
+
+```yaml shot
+options: {source: chart, scene: BarChartStory}
+```
+
+```dialogue
+narrator: Sales doubled, then fell back.
+```
+````
+
+- **Write no `duration:`.** Manim's own `play`/`wait` calls decide how long the shot runs; `an render` measures it (once per version of the file — the measurement is cached by content in `artifacts/measurements/`) and lays the film out on it. Your `scene.md` is never rewritten by a render; `an sync <dir> --accept-measured` writes the measured lengths into it (only the `duration:` lines change). A `duration:` you write that the render disagrees with is a warning, and the render wins. Size the narration to the scene's beats (`run_time=`, `self.wait()`): narration that runs past the scene holds its last frame, with a warning (`--strict-assets` refuses instead).
+- The render runs in a copy of the whole `assets/sources/` folder: a helper module beside the scene file can be imported, and a data file or image under it can be loaded by a path RELATIVE to the scene file (`ImageMobject("logos/acme.png")`); an edit to any of them re-renders. An absolute path is warned about — the cache cannot see it change.
+- `scene:` may be omitted when the file defines one `Scene`. Optional: `quality:` (`l`/`m`/`h`/`p`/`k`; default the smallest preset as tall and as fast as the film), `background:` (`#rrggbb`, pads a scene whose aspect differs from the film's), `timeout:` (seconds).
+- Everything around the shot comes from `an`: narration (a dialogue line whose speaker is not an entity), captions (sidecar only — a Manim shot has no overlay layer), `sounds` cues, transitions (a `dissolve` into or out of it works), the shot cache (an edited file re-renders; an unchanged one is reused).
+- **Look at what the render reports.** Layout problems (text cut off at the frame edge, labels overlapping, shapes off screen) are warned as `assets/sources/chart.py:14: [cut-off] …` — the line of the `play` they appeared after — with the contact sheet's path (`artifacts/contact_sheets/<sha>.png`, the settled beats tiled with their times). Open the contact sheet. A scene that fails is an error at its own line. The same findings are in `artifacts/render_reports/main.json`, and `an validate` lists them (with their `file:line`) for as long as the file is unchanged.
+- LaTeX (`MathTex`, `Tex`, numbered axes) needs a TeX install (`env.latex`); without one the scene renders until its first LaTeX use, which fails at that line — use `Text` instead.
+- Writing the scene file itself: the `manimkit` skill (storyboard, `manimkit search` for a working example to adapt, `manimkit lint`).
+
 ## When the user wants to make a video right now
 
 1. **Use the `an-spec` skill** to interview them and produce a draft `scene.md` (characters, dialogue, art style, voice intent, pacing, camera).

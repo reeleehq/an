@@ -15,7 +15,8 @@ the core and registered on import of :mod:`an.capabilities`:
   than a declared flag that could lie. ``space.<name>``: the view spaces it
   lowers (an#257), from a ``view_spaces`` member, else
   :data:`DFLT_ENGINE_VIEW_SPACES`.
-- ``environment`` — cheap probes only (``PATH`` lookups, an import spec, the
+- ``environment`` — cheap probes only (``PATH`` lookups, an import spec —
+  ``env.manim`` is ``manim`` and ``manimkit`` both importable —, the
   Playwright browser cache, the *presence* of API-key variables — never their
   values). No subprocess, no import of the probed package.
 
@@ -48,20 +49,27 @@ __all__ = [
     "ENVIRONMENT_ANALYSER_VERSION",
     "ENV_TOOLS",
     "ENV_KEYS",
+    "ENV_MODULES",
     "engine_affordances",
     "environment_affordances",
 ]
 
-ENGINE_ANALYSER_VERSION: str = "1"
-ENVIRONMENT_ANALYSER_VERSION: str = "1"
+#: "2": `engine.measure_duration` joined the derivation (an#279).
+ENGINE_ANALYSER_VERSION: str = "2"
+#: "2": `env.manim` joined the derivation (an#279).
+ENVIRONMENT_ANALYSER_VERSION: str = "2"
 
 #: Optional engine members a renderer may implement, each afforded as
 #: ``engine.<member>`` when it is a callable attribute of the renderer.
+#: ``measure_duration`` is how a whole-shot renderer that OWNS ITS CLOCK (Manim:
+#: only its own ``play``/``wait`` calls decide how long a shot runs) says so —
+#: the core asks it for the length before laying out the film (an#279).
 ENGINE_OPTIONAL_MEMBERS: tuple[str, ...] = (
     "compile",
     "preview",
     "render_frames",
     "seek",
+    "measure_duration",
 )
 
 #: ``capability: (executables, remedy)`` — afforded when any executable is on PATH.
@@ -93,6 +101,16 @@ ENV_KEYS: dict[str, tuple[tuple[str, ...], str]] = {
     ),
 }
 
+#: ``capability: (python modules, remedy)`` — afforded when EVERY module is
+#: importable (an import spec only: the module is never imported to find out).
+ENV_MODULES: dict[str, tuple[tuple[str, ...], str]] = {
+    "env.manim": (
+        ("manim", "manimkit"),
+        "pip install 'an[manim]' (Manim Community Edition and manimkit; on Linux "
+        "first `apt install libcairo2-dev libpango1.0-dev`)",
+    ),
+}
+
 ENV_BROWSER = register_capability(
     "env.browser",
     description="Playwright with a Chromium build, which the stage engine renders in",
@@ -103,6 +121,13 @@ for _name, (_exes, _remedy) in ENV_TOOLS.items():
     register_capability(
         _name,
         description=f"`{_exes[0]}` is on PATH",
+        remedy=_remedy,
+        subject="environment",
+    )
+for _name, (_modules, _remedy) in ENV_MODULES.items():
+    register_capability(
+        _name,
+        description=f"the {', '.join(_modules)} Python package(s) are importable",
         remedy=_remedy,
         subject="environment",
     )
@@ -142,7 +167,9 @@ def _real_probe() -> dict[str, Any]:
         "which": {e for e in exes if shutil.which(e)},
         "env": {v for vs, _ in ENV_KEYS.values() for v in vs if os.environ.get(v)},
         "modules": {
-            m for m in ("playwright",) if importlib.util.find_spec(m) is not None
+            m
+            for m in ("playwright", *(m for ms, _ in ENV_MODULES.values() for m in ms))
+            if importlib.util.find_spec(m) is not None
         },
         "browsers": browsers,
     }
@@ -159,6 +186,9 @@ def _derive_environment(
             out[name] = {KEYS_PARAM: found}
     for name, (variables, _) in ENV_KEYS.items():
         if any(v in probe.get("env", ()) for v in variables):
+            out[name] = {}
+    for name, (modules, _) in ENV_MODULES.items():
+        if all(m in probe.get("modules", ()) for m in modules):
             out[name] = {}
     if "playwright" in probe.get("modules", ()) and probe.get("browsers"):
         out[ENV_BROWSER.name] = {}

@@ -78,14 +78,32 @@ def validate(project_dir: str) -> str:
         return "validation: passed, no findings"
     lines = ["validation: " + ("passed" if report.passed else "FAILED")]
     for f in report.findings:
-        lines.append(f"  [{f.severity}] {f.ir_path}: {f.description}")
+        where = f" ({f.location})" if getattr(f, "location", None) else ""
+        lines.append(f"  [{f.severity}] {f.ir_path}{where}: {f.description}")
     return "\n".join(lines)
 
 
-def sync(project_dir: str) -> str:
-    """Reconcile scene.md and ir/scene.json inside ``project_dir``."""
-    result = _sync(project_dir)
+def sync(project_dir: str, accept_measured: bool = False) -> str:
+    """Reconcile scene.md and ir/scene.json inside ``project_dir``.
+
+    ``--accept-measured`` also writes the durations a clock-owning renderer
+    (Manim) MEASURED into the scene — each such shot's ``duration:`` line,
+    patched in place, so the prose around it is kept. Without it, a measured
+    duration lives only in the derived ``measurements`` store and the scene
+    says what its author wrote.
+    """
     parts = []
+    if accept_measured:
+        from an.measurements import accept_measured as _accept
+
+        accepted = _accept(project_dir)
+        parts.append(
+            "accepted measured duration(s): "
+            + ", ".join(f"{k}={v:g}s" for k, v in accepted.items())
+            if accepted
+            else "no measured duration differs from the scene's"
+        )
+    result = _sync(project_dir)
     if result.wrote_json:
         parts.append("regenerated ir/scene.json from scene.md")
     if result.wrote_md:

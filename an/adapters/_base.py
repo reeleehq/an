@@ -157,6 +157,49 @@ class Renderer(Protocol):
         """Render a single shot to mp4. Idempotent given identical inputs."""
 
 
+@dataclass(slots=True)
+class DurationMeasurement:
+    """How long a clock-owning renderer's shot runs, as MEASURED (derived data).
+
+    ``duration`` is the content's own length in seconds. ``findings`` are
+    :class:`~an.verify.Finding` s about the shot whose ``ir_path`` is RELATIVE to
+    the shot (``"options/source"``) — the core prefixes ``timeline/<i>/``.
+    ``key`` is the content key the measurement is stored under.
+    """
+
+    duration: float
+    findings: list[Any] = field(default_factory=list)
+    key: str | None = None
+
+
+@runtime_checkable
+class ClockOwningRenderer(Renderer, Protocol):
+    """A whole-shot renderer that decides how long its shot runs (core study §4.2).
+
+    Manim is one: only the scene file's own ``play`` and ``wait`` calls fix its
+    length, so ``shot.duration`` cannot be authored. The capability is the
+    MEMBER — ``engine.measure_duration`` is derived from it, never declared
+    (ADR 0002). The measurement is DERIVED data: it is kept in a derived store
+    keyed by the shot's content, never written into the author's documents, and
+    the core applies it in memory (:func:`an.measurements.settle_durations`)
+    before laying out the film — so the layout is a pure function of the IR and
+    the measurements. ``an sync --accept-measured`` takes it into the scene on
+    request.
+    """
+
+    def measure_duration(
+        self,
+        shot: Shot,
+        ctx: RenderContext,
+        *,
+        render: bool = True,
+        force: bool = False,
+    ) -> DurationMeasurement | None:
+        """The shot's measured length. With ``render=False``, only a stored
+        measurement (``None`` when there is none yet); with ``force=True``,
+        measured afresh even when one is stored."""
+
+
 # -----------------------------------------------------------------------------
 # Registry
 # -----------------------------------------------------------------------------

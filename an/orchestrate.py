@@ -72,8 +72,23 @@ def validate_project(project_dir: str | Path) -> ValidationReport:
         report.add("error", "scene.md", f"scene.md does not parse: {e}")
         return report
     schema_report = validate_schema(project.scene)
+    # Clock-owned shots (Manim) are judged at their MEASURED length, from the
+    # derived store only — validate never renders (an#279).
+    from an.measurements import render_context_for, settle_durations
+
+    try:
+        scene, measured = settle_durations(
+            project.scene, render_context_for(project), render=False
+        )
+    except Exception as e:  # noqa: BLE001 — a finding, never a traceback
+        scene, measured = project.scene, []
+        schema_report.add(
+            "warning", "timeline", f"measured durations could not be read: {e}"
+        )
+    for f in measured:
+        schema_report.add(f.severity, f.ir_path, f.description, location=f.location)
     semantic_report = validate_semantic(
-        project.scene,
+        scene,
         available_voices=project.mall.get("voices"),
         available_characters=project.mall.get("characters"),
         available_props=project.mall.get("props"),
@@ -178,15 +193,20 @@ def orchestrate(
     from an.adapters._base import RenderResult
 
     from an.assemble import film_duration
+    from an.measurements import render_context_for, settle_durations
 
+    # The scene AS RENDERED: clock-owned shots at their measured length, from
+    # the derived store the render just filled (an#279).
+    scene, _ = settle_durations(project.scene, render_context_for(project), render=False)
     # The DELIVERED length: a dissolve overlaps its shots (an#163), so the
     # film can be shorter than meta.duration's sum of shots.
-    rr = RenderResult(
-        mp4_path=report.output_path, duration=film_duration(project.scene)
-    )
+    rr = RenderResult(mp4_path=report.output_path, duration=film_duration(scene))
+    # What the render itself found (a Manim shot's layout warnings, located by
+    # file:line; a held last frame) — `render_reports/<output>.json` (an#279).
+    report.merge_verification(_render_report(project.mall, output_name))
     for v in verifiers:
         try:
-            vr = v.verify(project.scene, rr)
+            vr = v.verify(scene, rr)
             report.merge_verification(vr)
         except Exception as e:
             partial = VerificationReport()
@@ -195,6 +215,25 @@ def orchestrate(
             )
             report.merge_verification(partial)
 
+    return report
+
+
+def _render_report(mall, output_name: str) -> VerificationReport:
+    """The findings ``an render`` recorded for ``output_name``, as a report."""
+    import json
+
+    report = VerificationReport()
+    store = mall.get("render_reports")
+    if store is None or output_name not in store:
+        return report
+    for f in json.loads(store[output_name]).get("findings", []):
+        report.add(
+            f["severity"],
+            f["ir_path"],
+            f["description"],
+            f.get("suggested_fix"),
+            location=f.get("location"),
+        )
     return report
 
 

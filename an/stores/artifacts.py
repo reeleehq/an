@@ -102,6 +102,42 @@ class OutputStore(_BlobStore):
     EXT = "mp4"
 
 
+class ContactSheetStore(_BlobStore):
+    """Contact sheets (.png): frames of a render at its settled beats, labelled
+    with their time, for a person or an agent to LOOK at (core study §2.10).
+
+    Content-addressed — the key is the sha256 of the PNG bytes — so a shot whose
+    render is reused from the shot cache still points at its sheet through the
+    cached provenance, and two shots with one picture share one file."""
+
+    EXT = "png"
+
+
+class MeasurementStore(_BlobStore):
+    """Measurements a clock-owning renderer made of its content (.json bytes),
+    keyed by that content's key — DERIVED data, never the author's (an#279):
+    a Manim shot's length, its timeline of beats, its findings."""
+
+    EXT = "json"
+
+
+class PictureStore(_BlobStore):
+    """An opaque renderer's raw picture (.mp4), keyed by its content key — a
+    Manim scene's own render, before it is conformed to a film's fps and size,
+    so a change that is not to the picture (narration, fps) does not run Manim
+    again (an#279)."""
+
+    EXT = "mp4"
+
+
+class RenderReportStore(_BlobStore):
+    """What a render found (.json), keyed like the output it describes —
+    ``render_reports["main"]`` — so ``orchestrate`` and MCP read the findings
+    that ``an render`` warned (an#279)."""
+
+    EXT = "json"
+
+
 class CaptionsStore(_BlobStore):
     """SubRip caption sidecars (.srt, UTF-8 bytes), keyed like the output they
     caption — ``captions["main"]`` is ``output/main.srt`` (an#175)."""
